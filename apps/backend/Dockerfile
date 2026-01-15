@@ -35,6 +35,10 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
 
+# --- FIX: Install pnpm in the production stage ---
+RUN npm install -g pnpm
+# -------------------------------------------------
+
 # Create app directory
 WORKDIR /app
 

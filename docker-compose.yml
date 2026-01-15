@@ -3,15 +3,15 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: jobly_admin
-      POSTGRES_PASSWORD: securepassword
-      POSTGRES_DB: jobly
+      POSTGRES_USER: jobly        # <--- Updated Username
+      POSTGRES_PASSWORD: jobly    # <--- Updated Password
+      POSTGRES_DB: jobly_db       # Default database name
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d main_db"]
+      test: ["CMD-SHELL", "pg_isready -U jobly -d jobly_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,11 +23,11 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "3001:3001" # API
-      - "3002:3002" # Admin UI
+      - "3001:3001"
+      - "3002:3002"
     environment:
       TRUST_PROXY_HEADER: "1"
-      DB_URL: postgres://jobly_admin:jobly_password@postgres:5432/logto
+      DB_URL: postgres://jobly:jobly@postgres:5432/jobly_db
       ENDPOINT: http://localhost:3001
       ADMIN_ENDPOINT: http://localhost:3002
     entrypoint: ["/bin/sh", "-c"]
@@ -44,9 +44,12 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://user:password@postgres:5432/main_db
+      DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
+      NODE_ENV: production
+    command: ["node", "dist/main"]
 
   # --- WEB FRONTEND ---
   web:
