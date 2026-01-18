@@ -1,0 +1,17 @@
+{
+  "name": "@jobly/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "run-android": "node ../../node_modules/react-native/cli.js run-android",
+    "run-ios": "node ../../node_modules/react-native/cli.js run-ios"
+  },
+  "dependencies": {
+    "@react-native/metro-config": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-svg": "*",
+    "metro-config": "*"
+  }
+}
