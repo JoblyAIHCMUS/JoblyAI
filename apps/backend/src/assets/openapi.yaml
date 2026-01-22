@@ -1,0 +1,1318 @@
+openapi: 3.1.0
+info:
+  title: Jobly AI API
+  version: 0.1.0
+  description: |
+    OpenAPI contract for Jobly AI — smart job matching & career assistant.
+    Conventions:
+    - All responses follow the envelope with fields: success, code, message, data?, error?
+    - Use bearer JWT auth unless noted; service-to-service calls can use x-api-key.
+servers:
+  - url: http://localhost:3000/api
+    description: Local
+  - url: https://api.jobly.ai/v1
+    description: Production
+  - url: https://staging-api.jobly.ai/v1
+    description: Staging
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: Authentication and registration
+  - name: Candidates
+    description: Candidate profile and CV analysis
+  - name: Employers
+    description: Employer profile and job management
+  - name: Jobs
+    description: Job discovery and management
+  - name: Applications
+    description: Applying and managing application lifecycle
+  - name: Chat
+    description: In-app messaging
+  - name: Analytics
+    description: Insights for candidates and employers
+  - name: InterviewAssistant
+    description: AI-generated interview questions
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and obtain JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /candidates/me:
+    get:
+      tags: [Candidates]
+      summary: Get current candidate profile
+      responses:
+        '200':
+          description: Candidate profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Candidates]
+      summary: Update candidate profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateProfileResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /candidates/me/resume:
+    post:
+      tags: [Candidates]
+      summary: Upload resume for analysis
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Resume analyzed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CVAnalysisResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /candidates/me/recommendations:
+    get:
+      tags: [Candidates]
+      summary: Get personalized job recommendations
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Recommendations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /employers/me:
+    get:
+      tags: [Employers]
+      summary: Get current employer profile
+      responses:
+        '200':
+          description: Employer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployerProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Employers]
+      summary: Update employer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployerProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated employer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployerProfileResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /jobs:
+    get:
+      tags: [Jobs]
+      summary: List jobs with filters
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Free text search
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [full-time, part-time, contract, internship]
+        - name: remote
+          in: query
+          schema:
+            type: boolean
+        - name: skills
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+      responses:
+        '200':
+          description: Paginated jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListResponse'
+    post:
+      tags: [Jobs]
+      summary: Create a job (employer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobCreateRequest'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /jobs/{id}:
+    get:
+      tags: [Jobs]
+      summary: Get job by id
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Jobs]
+      summary: Update job by id
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobUpdateRequest'
+      responses:
+        '200':
+          description: Job updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Jobs]
+      summary: Delete job by id
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '204':
+          description: Job deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /applications:
+    post:
+      tags: [Applications]
+      summary: Apply to a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateRequest'
+      responses:
+        '201':
+          description: Application created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags: [Applications]
+      summary: List my applications (candidate)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /employers/applications:
+    get:
+      tags: [Applications]
+      summary: List applications for employer jobs
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ApplicationStatus'
+      responses:
+        '200':
+          description: Employer-side applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /employers/shortlist/{applicationId}:
+    post:
+      tags: [Applications]
+      summary: Mark application as shortlisted
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+      responses:
+        '200':
+          description: Application updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /employers/reject/{applicationId}:
+    post:
+      tags: [Applications]
+      summary: Reject application with feedback
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationFeedbackRequest'
+      responses:
+        '200':
+          description: Application rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /chat/threads:
+    get:
+      tags: [Chat]
+      summary: List chat threads
+      responses:
+        '200':
+          description: Threads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Chat]
+      summary: Create a chat thread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadCreateRequest'
+      responses:
+        '201':
+          description: Thread created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /chat/threads/{id}/messages:
+    get:
+      tags: [Chat]
+      summary: List messages in a thread
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Chat]
+      summary: Send a message
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreateRequest'
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /analytics/candidate:
+    get:
+      tags: [Analytics]
+      summary: Candidate analytics snapshot
+      responses:
+        '200':
+          description: Candidate analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /analytics/employer:
+    get:
+      tags: [Analytics]
+      summary: Employer analytics snapshot
+      responses:
+        '200':
+          description: Employer analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /interview/questions:
+    post:
+      tags: [InterviewAssistant]
+      summary: Generate interview questions for a role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewQuestionRequest'
+      responses:
+        '200':
+          description: Generated questions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewQuestionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+      description: Comma separated field:direction pairs
+    JobId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ApplicationId:
+      name: applicationId
+      in: path
+      required: true
+      schema:
+        type: string
+    ThreadId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    BaseResponse:
+      type: object
+      required: [success, code, message]
+      properties:
+        success:
+          type: boolean
+        code:
+          type: string
+          description: Stable application code (e.g., OK, VALIDATION_ERROR)
+        message:
+          type: string
+        traceId:
+          type: string
+          description: Correlates errors to logs
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [success, code, message]
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: object
+              properties:
+                details:
+                  description: Arbitrary validation or domain error details
+                traceId:
+                  type: string
+    PaginatedMeta:
+      type: object
+      required: [page, pageSize, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+    AuthToken:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+    User:
+      type: object
+      required: [id, email, role, createdAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [candidate, employer, admin]
+        name:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+    CandidateProfile:
+      type: object
+      required: [id, userId]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        headline:
+          type: string
+        summary:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        links:
+          type: array
+          items:
+            type: string
+            format: uri
+        resumeUrl:
+          type: string
+          format: uri
+        visibility:
+          type: string
+          enum: [public, private, connections]
+    WorkExperience:
+      type: object
+      properties:
+        title:
+          type: string
+        company:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        description:
+          type: string
+    Education:
+      type: object
+      properties:
+        school:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+    EmployerProfile:
+      type: object
+      required: [id, userId, companyName]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        companyName:
+          type: string
+        companySize:
+          type: string
+          enum: [1-10, 11-50, 51-200, 201-1000, 1000+]
+        industry:
+          type: string
+        website:
+          type: string
+          format: uri
+        locations:
+          type: array
+          items:
+            type: string
+        verified:
+          type: boolean
+    Job:
+      type: object
+      required: [id, employerId, title, description, type, status, createdAt]
+      properties:
+        id:
+          type: string
+        employerId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        salaryRange:
+          $ref: '#/components/schemas/SalaryRange'
+        location:
+          type: string
+        type:
+          type: string
+          enum: [full-time, part-time, contract, internship]
+        remote:
+          type: boolean
+        status:
+          type: string
+          enum: [draft, published, closed]
+        createdAt:
+          type: string
+          format: date-time
+    SalaryRange:
+      type: object
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+        currency:
+          type: string
+          example: USD
+        period:
+          type: string
+          enum: [year, month, hour]
+    Application:
+      type: object
+      required: [id, jobId, candidateId, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        jobId:
+          type: string
+        candidateId:
+          type: string
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        score:
+          type: number
+          format: float
+          description: AI fit score in range 0-1
+          minimum: 0
+          maximum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ApplicationStatus:
+      type: string
+      enum: [draft, applied, viewed, interviewing, offered, rejected]
+    CVAnalysis:
+      type: object
+      properties:
+        id:
+          type: string
+        candidateId:
+          type: string
+        uploadId:
+          type: string
+        score:
+          type: number
+        strengths:
+          type: array
+          items:
+            type: string
+        weaknesses:
+          type: array
+          items:
+            type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        missingSkills:
+          type: array
+          items:
+            type: string
+        readability:
+          type: number
+          description: Readability score 0-1
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVSection'
+    CVSection:
+      type: object
+      properties:
+        name:
+          type: string
+        score:
+          type: number
+        feedback:
+          type: string
+    Recommendation:
+      type: object
+      properties:
+        jobId:
+          type: string
+        matchScore:
+          type: number
+        reasons:
+          type: array
+          items:
+            type: string
+        missingSkills:
+          type: array
+          items:
+            type: string
+    Message:
+      type: object
+      required: [id, threadId, senderId, text, createdAt]
+      properties:
+        id:
+          type: string
+        threadId:
+          type: string
+        senderId:
+          type: string
+        text:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+    Thread:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        participants:
+          type: array
+          items:
+            type: string
+        lastMessageAt:
+          type: string
+          format: date-time
+    AnalyticsSnapshot:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            type: number
+        trends:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendPoint'
+    TrendPoint:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: number
+        delta:
+          type: number
+    InterviewQuestion:
+      type: object
+      properties:
+        question:
+          type: string
+        rationale:
+          type: string
+    RegisterRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [candidate, employer]
+        name:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Authenticated
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+                tokens:
+                  $ref: '#/components/schemas/AuthToken'
+    CandidateProfileUpdateRequest:
+      type: object
+      properties:
+        headline:
+          type: string
+        summary:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        links:
+          type: array
+          items:
+            type: string
+            format: uri
+        visibility:
+          type: string
+          enum: [public, private, connections]
+    CandidateProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Profile retrieved
+            data:
+              $ref: '#/components/schemas/CandidateProfile'
+    EmployerProfileUpdateRequest:
+      type: object
+      properties:
+        companyName:
+          type: string
+        companySize:
+          type: string
+          enum: [1-10, 11-50, 51-200, 201-1000, 1000+]
+        industry:
+          type: string
+        website:
+          type: string
+          format: uri
+        locations:
+          type: array
+          items:
+            type: string
+    EmployerProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Employer profile retrieved
+            data:
+              $ref: '#/components/schemas/EmployerProfile'
+    JobCreateRequest:
+      type: object
+      required: [title, description, type]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        salaryRange:
+          $ref: '#/components/schemas/SalaryRange'
+        location:
+          type: string
+        type:
+          type: string
+          enum: [full-time, part-time, contract, internship]
+        remote:
+          type: boolean
+    JobUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/JobCreateRequest'
+    JobResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Job retrieved
+            data:
+              $ref: '#/components/schemas/Job'
+    JobListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Jobs retrieved
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Job'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    ApplicationCreateRequest:
+      type: object
+      required: [jobId, resumeId]
+      properties:
+        jobId:
+          type: string
+        coverLetter:
+          type: string
+        resumeId:
+          type: string
+          description: Stored resume identifier (replaces resume URL)
+    ApplicationFeedbackRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+        tips:
+          type: string
+    ApplicationResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Application updated
+            data:
+              $ref: '#/components/schemas/Application'
+    ApplicationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Applications retrieved
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Application'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    CVAnalysisResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: CV analyzed
+            data:
+              $ref: '#/components/schemas/CVAnalysis'
+    RecommendationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Recommendations retrieved
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Recommendation'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    ThreadCreateRequest:
+      type: object
+      required: [participantIds]
+      properties:
+        participantIds:
+          type: array
+          items:
+            type: string
+    ThreadResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Thread'
+    ThreadListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Thread'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    MessageCreateRequest:
+      type: object
+      required: [text, senderRole]
+      properties:
+        text:
+          type: string
+        senderRole:
+          type: string
+          enum: [candidate, employer]
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+    MessageResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Message'
+    MessageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Message'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    AnalyticsResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AnalyticsSnapshot'
+    InterviewQuestionRequest:
+      type: object
+      required: [jobId]
+      properties:
+        jobId:
+          type: string
+        description:
+          type: string
+        seniority:
+          type: string
+          enum: [junior, mid, senior, lead]
+    InterviewQuestionResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/InterviewQuestion'
