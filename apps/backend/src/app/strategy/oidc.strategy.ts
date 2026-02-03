@@ -1,29 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Issuer, Client } from 'openid-client';
+import passport from 'passport';
+import OpenIDConnectStrategy, { type Profile, type VerifyCallback } from 'passport-openidconnect';
 
-@Injectable()
-export class OidcStrategy extends PassportStrategy(Strategy, 'oidc') {
-  constructor() {
-    // This is a simplified logic to initialize the client
-    const issuer = await Issuer.discover(process.env.LOGTO_URL || 'http://localhost:3001/oidc');
-    const client = new issuer.Client({
-      client_id: 'YOUR_CLIENT_ID',
-      client_secret: 'YOUR_CLIENT_SECRET',
-      redirect_uris: ['http://localhost:3000/auth/callback'],
-      response_types: ['code'],
-    });
+const endpoint = process.env.LOGTO_ENDPOINT || 'http://localhost:3001';
+const appId = process.env.LOGTO_CLIENT_ID || 'your_id';
+const appSecret = process.env.LOGTO_CLIENT_SECRET || 'your_secret';
 
-    super({
-      client,
-      params: {
-        scope: 'openid profile email',
+export default function initPassport() {
+  passport.use(
+    new OpenIDConnectStrategy(
+      {
+        issuer: `${endpoint}/oidc`,
+        authorizationURL: `${endpoint}/oidc/auth`,
+        tokenURL: `${endpoint}/oidc/token`,
+        userInfoURL: `${endpoint}/oidc/me`,
+        clientID: appId,
+        clientSecret: appSecret,
+        callbackURL: '/callback',
+        scope: ['profile', 'offline_access'],
       },
-    });
-  }
+      (issuer: string, profile: Profile, callback: VerifyCallback) => {
+        callback(null, profile);
+      }
+    )
+  );
 
-  async validate(tokenset: any): Promise<any> {
-    const userinfo = await this.client.userinfo(tokenset.access_token);
-    return userinfo;
-  }
+  passport.serializeUser((user, callback) => {
+    callback(null, user);
+  });
+
+  passport.deserializeUser(function (user, callback) {
+    callback(null, user as Express.User);
+  });
 }
