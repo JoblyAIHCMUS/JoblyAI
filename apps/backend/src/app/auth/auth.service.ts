@@ -15,7 +15,7 @@ export class AuthService {
       // interaction_mode: 'signUp' tells Logto to show the Register tab first
       interaction_mode: 'signUp',
       // The redirect_uri must match exactly what you saved in Logto Console
-      redirect_uri: 'http://localhost:3000/api/auth/callback/logto',
+      redirect_uri: process.env.LOGTO_REDIRECT_URI || 'http://localhost:3000/auth/callback',
     });
   }
 }
