@@ -243,12 +243,21 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.0
         version: 11.1.11(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/platform-express@11.1.11)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/passport':
+        specifier: ^11.0.5
+        version: 11.0.5(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(passport@0.7.0)
       '@nestjs/platform-express':
         specifier: ^11.0.0
         version: 11.1.11(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.11)
       '@nestjs/swagger':
         specifier: ^11.2.5
         version: 11.2.5(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.11)(reflect-metadata@0.1.14)
+      openid-client:
+        specifier: ^6.8.1
+        version: 6.8.1
+      passport:
+        specifier: ^0.7.0
+        version: 0.7.0
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.14
@@ -2158,6 +2167,12 @@ packages:
         optional: true
       class-validator:
         optional: true
+
+  '@nestjs/passport@11.0.5':
+    resolution: {integrity: sha512-ulQX6mbjlws92PIM15Naes4F4p2JoxGnIJuUsdXQPT+Oo2sqQmENEZXM7eYuimocfHnKlcfZOuyzbA33LwUlOQ==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      passport: ^0.5.0 || ^0.6.0 || ^0.7.0
 
   '@nestjs/platform-express@11.1.11':
     resolution: {integrity: sha512-kyABSskdMRIAMWL0SlbwtDy4yn59RL4HDdwHDz/fxWuv7/53YP8Y2DtV3/sHqY5Er0msMVTZrM38MjqXhYL7gw==}
@@ -6603,6 +6618,9 @@ packages:
   joi@17.13.3:
     resolution: {integrity: sha512-otDA4ldcIx+ZXsKHWmp0YizCweVRZG96J10b0FevjfuncLO1oX59THoAmHkNubYJ+9gWsYsp5k8v4ib6oDv1fA==}
 
+  jose@6.1.3:
+    resolution: {integrity: sha512-0TpaTfihd4QMNwrz/ob2Bp7X04yuxJkjRGi4aKmOqwhov54i6u79oCv7T+C7lo70MKH6BesI3vscD1yb/yzKXQ==}
+
   js-message@1.0.7:
     resolution: {integrity: sha512-efJLHhLjIyKRewNS9EGZ4UpI8NguuL6fKkhRxVuMmrGV2xN/0APGdQYwLFky5w9naebSZ0OwAGp0G6/2Cg90rA==}
     engines: {node: '>=0.6.0'}
@@ -7325,6 +7343,9 @@ packages:
       '@swc/core':
         optional: true
 
+  oauth4webapi@3.8.3:
+    resolution: {integrity: sha512-pQ5BsX3QRTgnt5HxgHwgunIRaDXBdkT23tf8dfzmtTIL2LTpdmxgbpbBm0VgFWAIDlezQvQCTgnVIUmHupXHxw==}
+
   ob1@0.82.5:
     resolution: {integrity: sha512-QyQQ6e66f+Ut/qUVjEce0E/wux5nAGLXYZDn1jr15JWstHsCH3l6VVrg8NKDptW9NEiBXKOJeGF/ydxeSDF3IQ==}
     engines: {node: '>=18.18'}
@@ -7412,6 +7433,9 @@ packages:
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
+
+  openid-client@6.8.1:
+    resolution: {integrity: sha512-VoYT6enBo6Vj2j3Q5Ec0AezS+9YGzQo1f5Xc42lreMGlfP4ljiXPKVDvCADh+XHCV/bqPu/wWSiCVXbJKvrODw==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -7517,6 +7541,14 @@ packages:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
 
+  passport-strategy@1.0.0:
+    resolution: {integrity: sha512-CB97UUvDKJde2V0KDWWB3lyf6PC3FaZP7YxZ2G8OAtn9p4HI9j9JLP9qjOGZFvyl8uwNT8qM+hGnz/n16NI7oA==}
+    engines: {node: '>= 0.4.0'}
+
+  passport@0.7.0:
+    resolution: {integrity: sha512-cPLl+qZpSc+ireUvt+IzqbED1cHHkDoVYMo30jbJIdOOjQ1MQYZBPiNvmi8UM6lJuOpTPXJGZQk0DtC4y61MYQ==}
+    engines: {node: '>= 0.4.0'}
+
   path-dirname@1.0.2:
     resolution: {integrity: sha512-ALzNPpyNq9AqXMBjeymIjFDAkAFH06mHJH/cSBHAgU0s4vfpBn6b2nf8tiRLvagKD8RbTpq2FKTBg7cl9l3c7Q==}
 
@@ -7559,6 +7591,9 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  pause@0.0.1:
+    resolution: {integrity: sha512-KG8UEiEVkR3wGEb4m5yZkVCzigAD+cVEJck2CzYZO37ZGJfctvVptVO192MwrtPhzONn6go8ylnOdMhKqi4nfg==}
 
   pend@1.2.0:
     resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
@@ -12088,6 +12123,11 @@ snapshots:
     dependencies:
       '@nestjs/common': 11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2)
       reflect-metadata: 0.1.14
+
+  '@nestjs/passport@11.0.5(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(passport@0.7.0)':
+    dependencies:
+      '@nestjs/common': 11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      passport: 0.7.0
 
   '@nestjs/platform-express@11.1.11(@nestjs/common@11.1.11(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.11)':
     dependencies:
@@ -17970,6 +18010,8 @@ snapshots:
       '@sideway/formula': 3.0.1
       '@sideway/pinpoint': 2.0.0
 
+  jose@6.1.3: {}
+
   js-message@1.0.7:
     optional: true
 
@@ -18837,6 +18879,8 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  oauth4webapi@3.8.3: {}
+
   ob1@0.82.5:
     dependencies:
       flow-enums-runtime: 0.0.6
@@ -18935,6 +18979,11 @@ snapshots:
       is-wsl: 2.2.0
 
   opener@1.5.2: {}
+
+  openid-client@6.8.1:
+    dependencies:
+      jose: 6.1.3
+      oauth4webapi: 3.8.3
 
   optionator@0.9.4:
     dependencies:
@@ -19055,6 +19104,14 @@ snapshots:
 
   parseurl@1.3.3: {}
 
+  passport-strategy@1.0.0: {}
+
+  passport@0.7.0:
+    dependencies:
+      passport-strategy: 1.0.0
+      pause: 0.0.1
+      utils-merge: 1.0.1
+
   path-dirname@1.0.2: {}
 
   path-exists@4.0.0: {}
@@ -19084,6 +19141,8 @@ snapshots:
   path-type@4.0.0: {}
 
   pathe@2.0.3: {}
+
+  pause@0.0.1: {}
 
   pend@1.2.0: {}
 
