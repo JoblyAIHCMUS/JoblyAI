@@ -28,6 +28,12 @@ COPY apps/backend ./apps/backend
 RUN pnpm exec nx sync --yes
 RUN pnpm exec nx build backend
 
+# Development stage (precompile before running dev server)
+FROM base AS development
+ENV NODE_ENV=development
+WORKDIR /app
+CMD ["sh", "-c", "pnpm install --frozen-lockfile && pnpm exec nx build @jobly/backend:development && pnpm exec nx run @jobly/backend:start:dev"]
+
 # Production stage
 FROM node:22-alpine AS production
 

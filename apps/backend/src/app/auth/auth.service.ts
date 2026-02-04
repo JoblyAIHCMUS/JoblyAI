@@ -1,21 +1,42 @@
-import { Injectable, Inject } from '@nestjs/common';
-import type { Client } from 'openid-client';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject('LogtoClient') private readonly logtoClient: Client) {}
+	private buildAuthUrl(params: Record<string, string>): string {
+		const baseEndpoint =
+			process.env.LOGTO_PUBLIC_ENDPOINT ||
+			process.env.LOGTO_ENDPOINT ||
+			'http://localhost:3001';
+		const normalizedEndpoint = baseEndpoint.replace(/\/+$/, '');
+		const url = new URL(`${normalizedEndpoint}/oidc/auth`);
 
-  /**
-   * Generates a URL to redirect the user directly to the
-   * Logto Registration (Sign-up) screen.
-   */
-  getRegisterUrl(): string {
-    return this.logtoClient.authorizationUrl({
-      scope: 'openid profile email',
-      // interaction_mode: 'signUp' tells Logto to show the Register tab first
-      interaction_mode: 'signUp',
-      // The redirect_uri must match exactly what you saved in Logto Console
-      redirect_uri: 'http://localhost:3000/auth/callback',
-    });
-  }
+		Object.entries(params).forEach(([key, value]) => {
+			url.searchParams.set(key, value);
+		});
+
+		return url.toString();
+	}
+
+	getRegisterUrl(): string {
+		return this.buildAuthUrl({
+			client_id: process.env.LOGTO_CLIENT_ID || '',
+			response_type: 'code',
+			scope: 'openid profile email',
+			interaction_mode: 'signUp',
+			redirect_uri:
+				process.env.LOGTO_REDIRECT_URI ||
+				'http://localhost:3000/api/auth/callback/logto',
+		});
+	}
+
+	getLoginUrl(): string {
+		return this.buildAuthUrl({
+			client_id: process.env.LOGTO_CLIENT_ID || '',
+			response_type: 'code',
+			scope: 'openid profile email',
+			redirect_uri:
+				process.env.LOGTO_REDIRECT_URI ||
+				'http://localhost:3000/api/auth/callback/logto',
+		});
+	}
 }
