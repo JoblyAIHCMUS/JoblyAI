@@ -10,13 +10,10 @@ import { AuthLeftColumn } from '@/components/auth/AuthLeftColumn';
 import { AuthTabs } from '@/components/auth/AuthTabs';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 
-export default function SignupPage() {
+export default function LoginPage() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -32,12 +29,6 @@ export default function SignupPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -45,11 +36,6 @@ export default function SignupPage() {
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     setErrors(newErrors);
@@ -72,7 +58,7 @@ export default function SignupPage() {
         <div className="grid gap-8 lg:grid-cols-2 items-center">
           <AuthLeftColumn />
 
-          {/* Right Column - Sign Up Form */}
+          {/* Right Column - Login Form */}
           <div className="flex items-center justify-center">
           <Card className="w-full max-w-md border bg-white p-8 shadow-sm">
             <AuthTabs
@@ -81,11 +67,11 @@ export default function SignupPage() {
                 <div className="space-y-3">
                   <div className='mt-3'>
                     <h2 className="mb-2 text-center text-2xl font-bold text-foreground">
-                      Get more opportunities
+                      Welcome Back
                     </h2>
                   </div>
 
-                  <GoogleAuthButton variant="signup" />
+                  <GoogleAuthButton variant="login" />
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -93,49 +79,13 @@ export default function SignupPage() {
                     </div>
                     <div className="relative flex justify-center text-sm">
                       <span className="bg-white px-2 text-muted-foreground">
-                        Or sign up with email
+                        Or login with email
                       </span>
                     </div>
                   </div>
 
                   {/* Email Form */}
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Name Fields */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-sm font-semibold">
-                          First Name
-                        </Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          placeholder="Enter your first name"
-                          value={formData.firstName}
-                          onChange={handleChange}
-                          className="border-border"
-                        />
-                        {errors.firstName && (
-                          <p className="text-xs text-red-600">{errors.firstName}</p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-sm font-semibold">
-                          Last Name
-                        </Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          placeholder="Enter your last name"
-                          value={formData.lastName}
-                          onChange={handleChange}
-                          className="border-border"
-                        />
-                        {errors.lastName && (
-                          <p className="text-xs text-red-600">{errors.lastName}</p>
-                        )}
-                      </div>
-                    </div>
-
                     {/* Email Field */}
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-semibold">
@@ -157,9 +107,14 @@ export default function SignupPage() {
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-sm font-semibold">
-                        Password
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password" className="text-sm font-semibold">
+                          Password
+                        </Label>
+                        <a href="/forgot-password" className="text-xs font-semibold text-accent-link hover:text-[color:var(--indigo-700)]">
+                          Forgot password?
+                        </a>
+                      </div>
                       <Input
                         id="password"
                         name="password"
@@ -174,51 +129,29 @@ export default function SignupPage() {
                       )}
                     </div>
 
-                    {/* Confirm Password Field */}
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="confirmPassword"
-                        className="text-sm font-semibold"
-                      >
-                        Confirm Password
-                      </Label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Re-enter password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        className="border-border"
-                      />
-                      {errors.confirmPassword && (
-                        <p className="text-xs text-red-600">{errors.confirmPassword}</p>
-                      )}
-                    </div>
-
                     {/* Submit Button */}
                     <Button
                       type="submit"
                       className="w-full bg-accent-solid py-6 text-base font-semibold hover:bg-[color:var(--bg-accent-solid-hover)]"
                       size="lg"
                     >
-                      Continue
+                      Login
                     </Button>
                   </form>
 
-                  {/* Sign In Link */}
+                  {/* Sign Up Link */}
                   <div className="text-center text-sm">
                     <span className="text-muted-foreground">
-                      Already have an account?{' '}
+                      Don't have an account?{' '}
                     </span>
-                    <a href="/login" className="font-semibold text-accent-link hover:text-[color:var(--indigo-700)]">
-                      Login
+                    <a href="/signup" className="font-semibold text-accent-link hover:text-[color:var(--indigo-700)]">
+                      Sign Up
                     </a>
                   </div>
 
                   {/* Legal Text */}
                   <p className="text-center text-xs text-muted-foreground">
-                    By clicking 'Continue', you acknowledge that you have read and accept
+                    By clicking 'Login', you acknowledge that you have read and accept
                     the{' '}
                     <a href="#" className="text-accent-link hover:underline">
                       Terms of Service
@@ -234,11 +167,11 @@ export default function SignupPage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="mb-2 text-2xl font-bold text-foreground">
-                      Grow your team
+                      Company Login
                     </h2>
                   </div>
                   <p className="text-muted-foreground">
-                    Company signup form coming soon...
+                    Company login form coming soon...
                   </p>
                 </div>
               }
