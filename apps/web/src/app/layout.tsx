@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
+import { Providers } from './providers';
 import './global.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           inter.variable
         )}
       >
-        <main className="min-h-screen">{children}</main>
+        <Providers>
+          <main className="min-h-screen">{children}</main>
+        </Providers>
       </body>
     </html>
   );
