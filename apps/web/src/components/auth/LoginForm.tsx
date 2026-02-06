@@ -30,15 +30,9 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    login(data, {
-      onSuccess: () => {
-        router.push('/dashboard');
-      },
-      onError: (error: any) => {
-        const message = error?.response?.data?.message || 'Login failed. Please try again.';
-        setError('email', { message });
-      },
-    });
+    // Form validation passes, but we ignore the actual credentials
+    // and redirect to the backend's Logto OIDC flow instead
+    login(data);
   };
 
   return (

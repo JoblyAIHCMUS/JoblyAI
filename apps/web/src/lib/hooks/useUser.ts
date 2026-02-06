@@ -17,7 +17,7 @@ export function useUser(): UseQueryResult<User | null, Error> {
     queryKey: ['user'],
     queryFn: async () => {
       try {
-        const { data } = await apiClient.get<User>('/api/auth/me');
+        const { data } = await apiClient.get<User>('/auth/me');
         return data;
       } catch (error: unknown) {
         // Handle 401 as "not authenticated" (not an error)

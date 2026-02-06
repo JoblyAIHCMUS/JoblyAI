@@ -1,9 +1,17 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards, UnauthorizedException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { LogtoDebugGuard, LogtoRegisterGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
+  @Get('me')
+  getMe(@Req() req: Request & { user?: any }) {
+    if (!req.user) {
+      throw new UnauthorizedException('Not authenticated');
+    }
+    return req.user;
+  }
+
   @Get('login')
   @UseGuards(LogtoDebugGuard)
   login() {
@@ -21,8 +29,9 @@ export class AuthController {
       return res.status(401).json({ message: 'Missing user id' });
     }
     // TODO: If you later need to call Logto APIs (e.g., manage users), store and refresh tokens here.
-    // Redirect to dashboard
-    return res.redirect('/dashboard');
+    // Redirect to frontend dashboard
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}/dashboard`);
   }
 
   @Get('register')

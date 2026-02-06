@@ -45,26 +45,13 @@ export function SignupForm() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    // Combine first and last name
-    const fullName = `${data.firstName} ${data.lastName}`;
-    
-    signup(
-      {
-        name: fullName,
-        email: data.email,
-        password: data.password,
-      },
-      {
-        onSuccess: () => {
-          router.push('/dashboard');
-        },
-        onError: (error: Error) => {
-          const errorData = (error as { response?: { data?: ErrorResponse } }).response?.data;
-          const message = errorData?.message || 'Signup failed. Please try again.';
-          setError('email', { message });
-        },
-      }
-    );
+    // Form validation passes, but we ignore the actual user data
+    // and redirect to the backend's Logto OIDC flow instead
+    signup({
+      name: '',
+      email: data.email,
+      password: data.password,
+    });
   };
 
   return (

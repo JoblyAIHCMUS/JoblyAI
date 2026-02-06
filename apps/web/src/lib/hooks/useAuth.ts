@@ -17,9 +17,13 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const { data } = await apiClient.post<User>('/api/auth/login', credentials);
-      return data;
+    mutationFn: async (_credentials: LoginCredentials) => {
+      // Redirect to backend auth endpoint for Logto OIDC flow
+      // The backend will handle redirecting to Logto
+      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
+      window.location.href = `${baseUrl}/auth/login`;
+      // Return a placeholder - the redirect will take over
+      return {} as User;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -32,9 +36,13 @@ export function useSignup() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials: SignupCredentials) => {
-      const { data } = await apiClient.post<User>('/api/auth/register', credentials);
-      return data;
+    mutationFn: async (_credentials: SignupCredentials) => {
+      // Redirect to backend auth endpoint for Logto OIDC flow
+      // The backend will handle redirecting to Logto
+      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
+      window.location.href = `${baseUrl}/auth/register`;
+      // Return a placeholder - the redirect will take over
+      return {} as User;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -48,7 +56,9 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      await apiClient.post('/api/auth/logout');
+      // Redirect to backend logout endpoint for Logto logout flow
+      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
+      window.location.href = `${baseUrl}/auth/logout`;
     },
     onSuccess: () => {
       // Clear user cache
