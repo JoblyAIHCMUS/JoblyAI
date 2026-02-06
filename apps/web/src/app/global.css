@@ -167,8 +167,16 @@
     @apply bg-[color:var(--bg-accent-solid-hover)];
   }
 
+  .border-accent-solid {
+    @apply border-[color:var(--bg-accent-solid)];
+  }
+
   .text-accent-primary {
     @apply text-[color:var(--text-primary)];
+  }
+
+  .text-accent-solid {
+    @apply text-[color:var(--bg-accent-solid)];
   }
 
   .text-accent-link {

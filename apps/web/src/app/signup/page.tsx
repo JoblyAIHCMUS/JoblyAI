@@ -198,7 +198,11 @@ export default function SignupPage() {
                   <div className="space-y-3 border-t border-border pt-4">
                     <RadioGroup value={userType} onValueChange={(value) => setUserType(value as 'job-seeker' | 'employer')}>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="job-seeker" id="job-seeker" />
+                        <RadioGroupItem 
+                          value="job-seeker" 
+                          id="job-seeker"
+                          className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
+                        />
                         <Label htmlFor="job-seeker" className="font-semibold cursor-pointer">
                           Job Seeker
                         </Label>
@@ -206,7 +210,11 @@ export default function SignupPage() {
                       <p className="text-sm text-muted-foreground ml-6">Looking for a job</p>
 
                       <div className="flex items-center space-x-2 pt-2">
-                        <RadioGroupItem value="employer" id="employer" />
+                        <RadioGroupItem 
+                          value="employer" 
+                          id="employer"
+                          className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
+                        />
                         <Label htmlFor="employer" className="font-semibold cursor-pointer">
                           Employer
                         </Label>
