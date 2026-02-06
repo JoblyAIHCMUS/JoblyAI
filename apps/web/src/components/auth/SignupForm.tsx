@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,15 +8,17 @@ import { z } from 'zod';
 import { useSignup } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface ErrorResponse {
   message?: string;
 }
 
 const signupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
   userType: z.enum(['job-seeker', 'employer']),
@@ -29,6 +32,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export function SignupForm() {
   const router = useRouter();
   const { mutate: signup, isPending } = useSignup();
+  const [userType, setUserType] = useState<'job-seeker' | 'employer'>('job-seeker');
   
   const {
     register,
@@ -41,97 +45,153 @@ export function SignupForm() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    signup(data, {
-      onSuccess: () => {
-        router.push('/dashboard');
+    // Combine first and last name
+    const fullName = `${data.firstName} ${data.lastName}`;
+    
+    signup(
+      {
+        name: fullName,
+        email: data.email,
+        password: data.password,
       },
-      onError: (error: Error) => {
-        const errorData = (error as { response?: { data?: ErrorResponse } }).response?.data;
-        const message = errorData?.message || 'Signup failed. Please try again.';
-        setError('email', { message });
-      },
-    });
+      {
+        onSuccess: () => {
+          router.push('/dashboard');
+        },
+        onError: (error: Error) => {
+          const errorData = (error as { response?: { data?: ErrorResponse } }).response?.data;
+          const message = errorData?.message || 'Signup failed. Please try again.';
+          setError('email', { message });
+        },
+      }
+    );
   };
 
   return (
-    <Card className="w-full max-w-md p-8">
-      <h1 className="text-2xl font-bold mb-6">Create Account</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-2">
-            Full Name
-          </label>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Name Fields */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName" className="text-sm font-semibold">
+            First Name
+          </Label>
           <Input
-            id="name"
+            id="firstName"
             type="text"
-            placeholder="John Doe"
-            {...register('name')}
+            placeholder="Enter your first name"
+            {...register('firstName')}
+            className="border-border"
           />
-          {errors.name && (
-            <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+          {errors.firstName && (
+            <p className="text-xs text-red-600">{errors.firstName.message}</p>
           )}
         </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email
-          </label>
+        <div className="space-y-2">
+          <Label htmlFor="lastName" className="text-sm font-semibold">
+            Last Name
+          </Label>
           <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            {...register('email')}
+            id="lastName"
+            type="text"
+            placeholder="Enter your last name"
+            {...register('lastName')}
+            className="border-border"
           />
-          {errors.email && (
-            <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+          {errors.lastName && (
+            <p className="text-xs text-red-600">{errors.lastName.message}</p>
           )}
         </div>
+      </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-2">
-            Password
-          </label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            {...register('password')}
-          />
-          {errors.password && (
-            <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
-          )}
-        </div>
+      {/* Email Field */}
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-semibold">
+          Email Address
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter email address"
+          {...register('email')}
+          className="border-border"
+        />
+        {errors.email && (
+          <p className="text-xs text-red-600">{errors.email.message}</p>
+        )}
+      </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-            Confirm Password
-          </label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="••••••••"
-            {...register('confirmPassword')}
-          />
-          {errors.confirmPassword && (
-            <p className="text-red-600 text-sm mt-1">{errors.confirmPassword.message}</p>
-          )}
-        </div>
+      {/* Password Field */}
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-sm font-semibold">
+          Password
+        </Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Enter password"
+          {...register('password')}
+          className="border-border"
+        />
+        {errors.password && (
+          <p className="text-xs text-red-600">{errors.password.message}</p>
+        )}
+      </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isPending}
-        >
-          {isPending ? 'Creating Account...' : 'Sign Up'}
-        </Button>
-      </form>
+      {/* Confirm Password Field */}
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-sm font-semibold">
+          Confirm Password
+        </Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="Re-enter password"
+          {...register('confirmPassword')}
+          className="border-border"
+        />
+        {errors.confirmPassword && (
+          <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
+        )}
+      </div>
 
-      <p className="text-center text-sm text-gray-600 mt-4">
-        Already have an account?{' '}
-        <a href="/login" className="text-blue-600 hover:underline">
-          Sign in
-        </a>
-      </p>
-    </Card>
+      {/* User Type Selection */}
+      <div className="space-y-3 border-t border-border pt-4">
+        <RadioGroup value={userType} onValueChange={(value) => setUserType(value as 'job-seeker' | 'employer')}>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem 
+              value="job-seeker" 
+              id="job-seeker"
+              className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
+            />
+            <Label htmlFor="job-seeker" className="font-semibold cursor-pointer">
+              Job Seeker
+            </Label>
+          </div>
+          <p className="text-sm text-muted-foreground ml-6">Looking for a job</p>
+
+          <div className="flex items-center space-x-2 pt-2">
+            <RadioGroupItem 
+              value="employer" 
+              id="employer"
+              className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
+            />
+            <Label htmlFor="employer" className="font-semibold cursor-pointer">
+              Employer
+            </Label>
+          </div>
+          <p className="text-sm text-muted-foreground ml-6">Hiring, sourcing candidates, or posting jobs</p>
+        </RadioGroup>
+      </div>
+
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        className="w-full bg-accent-solid py-6 text-base font-semibold hover:bg-accent-solid-hover"
+        size="lg"
+        disabled={isPending}
+      >
+        {isPending ? 'Creating Account...' : 'Continue'}
+      </Button>
+    </form>
   );
 }
