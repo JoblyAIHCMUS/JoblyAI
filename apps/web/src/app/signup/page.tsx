@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,60 +13,57 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { AuthLeftColumn } from '@/components/auth/AuthLeftColumn';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
+import { useSignup } from '@/lib/hooks/useAuth';
+
+const signupSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+  userType: z.enum(['job-seeker', 'employer']),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { mutate: signup, isPending } = useSignup();
   const [userType, setUserType] = useState<'job-seeker' | 'employer'>('job-seeker');
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { userType: 'job-seeker' },
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // TODO: Submit form to backend
-    }
+  const onSubmit = async (data: SignupFormData) => {
+    // Combine first and last name
+    const fullName = `${data.firstName} ${data.lastName}`;
+    
+    signup(
+      {
+        name: fullName,
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          router.push('/dashboard');
+        },
+        onError: (error: any) => {
+          const message = error?.response?.data?.message || 'Signup failed. Please try again.';
+          setError('email', { message });
+        },
+      }
+    );
   };
 
   return (
@@ -97,7 +98,7 @@ export default function SignupPage() {
                 </div>
 
                 {/* Email Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   {/* Name Fields */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -106,14 +107,12 @@ export default function SignupPage() {
                       </Label>
                       <Input
                         id="firstName"
-                        name="firstName"
                         placeholder="Enter your first name"
-                        value={formData.firstName}
-                        onChange={handleChange}
+                        {...register('firstName')}
                         className="border-border"
                       />
                       {errors.firstName && (
-                        <p className="text-xs text-red-600">{errors.firstName}</p>
+                        <p className="text-xs text-red-600">{errors.firstName.message}</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -122,14 +121,12 @@ export default function SignupPage() {
                       </Label>
                       <Input
                         id="lastName"
-                        name="lastName"
                         placeholder="Enter your last name"
-                        value={formData.lastName}
-                        onChange={handleChange}
+                        {...register('lastName')}
                         className="border-border"
                       />
                       {errors.lastName && (
-                        <p className="text-xs text-red-600">{errors.lastName}</p>
+                        <p className="text-xs text-red-600">{errors.lastName.message}</p>
                       )}
                     </div>
                   </div>
@@ -141,15 +138,13 @@ export default function SignupPage() {
                     </Label>
                     <Input
                       id="email"
-                      name="email"
                       type="email"
                       placeholder="Enter email address"
-                      value={formData.email}
-                      onChange={handleChange}
+                      {...register('email')}
                       className="border-border"
                     />
                     {errors.email && (
-                      <p className="text-xs text-red-600">{errors.email}</p>
+                      <p className="text-xs text-red-600">{errors.email.message}</p>
                     )}
                   </div>
 
@@ -160,15 +155,13 @@ export default function SignupPage() {
                     </Label>
                     <Input
                       id="password"
-                      name="password"
                       type="password"
                       placeholder="Enter password"
-                      value={formData.password}
-                      onChange={handleChange}
+                      {...register('password')}
                       className="border-border"
                     />
                     {errors.password && (
-                      <p className="text-xs text-red-600">{errors.password}</p>
+                      <p className="text-xs text-red-600">{errors.password.message}</p>
                     )}
                   </div>
 
@@ -182,15 +175,13 @@ export default function SignupPage() {
                     </Label>
                     <Input
                       id="confirmPassword"
-                      name="confirmPassword"
                       type="password"
                       placeholder="Re-enter password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
+                      {...register('confirmPassword')}
                       className="border-border"
                     />
                     {errors.confirmPassword && (
-                      <p className="text-xs text-red-600">{errors.confirmPassword}</p>
+                      <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
                     )}
                   </div>
 
@@ -228,8 +219,9 @@ export default function SignupPage() {
                     type="submit"
                     className="w-full bg-accent-solid py-6 text-base font-semibold hover:bg-[color:var(--bg-accent-solid-hover)]"
                     size="lg"
+                    disabled={isPending}
                   >
-                    Continue
+                    {isPending ? 'Creating Account...' : 'Continue'}
                   </Button>
                 </form>
 
