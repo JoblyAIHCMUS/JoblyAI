@@ -1,1 +1,14 @@
-services: {}
+services:
+  backend:
+    # Dev: install deps inside the container (bind mount hides built node_modules) then run Nest watch mode (hot reload)
+    command: sh -c "pnpm install --force && pnpm nx run @jobly/backend:start:dev"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "1"
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+      - "9229:9229"
