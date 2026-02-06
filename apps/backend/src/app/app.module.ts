@@ -3,9 +3,11 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database/database.module';
+import { AccountModule } from './account/account.module';
 
 @Module({
-  imports: [AuthModule],
+  imports: [DatabaseModule, AuthModule, AccountModule],
   controllers: [AppController],
   providers: [AppService],
 })
