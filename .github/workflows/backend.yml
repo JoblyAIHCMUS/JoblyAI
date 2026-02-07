@@ -1,10 +1,22 @@
-name: CI/CD Pipeline
+name: Backend CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
+      - development
+      - "**/backend/**"
+    paths: 
+      - 'apps/backend/**'
+      - 'libs/**'
   pull_request:
+    branches:
+      - main
+      - development
+      - "**/backend/**"
+    paths: 
+      - 'apps/backend/**'
+      - 'libs/**'
 
 permissions:
   actions: read
@@ -13,7 +25,7 @@ permissions:
 
 jobs:
   # JOB 1: CI Checks (Lint, Test, Build)
-  ci-checks:
+  build-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +54,7 @@ jobs:
 
   # JOB 2: CD (Build & Push Docker)
   deploy-backend:
-    needs: ci-checks
+    needs: build-backend
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
