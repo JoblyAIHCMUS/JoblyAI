@@ -66,7 +66,6 @@ COPY --from=base /app/pnpm-lock.yaml ./
 COPY --from=base /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=base /app/apps/backend/prisma ./apps/backend/prisma
 COPY --from=base /app/apps/backend/dist ./apps/backend/dist
-COPY --from=base /app/apps/backend/src/app/generated ./apps/backend/src/app/generated
 
 # Install only backend production dependencies using workspace filter
 RUN pnpm install --prod --filter @jobly/backend --frozen-lockfile

@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "serve": "next dev",
+    "dev": "next dev --port 5173",
+    "serve": "next dev --port 5173",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."
