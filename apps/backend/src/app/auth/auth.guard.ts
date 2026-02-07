@@ -29,19 +29,19 @@ export class AuthGuard implements CanActivate {
       
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Authentication failed');
+      throw new UnauthorizedException('Authentication failed. Error: ' + error);
     }
   }
 
-  private extractToken(request: any): string | null {
+  private extractToken(request: Request): string | null {
     // Check Authorization header first
-    const authHeader = request.headers.authorization;
+    const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       return authHeader.substring(7);
     }
 
     // Check for cookie
-    const cookies = request.headers.cookie;
+    const cookies = request.headers.get('cookie');
     if (cookies) {
       const match = cookies.match(/better-auth\.session_token=([^;]+)/);
       if (match) {
