@@ -3,15 +3,15 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: jobly        # <--- Updated Username
-      POSTGRES_PASSWORD: jobly    # <--- Updated Password
-      POSTGRES_DB: jobly_db       # Default database name
+      POSTGRES_USER: jobly # <--- Updated Username
+      POSTGRES_PASSWORD: jobly # <--- Updated Password
+      POSTGRES_DB: jobly_db # Default database name
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jobly -d jobly_db"]
+      test: [ "CMD-SHELL", "pg_isready -U jobly -d jobly_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,50 +19,23 @@ services:
   redis:
     image: redis:7-alpine
     container_name: jobly_redis
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  logto:
-    image: ghcr.io/logto-io/logto:latest
-    container_name: jobly_logto
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "3001:3001"
-      - "3002:3002"
-    environment:
-      TRUST_PROXY_HEADER: "1"
-      DB_URL: postgres://jobly:jobly@postgres:5432/jobly_db
-      ENDPOINT: http://localhost:3001
-      ADMIN_ENDPOINT: http://localhost:3002
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        npm run cli db seed -- --swe
-        npm start
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/oidc/.well-known/openid-configuration >/dev/null"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   # --- APPLICATIONS ---
   backend:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+      target: development
     env_file:
       - apps/backend/.env
     ports:
@@ -70,18 +43,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      logto:
-        condition: service_healthy
     environment:
       DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
-      NODE_ENV: production
-    command: ["node", "dist/main"]
+      NODE_ENV: development
+    command: >
+      sh -c "pnpm install --frozen-lockfile && 
+             npx prisma generate --schema apps/backend/prisma/schema.prisma && 
+             pnpm exec nx run @jobly/backend:serve"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api >/dev/null"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/api >/dev/null" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    volumes:
+      - .:/app # Sync your code live
+      - /app/node_modules # PROTECT root dependencies
+      - /app/apps/backend/node_modules # PROTECT backend dependencies
 
 volumes:
   postgres_data:

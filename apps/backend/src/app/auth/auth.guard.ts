@@ -1,45 +1,31 @@
-import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { auth } from './auth.js';
+import { fromNodeHeaders } from 'better-auth/node';
 
 @Injectable()
-export class LogtoDebugGuard extends AuthGuard('logto') {
-  
-  override canActivate(context: ExecutionContext) { 
-    return super.canActivate(context);
-  }
+export class AuthGuard implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
 
-  override getAuthenticateOptions(_context: ExecutionContext) {
-    void _context;
-    return {
-        response_mode: 'query',
-    };
-  }
+    /**
+     * 1. Retrieve the Session
+     * We pass the headers (which contain the cookie) to Better Auth, and the cookie has the session token.
+     * Better Auth checks Redis to see if the session token is valid.
+     */
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(request.headers),
+    });
 
-  override handleRequest<TUser = unknown>(
-    err: unknown,
-    user: TUser,
-    info: unknown,
-    _context: ExecutionContext,
-    _status?: unknown
-  ): TUser {
-    void _context;
-    void _status;
-    if (err || !user) {
-      console.error('💥 LOGTO AUTH ERROR:', err);
-      console.error('ℹ️ LOGTO INFO:', info);
-      throw err || new UnauthorizedException('Authentication failed');
+    // 2. The Gatekeeper Logic
+    if (!session) {
+      throw new UnauthorizedException('Access Denied: Please log in.');
     }
-    return user;
-  }
-}
 
-@Injectable()
-export class LogtoRegisterGuard extends LogtoDebugGuard {
-  override getAuthenticateOptions(_context: ExecutionContext) {
-    void _context;
-    return {
-        interaction_mode: 'signUp',
-        response_mode: 'query',
-    };
+    // 3. Attach User to Request
+    // This makes req.user available in Controllers
+    request['user'] = session.user;
+    request['session'] = session.session;
+
+    return true;
   }
 }
