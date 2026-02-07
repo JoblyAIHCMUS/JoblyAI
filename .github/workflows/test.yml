@@ -54,7 +54,7 @@ jobs:
       # 6. Upload Vitest Coverage Report
       - name: Upload Vitest Coverage Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-vitest-coverage
           path: apps/backend/coverage
@@ -62,7 +62,7 @@ jobs:
       # 7. Archive Vitest Coverage Report
       - name: Archive Vitest Coverage Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-vitest-coverage-archive
           path: apps/backend/coverage/**/*
