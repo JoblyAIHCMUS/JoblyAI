@@ -92,7 +92,9 @@ jobs:
           fetch-depth: 0
 
       - name: Start backend with Docker Compose
-        run: docker compose up -d postgres redis backend
+        run: |
+          cp apps/backend/.env.example apps/backend/.env
+          docker compose up -d postgres redis backend
 
       - name: Smoke check API
         run: |
