@@ -52,9 +52,50 @@ jobs:
       # 5. Run Checks (Only on affected projects)
       - run: pnpm nx affected -t lint test build
 
-  # JOB 2: CD (Build & Push Docker)
-  deploy-backend:
+      # 6. Upload Vitest Coverage Report
+      - name: Upload Vitest Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-vitest-coverage
+          path: apps/backend/coverage
+
+      # 7. Archive Vitest Coverage Report
+      - name: Archive Vitest Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-vitest-coverage-archive
+          path: apps/backend/coverage/**/*
+
+  # JOB 2: Smoke Test (Docker + Health Check)
+  smoke-backend:
     needs: build-backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Start backend with Docker Compose
+        run: docker compose up -d postgres redis backend
+
+      - name: Smoke check API
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/api >/dev/null; then
+              echo "Backend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy"
+          docker compose logs backend || true
+          exit 1
+
+  # JOB 3: CD (Build & Push Docker)
+  deploy-backend:
+    needs: [build-backend, smoke-backend]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

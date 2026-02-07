@@ -9,6 +9,12 @@ const mockUser = vi.hoisted(() => ({
   password: 'hashedpassword',
 }));
 
+const redisMock = vi.hoisted(() => ({
+  get: vi.fn().mockResolvedValue(null),
+  setex: vi.fn().mockResolvedValue('OK'),
+  del: vi.fn().mockResolvedValue(1),
+}));
+
 // mock dependencies
 vi.mock('../lib/auth', () => ({
   auth: {
@@ -16,6 +22,10 @@ vi.mock('../lib/auth', () => ({
       getSession: vi.fn().mockResolvedValue(mockUser.id),
     },
   },
+}));
+
+vi.mock('../lib/db', () => ({
+  redis: redisMock,
 }));
 
 // import the actual auth module for type reference
