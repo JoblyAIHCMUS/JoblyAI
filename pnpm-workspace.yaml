@@ -1,4 +1,24 @@
 packages:
-  - 'packages/*'
-  - 'libs/*'
-  - 'apps/*'
+  - packages/*
+  - libs/*
+  - apps/*
+
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - better-sqlite3
+  - cypress
+  - detox
+  - dtrace-provider
+  - esbuild
+  - less
+  - nx
+  - sharp
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
