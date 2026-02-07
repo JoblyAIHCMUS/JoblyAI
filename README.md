@@ -74,6 +74,21 @@ pnpm install
 
 ### Backend API (NestJS)
 - Path: [apps/backend](apps/backend)
+- Local dev (no Docker):
+	```bash
+	pnpm --filter @jobly/backend exec prisma generate
+	pnpm --filter @jobly/backend exec prisma migrate dev
+	pnpm --filter @jobly/backend run start:dev
+	```
+- Docker dev (recommended for DB/Redis):
+	```bash
+	docker compose up postgres redis -d
+	docker compose up backend -d
+	```
+- Health check:
+	```bash
+	curl http://localhost:3000/api
+	```
 - Dev (watch):
 	```bash
 	pnpm nx serve @jobly/backend --configuration=development

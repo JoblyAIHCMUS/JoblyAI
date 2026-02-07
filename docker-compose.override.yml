@@ -1,14 +1,32 @@
 services:
   backend:
-    # Dev: install deps inside the container (bind mount hides built node_modules) then run Nest watch mode (hot reload)
-    command: sh -c "pnpm install --force && pnpm nx run @jobly/backend:start:dev"
+    # Dev: install deps inside the container (bind mount hides built node_modules) then run Prisma generate and Nest watch mode (hot reload)
+    command: sh -c "chmod 777 /app 2>/dev/null || true && TMPDIR=/tmp PNPM_TMPDIR=/tmp NPM_CONFIG_TMP=/tmp PNPM_STORE_DIR=/tmp/.pnpm-store PNPM_CACHE_DIR=/tmp/.pnpm-cache XDG_CACHE_HOME=/tmp/.cache pnpm install --force && pnpm --filter @jobly/backend exec prisma generate && pnpm --filter @jobly/backend exec prisma migrate dev && cd /app/apps/backend && pnpm run start:dev"
+    user: "root"
     volumes:
       - .:/app
-      - /app/node_modules
+      - backend_node_modules:/app/node_modules
+      - backend_pnpm_store:/tmp/.pnpm-store
+      - backend_pnpm_cache:/tmp/.pnpm-cache
     environment:
       CHOKIDAR_USEPOLLING: "1"
       NODE_ENV: development
       WATCHPACK_POLLING: "true"
+      REDIS_URL: redis://redis:6379
+      TMPDIR: /tmp
+      PNPM_HOME: /tmp/.pnpm
+      PNPM_TMPDIR: /tmp
+      NPM_CONFIG_TMP: /tmp
+      PNPM_STORE_DIR: /tmp/.pnpm-store
+      PNPM_CACHE_DIR: /tmp/.pnpm-cache
+      XDG_CACHE_HOME: /tmp/.cache
+    tmpfs:
+      - /tmp
     ports:
       - "3000:3000"
       - "9229:9229"
+
+volumes:
+  backend_node_modules:
+  backend_pnpm_store:
+  backend_pnpm_cache:

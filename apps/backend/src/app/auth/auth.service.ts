@@ -1,42 +1,48 @@
 import { Injectable } from '@nestjs/common';
+import { auth } from '../../lib/auth';
+import { redis } from '../../lib/db';
 
 @Injectable()
 export class AuthService {
-	private buildAuthUrl(params: Record<string, string>): string {
-		const baseEndpoint =
-			process.env.LOGTO_PUBLIC_ENDPOINT ||
-			process.env.LOGTO_ENDPOINT ||
-			'http://localhost:3001';
-		const normalizedEndpoint = baseEndpoint.replace(/\/+$/, '');
-		const url = new URL(`${normalizedEndpoint}/oidc/auth`);
+  /**
+   * Get session from cache or database
+   */
+  async getSession(sessionToken: string) {
+    // Try to get from Redis cache first
+    const cacheKey = `session:${sessionToken}`;
+    const cached = await redis.get(cacheKey);
+    
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
-		Object.entries(params).forEach(([key, value]) => {
-			url.searchParams.set(key, value);
-		});
+    // If not in cache, verify with better-auth
+    const session = await auth.api.getSession({
+      headers: {
+        authorization: `Bearer ${sessionToken}`,
+      },
+    });
 
-		return url.toString();
-	}
+    if (session) {
+      // Cache the session for 5 minutes
+      await redis.setex(cacheKey, 300, JSON.stringify(session));
+    }
 
-	getRegisterUrl(): string {
-		return this.buildAuthUrl({
-			client_id: process.env.LOGTO_CLIENT_ID || '',
-			response_type: 'code',
-			scope: 'openid profile email',
-			interaction_mode: 'signUp',
-			redirect_uri:
-				process.env.LOGTO_REDIRECT_URI ||
-				'http://localhost:3000/api/auth/callback/logto',
-		});
-	}
+    return session;
+  }
 
-	getLoginUrl(): string {
-		return this.buildAuthUrl({
-			client_id: process.env.LOGTO_CLIENT_ID || '',
-			response_type: 'code',
-			scope: 'openid profile email',
-			redirect_uri:
-				process.env.LOGTO_REDIRECT_URI ||
-				'http://localhost:3000/api/auth/callback/logto',
-		});
-	}
+  /**
+   * Invalidate session cache
+   */
+  async invalidateSessionCache(sessionToken: string) {
+    const cacheKey = `session:${sessionToken}`;
+    await redis.del(cacheKey);
+  }
+
+  /**
+   * Get auth instance for direct API calls
+   */
+  getAuthInstance() {
+    return auth;
+  }
 }

@@ -1,64 +1,61 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
-import type { Request, Response } from 'express';
-import { LogtoDebugGuard, LogtoRegisterGuard } from './auth.guard';
+import { Controller, All, Req, Res } from '@nestjs/common';
+import type { Request as ExpressRequest, Response } from 'express';
+import { auth } from '../../lib/auth';
 
 @Controller('auth')
 export class AuthController {
-  @Get('login')
-  @UseGuards(LogtoDebugGuard)
-  login() {
-    return { ok: true };
+  /**
+   * Handle all auth routes through better-auth
+   * Better-auth provides: /sign-in, /sign-up, /sign-out, /session, etc.
+   */
+  @All('*')
+  async handleAuth(@Req() req: ExpressRequest, @Res() res: Response) {
+    const request = this.toWebRequest(req);
+    const authRes = await auth.handler(request);
+
+    res.status(authRes.status);
+    authRes.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+
+    const body = await authRes.text();
+    return res.send(body);
   }
 
-  @Get('callback/logto')
-  @UseGuards(LogtoDebugGuard)
-  async callback(
-    @Req() req: Request & { user?: { id?: string } },
-    @Res() res: Response
-  ) {
-    const user = req.user;
-    if (!user?.id) {
-      return res.status(401).json({ message: 'Missing user id' });
-    }
-    // TODO: If you later need to call Logto APIs (e.g., manage users), store and refresh tokens here.
-    // Redirect to dashboard
-    return res.redirect('/dashboard');
-  }
+  private toWebRequest(req: ExpressRequest): Request {
+    const baseUrl =
+      process.env.BETTER_AUTH_URL || process.env.APP_URL || 'http://localhost:3000';
+    const url = new URL(req.originalUrl || req.url, baseUrl);
+    const headers = new Headers();
 
-  @Get('register')
-  @UseGuards(LogtoRegisterGuard)
-  register() {
-    return { ok: true };
-  }
-
-  @Get('logout')
-  logout(@Req() req: Request, @Res() res: Response) {
-    req.logout((err) => {
-      if (err) {
-        console.error('Logout error:', err);
+    Object.entries(req.headers).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        headers.set(key, value);
+        return;
       }
+      if (Array.isArray(value)) {
+        value.forEach((entry) => headers.append(key, entry));
+      }
+    });
 
-      req.session?.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error('Session destruction error:', sessionErr);
-          return res.status(500).json({ message: 'Logout failed' });
+    let body: string | undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      if (req.body instanceof Buffer) {
+        body = req.body.toString('utf-8');
+      } else if (typeof req.body === 'string') {
+        body = req.body;
+      } else if (req.body) {
+        body = JSON.stringify(req.body);
+        if (!headers.has('content-type')) {
+          headers.set('content-type', 'application/json');
         }
+      }
+    }
 
-        const publicEndpoint =
-          process.env.LOGTO_PUBLIC_ENDPOINT || process.env.LOGTO_ENDPOINT || '';
-        const appUrl = process.env.APP_URL || 'http://localhost:3000';
-
-        if (publicEndpoint) {
-          const logtoLogoutUrl = new URL(`${publicEndpoint}/oidc/session/end`);
-          logtoLogoutUrl.searchParams.append(
-            'post_logout_redirect_uri',
-            appUrl + '/api'
-          );
-          return res.redirect(logtoLogoutUrl.toString());
-        }
-
-        return res.redirect('/');
-      });
+    return new Request(url, {
+      method: req.method,
+      headers,
+      body,
     });
   }
 }
