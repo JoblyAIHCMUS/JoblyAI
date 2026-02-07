@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 import { prisma } from '../../lib/db';
 
 @Global() // Make PrismaService globally available. Basically a singleton

@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../app/generated/prisma'
 import Redis from 'ioredis';
 
 // Singleton Pattern: One connection for the whole app
