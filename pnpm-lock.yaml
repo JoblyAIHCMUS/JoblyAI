@@ -292,6 +292,9 @@ importers:
       '@types/pg':
         specifier: ^8.11.0
         version: 8.16.0
+      '@vitest/coverage-v8':
+        specifier: ^4.0.17
+        version: 4.0.17(vitest@4.0.17)
       jest:
         specifier: ^30.2.0
         version: 30.2.0(@types/node@20.19.9)(babel-plugin-macros@3.1.0)
@@ -15091,7 +15094,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.17(@types/node@20.19.9)(@vitest/ui@4.0.17)(jiti@2.4.2)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.2)
+      vitest: 4.0.17(@types/node@20.19.9)(@vitest/ui@4.0.17)(jiti@2.6.1)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.2)(sass@1.97.2)(terser@5.44.1)(yaml@2.8.2)
 
   '@vitest/expect@4.0.17':
     dependencies:

@@ -52,7 +52,21 @@ jobs:
       # 5. Run Checks (Only on affected projects)
       - run: pnpm nx affected -t lint test build
 
-      # 6. Upload Vitest Coverage Report
+      # 6. Enforce coverage quality gate for backend
+      - name: Check if backend is affected
+        id: backend_check
+        run: |
+          if pnpm nx show projects --affected | grep -q "@jobly/backend"; then
+            echo "affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "affected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run backend coverage gate
+        if: steps.backend_check.outputs.affected == 'true'
+        run: pnpm --filter @jobly/backend run test:cov
+
+      # 7. Upload Vitest Coverage Report
       - name: Upload Vitest Coverage Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -60,7 +74,7 @@ jobs:
           name: backend-vitest-coverage
           path: apps/backend/coverage
 
-      # 7. Archive Vitest Coverage Report
+      # 8. Archive Vitest Coverage Report
       - name: Archive Vitest Coverage Report
         if: always()
         uses: actions/upload-artifact@v4
