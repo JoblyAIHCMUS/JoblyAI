@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,9 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-interface ErrorResponse {
-  message?: string;
-}
 
 const signupSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -30,7 +26,6 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
-  const router = useRouter();
   const { mutate: signup, isPending } = useSignup();
   const [userType, setUserType] = useState<'job-seeker' | 'employer'>('job-seeker');
   
@@ -38,7 +33,6 @@ export function SignupForm() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: { userType: 'job-seeker' },
