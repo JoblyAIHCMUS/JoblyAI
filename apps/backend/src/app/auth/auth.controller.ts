@@ -1,9 +1,36 @@
-import { Controller, All, Req, Res } from '@nestjs/common';
+import { Controller, All, Req, Res, Get, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
+import { AuthGuard } from './auth.guard';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    emailVerified: boolean;
+    image?: string;
+  };
+  session: unknown;
+}
 
 @Controller('auth')
 export class AuthController {
+  /**
+   * Get current authenticated user
+   */
+  @Get('me')
+  @UseGuards(AuthGuard)
+  getCurrentUser(@Req() req: AuthenticatedRequest) {
+    return {
+      id: req.user.id,
+      email: req.user.email,
+      name: req.user.name,
+      emailVerified: req.user.emailVerified,
+      avatar: req.user.image,
+    };
+  }
+
   /**
    * Handle all auth routes through better-auth
    * Better-auth provides: /sign-in, /sign-up, /sign-out, /session, etc.
