@@ -117,6 +117,13 @@
           "PORT": "5173"
         }
       }
+    },
+    "serve": {
+      "options": {
+        "env": {
+          "PORT": "5173"
+        }
+      }
     }
   },
   "generators": {
