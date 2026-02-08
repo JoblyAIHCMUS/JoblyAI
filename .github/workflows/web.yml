@@ -26,6 +26,11 @@ permissions:
 jobs:
   # JOB 1: CI Checks (Lint, Test, Build)
   build-web:
+    if: >-
+      ${{ !contains(github.event.head_commit.message, '[skip CI]') &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +47,9 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=moderate
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
       # 5. Verify web target runs before deploy steps
@@ -52,6 +60,11 @@ jobs:
     # JOB 2: Smoke Test (Build + Serve + HTTP Check)
   smoke-web:
     needs: build-web
+    if: >-
+      ${{ !contains(github.event.head_commit.message, '[skip CI]') &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +81,9 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=moderate
       # 4. Build Web
       - run: pnpm nx run @jobly/web:build
       # 5. Start Web Server
@@ -91,7 +107,12 @@ jobs:
   # JOB 3: CD (Build & Deploy Web)
   deploy-web:
     needs: [build-web, smoke-web]
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      ${{ github.ref == 'refs/heads/main' &&
+           !contains(github.event.head_commit.message, '[skip CI]') &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +129,9 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=moderate
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
       # 5. Build Web App
