@@ -1,10 +1,22 @@
-name: CI/CD Pipeline
+name: Backend CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
+      - development
+      - "**/backend/**"
+    paths: 
+      - 'apps/backend/**'
+      - 'libs/**'
   pull_request:
+    branches:
+      - main
+      - development
+      - "**/backend/**"
+    paths: 
+      - 'apps/backend/**'
+      - 'libs/**'
 
 permissions:
   actions: read
@@ -13,7 +25,7 @@ permissions:
 
 jobs:
   # JOB 1: CI Checks (Lint, Test, Build)
-  ci-checks:
+  build-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,9 +52,66 @@ jobs:
       # 5. Run Checks (Only on affected projects)
       - run: pnpm nx affected -t lint test build
 
-  # JOB 2: CD (Build & Push Docker)
+      # 6. Enforce coverage quality gate for backend
+      - name: Check if backend is affected
+        id: backend_check
+        run: |
+          if pnpm nx show projects --affected | grep -q "@jobly/backend"; then
+            echo "affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "affected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run backend coverage gate
+        if: steps.backend_check.outputs.affected == 'true'
+        run: pnpm --filter @jobly/backend run test:cov
+
+      # 7. Upload Vitest Coverage Report
+      - name: Upload Vitest Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-vitest-coverage
+          path: apps/backend/coverage
+
+      # 8. Archive Vitest Coverage Report
+      - name: Archive Vitest Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-vitest-coverage-archive
+          path: apps/backend/coverage/**/*
+
+  # JOB 2: Smoke Test (Docker + Health Check)
+  smoke-backend:
+    needs: build-backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Start backend with Docker Compose
+        run: |
+          cp apps/backend/.env.example apps/backend/.env
+          docker compose up -d postgres redis backend
+
+      - name: Smoke check API
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/api >/dev/null; then
+              echo "Backend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy"
+          docker compose logs backend || true
+          exit 1
+
+  # JOB 3: CD (Build & Push Docker)
   deploy-backend:
-    needs: ci-checks
+    needs: [build-backend, smoke-backend]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

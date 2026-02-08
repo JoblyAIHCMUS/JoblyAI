@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
-import { LogtoStrategy } from '../strategy/logto.strategy';
+import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
 
 @Module({
-  imports: [
-    PassportModule.register({ defaultStrategy: 'logto', session: true }),
-  ],
   controllers: [AuthController],
-  providers: [LogtoStrategy],
+  providers: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}

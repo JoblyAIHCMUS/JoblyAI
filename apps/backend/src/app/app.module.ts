@@ -3,12 +3,11 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { DatabaseModule } from './database/database.module';
-import { AccountModule } from './account/account.module';
+import { UserController } from './user.controller';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, AccountModule],
-  controllers: [AppController],
+  imports: [AuthModule],
+  controllers: [AppController, UserController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {

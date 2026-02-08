@@ -2,6 +2,7 @@ services:
   # --- INFRASTRUCTURE ---
   postgres:
     image: postgres:17-alpine
+    container_name: postgres_jobly
     environment:
       POSTGRES_USER: jobly        # <--- Updated Username
       POSTGRES_PASSWORD: jobly    # <--- Updated Password
@@ -18,7 +19,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: jobly_redis
+    container_name: redis_jobly
     command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
@@ -30,36 +31,10 @@ services:
       timeout: 5s
       retries: 5
 
-  logto:
-    image: ghcr.io/logto-io/logto:latest
-    container_name: jobly_logto
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "3001:3001"
-      - "3002:3002"
-    environment:
-      TRUST_PROXY_HEADER: "1"
-      DB_URL: postgres://jobly:jobly@postgres:5432/jobly_db
-      ENDPOINT: http://localhost:3001
-      ADMIN_ENDPOINT: http://localhost:3002
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        npm run cli db seed -- --swe
-        npm start
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/oidc/.well-known/openid-configuration >/dev/null"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   # --- APPLICATIONS ---
   backend:
+    user: root
+    container_name: backend_jobly
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -70,19 +45,28 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      logto:
+      redis:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
+      REDIS_URL: redis://redis:6379
       NODE_ENV: production
-    command: ["node", "dist/main"]
+    command: ["sh", "-c", "pnpm --filter @jobly/backend exec prisma migrate deploy && node dist/main"]
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-
+  nginx:
+      image: nginx:alpine
+      container_name: nginx_jobly
+      ports:
+        - "80:80"
+      volumes:
+        - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      depends_on:
+        - backend
 volumes:
   postgres_data:
   redis_data:

@@ -14,9 +14,13 @@ COPY pnpm-lock.yaml ./
 COPY nx.json ./
 COPY tsconfig.base.json ./
 COPY tsconfig.json ./
+COPY eslint.config.mjs ./
 
 # Copy backend package.json
 COPY apps/backend/package.json ./apps/backend/
+
+# Copy Prisma schema
+COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -24,14 +28,21 @@ RUN pnpm install --frozen-lockfile
 # Copy backend source code
 COPY apps/backend ./apps/backend
 
+# Generate Prisma Client
+RUN pnpm --filter @jobly/backend exec prisma generate
+
 # Sync Nx TypeScript project references and build the backend
 RUN pnpm exec nx sync --yes
 RUN pnpm exec nx build backend
+
+# Ensure app files are owned by node user for dev volumes
+RUN chown -R node:node /app
 
 # Development stage (precompile before running dev server)
 FROM base AS development
 ENV NODE_ENV=development
 WORKDIR /app
+USER node
 CMD ["sh", "-c", "pnpm install --frozen-lockfile && pnpm exec nx build @jobly/backend:development && pnpm exec nx run @jobly/backend:start:dev"]
 
 # Production stage
@@ -53,10 +64,15 @@ COPY --from=base /app/package.json ./
 COPY --from=base /app/pnpm-workspace.yaml ./
 COPY --from=base /app/pnpm-lock.yaml ./
 COPY --from=base /app/apps/backend/package.json ./apps/backend/package.json
+COPY --from=base /app/apps/backend/prisma ./apps/backend/prisma
 COPY --from=base /app/apps/backend/dist ./apps/backend/dist
 
 # Install only backend production dependencies using workspace filter
 RUN pnpm install --prod --filter @jobly/backend --frozen-lockfile
+
+# Drop to non-root user for runtime
+RUN chown -R node:node /app
+USER node
 
 # Expose port
 EXPOSE 3000

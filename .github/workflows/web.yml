@@ -1,0 +1,117 @@
+name: Web CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - "**/web/**"
+    paths: 
+      - 'apps/web/**'
+      - 'libs/**'
+  pull_request:
+    branches:
+      - main
+      - development
+      - "**/web/**"
+    paths: 
+      - 'apps/web/**'
+      - 'libs/**'
+
+permissions:
+  actions: read
+  contents: read
+  packages: write # Required for pushing to GitHub Container Registry
+
+jobs:
+  # JOB 1: CI Checks (Lint, Test, Build)
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM (Version 9 required)
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # 2. Setup Node (Version 22 required)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Initialize Nx
+      - uses: nrwl/nx-set-shas@v4
+      # 5. Verify web target runs before deploy steps
+      - run: pnpm nx run @jobly/web:build
+      # 5. Run Checks (Only on affected projects)
+      - run: pnpm nx affected -t lint test build
+  
+    # JOB 2: Smoke Test (Build + Serve + HTTP Check)
+  smoke-web:
+    needs: build-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM (Version 9 required)
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # 2. Setup Node (Version 22 required)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Build Web
+      - run: pnpm nx run @jobly/web:build
+      # 5. Start Web Server
+      - name: Start web server
+        run: pnpm nx run @jobly/web:serve-static &
+        env:
+          PORT: 3000
+      # 6. Smoke check web
+      - name: Smoke check web
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000 >/dev/null; then
+              echo "Web healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Web did not become healthy"
+          exit 1
+  
+  # JOB 3: CD (Build & Deploy Web)
+  deploy-web:
+    needs: [build-web, smoke-web]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM (Version 9 required)
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # 2. Setup Node (Version 22 required)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Initialize Nx
+      - uses: nrwl/nx-set-shas@v4
+      # 5. Build Web App
+      - run: pnpm nx run @jobly/web:build:production
+      # 6. Deploy Web App (TODO: Replace with actual deployment steps)
+      - name: Deploy Web App
+        run: echo "Deploying web app..."

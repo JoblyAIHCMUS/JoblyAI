@@ -118,12 +118,9 @@
         }
       }
     },
-    "serve": {
-      "options": {
-        "env": {
-          "PORT": "5173"
-        }
-      }
+    "quality-gate": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint", "test", "build"]
     }
   },
   "generators": {
