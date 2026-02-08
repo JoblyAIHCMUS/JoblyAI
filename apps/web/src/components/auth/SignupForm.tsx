@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 import { useSignup } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,8 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
-  const { mutate: signup, isPending } = useSignup();
+  const router = useRouter();
+  const { mutate: signup, isPending, error } = useSignup();
   const [userType, setUserType] = useState<'job-seeker' | 'employer'>('job-seeker');
   
   const {
@@ -39,17 +41,30 @@ export function SignupForm() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    // Form validation passes, but we ignore the actual user data
-    // and redirect to the backend's Logto OIDC flow instead
-    signup({
-      name: '',
-      email: data.email,
-      password: data.password,
-    });
+    signup(
+      {
+        name: `${data.firstName} ${data.lastName}`,
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          router.push('/');
+        },
+      }
+    );
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <div className="rounded-md bg-red-50 p-3">
+          <p className="text-sm text-red-700">
+            {error instanceof Error ? error.message : 'Signup failed. Please try again.'}
+          </p>
+        </div>
+      )}
+
       {/* Name Fields */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

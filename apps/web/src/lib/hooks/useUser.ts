@@ -9,7 +9,8 @@ export interface User {
   email?: string;
   name?: string;
   avatar?: string;
-  [key: string]: string | undefined;
+  emailVerified?: boolean;
+  [key: string]: string | boolean | undefined;
 }
 
 export function useUser(): UseQueryResult<User | null, Error> {

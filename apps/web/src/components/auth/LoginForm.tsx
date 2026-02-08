@@ -2,6 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 import { useLogin } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { mutate: login, isPending } = useLogin();
+  const router = useRouter();
+  const { mutate: login, isPending, error } = useLogin();
   const {
     register,
     handleSubmit,
@@ -26,13 +28,26 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    // Form validation passes, but we ignore the actual credentials
-    // and redirect to the backend's Logto OIDC flow instead
-    login(data);
+    login(
+      { email: data.email, password: data.password },
+      {
+        onSuccess: () => {
+          router.push('/');
+        },
+      }
+    );
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <div className="rounded-md bg-red-50 p-3">
+          <p className="text-sm text-red-700">
+            {error instanceof Error ? error.message : 'Login failed. Please try again.'}
+          </p>
+        </div>
+      )}
+
       {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-semibold">

@@ -17,13 +17,12 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_credentials: LoginCredentials) => {
-      // Redirect to backend auth endpoint for Logto OIDC flow
-      // The backend will handle redirecting to Logto
-      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
-      window.location.href = `${baseUrl}/auth/login`;
-      // Return a placeholder - the redirect will take over
-      return {} as User;
+    mutationFn: async (credentials: LoginCredentials) => {
+      const response = await apiClient.post<User>('/auth/sign-in/email', {
+        email: credentials.email,
+        password: credentials.password,
+      });
+      return response.data;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -36,13 +35,13 @@ export function useSignup() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_credentials: SignupCredentials) => {
-      // Redirect to backend auth endpoint for Logto OIDC flow
-      // The backend will handle redirecting to Logto
-      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
-      window.location.href = `${baseUrl}/auth/register`;
-      // Return a placeholder - the redirect will take over
-      return {} as User;
+    mutationFn: async (credentials: SignupCredentials) => {
+      const response = await apiClient.post<User>('/auth/sign-up', {
+        email: credentials.email,
+        password: credentials.password,
+        name: credentials.name,
+      });
+      return response.data;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -56,15 +55,15 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      // Redirect to backend logout endpoint for Logto logout flow
-      const baseUrl = apiClient.defaults.baseURL || 'http://localhost:3000';
-      window.location.href = `${baseUrl}/auth/logout`;
+      await apiClient.post('/auth/sign-out');
     },
     onSuccess: () => {
       // Clear user cache
       queryClient.setQueryData(['user'], null);
       // Remove all queries
       queryClient.clear();
+      // Redirect to login
+      window.location.href = '/login';
     },
   });
 }
