@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
-import { useUser } from '@/lib/hooks/useUser';
+import { useUser } from '@/hooks/useUser';
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const router = useRouter();

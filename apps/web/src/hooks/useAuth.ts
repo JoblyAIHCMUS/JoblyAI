@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../api';
+import { apiClient } from '../lib/api';
 import type { User } from './useUser';
 
 export interface LoginCredentials {

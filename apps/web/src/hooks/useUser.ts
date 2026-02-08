@@ -2,7 +2,7 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { apiClient } from '../api';
+import { apiClient } from '../lib/api';
 
 export interface User {
   id: string;
