@@ -4,6 +4,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-docker compose up -d postgres redis
+docker compose up -d postgres redis scylla minio
 
-echo "External services running: postgres, redis"
+echo "External services running: postgres, redis, scylla, minio"
