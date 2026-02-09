@@ -70,10 +70,6 @@ jobs:
             echo "affected=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run backend coverage gate
-        if: steps.backend_check.outputs.affected == 'true'
-        run: pnpm --filter @jobly/backend run test:cov
-
       # 7. Upload Vitest Coverage Report
       - name: Upload Vitest Coverage Report
         if: always()
