@@ -85,7 +85,7 @@
     "@nestjs/swagger": "^11.2.5",
     "@nestjs/typeorm": "^11.0.0",
     "@tanstack/react-query": "^5.90.20",
-    "axios": "^1.6.0",
+    "axios": "^1.13.5",
     "class-validator": "^0.14.3",
     "pg": "^8.18.0",
     "react": "^19.0.0",
