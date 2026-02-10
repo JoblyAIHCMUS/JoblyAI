@@ -1,4 +1,3 @@
-// jobs/interfaces/job-posting.interface.ts
 export interface JobPosting {
   id: number;                 
   employerId: number; 
