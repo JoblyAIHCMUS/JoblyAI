@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { authClient } from '../lib/auth-client';
 import type { User } from './useUser';
 
@@ -15,40 +16,42 @@ export interface SignupCredentials extends LoginCredentials {
 
 export function useLogin() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await authClient.signIn.email(
-        {
-          email: credentials.email,
-          password: credentials.password,
-        },
-        {
-          onSuccess: () => {
-            // Invalidate user query to refetch updated user data
-            queryClient.invalidateQueries({ queryKey: ['user'] });
-          },
-          onError: (error) => {
-            throw new Error(error.error?.message || 'Login failed');
-          },
-        }
-      );
+      const response = await authClient.signIn.email({
+        email: credentials.email,
+        password: credentials.password,
+      });
       
+      // 1. Check for explicit API errors
       if (response.error) {
-        throw new Error(response.error?.message || 'Login failed');
+        throw new Error(response.error.message || 'Login failed');
       }
-      
-      return response.data?.user as User;
+
+      // 2. RUNTIME GUARD: Check if data or user is missing
+      if (!response.data || !response.data.user) {
+        throw new Error('Login successful but no user data returned');
+      }
+
+      // 3. Safe to return (Typescript now knows this is not undefined)
+      return response.data.user as User;
     },
-    onSuccess: () => {
-      // Invalidate user query to refetch updated user data
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+    onSuccess: (user) => {
+      // OPTIMIZATION: Manually update the cache. 
+      // We already have the user data, so we don't need to fetch it again.
+      queryClient.setQueryData(['user'], user);
+      
+      // Optional: Redirect immediately
+      router.push('/dashboard'); 
     },
   });
 }
 
 export function useSignup() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: async (credentials: SignupCredentials) => {
@@ -61,30 +64,40 @@ export function useSignup() {
       if (response.error) {
         throw new Error(response.error?.message || 'Signup failed');
       }
+
+      // RUNTIME GUARD
+      if (!response.data || !response.data.user) {
+        throw new Error('Signup successful but no user data returned');
+      }
       
-      return response.data?.user as User;
+      return response.data.user as User;
     },
-    onSuccess: () => {
-      // Invalidate user query to refetch updated user data
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+    onSuccess: (user) => {
+      // OPTIMIZATION: Manually set cache
+      queryClient.setQueryData(['user'], user);
+      router.push('/dashboard');
     },
   });
 }
 
 export function useLogout() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: async () => {
       await authClient.signOut();
     },
     onSuccess: () => {
-      // Clear user cache
+      // 1. Update cache immediately to reflect logged out state
       queryClient.setQueryData(['user'], null);
-      // Remove all queries
-      queryClient.clear();
-      // Redirect to login
-      window.location.href = '/login';
+      
+      // 2. Remove queries that shouldn't exist without a user
+      // (Optional: safer than .clear() if you have public data)
+      // queryClient.removeQueries({ queryKey: ['dashboard'] }); 
+
+      // 3. Smooth client-side redirect
+      router.push('/login');
     },
   });
 }
