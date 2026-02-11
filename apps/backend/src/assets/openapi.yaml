@@ -33,6 +33,8 @@ tags:
     description: Insights for candidates and employers
   - name: InterviewAssistant
     description: AI-generated interview questions
+  - name: Browse
+    description: Browse categories and companies
 paths:
   /auth/register:
     post:
@@ -400,6 +402,39 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /categories:
+    get:
+      tags: [Browse]
+      summary: List job categories with job count
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+  /companies:
+    get:
+      tags: [Browse]
+      summary: List companies
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search by company name
+      responses:
+        '200':
+          description: Paginated companies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyListResponse'
   /applications:
     post:
       tags: [Applications]
@@ -849,6 +884,47 @@ components:
             type: string
         verified:
           type: boolean
+    Category:
+      type: object
+      required: [id, name, jobCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        jobCount:
+          type: integer
+          minimum: 0
+        icon:
+          type: string
+          description: Icon name or URL for category
+        description:
+          type: string
+    Company:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        logo:
+          type: string
+          format: uri
+        website:
+          type: string
+          format: uri
+        industry:
+          type: string
+        companySize:
+          type: string
+          enum: [1-10, 11-50, 51-200, 201-1000, 1000+]
+        locations:
+          type: array
+          items:
+            type: string
+        verified:
+          type: boolean
     Job:
       type: object
       required: [id, employerId, title, description, type, status, createdAt]
@@ -1268,6 +1344,52 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/Job'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    CategoryListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Categories retrieved
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Category'
+                meta:
+                  $ref: '#/components/schemas/PaginatedMeta'
+    CompanyListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            code:
+              type: string
+              example: OK
+            message:
+              type: string
+              example: Companies retrieved
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Company'
                 meta:
                   $ref: '#/components/schemas/PaginatedMeta'
     ApplicationCreateRequest:
