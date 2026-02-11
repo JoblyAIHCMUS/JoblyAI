@@ -1,13 +1,32 @@
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 export function GoogleAuthButton({ variant = 'login' }: { variant?: 'login' | 'signup' }) {
+  const [isLoading, setIsLoading] = useState(false);
   const text = variant === 'login' ? 'Login with Google' : 'Sign Up with Google';
+
+  const handleGoogleAuth = async () => {
+    try {
+      setIsLoading(true);
+      // Redirect to the backend's Google OAuth endpoint
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      window.location.href = `${baseUrl}/api/auth/sign-in/google?callbackURL=${encodeURIComponent(redirectUri)}`;
+    } catch (error) {
+      console.error('Google auth error:', error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Button
       variant="outline"
       className="w-full gap-2 border-border"
       size="lg"
+      onClick={handleGoogleAuth}
+      disabled={isLoading}
     >
       <svg
         className="h-5 w-5"
@@ -19,7 +38,7 @@ export function GoogleAuthButton({ variant = 'login' }: { variant?: 'login' | 's
         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
       </svg>
-      {text}
+      {isLoading ? 'Redirecting...' : text}
     </Button>
   );
 }

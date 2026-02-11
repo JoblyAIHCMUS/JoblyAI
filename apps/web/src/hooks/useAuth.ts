@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../lib/api';
+import { authClient } from '../lib/auth-client';
 import type { User } from './useUser';
 
 export interface LoginCredentials {
@@ -18,11 +18,28 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await apiClient.post<User>('/auth/sign-in/email', {
-        email: credentials.email,
-        password: credentials.password,
-      });
-      return response.data;
+      const response = await authClient.signIn.email(
+        {
+          email: credentials.email,
+          password: credentials.password,
+        },
+        {
+          onSuccess: () => {
+            // Invalidate user query to refetch updated user data
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+          },
+          onError: (error) => {
+            // Log the error; actual rejection is handled via response.error below
+            console.error('Login failed', error);
+          },
+        }
+      );
+      
+      if (response.error) {
+        throw new Error(response.error?.message || 'Login failed');
+      }
+      
+      return response.data?.user as User;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -36,12 +53,17 @@ export function useSignup() {
 
   return useMutation({
     mutationFn: async (credentials: SignupCredentials) => {
-      const response = await apiClient.post<User>('/auth/sign-up', {
+      const response = await authClient.signUp.email({
         email: credentials.email,
         password: credentials.password,
-        name: credentials.name,
+        name: credentials.name || '',
       });
-      return response.data;
+      
+      if (response.error) {
+        throw new Error(response.error?.message || 'Signup failed');
+      }
+      
+      return response.data?.user as User;
     },
     onSuccess: () => {
       // Invalidate user query to refetch updated user data
@@ -55,7 +77,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      await apiClient.post('/auth/sign-out');
+      await authClient.signOut();
     },
     onSuccess: () => {
       // Clear user cache

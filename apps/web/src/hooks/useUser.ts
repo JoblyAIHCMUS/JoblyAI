@@ -1,16 +1,17 @@
 'use client';
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
-import { apiClient } from '../lib/api';
+import { authClient } from '../lib/auth-client';
 
 export interface User {
   id: string;
-  email?: string;
-  name?: string;
-  avatar?: string;
-  emailVerified?: boolean;
-  [key: string]: string | boolean | undefined;
+  email: string;
+  emailVerified: boolean;
+  name: string;
+  image?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+  [key: string]: any;
 }
 
 export function useUser(): UseQueryResult<User | null, Error> {
@@ -18,18 +19,11 @@ export function useUser(): UseQueryResult<User | null, Error> {
     queryKey: ['user'],
     queryFn: async () => {
       try {
-        const { data } = await apiClient.get<User>('/auth/me');
-        return data;
-      } catch (error: unknown) {
-        // Handle 401 as "not authenticated" (not an error)
-        if (
-          error instanceof Error &&
-          'response' in error &&
-          (error as AxiosError).response?.status === 401
-        ) {
-          return null;
-        }
-        throw error;
+        const session = await authClient.getSession();
+        return (session?.data?.user as User) || null;
+      } catch (error) {
+        // If session fetch fails, user is not authenticated
+        return null;
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
