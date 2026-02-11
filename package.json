@@ -90,7 +90,9 @@
     "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1"
   },
-  "overrides": {
-    "fast-xml-parser": "^5.3.4"
+  "pnpm": {
+    "overrides": {
+      "fast-xml-parser": ">=5.3.4"
+    }
   }
 }
