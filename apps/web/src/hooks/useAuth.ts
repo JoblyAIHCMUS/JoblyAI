@@ -29,7 +29,8 @@ export function useLogin() {
             queryClient.invalidateQueries({ queryKey: ['user'] });
           },
           onError: (error) => {
-            throw new Error(error.error?.message || 'Login failed');
+            // Log the error; actual rejection is handled via response.error below
+            console.error('Login failed', error);
           },
         }
       );

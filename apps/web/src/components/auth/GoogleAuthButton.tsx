@@ -13,7 +13,7 @@ export function GoogleAuthButton({ variant = 'login' }: { variant?: 'login' | 's
       // Redirect to the backend's Google OAuth endpoint
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const redirectUri = `${window.location.origin}/auth/callback`;
-      window.location.href = `${baseUrl}/api/auth/signin/google?callbackURL=${encodeURIComponent(redirectUri)}`;
+      window.location.href = `${baseUrl}/api/auth/sign-in/google?callbackURL=${encodeURIComponent(redirectUri)}`;
     } catch (error) {
       console.error('Google auth error:', error);
       setIsLoading(false);
