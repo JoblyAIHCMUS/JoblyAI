@@ -406,6 +406,7 @@ paths:
     get:
       tags: [Browse]
       summary: List job categories with job count
+      security: []
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PageSizeParam'
@@ -420,6 +421,7 @@ paths:
     get:
       tags: [Browse]
       summary: List companies
+      security: []
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PageSizeParam'
