@@ -23,8 +23,7 @@ COPY apps/backend/package.json ./apps/backend/
 COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install dependencies with BuildKit cache mount for dramatic speedup
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    mkdir -p /pnpm/store && chmod -R 777 /pnpm/store && \
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --frozen-lockfile
 
 # Copy backend source code
@@ -44,7 +43,7 @@ ENV NODE_ENV=development
 RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
     mkdir -p /tmp && chmod -R 777 /tmp && \
     chown -R node:node /app
-USER node
+USER root
 WORKDIR /app
 # might need to change to start in prod mode depending on use case
 CMD ["pnpm", "--filter", "@jobly/backend", "run", "start:dev"]
@@ -66,7 +65,7 @@ RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
 WORKDIR /app
 
 RUN chown node:node /app
-USER node
+USER root
 
 # Copy workspace manifests and backend build output
 COPY --chown=node:node --from=base /app/package.json ./
@@ -77,8 +76,7 @@ COPY --chown=node:node --from=base /app/apps/backend/prisma ./apps/backend/prism
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
 # Install only backend production dependencies using workspace filter
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    mkdir -p /pnpm/store && chmod -R 777 /pnpm/store && \
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
 # Expose port
