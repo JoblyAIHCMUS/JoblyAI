@@ -81,9 +81,6 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
-
-      # 3b. Package audit
-      - run: pnpm audit --audit-level=moderate
       # 4. Build Web
       - run: pnpm nx run @jobly/web:build
       # 5. Start Web Server

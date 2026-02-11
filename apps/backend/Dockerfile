@@ -6,6 +6,9 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
+# Create pnpm directory with proper permissions BEFORE install
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm
+
 # Set working directory
 WORKDIR /app
 
@@ -21,6 +24,7 @@ COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install dependencies with BuildKit cache mount for dramatic speedup
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    mkdir -p /pnpm/store && chmod -R 777 /pnpm/store && \
     pnpm install --frozen-lockfile
 
 # Copy backend source code
@@ -36,7 +40,10 @@ RUN pnpm exec nx build backend
 # Development stage (precompile before running dev server)
 FROM base AS development
 ENV NODE_ENV=development
-RUN chown -R node:node /app
+# Ensure all app contents are owned by node user and pnpm is writable
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
+    mkdir -p /tmp && chmod -R 777 /tmp && \
+    chown -R node:node /app
 USER node
 WORKDIR /app
 # might need to change to start in prod mode depending on use case
@@ -50,6 +57,11 @@ ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+
+# Create pnpm directory with proper permissions
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
+    mkdir -p /tmp && chmod -R 777 /tmp
+
 # Create app directory
 WORKDIR /app
 
@@ -66,6 +78,7 @@ COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
 # Install only backend production dependencies using workspace filter
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    mkdir -p /pnpm/store && chmod -R 777 /pnpm/store && \
     pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
 # Expose port

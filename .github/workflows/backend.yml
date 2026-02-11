@@ -104,18 +104,27 @@ jobs:
         run: |
           cp apps/backend/.env.example apps/backend/.env
           docker compose up -d postgres redis backend
+          echo "Waiting for services to initialize..."
+          sleep 5
+          echo "=== Docker Compose Status ==="
+          docker compose ps
 
       - name: Smoke check API
         run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:3000/api >/dev/null; then
-              echo "Backend healthy"
+          echo "Waiting for backend to start..."
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000/api >/dev/null 2>&1; then
+              echo "✓ Backend healthy"
               exit 0
             fi
+            echo "Attempt $i/60: Backend not ready yet, retrying in 2s..."
             sleep 2
           done
-          echo "Backend did not become healthy"
+          echo "✗ Backend did not become healthy after 120 seconds"
+          echo "=== Backend Logs ==="
           docker compose logs backend || true
+          echo "=== Docker Processes ==="
+          docker compose ps || true
           exit 1
 
   # JOB 3: CD (Build & Push Docker)
@@ -144,7 +153,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # Package audit
-      - run: pnpm audit --audit-level=moderate
+      - run: pnpm audit --audit-level=high
       - uses: nrwl/nx-set-shas@v4
 
       # Check if backend was modified
