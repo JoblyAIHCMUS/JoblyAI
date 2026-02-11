@@ -95,4 +95,3 @@ volumes:
   postgres_data:
   redis_data:
   scylla_data:
-  minio_data:

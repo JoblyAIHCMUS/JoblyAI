@@ -20,7 +20,7 @@ COPY apps/backend/package.json ./apps/backend/
 COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install dependencies with BuildKit cache mount for dramatic speedup
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 # Copy backend source code
@@ -36,8 +36,9 @@ RUN pnpm exec nx build backend
 # Development stage (precompile before running dev server)
 FROM base AS development
 ENV NODE_ENV=development
-WORKDIR /app
+RUN chown -R node:node /app
 USER node
+WORKDIR /app
 # might need to change to start in prod mode depending on use case
 CMD ["pnpm", "--filter", "@jobly/backend", "run", "start:dev"]
 
@@ -46,16 +47,13 @@ FROM node:22-alpine AS production
 
 # Keep image lean; only runtime bits
 ENV NODE_ENV=production
-ENV NX_DAEMON=false
-
-RUN npm install -g pnpm
-
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 # Create app directory
 WORKDIR /app
 
-# Create the folder and give 'node' user rights to it (Instant on empty dir)
 RUN chown node:node /app
-
 USER node
 
 # Copy workspace manifests and backend build output
@@ -67,10 +65,11 @@ COPY --chown=node:node --from=base /app/apps/backend/prisma ./apps/backend/prism
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
 # Install only backend production dependencies using workspace filter
-RUN pnpm install --prod --filter @jobly/backend --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
 # Expose port
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/main"]
+CMD ["node", "apps/backend/dist/main"]
