@@ -16,11 +16,16 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
-  userType      String?   @default("job-seeker")
+  userType      String?   @default("candidate")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+
+  role       String?
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
 
   @@map("user")
 }
@@ -35,6 +40,8 @@ model Session {
   userAgent String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  impersonatedBy String?
 
   @@index([userId])
   @@map("session")
