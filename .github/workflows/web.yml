@@ -49,7 +49,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # 3b. Package audit
-      - run: pnpm audit --audit-level=moderate
+      - run: pnpm audit --audit-level=high
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
       # 5. Verify web target runs before deploy steps
