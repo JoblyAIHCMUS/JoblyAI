@@ -3,7 +3,7 @@ import { JobPosting } from "./job-posting.interface";
 import { EmploymentType, GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 // import { JobCategory } from "./job-category.interface";
 
-interface PaginatedJobsResponse {
+export interface PaginatedJobsResponse {
     jobs: JobPosting[];
     total: number;
     page: number;
