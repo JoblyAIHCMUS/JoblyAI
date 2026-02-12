@@ -21,6 +21,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  postedJobs    JobPosting[]
 
   @@map("user")
 }
@@ -72,4 +73,80 @@ model Verification {
   @@unique([identifier, value])
   @@index([identifier])
   @@map("verification")
+}
+
+// Job models
+model JobCategory {
+  id    Int          @id @default(autoincrement())
+  name  String       @unique
+  slug  String       @unique
+  jobs  JobPosting[]
+}
+
+model Skill {
+  id           Int              @id @default(autoincrement())
+  name         String           @unique
+  requirements JobRequirement[]
+}
+
+model JobPosting {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  location    String?
+  salaryMin   Decimal?
+  salaryMax   Decimal?
+  currency    String?  @default("USD")
+  status      JobStatus @default(DRAFT)
+  remote      Boolean   @default(false)
+  type        EmploymentType @default(FULL_TIME)
+
+  // Relations
+  postedById  String
+  postedBy    User     @relation(fields: [postedById], references: [id])
+
+  categoryId  Int
+  category    JobCategory @relation(fields: [categoryId], references: [id])
+
+  companyName String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requirements JobRequirement[]
+}
+
+model JobRequirement {
+  id                 Int        @id @default(autoincrement())
+  jobPostingId       Int
+  jobPosting         JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  
+  skillId            Int
+  skill              Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  
+  importance         RequirementImportance @default(PREFERRED)
+  minYearsExperience Int?
+
+  @@unique([jobPostingId, skillId])
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+  DRAFT
+}
+
+enum RequirementImportance {
+  REQUIRED
+  PREFERRED
+  OPTIONAL
+}
+
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
 }

@@ -22,6 +22,7 @@ export function GoogleAuthButton({ variant = 'login' }: { variant?: 'login' | 's
 
   return (
     <Button
+      type="button"
       variant="outline"
       className="w-full gap-2 border-border"
       size="lg"
