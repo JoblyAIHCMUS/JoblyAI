@@ -1,10 +1,11 @@
 import { EmployerSidebar } from "@/components/EmployerSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import type { ReactNode } from "react";
 
 export default function EmployerLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <SidebarProvider>
