@@ -198,7 +198,7 @@ export function EmployerSidebar() {
               Maria Kelly
             </span>
             <span className="text-sm text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)]">
-              MariaKlly@email.com
+              MariaKelly@email.com
             </span>
           </div>
         </div>
