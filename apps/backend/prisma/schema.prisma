@@ -98,6 +98,8 @@ model JobPosting {
   salaryMax   Decimal?
   currency    String?  @default("USD")
   status      JobStatus @default(DRAFT)
+  remote      Boolean   @default(false)
+  type        EmploymentType @default(FULL_TIME)
 
   // Relations
   postedById  String
@@ -138,4 +140,13 @@ enum RequirementImportance {
   REQUIRED
   PREFERRED
   OPTIONAL
+}
+
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
 }
