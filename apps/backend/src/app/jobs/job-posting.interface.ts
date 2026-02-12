@@ -1,10 +1,4 @@
-
-export enum EmploymentType {
-  FULL_TIME = 'full-time',
-  PART_TIME = 'part-time',
-  CONTRACT = 'contract',
-  INTERNSHIP = 'internship',
-}
+import { EmploymentType } from '@prisma/client';
 
 export interface JobPosting {
     id: number;
@@ -14,12 +8,21 @@ export interface JobPosting {
     description: string;
     location: string;
     remote: boolean;
-    type: EmploymentType; // Added
-    skills: string[];     // Added
+    type: EmploymentType; 
+    skills: string[];     
     salaryMin: number;
     salaryMax: number;
     currency: string;
     status: string;
     createdAt: Date;
     updatedAt: Date;
+}
+
+
+export interface PaginatedJobsResponse {
+    jobs: JobPosting[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
 }

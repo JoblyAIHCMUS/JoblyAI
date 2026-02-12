@@ -1,12 +1,6 @@
 import { IsOptional, IsInt, Min, Max, IsString, IsBoolean, IsEnum, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export enum EmploymentType {
-  FULL_TIME = 'full-time',
-  PART_TIME = 'part-time',
-  CONTRACT = 'contract',
-  INTERNSHIP = 'internship',
-}
+import { EmploymentType } from '@prisma/client';
 
 export class GetJobsQueryDTO {
   @IsOptional()
