@@ -82,8 +82,10 @@ const navSecondary = [
 
 export function EmployerSidebar() {
   const pathname = usePathname();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
+  
+  // Derive the actual collapsed state based on mobile vs desktop
+  const isCollapsed = isMobile ? !openMobile : state === "collapsed";
 
   return (
     <Sidebar collapsible="icon" className="relative border-r border-[color:var(--border-primary)]">
