@@ -9,7 +9,7 @@ export class JobsService {
     constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
 
     async getsPaginatedJobsPostings(query: GetJobsQueryDTO): Promise<PaginatedJobsResponse> {
-        const { page = 1, pageSize = 10, q, location, remote, type, skills } = query;
+        const { page = 1, pageSize = 10, q, location, remote, type, salaryMin, salaryMax, skills } = query;
 
         const whereClause: Prisma.JobPostingWhereInput = {};
 
@@ -37,6 +37,27 @@ export class JobsService {
                     }
                 }
             };
+        }
+
+        // Salary range filtering with null-safe handling
+        if (salaryMin !== undefined || salaryMax !== undefined) {
+            whereClause.AND = [
+                // If user sets a Min (Floor), ensure Job Max is High Enough OR Unlimited
+                ...(salaryMin !== undefined ? [{
+                    OR: [
+                        { salaryMax: { gte: salaryMin } },
+                        { salaryMax: null }
+                    ]
+                }] : []),
+
+                // If user sets a Max (Ceiling), ensure Job Min is Low Enough OR Unspecified
+                ...(salaryMax !== undefined ? [{
+                    OR: [
+                        { salaryMin: { lte: salaryMax } },
+                        { salaryMin: null }
+                    ]
+                }] : [])
+            ];
         }
 
         const [total, jobs] = await this.prisma.$transaction([

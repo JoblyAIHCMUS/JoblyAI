@@ -38,6 +38,18 @@ export class GetJobsQueryDTO {
   remote?: boolean;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  salaryMin?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  salaryMax?: number;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   skills?: string[];
