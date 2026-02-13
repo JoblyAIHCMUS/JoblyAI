@@ -3,6 +3,7 @@ import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
 import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./job-posting.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
+import { CreateJobDto } from "./dto/createJobDTO";
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
@@ -97,6 +98,33 @@ export class JobsService {
             pageSize,
             totalPages: Math.ceil(total / pageSize),
         };
+    }
+
+    async createJob(dto: CreateJobDto, userId: string): Promise<JobPostingInterface> {
+        const { requirements, ...jobData } = dto;
+
+        const createdJob = await this.prisma.jobPosting.create({
+            data: {
+                ...jobData,
+                postedById: userId,
+                requirements: requirements && requirements.length > 0 ? {
+                create: requirements.map((req) => ({
+                    skillId: req.skillId,
+                    importance: req.importance,
+                    minYearsExperience: req.minYearsExperience
+                }))
+                } : undefined,
+            },
+            include: {
+                requirements: {
+                include: {
+                    skill: true
+                }
+                }
+            }
+        });
+
+        return this.mapToJobResponse(createdJob);
     }
 
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
