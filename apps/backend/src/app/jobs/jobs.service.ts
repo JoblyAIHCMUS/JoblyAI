@@ -4,6 +4,16 @@ import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./job-
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
 
+type JobWithRelations = Prisma.JobPostingGetPayload<{
+  include: {
+    requirements: {
+      include: {
+        skill: true
+      }
+    }
+  }
+}>;
+
 @Injectable()
 export class JobsService {
     constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
@@ -78,18 +88,7 @@ export class JobsService {
             }),
         ]);
 
-        // Transform Prisma's nested structure into your JobPosting interface
-        const mappedJobs = jobs.map((job) => {
-            const { requirements, ...rest } = job;
-            return {
-                ...rest,
-                // Extract skill names from the join table objects
-                skills: requirements.map(jr => jr.skill.name),
-                // Ensure Decimal values from Prisma are converted to numbers
-                salaryMin: job.salaryMin ? Number(job.salaryMin) : null,
-                salaryMax: job.salaryMax ? Number(job.salaryMax) : null,
-            };
-        }) as unknown as JobPostingInterface[];
+        const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
 
         return {
             jobs: mappedJobs,
@@ -98,5 +97,19 @@ export class JobsService {
             pageSize,
             totalPages: Math.ceil(total / pageSize),
         };
+    }
+
+    private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
+        const { requirements, ...rest } = job;
+        
+        return {
+            ...rest,
+            // Flatten the skills array
+            skills: requirements ? requirements.map((jr) => jr.skill.name) : [],
+            
+            // Convert Prisma Decimals to JavaScript Numbers
+            salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
+            salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
+        } as unknown as JobPostingInterface;
     }
 }
