@@ -1,15 +1,9 @@
-import type { Request } from 'express';
 import { Body, Controller, Get, Post, Query, UseGuards, Req } from "@nestjs/common";
 import { JobsService } from "./jobs.service";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { AuthGuard } from "../auth/auth.guard";
 import { CreateJobDto } from "./dto/createJobDTO";
-
-interface RequestWithUser extends Request {
-    user: {
-        id: string;
-    }
-}
+import type { RequestWithUser } from "../../lib/requestWithUser";
 
 @Controller("jobs")
 export class JobsController{
