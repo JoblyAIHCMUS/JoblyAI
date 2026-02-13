@@ -16,13 +16,11 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
-  userType      String?   @default("candidate")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
-
-  role       String?
+  role       String? @default("candidate")
   banned     Boolean?  @default(false)
   banReason  String?
   banExpires DateTime?
