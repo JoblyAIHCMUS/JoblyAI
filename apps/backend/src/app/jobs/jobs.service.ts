@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./job-posting.interface";
+import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
 import { CreateJobDto } from "./dto/createJobDTO";
