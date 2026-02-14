@@ -1,8 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./job-posting.interface";
+import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
+import { CreateJobDto } from "./dto/createJobDTO";
+
+type JobWithRelations = Prisma.JobPostingGetPayload<{
+  include: {
+    requirements: {
+      include: {
+        skill: true
+      }
+    }
+  }
+}>;
 
 @Injectable()
 export class JobsService {
@@ -78,18 +89,7 @@ export class JobsService {
             }),
         ]);
 
-        // Transform Prisma's nested structure into your JobPosting interface
-        const mappedJobs = jobs.map((job) => {
-            const { requirements, ...rest } = job;
-            return {
-                ...rest,
-                // Extract skill names from the join table objects
-                skills: requirements.map(jr => jr.skill.name),
-                // Ensure Decimal values from Prisma are converted to numbers
-                salaryMin: job.salaryMin ? Number(job.salaryMin) : null,
-                salaryMax: job.salaryMax ? Number(job.salaryMax) : null,
-            };
-        }) as unknown as JobPostingInterface[];
+        const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
 
         return {
             jobs: mappedJobs,
@@ -98,5 +98,46 @@ export class JobsService {
             pageSize,
             totalPages: Math.ceil(total / pageSize),
         };
+    }
+
+    async createJob(dto: CreateJobDto, userId: string): Promise<JobPostingInterface> {
+        const { requirements, ...jobData } = dto;
+
+        const createdJob = await this.prisma.jobPosting.create({
+            data: {
+                ...jobData,
+                postedById: userId,
+                requirements: requirements && requirements.length > 0 ? {
+                create: requirements.map((req) => ({
+                    skillId: req.skillId,
+                    importance: req.importance,
+                    minYearsExperience: req.minYearsExperience
+                }))
+                } : undefined,
+            },
+            include: {
+                requirements: {
+                include: {
+                    skill: true
+                }
+                }
+            }
+        });
+
+        return this.mapToJobResponse(createdJob);
+    }
+
+    private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
+        const { requirements, ...rest } = job;
+        
+        return {
+            ...rest,
+            // Flatten the skills array
+            skills: requirements ? requirements.map((jr) => jr.skill.name) : [],
+            
+            // Convert Prisma Decimals to JavaScript Numbers
+            salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
+            salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
+        } as unknown as JobPostingInterface;
     }
 }
