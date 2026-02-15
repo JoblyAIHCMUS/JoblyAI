@@ -34,7 +34,7 @@ export class JobsController{
     @Roles("employer", "admin")
     async deleteJobById(@Param("id", ParseIntPipe) id: number, @Req() request: AuthenticatedRequest) {
         const userId = request.user.id;
-        const userRole = request.user.role as string;
+        const userRole = request.user.role;
         return this.jobsService.deleteJobById(id, userId, userRole);
     }
 
