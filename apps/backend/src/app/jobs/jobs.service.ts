@@ -144,11 +144,15 @@ export class JobsService {
         return this.mapToJobResponse(job);
     }
 
-    async deleteJobById(id: number, userId: string): Promise<void> {
+    async deleteJobById(id: number, userId: string, userRole: string): Promise<void> {
         const job = await this.prisma.jobPosting.findUnique({
             where: { id },
         });
-        if (!job || job.postedById !== userId) {
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+        // Allow deletion if user is the one who posted it or if user is an admin
+        if (job.postedById !== userId && userRole !== 'admin') {
             throw new NotFoundException(`Job with ID ${id} not found`);
         }
         await this.prisma.jobPosting.delete({
