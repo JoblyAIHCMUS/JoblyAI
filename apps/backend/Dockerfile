@@ -39,12 +39,11 @@ RUN pnpm exec nx build backend
 # Development stage (precompile before running dev server)
 FROM base AS development
 ENV NODE_ENV=development
-# Ensure all app contents are owned by node user and pnpm is writable
-RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
-    mkdir -p /tmp && chmod -R 777 /tmp && \
-    chown -R node:node /app
-USER root
 WORKDIR /app
+# Ensure all app contents are owned by node user and tmp is writable
+RUN mkdir -p /tmp && chmod -R 777 /tmp && \
+    chown -R node:node /app
+USER node
 # might need to change to start in prod mode depending on use case
 CMD ["pnpm", "--filter", "@jobly/backend", "run", "start:dev"]
 
@@ -55,17 +54,15 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
-
-# Create pnpm directory with proper permissions
-RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
+RUN corepack enable &&  mkdir -p /pnpm && chmod -R 777 /pnpm && \
     mkdir -p /tmp && chmod -R 777 /tmp
 
 # Create app directory
 WORKDIR /app
 
-RUN chown node:node /app
-USER root
+# Ensure app directory is owned by node user
+RUN chown -R node:node /app
+USER node
 
 # Copy workspace manifests and backend build output
 COPY --chown=node:node --from=base /app/package.json ./

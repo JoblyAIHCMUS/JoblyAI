@@ -72,7 +72,7 @@ services:
       DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
-    command: ["sh", "-c", "pnpm --filter @jobly/backend exec prisma migrate deploy && node dist/main"]
+    command: [ "sh", "-c", "pnpm dlx prisma migrate deploy && node apps/backend/dist/main" ]
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api || exit 1"]
       interval: 10s
