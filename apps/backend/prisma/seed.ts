@@ -69,42 +69,42 @@ async function main() {
         name: 'Alice Johnson',
         email: 'alice@example.com',
         emailVerified: true,
-        userType: 'job-seeker',
+        role: 'candidate',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
       },
       {
         name: 'Bob Smith',
         email: 'bob@example.com',
         emailVerified: true,
-        userType: 'job-seeker',
+        role: 'candidate',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
       },
       {
         name: 'Carol White',
         email: 'carol@example.com',
         emailVerified: true,
-        userType: 'employer',
+        role: 'employer',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
       },
       {
         name: 'David Brown',
         email: 'david@example.com',
         emailVerified: true,
-        userType: 'employer',
+        role: 'employer',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
       },
       {
         name: 'Eve Davis',
         email: 'eve@example.com',
         emailVerified: false,
-        userType: 'job-seeker',
+        role: 'candidate',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
       },
       {
         name: 'Frank Miller',
         email: 'frank@example.com',
         emailVerified: true,
-        userType: 'employer',
+        role: 'employer',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
       },
     ],
@@ -113,8 +113,8 @@ async function main() {
 
   // Get users for creating job postings
   const allUsers = await prisma.user.findMany();
-  const employers = allUsers.filter((u) => u.userType === 'employer');
-  const jobSeekers = allUsers.filter((u) => u.userType === 'job-seeker');
+  const employers = allUsers.filter((u) => u.role === 'employer');
+  const jobSeekers = allUsers.filter((u) => u.role === 'candidate');
 
   // Get categories and skills
   const allCategories = await prisma.jobCategory.findMany();
