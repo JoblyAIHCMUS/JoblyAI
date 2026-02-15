@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
 import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
@@ -125,6 +125,23 @@ export class JobsService {
         });
 
         return this.mapToJobResponse(createdJob);
+    }
+
+    async getJobById(id: number): Promise<JobPostingInterface> {
+        const job = await this.prisma.jobPosting.findUnique({
+            where: { id },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+        return this.mapToJobResponse(job);
     }
 
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
