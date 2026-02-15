@@ -1,9 +1,10 @@
-import { Controller, All, Req, Res, Get, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, All, Req, Res, Get, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { RoleGuard } from './role.guard';
+import { prisma } from '../../lib/db';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: {
@@ -53,7 +54,19 @@ export class AuthController {
    */
   @All('*')
   async handleAuth(@Req() req: ExpressRequest, @Res() res: Response) {
-    this.enforceSignupRole(req);
+    // Intercept signup role
+    const path = req.originalUrl || req.url || '';
+    if (req.method === 'POST' && path.includes('/sign-up')) {
+      const body = req.body as Record<string, unknown>;
+      if (body?.role) {
+        const requestedRole = body.role;
+        if (typeof requestedRole === 'string' && ['candidate', 'employer'].includes(requestedRole)) {
+          (req as ExpressRequest & { targetRole?: string }).targetRole = requestedRole;
+          delete body.role;
+        }
+      }
+    }
+
     const request = this.toWebRequest(req);
     const authRes = await auth.handler(request);
 
@@ -62,7 +75,28 @@ export class AuthController {
       res.setHeader(key, value);
     });
 
-    const body = await authRes.text();
+    let body = await authRes.text();
+
+    // If this was a signup and we have a target role, modify the response body
+    const targetRole = (req as ExpressRequest & { targetRole?: string }).targetRole;
+    if (targetRole && req.method === 'POST' && (req.originalUrl || req.url).includes('/sign-up')) {
+      try {
+        const jsonBody = JSON.parse(body);
+        if (jsonBody.user?.id) {
+          jsonBody.user.role = targetRole;
+          body = JSON.stringify(jsonBody);
+
+          // Update the database with the role
+          await prisma.user.update({
+            where: { id: jsonBody.user.id },
+            data: { role: targetRole },
+          });
+        }
+      } catch {
+        // If parsing fails, just send the original body
+      }
+    }
+
     return res.send(body);
   }
 
@@ -81,6 +115,11 @@ export class AuthController {
         value.forEach((entry) => headers.append(key, entry));
       }
     });
+
+    // Ensure Origin header is set for Better Auth
+    if (!headers.has('origin')) {
+      headers.set('origin', new URL(baseUrl).origin);
+    }
 
     let body: string | undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -101,27 +140,5 @@ export class AuthController {
       headers,
       body,
     });
-  }
-
-  private enforceSignupRole(req: ExpressRequest) {
-    const path = req.originalUrl || req.url || '';
-    if (req.method !== 'POST' || !path.includes('/sign-up')) {
-      return;
-    }
-
-    const role =
-      req.body && typeof req.body === 'object' ? (req.body as { role?: unknown }).role : undefined;
-
-    if (role === undefined || role === null) {
-      return;
-    }
-
-    if (typeof role !== 'string') {
-      throw new BadRequestException('Role must be a string');
-    }
-
-    if (role !== 'candidate' && role !== 'employer') {
-      throw new BadRequestException('Role must be candidate or employer');
-    }
   }
 }
