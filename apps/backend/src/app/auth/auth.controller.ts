@@ -1,7 +1,9 @@
-import { Controller, All, Req, Res, Get, UseGuards } from '@nestjs/common';
+import { Controller, All, Req, Res, Get, UseGuards, BadRequestException } from '@nestjs/common';
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { RoleGuard } from './role.guard';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: {
@@ -31,12 +33,27 @@ export class AuthController {
     };
   }
 
+  @Get('admin-only-check')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('admin')
+  adminOnlyRoute() {
+    return { message: 'This is an admin only route' };
+  }
+
+  @Get('employer-and-admin-check')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer', 'admin')
+  employerAndAdminRoute() {
+    return { message: 'This route is for employer and admins' };
+  }
+
   /**
    * Handle all auth routes through better-auth
    * Better-auth provides: /sign-in, /sign-up, /sign-out, /session, etc.
    */
   @All('*')
   async handleAuth(@Req() req: ExpressRequest, @Res() res: Response) {
+    this.enforceSignupRole(req);
     const request = this.toWebRequest(req);
     const authRes = await auth.handler(request);
 
@@ -84,5 +101,27 @@ export class AuthController {
       headers,
       body,
     });
+  }
+
+  private enforceSignupRole(req: ExpressRequest) {
+    const path = req.originalUrl || req.url || '';
+    if (req.method !== 'POST' || !path.includes('/sign-up')) {
+      return;
+    }
+
+    const role =
+      req.body && typeof req.body === 'object' ? (req.body as { role?: unknown }).role : undefined;
+
+    if (role === undefined || role === null) {
+      return;
+    }
+
+    if (typeof role !== 'string') {
+      throw new BadRequestException('Role must be a string');
+    }
+
+    if (role !== 'candidate' && role !== 'employer') {
+      throw new BadRequestException('Role must be candidate or employer');
+    }
   }
 }
