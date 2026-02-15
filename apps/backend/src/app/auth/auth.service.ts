@@ -7,27 +7,15 @@ export class AuthService {
   /**
    * Get session from cache or database
    */
-  async getSession(sessionToken: string) {
-    // Try to get from Redis cache first
-    const cacheKey = `session:${sessionToken}`;
-    const cached = await redis.get(cacheKey);
-    
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
-    // If not in cache, verify with better-auth
+  async getSession(reqHeaders: Headers | Record<string, any>) {
+    console.log('[DEBUG] Fetching session with headers:', reqHeaders);
     const session = await auth.api.getSession({
-      headers: {
-        authorization: `Bearer ${sessionToken}`,
-      },
+      headers: reqHeaders,
     });
-
-    if (session) {
-      // Cache the session for 5 minutes
-      await redis.setex(cacheKey, 300, JSON.stringify(session));
+    if (!session) {
+      console.log(`[DEBUG] Session lookup failed.`);
+      return null;
     }
-
     return session;
   }
 
@@ -37,6 +25,19 @@ export class AuthService {
   async invalidateSessionCache(sessionToken: string) {
     const cacheKey = `session:${sessionToken}`;
     await redis.del(cacheKey);
+  }
+
+  /**
+   * Validate token and return user and session info
+   */
+
+  async validateToken(reqHeaders: Headers | Record<string, any>): Promise<object | null> {
+    const sessionPayload = await this.getSession(reqHeaders);
+    if (!sessionPayload) return null;
+    return {
+      user: sessionPayload.user,
+      session: sessionPayload.session,
+    };
   }
 
   /**

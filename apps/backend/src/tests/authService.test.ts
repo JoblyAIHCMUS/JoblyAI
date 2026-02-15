@@ -7,6 +7,12 @@ const mockUser = vi.hoisted(() => ({
   id: 'user123',
   email: 'example@mail.com',
   password: 'hashedpassword',
+  role: 'candidate',
+}));
+
+const mockSession = vi.hoisted(() => ({
+  id: 'session123',
+  expiresAt: '2026-12-31T23:59:59.000Z',
 }));
 
 const redisMock = vi.hoisted(() => ({
@@ -19,7 +25,10 @@ const redisMock = vi.hoisted(() => ({
 vi.mock('../lib/auth', () => ({
   auth: {
     api: {
-      getSession: vi.fn().mockResolvedValue(mockUser.id),
+      getSession: vi.fn().mockResolvedValue({
+        user: mockUser.id,
+        session: mockSession,
+      }),
     },
   },
 }));
@@ -45,59 +54,32 @@ describe('AuthService', () => {
     redisMock.get.mockResolvedValue(null);
   });
 
-  // test get session
   it('should get session from auth api', async () => {
     // Arrange
-    const sessionToken = 'valid-token';
+    const requestHeaders = {
+      authorization: 'Bearer valid-token',
+    };
 
     // Act
-    const session = await service.getSession(sessionToken);
+    const session = await service.getSession(requestHeaders);
     
     // Assert
     expect(auth.api.getSession).toHaveBeenCalledWith({
-      headers: {
-        authorization: `Bearer ${sessionToken}`,
-      },
+      headers: requestHeaders,
     });
-    expect(session).toBe(mockUser.id);  
-  });
-
-  it('should return cached session without calling auth api', async () => {
-    // Arrange
-    const sessionToken = 'cached-token';
-    const cachedSession = { id: mockUser.id, email: mockUser.email };
-    redisMock.get.mockResolvedValueOnce(JSON.stringify(cachedSession));
-
-    // Act
-    const session = await service.getSession(sessionToken);
-
-    // Assert
-    expect(redisMock.get).toHaveBeenCalledWith(`session:${sessionToken}`);
-    expect(auth.api.getSession).not.toHaveBeenCalled();
-    expect(session).toEqual(cachedSession);
-  });
-
-  it('should cache session after fetching from auth api', async () => {
-    // Arrange
-    const sessionToken = 'fresh-token';
-
-    // Act
-    const session = await service.getSession(sessionToken);
-
-    // Assert
-    expect(redisMock.setex).toHaveBeenCalledWith(
-      `session:${sessionToken}`,
-      300,
-      JSON.stringify(mockUser.id)
-    );
-    expect(session).toBe(mockUser.id);
+    expect(session).toStrictEqual({
+      user: mockUser.id,
+      session: mockSession,
+    });
   });
 
   it('should not cache when auth api returns null', async () => {
-    const sessionToken = 'missing-session';
+    const requestHeaders = {
+      authorization: 'Bearer missing-session',
+    };
     vi.mocked(auth.api.getSession).mockResolvedValueOnce(null);
 
-    const session = await service.getSession(sessionToken);
+    const session = await service.getSession(requestHeaders);
 
     expect(redisMock.setex).not.toHaveBeenCalled();
     expect(session).toBeNull();
@@ -118,5 +100,21 @@ describe('AuthService', () => {
     const instance = service.getAuthInstance();
 
     expect(instance).toBe(auth);
+  });
+
+  it('should validate token and return user detail', async () => {
+    // Arrange
+    const requestHeaders = {
+      authorization: 'Bearer valid-token',
+    };
+
+    // Act
+    const userDetail = await service.validateToken(requestHeaders);
+    
+    // Assert
+    expect(userDetail).toEqual({
+      user: mockUser.id,
+      session: mockSession,
+    });
   });
 });
