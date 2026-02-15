@@ -144,6 +144,18 @@ export class JobsService {
         return this.mapToJobResponse(job);
     }
 
+    async deleteJobById(id: number, userId: string): Promise<void> {
+        const job = await this.prisma.jobPosting.findUnique({
+            where: { id },
+        });
+        if (!job || job.postedById !== userId) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+        await this.prisma.jobPosting.delete({
+            where: { id }
+        });
+    }
+
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
         const { requirements, ...rest } = job;
         

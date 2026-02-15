@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
 import { JobsService } from "./jobs.service";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { CreateJobDto } from "./dto/createJobDTO";
@@ -20,5 +20,10 @@ export class JobsController{
     @Get(":id")
     async getJobById(@Param("id", ParseIntPipe) id: number) {
         return this.jobsService.getJobById(id);
+    }
+
+    @Delete(":id")
+    async deleteJobById(@Param("id", ParseIntPipe) id: number, @Query("userId") userId: string) {
+        return this.jobsService.deleteJobById(id, userId);
     }
 }
