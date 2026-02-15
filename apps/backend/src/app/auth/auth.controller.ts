@@ -4,17 +4,7 @@ import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { RoleGuard } from './role.guard';
-
-interface AuthenticatedRequest extends ExpressRequest {
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-    emailVerified: boolean;
-    image?: string;
-  };
-  session: unknown;
-}
+import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 
 @Controller('auth')
 export class AuthController {
