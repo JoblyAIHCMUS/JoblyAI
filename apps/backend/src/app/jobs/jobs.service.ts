@@ -156,6 +156,20 @@ export class JobsService {
         });
     }
 
+    async getJobsByUserId(userId: string): Promise<JobPostingInterface[]> {
+        const jobs = await this.prisma.jobPosting.findMany({
+            where: { postedById: userId },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        return jobs.map((job) => this.mapToJobResponse(job));
+    }
+
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
         const { requirements, ...rest } = job;
         

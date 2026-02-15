@@ -26,4 +26,9 @@ export class JobsController{
     async deleteJobById(@Param("id", ParseIntPipe) id: number, @Query("userId") userId: string) {
         return this.jobsService.deleteJobById(id, userId);
     }
+
+    @Get("user/:userId")
+    async getJobsByUserId(@Param("userId") userId: string) {
+        return this.jobsService.getJobsByUserId(userId);
+    }
 }
