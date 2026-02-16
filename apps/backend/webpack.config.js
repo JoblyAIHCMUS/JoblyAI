@@ -12,7 +12,7 @@ module.exports = {
   },
   plugins: [
     new webpack.IgnorePlugin({
-      resourceRegExp: /^kerberos$/,
+      resourceRegExp: /^(kerberos|pg-native)$/,
     }),
     new NxAppWebpackPlugin({
       target: 'node',

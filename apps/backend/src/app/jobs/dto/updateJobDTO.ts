@@ -15,12 +15,14 @@ export class JobRequirementInput {
   minYearsExperience?: number;
 }
 
-export class CreateJobDTO {
+export class UpdateJobDTO {
+  @IsOptional()
   @IsString()
-  title!: string;
+  title?: string;
 
+  @IsOptional()
   @IsString()
-  description!: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
@@ -48,8 +50,9 @@ export class CreateJobDTO {
   @IsEnum(EmploymentType)
   type?: EmploymentType;
 
+  @IsOptional()
   @IsNumber()
-  categoryId!: number;
+  categoryId?: number;
 
   @IsOptional()
   @IsString()

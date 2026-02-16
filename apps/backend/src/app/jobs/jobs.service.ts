@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
 import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
-import { CreateJobDto } from "./dto/createJobDTO";
+import { CreateJobDTO } from "./dto/createJobDTO";
+import { UpdateJobDTO } from "./dto/updateJobDTO";
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
@@ -100,7 +101,7 @@ export class JobsService {
         };
     }
 
-    async createJob(dto: CreateJobDto, userId: string): Promise<JobPostingInterface> {
+    async createJob(dto: CreateJobDTO, userId: string): Promise<JobPostingInterface> {
         const { requirements, ...jobData } = dto;
 
         const createdJob = await this.prisma.jobPosting.create({
@@ -125,6 +126,95 @@ export class JobsService {
         });
 
         return this.mapToJobResponse(createdJob);
+    }
+
+    async getJobById(id: number): Promise<JobPostingInterface> {
+        const job = await this.prisma.jobPosting.findUnique({
+            where: { id },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+        return this.mapToJobResponse(job);
+    }
+
+    async deleteJobById(id: number, userId: string, userRole: string): Promise<void> {
+        const job = await this.prisma.jobPosting.findUnique({
+            where: { id },
+        });
+
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+
+        // Allow deletion if user is the one who posted it or if user is an admin
+        if (job.postedById !== userId && userRole !== 'admin') {
+            throw new ForbiddenException(`You do not have permission to delete this job`);
+        }
+        
+        await this.prisma.jobPosting.delete({
+            where: { id }
+        });
+    }
+
+    async getJobsByUserId(userId: string): Promise<JobPostingInterface[]> {
+        const jobs = await this.prisma.jobPosting.findMany({
+            where: { postedById: userId },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        return jobs.map((job) => this.mapToJobResponse(job));
+    }
+
+    async updateJobById(id: number, dto: UpdateJobDTO, userId: string, userRole: string): Promise<JobPostingInterface> {
+        const job = await this.prisma.jobPosting.findUnique({ where: { id } });
+
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${id} not found`);
+        }
+
+        if (job.postedById !== userId && userRole !== 'admin') {
+            throw new ForbiddenException(`You do not have permission to update this job`);
+        }
+
+        const { requirements, ...jobData } = dto;
+
+        const updatedJob = await this.prisma.jobPosting.update({
+            where: { id },
+            data: {
+                ...jobData,
+                // Handle skills if provided
+                requirements: requirements ? {
+                    deleteMany: {},
+                    create: requirements.map((req) => ({
+                        skillId: req.skillId,
+                        importance: req.importance,
+                        minYearsExperience: req.minYearsExperience
+                    }))
+                } : undefined,
+            },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+
+        return this.mapToJobResponse(updatedJob);
     }
 
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
