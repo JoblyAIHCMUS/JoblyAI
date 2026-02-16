@@ -15,7 +15,7 @@ export class JobRequirementInput {
   minYearsExperience?: number;
 }
 
-export class CreateJobDto {
+export class CreateJobDTO {
   @IsString()
   title!: string;
 
