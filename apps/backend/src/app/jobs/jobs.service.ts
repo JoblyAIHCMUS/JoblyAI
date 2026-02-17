@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
+import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobs.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
 import { CreateJobDTO } from "./dto/createJobDTO";
@@ -215,6 +215,20 @@ export class JobsService {
         });
 
         return this.mapToJobResponse(updatedJob);
+    }
+
+    async getJobsByCategoryId(categoryId: number): Promise<JobPostingInterface[]> {
+        const jobs = await this.prisma.jobPosting.findMany({
+            where: { categoryId },
+            include: {
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        return jobs.map((job) => this.mapToJobResponse(job));
     }
 
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {

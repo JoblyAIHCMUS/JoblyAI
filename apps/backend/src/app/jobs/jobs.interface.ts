@@ -26,3 +26,9 @@ export interface PaginatedJobsResponse {
     pageSize: number;
     totalPages: number;
 }
+
+export interface JobCategory {
+    id: number;
+    name: string;
+    description: string;
+}
