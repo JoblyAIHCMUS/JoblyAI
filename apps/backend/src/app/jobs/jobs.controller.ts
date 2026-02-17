@@ -52,4 +52,9 @@ export class JobsController{
         const userRole = request.user.role;
         return this.jobsService.updateJobById(id, updateJobDto, userId, userRole);
     }
+
+    @Get("categories/:id")
+    async getJobsByCategoryId(@Param("id", ParseIntPipe) categoryId: number) {
+        return this.jobsService.getJobsByCategoryId(categoryId);
+    }
 }
