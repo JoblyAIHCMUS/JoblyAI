@@ -8,6 +8,7 @@ import { UpdateJobDTO } from "./dto/updateJobDTO";
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
+    category: true
     requirements: {
       include: {
         skill: true
@@ -77,6 +78,7 @@ export class JobsService {
             this.prisma.jobPosting.findMany({
                 where: whereClause,
                 include: {
+                    category: true,
                     // We must include this to flatten it later for the interface
                     requirements: {
                         include: {
@@ -117,6 +119,7 @@ export class JobsService {
                 } : undefined,
             },
             include: {
+                category: true,
                 requirements: {
                 include: {
                     skill: true
@@ -132,6 +135,7 @@ export class JobsService {
         const job = await this.prisma.jobPosting.findUnique({
             where: { id },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -168,6 +172,7 @@ export class JobsService {
         const jobs = await this.prisma.jobPosting.findMany({
             where: { postedById: userId },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -206,6 +211,7 @@ export class JobsService {
                 } : undefined,
             },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -221,6 +227,7 @@ export class JobsService {
         const jobs = await this.prisma.jobPosting.findMany({
             where: { categoryId },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true

@@ -53,7 +53,7 @@ export class JobsController{
         return this.jobsService.updateJobById(id, updateJobDto, userId, userRole);
     }
 
-    @Get("categories/:id")
+    @Get("category/:id")
     async getJobsByCategoryId(@Param("id", ParseIntPipe) categoryId: number) {
         return this.jobsService.getJobsByCategoryId(categoryId);
     }

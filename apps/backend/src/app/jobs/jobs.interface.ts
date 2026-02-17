@@ -3,7 +3,7 @@ import { EmploymentType } from '@prisma/client';
 export interface JobPosting {
     id: number;
     employerId: number;
-    categoryId: number;
+    category: JobCategory;
     title: string;
     description: string;
     location: string;
