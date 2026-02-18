@@ -1,18 +1,21 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
-import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
-import { InjectPrisma } from "../utils/inject.decorators";
-import { CreateJobDto } from "./dto/createJobDTO";
+import { Injectable } from '@nestjs/common';
+import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
+import {
+  JobPosting as JobPostingInterface,
+  PaginatedJobsResponse,
+} from './jobPosting.interface';
+import { GetJobsQueryDTO } from './dto/getJobsQueryDTO';
+import { InjectPrisma } from '../decorators/inject.decorator';
+import { CreateJobDto } from './dto/createJobDTO';
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
     requirements: {
       include: {
-        skill: true
-      }
-    }
-  }
+        skill: true;
+      };
+    };
+  };
 }>;
 
 @Injectable()

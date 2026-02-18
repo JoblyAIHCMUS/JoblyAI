@@ -34,19 +34,19 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Set to true if want email verification
   },
   advanced: {
-      useSecureCookies: false,
-      defaultCookieAttributes: {
-        sameSite: 'lax',
-        secure: false,
-      },
+    useSecureCookies: false,
+    defaultCookieAttributes: {
+      sameSite: 'lax',
+      secure: false,
     },
-    session: {
-      expiresIn: 60 * 60 * 24 * 7, 
-      updateAge: 60 * 60 * 24, 
-      cookieCache: {
-        enabled: false, 
-      },
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+    cookieCache: {
+      enabled: false,
     },
+  },
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID!,

@@ -1,4 +1,12 @@
-import { Controller, All, Req, Res, Get, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  All,
+  BadRequestException,
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
@@ -19,7 +27,7 @@ interface AuthenticatedRequest extends ExpressRequest {
 @Controller('auth')
 export class AuthController {
   /**
-   * Get current authenticated user
+   * Get the current authenticated user
    */
   @Get('me')
   @UseGuards(AuthGuard)
@@ -68,7 +76,9 @@ export class AuthController {
 
   private toWebRequest(req: ExpressRequest): Request {
     const baseUrl =
-      process.env.BETTER_AUTH_URL || process.env.APP_URL || 'http://localhost:3000';
+      process.env.BETTER_AUTH_URL ||
+      process.env.APP_URL ||
+      'http://localhost:3000';
     const url = new URL(req.originalUrl || req.url, baseUrl);
     const headers = new Headers();
 
@@ -110,7 +120,9 @@ export class AuthController {
     }
 
     const role =
-      req.body && typeof req.body === 'object' ? (req.body as { role?: unknown }).role : undefined;
+      req.body && typeof req.body === 'object'
+        ? (req.body as { role?: unknown }).role
+        : undefined;
 
     if (role === undefined || role === null) {
       return;
