@@ -39,7 +39,7 @@ export class JobsService {
 
         if (remote !== undefined) whereClause.remote = remote;
         
-        if (type) whereClause.type = type as unknown as EmploymentType;
+        if (type) whereClause.type = type as EmploymentType;
 
         // Filtering by skills through the requirements join table
         if (skills && skills.length > 0) {
@@ -239,16 +239,17 @@ export class JobsService {
     }
 
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
-        const { requirements, ...rest } = job;
+        const { requirements, postedById, ...rest } = job;
         
         return {
             ...rest,
+            employerId: postedById,
             // Flatten the skills array
             skills: requirements ? requirements.map((jr) => jr.skill.name) : [],
             
             // Convert Prisma Decimals to JavaScript Numbers
             salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
             salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
-        } as unknown as JobPostingInterface;
+        } 
     }
 }
