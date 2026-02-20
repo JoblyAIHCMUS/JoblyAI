@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobPosting.interface";
+import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobs.interface";
 import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
 import { InjectPrisma } from "../utils/inject.decorators";
 import { CreateJobDTO } from "./dto/createJobDTO";
@@ -8,6 +8,7 @@ import { UpdateJobDTO } from "./dto/updateJobDTO";
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
+    category: true
     requirements: {
       include: {
         skill: true
@@ -38,7 +39,7 @@ export class JobsService {
 
         if (remote !== undefined) whereClause.remote = remote;
         
-        if (type) whereClause.type = type as unknown as EmploymentType;
+        if (type) whereClause.type = type as EmploymentType;
 
         // Filtering by skills through the requirements join table
         if (skills && skills.length > 0) {
@@ -77,6 +78,7 @@ export class JobsService {
             this.prisma.jobPosting.findMany({
                 where: whereClause,
                 include: {
+                    category: true,
                     // We must include this to flatten it later for the interface
                     requirements: {
                         include: {
@@ -117,6 +119,7 @@ export class JobsService {
                 } : undefined,
             },
             include: {
+                category: true,
                 requirements: {
                 include: {
                     skill: true
@@ -132,6 +135,7 @@ export class JobsService {
         const job = await this.prisma.jobPosting.findUnique({
             where: { id },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -168,6 +172,7 @@ export class JobsService {
         const jobs = await this.prisma.jobPosting.findMany({
             where: { postedById: userId },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -206,6 +211,7 @@ export class JobsService {
                 } : undefined,
             },
             include: {
+                category: true,
                 requirements: {
                     include: {
                         skill: true
@@ -217,17 +223,33 @@ export class JobsService {
         return this.mapToJobResponse(updatedJob);
     }
 
+    async getJobsByCategoryId(categoryId: number): Promise<JobPostingInterface[]> {
+        const jobs = await this.prisma.jobPosting.findMany({
+            where: { categoryId },
+            include: {
+                category: true,
+                requirements: {
+                    include: {
+                        skill: true
+                    }
+                }
+            }
+        });
+        return jobs.map((job) => this.mapToJobResponse(job));
+    }
+
     private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
-        const { requirements, ...rest } = job;
+        const { requirements, postedById, ...rest } = job;
         
         return {
             ...rest,
+            employerId: postedById,
             // Flatten the skills array
             skills: requirements ? requirements.map((jr) => jr.skill.name) : [],
             
             // Convert Prisma Decimals to JavaScript Numbers
             salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
             salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
-        } as unknown as JobPostingInterface;
+        } 
     }
 }
