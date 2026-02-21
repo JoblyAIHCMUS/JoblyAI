@@ -292,6 +292,20 @@ describe('JobsService', () => {
         service.updateJobById(99, { title: 'Ghost Job' }, 'employer123', 'employer')
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should perform a partial update without changing requirements if omitted', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
+
+      // Act
+      await service.updateJobById(1, { title: 'New Title' }, 'employer123', 'employer');
+
+      // Assert
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.not.objectContaining({ requirements: expect.anything() })
+      }));
+    });
   });
 
   describe('getsPaginatedJobsPostings', () => {
