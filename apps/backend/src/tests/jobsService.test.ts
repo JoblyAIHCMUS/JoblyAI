@@ -100,7 +100,7 @@ describe('JobsService', () => {
         salaryMin: 50000,
         salaryMax: 100000,
         requirements: [
-          { skillId: 10, importance: RequirementImportance.REQUIRED, minYearsExperience: 2 }
+          { skillId: 10, importance: 'REQUIRED' as RequirementImportance, minYearsExperience: 2 }
         ]
       };
       
@@ -200,7 +200,7 @@ describe('JobsService', () => {
       const updateDto = {
         title: 'Senior Software Engineer',
         requirements: [
-          { skillId: 20, importance: RequirementImportance.REQUIRED, minYearsExperience: 5 }
+          { skillId: 20, importance: 'REQUIRED' as RequirementImportance, minYearsExperience: 5 }
         ]
       };
 
@@ -263,7 +263,7 @@ describe('JobsService', () => {
   describe('getsPaginatedJobsPostings', () => {
     it('should return paginated jobs with correct total pages calculation', async () => {
       // Arrange
-      const query = { page: 2, pageSize: 5, q: 'Engineer', type: EmploymentType.FULL_TIME };
+      const query = { page: 2, pageSize: 5, q: 'Engineer', type: 'FULL_TIME' as EmploymentType };
       
       // Mock the transaction to return an array containing [count, records]
       // Let's pretend there are 12 total records in the DB matching the query
