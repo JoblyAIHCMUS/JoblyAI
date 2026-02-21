@@ -102,7 +102,7 @@ export function EmployerSidebar() {
         )}
       </button>
 
-      <SidebarHeader className="border-b border-[color:var(--border-primary)] px-4 py-5 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:justify-center">
+      <SidebarHeader className="px-4 py-5 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:justify-center">
         <Link href="/" className="flex items-center gap-2.5">
           {/* Logo / Brand */}
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600">
