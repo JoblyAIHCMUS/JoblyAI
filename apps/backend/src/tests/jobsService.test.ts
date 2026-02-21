@@ -312,5 +312,41 @@ describe('JobsService', () => {
       );
     });
   });
+
+  describe('getJobsByUserId', () => {
+    it('should return mapped jobs for a specific user', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findMany.mockResolvedValue([mockJobDbRecord]);
+
+      // Act
+      const result = await service.getJobsByUserId('employer123');
+
+      // Assert
+      expect(mockPrisma.jobPosting.findMany).toHaveBeenCalledWith({
+        where: { postedById: 'employer123' },
+        include: expect.any(Object)
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].employerId).toBe('employer123');
+    });
+  });
+
+  describe('getJobsByCategoryId', () => {
+    it('should return mapped jobs for a specific category', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findMany.mockResolvedValue([mockJobDbRecord]);
+
+      // Act
+      const result = await service.getJobsByCategoryId(1);
+
+      // Assert
+      expect(mockPrisma.jobPosting.findMany).toHaveBeenCalledWith({
+        where: { categoryId: 1 },
+        include: expect.any(Object)
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].category.id).toBe(1);
+    });
+  });
 });
 
