@@ -46,17 +46,17 @@ const navMain = [
   },
   {
     title: "Company Profile",
-    url: "/employer/company",
+    url: "/employer/company-profile",
     icon: Building2,
   },
   {
     title: "All Applicants",
-    url: "/employer/applicants",
+    url: "/employer/all-applicants",
     icon: Users,
   },
   {
     title: "Job Listing",
-    url: "/employer/jobs",
+    url: "/employer/job-listing",
     icon: Briefcase,
   },
 ];
