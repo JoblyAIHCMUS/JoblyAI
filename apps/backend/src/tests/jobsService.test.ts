@@ -137,6 +137,40 @@ describe('JobsService', () => {
       expect(result.skills).toEqual(['TypeScript', 'NestJS']);
       expect(result).not.toHaveProperty('postedById');
     });
+
+    it('should handle creation without requirements and map null salaries correctly', async () => {
+      // Arrange
+      const createDto = {
+        title: 'Backend Dev',
+        description: 'No requirements needed',
+        location: 'Remote',
+        remote: true,
+        type: 'CONTRACT' as EmploymentType,
+        categoryId: 2,
+        // Notice no salaryMin, salaryMax, or requirements
+      };
+      
+      const dbRecordWithoutReqs = { 
+        ...mockJobDbRecord, 
+        requirements: undefined, 
+        salaryMin: null, 
+        salaryMax: null 
+      };
+      mockPrisma.jobPosting.create.mockResolvedValue(dbRecordWithoutReqs);
+
+      // Act
+      const result = await service.createJob(createDto, 'employer123');
+
+      // Assert: Verify Prisma wasn't told to create requirements
+      expect(mockPrisma.jobPosting.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.not.objectContaining({ requirements: expect.anything() })
+      }));
+      
+      // Assert: Verify mapToJobResponse handled the missing/null data
+      expect(result.skills).toEqual([]); // Should default to empty array
+      expect(result.salaryMin).toBeNull();
+      expect(result.salaryMax).toBeNull();
+    });
   });
 
   describe('deleteJobById', () => {
@@ -310,6 +344,50 @@ describe('JobsService', () => {
           remote: false,
         })
       );
+    });
+
+    it('should build whereClause with skills filtering', async () => {
+      // Arrange
+      const query = { skills: ['TypeScript', 'NestJS'] };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.requirements).toEqual({
+        some: { skill: { name: { in: ['TypeScript', 'NestJS'] } } }
+      });
+    });
+
+    it('should build whereClause with complex null-safe salary range filtering', async () => {
+      // Arrange
+      const query = { salaryMin: 60000, salaryMax: 120000 };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0]; // Grabbing the latest call
+      expect(countArgs.where.AND).toEqual([
+        { OR: [{ salaryMax: { gte: 60000 } }, { salaryMax: null }] },
+        { OR: [{ salaryMin: { lte: 120000 } }, { salaryMin: null }] }
+      ]);
+    });
+
+    it('should use default page and pageSize if not provided', async () => {
+      // Arrange
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings({}); // Empty query
+
+      // Assert
+      const findArgs = mockPrisma.jobPosting.findMany.mock.calls[0][0];
+      expect(findArgs.skip).toBe(0); // (1 - 1) * 10 = 0
+      expect(findArgs.take).toBe(10); // Default pageSize
     });
   });
 
