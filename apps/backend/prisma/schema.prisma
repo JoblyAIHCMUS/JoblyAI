@@ -18,15 +18,16 @@ model User {
   image         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  role          String?       @default("candidate")
-  banned        Boolean?      @default(false)
-  banReason     String?
   banExpires    DateTime?
+  banReason     String?
+  banned        Boolean?      @default(false)
+  role          String?       @default("candidate")
   firstName     String?
   lastName      String?
+  employer      Employer?
   postedJobs    JobPosting[]
+  accounts      Account[]
+  sessions      Session[]
   education     Education[]
   experiences   Experience[]
   certificates  Certificate[]
@@ -36,17 +37,16 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String   @id @default(cuid())
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("session")
@@ -57,7 +57,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -67,6 +66,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@index([userId])
@@ -128,17 +128,40 @@ model JobPosting {
 }
 
 model JobRequirement {
-  id           Int        @id @default(autoincrement())
-  jobPostingId Int
-  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
-
-  skillId Int
-  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
-
+  id                 Int                   @id @default(autoincrement())
+  jobPostingId       Int
+  skillId            Int
   importance         RequirementImportance @default(PREFERRED)
   minYearsExperience Int?
+  jobPosting         JobPosting            @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  skill              Skill                 @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([jobPostingId, skillId])
+}
+
+model Company {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  website     String?
+  logoUrl     String?
+  description String?
+  industry    String?
+  size        String?
+  isVerified  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employers   Employer[]
+}
+
+model Employer {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  companyId Int
+  jobTitle  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Education {
