@@ -4,11 +4,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
+import { ApplicationsModule } from './applications/applications.module';
 import { CandidatesModule } from './candidates/candidates.module';
 import { DatabaseModule } from './utils/databases';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, JobsModule, CandidatesModule],
+  imports: [DatabaseModule, AuthModule, JobsModule, ApplicationsModule, CandidatesModule],
   controllers: [AppController],
   providers: [AppService],
 })

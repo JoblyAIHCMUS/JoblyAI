@@ -31,6 +31,7 @@ model User {
   experiences    Experience[]
   certificates   Certificate[]
   resumes        Resume[]
+  applications  Application[]
   employerRoles  EmployerRole[]
 
   @@map("user")
@@ -126,6 +127,7 @@ model JobPosting {
   updatedAt DateTime @updatedAt
 
   requirements JobRequirement[]
+  applications Application[]
 }
 
 model JobRequirement {
@@ -261,4 +263,47 @@ enum EmploymentType {
   CONTRACT
   INTERNSHIP
   FREELANCE
+}
+model Resume {
+  id              Int           @id @default(autoincrement())
+  candidateId     String
+  candidate       User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  fileUrl         String
+  parsedText      String?       @db.Text
+  aiScore         Float?
+  isDefault       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  applications    Application[]
+
+  @@index([candidateId])
+  @@map("resume")
+}
+
+// Application model (as per ERD)
+model Application {
+  id               Int               @id @default(autoincrement())
+  jobId            Int
+  job              JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateId      String
+  candidate        User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId         Int
+  resume           Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  matchPercentage  Float?
+  aiFeedback       Json?
+  status           ApplicationStatus @default(APPLIED)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([jobId])
+  @@index([candidateId])
+  @@index([status])
+  @@map("application")
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
 }
