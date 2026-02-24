@@ -15,10 +15,10 @@ export class CandidateQueryResponseDto {
   email!: string;
 
   @Expose()
-  firstName!: string;
+  firstName?: string;
 
   @Expose()
-  lastName!: string;
+  lastName?: string;
 
   @Expose()
   verified!: boolean;

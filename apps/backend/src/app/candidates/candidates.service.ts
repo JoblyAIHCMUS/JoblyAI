@@ -23,6 +23,8 @@ export class CandidatesService {
       id: user.id || '',
       name: user.name || '',
       email: user.email,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
       verified: user.emailVerified,
       banned: user.banned ?? false,
       banReason: user.banReason ?? '',
