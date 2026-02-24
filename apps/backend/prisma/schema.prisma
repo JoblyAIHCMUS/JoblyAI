@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,36 +8,38 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String       @unique
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  role       String? @default("candidate")
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  banExpires    DateTime?
+  banReason     String?
+  banned        Boolean?     @default(false)
+  role          String?      @default("candidate")
+  firstName     String?
+  lastName      String?
+  employer      Employer?
   postedJobs    JobPosting[]
+  accounts      Account[]
+  sessions      Session[]
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String   @id @default(cuid())
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("session")
@@ -51,7 +50,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -61,6 +59,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@index([userId])
@@ -80,12 +79,11 @@ model Verification {
   @@map("verification")
 }
 
-// Job models
 model JobCategory {
-  id    Int          @id @default(autoincrement())
-  name  String       @unique
-  slug  String       @unique
-  jobs  JobPosting[]
+  id   Int          @id @default(autoincrement())
+  name String       @unique
+  slug String       @unique
+  jobs JobPosting[]
 }
 
 model Skill {
@@ -95,44 +93,61 @@ model Skill {
 }
 
 model JobPosting {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  location    String?
-  salaryMin   Decimal?
-  salaryMax   Decimal?
-  currency    String?  @default("USD")
-  status      JobStatus @default(DRAFT)
-  remote      Boolean   @default(false)
-  type        EmploymentType @default(FULL_TIME)
-
-  // Relations
-  postedById  String
-  postedBy    User     @relation(fields: [postedById], references: [id])
-
-  categoryId  Int
-  category    JobCategory @relation(fields: [categoryId], references: [id])
-
-  companyName String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id           Int              @id @default(autoincrement())
+  title        String
+  description  String
+  location     String?
+  salaryMin    Decimal?
+  salaryMax    Decimal?
+  currency     String?          @default("USD")
+  status       JobStatus        @default(DRAFT)
+  postedById   String
+  categoryId   Int
+  companyName  String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  remote       Boolean          @default(false)
+  type         EmploymentType   @default(FULL_TIME)
+  category     JobCategory      @relation(fields: [categoryId], references: [id])
+  postedBy     User             @relation(fields: [postedById], references: [id])
   requirements JobRequirement[]
 }
 
 model JobRequirement {
-  id                 Int        @id @default(autoincrement())
+  id                 Int                   @id @default(autoincrement())
   jobPostingId       Int
-  jobPosting         JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
-  
   skillId            Int
-  skill              Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  
   importance         RequirementImportance @default(PREFERRED)
   minYearsExperience Int?
+  jobPosting         JobPosting            @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  skill              Skill                 @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([jobPostingId, skillId])
+}
+
+model Company {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  website     String?
+  logoUrl     String?
+  description String?
+  industry    String?
+  size        String?
+  isVerified  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employers   Employer[]
+}
+
+model Employer {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  companyId Int
+  jobTitle  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum JobStatus {
@@ -146,7 +161,6 @@ enum RequirementImportance {
   PREFERRED
   OPTIONAL
 }
-
 
 enum EmploymentType {
   FULL_TIME
