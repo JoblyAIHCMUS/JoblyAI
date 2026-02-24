@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
+import { ApplicationsModule } from './applications/applications.module';
 import { CandidatesModule } from './candidates/candidates.module';
 import { DatabaseModule } from './utils/databases';
 import { UserModule } from './user/user.module';
@@ -13,7 +14,7 @@ import { EmployerModule } from './employer/employer.module';
   imports: [
     DatabaseModule,
     AuthModule,
-    JobsModule,
+    JobsModule, ApplicationsModule,
     CandidatesModule,
     EmployerModule,
     UserModule,
