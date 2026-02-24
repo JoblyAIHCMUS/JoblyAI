@@ -15,6 +15,12 @@ export class CandidateQueryResponseDto {
   email!: string;
 
   @Expose()
+  firstName!: string;
+
+  @Expose()
+  lastName!: string;
+
+  @Expose()
   verified!: boolean;
 
   @Expose()
