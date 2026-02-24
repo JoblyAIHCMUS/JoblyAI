@@ -1,9 +1,16 @@
-import { IsDateString, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class QueryEducationDto {
   @IsNumber()
   id!: number;
-  
+
   @IsString()
   @IsNotEmpty()
   school!: string;
