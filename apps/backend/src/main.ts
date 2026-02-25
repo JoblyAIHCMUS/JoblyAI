@@ -9,8 +9,10 @@ import { AllExceptionsFilter } from './app/common/filter/http-exceptions.filter'
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+
   app.useLogger(['log', 'error', 'warn', 'debug', 'verbose']);
   app.set('trust proxy', 1);
+
 
   app.enableCors({
     origin: [
@@ -19,6 +21,7 @@ async function bootstrap() {
     ],
     credentials: true,
   });
+
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.use(cookieParser());
@@ -32,6 +35,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
   app.setGlobalPrefix(globalPrefix);
+
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
