@@ -45,7 +45,7 @@ export function Stepper({ steps, children, onComplete, className, canProceed = t
   return (
     <div className={cn('flex flex-col min-h-[60vh]', className)}>
       {/* Progress indicator */}
-      <ol className="flex justify-between items-center relative mb-10">
+      <div className="relative mb-10">
         {/* Progress line container - positioned between first and last step centers */}
         <div
           className="absolute top-[18px] h-0.5 bg-gray-200 dark:bg-gray-700 z-0 rounded-full"
@@ -58,8 +58,9 @@ export function Stepper({ steps, children, onComplete, className, canProceed = t
           />
         </div>
 
-        {/* Steps */}
-        {steps.map((step, idx) => {
+        <ol className="flex justify-between items-center">
+          {/* Steps */}
+          {steps.map((step, idx) => {
           const isActive = idx === currentIndex;
           const isCompleted = idx < currentIndex;
 
@@ -114,7 +115,8 @@ export function Stepper({ steps, children, onComplete, className, canProceed = t
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </div>
 
       {/* Content */}
       <div className="flex-1">{React.Children.toArray(children)[currentIndex]}</div>
