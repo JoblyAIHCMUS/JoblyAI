@@ -75,7 +75,25 @@ export function Stepper({ steps, children, onComplete, className, canProceed = t
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 )}
-                onClick={() => setCurrentIndex(idx)}
+                onClick={() => {
+                  // Allow going back to completed steps or staying on current
+                  if (idx <= currentIndex) {
+                    setCurrentIndex(idx);
+                    return;
+                  }
+
+                  // For future steps, require current step to be allowed to proceed
+                  if (!canProceedNow) {
+                    return;
+                  }
+
+                  // Prevent skipping multiple steps ahead in a single click
+                  if (idx > currentIndex + 1) {
+                    return;
+                  }
+
+                  setCurrentIndex(idx);
+                }}
               >
                 {isCompleted ? (
                   <Check className="size-4" aria-hidden="true" />
