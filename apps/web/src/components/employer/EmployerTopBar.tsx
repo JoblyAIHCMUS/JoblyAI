@@ -65,7 +65,7 @@ export function EmployerTopBar() {
               {companies.map((company) => (
                 <DropdownMenuItem
                   key={company.id}
-                  onClick={() => setSelectedCompany(company)}
+                  onSelect={() => setSelectedCompany(company)}
                   className={cn(
                     selectedCompany?.id === company.id && "bg-accent font-medium"
                   )}
