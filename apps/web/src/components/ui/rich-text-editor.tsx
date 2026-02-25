@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -220,6 +221,8 @@ export function RichTextEditor({
   className,
   editable = true,
 }: RichTextEditorProps) {
+  const isInternalUpdate = useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -248,9 +251,23 @@ export function RichTextEditor({
       },
     },
     onUpdate: ({ editor }) => {
+      isInternalUpdate.current = true;
       onChange(editor.getHTML());
     },
   });
+
+  // Sync external content changes into the editor
+  useEffect(() => {
+    if (!editor || isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+
+    const currentContent = editor.getHTML();
+    if (content !== currentContent) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;
