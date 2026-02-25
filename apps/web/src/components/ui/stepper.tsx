@@ -18,13 +18,16 @@ interface StepperProps {
   children: React.ReactNode;
   onComplete?: () => void;
   className?: string;
+  /** Controls whether the Next/Done button is enabled. Can be a boolean or a function receiving the current step index. */
+  canProceed?: boolean | ((stepIndex: number) => boolean);
 }
 
-export function Stepper({ steps, children, onComplete, className }: StepperProps) {
+export function Stepper({ steps, children, onComplete, className, canProceed = true }: StepperProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === steps.length - 1;
+  const canProceedNow = typeof canProceed === 'function' ? canProceed(currentIndex) : canProceed;
 
   // Calculate progress percentage for the fill bar
   const progressPercentage = steps.length > 1 ? (currentIndex / (steps.length - 1)) * 100 : 0;
@@ -111,11 +114,21 @@ export function Stepper({ steps, children, onComplete, className }: StepperProps
 
         <div>
           {isLast ? (
-            <Button onClick={onComplete} className="bg-indigo-600 hover:bg-indigo-700" type="button">
+            <Button
+              onClick={onComplete}
+              className="bg-indigo-600 hover:bg-indigo-700"
+              type="button"
+              disabled={!canProceedNow}
+            >
               Done
             </Button>
           ) : (
-            <Button onClick={goNext} className="bg-indigo-600 hover:bg-indigo-700" type="button">
+            <Button
+              onClick={goNext}
+              className="bg-indigo-600 hover:bg-indigo-700"
+              type="button"
+              disabled={!canProceedNow}
+            >
               Next Step
             </Button>
           )}
