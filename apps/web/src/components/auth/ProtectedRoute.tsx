@@ -17,7 +17,11 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   // Show nothing while loading
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
   }
 
   // Only render children if user is authenticated

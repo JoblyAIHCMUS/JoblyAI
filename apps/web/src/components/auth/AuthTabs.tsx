@@ -7,7 +7,11 @@ interface AuthTabsProps {
   companyContent: ReactNode;
 }
 
-export function AuthTabs({ defaultValue, jobSeekerContent, companyContent }: AuthTabsProps) {
+export function AuthTabs({
+  defaultValue,
+  jobSeekerContent,
+  companyContent,
+}: AuthTabsProps) {
   return (
     <Tabs defaultValue={defaultValue} className="mb-8 w-full">
       <TabsList className="grid w-full grid-cols-2 bg-transparent">
@@ -25,13 +29,9 @@ export function AuthTabs({ defaultValue, jobSeekerContent, companyContent }: Aut
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="job-seeker">
-        {jobSeekerContent}
-      </TabsContent>
+      <TabsContent value="job-seeker">{jobSeekerContent}</TabsContent>
 
-      <TabsContent value="company">
-        {companyContent}
-      </TabsContent>
+      <TabsContent value="company">{companyContent}</TabsContent>
     </Tabs>
   );
 }

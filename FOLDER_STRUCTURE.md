@@ -153,7 +153,6 @@ src/
 - **Routing**: Next.js App Router
 - **API Client**: Fetch-based or HTTP client for backend communication
 
-
 ---
 
 ## Root Level Configuration
@@ -212,8 +211,6 @@ src/
   - `useUser.ts`: User data management
 - **Utils/Lib**: Shared utilities and helper functions
 - **Providers**: Root context providers in `providers.tsx`
-
-
 
 ---
 

@@ -33,23 +33,26 @@ WEB_URL="http://localhost:5173"
 ## Setup
 
 1. **Install dependencies**:
+
    ```bash
    pnpm install
    ```
 
 2. **Generate Prisma client**:
+
    ```bash
    pnpm --filter @jobly/backend exec prisma generate
    ```
 
 3. **Run migrations**:
+
    ```bash
    pnpm --filter @jobly/backend exec prisma migrate dev
    ```
 
 4. **Start the server**:
    ```bash
-  pnpm --filter @jobly/backend run start:dev
+   pnpm --filter @jobly/backend run start:dev
    ```
 
 ## API Endpoints
@@ -57,6 +60,7 @@ WEB_URL="http://localhost:5173"
 Better Auth automatically provides these endpoints at `/api/auth/*`:
 
 ### Sign Up
+
 ```bash
 POST /api/auth/sign-up/email
 Content-Type: application/json
@@ -69,6 +73,7 @@ Content-Type: application/json
 ```
 
 ### Sign In
+
 ```bash
 POST /api/auth/sign-in/email
 Content-Type: application/json
@@ -80,12 +85,14 @@ Content-Type: application/json
 ```
 
 ### Get Session
+
 ```bash
 GET /api/auth/session
 Cookie: better-auth.session_token=<token>
 ```
 
 ### Sign Out
+
 ```bash
 POST /api/auth/sign-out
 Cookie: better-auth.session_token=<token>
@@ -113,6 +120,7 @@ export class ProtectedController {
 ## Session Caching
 
 Sessions are automatically cached in Redis for 5 minutes to reduce database queries. The cache is automatically invalidated when:
+
 - User signs out
 - Session expires
 - Session is manually invalidated
@@ -120,6 +128,7 @@ Sessions are automatically cached in Redis for 5 minutes to reduce database quer
 ## Database Schema
 
 The Prisma schema includes these models:
+
 - `User` - User accounts
 - `Session` - Active sessions
 - `Account` - OAuth provider accounts
@@ -145,6 +154,7 @@ socialProviders: {
 ## Migration from Logto/Passport
 
 All Logto and Passport code has been removed:
+
 - ❌ `@nestjs/passport`
 - ❌ `passport`
 - ❌ `passport-openidconnect`
@@ -155,16 +165,21 @@ All Logto and Passport code has been removed:
 ## Troubleshooting
 
 ### Session not persisting
+
 Make sure cookies are enabled and CORS is configured correctly with `credentials: true`.
 
 ### Redis connection errors
+
 Verify Redis is running:
+
 ```bash
 docker-compose up redis -d
 ```
 
 ### Prisma client errors
+
 Regenerate the Prisma client:
+
 ```bash
 pnpm --filter @jobly/backend exec prisma generate
 ```

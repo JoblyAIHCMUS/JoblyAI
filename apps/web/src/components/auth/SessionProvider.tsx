@@ -24,7 +24,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // Don't render until session is initialized
   if (!isInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return <>{children}</>;

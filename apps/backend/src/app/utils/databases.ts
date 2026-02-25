@@ -1,4 +1,4 @@
-import {pool, adapter, prisma, redis, scylla} from '../../lib/db';
+import { pool, adapter, prisma, redis, scylla } from '../../lib/db';
 import { Global, Module } from '@nestjs/common';
 
 export const DatabaseProviders = [
@@ -8,7 +8,7 @@ export const DatabaseProviders = [
     useFactory: async () => {
       // If any async setup is needed, do it here
       return pool;
-    }
+    },
   },
   {
     provide: 'PRISMA_ADAPTER',

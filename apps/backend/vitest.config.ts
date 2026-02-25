@@ -8,7 +8,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'json'],
-      
+
       // --- THE QUALITY GATE ---
       thresholds: {
         lines: 75,
@@ -27,14 +27,14 @@ export default defineConfig({
         '**/*.test.ts',
 
         // NestJS Specifics (Logic-less files)
-        '**/*.module.ts',       // Modules are just wiring
-        '**/*.dto.ts',          // DTOs are just definitions
-        '**/*.entity.ts',       // Database schemas
-        '**/*.interface.ts',    // TS Interfaces
-        '**/main.ts',           // App entry point
-        '**/index.ts',          // Barrel files
-        '**/*.config.ts',       // Env configs
-        '**/*.guard.ts',        // (Optional) often hard to unit test, better for E2E
+        '**/*.module.ts', // Modules are just wiring
+        '**/*.dto.ts', // DTOs are just definitions
+        '**/*.entity.ts', // Database schemas
+        '**/*.interface.ts', // TS Interfaces
+        '**/main.ts', // App entry point
+        '**/index.ts', // Barrel files
+        '**/*.config.ts', // Env configs
+        '**/*.guard.ts', // (Optional) often hard to unit test, better for E2E
       ],
     },
   },
