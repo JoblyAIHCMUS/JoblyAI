@@ -1,11 +1,10 @@
 // features/_shared/ui/Stepper.tsx
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
-import React from 'react';
 
 type StepperSteps = readonly {
   id: string;
