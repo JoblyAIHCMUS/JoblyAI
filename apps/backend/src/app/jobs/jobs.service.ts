@@ -1,10 +1,10 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaClient, Prisma, EmploymentType } from "@prisma/client";
-import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from "./jobs.interface";
-import { GetJobsQueryDTO } from "./dto/getJobsQueryDTO";
-import { InjectPrisma } from "../utils/inject.decorators";
-import { CreateJobDTO } from "./dto/createJobDTO";
-import { UpdateJobDTO } from "./dto/updateJobDTO";
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
+import { JobPosting as JobPostingInterface, PaginatedJobsResponse } from './jobs.interface';
+import { GetJobsQueryDTO } from './dto/getJobsQueryDTO';
+import { InjectPrisma } from '../decorators/inject.decorator';
+import { CreateJobDTO } from './dto/createJobDTO';
+import { UpdateJobDTO } from './dto/updateJobDTO';
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {

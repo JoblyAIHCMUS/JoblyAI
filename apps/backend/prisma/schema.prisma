@@ -11,20 +11,26 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String        @unique
+  emailVerified Boolean       @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   sessions      Session[]
   accounts      Account[]
-  role       String? @default("candidate")
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  role          String?       @default("candidate")
+  banned        Boolean?      @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  firstName     String?
+  lastName      String?
   postedJobs    JobPosting[]
+  education     Education[]
+  experiences   Experience[]
+  certificates  Certificate[]
+  resumes       Resume[]
 
   @@map("user")
 }
@@ -82,10 +88,10 @@ model Verification {
 
 // Job models
 model JobCategory {
-  id    Int          @id @default(autoincrement())
-  name  String       @unique
-  slug  String       @unique
-  jobs  JobPosting[]
+  id   Int          @id @default(autoincrement())
+  name String       @unique
+  slug String       @unique
+  jobs JobPosting[]
 }
 
 model Skill {
@@ -95,44 +101,118 @@ model Skill {
 }
 
 model JobPosting {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   title       String
   description String
   location    String?
   salaryMin   Decimal?
   salaryMax   Decimal?
-  currency    String?  @default("USD")
-  status      JobStatus @default(DRAFT)
-  remote      Boolean   @default(false)
+  currency    String?        @default("USD")
+  status      JobStatus      @default(DRAFT)
+  remote      Boolean        @default(false)
   type        EmploymentType @default(FULL_TIME)
 
   // Relations
-  postedById  String
-  postedBy    User     @relation(fields: [postedById], references: [id])
+  postedById String
+  postedBy   User   @relation(fields: [postedById], references: [id])
 
-  categoryId  Int
-  category    JobCategory @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  category   JobCategory @relation(fields: [categoryId], references: [id])
 
   companyName String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   requirements JobRequirement[]
 }
 
 model JobRequirement {
-  id                 Int        @id @default(autoincrement())
-  jobPostingId       Int
-  jobPosting         JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
-  
-  skillId            Int
-  skill              Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  
+  id           Int        @id @default(autoincrement())
+  jobPostingId Int
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  skillId Int
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
   importance         RequirementImportance @default(PREFERRED)
   minYearsExperience Int?
 
   @@unique([jobPostingId, skillId])
+}
+
+model Education {
+  id          Int    @id @default(autoincrement())
+  candidateId String
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  school       String // University or School name
+  degree       String? // e.g., "Bachelor of Science", "High School Diploma"
+  fieldOfStudy String? // e.g., "Computer Science"
+  startDate    DateTime
+  endDate      DateTime? // Nullable: If null, it means "Present" (currently studying)
+  grade        String? // e.g., "3.8 GPA" or "Distinction"
+  description  String? // Optional description of the education experience
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model Experience {
+  id          Int    @id @default(autoincrement())
+  candidateId String
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  companyName String
+  jobTitle    String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime? // Nullable: If null, it means "Present" (currently working)
+  description String? // Optional description of the work experience
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model Certificate {
+  id          Int    @id @default(autoincrement())
+  candidateId String
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  name         String
+  issuer       String
+  issueDate    DateTime
+  expiryDate   DateTime? // Nullable: If null, it means "No Expiry"
+  credentialId String? // Optional credential ID or license number
+  url          String? // Optional URL to the certification details
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model Resume {
+  id          Int    @id @default(autoincrement())
+  candidateId String
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  fileUrl   String // URL to the uploaded resume file (e.g., S3 link)
+  fileName  String // Original name of the uploaded file (e.g., "resume.pdf")
+  fileType  String // MIME type of the resume file (e.g., "application/pdf")
+  fileSize  Int // Size of the resume file in bytes
+  isDefault Boolean @default(false) // Indicates if this is the candidate's default resume
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // I think AI scoring should be a separate model to allow for multiple scores over time
+  // same as parsed text and embedding
+  @@index([candidateId])
 }
 
 enum JobStatus {
@@ -146,7 +226,6 @@ enum RequirementImportance {
   PREFERRED
   OPTIONAL
 }
-
 
 enum EmploymentType {
   FULL_TIME
