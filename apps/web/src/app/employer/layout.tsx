@@ -1,6 +1,6 @@
-import { EmployerSidebar } from "@/components/employer/EmployerSidebar";
+import { EmployerSidebar } from "@/components/employer/employerSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { EmployerTopBar } from "@/components/employer/EmployerTopBar";
+import { EmployerTopBar } from "@/components/employer/employerTopBar";
 import { CompanyProvider } from "@/hooks/useCompany";
 import type { ReactNode } from "react";
 
