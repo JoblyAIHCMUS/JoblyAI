@@ -51,7 +51,7 @@ jobs:
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
       # 3a. Run format check
-      - run: pnpm nx format:check
+      - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
       - run: pnpm audit --audit-level=high
 
