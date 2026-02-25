@@ -139,6 +139,7 @@
   "devDependencies": {
     "@better-auth/cli": "^1.4.18",
     "@nestjs/testing": "^11.0.0",
+    "@noble/hashes": "^2.0.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/jest": "^30.0.0",
     "@types/pg": "^8.11.0",

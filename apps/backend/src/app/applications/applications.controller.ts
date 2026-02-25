@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
 import { AuthGuard } from '../auth/auth.guard';
