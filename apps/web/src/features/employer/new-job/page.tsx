@@ -17,11 +17,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
+import { useCompany } from '@/hooks/useCompany';
 
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
-  // { id: 'requirements', label: 'Requirements' },
   // { id: 'location', label: 'Location & Salary' },
   // { id: 'preview', label: 'Preview & Publish' },
 ] as const;
@@ -68,6 +68,7 @@ const isHtmlContentEmpty = (html: string): boolean => {
 };
 
 export default function EmployerNewJobPage() {
+  const { selectedCompany } = useCompany();
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [employmentType, setEmploymentType] = useState('');
@@ -122,8 +123,21 @@ export default function EmployerNewJobPage() {
     // 1. Validate all fields
     // 2. Call API to create job
     // 3. Show success toast / redirect
-    console.log('Job posted:', { jobTitle, jobDescription, employmentType, workModel, category, salaryCurrency, salaryMin, salaryMax, skills });
-    alert('Job posted successfully!');
+    const jobData = {
+      companyId: selectedCompany?.id,
+      companyName: selectedCompany?.name,
+      jobTitle,
+      jobDescription,
+      employmentType,
+      workModel,
+      category,
+      salaryCurrency,
+      salaryMin,
+      salaryMax,
+      skills,
+    };
+    console.log('Job posted:', jobData);
+    alert(`Job posted successfully for ${selectedCompany?.name || 'Unknown Company'}!`);
   };
 
   return (
