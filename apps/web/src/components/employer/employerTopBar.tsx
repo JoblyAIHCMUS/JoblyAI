@@ -1,9 +1,9 @@
 'use client';
 
-import Link from "next/link";
-import { Bell, ChevronDown, Plus } from "lucide-react";
+import Link from 'next/link';
+import { Bell, ChevronDown, Plus } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { useCompany } from "@/hooks/useCompany";
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { useCompany } from '@/hooks/useCompany';
 
 // Optional: notification count
 // const notificationCount = 3;
@@ -24,11 +24,11 @@ export function EmployerTopBar() {
   return (
     <header
       className={cn(
-        "w-full",
-        "px-6 md:px-8 py-4",
-        "bg-white",
-        "shadow-[inset_0_-1px_0_0] shadow-slate-200/80",
-        "border-b border-border",
+        'w-full',
+        'px-6 md:px-8 py-4',
+        'bg-white',
+        'shadow-[inset_0_-1px_0_0] shadow-slate-200/80',
+        'border-b border-border'
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -67,7 +67,8 @@ export function EmployerTopBar() {
                   key={company.id}
                   onSelect={() => setSelectedCompany(company)}
                   className={cn(
-                    selectedCompany?.id === company.id && "bg-accent font-medium"
+                    selectedCompany?.id === company.id &&
+                      'bg-accent font-medium'
                   )}
                 >
                   {company.name}
@@ -101,7 +102,10 @@ export function EmployerTopBar() {
           </Button>
 
           {/* Post a job button */}
-          <Button asChild className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)]">
+          <Button
+            asChild
+            className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)]"
+          >
             <Link href="/employer/new-job">
               <Plus className="h-5 w-5" />
               Post a job

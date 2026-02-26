@@ -46,7 +46,10 @@ export default function LoginPage() {
                   <span className="text-muted-foreground">
                     Don't have an account?{' '}
                   </span>
-                  <a href="/signup" className="font-semibold text-accent-link hover:text-accent-link-hover">
+                  <a
+                    href="/signup"
+                    className="font-semibold text-accent-link hover:text-accent-link-hover"
+                  >
                     Sign Up
                   </a>
                 </div>

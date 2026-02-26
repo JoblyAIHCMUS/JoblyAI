@@ -1,4 +1,13 @@
-import { IsOptional, IsInt, Min, Max, IsString, IsBoolean, IsEnum, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsString,
+  IsBoolean,
+  IsEnum,
+  IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { EmploymentType } from '@prisma/client';
 

@@ -1,7 +1,7 @@
 services:
   backend:
     # Dev: Use cached node_modules and pnpm store for fast startup with hot reload
-    user: "root"
+    user: 'root'
     command: sh -c "pnpm install --no-frozen-lockfile && pnpm --filter @jobly/backend exec prisma generate && pnpm --filter @jobly/backend exec prisma migrate dev && cd /app/apps/backend && pnpm run start:dev"
     volumes:
       - .:/app
@@ -10,19 +10,19 @@ services:
       - backend_pnpm_store:/pnpm-store
       - backend_pnpm_cache:/home/node/.cache/pnpm
     environment:
-      CI: "true"
-      CHOKIDAR_USEPOLLING: "1"
+      CI: 'true'
+      CHOKIDAR_USEPOLLING: '1'
       NODE_ENV: development
-      WATCHPACK_POLLING: "true"
+      WATCHPACK_POLLING: 'true'
       REDIS_URL: redis://redis:6379
       HOME: /home/node
-      PNPM_HOME: "/home/node/.local/share/pnpm"
-      PNPM_STORE_DIR: "/pnpm-store"
+      PNPM_HOME: '/home/node/.local/share/pnpm'
+      PNPM_STORE_DIR: '/pnpm-store'
     tmpfs:
       - /tmp
     ports:
-      - "3000:3000"
-      - "9229:9229"
+      - '3000:3000'
+      - '9229:9229'
 
 volumes:
   backend_node_modules:

@@ -3,7 +3,6 @@
 /* Learn more: kigen.design */
 
 :root {
-
   /* Family (Base Tokens) */
   --family-primary: Lexend Deca;
   --family-secondary: Be Vietnam Pro;
@@ -608,7 +607,6 @@
   --border-offer-secondary: var(--lime-400);
 }
 
-
 /* Text Styles */
 .title-title-1-regular {
   font-family: var(--title-title-1-fontfamily);
@@ -1001,7 +999,6 @@
   line-height: var(--caption-caption-2-lineheight);
   letter-spacing: var(--caption-caption-2-letterspacing);
 }
-
 
 /* Effect Styles */
 .shadow {

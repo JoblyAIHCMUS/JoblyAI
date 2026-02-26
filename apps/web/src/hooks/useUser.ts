@@ -19,7 +19,7 @@ function isAuthError(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
 
   const err = error as Record<string, unknown>;
-  
+
   // Check for HTTP 401 in standard Axios/Fetch response shapes
   const status = (err.response as Record<string, unknown>)?.status;
   if (status === 401) return true;
@@ -28,7 +28,10 @@ function isAuthError(error: unknown): boolean {
   if (err.code === 'UNAUTHENTICATED') return true;
 
   // Check error message content
-  if (typeof err.message === 'string' && err.message.toLowerCase().includes('not authenticated')) {
+  if (
+    typeof err.message === 'string' &&
+    err.message.toLowerCase().includes('not authenticated')
+  ) {
     return true;
   }
 
@@ -47,15 +50,15 @@ export function useUser(): UseQueryResult<User | null, Error> {
         if (isAuthError(error)) {
           return null;
         }
-        
+
         // Let actual network/server errors bubble up to React Query
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, 
-    gcTime: 10 * 60 * 1000, 
-    refetchOnWindowFocus: true, 
-    refetchOnMount: true, 
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     retry: (failureCount, error) => {
       // Don't retry if it's a 401 (waste of bandwidth)
       if (isAuthError(error)) return false;

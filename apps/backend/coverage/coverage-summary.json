@@ -1,3 +1,15 @@
-{"total": {"lines":{"total":12,"covered":12,"skipped":0,"pct":100},"statements":{"total":13,"covered":13,"skipped":0,"pct":100},"functions":{"total":3,"covered":3,"skipped":0,"pct":100},"branches":{"total":4,"covered":4,"skipped":0,"pct":100},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
-,"/Users/seapeas/JoblyAI/apps/backend/src/app/auth/auth.service.ts": {"lines":{"total":12,"covered":12,"skipped":0,"pct":100},"functions":{"total":3,"covered":3,"skipped":0,"pct":100},"statements":{"total":13,"covered":13,"skipped":0,"pct":100},"branches":{"total":4,"covered":4,"skipped":0,"pct":100}}
+{
+  "total": {
+    "lines": { "total": 13, "covered": 13, "skipped": 0, "pct": 100 },
+    "statements": { "total": 15, "covered": 14, "skipped": 0, "pct": 93.33 },
+    "functions": { "total": 4, "covered": 4, "skipped": 0, "pct": 100 },
+    "branches": { "total": 4, "covered": 3, "skipped": 0, "pct": 75 },
+    "branchesTrue": { "total": 0, "covered": 0, "skipped": 0, "pct": "Unknown" }
+  },
+  "/home/seapeas/JoblyAI/apps/backend/src/app/auth/auth.service.ts": {
+    "lines": { "total": 13, "covered": 13, "skipped": 0, "pct": 100 },
+    "functions": { "total": 4, "covered": 4, "skipped": 0, "pct": 100 },
+    "statements": { "total": 15, "covered": 14, "skipped": 0, "pct": 93.33 },
+    "branches": { "total": 4, "covered": 3, "skipped": 0, "pct": 75 }
+  }
 }

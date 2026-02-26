@@ -6,7 +6,10 @@ export function AuthHeader() {
         <span className="text-xl font-bold">JoblyAI</span>
       </div>
       <nav className="hidden md:block">
-        <a href="/" className="text-sm text-muted-foreground hover:text-foreground">
+        <a
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
           Back to home
         </a>
       </nav>

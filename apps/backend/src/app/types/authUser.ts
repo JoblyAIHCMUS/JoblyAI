@@ -4,7 +4,7 @@ export interface AuthUser {
   emailVerified: boolean;
   name?: string;
   image?: string;
-  role: 'admin' | 'employer' | 'candidate'; 
+  role: 'admin' | 'employer' | 'candidate';
   createdAt: Date;
   updatedAt: Date;
 }

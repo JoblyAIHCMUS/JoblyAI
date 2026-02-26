@@ -109,7 +109,12 @@ export default function EmployerNewJobPage() {
   const canProceed = (stepIndex: number): boolean => {
     switch (stepIndex) {
       case 0: // Basic Information
-        return jobTitle.trim() !== '' && employmentType !== '' && workModel !== '' && category !== '';
+        return (
+          jobTitle.trim() !== '' &&
+          employmentType !== '' &&
+          workModel !== '' &&
+          category !== ''
+        );
       case 1: // Job Description
         return !isHtmlContentEmpty(jobDescription);
       default:
@@ -136,7 +141,11 @@ export default function EmployerNewJobPage() {
       skills,
     };
     console.log('Job posted:', jobData);
-    alert(`Job posted successfully for ${selectedCompany?.name || 'Unknown Company'}!`);
+    alert(
+      `Job posted successfully for ${
+        selectedCompany?.name || 'Unknown Company'
+      }!`
+    );
   };
 
   return (
@@ -146,7 +155,11 @@ export default function EmployerNewJobPage() {
         Fill in the details to create a new job posting.
       </p>
 
-      <Stepper steps={POST_JOB_STEPS} onComplete={handleComplete} canProceed={canProceed}>
+      <Stepper
+        steps={POST_JOB_STEPS}
+        onComplete={handleComplete}
+        canProceed={canProceed}
+      >
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Job Title */}
@@ -185,7 +198,10 @@ export default function EmployerNewJobPage() {
               {EMPLOYMENT_TYPES.map((type) => (
                 <div key={type.value} className="flex items-center space-x-2">
                   <RadioGroupItem value={type.value} id={type.value} />
-                  <Label htmlFor={type.value} className="font-normal cursor-pointer">
+                  <Label
+                    htmlFor={type.value}
+                    className="font-normal cursor-pointer"
+                  >
                     {type.label}
                   </Label>
                 </div>
@@ -198,9 +214,7 @@ export default function EmployerNewJobPage() {
           {/* Work Model */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div>
-              <Label className="label-label-1-semibold">
-                Work model
-              </Label>
+              <Label className="label-label-1-semibold">Work model</Label>
             </div>
             <RadioGroup
               value={workModel}
@@ -210,7 +224,10 @@ export default function EmployerNewJobPage() {
               {WORK_MODELS.map((model) => (
                 <div key={model.value} className="flex items-center space-x-2">
                   <RadioGroupItem value={model.value} id={model.value} />
-                  <Label htmlFor={model.value} className="font-normal cursor-pointer">
+                  <Label
+                    htmlFor={model.value}
+                    className="font-normal cursor-pointer"
+                  >
                     {model.label}
                   </Label>
                 </div>
@@ -223,9 +240,7 @@ export default function EmployerNewJobPage() {
           {/* Category */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div className="pt-3">
-              <Label className="label-label-1-semibold">
-                Category
-              </Label>
+              <Label className="label-label-1-semibold">Category</Label>
             </div>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="h-12 text-base">
@@ -246,9 +261,7 @@ export default function EmployerNewJobPage() {
           {/* Required Skills */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div>
-              <Label className="label-label-1-semibold">
-                Required Skills
-              </Label>
+              <Label className="label-label-1-semibold">Required Skills</Label>
               <p className="text-xs text-slate-500 mt-1">
                 Skills useful for the job (Optional)
               </p>
@@ -342,12 +355,8 @@ export default function EmployerNewJobPage() {
           {/* Salary */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div className="pt-3">
-              <Label className="label-label-1-semibold">
-                Salary
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Optional
-              </p>
+              <Label className="label-label-1-semibold">Salary</Label>
+              <p className="text-xs text-slate-500 mt-1">Optional</p>
             </div>
             <div className="flex items-center gap-3">
               <Select value={salaryCurrency} onValueChange={setSalaryCurrency}>

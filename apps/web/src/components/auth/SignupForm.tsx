@@ -11,26 +11,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-
-const signupSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-  userType: z.enum(['job-seeker', 'employer']),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const signupSchema = z
+  .object({
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    email: z.email('Invalid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+    userType: z.enum(['job-seeker', 'employer']),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
   const router = useRouter();
   const { mutate: signup, isPending, error } = useSignup();
-  const [userType, setUserType] = useState<'job-seeker' | 'employer'>('job-seeker');
-  
+  const [userType, setUserType] = useState<'job-seeker' | 'employer'>(
+    'job-seeker'
+  );
+
   const {
     register,
     handleSubmit,
@@ -60,7 +63,9 @@ export function SignupForm() {
       {error && (
         <div className="rounded-md bg-red-50 p-3">
           <p className="text-sm text-red-700">
-            {error instanceof Error ? error.message : 'Signup failed. Please try again.'}
+            {error instanceof Error
+              ? error.message
+              : 'Signup failed. Please try again.'}
           </p>
         </div>
       )}
@@ -146,28 +151,40 @@ export function SignupForm() {
           className="border-border"
         />
         {errors.confirmPassword && (
-          <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
+          <p className="text-xs text-red-600">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
       {/* User Type Selection */}
       <div className="space-y-3 border-t border-border pt-4">
-        <RadioGroup value={userType} onValueChange={(value) => setUserType(value as 'job-seeker' | 'employer')}>
+        <RadioGroup
+          value={userType}
+          onValueChange={(value) =>
+            setUserType(value as 'job-seeker' | 'employer')
+          }
+        >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem 
-              value="job-seeker" 
+            <RadioGroupItem
+              value="job-seeker"
               id="job-seeker"
               className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
             />
-            <Label htmlFor="job-seeker" className="font-semibold cursor-pointer">
+            <Label
+              htmlFor="job-seeker"
+              className="font-semibold cursor-pointer"
+            >
               Job Seeker
             </Label>
           </div>
-          <p className="text-sm text-muted-foreground ml-6">Looking for a job</p>
+          <p className="text-sm text-muted-foreground ml-6">
+            Looking for a job
+          </p>
 
           <div className="flex items-center space-x-2 pt-2">
-            <RadioGroupItem 
-              value="employer" 
+            <RadioGroupItem
+              value="employer"
               id="employer"
               className="data-[state=checked]:text-accent-solid data-[state=checked]:border-accent-solid"
             />
@@ -175,7 +192,9 @@ export function SignupForm() {
               Employer
             </Label>
           </div>
-          <p className="text-sm text-muted-foreground ml-6">Hiring, sourcing candidates, or posting jobs</p>
+          <p className="text-sm text-muted-foreground ml-6">
+            Hiring, sourcing candidates, or posting jobs
+          </p>
         </RadioGroup>
       </div>
 

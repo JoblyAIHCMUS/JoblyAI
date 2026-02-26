@@ -50,8 +50,12 @@ export class AuthController {
       const body = req.body as Record<string, unknown>;
       if (body?.role) {
         const requestedRole = body.role;
-        if (typeof requestedRole === 'string' && ['candidate', 'employer'].includes(requestedRole)) {
-          (req as ExpressRequest & { targetRole?: string }).targetRole = requestedRole;
+        if (
+          typeof requestedRole === 'string' &&
+          ['candidate', 'employer'].includes(requestedRole)
+        ) {
+          (req as ExpressRequest & { targetRole?: string }).targetRole =
+            requestedRole;
           delete body.role;
         }
       }
@@ -68,8 +72,13 @@ export class AuthController {
     let body = await authRes.text();
 
     // If this was a signup and we have a target role, modify the response body
-    const targetRole = (req as ExpressRequest & { targetRole?: string }).targetRole;
-    if (targetRole && req.method === 'POST' && (req.originalUrl || req.url).includes('/sign-up')) {
+    const targetRole = (req as ExpressRequest & { targetRole?: string })
+      .targetRole;
+    if (
+      targetRole &&
+      req.method === 'POST' &&
+      (req.originalUrl || req.url).includes('/sign-up')
+    ) {
       try {
         const jsonBody = JSON.parse(body);
         if (jsonBody.user?.id) {
@@ -92,7 +101,9 @@ export class AuthController {
 
   private toWebRequest(req: ExpressRequest): Request {
     const baseUrl =
-      process.env.BETTER_AUTH_URL || process.env.APP_URL || 'http://localhost:3000';
+      process.env.BETTER_AUTH_URL ||
+      process.env.APP_URL ||
+      'http://localhost:3000';
     const url = new URL(req.originalUrl || req.url, baseUrl);
     const headers = new Headers();
 

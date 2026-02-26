@@ -8,7 +8,9 @@ import Redis from 'ioredis';
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const adapter = new PrismaPg(pool);
 export const prisma = new PrismaClient({ adapter });
-export const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+export const redis = new Redis(
+  process.env.REDIS_URL || 'redis://localhost:6379'
+);
 export const scylla = new Client({
   contactPoints: [process.env.CASSANDRA_CONTACT_POINT || 'localhost:9042'],
   localDataCenter: 'datacenter1',
