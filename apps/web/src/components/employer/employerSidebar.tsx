@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import {
   Sidebar,
@@ -14,8 +14,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 // Icons (use lucide-react)
 import {
@@ -29,71 +29,74 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Navigation items structure
 const navMain = [
   {
-    title: "Dashboard",
-    url: "/employer/dashboard",
+    title: 'Dashboard',
+    url: '/employer/dashboard',
     icon: LayoutDashboard,
   },
   {
-    title: "Messages",
-    url: "/employer/messages",
+    title: 'Messages',
+    url: '/employer/messages',
     icon: MessageSquare,
-    badge: "1",
+    badge: '1',
   },
   {
-    title: "Company Profile",
-    url: "/employer/company-profile",
+    title: 'Company Profile',
+    url: '/employer/company-profile',
     icon: Building2,
   },
   {
-    title: "All Applicants",
-    url: "/employer/all-applicants",
+    title: 'All Applicants',
+    url: '/employer/all-applicants',
     icon: Users,
   },
   {
-    title: "Job Listing",
-    url: "/employer/job-listing",
+    title: 'Job Listing',
+    url: '/employer/job-listing',
     icon: Briefcase,
   },
 ];
 
 const navSecondary = [
   {
-    title: "Settings",
-    url: "/employer/settings",
+    title: 'Settings',
+    url: '/employer/settings',
     icon: Settings,
   },
   {
-    title: "Help Center",
-    url: "/employer/help",
+    title: 'Help Center',
+    url: '/employer/help',
     icon: HelpCircle,
   },
   {
-    title: "Logout",
-    url: "/logout",
+    title: 'Logout',
+    url: '/logout',
     icon: LogOut,
-    variant: "destructive" as const,
+    variant: 'destructive' as const,
   },
 ];
 
 export function EmployerSidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
-  
+
   // Derive the actual collapsed state based on mobile vs desktop
-  const isCollapsed = isMobile ? !openMobile : state === "collapsed";
+  const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
 
   return (
-    <Sidebar collapsible="icon" className="relative border-r border-[color:var(--border-primary)]">
+    <Sidebar
+      collapsible="icon"
+      className="relative border-r border-[color:var(--border-primary)]"
+    >
       {/* Collapse/Expand Toggle Button */}
       <button
         onClick={toggleSidebar}
         className="absolute -right-3 top-1/2 z-50 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-[color:var(--border-primary)] bg-white shadow-sm transition-colors hover:bg-gray-100"
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4 text-gray-600" />
@@ -129,16 +132,18 @@ export function EmployerSidebar() {
                     isActive={isActive}
                     tooltip={item.title}
                     className={cn(
-                      "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+                      'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                       isActive &&
-                        "bg-[color:var(--bg-accent-primary)] text-[color:var(--text-accent-primary)] hover:bg-[color:var(--bg-accent-primary-hover)]",
-                      "data-[active=true]:border-l-4 data-[active=true]:border-[color:var(--bg-accent-solid)] data-[active=true]:pl-3",
-                      "group-data-[collapsible=icon]:data-[active=true]:border-l-0 group-data-[collapsible=icon]:data-[active=true]:pl-0"
+                        'bg-[color:var(--bg-accent-primary)] text-[color:var(--text-accent-primary)] hover:bg-[color:var(--bg-accent-primary-hover)]',
+                      'data-[active=true]:border-l-4 data-[active=true]:border-[color:var(--bg-accent-solid)] data-[active=true]:pl-3',
+                      'group-data-[collapsible=icon]:data-[active=true]:border-l-0 group-data-[collapsible=icon]:data-[active=true]:pl-0'
                     )}
                   >
                     <Link href={item.url}>
                       <item.icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">
+                        {item.title}
+                      </span>
                       {item.badge && (
                         <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--icon-accent-primary)] text-xs font-semibold text-[color:var(--icon-white)] group-data-[collapsible=icon]:hidden">
                           {item.badge}
@@ -167,15 +172,17 @@ export function EmployerSidebar() {
                     isActive={isActive}
                     tooltip={item.title}
                     className={cn(
-                      "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
-                      item.variant === "destructive"
-                        ? "text-red-600 hover:text-red-700"
-                        : ""
+                      'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+                      item.variant === 'destructive'
+                        ? 'text-red-600 hover:text-red-700'
+                        : ''
                     )}
                   >
                     <Link href={item.url}>
                       <item.icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">
+                        {item.title}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

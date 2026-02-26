@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('Cleaning up existing data...');
-  
+
   // Delete all data in reverse order of foreign key dependencies
   await prisma.jobRequirement.deleteMany({});
   await prisma.jobPosting.deleteMany({});
@@ -228,8 +228,7 @@ async function main() {
     prisma.jobPosting.create({
       data: {
         title: 'Backend Engineer (Python)',
-        description:
-          'Build and maintain our Python-based backend services.',
+        description: 'Build and maintain our Python-based backend services.',
         location: 'Seattle, WA',
         salaryMin: 105000,
         salaryMax: 155000,
@@ -247,7 +246,7 @@ async function main() {
 
   // Create job requirements
   console.log('Creating job requirements...');
-  
+
   // Create a Map for faster skill lookups
   const skillMap = new Map(allSkills.map((s) => [s.name, s.id]));
   const getSkillId = (name: string): number => {

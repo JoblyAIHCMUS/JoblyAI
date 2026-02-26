@@ -5,16 +5,16 @@ on:
     branches:
       - main
       - development
-      - "**/web/**"
-    paths: 
+      - '**/web/**'
+    paths:
       - 'apps/web/**'
       - 'libs/**'
   pull_request:
     branches:
       - main
       - development
-      - "**/web/**"
-    paths: 
+      - '**/web/**'
+    paths:
       - 'apps/web/**'
       - 'libs/**'
 
@@ -47,7 +47,8 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
-
+      # 3a. Run format check
+      - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
       - run: pnpm audit --audit-level=high
       # 4. Initialize Nx
@@ -56,7 +57,7 @@ jobs:
       - run: pnpm nx run @jobly/web:build
       # 5. Run Checks (Only on affected projects)
       - run: pnpm nx affected -t lint test build
-  
+
     # JOB 2: Smoke Test (Build + Serve + HTTP Check)
   smoke-web:
     needs: build-web
@@ -100,7 +101,7 @@ jobs:
           done
           echo "Web did not become healthy"
           exit 1
-  
+
   # JOB 3: CD (Build & Deploy Web)
   deploy-web:
     needs: [build-web, smoke-web]

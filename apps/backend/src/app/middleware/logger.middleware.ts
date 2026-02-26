@@ -21,10 +21,10 @@ export class LoggerMiddleware implements NestMiddleware {
       this.logger.log(
         `${method} ${originalUrl} ${statusCode} ${contentLength}b - ${duration}ms - ${userAgent} ${ip}`
       );
-      
+
       // OPTIONAL: Log error bodies if status >= 400
       if (statusCode >= 400) {
-         this.logger.error(`❌ Request Failed: ${method} ${originalUrl}`);
+        this.logger.error(`❌ Request Failed: ${method} ${originalUrl}`);
       }
     });
 

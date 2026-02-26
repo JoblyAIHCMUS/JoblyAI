@@ -24,7 +24,7 @@ export function useLogin() {
         email: credentials.email,
         password: credentials.password,
       });
-      
+
       // 1. Check for explicit API errors
       if (response.error) {
         throw new Error(response.error.message || 'Login failed');
@@ -39,12 +39,12 @@ export function useLogin() {
       return response.data.user as User;
     },
     onSuccess: (user) => {
-      // OPTIMIZATION: Manually update the cache. 
+      // OPTIMIZATION: Manually update the cache.
       // We already have the user data, so we don't need to fetch it again.
       queryClient.setQueryData(['user'], user);
-      
+
       // Optional: Redirect immediately
-      router.push('/dashboard'); 
+      router.push('/dashboard');
     },
   });
 }
@@ -60,7 +60,7 @@ export function useSignup() {
         password: credentials.password,
         name: credentials.name || '',
       });
-      
+
       if (response.error) {
         throw new Error(response.error?.message || 'Signup failed');
       }
@@ -69,7 +69,7 @@ export function useSignup() {
       if (!response.data || !response.data.user) {
         throw new Error('Signup successful but no user data returned');
       }
-      
+
       return response.data.user as User;
     },
     onSuccess: (user) => {
@@ -91,10 +91,10 @@ export function useLogout() {
     onSuccess: () => {
       // 1. Update cache immediately to reflect logged out state
       queryClient.setQueryData(['user'], null);
-      
+
       // 2. Remove queries that shouldn't exist without a user
       // (Optional: safer than .clear() if you have public data)
-      // queryClient.removeQueries({ queryKey: ['dashboard'] }); 
+      // queryClient.removeQueries({ queryKey: ['dashboard'] });
 
       // 3. Smooth client-side redirect
       router.push('/login');

@@ -43,7 +43,7 @@ import { auth } from '../lib/auth';
 // set of tests for AuthService
 describe('AuthService', () => {
   let service: AuthService;
-  
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService],
@@ -62,7 +62,7 @@ describe('AuthService', () => {
 
     // Act
     const session = await service.getSession(requestHeaders);
-    
+
     // Assert
     expect(auth.api.getSession).toHaveBeenCalledWith({
       headers: requestHeaders,
@@ -110,7 +110,7 @@ describe('AuthService', () => {
 
     // Act
     const userDetail = await service.validateToken(requestHeaders);
-    
+
     // Assert
     expect(userDetail).toEqual({
       user: mockUser.id,

@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export function AuthLeftColumn() {
   return (
-    <div 
+    <div
       className="flex flex-col items-start justify-between rounded-xl bg-cover bg-center bg-no-repeat px-8 py-12 h-full"
       style={{
         backgroundImage: 'url(/auth-image.jpg)',
@@ -28,16 +28,23 @@ export function AuthLeftColumn() {
         <Card className="border-0 bg-white p-6 shadow-xl">
           <div className="mb-4 flex items-center gap-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src="/auth-avatar.jpg" alt="Courtney Miller" className="object-cover" />
+              <AvatarImage
+                src="/auth-avatar.jpg"
+                alt="Courtney Miller"
+                className="object-cover"
+              />
               <AvatarFallback>AS</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold text-foreground">Courtney Miller</p>
-              <p className="text-xs text-muted-foreground">Lead Engineer at Canva</p>
+              <p className="text-xs text-muted-foreground">
+                Lead Engineer at Canva
+              </p>
             </div>
           </div>
           <p className="text-sm italic text-foreground">
-            "Great platform for the job seeker that searching for new career heights."
+            "Great platform for the job seeker that searching for new career
+            heights."
           </p>
         </Card>
       </div>

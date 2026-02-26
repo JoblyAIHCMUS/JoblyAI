@@ -13,7 +13,7 @@ export default function AuthCallbackPage() {
         // The OAuth callback is handled automatically by better-auth
         // Just validate the session and redirect
         const session = await authClient.getSession();
-        
+
         if (session?.data?.user) {
           // Redirect to home on successful auth
           router.push('/');

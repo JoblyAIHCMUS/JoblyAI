@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 interface UserDetail {
@@ -8,8 +13,10 @@ interface UserDetail {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService) {}
-  async getSessionHeaders(context: ExecutionContext): Promise<Record<string, string>> {
+  constructor(private readonly authService: AuthService) {}
+  async getSessionHeaders(
+    context: ExecutionContext
+  ): Promise<Record<string, string>> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
     const cookieHeader = request.headers['cookie'];
@@ -28,7 +35,9 @@ export class AuthGuard implements CanActivate {
     }
 
     if (!headers.authorization && !headers.cookie) {
-      throw new UnauthorizedException('Authorization header or session cookie missing');
+      throw new UnauthorizedException(
+        'Authorization header or session cookie missing'
+      );
     }
 
     return headers;
@@ -36,8 +45,9 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const sessionHeaders = await this.getSessionHeaders(context);
-    const userDetail: UserDetail | null =
-      (await this.authService.validateToken(sessionHeaders)) as UserDetail | null;
+    const userDetail: UserDetail | null = (await this.authService.validateToken(
+      sessionHeaders
+    )) as UserDetail | null;
     if (!userDetail) {
       throw new UnauthorizedException('Invalid or expired token');
     }

@@ -11,9 +11,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jobly -d jobly_db"]
+      test: ['CMD-SHELL', 'pg_isready -U jobly -d jobly_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,13 +22,13 @@ services:
     # Pinned to Redis 7 (current stable major).
     image: redis:7-alpine
     container_name: redis_jobly
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,12 +38,12 @@ services:
     image: scylladb/scylla:5.4
     container_name: scylla_jobly
     ports:
-      - "9042:9042"
+      - '9042:9042'
     volumes:
       - scylla_data:/var/lib/scylla
     # Scylla needs more generous timeouts
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
+      test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
       interval: 15s
       timeout: 10s
       retries: 20
@@ -59,7 +59,7 @@ services:
     env_file:
       - apps/backend/.env
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,9 +72,14 @@ services:
       DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
-    command: [ "sh", "-c", "pnpm dlx prisma migrate deploy && node apps/backend/dist/main" ]
+    command:
+      [
+        'sh',
+        '-c',
+        'pnpm dlx prisma migrate deploy && node apps/backend/dist/main',
+      ]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -85,7 +90,7 @@ services:
     image: nginx:1.27-alpine
     container_name: nginx_jobly
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

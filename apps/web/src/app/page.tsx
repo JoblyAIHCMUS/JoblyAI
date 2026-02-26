@@ -11,17 +11,20 @@ import { Button } from '@/components/ui/button';
 const features = [
   {
     title: 'Composable primitives',
-    description: 'Radix + tailwind + cva give you accessible, themeable building blocks.',
+    description:
+      'Radix + tailwind + cva give you accessible, themeable building blocks.',
     icon: Terminal,
   },
   {
     title: 'Design tokens out of the box',
-    description: 'CSS variables and Tailwind config keep light/dark palettes consistent.',
+    description:
+      'CSS variables and Tailwind config keep light/dark palettes consistent.',
     icon: Paintbrush,
   },
   {
     title: 'Ship fast, stay consistent',
-    description: 'Drop in shadcn/ui components and iterate without fighting styles.',
+    description:
+      'Drop in shadcn/ui components and iterate without fighting styles.',
     icon: Sparkles,
   },
 ];
@@ -38,7 +41,8 @@ export default function HomePage() {
             Build the Jobly experience faster
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
-            A Tailwind + Radix component stack with sensible defaults, theme tokens, and composable primitives.
+            A Tailwind + Radix component stack with sensible defaults, theme
+            tokens, and composable primitives.
           </p>
         </div>
 
@@ -48,7 +52,11 @@ export default function HomePage() {
             <ArrowRight className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="lg" className="gap-2" asChild>
-            <a href="https://github.com/JoblyAIHCMUS/JoblyAI" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/JoblyAIHCMUS/JoblyAI"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Github className="h-4 w-4" />
               View repo
             </a>
@@ -68,7 +76,10 @@ export default function HomePage() {
                 <h3 className="text-lg font-semibold">{title}</h3>
                 <p className="text-sm text-muted-foreground">{description}</p>
               </div>
-              <Button variant="ghost" className="justify-start gap-2 px-0 text-sm">
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 px-0 text-sm"
+              >
                 Learn more
                 <ArrowRight className="h-4 w-4" />
               </Button>

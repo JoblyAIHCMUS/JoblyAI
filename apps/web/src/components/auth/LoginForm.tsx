@@ -43,7 +43,9 @@ export function LoginForm() {
       {error && (
         <div className="rounded-md bg-red-50 p-3">
           <p className="text-sm text-red-700">
-            {error instanceof Error ? error.message : 'Login failed. Please try again.'}
+            {error instanceof Error
+              ? error.message
+              : 'Login failed. Please try again.'}
           </p>
         </div>
       )}
@@ -71,7 +73,10 @@ export function LoginForm() {
           <Label htmlFor="password" className="text-sm font-semibold">
             Password
           </Label>
-          <a href="/forgot-password" className="text-xs font-semibold text-accent-link hover:text-accent-link-hover">
+          <a
+            href="/forgot-password"
+            className="text-xs font-semibold text-accent-link hover:text-accent-link-hover"
+          >
             Forgot password?
           </a>
         </div>
@@ -95,7 +100,10 @@ export function LoginForm() {
           {...register('rememberMe')}
           className="h-4 w-4 rounded border-border accent-indigo-600"
         />
-        <Label htmlFor="rememberMe" className="text-sm font-medium cursor-pointer">
+        <Label
+          htmlFor="rememberMe"
+          className="text-sm font-medium cursor-pointer"
+        >
           Remember me
         </Label>
       </div>

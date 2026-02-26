@@ -1,1 +1,1 @@
-export type SharedType = { id: string; name: string; };
+export type SharedType = { id: string; name: string };
