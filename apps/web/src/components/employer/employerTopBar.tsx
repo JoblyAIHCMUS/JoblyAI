@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Bell, ChevronDown, Plus } from 'lucide-react';
 
@@ -11,11 +13,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useCompany } from '@/hooks/useCompany';
 
 // Optional: notification count
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
+  const { companies, selectedCompany, setSelectedCompany } = useCompany();
+
   return (
     <header
       className={cn(
@@ -31,7 +36,7 @@ export function EmployerTopBar() {
         <div className="flex items-center gap-4">
           {/* Company logo placeholder */}
           <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs font-medium">
-            Logo
+            {selectedCompany?.logo || 'Logo'}
           </div>
 
           <DropdownMenu>
@@ -46,7 +51,7 @@ export function EmployerTopBar() {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
-                      Nomad
+                      {selectedCompany?.name || 'Select Company'}
                     </span>
                     <ChevronDown className="h-5 w-5 text-[var(--icon-primary)]" />
                   </div>
@@ -57,9 +62,18 @@ export function EmployerTopBar() {
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuLabel>Switch company</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Nomad</DropdownMenuItem>
-              <DropdownMenuItem>Acme Inc</DropdownMenuItem>
-              <DropdownMenuItem>Future Corp</DropdownMenuItem>
+              {companies.map((company) => (
+                <DropdownMenuItem
+                  key={company.id}
+                  onSelect={() => setSelectedCompany(company)}
+                  className={cn(
+                    selectedCompany?.id === company.id &&
+                      'bg-accent font-medium'
+                  )}
+                >
+                  {company.name}
+                </DropdownMenuItem>
+              ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-[var(--text-accent-primary)]">
                 + Add new company
