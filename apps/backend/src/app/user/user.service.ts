@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { UpdateUserDTO } from './dto/user.dto';
+import { InjectPrisma } from '../decorators/inject.decorator';
 
 export class UserService {
   constructor(@InjectPrisma() private readonly prismaClient: PrismaClient) {}

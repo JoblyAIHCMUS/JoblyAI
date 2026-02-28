@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectPrisma } from '../utils/inject.decorators';
+import { InjectPrisma } from '../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
 import {
   QueryResponseEmployerDto,
