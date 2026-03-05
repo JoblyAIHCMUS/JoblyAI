@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { DashboardBigButton } from '@/components/employer/dashboardBigButton';
 import {
@@ -84,14 +83,14 @@ const yearData: StatsDataSet = {
 
 export default function EmployerDashboardPage() {
   const { data: user } = useUser();
-  const greeting = useMemo(() => getGreeting(), []);
+  const greeting = getGreeting();
   const firstName = user?.name?.split(' ')[0] ?? '';
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">
         {greeting}
-        {firstName ? `, ${firstName}` : ', Maria'}
+        {firstName ? `, ${firstName}` : ', user'}
       </h1>
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">

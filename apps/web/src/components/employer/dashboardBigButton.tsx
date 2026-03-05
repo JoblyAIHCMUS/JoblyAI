@@ -43,7 +43,7 @@ const DashboardBigButton = React.forwardRef<
         className={cn(
           'group flex items-center justify-between shadow rounded-xl px-6 py-5 transition-colors',
           bgColor,
-          hoverBgColor ?? `${bgColor}/90`,
+          hoverBgColor ?? `hover:${bgColor}/90`,
           textColor,
           className
         )}
