@@ -155,7 +155,7 @@ export function DashboardStatsPanel({
         <div>
           <CardTitle className="text-lg font-semibold">Job statistics</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Showing Jobstatistic {currentDataSet.periodLabel}
+            Showing job statistics for {currentDataSet.periodLabel}
           </p>
         </div>
 
