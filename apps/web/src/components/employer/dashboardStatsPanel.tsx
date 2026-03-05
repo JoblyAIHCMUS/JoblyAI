@@ -31,14 +31,14 @@ export interface StatsDataPoint {
 export interface StatsSummary {
   totalJobViews: number;
   totalJobApplications: number;
-  jobViewsDiff: number;      // percentage change vs previous period
-  jobApplicationsDiff: number;    // percentage change vs previous period
+  jobViewsDiff: number; // percentage change vs previous period
+  jobApplicationsDiff: number; // percentage change vs previous period
 }
 
 export interface StatsDataSet {
   data: StatsDataPoint[];
   summary: StatsSummary;
-  periodLabel: string;       // e.g. "Jul 19-25"
+  periodLabel: string; // e.g. "Jul 19-25"
 }
 
 export interface DashboardStatsPanelProps {
@@ -95,9 +95,7 @@ function SummaryCard({
             <Icon className="h-4 w-4 text-white" />
           </div>
         </div>
-        <span className="text-3xl font-bold">
-          {total.toLocaleString()}
-        </span>
+        <span className="text-3xl font-bold">{total.toLocaleString()}</span>
         <div className="flex items-center gap-1 text-xs">
           <span className="text-muted-foreground">{periodLabel}</span>
           <span
@@ -143,9 +141,10 @@ export function DashboardStatsPanel({
     }
   }, [timeMode, weekData, monthData, yearData]);
 
-  const timeModeLabel = timeMode === 'week'
-    ? 'This Week'
-    : timeMode === 'month'
+  const timeModeLabel =
+    timeMode === 'week'
+      ? 'This Week'
+      : timeMode === 'month'
       ? 'This Month'
       : 'This Year';
 
@@ -153,7 +152,9 @@ export function DashboardStatsPanel({
     <Card className={cn('w-full', className)}>
       <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle className="text-lg font-semibold">Job statistics</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            Job statistics
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Showing job statistics for {currentDataSet.periodLabel}
           </p>
@@ -180,10 +181,7 @@ export function DashboardStatsPanel({
 
       <CardContent className="space-y-4">
         {/* Data tab selector */}
-        <Tabs
-          value={dataTab}
-          onValueChange={(v) => setDataTab(v as DataTab)}
-        >
+        <Tabs value={dataTab} onValueChange={(v) => setDataTab(v as DataTab)}>
           <TabsList className="bg-transparent p-0 h-auto gap-4 border-b rounded-none w-full justify-start">
             <TabsTrigger
               value="overview"
@@ -206,79 +204,77 @@ export function DashboardStatsPanel({
           </TabsList>
 
           {/* All three tabs share the same chart layout */}
-          {(['overview', 'jobViews', 'jobApplications'] as DataTab[]).map((tab) => (
-            <TabsContent key={tab} value={tab}>
-              <div className="flex flex-col gap-4 lg:flex-row">
-                {/* Chart */}
-                <ChartContainer
-                  config={chartConfig}
-                  className="aspect-auto h-[280px] flex-1 min-w-0"
-                >
-                  <BarChart data={currentDataSet.data}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      width={40}
-                    />
-                    <ChartTooltip
-                      content={<ChartTooltipContent />}
-                    />
-                    {tab === 'overview' && (
-                      <ChartLegend content={<ChartLegendContent />} />
-                    )}
-                    {(tab === 'overview' || tab === 'jobViews') && (
-                      <Bar
-                        dataKey="jobViews"
-                        fill="var(--color-jobViews)"
-                        radius={
-                          tab === 'overview'
-                            ? [0, 0, 0, 0]
-                            : [4, 4, 0, 0]
-                        }
-                        stackId={tab === 'overview' ? 'stack' : undefined}
+          {(['overview', 'jobViews', 'jobApplications'] as DataTab[]).map(
+            (tab) => (
+              <TabsContent key={tab} value={tab}>
+                <div className="flex flex-col gap-4 lg:flex-row">
+                  {/* Chart */}
+                  <ChartContainer
+                    config={chartConfig}
+                    className="aspect-auto h-[280px] flex-1 min-w-0"
+                  >
+                    <BarChart data={currentDataSet.data}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
                       />
-                    )}
-                    {(tab === 'overview' || tab === 'jobApplications') && (
-                      <Bar
-                        dataKey="jobApplications"
-                        fill="var(--color-jobApplications)"
-                        radius={[4, 4, 0, 0]}
-                        stackId={tab === 'overview' ? 'stack' : undefined}
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        width={40}
                       />
-                    )}
-                  </BarChart>
-                </ChartContainer>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      {tab === 'overview' && (
+                        <ChartLegend content={<ChartLegendContent />} />
+                      )}
+                      {(tab === 'overview' || tab === 'jobViews') && (
+                        <Bar
+                          dataKey="jobViews"
+                          fill="var(--color-jobViews)"
+                          radius={
+                            tab === 'overview' ? [0, 0, 0, 0] : [4, 4, 0, 0]
+                          }
+                          stackId={tab === 'overview' ? 'stack' : undefined}
+                        />
+                      )}
+                      {(tab === 'overview' || tab === 'jobApplications') && (
+                        <Bar
+                          dataKey="jobApplications"
+                          fill="var(--color-jobApplications)"
+                          radius={[4, 4, 0, 0]}
+                          stackId={tab === 'overview' ? 'stack' : undefined}
+                        />
+                      )}
+                    </BarChart>
+                  </ChartContainer>
 
-                {/* Summary cards */}
-                <div className="flex flex-row gap-4 lg:w-[220px] lg:flex-col">
-                  <SummaryCard
-                    title="Job Views"
-                    total={currentDataSet.summary.totalJobViews}
-                    diff={currentDataSet.summary.jobViewsDiff}
-                    periodLabel={timeModeLabel}
-                    icon={Eye}
-                    iconBg="bg-orange-400"
-                  />
-                  <SummaryCard
-                    title="Job Applications"
-                    total={currentDataSet.summary.totalJobApplications}
-                    diff={currentDataSet.summary.jobApplicationsDiff}
-                    periodLabel={timeModeLabel}
-                    icon={FileText}
-                    iconBg="bg-purple-500"
-                  />
+                  {/* Summary cards */}
+                  <div className="flex flex-row gap-4 lg:w-[220px] lg:flex-col">
+                    <SummaryCard
+                      title="Job Views"
+                      total={currentDataSet.summary.totalJobViews}
+                      diff={currentDataSet.summary.jobViewsDiff}
+                      periodLabel={timeModeLabel}
+                      icon={Eye}
+                      iconBg="bg-orange-400"
+                    />
+                    <SummaryCard
+                      title="Job Applications"
+                      total={currentDataSet.summary.totalJobApplications}
+                      diff={currentDataSet.summary.jobApplicationsDiff}
+                      periodLabel={timeModeLabel}
+                      icon={FileText}
+                      iconBg="bg-purple-500"
+                    />
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-          ))}
+              </TabsContent>
+            )
+          )}
         </Tabs>
       </CardContent>
     </Card>
