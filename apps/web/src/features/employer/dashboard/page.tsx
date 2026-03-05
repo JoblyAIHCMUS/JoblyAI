@@ -1,31 +1,44 @@
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useMemo } from 'react';
+import { useUser } from '@/hooks/useUser';
+import { DashboardBigButton } from '@/components/employer/dashboardBigButton';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default function EmployerDashboardPage() {
+  const { data: user } = useUser();
+  const greeting = useMemo(() => getGreeting(), []);
+  const firstName = user?.name?.split(' ')[0] ?? '';
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Employer Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        {greeting}
+        {firstName ? `, ${firstName}` : ', Maria'}
+      </h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Example Dashboard Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Jobs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">12</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+        <DashboardBigButton
+          count={76}
+          label="New candidates to review"
+          href="/employer/all-applicants"
+          bgColor="bg-indigo-600"
+          hoverBgColor="hover:bg-indigo-700"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Applicants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">48</p>
-          </CardContent>
-        </Card>
+        <DashboardBigButton
+          count={24}
+          label="Messages received"
+          href="/employer/messages"
+          bgColor="bg-sky-500"
+          hoverBgColor="hover:bg-sky-600"
+        />
       </div>
     </div>
   );
