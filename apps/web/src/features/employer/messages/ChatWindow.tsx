@@ -79,7 +79,7 @@ export function ChatWindow({ conversation, messages, onSendMessage }: ChatWindow
           />
           <Button
             onClick={handleSendMessage}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+            className="bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)] px-6"
           >
             <Send className="h-4 w-4" />
           </Button>

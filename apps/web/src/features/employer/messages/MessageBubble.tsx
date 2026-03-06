@@ -27,7 +27,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         <p
           className={`rounded-lg px-4 py-2 text-sm ${
             message.isSent
-              ? 'bg-slate-800 text-white rounded-br-none'
+              ? 'bg-indigo-50 text-slate-900 rounded-br-none'
               : 'bg-slate-100 text-slate-900 rounded-bl-none'
           }`}
         >
