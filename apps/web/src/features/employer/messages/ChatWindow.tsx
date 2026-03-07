@@ -14,7 +14,11 @@ interface ChatWindowProps {
   onSendMessage: (content: string) => void;
 }
 
-export function ChatWindow({ conversation, messages, onSendMessage }: ChatWindowProps) {
+export function ChatWindow({
+  conversation,
+  messages,
+  onSendMessage,
+}: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState('');
 
   const handleSendMessage = () => {
@@ -34,7 +38,9 @@ export function ChatWindow({ conversation, messages, onSendMessage }: ChatWindow
             <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{conversation.name}</h2>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {conversation.name}
+            </h2>
             <p className="text-sm text-slate-500">{conversation.role}</p>
           </div>
         </div>
@@ -54,7 +60,8 @@ export function ChatWindow({ conversation, messages, onSendMessage }: ChatWindow
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         <div className="text-center text-sm text-slate-500 mb-6">
-          This is the very beginning of your direct message with {conversation.name}
+          This is the very beginning of your direct message with{' '}
+          {conversation.name}
         </div>
 
         {messages.map((message) => (

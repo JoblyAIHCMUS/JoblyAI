@@ -10,7 +10,9 @@ interface MessageBubbleProps {
 export function MessageBubble({ message }: MessageBubbleProps) {
   return (
     <div
-      className={`flex gap-3 ${message.isSent ? 'justify-end' : 'justify-start'}`}
+      className={`flex gap-3 ${
+        message.isSent ? 'justify-end' : 'justify-start'
+      }`}
     >
       {!message.isSent && (
         <Avatar className="h-8 w-8">

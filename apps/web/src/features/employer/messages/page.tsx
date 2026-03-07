@@ -7,7 +7,9 @@ import { mockConversations, mockMessages } from './data';
 import { Message } from './types';
 
 export default function EmployerMessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState(mockConversations[0]);
+  const [selectedConversation, setSelectedConversation] = useState(
+    mockConversations[0]
+  );
   const [messages, setMessages] = useState(mockMessages);
 
   const handleSendMessage = (content: string) => {

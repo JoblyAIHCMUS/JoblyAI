@@ -99,7 +99,8 @@ export const mockMessages: Message[] = [
     sender: 'Jan Mayer',
     senderAvatar: 'https://placehold.co/40x40?text=JM',
     isSent: false,
-    content: 'Hey Jan, I wanted to reach out because we saw your work contributions and were impressed by your work.',
+    content:
+      'Hey Jan, I wanted to reach out because we saw your work contributions and were impressed by your work.',
     timestamp: '12 mins ago',
     timestamp24: '12 mins ago',
   },
@@ -117,7 +118,8 @@ export const mockMessages: Message[] = [
     sender: 'You',
     senderAvatar: 'https://placehold.co/40x40?text=MK',
     isSent: true,
-    content: 'Hi Maria, sure I would love to. Thanks for taking the time to see my work!',
+    content:
+      'Hi Maria, sure I would love to. Thanks for taking the time to see my work!',
     timestamp: '12 mins ago',
     timestamp24: '12 mins ago',
   },
