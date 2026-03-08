@@ -75,8 +75,10 @@ export function EmployerTopBar() {
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-[var(--text-accent-primary)]">
-                + Add new company
+              <DropdownMenuItem className="font-bold text-indigo-600">
+                  <Link href="/employer/new-company">
+                    + Add new company
+                  </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
