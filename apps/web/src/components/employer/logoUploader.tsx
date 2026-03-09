@@ -2,10 +2,7 @@
 
 import { ImageIcon, X } from 'lucide-react';
 import * as React from 'react';
-import {
-  FileUpload,
-  FileUploadDropzone,
-} from '@/components/ui/file-upload';
+import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -53,7 +50,11 @@ export function LogoUploader() {
       <div className="relative shrink-0">
         <div
           className="flex items-center justify-center overflow-hidden rounded-[var(--radius-xl)]"
-          style={{ width: 124, height: 124, backgroundColor: 'var(--indigo-50)' }}
+          style={{
+            width: 124,
+            height: 124,
+            backgroundColor: 'var(--indigo-50)',
+          }}
         >
           {preview ? (
             <img
@@ -98,7 +99,10 @@ export function LogoUploader() {
             className="size-6 mb-1"
             style={{ color: 'var(--icon-accent-primary)' }}
           />
-          <p className="body-body-2-medium" style={{ color: 'var(--text-primary)' }}>
+          <p
+            className="body-body-2-medium"
+            style={{ color: 'var(--text-primary)' }}
+          >
             <span
               className="underline"
               style={{ color: 'var(--text-accent-primary)' }}
@@ -107,7 +111,10 @@ export function LogoUploader() {
             </span>{' '}
             or drag and drop
           </p>
-          <p className="body-body-3-regular" style={{ color: 'var(--text-tertiary)' }}>
+          <p
+            className="body-body-3-regular"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
             SVG, PNG, JPG or WEBP (max. 10 MB)
           </p>
         </FileUploadDropzone>

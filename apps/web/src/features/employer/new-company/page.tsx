@@ -41,14 +41,13 @@ export default function EmployerNewCompanyPage() {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">Register your Company to Jobly</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Register your Company to Jobly
+      </h1>
       <p className="body-body-1-regular text-slate-600 mb-10">
         Company details can be updated at any time after registration.
       </p>
-      <Stepper
-        steps={NEW_COMPANY_STEPS}
-        canProceed={canProceed}
-      >
+      <Stepper steps={NEW_COMPANY_STEPS} canProceed={canProceed}>
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Company logo */}
@@ -71,13 +70,17 @@ export default function EmployerNewCompanyPage() {
             <div className="pt-3">
               <Label className="label-label-1-semibold">Company Details</Label>
               <p className="text-xs text-slate-500 mt-1">
-                Introduce your company core info quickly to users by fill up company details
+                Introduce your company core info quickly to users by fill up
+                company details
               </p>
             </div>
             <div className="space-y-6">
               {/* Company Name */}
               <div className="space-y-2">
-                <Label htmlFor="company-name" className="label-label-1-semibold">
+                <Label
+                  htmlFor="company-name"
+                  className="label-label-1-semibold"
+                >
                   Company Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -161,9 +164,7 @@ export default function EmployerNewCompanyPage() {
         </div>
 
         {/* Step 3: Team */}
-        <div className="space-y-8 max-w-2xl mx-auto">
-          
-        </div>
+        <div className="space-y-8 max-w-2xl mx-auto"></div>
       </Stepper>
     </div>
   );
