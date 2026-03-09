@@ -14,6 +14,8 @@ import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
+import { getCurrentUser, type TeamMember } from './data';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 
 const isHtmlContentEmpty = (html: string): boolean => {
@@ -27,6 +29,41 @@ export default function EmployerNewCompanyPage() {
   const [scale, setScale] = useState('1-50');
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
+
+  const currentUser = getCurrentUser();
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([
+    { ...currentUser, isEditable: true },
+  ]);
+
+  const handleRoleChange = (email: string, newRole: string) => {
+    setTeamMembers((prev) =>
+      prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
+    );
+  };
+
+  const handleAddMember = (member: TeamMember) => {
+    setTeamMembers((prev) => {
+      if (prev.some((m) => m.email === member.email)) return prev;
+      return [...prev, { ...member, isEditable: true }];
+    });
+  };
+
+  const handleComplete = () => {
+    const companyData = {
+      companyName,
+      website,
+      scale,
+      industry,
+      companyDescription,
+      teamMembers: teamMembers.map(({ firstName, lastName, email, role }) => ({
+        name: `${firstName} ${lastName}`,
+        email,
+        role,
+      })),
+    };
+    console.log('Company registered:', companyData);
+    alert(`Company "${companyName}" registered successfully!`);
+  };
 
   const canProceed = (stepIndex: number): boolean => {
     switch (stepIndex) {
@@ -47,7 +84,11 @@ export default function EmployerNewCompanyPage() {
       <p className="body-body-1-regular text-slate-600 mb-10">
         Company details can be updated at any time after registration.
       </p>
-      <Stepper steps={NEW_COMPANY_STEPS} canProceed={canProceed}>
+      <Stepper
+        steps={NEW_COMPANY_STEPS}
+        canProceed={canProceed}
+        onComplete={handleComplete}
+      >
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Company logo */}
@@ -164,7 +205,13 @@ export default function EmployerNewCompanyPage() {
         </div>
 
         {/* Step 3: Team */}
-        <div className="space-y-8 max-w-2xl mx-auto"></div>
+        <div className="space-y-8 max-w-3xl mx-auto">
+          <TeamManager
+            members={teamMembers}
+            onRoleChange={handleRoleChange}
+            onAddMember={handleAddMember}
+          />
+        </div>
       </Stepper>
     </div>
   );
