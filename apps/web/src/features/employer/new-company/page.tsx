@@ -42,9 +42,8 @@ export default function EmployerNewCompanyPage() {
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
 
-  const currentUser = getCurrentUser();
-  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([
-    { ...currentUser, isEditable: true },
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
+    { ...getCurrentUser(), isEditable: true },
   ]);
 
   const handleRoleChange = (email: string, newRole: string) => {
