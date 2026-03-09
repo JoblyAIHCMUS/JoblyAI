@@ -19,7 +19,19 @@ import { getCurrentUser, type TeamMember } from './data';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 
 const isHtmlContentEmpty = (html: string): boolean => {
-  const text = html.replace(/<[^>]*>/g, '').trim();
+  if (!html) return true;
+
+  // In a browser environment, use DOM parsing to robustly extract text content
+  if (typeof document !== 'undefined') {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const rawText = container.textContent ?? container.innerText ?? '';
+    const normalizedText = rawText.replace(/\u00A0/g, ' ').trim();
+    return normalizedText === '';
+  }
+
+  // Fallback: strip tags and handle non-breaking spaces if DOM is unavailable
+  const text = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, ' ').trim();
   return text === '';
 };
 
