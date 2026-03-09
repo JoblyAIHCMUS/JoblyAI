@@ -9,7 +9,13 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { DatabaseModule } from './utils/databases';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, JobsModule, ApplicationsModule, CandidatesModule],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    JobsModule,
+    ApplicationsModule,
+    CandidatesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
