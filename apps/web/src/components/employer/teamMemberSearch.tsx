@@ -37,18 +37,24 @@ export function TeamMemberSearch({
 }: TeamMemberSearchProps) {
   const [query, setQuery] = useState('');
 
-  const results = searchEmployers(query).filter(
-    (user) => !excludeEmails.includes(user.email)
-  );
+  const results = open
+    ? searchEmployers(query).filter(
+        (user) => !excludeEmails.includes(user.email)
+      )
+    : [];
 
   const handleSelect = (member: TeamMember) => {
     onSelect(member);
-    setQuery('');
     onOpenChange(false);
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) setQuery('');
+    onOpenChange(nextOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="p-0 gap-0 max-w-md">
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle>Add Team Member</DialogTitle>
