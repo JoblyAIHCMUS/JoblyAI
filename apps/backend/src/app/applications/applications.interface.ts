@@ -39,6 +39,11 @@ export interface Application {
     aiScore: number | null;
     isDefault: boolean;
   };
+  candidate?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
 }
 
 export interface PaginatedApplicationsResponse {
