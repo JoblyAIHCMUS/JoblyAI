@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Patch, Body, Query, Param, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Query,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
 import { GetApplicationsQueryDTO } from './dto/getApplicationsQueryDTO';
