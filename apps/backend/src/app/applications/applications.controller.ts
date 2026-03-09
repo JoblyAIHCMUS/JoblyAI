@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Query, Param, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
 import { GetApplicationsQueryDTO } from './dto/getApplicationsQueryDTO';
@@ -23,6 +23,17 @@ export class ApplicationsController {
     return this.applicationsService.listApplications(candidateId, query);
   }
 
+  @Get(':id')
+  @UseGuards(RoleGuard)
+  @Roles('candidate')
+  async getApplicationById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const candidateId = request.user.id;
+    return this.applicationsService.getApplicationById(candidateId, id);
+  }
+
   @Post()
   @UseGuards(RoleGuard)
   @Roles('candidate')
@@ -32,5 +43,16 @@ export class ApplicationsController {
   ) {
     const candidateId = request.user.id;
     return this.applicationsService.createApplication(candidateId, dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(RoleGuard)
+  @Roles('candidate')
+  async withdrawApplication(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const candidateId = request.user.id;
+    return this.applicationsService.withdrawApplication(candidateId, id);
   }
 }

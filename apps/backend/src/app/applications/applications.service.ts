@@ -70,6 +70,7 @@ export class ApplicationsService {
       throw new ForbiddenException('Resume does not belong to you');
     }
 
+    // Check for existing application
     const existingApplication = await this.prisma.application.findFirst({
       where: {
         jobId: dto.jobId,
@@ -78,10 +79,60 @@ export class ApplicationsService {
     });
 
     if (existingApplication) {
-      throw new BadRequestException('Already applied to this job');
+      const activeStatuses: ApplicationStatus[] = [
+        ApplicationStatus.APPLIED,
+        ApplicationStatus.INTERVIEW,
+        ApplicationStatus.OFFER,
+      ];
+
+      // Block if already active or rejected
+      if (
+        activeStatuses.includes(existingApplication.status) ||
+        existingApplication.status === ApplicationStatus.REJECTED
+      ) {
+        throw new BadRequestException('Already applied to this job');
+      }
+
+      // Only WITHDRAWN can re-apply - update existing record
+      if (existingApplication.status === ApplicationStatus.WITHDRAWN) {
+        const application = await this.prisma.application.update({
+          where: { id: existingApplication.id },
+          data: {
+            status: ApplicationStatus.APPLIED,
+            resumeId: dto.resumeId,
+            matchPercentage: null,
+            aiFeedback: Prisma.JsonNull,
+            updatedAt: new Date(),
+          },
+          include: {
+            job: {
+              include: {
+                category: true,
+                postedBy: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            resume: {
+              select: {
+                id: true,
+                fileUrl: true,
+                aiScore: true,
+                isDefault: true,
+              },
+            },
+          },
+        });
+
+        return this.mapToApplicationResponse(application);
+      }
     }
 
-    // Create application
+    // Create new application
     const application = await this.prisma.application.create({
       data: {
         jobId: dto.jobId,
@@ -173,6 +224,102 @@ export class ApplicationsService {
       pageSize,
       totalPages: Math.ceil(total / pageSize),
     };
+  }
+
+  async getApplicationById(
+    candidateId: string,
+    applicationId: number
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          include: {
+            category: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileUrl: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.candidateId !== candidateId) {
+      throw new ForbiddenException('This application does not belong to you');
+    }
+
+    return this.mapToApplicationResponse(application);
+  }
+
+  async withdrawApplication(
+    candidateId: string,
+    applicationId: number
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.candidateId !== candidateId) {
+      throw new ForbiddenException('This application does not belong to you');
+    }
+
+    if (application.status !== ApplicationStatus.APPLIED) {
+      throw new BadRequestException(
+        'Only applications with APPLIED status can be withdrawn'
+      );
+    }
+
+    const updatedApplication = await this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: ApplicationStatus.WITHDRAWN,
+        updatedAt: new Date(),
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileUrl: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToApplicationResponse(updatedApplication);
   }
 
   private mapToApplicationResponse(
