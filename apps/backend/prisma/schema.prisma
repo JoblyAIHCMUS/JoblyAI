@@ -299,4 +299,5 @@ enum ApplicationStatus {
   INTERVIEW
   OFFER
   REJECTED
+  WITHDRAWN
 }
