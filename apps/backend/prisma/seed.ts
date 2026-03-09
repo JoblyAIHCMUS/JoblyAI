@@ -6,6 +6,8 @@ async function main() {
   console.log('Cleaning up existing data...');
 
   // Delete all data in reverse order of foreign key dependencies
+  await prisma.employerRole.deleteMany({});
+  await prisma.company.deleteMany({});
   await prisma.jobRequirement.deleteMany({});
   await prisma.jobPosting.deleteMany({});
   await prisma.verification.deleteMany({});
@@ -482,6 +484,48 @@ async function main() {
   });
   console.log(`Created ${verifications.count} verifications`);
 
+  // Create Maria Kelly (employer)
+  console.log('Creating Maria Kelly...');
+  const maria = await prisma.user.create({
+    data: {
+      name: 'Maria Kelly',
+      email: 'MariaKelly@email.com',
+      emailVerified: true,
+      role: 'employer',
+      firstName: 'Maria',
+      lastName: 'Kelly',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
+    },
+  });
+  console.log('Created user Maria Kelly');
+
+  // Create Nomad company
+  console.log('Creating Nomad company...');
+  const nomad = await prisma.company.create({
+    data: {
+      name: 'Nomad',
+      websiteUrl: 'https://www.nomad.com',
+      sizeRange: '1-50',
+      industry: 'Technology',
+      description:
+        'Nomad is a technology company focused on building innovative remote-first solutions for the modern workforce.',
+      logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Nomad',
+    },
+  });
+  console.log('Created company Nomad');
+
+  // Assign Maria Kelly as HR in Nomad
+  console.log('Creating employer role...');
+  await prisma.employerRole.create({
+    data: {
+      companyId: nomad.id,
+      employerId: maria.id,
+      role: 'HR',
+      assignedAt: new Date('2021-01-01'),
+    },
+  });
+  console.log('Assigned Maria Kelly as HR in Nomad');
+
   console.log('Database seeding completed successfully!');
   console.log(`
 Summary:
@@ -493,6 +537,8 @@ Summary:
 - Sessions: ${sessions.count}
 - Accounts: ${accounts.count}
 - Verifications: ${verifications.count}
+- Companies: 1 (Nomad)
+- Employer Roles: 1 (Maria Kelly -> HR @ Nomad)
   `);
 }
 

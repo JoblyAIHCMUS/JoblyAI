@@ -26,11 +26,12 @@ model User {
   banExpires    DateTime?
   firstName     String?
   lastName      String?
-  postedJobs    JobPosting[]
-  education     Education[]
-  experiences   Experience[]
-  certificates  Certificate[]
-  resumes       Resume[]
+  postedJobs     JobPosting[]
+  education      Education[]
+  experiences    Experience[]
+  certificates   Certificate[]
+  resumes        Resume[]
+  employerRoles  EmployerRole[]
 
   @@map("user")
 }
@@ -213,6 +214,33 @@ model Resume {
   // I think AI scoring should be a separate model to allow for multiple scores over time
   // same as parsed text and embedding
   @@index([candidateId])
+}
+
+model Company {
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  websiteUrl  String?
+  sizeRange   String?
+  industry    String?
+  description String?
+  logoUrl     String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  employers   EmployerRole[]
+}
+
+model EmployerRole {
+  id         Int      @id @default(autoincrement())
+  companyId  Int
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employerId String
+  employer   User     @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  role       String
+  assignedAt DateTime @default(now())
+
+  @@unique([companyId, employerId])
+  @@index([companyId])
+  @@index([employerId])
 }
 
 enum JobStatus {
