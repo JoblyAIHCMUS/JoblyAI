@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Menu, X, ArrowRight, Search } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -33,10 +34,10 @@ export default function Header() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
+              <Link href="/find-jobs" className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
                 <span>Browse Jobs</span>
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
               <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
                 <span>Browse Companies</span>
                 <ArrowRight className="w-5 h-5" />
@@ -84,9 +85,9 @@ export default function Header() {
             <span className="text-2xl font-bold text-slate-900">JoblyAI</span>
           </div>
           <nav className="flex items-center gap-8">
-            <a href="#" className="text-slate-500 text-sm font-medium hover:text-slate-700">
+            <Link href="/find-jobs" className="text-slate-500 text-sm font-medium hover:text-slate-700">
               Find Jobs
-            </a>
+            </Link>
             <a href="#" className="text-slate-500 text-sm font-medium hover:text-slate-700">
               Browse Companies
             </a>
