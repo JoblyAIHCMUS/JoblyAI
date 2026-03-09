@@ -7,41 +7,56 @@ import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
-export function LogoUploader() {
+interface LogoUploaderProps {
+  onValueChange?: (file: File | null) => void;
+}
+
+export function LogoUploader({
+  onValueChange: onValueChangeProp,
+}: LogoUploaderProps) {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [files, setFiles] = React.useState<File[]>([]);
+  const previewRef = React.useRef<string | null>(null);
 
-  const handleValueChange = React.useCallback((newFiles: File[]) => {
-    if (newFiles.length > 0) {
-      const file = newFiles[newFiles.length - 1];
-      setFiles([file]);
-      const url = URL.createObjectURL(file);
-      setPreview((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return url;
-      });
-    } else {
-      setFiles([]);
-      setPreview((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-    }
-  }, []);
+  const handleValueChange = React.useCallback(
+    (newFiles: File[]) => {
+      if (newFiles.length > 0) {
+        const file = newFiles[newFiles.length - 1];
+        setFiles([file]);
+        onValueChangeProp?.(file);
+        const url = URL.createObjectURL(file);
+        setPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+        previewRef.current = url;
+      } else {
+        setFiles([]);
+        onValueChangeProp?.(null);
+        setPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+        previewRef.current = null;
+      }
+    },
+    [onValueChangeProp]
+  );
 
   const handleRemove = React.useCallback(() => {
     setFiles([]);
+    onValueChangeProp?.(null);
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
-  }, []);
+    previewRef.current = null;
+  }, [onValueChangeProp]);
 
   React.useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview);
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     };
-    // Only on unmount
   }, []);
 
   return (

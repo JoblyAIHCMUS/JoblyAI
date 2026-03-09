@@ -31,7 +31,10 @@ const isHtmlContentEmpty = (html: string): boolean => {
   }
 
   // Fallback: strip tags and handle non-breaking spaces if DOM is unavailable
-  const text = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, ' ').trim();
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
   return text === '';
 };
 
@@ -41,6 +44,7 @@ export default function EmployerNewCompanyPage() {
   const [scale, setScale] = useState('1-50');
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
+  const [logo, setLogo] = useState<File | null>(null);
 
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
     { ...getCurrentUser(), isEditable: true },
@@ -66,6 +70,7 @@ export default function EmployerNewCompanyPage() {
       scale,
       industry,
       companyDescription,
+      logo,
       teamMembers: teamMembers.map(({ firstName, lastName, email, role }) => ({
         name: `${firstName} ${lastName}`,
         email,
@@ -112,7 +117,7 @@ export default function EmployerNewCompanyPage() {
                 One icon/image that represents your organization.
               </p>
             </div>
-            <LogoUploader />
+            <LogoUploader onValueChange={setLogo} />
           </div>
 
           <Separator />
