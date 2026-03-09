@@ -18,9 +18,9 @@ export default function HeroSection() {
           <Image
             src="/landing/hero-image.png"
             alt="Job seeker professional"
-            width={600}
-            height={700}
-            className="object-contain absolute bottom-0 right-0 z-10 hidden xl:block"
+            width={500}
+            height={600}
+            className="object-contain absolute bottom-0 right-0 z-10 hidden lg:block"
             priority
           />
         </div>

@@ -16,17 +16,17 @@ export default function Header() {
             className="lg:hidden fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setIsSidebarOpen(false)}
           />
-          <div className="lg:hidden fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white z-[70] p-6 flex flex-col gap-8 overflow-y-auto">
+          <div className="lg:hidden fixed top-0 left-0 bottom-0 w-[80vw] max-w-sm bg-white z-[70] p-4 md:p-6 flex flex-col gap-6 md:gap-8 overflow-y-auto">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-700 rounded-full relative flex items-center justify-center">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 bg-indigo-700 rounded-full relative flex items-center justify-center flex-shrink-0">
                   <Search className="w-5 h-5 text-white rotate-90" />
                 </div>
-                <span className="text-slate-900 text-xl font-semibold">JoblyAI</span>
+                <span className="text-slate-900 text-lg md:text-xl font-semibold truncate">JoblyAI</span>
               </div>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="p-2 hover:bg-slate-100 rounded"
+                className="p-2 hover:bg-slate-100 rounded flex-shrink-0"
               >
                 <X className="w-6 h-6 text-slate-900" />
               </button>
@@ -57,20 +57,20 @@ export default function Header() {
         </>
       )}
 
-      <header className="fixed top-0 w-full bg-indigo-50 border-b border-slate-200 z-50">
+      <header className="fixed top-0 left-0 right-0 bg-indigo-50 border-b border-slate-200 z-50 overflow-hidden box-border">
       {/* Mobile Header */}
-      <div className="lg:hidden px-4 py-2 flex items-center gap-4">
+      <div className="lg:hidden px-1 sm:px-1.5 py-1.5 flex items-center gap-1 sm:gap-1.5 box-border w-full">
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="p-2 bg-white rounded-full border border-slate-300 hover:bg-slate-50"
+          className="p-1 bg-white rounded-full border border-slate-300 hover:bg-slate-50 flex-shrink-0"
         >
-          <Menu className="w-5 h-5 text-slate-900" />
+          <Menu className="w-4 h-4 text-slate-900" />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-700 rounded-full relative flex items-center justify-center">
-            <Search className="w-5 h-5 text-white rotate-90" />
+        <div className="flex items-center gap-1 min-w-0 flex-shrink-0">
+          <div className="w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">
+            <Search className="w-3 h-3 text-white rotate-90" />
           </div>
-          <span className="text-slate-900 text-xl font-semibold">JoblyAI</span>
+          <span className="text-slate-900 text-xs sm:text-sm font-semibold truncate">JoblyAI</span>
         </div>
       </div>
 

@@ -10,10 +10,10 @@ const companies = [
 
 export default function CompaniesSection() {
   return (
-    <section className="py-12 px-12 bg-slate-50">
+     <section className="py-8 md:py-12 px-4 md:px-8 lg:px-12 bg-slate-50">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-xl font-medium text-slate-900 mb-8">Companies we helped grow</h2>
-        <div className="flex justify-between items-center gap-8">
+        <h2 className="text-lg md:text-xl font-medium text-slate-900 mb-6 md:mb-8">Companies we helped grow</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8 place-items-center">
           {companies.map((company) => (
             <div
               key={company.name}
