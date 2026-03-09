@@ -61,8 +61,9 @@ export class AuthController {
       }
       // Store firstName and lastName for later use
       if (body?.firstName || body?.lastName) {
-        (req as ExpressRequest & { userDetails?: Record<string, string> })
-          .userDetails = {
+        (
+          req as ExpressRequest & { userDetails?: Record<string, string> }
+        ).userDetails = {
           firstName: (body.firstName as string) || '',
           lastName: (body.lastName as string) || '',
         };
@@ -84,8 +85,9 @@ export class AuthController {
     // If this was a signup and we have a target role or user details, modify the response body
     const targetRole = (req as ExpressRequest & { targetRole?: string })
       .targetRole;
-    const userDetails = (req as ExpressRequest & { userDetails?: Record<string, string> })
-      .userDetails;
+    const userDetails = (
+      req as ExpressRequest & { userDetails?: Record<string, string> }
+    ).userDetails;
     if (
       (targetRole || userDetails) &&
       req.method === 'POST' &&
