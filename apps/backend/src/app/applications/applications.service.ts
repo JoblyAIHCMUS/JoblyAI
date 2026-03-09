@@ -8,6 +8,8 @@ import { PrismaClient, ApplicationStatus, Prisma } from '@prisma/client';
 import { InjectPrisma } from '../utils/inject.decorators';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
 import { GetApplicationsQueryDTO } from './dto/getApplicationsQueryDTO';
+import { GetEmployerApplicationsQueryDTO } from './dto/getEmployerApplicationsQueryDTO';
+import { RejectApplicationDTO } from './dto/rejectApplicationDTO';
 import {
   Application,
   PaginatedApplicationsResponse,
@@ -322,9 +324,219 @@ export class ApplicationsService {
     return this.mapToApplicationResponse(updatedApplication);
   }
 
-  private mapToApplicationResponse(
-    application: ApplicationWithRelations
-  ): Application {
+  // Employer methods
+  async getApplicationsForEmployer(
+    employerId: string,
+    query: GetEmployerApplicationsQueryDTO
+  ): Promise<PaginatedApplicationsResponse> {
+    const { page = 1, pageSize = 10, status, jobId } = query;
+    const skip = (page - 1) * pageSize;
+
+    // Build where clause
+    const where: Prisma.ApplicationWhereInput = {
+      job: {
+        postedById: employerId,
+        ...(jobId && { id: jobId }),
+      },
+      ...(status && { status }),
+    };
+
+    const [total, applications] = await Promise.all([
+      this.prisma.application.count({ where }),
+      this.prisma.application.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          job: {
+            include: {
+              category: true,
+              postedBy: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          resume: {
+            select: {
+              id: true,
+              fileUrl: true,
+              aiScore: true,
+              isDefault: true,
+            },
+          },
+          candidate: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const mappedApplications = applications.map((app) =>
+      this.mapToApplicationResponse(app as ApplicationWithRelations)
+    );
+
+    return {
+      applications: mappedApplications,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  async shortlistApplication(
+    employerId: string,
+    applicationId: number
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          select: {
+            postedById: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.job.postedById !== employerId) {
+      throw new ForbiddenException(
+        'You can only manage applications for your own jobs'
+      );
+    }
+
+    if (application.status !== ApplicationStatus.APPLIED) {
+      throw new BadRequestException(
+        'Only applications with APPLIED status can be shortlisted'
+      );
+    }
+
+    const updatedApplication = await this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: ApplicationStatus.INTERVIEW,
+        updatedAt: new Date(),
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileUrl: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToApplicationResponse(updatedApplication);
+  }
+
+  async rejectApplication(
+    employerId: string,
+    applicationId: number,
+    dto: RejectApplicationDTO
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          select: {
+            postedById: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.job.postedById !== employerId) {
+      throw new ForbiddenException(
+        'You can only manage applications for your own jobs'
+      );
+    }
+
+    if (
+      application.status !== ApplicationStatus.APPLIED &&
+      application.status !== ApplicationStatus.INTERVIEW
+    ) {
+      throw new BadRequestException(
+        'Only applications with APPLIED or INTERVIEW status can be rejected'
+      );
+    }
+
+    const updatedApplication = await this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: ApplicationStatus.REJECTED,
+        aiFeedback: {
+          ...(typeof application.aiFeedback === 'object' &&
+          application.aiFeedback !== null
+            ? application.aiFeedback
+            : {}),
+          rejectionFeedback: dto.feedback,
+          rejectedAt: new Date().toISOString(),
+        },
+        updatedAt: new Date(),
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileUrl: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToApplicationResponse(updatedApplication);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapToApplicationResponse(application: any): Application {
     return {
       id: application.id,
       jobId: application.jobId,
@@ -357,6 +569,13 @@ export class ApplicationsService {
         postedBy: application.job.postedBy,
       },
       resume: application.resume,
+      ...(application.candidate && {
+        candidate: {
+          id: application.candidate.id,
+          name: application.candidate.name,
+          email: application.candidate.email,
+        },
+      }),
     };
   }
 }
