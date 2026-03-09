@@ -44,7 +44,7 @@ export class AuthController {
    */
   @All('*')
   async handleAuth(@Req() req: ExpressRequest, @Res() res: Response) {
-    // Intercept signup role
+    // Intercept signup role and name fields
     const path = req.originalUrl || req.url || '';
     if (req.method === 'POST' && path.includes('/sign-up')) {
       const body = req.body as Record<string, unknown>;
@@ -59,6 +59,16 @@ export class AuthController {
           delete body.role;
         }
       }
+      // Store firstName and lastName for later use
+      if (body?.firstName || body?.lastName) {
+        (req as ExpressRequest & { userDetails?: Record<string, string> })
+          .userDetails = {
+          firstName: (body.firstName as string) || '',
+          lastName: (body.lastName as string) || '',
+        };
+        delete body.firstName;
+        delete body.lastName;
+      }
     }
 
     const request = this.toWebRequest(req);
@@ -71,24 +81,41 @@ export class AuthController {
 
     let body = await authRes.text();
 
-    // If this was a signup and we have a target role, modify the response body
+    // If this was a signup and we have a target role or user details, modify the response body
     const targetRole = (req as ExpressRequest & { targetRole?: string })
       .targetRole;
+    const userDetails = (req as ExpressRequest & { userDetails?: Record<string, string> })
+      .userDetails;
     if (
-      targetRole &&
+      (targetRole || userDetails) &&
       req.method === 'POST' &&
       (req.originalUrl || req.url).includes('/sign-up')
     ) {
       try {
         const jsonBody = JSON.parse(body);
         if (jsonBody.user?.id) {
-          jsonBody.user.role = targetRole;
+          if (targetRole) {
+            jsonBody.user.role = targetRole;
+          }
+          if (userDetails) {
+            jsonBody.user.firstName = userDetails.firstName;
+            jsonBody.user.lastName = userDetails.lastName;
+          }
           body = JSON.stringify(jsonBody);
 
-          // Update the database with the role
+          // Update the database with the role and name fields
+          const updateData: Record<string, unknown> = {};
+          if (targetRole) {
+            updateData.role = targetRole;
+          }
+          if (userDetails) {
+            updateData.firstName = userDetails.firstName;
+            updateData.lastName = userDetails.lastName;
+          }
+
           await prisma.user.update({
             where: { id: jsonBody.user.id },
-            data: { role: targetRole },
+            data: updateData,
           });
         }
       } catch {

@@ -44,11 +44,17 @@ export function SignupForm() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
+    // Map frontend 'job-seeker' to backend 'candidate'
+    const roleMap = { 'job-seeker': 'candidate', employer: 'employer' };
+    
     signup(
       {
         name: `${data.firstName} ${data.lastName}`,
         email: data.email,
         password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: roleMap[data.userType],
       },
       {
         onSuccess: () => {
