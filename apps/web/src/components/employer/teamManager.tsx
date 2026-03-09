@@ -8,12 +8,7 @@ import { TeamMemberSearch } from '@/components/employer/teamMemberSearch';
 import { Plus } from 'lucide-react';
 import type { TeamMember } from '@/features/employer/new-company/data';
 
-export interface TeamMemberData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  avatar?: string;
+export interface TeamMemberData extends TeamMember {
   isEditable?: boolean;
 }
 
