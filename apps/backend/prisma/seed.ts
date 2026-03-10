@@ -91,7 +91,7 @@ async function main() {
   // Create test users with accounts (for Better-auth email/password login)
   console.log('Creating users and accounts...');
   const hashedPassword = await hashPassword('password123');
-  
+
   const usersData = [
     {
       name: 'Alice Johnson',
@@ -153,7 +153,7 @@ async function main() {
       },
     });
   }
-  
+
   console.log(`Created ${usersData.length} users with accounts`);
 
   // Get users for creating job postings
@@ -472,7 +472,11 @@ async function main() {
       data: {
         candidateId: jobSeekers[0].id, // Alice
         fileUrl: 'https://example.com/resumes/alice-senior-dev.pdf',
-        parsedText: 'Alice Johnson - Senior Full Stack Developer\n\nExperience:\n- 5+ years TypeScript, React, Node.js\n- Led team of 5 developers\n- Built scalable microservices\n\nSkills: TypeScript, React, Node.js, PostgreSQL, Docker',
+        fileName: 'alice-senior-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 245678,
+        parsedText:
+          'Alice Johnson - Senior Full Stack Developer\n\nExperience:\n- 5+ years TypeScript, React, Node.js\n- Led team of 5 developers\n- Built scalable microservices\n\nSkills: TypeScript, React, Node.js, PostgreSQL, Docker',
         aiScore: 0.92,
         isDefault: true,
       },
@@ -481,7 +485,11 @@ async function main() {
       data: {
         candidateId: jobSeekers[0].id, // Alice - alternative resume
         fileUrl: 'https://example.com/resumes/alice-fullstack.pdf',
-        parsedText: 'Alice Johnson - Full Stack Engineer\n\nFocused on modern web technologies and cloud infrastructure.',
+        fileName: 'alice-fullstack.pdf',
+        fileType: 'application/pdf',
+        fileSize: 198234,
+        parsedText:
+          'Alice Johnson - Full Stack Engineer\n\nFocused on modern web technologies and cloud infrastructure.',
         aiScore: 0.88,
         isDefault: false,
       },
@@ -491,7 +499,11 @@ async function main() {
       data: {
         candidateId: jobSeekers[1].id, // Bob
         fileUrl: 'https://example.com/resumes/bob-react-dev.pdf',
-        parsedText: 'Bob Smith - React Developer\n\nExperience:\n- 2 years React development\n- Built responsive SPAs\n- Strong JavaScript fundamentals\n\nSkills: React, JavaScript, HTML, CSS, Git',
+        fileName: 'bob-react-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 186543,
+        parsedText:
+          'Bob Smith - React Developer\n\nExperience:\n- 2 years React development\n- Built responsive SPAs\n- Strong JavaScript fundamentals\n\nSkills: React, JavaScript, HTML, CSS, Git',
         aiScore: 0.75,
         isDefault: true,
       },
@@ -501,7 +513,11 @@ async function main() {
       data: {
         candidateId: jobSeekers[2].id, // Eve
         fileUrl: 'https://example.com/resumes/eve-junior-dev.pdf',
-        parsedText: 'Eve Davis - Junior Developer\n\nRecent graduate with passion for web development.\n\nSkills: JavaScript, React basics, Git',
+        fileName: 'eve-junior-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 123456,
+        parsedText:
+          'Eve Davis - Junior Developer\n\nRecent graduate with passion for web development.\n\nSkills: JavaScript, React basics, Git',
         aiScore: 0.68,
         isDefault: true,
       },
@@ -521,8 +537,13 @@ async function main() {
         status: 'APPLIED',
         matchPercentage: 0.92,
         aiFeedback: {
-          summary: 'Excellent match! Strong background in required technologies.',
-          strengths: ['TypeScript expertise', 'React experience', 'Leadership skills'],
+          summary:
+            'Excellent match! Strong background in required technologies.',
+          strengths: [
+            'TypeScript expertise',
+            'React experience',
+            'Leadership skills',
+          ],
           gaps: [],
         },
       },

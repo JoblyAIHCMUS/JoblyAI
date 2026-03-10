@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaClient, ApplicationStatus, Prisma } from '@prisma/client';
-import { InjectPrisma } from '../utils/inject.decorators';
+import { InjectPrisma } from '../decorators/inject.decorator';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
 import { GetApplicationsQueryDTO } from './dto/getApplicationsQueryDTO';
 import { GetEmployerApplicationsQueryDTO } from './dto/getEmployerApplicationsQueryDTO';
