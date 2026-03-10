@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
+import { formatDate } from '@/lib/utils';
 
 import {
   type Applicant,
@@ -37,7 +38,7 @@ const hiringStageStyles: Record<HiringStage, string> = {
   Declined: 'border-red-500 text-red-600 bg-transparent hover:bg-red-50',
 };
 
-const nextStageMap: Partial<Record<HiringStage, HiringStage>> = {
+export const nextStageMap: Partial<Record<HiringStage, HiringStage>> = {
   'In Review': 'Shortlisted',
   Shortlisted: 'Interviewed',
   Interviewed: 'Hired',
@@ -117,6 +118,7 @@ export const columns: ColumnDef<Applicant>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => formatDate(row.getValue<string>('appliedDate')),
   },
   {
     accessorKey: 'score',

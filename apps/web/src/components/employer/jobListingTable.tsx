@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
+import { formatDate } from '@/lib/utils';
 
 import {
   type JobListing,
@@ -125,6 +126,7 @@ export const columns: ColumnDef<JobListing>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => formatDate(row.getValue<string>('datePosted')),
   },
   {
     accessorKey: 'dateClosed',
@@ -140,7 +142,11 @@ export const columns: ColumnDef<JobListing>[] = [
     ),
     cell: ({ row }) => {
       const value = row.getValue<string | null>('dateClosed');
-      return <span className="text-muted-foreground">{value ?? '\u2014'}</span>;
+      return (
+        <span className="text-muted-foreground">
+          {value ? formatDate(value) : '\u2014'}
+        </span>
+      );
     },
     sortingFn: (rowA, rowB, columnId) => {
       const a = rowA.getValue<string | null>(columnId);
@@ -148,7 +154,7 @@ export const columns: ColumnDef<JobListing>[] = [
       if (!a && !b) return 0;
       if (!a) return 1;
       if (!b) return -1;
-      return new Date(a).getTime() - new Date(b).getTime();
+      return a < b ? -1 : a > b ? 1 : 0;
     },
   },
   {
@@ -273,11 +279,7 @@ export default function JobListingTable() {
   };
 
   const closeJob = (id: string) => {
-    const today = new Date().toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+    const today = new Date().toISOString().slice(0, 10);
     setData((prev) =>
       prev.map((job) =>
         job.id === id

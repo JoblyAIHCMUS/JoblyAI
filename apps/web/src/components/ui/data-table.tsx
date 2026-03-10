@@ -21,13 +21,59 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+  MoreHorizontal,
+} from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   meta?: TableMeta<TData>;
+}
+
+/**
+ * Returns a windowed range of page indices with ellipsis markers.
+ * Always shows the first page, last page, and up to `siblings` pages
+ * on each side of the current page.
+ */
+function getPageRange(
+  current: number,
+  total: number,
+  siblings = 1
+): (number | 'ellipsis')[] {
+  if (total <= 1) return [0];
+
+  const range: Set<number> = new Set();
+
+  // always include first and last
+  range.add(0);
+  range.add(total - 1);
+
+  // sibling window around current page
+  for (
+    let i = Math.max(0, current - siblings);
+    i <= Math.min(total - 1, current + siblings);
+    i++
+  ) {
+    range.add(i);
+  }
+
+  const sorted = Array.from(range).sort((a, b) => a - b);
+  const result: (number | 'ellipsis')[] = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) {
+      result.push('ellipsis');
+    }
+    result.push(sorted[i]);
+  }
+
+  return result;
 }
 
 export function DataTable<TData, TValue>({
@@ -137,22 +183,40 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="icon"
             className="h-8 w-8"
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          {Array.from({ length: pageCount }, (_, i) => (
-            <Button
-              key={i}
-              variant={currentPage === i ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => table.setPageIndex(i)}
-            >
-              {i + 1}
-            </Button>
-          ))}
+          {getPageRange(currentPage, pageCount).map((page, i) =>
+            page === 'ellipsis' ? (
+              <span
+                key={`ellipsis-${i}`}
+                className="flex h-8 w-8 items-center justify-center text-muted-foreground"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </span>
+            ) : (
+              <Button
+                key={page}
+                variant={currentPage === page ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => table.setPageIndex(page)}
+              >
+                {page + 1}
+              </Button>
+            )
+          )}
           <Button
             variant="outline"
             size="icon"
@@ -161,6 +225,15 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanNextPage()}
           >
             <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => table.setPageIndex(pageCount - 1)}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
