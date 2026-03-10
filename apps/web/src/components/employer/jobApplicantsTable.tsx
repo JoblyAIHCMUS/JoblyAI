@@ -1,6 +1,4 @@
 'use client';
-
-import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import {
@@ -216,37 +214,19 @@ export const columns: ColumnDef<Applicant>[] = [
 
 interface JobApplicantsTableProps {
   applicants: Applicant[];
+  advanceApplicant: (id: string) => void;
+  declineApplicant: (id: string) => void;
 }
 
 export default function JobApplicantsTable({
-  applicants: initialApplicants,
+  applicants,
+  advanceApplicant,
+  declineApplicant,
 }: JobApplicantsTableProps) {
-  const [data, setData] = useState<Applicant[]>(initialApplicants);
-
-  const advanceApplicant = (id: string) => {
-    setData((prev) =>
-      prev.map((applicant) => {
-        if (applicant.id !== id) return applicant;
-        const next = nextStageMap[applicant.hiringStage];
-        return next ? { ...applicant, hiringStage: next } : applicant;
-      })
-    );
-  };
-
-  const declineApplicant = (id: string) => {
-    setData((prev) =>
-      prev.map((applicant) =>
-        applicant.id === id
-          ? { ...applicant, hiringStage: 'Declined' as const }
-          : applicant
-      )
-    );
-  };
-
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={applicants}
       meta={{ advanceApplicant, declineApplicant }}
     />
   );

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { jobListingDetails } from './data';
-import JobApplicantsTable from '@/components/employer/jobApplicantsTable';
+import JobApplicantsView from '@/components/employer/jobApplicantsView';
 
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +29,7 @@ export default function JobListingDetailPage() {
 
       <section className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Applicants</h2>
-        <JobApplicantsTable applicants={job.applicants} />
+        <JobApplicantsView applicants={job.applicants} />
       </section>
     </div>
   );
