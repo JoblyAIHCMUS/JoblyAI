@@ -1,6 +1,8 @@
 import Header from '@/components/landing/Header';
 import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
-import RecommendedCompaniesSection from '@/components/landing/RecommendedCompaniesSection';
+import RecommendedCompaniesSection from '@/components/brown-companies/RecommendedCompaniesSection';
+import CompaniesCategorySection from '@/components/brown-companies/CompaniesCategorySection';
+import Footer from '@/components/landing/Footer';
 
 export default function BrownCompaniesPage() {
   return (
@@ -8,6 +10,8 @@ export default function BrownCompaniesPage() {
       <Header />
       <FindJobsHeroSection />
       <RecommendedCompaniesSection />
+      <CompaniesCategorySection />
+      <Footer />
     </div>
   );
 }
