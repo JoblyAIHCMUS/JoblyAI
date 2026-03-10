@@ -28,8 +28,9 @@ const POST_JOB_STEPS = [
 const EMPLOYMENT_TYPES = [
   { value: 'full-time', label: 'Full-time' },
   { value: 'part-time', label: 'Part-time' },
-  { value: 'internship', label: 'Internship' },
   { value: 'contract', label: 'Contract' },
+  { value: 'internship', label: 'Internship' },
+  { value: 'freelance', label: 'Freelance' },
 ] as const;
 
 const WORK_MODELS = [
