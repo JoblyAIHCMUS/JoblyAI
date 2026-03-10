@@ -8,7 +8,7 @@ interface Company {
   logoUrl?: string | null;
   description?: string | null;
   industry?: string | null;
-  sizeRange?: string | null; 
+  sizeRange?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,7 +33,7 @@ export class QueryResponseEmployerDto {
   lastName?: string;
 
   @Expose()
-  role?: string
+  role?: string;
 
   @Expose()
   company?: Company;
@@ -67,7 +67,7 @@ export class UpdateEmployerDto {
 
   @IsOptional()
   @IsString()
-  role?: string; 
+  role?: string;
 
   @IsOptional()
   companyId?: number;
