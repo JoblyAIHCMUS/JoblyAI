@@ -38,9 +38,6 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException(
         'Authorization header or session cookie missing'
       );
-      throw new UnauthorizedException(
-        'Authorization header or session cookie missing'
-      );
     }
 
     return headers;
@@ -48,9 +45,6 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const sessionHeaders = await this.getSessionHeaders(context);
-    const userDetail: UserDetail | null = (await this.authService.validateToken(
-      sessionHeaders
-    )) as UserDetail | null;
     const userDetail: UserDetail | null = (await this.authService.validateToken(
       sessionHeaders
     )) as UserDetail | null;

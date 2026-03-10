@@ -199,25 +199,6 @@ model Certificate {
   @@index([candidateId])
 }
 
-model Resume {
-  id          Int    @id @default(autoincrement())
-  candidateId String
-  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-
-  fileUrl   String // URL to the uploaded resume file (e.g., S3 link)
-  fileName  String // Original name of the uploaded file (e.g., "resume.pdf")
-  fileType  String // MIME type of the resume file (e.g., "application/pdf")
-  fileSize  Int // Size of the resume file in bytes
-  isDefault Boolean @default(false) // Indicates if this is the candidate's default resume
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // I think AI scoring should be a separate model to allow for multiple scores over time
-  // same as parsed text and embedding
-  @@index([candidateId])
-}
-
 model Company {
   id          Int            @id @default(autoincrement())
   name        String         @unique
@@ -269,6 +250,9 @@ model Resume {
   candidateId     String
   candidate       User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   fileUrl         String
+  fileName        String // Original name of the uploaded file (e.g., "resume.pdf")
+  fileType        String // MIME type of the resume file (e.g., "application/pdf")
+  fileSize        Int // Size of the resume file in bytes
   parsedText      String?       @db.Text
   aiScore         Float?
   isDefault       Boolean       @default(false)
