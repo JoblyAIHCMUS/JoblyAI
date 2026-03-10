@@ -1,4 +1,14 @@
-import { ArrowRight, Paintbrush, BarChart3, Megaphone, Wallet, Monitor, Code, Briefcase, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  Paintbrush,
+  BarChart3,
+  Megaphone,
+  Wallet,
+  Monitor,
+  Code,
+  Briefcase,
+  Users,
+} from 'lucide-react';
 
 interface Category {
   name: string;
@@ -28,13 +38,19 @@ function CategoryCard({ cat }: { cat: Category }) {
       }`}
     >
       <div
-        className={`w-12 h-12 rounded-md mb-8 flex items-center justify-center ${cat.active ? 'bg-indigo-500' : 'bg-indigo-100'}`}
+        className={`w-12 h-12 rounded-md mb-8 flex items-center justify-center ${
+          cat.active ? 'bg-indigo-500' : 'bg-indigo-100'
+        }`}
       >
-        <cat.icon className={`w-6 h-6 ${cat.active ? 'text-white' : 'text-indigo-600'}`} />
+        <cat.icon
+          className={`w-6 h-6 ${cat.active ? 'text-white' : 'text-indigo-600'}`}
+        />
       </div>
       <h3 className="text-xl md:text-2xl font-bold mb-4">{cat.name}</h3>
       <div className="flex items-center gap-3">
-        <p className={cat.active ? 'text-indigo-100' : 'text-slate-600'}>{cat.jobs} jobs available</p>
+        <p className={cat.active ? 'text-indigo-100' : 'text-slate-600'}>
+          {cat.jobs} jobs available
+        </p>
         <ArrowRight className="w-6 h-6" />
       </div>
     </div>

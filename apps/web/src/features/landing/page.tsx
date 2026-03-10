@@ -7,14 +7,14 @@ import LatestJobsSection from '@/components/landing/LatestJobsSection';
 import Footer from '@/components/landing/Footer';
 export default function LandingPage() {
   return (
-      <div className="w-full bg-white">
-        <Header />
-        <HeroSection />
-        <CompaniesSection />
-        <CategoriesSection />
-        <FeaturedJobsSection />
-        <LatestJobsSection />
-        <Footer />
-      </div>
-    );
+    <div className="w-full bg-white">
+      <Header />
+      <HeroSection />
+      <CompaniesSection />
+      <CategoriesSection />
+      <FeaturedJobsSection />
+      <LatestJobsSection />
+      <Footer />
+    </div>
+  );
 }

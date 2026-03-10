@@ -8,14 +8,14 @@ export function useFilters() {
     filterGroups.reduce<Record<string, string[]>>((acc, group) => {
       acc[group.title] = group.checked;
       return acc;
-    }, {}),
+    }, {})
   );
 
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(() =>
     filterGroups.reduce<Record<string, boolean>>((acc, group) => {
       acc[group.title] = true;
       return acc;
-    }, {}),
+    }, {})
   );
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);

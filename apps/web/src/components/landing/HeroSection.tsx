@@ -30,11 +30,17 @@ export default function HeroSection() {
         {/* Main Content */}
         <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6">
-            Discover more than <span className="text-indigo-600">5000+ Jobs</span>
+            Discover more than{' '}
+            <span className="text-indigo-600">5000+ Jobs</span>
           </h1>
-          <img src="/landing/group.svg" alt="decorative group" className="mb-6 mx-auto lg:mx-0" />
+          <img
+            src="/landing/group.svg"
+            alt="decorative group"
+            className="mb-6 mx-auto lg:mx-0"
+          />
           <p className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 opacity-70">
-            Great platform for the job seeker that searching for new career heights and passionate about startups.
+            Great platform for the job seeker that searching for new career
+            heights and passionate about startups.
           </p>
 
           {/* Search Bar */}

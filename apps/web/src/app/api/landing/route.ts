@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
       data: {
         hero: {
           title: 'Discover more than 5000+ Jobs',
-          subtitle: 'Great platform for the job seeker that searching for new career heights and passionate about startups.',
+          subtitle:
+            'Great platform for the job seeker that searching for new career heights and passionate about startups.',
           searchPlaceholder: 'Job title or keyword',
           locationPlaceholder: 'Florence, Italy',
         },
