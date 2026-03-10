@@ -43,10 +43,13 @@ export default function Header() {
                 <span>Browse Jobs</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
+              <Link
+                href="/brown-companies"
+                className="flex items-center gap-2 text-indigo-600 font-semibold text-base"
+              >
                 <span>Browse Companies</span>
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
 
             <div className="border-t border-slate-300" />
@@ -101,12 +104,12 @@ export default function Header() {
               >
                 Find Jobs
               </Link>
-              <a
-                href="#"
+              <Link
+                href="/brown-companies"
                 className="text-slate-500 text-sm font-medium hover:text-slate-700"
               >
                 Browse Companies
-              </a>
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
