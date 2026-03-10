@@ -1,0 +1,71 @@
+  import type { CompaniesByCategoryData } from '@/types/company';
+
+export const COMPANIES_BY_CATEGORY_MOCK: CompaniesByCategoryData = {
+  totalResults: 24,
+  companies: [
+    {
+      id: 'pentagram',
+      name: 'Pentagram',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/pentagram.com',
+      logoAlt: 'Pentagram logo',
+      category: 'design',
+    },
+    {
+      id: 'wolff-olins',
+      name: 'Wolff Olins',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/wolffolins.com',
+      logoAlt: 'Wolff Olins logo',
+      category: 'design',
+    },
+    {
+      id: 'clay',
+      name: 'Clay',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/clay.global',
+      logoAlt: 'Clay logo',
+      category: 'design',
+    },
+    {
+      id: 'mediamonks',
+      name: 'MediaMonks',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/mediamonks.com',
+      logoAlt: 'MediaMonks logo',
+      category: 'business-service',
+    },
+    {
+      id: 'packer',
+      name: 'Packer',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/packer.io',
+      logoAlt: 'Packer logo',
+      category: 'fintech',
+    },
+    {
+      id: 'square',
+      name: 'Square',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/squareup.com',
+      logoAlt: 'Square logo',
+      category: 'fintech',
+    },
+    {
+      id: 'divvy',
+      name: 'Divvy',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/getdivvy.com',
+      logoAlt: 'Divvy logo',
+      category: 'developer',
+    },
+    {
+      id: 'webflow',
+      name: 'WebFlow',
+      openJobs: 3,
+      logoUrl: 'https://logo.clearbit.com/webflow.com',
+      logoAlt: 'WebFlow logo',
+      category: 'hosting',
+    },
+  ],
+};
