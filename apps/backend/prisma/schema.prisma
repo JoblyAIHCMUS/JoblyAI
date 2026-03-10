@@ -8,10 +8,10 @@ datasource db {
 }
 
 model User {
-  id            String           @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String           @unique
-  emailVerified Boolean          @default(false)
+  email         String        @unique
+  emailVerified Boolean       @default(false)
   image         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -135,17 +135,6 @@ model JobRequirement {
   @@unique([jobPostingId, skillId])
 }
 
-model Employer {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  companyId Int
-  jobTitle  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model Education {
   id          Int    @id @default(autoincrement())
   candidateId String
@@ -221,23 +210,23 @@ model Resume {
 }
 
 model Company {
-  id          Int            @id @default(autoincrement())
-  name        String         @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   websiteUrl  String?
   sizeRange   String?
   industry    String?
   description String?
   logoUrl     String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  employers   EmployerRole[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employers   Employer[]
 }
 
-model EmployerRole {
+model Employer {
   id         Int      @id @default(autoincrement())
   companyId  Int
   company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  employerId String
+  employerId String   @unique
   employer   User     @relation(fields: [employerId], references: [id], onDelete: Cascade)
   role       String
   assignedAt DateTime @default(now())
