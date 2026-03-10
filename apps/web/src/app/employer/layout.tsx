@@ -9,9 +9,9 @@ export default function EmployerLayout({ children }: { children: ReactNode }) {
     <CompanyProvider>
       <SidebarProvider>
         <EmployerSidebar />
-        <main className="w-full flex flex-col min-h-screen">
+        <main className="w-full flex flex-col h-screen overflow-hidden">
           <EmployerTopBar />
-          <div className="flex-1">
+          <div className="flex-1 overflow-auto">
             {/* Trigger allows collapsing/expanding on mobile or desktop if configured */}
             <SidebarTrigger className="p-4 md:hidden" />
             {children}
