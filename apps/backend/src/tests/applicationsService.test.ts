@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { PrismaClient, ApplicationStatus } from '@prisma/client';
 import { ApplicationsService } from '../app/applications/applications.service';
 import {
@@ -22,6 +22,52 @@ describe('ApplicationsService', () => {
   let resume2Id: number;
 
   beforeAll(async () => {
+    // Cleanup test data if exists
+    await prisma.application.deleteMany({
+      where: {
+        OR: [
+          { candidate: { email: { contains: 'test-candidate-app' } } },
+          { candidate: { email: { contains: 'test-candidate2-app' } } },
+        ],
+      },
+    });
+    await prisma.resume.deleteMany({
+      where: {
+        candidate: {
+          email: {
+            in: [
+              'test-candidate-app@example.com',
+              'test-candidate2-app@example.com',
+            ],
+          },
+        },
+      },
+    });
+    await prisma.jobPosting.deleteMany({
+      where: {
+        OR: [
+          { title: { contains: 'Test Open Job App' } },
+          { title: { contains: 'Test Draft Job App' } },
+          { title: { contains: 'Test Employer 2 Job App' } },
+        ],
+      },
+    });
+    await prisma.jobCategory.deleteMany({
+      where: { name: 'Test Category App' },
+    });
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          in: [
+            'test-candidate-app@example.com',
+            'test-candidate2-app@example.com',
+            'test-employer-app@example.com',
+            'test-employer2-app@example.com',
+          ],
+        },
+      },
+    });
+
     // Create test candidates
     const candidate = await prisma.user.create({
       data: {
@@ -612,10 +658,12 @@ describe('ApplicationsService', () => {
 
         expect(result.status).toBe(ApplicationStatus.REJECTED);
         expect(result.aiFeedback).toBeDefined();
-        expect((result.aiFeedback as any).rejectionFeedback).toBe(
-          'Not qualified for the position'
-        );
-        expect((result.aiFeedback as any).rejectedAt).toBeDefined();
+        expect(
+          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
+        ).toBe('Not qualified for the position');
+        expect(
+          (result.aiFeedback as Record<string, unknown>).rejectedAt
+        ).toBeDefined();
       });
 
       it('should reject application with feedback (INTERVIEW status)', async () => {
@@ -626,9 +674,9 @@ describe('ApplicationsService', () => {
         );
 
         expect(result.status).toBe(ApplicationStatus.REJECTED);
-        expect((result.aiFeedback as any).rejectionFeedback).toBe(
-          'Failed technical interview'
-        );
+        expect(
+          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
+        ).toBe('Failed technical interview');
       });
 
       it('should throw NotFoundException if application does not exist', async () => {
@@ -689,11 +737,42 @@ describe('ApplicationsService', () => {
           { feedback: 'Not suitable' }
         );
 
-        expect((result.aiFeedback as any).existingData).toBe('test');
-        expect((result.aiFeedback as any).rejectionFeedback).toBe(
-          'Not suitable'
-        );
+        expect(
+          (result.aiFeedback as Record<string, unknown>).existingData
+        ).toBe('test');
+        expect(
+          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
+        ).toBe('Not suitable');
       });
     });
+  });
+
+  // Cleanup after all tests
+  afterAll(async () => {
+    await prisma.application.deleteMany({
+      where: {
+        OR: [{ candidateId }, { candidateId: candidate2Id }],
+      },
+    });
+    await prisma.resume.deleteMany({
+      where: {
+        OR: [{ id: resumeId }, { id: resume2Id }],
+      },
+    });
+    await prisma.jobPosting.deleteMany({
+      where: {
+        id: {
+          in: [openJobId, draftJobId, employer2JobId],
+        },
+      },
+    });
+    await prisma.user.deleteMany({
+      where: {
+        id: {
+          in: [candidateId, candidate2Id, employerId, employer2Id],
+        },
+      },
+    });
+    await prisma.$disconnect();
   });
 });
