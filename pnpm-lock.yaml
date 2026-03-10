@@ -7294,7 +7294,7 @@ packages:
       }
     engines: { node: '>=12' }
 
-  '@tiptap/core@3.20.0':
+  '@tiptap/core@3.20.1':
     resolution:
       {
         integrity: sha512-SwkPEWIfaDEZjC8SEIi4kZjqIYUbRgLUHUuQezo5GbphUNC8kM1pi3C3EtoOPtxXrEbY6e4pWEzW54Pcrd+rVA==,
@@ -25588,7 +25588,9 @@ snapshots:
       metro-runtime: 0.82.5
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   '@react-native/normalize-colors@0.74.89': {}
 
@@ -26415,7 +26417,7 @@ snapshots:
 
   '@tanstack/table-core@8.21.3': {}
 
-  '@tiptap/core@3.20.0(@tiptap/pm@3.20.0)':
+  '@tiptap/core@3.20.1(@tiptap/pm@3.20.1)':
     dependencies:
       '@tiptap/pm': 3.20.1
 
@@ -27055,7 +27057,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@types/node@20.19.9)(@vitest/ui@4.0.18)(jiti@2.4.2)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.3)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
+      vitest: 4.0.18(@types/node@20.19.9)(@vitest/ui@4.0.18)(jiti@2.6.1)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.3)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -27100,7 +27102,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@types/node@20.19.9)(@vitest/ui@4.0.18)(jiti@2.4.2)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.3)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
+      vitest: 4.0.18(@types/node@20.19.9)(@vitest/ui@4.0.18)(jiti@2.6.1)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.3)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)
 
   '@vitest/utils@4.0.18':
     dependencies:
@@ -34955,7 +34957,6 @@ snapshots:
       sass-embedded: 1.97.3
       terser: 5.46.0
       yaml: 2.8.2
-    optional: true
 
   vitest@4.0.18(@types/node@20.19.9)(@vitest/ui@4.0.18)(jiti@2.4.2)(jsdom@22.1.0)(less@4.5.1)(sass-embedded@1.97.3)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2):
     dependencies:
@@ -35034,7 +35035,6 @@ snapshots:
       - terser
       - tsx
       - yaml
-    optional: true
 
   vlq@1.0.1: {}
 
