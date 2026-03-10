@@ -1,10 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal, Star } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/lib/utils';
 import {
   KanbanBoard,
   KanbanBoardProvider,
@@ -72,10 +74,19 @@ export default function JobApplicantsKanban({
   applicants,
   onStageChange,
 }: JobApplicantsKanbanProps) {
-  const groupedApplicants = HIRING_STAGE_COLUMNS.map((col) => ({
-    ...col,
-    applicants: applicants.filter((a) => a.hiringStage === col.stage),
-  }));
+  const groupedApplicants = useMemo(() => {
+    const byStage = applicants.reduce<Record<string, Applicant[]>>(
+      (acc, applicant) => {
+        (acc[applicant.hiringStage] ??= []).push(applicant);
+        return acc;
+      },
+      {}
+    );
+    return HIRING_STAGE_COLUMNS.map((col) => ({
+      ...col,
+      applicants: byStage[col.stage] ?? [],
+    }));
+  }, [applicants]);
 
   const handleDropOnColumn = (stage: HiringStage) => (data: string) => {
     const parsed = JSON.parse(data) as { id: string };
@@ -158,7 +169,7 @@ export default function JobApplicantsKanban({
                     <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                       <div>
                         <div className="font-medium">Applied on</div>
-                        <div>{applicant.appliedDate}</div>
+                        <div>{formatDate(applicant.appliedDate)}</div>
                       </div>
                       <div className="text-right">
                         <div className="font-medium">Score</div>

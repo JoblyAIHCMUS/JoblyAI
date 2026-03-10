@@ -4,19 +4,15 @@ import { useState } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import JobApplicantsTable from '@/components/employer/jobApplicantsTable';
+import JobApplicantsTable, {
+  nextStageMap,
+} from '@/components/employer/jobApplicantsTable';
 import JobApplicantsKanban from '@/components/employer/jobApplicantsKanban';
 
 import {
   type Applicant,
   type HiringStage,
 } from '@/features/employer/job-listing/detail/data';
-
-const nextStageMap: Partial<Record<HiringStage, HiringStage>> = {
-  'In Review': 'Shortlisted',
-  Shortlisted: 'Interviewed',
-  Interviewed: 'Hired',
-};
 
 interface JobApplicantsViewProps {
   applicants: Applicant[];
