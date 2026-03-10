@@ -1,11 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import {
-  DocumentBuilder,
-  OpenAPIObject,
-  SwaggerModule,
-} from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
 import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './app/common/filter/http-exceptions.filter';
@@ -61,7 +57,9 @@ async function bootstrap() {
     }
   } catch (error) {
     Logger.warn(
-      `Could not parse assets/openapi.yaml. Falling back to generated Swagger. ${String(error)}`
+      `Could not parse assets/openapi.yaml. Falling back to generated Swagger. ${String(
+        error
+      )}`
     );
     document = SwaggerModule.createDocument(app, config);
   }
