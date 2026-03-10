@@ -8,28 +8,27 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String?
-  email         String        @unique
-  emailVerified Boolean       @default(false)
+  email         String           @unique
+  emailVerified Boolean          @default(false)
   image         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  role          String?       @default("candidate")
-  banned        Boolean?      @default(false)
-  banReason     String?
   banExpires    DateTime?
+  banReason     String?
+  banned        Boolean?      @default(false)
+  role          String?       @default("candidate")
   firstName     String?
   lastName      String?
+  employer      Employer?
   postedJobs    JobPosting[]
+  accounts      Account[]
+  sessions      Session[]
   education     Education[]
   experiences   Experience[]
   certificates  Certificate[]
   resumes       Resume[]
-  accounts      Account[]
-  sessions      Session[]
 
   @@map("user")
 }
@@ -98,40 +97,37 @@ model Skill {
 }
 
 model JobPosting {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   title       String
   description String
   location    String?
   salaryMin   Decimal?
   salaryMax   Decimal?
-  currency    String?  @default("USD")
-  status      JobStatus @default(DRAFT)
-  remote      Boolean   @default(false)
+  currency    String?        @default("USD")
+  status      JobStatus      @default(DRAFT)
+  remote      Boolean        @default(false)
   type        EmploymentType @default(FULL_TIME)
 
   // Relations
-  postedById  String
-  postedBy    User     @relation(fields: [postedById], references: [id])
+  postedById String
+  postedBy   User   @relation(fields: [postedById], references: [id])
 
-  categoryId  Int
-  category    JobCategory @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  category   JobCategory @relation(fields: [categoryId], references: [id])
 
   companyName String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   requirements JobRequirement[]
 }
 
 model JobRequirement {
-  id                 Int        @id @default(autoincrement())
+  id                 Int                   @id @default(autoincrement())
+  id                 Int                   @id @default(autoincrement())
   jobPostingId       Int
-  jobPosting         JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
-  
   skillId            Int
-  skill              Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  
   importance         RequirementImportance @default(PREFERRED)
   minYearsExperience Int?
   jobPosting         JobPosting            @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
@@ -139,7 +135,6 @@ model JobRequirement {
 
   @@unique([jobPostingId, skillId])
 }
-
 
 model Company {
   id          Int        @id @default(autoincrement())
@@ -164,6 +159,7 @@ model Employer {
   updatedAt DateTime @updatedAt
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
 model Education {
   id          Int    @id @default(autoincrement())
@@ -237,6 +233,33 @@ model Resume {
   // I think AI scoring should be a separate model to allow for multiple scores over time
   // same as parsed text and embedding
   @@index([candidateId])
+}
+
+model Company {
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  websiteUrl  String?
+  sizeRange   String?
+  industry    String?
+  description String?
+  logoUrl     String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  employers   EmployerRole[]
+}
+
+model EmployerRole {
+  id         Int      @id @default(autoincrement())
+  companyId  Int
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employerId String
+  employer   User     @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  role       String
+  assignedAt DateTime @default(now())
+
+  @@unique([companyId, employerId])
+  @@index([companyId])
+  @@index([employerId])
 }
 
 enum JobStatus {

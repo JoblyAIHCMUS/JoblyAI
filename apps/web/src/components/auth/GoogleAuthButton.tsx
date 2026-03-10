@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
 
 export function GoogleAuthButton({
   variant = 'login',
@@ -15,13 +16,13 @@ export function GoogleAuthButton({
   const handleGoogleAuth = async () => {
     try {
       setIsLoading(true);
-      // Redirect to the backend's Google OAuth endpoint
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const redirectUri = `${window.location.origin}/auth/callback`;
-      window.location.href = `${baseUrl}/api/auth/sign-in/google?callbackURL=${encodeURIComponent(
-        redirectUri
-      )}`;
+      // Use better-auth's signIn.social method for Google OAuth
+      // Must use absolute URL for callbackURL to point to frontend
+      const callbackUrl = `${window.location.origin}/auth/callback`;
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: callbackUrl,
+      });
     } catch (error) {
       console.error('Google auth error:', error);
       setIsLoading(false);

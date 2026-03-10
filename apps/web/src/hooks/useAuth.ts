@@ -12,6 +12,9 @@ export interface LoginCredentials {
 
 export interface SignupCredentials extends LoginCredentials {
   name?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
 }
 
 export function useLogin() {
@@ -59,6 +62,9 @@ export function useSignup() {
         email: credentials.email,
         password: credentials.password,
         name: credentials.name || '',
+        ...(credentials.firstName && { firstName: credentials.firstName }),
+        ...(credentials.lastName && { lastName: credentials.lastName }),
+        ...(credentials.role && { role: credentials.role }),
       });
 
       if (response.error) {
