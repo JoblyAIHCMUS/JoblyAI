@@ -125,7 +125,6 @@ model JobPosting {
 
 model JobRequirement {
   id                 Int                   @id @default(autoincrement())
-  id                 Int                   @id @default(autoincrement())
   jobPostingId       Int
   skillId            Int
   importance         RequirementImportance @default(PREFERRED)
@@ -134,20 +133,6 @@ model JobRequirement {
   skill              Skill                 @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([jobPostingId, skillId])
-}
-
-model Company {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  website     String?
-  logoUrl     String?
-  description String?
-  industry    String?
-  size        String?
-  isVerified  Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  employers   Employer[]
 }
 
 model Employer {
