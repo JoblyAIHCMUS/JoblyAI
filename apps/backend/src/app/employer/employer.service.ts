@@ -17,12 +17,12 @@ export class EmployerService {
       },
     });
 
-    if (!data || !data.employer) {
+    if (!data?.employer) {
       throw new Error('Employer profile not found');
     }
 
     return {
-      id: data.employer.id,
+      id: data.id,
       company: data.employer.company,
       firstName: data.firstName ?? '',
       lastName: data.lastName ?? '',
@@ -50,9 +50,9 @@ export class EmployerService {
       });
 
       await tx.employer.update({
-        where: { userId: userId },
+        where: { employerId: userId },
         data: {
-          jobTitle: updateDto.jobTitle,
+          role: updateDto.role,
           companyId: updateDto.companyId,
         },
       });

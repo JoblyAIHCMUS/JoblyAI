@@ -4,12 +4,11 @@ import { IsOptional, IsString } from 'class-validator';
 interface Company {
   id: number;
   name: string;
-  website?: string | null;
+  websiteUrl?: string | null;
   logoUrl?: string | null;
   description?: string | null;
   industry?: string | null;
-  size?: string | null;
-  isVerified: boolean;
+  sizeRange?: string | null; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,7 +33,7 @@ export class QueryResponseEmployerDto {
   lastName?: string;
 
   @Expose()
-  jobTitle?: string;
+  role?: string
 
   @Expose()
   company?: Company;
@@ -68,9 +67,8 @@ export class UpdateEmployerDto {
 
   @IsOptional()
   @IsString()
-  jobTitle?: string;
+  role?: string; 
 
   @IsOptional()
-  @IsString()
   companyId?: number;
 }
