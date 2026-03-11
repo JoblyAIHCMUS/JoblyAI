@@ -442,6 +442,9 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      dompurify:
+        specifier: ^3.3.2
+        version: 3.3.2
       lucide-react:
         specifier: ^0.473.0
         version: 0.473.0(react@19.2.4)
@@ -7978,6 +7981,12 @@ packages:
         integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==,
       }
 
+  '@types/trusted-types@2.0.7':
+    resolution:
+      {
+        integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==,
+      }
+
   '@types/use-sync-external-store@0.0.6':
     resolution:
       {
@@ -11296,6 +11305,13 @@ packages:
         integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==,
       }
     engines: { node: '>= 4' }
+
+  dompurify@3.3.2:
+    resolution:
+      {
+        integrity: sha512-6obghkliLdmKa56xdbLOpUZ43pAR6xFy1uOrxBaIDjT+yaRuuybLjGS9eVBoSR/UPU5fq3OXClEHLJNGvbxKpQ==,
+      }
+    engines: { node: '>=20' }
 
   domutils@3.2.2:
     resolution:
@@ -26853,6 +26869,9 @@ snapshots:
   '@types/triple-beam@1.3.5':
     optional: true
 
+  '@types/trusted-types@2.0.7':
+    optional: true
+
   '@types/use-sync-external-store@0.0.6': {}
 
   '@types/validator@13.15.10': {}
@@ -29018,6 +29037,10 @@ snapshots:
   domhandler@5.0.3:
     dependencies:
       domelementtype: 2.3.0
+
+  dompurify@3.3.2:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
 
   domutils@3.2.2:
     dependencies:
