@@ -40,13 +40,21 @@ const statusStyles: Record<JobListingStatus, string> = {
 };
 
 const employmentTypeStyles: Record<EmploymentType, string> = {
-  'Full-time':
+  FULL_TIME:
     'border-indigo-500 text-indigo-600 bg-transparent hover:bg-indigo-50',
-  'Part-time': 'border-teal-500 text-teal-600 bg-transparent hover:bg-teal-50',
-  Contract: 'border-amber-500 text-amber-600 bg-transparent hover:bg-amber-50',
-  Internship: 'border-sky-500 text-sky-600 bg-transparent hover:bg-sky-50',
-  Freelance:
+  PART_TIME: 'border-teal-500 text-teal-600 bg-transparent hover:bg-teal-50',
+  CONTRACT: 'border-amber-500 text-amber-600 bg-transparent hover:bg-amber-50',
+  INTERNSHIP: 'border-sky-500 text-sky-600 bg-transparent hover:bg-sky-50',
+  FREELANCE:
     'border-orange-500 text-orange-600 bg-transparent hover:bg-orange-50',
+};
+
+const employmentTypeLabels: Record<EmploymentType, string> = {
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
+  CONTRACT: 'Contract',
+  INTERNSHIP: 'Internship',
+  FREELANCE: 'Freelance',
 };
 
 export const columns: ColumnDef<JobListing>[] = [
@@ -173,7 +181,7 @@ export const columns: ColumnDef<JobListing>[] = [
       const type = row.getValue('employmentType') as EmploymentType;
       return (
         <Badge variant="outline" className={employmentTypeStyles[type]}>
-          {type}
+          {employmentTypeLabels[type]}
         </Badge>
       );
     },

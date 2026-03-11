@@ -1,9 +1,14 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { jobListingDetails } from './data';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
+import JobDetailsReview from '@/components/employer/jobDetailsReview';
+import JobStatsPanel from '@/components/employer/jobStatsPanel';
 
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,12 +30,32 @@ export default function JobListingDetailPage() {
           <ArrowLeft className="h-7 w-7" />
         </button>
         <h1 className="text-3xl font-bold">{job.title}</h1>
+        <Button variant="outline" size="icon" className="ml-2" asChild>
+          <Link href={`/employer/job-listing/${id}/edit`} aria-label="Edit job">
+            <Pencil className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Applicants</h2>
-        <JobApplicantsView applicants={job.applicants} />
-      </section>
+      <Tabs defaultValue="applicants" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="applicants">Applicants</TabsTrigger>
+          <TabsTrigger value="job-details">Job Details</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="applicants" className="mt-6">
+          <JobApplicantsView applicants={job.applicants} />
+        </TabsContent>
+
+        <TabsContent value="job-details" className="mt-6">
+          <JobDetailsReview job={job} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="mt-6">
+          <JobStatsPanel job={job} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

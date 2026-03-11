@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -19,13 +21,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { useCompany } from '@/hooks/useCompany';
+import { jobListingDetails } from '@/features/employer/job-listing/detail/data';
 
-const POST_JOB_STEPS = [
+const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
-  // { id: 'location', label: 'Location & Salary' },
-  // { id: 'preview', label: 'Preview & Publish' },
 ] as const;
 
 const EMPLOYMENT_TYPES = [
@@ -58,31 +58,42 @@ const CATEGORIES = [
   { value: 'other', label: 'Other' },
 ] as const;
 
-// Helper to check if HTML content has actual text (not just empty tags like <p></p>)
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
   return text === '';
 };
 
-export default function EmployerNewJobPage() {
-  const { selectedCompany } = useCompany();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState('');
-  const [remote, setRemote] = useState(false);
-  const [location, setLocation] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [currency, setCurrency] = useState('none');
-  const [salaryMin, setSalaryMin] = useState('');
-  const [salaryMax, setSalaryMax] = useState('');
-  const [skills, setSkills] = useState<SkillEntry[]>([]);
+export default function JobListingEditPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const job = jobListingDetails[id];
 
-  // Validation for each step
+  const [title, setTitle] = useState(job?.title ?? '');
+  const [description, setDescription] = useState(job?.description ?? '');
+  const [type, setType] = useState<string>(job?.employmentType ?? '');
+  const [remote, setRemote] = useState(job?.remote ?? false);
+  const [location, setLocation] = useState(job?.location ?? '');
+  const [categoryId, setCategoryId] = useState<string>(job?.category ?? '');
+  const [currency, setCurrency] = useState<string>(
+    job?.salaryCurrency ?? 'none'
+  );
+  const [salaryMin, setSalaryMin] = useState(job?.salaryMin ?? '');
+  const [salaryMax, setSalaryMax] = useState(job?.salaryMax ?? '');
+  const [skills, setSkills] = useState<SkillEntry[]>(job?.skills ?? []);
+
+  if (!job) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold">Job not found</h1>
+      </div>
+    );
+  }
+
   const canProceed = (stepIndex: number): boolean => {
     switch (stepIndex) {
-      case 0: // Basic Information
+      case 0:
         return title.trim() !== '' && type !== '' && categoryId !== '';
-      case 1: // Job Description
+      case 1:
         return !isHtmlContentEmpty(description);
       default:
         return true;
@@ -90,13 +101,8 @@ export default function EmployerNewJobPage() {
   };
 
   const handleComplete = () => {
-    // Here you would normally:
-    // 1. Validate all fields
-    // 2. Call API to create job
-    // 3. Show success toast / redirect
     const jobData = {
-      companyId: selectedCompany?.id,
-      companyName: selectedCompany?.name,
+      id: job.id,
       title,
       description,
       type,
@@ -108,23 +114,25 @@ export default function EmployerNewJobPage() {
       salaryMax,
       skills,
     };
-    console.log('Job posted:', jobData);
-    alert(
-      `Job posted successfully for ${
-        selectedCompany?.name || 'Unknown Company'
-      }!`
-    );
+    console.log('Job updated:', jobData);
+    alert('Job updated successfully!');
+    router.push(`/employer/job-listing/${id}`);
   };
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">Post a New Job</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.back()} aria-label="Go back">
+          <ArrowLeft className="h-7 w-7" />
+        </button>
+        <h1 className="text-3xl font-bold">Edit Job</h1>
+      </div>
       <p className="body-body-1-regular text-slate-600 mb-10">
-        Fill in the details to create a new job posting.
+        Update the details for <strong>{job.title}</strong>.
       </p>
 
       <Stepper
-        steps={POST_JOB_STEPS}
+        steps={EDIT_JOB_STEPS}
         onComplete={handleComplete}
         canProceed={canProceed}
       >
@@ -189,7 +197,7 @@ export default function EmployerNewJobPage() {
                 Where is the job based?
               </p>
             </div>
-            <div className=" grid grid-rows-[auto_auto] gap-4">
+            <div className="grid grid-rows-[auto_auto] gap-4">
               <Input
                 id="location"
                 placeholder="e.g. 123 This Street, That Town, The Other Country"
@@ -265,9 +273,9 @@ export default function EmployerNewJobPage() {
                   <SelectValue placeholder="Currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CURRENCIES.map((currency) => (
-                    <SelectItem key={currency.value} value={currency.value}>
-                      {currency.label}
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -311,8 +319,6 @@ export default function EmployerNewJobPage() {
             />
           </div>
         </div>
-
-        {/* Future steps would go here as additional sibling elements */}
       </Stepper>
     </div>
   );

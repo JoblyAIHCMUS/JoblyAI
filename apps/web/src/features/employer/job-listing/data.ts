@@ -1,11 +1,11 @@
 export type JobListingStatus = 'Draft' | 'Live' | 'Closed';
 
 export type EmploymentType =
-  | 'Full-time'
-  | 'Part-time'
-  | 'Contract'
-  | 'Internship'
-  | 'Freelance';
+  | 'FULL_TIME'
+  | 'PART_TIME'
+  | 'CONTRACT'
+  | 'INTERNSHIP'
+  | 'FREELANCE';
 
 export interface JobListing {
   id: string;
@@ -24,7 +24,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-20',
     dateClosed: null,
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 19,
   },
   {
@@ -33,7 +33,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-16',
     dateClosed: null,
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 1234,
   },
   {
@@ -42,7 +42,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-15',
     dateClosed: null,
-    employmentType: 'Freelance',
+    employmentType: 'FREELANCE',
     applicants: 2435,
   },
   {
@@ -51,7 +51,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-13',
     dateClosed: '2020-05-24',
-    employmentType: 'Freelance',
+    employmentType: 'FREELANCE',
     applicants: 6234,
   },
   {
@@ -60,7 +60,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-12',
     dateClosed: '2020-05-24',
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 12,
   },
   {
@@ -69,7 +69,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-11',
     dateClosed: '2020-05-24',
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 14,
   },
   {
@@ -78,7 +78,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-12',
     dateClosed: '2020-05-24',
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 12,
   },
   {
@@ -87,7 +87,7 @@ export const jobListings: JobListing[] = [
     status: 'Draft',
     datePosted: '2020-05-10',
     dateClosed: null,
-    employmentType: 'Part-time',
+    employmentType: 'PART_TIME',
     applicants: 0,
   },
   {
@@ -96,7 +96,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-09',
     dateClosed: null,
-    employmentType: 'Contract',
+    employmentType: 'CONTRACT',
     applicants: 87,
   },
   {
@@ -105,7 +105,7 @@ export const jobListings: JobListing[] = [
     status: 'Draft',
     datePosted: '2020-05-08',
     dateClosed: null,
-    employmentType: 'Internship',
+    employmentType: 'INTERNSHIP',
     applicants: 0,
   },
   {
@@ -114,7 +114,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-07',
     dateClosed: null,
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 53,
   },
   {
@@ -123,7 +123,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-05',
     dateClosed: '2020-05-20',
-    employmentType: 'Contract',
+    employmentType: 'CONTRACT',
     applicants: 340,
   },
   {
@@ -132,7 +132,7 @@ export const jobListings: JobListing[] = [
     status: 'Live',
     datePosted: '2020-05-04',
     dateClosed: null,
-    employmentType: 'Part-time',
+    employmentType: 'PART_TIME',
     applicants: 27,
   },
   {
@@ -141,7 +141,7 @@ export const jobListings: JobListing[] = [
     status: 'Draft',
     datePosted: '2020-05-03',
     dateClosed: null,
-    employmentType: 'Full-time',
+    employmentType: 'FULL_TIME',
     applicants: 0,
   },
   {
@@ -150,7 +150,7 @@ export const jobListings: JobListing[] = [
     status: 'Closed',
     datePosted: '2020-05-01',
     dateClosed: '2020-05-18',
-    employmentType: 'Freelance',
+    employmentType: 'FREELANCE',
     applicants: 189,
   },
 ];
