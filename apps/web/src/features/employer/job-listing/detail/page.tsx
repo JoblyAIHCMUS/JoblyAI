@@ -1,7 +1,9 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { jobListingDetails } from './data';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
@@ -28,6 +30,11 @@ export default function JobListingDetailPage() {
           <ArrowLeft className="h-7 w-7" />
         </button>
         <h1 className="text-3xl font-bold">{job.title}</h1>
+        <Button variant="outline" size="icon" className="ml-2" asChild>
+          <Link href={`/employer/job-listing/${id}/edit`} aria-label="Edit job">
+            <Pencil className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
       <Tabs defaultValue="applicants" className="mt-8">
