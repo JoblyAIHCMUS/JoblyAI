@@ -109,7 +109,10 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
             value={newImportance}
             onValueChange={(v) => setNewImportance(v as SkillImportance)}
           >
-            <SelectTrigger className="h-10 w-[130px]" aria-label="Skill importance">
+            <SelectTrigger
+              className="h-10 w-[130px]"
+              aria-label="Skill importance"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
