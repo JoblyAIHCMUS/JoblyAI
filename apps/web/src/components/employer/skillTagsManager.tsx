@@ -98,6 +98,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
             ref={skillInputRef}
             type="text"
             placeholder="Enter skill name"
+            aria-label="Skill name"
             value={newSkillName}
             onChange={(e) => setNewSkillName(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -108,7 +109,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
             value={newImportance}
             onValueChange={(v) => setNewImportance(v as SkillImportance)}
           >
-            <SelectTrigger className="h-10 w-[130px]">
+            <SelectTrigger className="h-10 w-[130px]" aria-label="Skill importance">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -122,6 +123,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
           <Input
             type="number"
             placeholder="Min years"
+            aria-label="Minimum years of experience"
             value={newMinYears}
             onChange={(e) => setNewMinYears(e.target.value)}
             onKeyDown={handleKeyDown}
