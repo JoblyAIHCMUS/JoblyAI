@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { jobListingDetails } from './data';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
 import JobDetailsReview from '@/components/employer/jobDetailsReview';
+import JobStatsPanel from '@/components/employer/jobStatsPanel';
 
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export default function JobListingDetailPage() {
         <TabsList>
           <TabsTrigger value="applicants">Applicants</TabsTrigger>
           <TabsTrigger value="job-details">Job Details</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="applicants" className="mt-6">
@@ -41,6 +43,10 @@ export default function JobListingDetailPage() {
 
         <TabsContent value="job-details" className="mt-6">
           <JobDetailsReview job={job} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="mt-6">
+          <JobStatsPanel job={job} />
         </TabsContent>
       </Tabs>
     </div>
