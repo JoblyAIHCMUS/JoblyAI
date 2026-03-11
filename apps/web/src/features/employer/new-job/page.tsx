@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  SkillTagsManager,
+  type SkillEntry,
+} from '@/components/employer/skillTagsManager';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -26,17 +29,11 @@ const POST_JOB_STEPS = [
 ] as const;
 
 const EMPLOYMENT_TYPES = [
-  { value: 'full-time', label: 'Full-time' },
-  { value: 'part-time', label: 'Part-time' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'internship', label: 'Internship' },
-  { value: 'freelance', label: 'Freelance' },
-] as const;
-
-const WORK_MODELS = [
-  { value: 'on-site', label: 'On-site' },
-  { value: 'remote', label: 'Remote' },
-  { value: 'hybrid', label: 'Hybrid' },
+  { value: 'FULL_TIME', label: 'Full-time' },
+  { value: 'PART_TIME', label: 'Part-time' },
+  { value: 'CONTRACT', label: 'Contract' },
+  { value: 'INTERNSHIP', label: 'Internship' },
+  { value: 'FREELANCE', label: 'Freelance' },
 ] as const;
 
 const CURRENCIES = [
@@ -69,55 +66,24 @@ const isHtmlContentEmpty = (html: string): boolean => {
 
 export default function EmployerNewJobPage() {
   const { selectedCompany } = useCompany();
-  const [jobTitle, setJobTitle] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [employmentType, setEmploymentType] = useState('');
-  const [workModel, setWorkModel] = useState('');
-  const [category, setCategory] = useState('');
-  const [salaryCurrency, setSalaryCurrency] = useState('none');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState('');
+  const [remote, setRemote] = useState(false);
+  const [location, setLocation] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [currency, setCurrency] = useState('none');
   const [salaryMin, setSalaryMin] = useState('');
   const [salaryMax, setSalaryMax] = useState('');
-  const [skills, setSkills] = useState<string[]>([]);
-  const [isAddingSkill, setIsAddingSkill] = useState(false);
-  const [newSkill, setNewSkill] = useState('');
-  const skillInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAddSkill = () => {
-    const trimmed = newSkill.trim();
-    if (trimmed && !skills.includes(trimmed)) {
-      setSkills([...skills, trimmed]);
-    }
-    setNewSkill('');
-    // Keep input focused for rapid entry
-    skillInputRef.current?.focus();
-  };
-
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter((skill) => skill !== skillToRemove));
-  };
-
-  const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddSkill();
-    } else if (e.key === 'Escape') {
-      setIsAddingSkill(false);
-      setNewSkill('');
-    }
-  };
+  const [skills, setSkills] = useState<SkillEntry[]>([]);
 
   // Validation for each step
   const canProceed = (stepIndex: number): boolean => {
     switch (stepIndex) {
       case 0: // Basic Information
-        return (
-          jobTitle.trim() !== '' &&
-          employmentType !== '' &&
-          workModel !== '' &&
-          category !== ''
-        );
+        return title.trim() !== '' && type !== '' && categoryId !== '';
       case 1: // Job Description
-        return !isHtmlContentEmpty(jobDescription);
+        return !isHtmlContentEmpty(description);
       default:
         return true;
     }
@@ -131,12 +97,13 @@ export default function EmployerNewJobPage() {
     const jobData = {
       companyId: selectedCompany?.id,
       companyName: selectedCompany?.name,
-      jobTitle,
-      jobDescription,
-      employmentType,
-      workModel,
-      category,
-      salaryCurrency,
+      title,
+      description,
+      type,
+      remote,
+      location: remote ? undefined : location,
+      categoryId,
+      currency,
       salaryMin,
       salaryMax,
       skills,
@@ -166,18 +133,18 @@ export default function EmployerNewJobPage() {
           {/* Job Title */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div className="pt-3">
-              <Label htmlFor="job-title" className="label-label-1-semibold">
-                Job Title
+              <Label htmlFor="title" className="label-label-1-semibold">
+                Job Title <span className="text-red-500">*</span>
               </Label>
               <p className="text-xs text-slate-500 mt-1">
                 Be specific - this is the first thing candidates see.
               </p>
             </div>
             <Input
-              id="job-title"
+              id="title"
               placeholder="e.g. Software Engineer"
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="h-12 text-base"
             />
           </div>
@@ -188,22 +155,22 @@ export default function EmployerNewJobPage() {
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div>
               <Label className="label-label-1-semibold">
-                Type of employment
+                Type of employment <span className="text-red-500">*</span>
               </Label>
             </div>
             <RadioGroup
-              value={employmentType}
-              onValueChange={setEmploymentType}
+              value={type}
+              onValueChange={setType}
               className="flex flex-wrap gap-4"
             >
-              {EMPLOYMENT_TYPES.map((type) => (
-                <div key={type.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={type.value} id={type.value} />
+              {EMPLOYMENT_TYPES.map((t) => (
+                <div key={t.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={t.value} id={t.value} />
                   <Label
-                    htmlFor={type.value}
+                    htmlFor={t.value}
                     className="font-normal cursor-pointer"
                   >
-                    {type.label}
+                    {t.label}
                   </Label>
                 </div>
               ))}
@@ -212,28 +179,40 @@ export default function EmployerNewJobPage() {
 
           <Separator />
 
-          {/* Work Model */}
+          {/* Location */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div>
-              <Label className="label-label-1-semibold">Work model</Label>
+            <div className="pt-3">
+              <Label htmlFor="location" className="label-label-1-semibold">
+                Location
+              </Label>
+              <p className="text-xs text-slate-500 mt-1">
+                Where is the job based?
+              </p>
             </div>
-            <RadioGroup
-              value={workModel}
-              onValueChange={setWorkModel}
-              className="flex flex-wrap gap-4"
-            >
-              {WORK_MODELS.map((model) => (
-                <div key={model.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={model.value} id={model.value} />
-                  <Label
-                    htmlFor={model.value}
-                    className="font-normal cursor-pointer"
-                  >
-                    {model.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            <div className=" grid grid-rows-[auto_auto] gap-4">
+              <Input
+                id="location"
+                placeholder="e.g. 123 This Street, That Town, The Other Country"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                disabled={remote}
+                className="h-12 text-base"
+              />
+              {/* Remote Work */}
+              <div className="flex items-center gap-3 pt-1">
+                <Switch
+                  id="remote"
+                  checked={remote}
+                  onCheckedChange={(checked) => {
+                    setRemote(checked);
+                    if (checked) setLocation('');
+                  }}
+                />
+                <Label htmlFor="remote" className="font-normal cursor-pointer">
+                  This is a remote position
+                </Label>
+              </div>
+            </div>
           </div>
 
           <Separator />
@@ -241,9 +220,11 @@ export default function EmployerNewJobPage() {
           {/* Category */}
           <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
             <div className="pt-3">
-              <Label className="label-label-1-semibold">Category</Label>
+              <Label className="label-label-1-semibold">
+                Category <span className="text-red-500">*</span>
+              </Label>
             </div>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger className="h-12 text-base">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -267,88 +248,7 @@ export default function EmployerNewJobPage() {
                 Skills useful for the job (Optional)
               </p>
             </div>
-            <div className="space-y-3">
-              {/* Add Skill Button / Input */}
-              {isAddingSkill ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    ref={skillInputRef}
-                    type="text"
-                    placeholder="Enter skill name"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyDown={handleSkillKeyDown}
-                    className="h-10 w-[200px]"
-                    autoFocus
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleAddSkill}
-                    disabled={!newSkill.trim()}
-                  >
-                    Add
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setIsAddingSkill(false);
-                      setNewSkill('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddingSkill(true)}
-                  className="text-primary border-primary hover:bg-primary/5"
-                >
-                  + Add Skills
-                </Button>
-              )}
-
-              {/* Skills Tags */}
-              {skills.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill) => (
-                    <Badge
-                      key={skill}
-                      variant="secondary"
-                      className="pl-3 pr-1 py-1.5 text-sm bg-primary/10 text-primary border-0 hover:bg-primary/15"
-                    >
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="ml-2 hover:bg-primary/20 rounded p-0.5"
-                        aria-label={`Remove ${skill}`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+            <SkillTagsManager skills={skills} onChange={setSkills} />
           </div>
 
           <Separator />
@@ -360,7 +260,7 @@ export default function EmployerNewJobPage() {
               <p className="text-xs text-slate-500 mt-1">Optional</p>
             </div>
             <div className="flex items-center gap-3">
-              <Select value={salaryCurrency} onValueChange={setSalaryCurrency}>
+              <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="w-[100px] h-12">
                   <SelectValue placeholder="Currency" />
                 </SelectTrigger>
@@ -372,7 +272,7 @@ export default function EmployerNewJobPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {salaryCurrency !== 'none' && (
+              {currency !== 'none' && (
                 <>
                   <Input
                     type="number"
@@ -404,8 +304,8 @@ export default function EmployerNewJobPage() {
               Job Description <span className="text-red-500">*</span>
             </Label>
             <RichTextEditor
-              content={jobDescription}
-              onChange={setJobDescription}
+              content={description}
+              onChange={setDescription}
               placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
               className="min-h-[360px]"
             />
