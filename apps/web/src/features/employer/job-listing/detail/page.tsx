@@ -2,8 +2,10 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { jobListingDetails } from './data';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
+import JobDetailsReview from '@/components/employer/jobDetailsReview';
 
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,10 +29,20 @@ export default function JobListingDetailPage() {
         <h1 className="text-3xl font-bold">{job.title}</h1>
       </div>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Applicants</h2>
-        <JobApplicantsView applicants={job.applicants} />
-      </section>
+      <Tabs defaultValue="applicants" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="applicants">Applicants</TabsTrigger>
+          <TabsTrigger value="job-details">Job Details</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="applicants" className="mt-6">
+          <JobApplicantsView applicants={job.applicants} />
+        </TabsContent>
+
+        <TabsContent value="job-details" className="mt-6">
+          <JobDetailsReview job={job} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
