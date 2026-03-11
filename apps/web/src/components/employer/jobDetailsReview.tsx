@@ -45,9 +45,28 @@ function formatSalary(
 ): string {
   if (currency === 'none') return 'Not specified';
   const symbol = CURRENCY_SYMBOLS[currency];
-  const fmtMin = Number(min).toLocaleString();
-  const fmtMax = Number(max).toLocaleString();
-  return `${symbol}${fmtMin} - ${symbol}${fmtMax} ${currency.toUpperCase()}`;
+  const minNum = Number(min);
+  const maxNum = Number(max);
+  const hasMin = !Number.isNaN(minNum);
+  const hasMax = !Number.isNaN(maxNum);
+
+  if (!hasMin && !hasMax) {
+    return 'Not specified';
+  }
+
+  if (hasMin && hasMax) {
+    const fmtMin = minNum.toLocaleString();
+    const fmtMax = maxNum.toLocaleString();
+    return `${symbol}${fmtMin} - ${symbol}${fmtMax} ${currency.toUpperCase()}`;
+  }
+
+  if (hasMin) {
+    const fmtMin = minNum.toLocaleString();
+    return `From ${symbol}${fmtMin} ${currency.toUpperCase()}`;
+  }
+
+  const fmtMax = maxNum.toLocaleString();
+  return `Up to ${symbol}${fmtMax} ${currency.toUpperCase()}`;
 }
 
 function formatDate(dateStr: string): string {
