@@ -1,5 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, s3Config } from '../../lib/s3';
 import { randomUUID } from 'crypto';
@@ -25,7 +29,7 @@ export class S3Service {
   async generatePresignedUploadUrl(
     fileName: string,
     fileType: string,
-    folder: S3Folder = S3Folder.RESUMES,
+    folder: S3Folder = S3Folder.RESUMES
   ): Promise<PresignedUploadUrl> {
     // Validate file type
     this.validateFileType(fileType, folder);
@@ -54,9 +58,47 @@ export class S3Service {
     return {
       uploadUrl,
       fileKey,
-      publicUrl, 
+      publicUrl,
       expiresIn: s3Config.uploadExpiry,
     };
+  }
+
+  /**
+   * 🗑️ DELETE - Remove file from S3
+   *
+   * Use case:
+   * - User updates resume → delete old file before uploading new one
+   * - User removes avatar → delete from S3
+   * - Clean up unused files
+   *
+   * @param fileKey - S3 key (e.g., "resumes/uuid.pdf")
+   */
+  async deleteFile(
+    fileKey: string
+  ): Promise<{ success: boolean; message: string }> {
+    if (!fileKey || fileKey.trim().length === 0) {
+      throw new BadRequestException('File key is required');
+    }
+
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: s3Config.bucketName,
+        Key: fileKey,
+      });
+
+      await s3Client.send(command);
+
+      return {
+        success: true,
+        message: `File "${fileKey}" deleted successfully`,
+      };
+    } catch (error: any) {
+      throw new NotFoundException(
+        `Failed to delete file "${fileKey}". Error: ${
+          error?.message || 'Unknown error'
+        }`
+      );
+    }
   }
 
   private validateFileType(fileType: string, folder: S3Folder): void {

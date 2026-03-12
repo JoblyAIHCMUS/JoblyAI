@@ -1,4 +1,3 @@
-
 export interface PresignedUploadUrl {
   uploadUrl: string; // URL for frontend to upload file directly to S3
   fileKey: string; // Key of file in S3 ("resumes/abc-123.pdf")
