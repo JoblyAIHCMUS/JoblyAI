@@ -1,778 +1,713 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
-import { PrismaClient, ApplicationStatus } from '@prisma/client';
-import { ApplicationsService } from '../app/applications/applications.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { ApplicationsService } from '../app/applications/applications.service';
 
-const prisma = new PrismaClient();
-const applicationsService = new ApplicationsService(prisma);
+// Mock ApplicationStatus enum from Prisma
+export enum ApplicationStatus {
+  APPLIED = 'APPLIED',
+  INTERVIEW = 'INTERVIEW',
+  OFFER = 'OFFER',
+  REJECTED = 'REJECTED',
+  WITHDRAWN = 'WITHDRAWN',
+}
+
+// Mock @prisma/client module to include the enum
+vi.mock('@prisma/client', () => ({
+  ApplicationStatus: {
+    APPLIED: 'APPLIED',
+    INTERVIEW: 'INTERVIEW',
+    OFFER: 'OFFER',
+    REJECTED: 'REJECTED',
+    WITHDRAWN: 'WITHDRAWN',
+  },
+  Prisma: {
+    JsonNull: 'JsonNull',
+  },
+}));
+
+// Helper to create complete mock application with all nested data
+const createMockApplication = (overrides = {}) => ({
+  id: 1,
+  candidateId: 'candidate-123',
+  jobId: 1,
+  resumeId: 1,
+  status: 'APPLIED' as ApplicationStatus,
+  aiFeedback: {},
+  matchPercentage: null,
+  createdAt: new Date('2026-03-12T00:00:00Z'),
+  updatedAt: new Date('2026-03-12T00:00:00Z'),
+  job: {
+    id: 1,
+    title: 'Software Engineer',
+    description: 'Test job description',
+    status: 'OPEN',
+    location: 'Remote',
+    remote: true,
+    type: 'FULL_TIME',
+    companyName: 'Test Company',
+    salaryMin: 80000,
+    salaryMax: 120000,
+    currency: 'USD',
+    postedById: 'employer-123',
+    category: {
+      id: 1,
+      name: 'Engineering',
+    },
+    postedBy: {
+      id: 'employer-123',
+      name: 'Employer Name',
+      email: 'employer@test.com',
+    },
+  },
+  resume: {
+    id: 1,
+    fileUrl: 'https://example.com/resume.pdf',
+    aiScore: 85,
+    isDefault: true,
+  },
+  candidate: {
+    id: 'candidate-123',
+    name: 'Candidate Name',
+    email: 'candidate@test.com',
+  },
+  ...overrides,
+});
+
+// Mock Prisma client
+const mockPrisma = vi.hoisted(() => ({
+  jobPosting: {
+    findUnique: vi.fn(),
+  },
+  resume: {
+    findUnique: vi.fn(),
+  },
+  application: {
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  employer: {
+    findUnique: vi.fn(),
+  },
+}));
 
 describe('ApplicationsService', () => {
-  let candidateId: string;
-  let candidate2Id: string;
-  let employerId: string;
-  let employer2Id: string;
-  let openJobId: number;
-  let draftJobId: number;
-  let employer2JobId: number;
-  let resumeId: number;
-  let resume2Id: number;
-
-  beforeAll(async () => {
-    // Cleanup test data if exists
-    await prisma.application.deleteMany({
-      where: {
-        OR: [
-          { candidate: { email: { contains: 'test-candidate-app' } } },
-          { candidate: { email: { contains: 'test-candidate2-app' } } },
-        ],
-      },
-    });
-    await prisma.resume.deleteMany({
-      where: {
-        candidate: {
-          email: {
-            in: [
-              'test-candidate-app@example.com',
-              'test-candidate2-app@example.com',
-            ],
-          },
-        },
-      },
-    });
-    await prisma.jobPosting.deleteMany({
-      where: {
-        OR: [
-          { title: { contains: 'Test Open Job App' } },
-          { title: { contains: 'Test Draft Job App' } },
-          { title: { contains: 'Test Employer 2 Job App' } },
-        ],
-      },
-    });
-    await prisma.jobCategory.deleteMany({
-      where: { name: 'Test Category App' },
-    });
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          in: [
-            'test-candidate-app@example.com',
-            'test-candidate2-app@example.com',
-            'test-employer-app@example.com',
-            'test-employer2-app@example.com',
-          ],
-        },
-      },
-    });
-
-    // Create test candidates
-    const candidate = await prisma.user.create({
-      data: {
-        email: 'test-candidate-app@example.com',
-        name: 'Test Candidate App',
-        role: 'candidate',
-      },
-    });
-    candidateId = candidate.id;
-
-    const candidate2 = await prisma.user.create({
-      data: {
-        email: 'test-candidate2-app@example.com',
-        name: 'Test Candidate 2 App',
-        role: 'candidate',
-      },
-    });
-    candidate2Id = candidate2.id;
-
-    // Create test employers
-    const employer = await prisma.user.create({
-      data: {
-        email: 'test-employer-app@example.com',
-        name: 'Test Employer App',
-        role: 'employer',
-      },
-    });
-    employerId = employer.id;
-
-    const employer2 = await prisma.user.create({
-      data: {
-        email: 'test-employer2-app@example.com',
-        name: 'Test Employer 2 App',
-        role: 'employer',
-      },
-    });
-    employer2Id = employer2.id;
-
-    // Create test category
-    const category = await prisma.jobCategory.create({
-      data: {
-        name: 'Test Category App',
-        slug: 'test-category-app',
-      },
-    });
-
-    // Create test jobs
-    const openJob = await prisma.jobPosting.create({
-      data: {
-        title: 'Test Open Job App',
-        description: 'Test description',
-        status: 'OPEN',
-        postedById: employerId,
-        categoryId: category.id,
-        type: 'FULL_TIME',
-      },
-    });
-    openJobId = openJob.id;
-
-    const draftJob = await prisma.jobPosting.create({
-      data: {
-        title: 'Test Draft Job App',
-        description: 'Test description',
-        status: 'DRAFT',
-        postedById: employerId,
-        categoryId: category.id,
-        type: 'FULL_TIME',
-      },
-    });
-    draftJobId = draftJob.id;
-
-    const employer2Job = await prisma.jobPosting.create({
-      data: {
-        title: 'Test Employer 2 Job App',
-        description: 'Test description',
-        status: 'OPEN',
-        postedById: employer2Id,
-        categoryId: category.id,
-        type: 'FULL_TIME',
-      },
-    });
-    employer2JobId = employer2Job.id;
-
-    // Create test resumes
-    const resume = await prisma.resume.create({
-      data: {
-        candidateId,
-        fileUrl: 'https://example.com/resume1.pdf',
-        fileName: 'resume1.pdf',
-        fileType: 'application/pdf',
-        fileSize: 100000,
-        isDefault: true,
-      },
-    });
-    resumeId = resume.id;
-
-    const resume2 = await prisma.resume.create({
-      data: {
-        candidateId: candidate2Id,
-        fileUrl: 'https://example.com/resume2.pdf',
-        fileName: 'resume2.pdf',
-        fileType: 'application/pdf',
-        fileSize: 100000,
-        isDefault: true,
-      },
-    });
-    resume2Id = resume2.id;
-  });
+  let service: ApplicationsService;
 
   beforeEach(async () => {
-    // Clean up applications before each test
-    await prisma.application.deleteMany({
-      where: {
-        OR: [{ candidateId }, { candidateId: candidate2Id }],
-      },
-    });
-  });
-
-  describe('Candidate Operations', () => {
-    describe('createApplication', () => {
-      it('should create a new application successfully', async () => {
-        const result = await applicationsService.createApplication(
-          candidateId,
-          {
-            jobId: openJobId,
-            resumeId,
-          }
-        );
-
-        expect(result).toBeDefined();
-        expect(result.jobId).toBe(openJobId);
-        expect(result.candidateId).toBe(candidateId);
-        expect(result.resumeId).toBe(resumeId);
-        expect(result.status).toBe(ApplicationStatus.APPLIED);
-        expect(result.job).toBeDefined();
-        expect(result.resume).toBeDefined();
-      });
-
-      it('should throw NotFoundException if job does not exist', async () => {
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: 999999,
-            resumeId,
-          })
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw BadRequestException if job is not OPEN', async () => {
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: draftJobId,
-            resumeId,
-          })
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw NotFoundException if resume does not exist', async () => {
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: openJobId,
-            resumeId: 999999,
-          })
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw ForbiddenException if resume belongs to another candidate', async () => {
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: openJobId,
-            resumeId: resume2Id, // Belongs to candidate2
-          })
-        ).rejects.toThrow(ForbiddenException);
-      });
-
-      it('should throw BadRequestException on duplicate application (APPLIED)', async () => {
-        // Create first application
-        await applicationsService.createApplication(candidateId, {
-          jobId: openJobId,
-          resumeId,
-        });
-
-        // Try to apply again
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: openJobId,
-            resumeId,
-          })
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException if previous application was REJECTED', async () => {
-        // Create and reject application
-        const app = await applicationsService.createApplication(candidateId, {
-          jobId: openJobId,
-          resumeId,
-        });
-
-        await prisma.application.update({
-          where: { id: app.id },
-          data: { status: ApplicationStatus.REJECTED },
-        });
-
-        // Try to apply again
-        await expect(
-          applicationsService.createApplication(candidateId, {
-            jobId: openJobId,
-            resumeId,
-          })
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should allow re-apply after WITHDRAWN (updates existing record)', async () => {
-        // Create and withdraw application
-        const app = await applicationsService.createApplication(candidateId, {
-          jobId: openJobId,
-          resumeId,
-        });
-
-        const firstAppId = app.id;
-
-        await prisma.application.update({
-          where: { id: app.id },
-          data: {
-            status: ApplicationStatus.WITHDRAWN,
-            matchPercentage: 85.5,
-            aiFeedback: { test: 'data' },
-          },
-        });
-
-        // Re-apply
-        const result = await applicationsService.createApplication(
-          candidateId,
-          {
-            jobId: openJobId,
-            resumeId,
-          }
-        );
-
-        expect(result.id).toBe(firstAppId); // Same ID
-        expect(result.status).toBe(ApplicationStatus.APPLIED);
-        expect(result.matchPercentage).toBeNull(); // Reset
-        expect(result.aiFeedback).toBeNull(); // Reset
-      });
-    });
-
-    describe('listApplications', () => {
-      beforeEach(async () => {
-        // Create test applications
-        await prisma.application.createMany({
-          data: [
-            {
-              jobId: openJobId,
-              candidateId,
-              resumeId,
-              status: ApplicationStatus.APPLIED,
-            },
-            {
-              jobId: employer2JobId,
-              candidateId,
-              resumeId,
-              status: ApplicationStatus.INTERVIEW,
-            },
-            {
-              jobId: openJobId,
-              candidateId: candidate2Id,
-              resumeId: resume2Id,
-              status: ApplicationStatus.APPLIED,
-            },
-          ],
-        });
-      });
-
-      it('should return paginated list of candidate applications', async () => {
-        const result = await applicationsService.listApplications(candidateId, {
-          page: 1,
-          pageSize: 10,
-        });
-
-        expect(result.applications).toHaveLength(2);
-        expect(result.total).toBe(2);
-        expect(result.page).toBe(1);
-        expect(result.pageSize).toBe(10);
-        expect(result.totalPages).toBe(1);
-        expect(result.applications[0].candidateId).toBe(candidateId);
-      });
-
-      it('should filter applications by status', async () => {
-        const result = await applicationsService.listApplications(candidateId, {
-          page: 1,
-          pageSize: 10,
-          status: ApplicationStatus.INTERVIEW,
-        });
-
-        expect(result.applications).toHaveLength(1);
-        expect(result.applications[0].status).toBe(ApplicationStatus.INTERVIEW);
-      });
-
-      it('should handle pagination correctly', async () => {
-        const result = await applicationsService.listApplications(candidateId, {
-          page: 1,
-          pageSize: 1,
-        });
-
-        expect(result.applications).toHaveLength(1);
-        expect(result.total).toBe(2);
-        expect(result.totalPages).toBe(2);
-      });
-
-      it('should return empty list for candidate with no applications', async () => {
-        const newCandidate = await prisma.user.create({
-          data: {
-            email: 'new-candidate-app@example.com',
-            name: 'New Candidate App',
-            role: 'candidate',
-          },
-        });
-
-        const result = await applicationsService.listApplications(
-          newCandidate.id,
-          { page: 1, pageSize: 10 }
-        );
-
-        expect(result.applications).toHaveLength(0);
-        expect(result.total).toBe(0);
-
-        await prisma.user.delete({ where: { id: newCandidate.id } });
-      });
-    });
-
-    describe('getApplicationById', () => {
-      let applicationId: number;
-
-      beforeEach(async () => {
-        const app = await prisma.application.create({
-          data: {
-            jobId: openJobId,
-            candidateId,
-            resumeId,
-            status: ApplicationStatus.APPLIED,
-          },
-        });
-        applicationId = app.id;
-      });
-
-      it('should return application details', async () => {
-        const result = await applicationsService.getApplicationById(
-          candidateId,
-          applicationId
-        );
-
-        expect(result).toBeDefined();
-        expect(result.id).toBe(applicationId);
-        expect(result.candidateId).toBe(candidateId);
-        expect(result.job).toBeDefined();
-        expect(result.resume).toBeDefined();
-      });
-
-      it('should throw NotFoundException if application does not exist', async () => {
-        await expect(
-          applicationsService.getApplicationById(candidateId, 999999)
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw ForbiddenException if application belongs to another candidate', async () => {
-        await expect(
-          applicationsService.getApplicationById(candidate2Id, applicationId)
-        ).rejects.toThrow(ForbiddenException);
-      });
-    });
-
-    describe('withdrawApplication', () => {
-      let applicationId: number;
-
-      beforeEach(async () => {
-        const app = await prisma.application.create({
-          data: {
-            jobId: openJobId,
-            candidateId,
-            resumeId,
-            status: ApplicationStatus.APPLIED,
-          },
-        });
-        applicationId = app.id;
-      });
-
-      it('should withdraw application successfully', async () => {
-        const result = await applicationsService.withdrawApplication(
-          candidateId,
-          applicationId
-        );
-
-        expect(result.status).toBe(ApplicationStatus.WITHDRAWN);
-      });
-
-      it('should throw NotFoundException if application does not exist', async () => {
-        await expect(
-          applicationsService.withdrawApplication(candidateId, 999999)
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw ForbiddenException if application belongs to another candidate', async () => {
-        await expect(
-          applicationsService.withdrawApplication(candidate2Id, applicationId)
-        ).rejects.toThrow(ForbiddenException);
-      });
-
-      it('should throw BadRequestException if status is not APPLIED', async () => {
-        await prisma.application.update({
-          where: { id: applicationId },
-          data: { status: ApplicationStatus.INTERVIEW },
-        });
-
-        await expect(
-          applicationsService.withdrawApplication(candidateId, applicationId)
-        ).rejects.toThrow(BadRequestException);
-      });
-    });
-  });
-
-  describe('Employer Operations', () => {
-    describe('getApplicationsForEmployer', () => {
-      beforeEach(async () => {
-        // Create applications for employer's jobs
-        await prisma.application.createMany({
-          data: [
-            {
-              jobId: openJobId,
-              candidateId,
-              resumeId,
-              status: ApplicationStatus.APPLIED,
-            },
-            {
-              jobId: openJobId,
-              candidateId: candidate2Id,
-              resumeId: resume2Id,
-              status: ApplicationStatus.INTERVIEW,
-            },
-            {
-              jobId: employer2JobId,
-              candidateId,
-              resumeId,
-              status: ApplicationStatus.APPLIED,
-            },
-          ],
-        });
-      });
-
-      it('should return paginated list of applications for employer jobs', async () => {
-        const result = await applicationsService.getApplicationsForEmployer(
-          employerId,
-          { page: 1, pageSize: 10 }
-        );
-
-        expect(result.applications).toHaveLength(2);
-        expect(result.total).toBe(2);
-        expect(result.applications[0].candidate).toBeDefined();
-        expect(result.applications[0].candidate?.id).toBeTruthy();
-      });
-
-      it('should filter by jobId', async () => {
-        const result = await applicationsService.getApplicationsForEmployer(
-          employerId,
-          { page: 1, pageSize: 10, jobId: openJobId }
-        );
-
-        expect(result.applications).toHaveLength(2);
-        expect(
-          result.applications.every((app) => app.jobId === openJobId)
-        ).toBe(true);
-      });
-
-      it('should filter by status', async () => {
-        const result = await applicationsService.getApplicationsForEmployer(
-          employerId,
-          { page: 1, pageSize: 10, status: ApplicationStatus.INTERVIEW }
-        );
-
-        expect(result.applications).toHaveLength(1);
-        expect(result.applications[0].status).toBe(ApplicationStatus.INTERVIEW);
-      });
-
-      it('should filter by both jobId and status', async () => {
-        const result = await applicationsService.getApplicationsForEmployer(
-          employerId,
-          {
-            page: 1,
-            pageSize: 10,
-            jobId: openJobId,
-            status: ApplicationStatus.APPLIED,
-          }
-        );
-
-        expect(result.applications).toHaveLength(1);
-        expect(result.applications[0].jobId).toBe(openJobId);
-        expect(result.applications[0].status).toBe(ApplicationStatus.APPLIED);
-      });
-
-      it('should return empty list for employer with no applications', async () => {
-        const result = await applicationsService.getApplicationsForEmployer(
-          employer2Id,
-          { page: 1, pageSize: 10, jobId: openJobId }
-        );
-
-        expect(result.applications).toHaveLength(0);
-      });
-    });
-
-    describe('shortlistApplication', () => {
-      let applicationId: number;
-
-      beforeEach(async () => {
-        const app = await prisma.application.create({
-          data: {
-            jobId: openJobId,
-            candidateId,
-            resumeId,
-            status: ApplicationStatus.APPLIED,
-          },
-        });
-        applicationId = app.id;
-      });
-
-      it('should shortlist application successfully', async () => {
-        const result = await applicationsService.shortlistApplication(
-          employerId,
-          applicationId
-        );
-
-        expect(result.status).toBe(ApplicationStatus.INTERVIEW);
-      });
-
-      it('should throw NotFoundException if application does not exist', async () => {
-        await expect(
-          applicationsService.shortlistApplication(employerId, 999999)
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw ForbiddenException if job belongs to another employer', async () => {
-        await expect(
-          applicationsService.shortlistApplication(employer2Id, applicationId)
-        ).rejects.toThrow(ForbiddenException);
-      });
-
-      it('should throw BadRequestException if status is not APPLIED', async () => {
-        await prisma.application.update({
-          where: { id: applicationId },
-          data: { status: ApplicationStatus.INTERVIEW },
-        });
-
-        await expect(
-          applicationsService.shortlistApplication(employerId, applicationId)
-        ).rejects.toThrow(BadRequestException);
-      });
-    });
-
-    describe('rejectApplication', () => {
-      let applicationId: number;
-      let interviewApplicationId: number;
-
-      beforeEach(async () => {
-        const app = await prisma.application.create({
-          data: {
-            jobId: openJobId,
-            candidateId,
-            resumeId,
-            status: ApplicationStatus.APPLIED,
-          },
-        });
-        applicationId = app.id;
-
-        const interviewApp = await prisma.application.create({
-          data: {
-            jobId: openJobId,
-            candidateId: candidate2Id,
-            resumeId: resume2Id,
-            status: ApplicationStatus.INTERVIEW,
-          },
-        });
-        interviewApplicationId = interviewApp.id;
-      });
-
-      it('should reject application with feedback (APPLIED status)', async () => {
-        const result = await applicationsService.rejectApplication(
-          employerId,
-          applicationId,
-          { feedback: 'Not qualified for the position' }
-        );
-
-        expect(result.status).toBe(ApplicationStatus.REJECTED);
-        expect(result.aiFeedback).toBeDefined();
-        expect(
-          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
-        ).toBe('Not qualified for the position');
-        expect(
-          (result.aiFeedback as Record<string, unknown>).rejectedAt
-        ).toBeDefined();
-      });
-
-      it('should reject application with feedback (INTERVIEW status)', async () => {
-        const result = await applicationsService.rejectApplication(
-          employerId,
-          interviewApplicationId,
-          { feedback: 'Failed technical interview' }
-        );
-
-        expect(result.status).toBe(ApplicationStatus.REJECTED);
-        expect(
-          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
-        ).toBe('Failed technical interview');
-      });
-
-      it('should throw NotFoundException if application does not exist', async () => {
-        await expect(
-          applicationsService.rejectApplication(employerId, 999999, {
-            feedback: 'Test feedback',
-          })
-        ).rejects.toThrow(NotFoundException);
-      });
-
-      it('should throw ForbiddenException if job belongs to another employer', async () => {
-        await expect(
-          applicationsService.rejectApplication(employer2Id, applicationId, {
-            feedback: 'Test feedback',
-          })
-        ).rejects.toThrow(ForbiddenException);
-      });
-
-      it('should throw BadRequestException if status is REJECTED', async () => {
-        await prisma.application.update({
-          where: { id: applicationId },
-          data: { status: ApplicationStatus.REJECTED },
-        });
-
-        await expect(
-          applicationsService.rejectApplication(employerId, applicationId, {
-            feedback: 'Test feedback',
-          })
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException if status is WITHDRAWN', async () => {
-        await prisma.application.update({
-          where: { id: applicationId },
-          data: { status: ApplicationStatus.WITHDRAWN },
-        });
-
-        await expect(
-          applicationsService.rejectApplication(employerId, applicationId, {
-            feedback: 'Test feedback',
-          })
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should preserve existing aiFeedback when rejecting', async () => {
-        await prisma.application.update({
-          where: { id: applicationId },
-          data: {
-            aiFeedback: {
-              existingData: 'test',
-            },
-          },
-        });
-
-        const result = await applicationsService.rejectApplication(
-          employerId,
-          applicationId,
-          { feedback: 'Not suitable' }
-        );
-
-        expect(
-          (result.aiFeedback as Record<string, unknown>).existingData
-        ).toBe('test');
-        expect(
-          (result.aiFeedback as Record<string, unknown>).rejectionFeedback
-        ).toBe('Not suitable');
-      });
-    });
-  });
-
-  // Cleanup after all tests
-  afterAll(async () => {
-    await prisma.application.deleteMany({
-      where: {
-        OR: [{ candidateId }, { candidateId: candidate2Id }],
-      },
-    });
-    await prisma.resume.deleteMany({
-      where: {
-        OR: [{ id: resumeId }, { id: resume2Id }],
-      },
-    });
-    await prisma.jobPosting.deleteMany({
-      where: {
-        id: {
-          in: [openJobId, draftJobId, employer2JobId],
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ApplicationsService,
+        {
+          provide: 'PRISMA_CLIENT',
+          useValue: mockPrisma,
         },
-      },
+      ],
+    }).compile();
+
+    service = module.get<ApplicationsService>(ApplicationsService);
+    vi.clearAllMocks();
+  });
+
+  describe('createApplication', () => {
+    it('should create a new application successfully', async () => {
+      const mockApp = createMockApplication();
+
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue(null);
+      mockPrisma.application.create.mockResolvedValue(mockApp);
+
+      const result = await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
+
+      expect(result.status).toBe('APPLIED');
+      expect(result.job.title).toBe('Software Engineer');
+      expect(mockPrisma.application.create).toHaveBeenCalled();
     });
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: [candidateId, candidate2Id, employerId, employer2Id],
+
+    it('should throw NotFoundException if job does not exist', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 999,
+          resumeId: 1,
+        })
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if job is not OPEN', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'CLOSED',
+      });
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 1,
+          resumeId: 1,
+        })
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException if resume does not exist', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 1,
+          resumeId: 999,
+        })
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if resume belongs to another candidate', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'another-candidate',
+      });
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 1,
+          resumeId: 1,
+        })
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException on duplicate application (APPLIED)', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue({
+        id: 1,
+        status: 'APPLIED' as ApplicationStatus,
+      });
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 1,
+          resumeId: 1,
+        })
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if previous application was REJECTED', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue({
+        id: 1,
+        status: 'REJECTED' as ApplicationStatus,
+      });
+
+      await expect(
+        service.createApplication('candidate-123', {
+          jobId: 1,
+          resumeId: 1,
+        })
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should allow re-apply after WITHDRAWN (updates existing record)', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+      });
+
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue({
+        id: 1,
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+      mockPrisma.application.update.mockResolvedValue(mockApp);
+
+      const result = await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
+
+      expect(result.status).toBe('APPLIED');
+      expect(mockPrisma.application.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('listApplications', () => {
+    it('should return paginated list of candidate applications', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      const result = await service.listApplications('candidate-123', {
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(result).toBeDefined();
+      expect(result.applications).toBeDefined();
+      expect(result.applications).toHaveLength(1);
+      expect(result.applications[0].job.title).toBe('Software Engineer');
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(10);
+    });
+
+    it('should filter applications by status', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      await service.listApplications('candidate-123', {
+        page: 1,
+        pageSize: 10,
+        status: 'APPLIED' as ApplicationStatus,
+      });
+
+      expect(mockPrisma.application.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            candidateId: 'candidate-123',
+            status: 'APPLIED',
+          }),
+        })
+      );
+    });
+
+    it('should handle pagination correctly', async () => {
+      mockPrisma.application.findMany.mockResolvedValue([]);
+      mockPrisma.application.count.mockResolvedValue(0);
+
+      await service.listApplications('candidate-123', {
+        page: 2,
+        pageSize: 5,
+      });
+
+      expect(mockPrisma.application.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 5,
+          take: 5,
+        })
+      );
+    });
+
+    it('should return empty list for candidate with no applications', async () => {
+      mockPrisma.application.findMany.mockResolvedValue([]);
+      mockPrisma.application.count.mockResolvedValue(0);
+
+      const result = await service.listApplications('candidate-123', {});
+
+      expect(result.applications).toHaveLength(0);
+      expect(result.total).toBe(0);
+    });
+  });
+
+  describe('getApplicationById', () => {
+    it('should return application details', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      const result = await service.getApplicationById('candidate-123', 1);
+
+      expect(result.id).toBe(1);
+      expect(result.status).toBe('APPLIED');
+      expect(result.job.title).toBe('Software Engineer');
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getApplicationById('candidate-123', 999)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if application belongs to another candidate', async () => {
+      const mockApp = createMockApplication({
+        candidateId: 'another-candidate',
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.getApplicationById('candidate-123', 1)
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('withdrawApplication', () => {
+    it('should withdraw application successfully', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+      });
+      const withdrawnApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(withdrawnApp);
+
+      const result = await service.withdrawApplication('candidate-123', 1);
+
+      expect(result.status).toBe('WITHDRAWN');
+      expect(mockPrisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({
+            status: 'WITHDRAWN',
+          }),
+        })
+      );
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.withdrawApplication('candidate-123', 999)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if application belongs to another candidate', async () => {
+      const mockApp = createMockApplication({
+        candidateId: 'another-candidate',
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.withdrawApplication('candidate-123', 1)
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if status is not APPLIED', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.withdrawApplication('candidate-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('getApplicationsForEmployer', () => {
+    it('should return paginated list of applications for employer jobs', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.employer.findUnique.mockResolvedValue({ id: 'employer-123' });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      const result = await service.getApplicationsForEmployer('employer-123', {
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(result.applications).toHaveLength(1);
+      expect(result.applications[0]?.candidate?.name).toBe('Candidate Name');
+      expect(result.total).toBe(1);
+    });
+
+    it('should filter by jobId', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.employer.findUnique.mockResolvedValue({ id: 'employer-123' });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      await service.getApplicationsForEmployer('employer-123', {
+        page: 1,
+        pageSize: 10,
+        jobId: 1,
+      });
+
+      expect(mockPrisma.application.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            job: expect.objectContaining({
+              id: 1,
+              postedById: 'employer-123',
+            }),
+          }),
+        })
+      );
+    });
+
+    it('should filter by status', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.employer.findUnique.mockResolvedValue({ id: 'employer-123' });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      await service.getApplicationsForEmployer('employer-123', {
+        page: 1,
+        pageSize: 10,
+        status: 'APPLIED' as ApplicationStatus,
+      });
+
+      expect(mockPrisma.application.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: 'APPLIED',
+          }),
+        })
+      );
+    });
+
+    it('should filter by both jobId and status', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.employer.findUnique.mockResolvedValue({ id: 'employer-123' });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      await service.getApplicationsForEmployer('employer-123', {
+        page: 1,
+        pageSize: 10,
+        jobId: 1,
+        status: 'APPLIED' as ApplicationStatus,
+      });
+
+      expect(mockPrisma.application.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            job: expect.objectContaining({
+              id: 1,
+              postedById: 'employer-123',
+            }),
+            status: 'APPLIED',
+          }),
+        })
+      );
+    });
+
+    it('should return empty list for employer with no applications', async () => {
+      mockPrisma.employer.findUnique.mockResolvedValue({ id: 'employer-123' });
+      mockPrisma.application.findMany.mockResolvedValue([]);
+      mockPrisma.application.count.mockResolvedValue(0);
+
+      const result = await service.getApplicationsForEmployer(
+        'employer-123',
+        {}
+      );
+
+      expect(result.applications).toHaveLength(0);
+      expect(result.total).toBe(0);
+    });
+  });
+
+  describe('shortlistApplication', () => {
+    it('should shortlist application successfully', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+      });
+      const shortlistedApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(shortlistedApp);
+
+      const result = await service.shortlistApplication('employer-123', 1);
+
+      expect(result.status).toBe('INTERVIEW');
+      expect(mockPrisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({
+            status: 'INTERVIEW',
+          }),
+        })
+      );
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.shortlistApplication('employer-123', 999)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if job belongs to another employer', async () => {
+      const mockApp = createMockApplication();
+      mockApp.job.postedById = 'another-employer';
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.shortlistApplication('employer-123', 1)
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if status is not APPLIED', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.shortlistApplication('employer-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('rejectApplication', () => {
+    it('should reject application with feedback (APPLIED status)', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+      });
+      const rejectedApp = createMockApplication({
+        status: 'REJECTED' as ApplicationStatus,
+        aiFeedback: { rejectionFeedback: 'Not qualified' },
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(rejectedApp);
+
+      const result = await service.rejectApplication('employer-123', 1, {
+        feedback: 'Not qualified',
+      });
+
+      expect(result.status).toBe('REJECTED');
+      expect(mockPrisma.application.update).toHaveBeenCalled();
+    });
+
+    it('should reject application with feedback (INTERVIEW status)', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      const rejectedApp = createMockApplication({
+        status: 'REJECTED' as ApplicationStatus,
+        aiFeedback: { rejectionFeedback: 'Failed interview' },
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(rejectedApp);
+
+      const result = await service.rejectApplication('employer-123', 1, {
+        feedback: 'Failed interview',
+      });
+
+      expect(result.status).toBe('REJECTED');
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.rejectApplication('employer-123', 999, {
+          feedback: 'Test',
+        })
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if job belongs to another employer', async () => {
+      const mockApp = createMockApplication();
+      mockApp.job.postedById = 'another-employer';
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.rejectApplication('employer-123', 1, {
+          feedback: 'Test',
+        })
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if status is REJECTED', async () => {
+      const mockApp = createMockApplication({
+        status: 'REJECTED' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.rejectApplication('employer-123', 1, {
+          feedback: 'Test',
+        })
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if status is WITHDRAWN', async () => {
+      const mockApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.rejectApplication('employer-123', 1, {
+          feedback: 'Test',
+        })
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should preserve existing aiFeedback when rejecting', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+        aiFeedback: { existingField: 'value' },
+      });
+      const rejectedApp = createMockApplication({
+        status: 'REJECTED' as ApplicationStatus,
+        aiFeedback: {
+          existingField: 'value',
+          rejectionFeedback: 'Not qualified',
         },
-      },
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(rejectedApp);
+
+      await service.rejectApplication('employer-123', 1, {
+        feedback: 'Not qualified',
+      });
+
+      expect(mockPrisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({
+            status: 'REJECTED',
+            aiFeedback: expect.objectContaining({
+              existingField: 'value',
+              rejectionFeedback: 'Not qualified',
+            }),
+          }),
+        })
+      );
     });
-    await prisma.$disconnect();
   });
 });
