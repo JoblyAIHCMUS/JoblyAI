@@ -23,7 +23,7 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 
-import { type Applicant } from '@/features/employer/job-listing/detail/data';
+import { type AllApplication } from '@/features/employer/all-applications/data';
 import {
   type HiringStage,
   hiringStageStyles,
@@ -33,7 +33,7 @@ import {
 
 export { nextStageMap };
 
-export const columns: ColumnDef<Applicant>[] = [
+export const columns: ColumnDef<AllApplication>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -94,6 +94,20 @@ export const columns: ColumnDef<Applicant>[] = [
         {row.getValue('name')}
       </Link>
     ),
+  },
+  {
+    accessorKey: 'appliedRole',
+    meta: { className: 'text-center' },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Applied Role
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => row.getValue<string>('appliedRole'),
   },
   {
     accessorKey: 'appliedDate',
@@ -157,8 +171,8 @@ export const columns: ColumnDef<Applicant>[] = [
     id: 'actions',
     meta: { className: 'text-center' },
     cell: ({ row, table }) => {
-      const applicant = row.original;
-      const nextStage = nextStageMap[applicant.hiringStage];
+      const application = row.original;
+      const nextStage = nextStageMap[application.hiringStage];
 
       return (
         <DropdownMenu>
@@ -170,7 +184,7 @@ export const columns: ColumnDef<Applicant>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/employer/all-applications/${applicant.id}`}>
+              <Link href={`/employer/all-applications/${application.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
@@ -181,7 +195,7 @@ export const columns: ColumnDef<Applicant>[] = [
                   const meta = table.options.meta as {
                     advanceApplicant?: (id: string) => void;
                   };
-                  meta.advanceApplicant?.(applicant.id);
+                  meta.advanceApplicant?.(application.id);
                 }}
               >
                 <ChevronRight className="mr-2 h-4 w-4" />
@@ -195,7 +209,7 @@ export const columns: ColumnDef<Applicant>[] = [
                 const meta = table.options.meta as {
                   declineApplicant?: (id: string) => void;
                 };
-                meta.declineApplicant?.(applicant.id);
+                meta.declineApplicant?.(application.id);
               }}
             >
               <XCircle className="mr-2 h-4 w-4" />
@@ -208,21 +222,21 @@ export const columns: ColumnDef<Applicant>[] = [
   },
 ];
 
-interface JobApplicantsTableProps {
-  applicants: Applicant[];
+interface AllApplicationsTableProps {
+  applications: AllApplication[];
   advanceApplicant: (id: string) => void;
   declineApplicant: (id: string) => void;
 }
 
-export default function JobApplicantsTable({
-  applicants,
+export default function AllApplicationsTable({
+  applications,
   advanceApplicant,
   declineApplicant,
-}: JobApplicantsTableProps) {
+}: AllApplicationsTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={applicants}
+      data={applications}
       meta={{ advanceApplicant, declineApplicant }}
     />
   );
