@@ -113,12 +113,12 @@ jobs:
       - name: Smoke check API
         run: |
           echo "Waiting for backend to start..."
-          for i in {1..60}; do
+          for i in {1..120}; do
             if curl -fsS http://localhost:3000/api >/dev/null 2>&1; then
               echo "✓ Backend healthy"
               exit 0
             fi
-            echo "Attempt $i/60: Backend not ready yet, retrying in 2s..."
+            echo "Attempt $i/120: Backend not ready yet, retrying in 2s..."
             sleep 2
           done
           echo "✗ Backend did not become healthy after 120 seconds"

@@ -6,7 +6,7 @@ async function main() {
   console.log('Cleaning up existing data...');
 
   // Delete all data in reverse order of foreign key dependencies
-  await prisma.employerRole.deleteMany({});
+  await prisma.employer.deleteMany({});
   await prisma.company.deleteMany({});
   await prisma.jobRequirement.deleteMany({});
   await prisma.jobPosting.deleteMany({});
@@ -516,7 +516,7 @@ async function main() {
 
   // Assign Maria Kelly as HR in Nomad
   console.log('Creating employer role...');
-  await prisma.employerRole.create({
+  await prisma.employer.create({
     data: {
       companyId: nomad.id,
       employerId: maria.id,
