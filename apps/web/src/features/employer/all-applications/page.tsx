@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 
-import AllApplicationsTable, {
-  nextStageMap,
-} from '@/components/employer/allApplicationsTable';
+import AllApplicationsTable from '@/components/employer/allApplicationsTable';
+import { nextStageMap } from '@/features/employer/hiringStage';
 import {
   type AllApplication,
   allApplications as initialData,

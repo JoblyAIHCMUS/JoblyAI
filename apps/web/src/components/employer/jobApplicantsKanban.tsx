@@ -23,10 +23,8 @@ import {
   type KanbanBoardDropDirection,
 } from '@/components/ui/kanban';
 
-import {
-  type Applicant,
-  type HiringStage,
-} from '@/features/employer/job-listing/detail/data';
+import { type Applicant } from '@/features/employer/job-listing/detail/data';
+import { type HiringStage } from '@/features/employer/hiringStage';
 
 const HIRING_STAGE_COLUMNS: {
   stage: HiringStage;

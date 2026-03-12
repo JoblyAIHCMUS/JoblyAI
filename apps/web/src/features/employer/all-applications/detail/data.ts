@@ -1,7 +1,5 @@
-import {
-  type HiringStage,
-  type Category,
-} from '@/features/employer/job-listing/detail/data';
+import { type HiringStage } from '@/features/employer/hiringStage';
+import { type Category } from '@/features/employer/job-listing/detail/data';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
 
 export interface ApplicantDetail {

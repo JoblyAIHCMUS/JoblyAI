@@ -14,10 +14,8 @@ import {
   hiringStageProgress,
   hiringStageColor,
 } from '@/features/employer/all-applications/detail/data';
-import {
-  type HiringStage,
-  type Category,
-} from '@/features/employer/job-listing/detail/data';
+import { type Category } from '@/features/employer/job-listing/detail/data';
+import { hiringStageStyles } from '@/features/employer/hiringStage';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
 
 const categoryLabels: Record<Category, string> = {
@@ -38,14 +36,6 @@ const employmentTypeLabels: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
-};
-
-const hiringStageStyles: Record<HiringStage, string> = {
-  'In Review': 'border-blue-500 text-blue-600 bg-transparent',
-  Shortlisted: 'border-amber-500 text-amber-600 bg-transparent',
-  Interviewed: 'border-purple-500 text-purple-600 bg-transparent',
-  Hired: 'border-green-500 text-green-600 bg-transparent',
-  Declined: 'border-red-500 text-red-600 bg-transparent',
 };
 
 interface ApplicantOverviewProps {

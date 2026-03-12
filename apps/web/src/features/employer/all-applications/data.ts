@@ -1,4 +1,4 @@
-import { type HiringStage } from '@/features/employer/job-listing/detail/data';
+import { type HiringStage } from '@/features/employer/hiringStage';
 
 export interface AllApplication {
   id: string;
