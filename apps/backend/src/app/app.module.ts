@@ -14,7 +14,8 @@ import { EmployerModule } from './employer/employer.module';
   imports: [
     DatabaseModule,
     AuthModule,
-    JobsModule, ApplicationsModule,
+    JobsModule,
+    ApplicationsModule,
     CandidatesModule,
     EmployerModule,
     UserModule,
