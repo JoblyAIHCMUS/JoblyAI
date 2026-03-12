@@ -78,7 +78,9 @@ export default function CompaniesCategorySection() {
     updateScrollCues();
 
     const tabsElement = tabsContainerRef.current;
-    tabsElement?.addEventListener('scroll', updateScrollCues, { passive: true });
+    tabsElement?.addEventListener('scroll', updateScrollCues, {
+      passive: true,
+    });
     window.addEventListener('resize', updateScrollCues);
 
     return () => {
