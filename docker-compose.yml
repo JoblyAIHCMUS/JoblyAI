@@ -58,7 +58,8 @@ services:
         condition: service_healthy
     volumes:
       - ./apps/backend/scylladb/schema.cql:/schema.cql
-    command: cqlsh scylla -f /schema.cql
+    entrypoint: sh
+    command: ['-c', 'cqlsh scylla -f /schema.cql && exit 0']
     restart: on-failure
 
   # --- APPLICATIONS ---
