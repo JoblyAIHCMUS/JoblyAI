@@ -43,4 +43,10 @@ export class MessagesService {
             hasUnread,
         };
     }
+
+    async getChatListSummary(userId: string, friendIds: string[]): Promise<ChatStatusResponse[]> {
+        return await Promise.all(
+            friendIds.map(fId => this.getChatDetails(userId, fId))
+        );
+    }
 }
