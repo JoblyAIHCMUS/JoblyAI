@@ -32,7 +32,8 @@ const categories: Category[] = [
 
 export default function CompaniesCategorySection() {
   const { companies } = companyService.getCompaniesByCategory();
-  const [selectedCategory, setSelectedCategory] = useState<CompanyCategory>('design');
+  const [selectedCategory, setSelectedCategory] =
+    useState<CompanyCategory>('design');
 
   const filteredCompanies = useMemo(
     () => companies.filter((company) => company.category === selectedCategory),
@@ -40,7 +41,8 @@ export default function CompaniesCategorySection() {
   );
 
   const selectedCategoryName =
-    categories.find((category) => category.id === selectedCategory)?.name ?? 'Design';
+    categories.find((category) => category.id === selectedCategory)?.name ??
+    'Design';
 
   return (
     <section className="relative overflow-hidden bg-[color:var(--bg-accent-primary)] px-4 pb-16 pt-14 sm:px-6 lg:px-8 lg:pb-24 lg:pt-16">

@@ -2,7 +2,11 @@ import type { RecommendedCompany } from '@/types/recommendedCompany';
 import CategoryBadge from './CategoryBadge';
 import CompanyLogo from './CompanyLogo';
 
-export default function CompanyCard({ company }: { company: RecommendedCompany }) {
+export default function CompanyCard({
+  company,
+}: {
+  company: RecommendedCompany;
+}) {
   return (
     <article className="rounded-[10px] border border-slate-300 bg-white p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -16,7 +20,9 @@ export default function CompanyCard({ company }: { company: RecommendedCompany }
         {company.name}
       </h3>
 
-      <p className="mb-4 min-h-[96px] text-base leading-6 text-slate-600">{company.description}</p>
+      <p className="mb-4 min-h-[96px] text-base leading-6 text-slate-600">
+        {company.description}
+      </p>
 
       <div className="flex flex-wrap items-center gap-3">
         {company.tags.map((tag) => (
