@@ -1,7 +1,12 @@
 import type { RecommendedCompany } from '@/types/recommendedCompany';
 
-export default function CompanyLogo({ company }: { company: RecommendedCompany }) {
-  const roundedClassName = company.logo.rounded === 'square' ? 'rounded-none' : 'rounded-full';
+export default function CompanyLogo({
+  company,
+}: {
+  company: RecommendedCompany;
+}) {
+  const roundedClassName =
+    company.logo.rounded === 'square' ? 'rounded-none' : 'rounded-full';
 
   return (
     <div

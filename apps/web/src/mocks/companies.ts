@@ -1,4 +1,4 @@
-  import type { CompaniesByCategoryData } from '@/types/company';
+import type { CompaniesByCategoryData } from '@/types/company';
 
 export const COMPANIES_BY_CATEGORY_MOCK: CompaniesByCategoryData = {
   totalResults: 24,

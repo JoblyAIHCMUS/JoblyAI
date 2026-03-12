@@ -24,8 +24,12 @@ export default function CategoryTab({
           : 'border-slate-300 bg-white text-slate-900'
       }`}
     >
-      <Icon className={`mb-8 h-8 w-8 ${active ? 'text-white' : 'text-indigo-600'}`} />
-      <span className="block text-3xl font-semibold leading-8 tracking-tight">{name}</span>
+      <Icon
+        className={`mb-8 h-8 w-8 ${active ? 'text-white' : 'text-indigo-600'}`}
+      />
+      <span className="block text-3xl font-semibold leading-8 tracking-tight">
+        {name}
+      </span>
     </button>
   );
 }

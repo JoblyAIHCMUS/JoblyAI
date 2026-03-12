@@ -10,7 +10,9 @@ const toneMap: Record<BadgeTone, string> = {
 export default function CategoryBadge({ tag }: { tag: CompanyTag }) {
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full text-sm font-semibold leading-5 tracking-[-0.16px] ${toneMap[tag.tone]}`}
+      className={`inline-flex items-center justify-center rounded-full text-sm font-semibold leading-5 tracking-[-0.16px] ${
+        toneMap[tag.tone]
+      }`}
     >
       {tag.label}
     </span>
