@@ -8,7 +8,7 @@ export default function ApplicantDetails() {
     <Card className="w-full">
       <CardContent className="pt-6">
         <Tabs defaultValue="profile">
-          <TabsList className="w-wrap justify-start">
+          <TabsList className="w-full flex-wrap justify-start">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="resume">Resume</TabsTrigger>
             <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
