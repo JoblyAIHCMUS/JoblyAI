@@ -94,7 +94,7 @@ export const columns: ColumnDef<Applicant>[] = [
     },
     cell: ({ row }) => (
       <Link
-        href={`/employer/all-applicants/${row.original.id}`}
+        href={`/employer/all-applications/${row.original.id}`}
         className="flex items-center gap-3 font-medium hover:underline"
       >
         <Avatar className="h-8 w-8">
@@ -189,7 +189,7 @@ export const columns: ColumnDef<Applicant>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/employer/all-applicants/${applicant.id}`}>
+              <Link href={`/employer/all-applications/${applicant.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>

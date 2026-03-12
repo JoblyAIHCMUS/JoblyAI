@@ -50,8 +50,8 @@ const navMain = [
     icon: Building2,
   },
   {
-    title: 'All Applicants',
-    url: '/employer/all-applicants',
+    title: 'All Applications',
+    url: '/employer/all-applications',
     icon: Users,
   },
   {
