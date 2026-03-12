@@ -20,7 +20,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     appliedDate: '2020-05-21',
     score: 8.2,
-    hiringStage: 'Hired',
+    hiringStage: 'Interviewed',
     appliedRole: 'Social Media Assistant',
   },
   {
