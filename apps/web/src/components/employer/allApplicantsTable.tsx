@@ -23,10 +23,8 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 
-import {
-  type Applicant,
-  type HiringStage,
-} from '@/features/employer/job-listing/detail/data';
+import { type HiringStage } from '@/features/employer/job-listing/detail/data';
+import { type AllApplicant } from '@/features/employer/all-applicants/data';
 
 const hiringStageStyles: Record<HiringStage, string> = {
   'In Review': 'border-blue-500 text-blue-600 bg-transparent hover:bg-blue-50',
@@ -52,7 +50,7 @@ const hiringStageOrder: Record<HiringStage, number> = {
   Declined: 4,
 };
 
-export const columns: ColumnDef<Applicant>[] = [
+export const columns: ColumnDef<AllApplicant>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -113,6 +111,20 @@ export const columns: ColumnDef<Applicant>[] = [
         {row.getValue('name')}
       </Link>
     ),
+  },
+  {
+    accessorKey: 'appliedRole',
+    meta: { className: 'text-center' },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Applied Role
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => row.getValue<string>('appliedRole'),
   },
   {
     accessorKey: 'appliedDate',
@@ -227,17 +239,17 @@ export const columns: ColumnDef<Applicant>[] = [
   },
 ];
 
-interface JobApplicantsTableProps {
-  applicants: Applicant[];
+interface AllApplicantsTableProps {
+  applicants: AllApplicant[];
   advanceApplicant: (id: string) => void;
   declineApplicant: (id: string) => void;
 }
 
-export default function JobApplicantsTable({
+export default function AllApplicantsTable({
   applicants,
   advanceApplicant,
   declineApplicant,
-}: JobApplicantsTableProps) {
+}: AllApplicantsTableProps) {
   return (
     <DataTable
       columns={columns}
