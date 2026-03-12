@@ -26,7 +26,6 @@ export class S3Service {
     fileName: string,
     fileType: string,
     folder: S3Folder = S3Folder.RESUMES,
-    maxSizeMB = 10
   ): Promise<PresignedUploadUrl> {
     // Validate file type
     this.validateFileType(fileType, folder);
@@ -41,7 +40,8 @@ export class S3Service {
       Bucket: s3Config.bucketName,
       Key: fileKey,
       ContentType: fileType,
-      ContentLength: maxSizeMB * 1024 * 1024, // MB to bytes
+      // Note: Removed ContentLength to allow any file size up to maxSizeMB
+      // AWS S3 will accept files <= maxSizeMB, validation should be done on frontend
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, {

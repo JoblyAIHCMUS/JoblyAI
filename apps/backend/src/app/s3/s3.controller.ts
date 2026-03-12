@@ -35,7 +35,6 @@ export class S3Controller {
       dto.fileName,
       dto.fileType,
       dto.folder || S3Folder.RESUMES,
-      dto.maxSizeMB || 10
     );
   }
 }
