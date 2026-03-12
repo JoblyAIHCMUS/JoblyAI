@@ -1,7 +1,8 @@
 import { type HiringStage } from '@/features/employer/job-listing/detail/data';
 
-export interface AllApplicant {
+export interface AllApplication {
   id: string;
+  applicantId: string;
   name: string;
   image: string;
   appliedDate: string;
@@ -10,10 +11,11 @@ export interface AllApplicant {
   appliedRole: string;
 }
 
-export const allApplicants: AllApplicant[] = [
+export const allApplications: AllApplication[] = [
   // ── 2020 ──────────────────────────────────────────────
   {
     id: '1',
+    applicantId: '1',
     name: 'Alice Johnson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     appliedDate: '2020-05-21',
@@ -23,6 +25,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '2',
+    applicantId: '2',
     name: 'Bob Smith',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
     appliedDate: '2020-05-22',
@@ -32,6 +35,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '3',
+    applicantId: '3',
     name: 'Carol Lee',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
     appliedDate: '2020-05-23',
@@ -41,6 +45,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '4',
+    applicantId: '4',
     name: 'Ethan Park',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
     appliedDate: '2020-05-23',
@@ -50,6 +55,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '5',
+    applicantId: '5',
     name: 'Fatima Al-Hassan',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima',
     appliedDate: '2020-05-24',
@@ -59,6 +65,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '6',
+    applicantId: '6',
     name: 'George Chen',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George',
     appliedDate: '2020-05-24',
@@ -68,6 +75,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '7',
+    applicantId: '7',
     name: 'Hannah Müller',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hannah',
     appliedDate: '2020-05-25',
@@ -77,6 +85,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '8',
+    applicantId: '8',
     name: 'Ivan Petrov',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ivan',
     appliedDate: '2020-05-25',
@@ -86,6 +95,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '9',
+    applicantId: '9',
     name: 'Jessica Okafor',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
     appliedDate: '2020-05-26',
@@ -95,6 +105,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '10',
+    applicantId: '10',
     name: 'Kevin Tanaka',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kevin',
     appliedDate: '2020-05-26',
@@ -104,6 +115,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '11',
+    applicantId: '11',
     name: 'Laura Martínez',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Laura',
     appliedDate: '2020-05-27',
@@ -113,6 +125,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '12',
+    applicantId: '12',
     name: 'Marcus Williams',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
     appliedDate: '2020-05-27',
@@ -122,6 +135,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '13',
+    applicantId: '13',
     name: 'Nina Johansson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nina',
     appliedDate: '2020-05-28',
@@ -131,6 +145,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '14',
+    applicantId: '14',
     name: 'Omar Farouk',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omar',
     appliedDate: '2020-05-28',
@@ -140,6 +155,7 @@ export const allApplicants: AllApplicant[] = [
   },
   {
     id: '15',
+    applicantId: '15',
     name: 'Priya Sharma',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Priya',
     appliedDate: '2020-05-29',
@@ -149,7 +165,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Carol Lee also applied for Senior Designer
   {
-    id: '3',
+    id: '16',
+    applicantId: '3',
     name: 'Carol Lee',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
     appliedDate: '2020-05-17',
@@ -158,7 +175,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Senior Designer',
   },
   {
-    id: '16',
+    id: '17',
+    applicantId: '16',
     name: 'Raj Patel',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Raj',
     appliedDate: '2020-08-03',
@@ -167,7 +185,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Backend Developer',
   },
   {
-    id: '17',
+    id: '18',
+    applicantId: '17',
     name: 'Sophie Dubois',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
     appliedDate: '2020-09-14',
@@ -176,7 +195,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Content Writer',
   },
   {
-    id: '18',
+    id: '19',
+    applicantId: '18',
     name: 'Tomás Rivera',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tomas',
     appliedDate: '2020-11-02',
@@ -187,7 +207,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2021 ──────────────────────────────────────────────
   {
-    id: '19',
+    id: '20',
+    applicantId: '19',
     name: 'Amara Osei',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Amara',
     appliedDate: '2021-01-10',
@@ -196,7 +217,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Frontend Developer',
   },
   {
-    id: '20',
+    id: '21',
+    applicantId: '20',
     name: "Liam O'Brien",
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liam',
     appliedDate: '2021-02-18',
@@ -206,7 +228,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Alice Johnson also applied for Project Manager
   {
-    id: '1',
+    id: '22',
+    applicantId: '1',
     name: 'Alice Johnson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     appliedDate: '2021-03-05',
@@ -215,7 +238,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Project Manager',
   },
   {
-    id: '21',
+    id: '23',
+    applicantId: '21',
     name: 'Yuki Nakamura',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Yuki',
     appliedDate: '2021-04-22',
@@ -224,7 +248,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '22',
+    id: '24',
+    applicantId: '22',
     name: 'Elena Voronova',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena',
     appliedDate: '2021-06-15',
@@ -233,7 +258,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Backend Developer',
   },
   {
-    id: '23',
+    id: '25',
+    applicantId: '23',
     name: 'Daniel Kim',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel',
     appliedDate: '2021-07-30',
@@ -242,7 +268,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Content Writer',
   },
   {
-    id: '24',
+    id: '26',
+    applicantId: '24',
     name: 'Chloe Nguyen',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chloe',
     appliedDate: '2021-09-12',
@@ -252,7 +279,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Bob Smith also applied for Data Analyst
   {
-    id: '2',
+    id: '27',
+    applicantId: '2',
     name: 'Bob Smith',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
     appliedDate: '2021-10-08',
@@ -261,7 +289,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '25',
+    id: '28',
+    applicantId: '25',
     name: 'Mikhail Kozlov',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mikhail',
     appliedDate: '2021-11-19',
@@ -272,7 +301,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2022 ──────────────────────────────────────────────
   {
-    id: '26',
+    id: '29',
+    applicantId: '26',
     name: 'Aisha Mohammed',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha',
     appliedDate: '2022-01-25',
@@ -281,7 +311,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Product Manager',
   },
   {
-    id: '27',
+    id: '30',
+    applicantId: '27',
     name: 'James Walker',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
     appliedDate: '2022-03-09',
@@ -291,7 +322,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Ethan Park also applied for Backend Developer
   {
-    id: '4',
+    id: '31',
+    applicantId: '4',
     name: 'Ethan Park',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
     appliedDate: '2022-04-11',
@@ -300,7 +332,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Backend Developer',
   },
   {
-    id: '28',
+    id: '32',
+    applicantId: '28',
     name: 'Isabella Costa',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Isabella',
     appliedDate: '2022-05-20',
@@ -309,7 +342,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'UX Researcher',
   },
   {
-    id: '29',
+    id: '33',
+    applicantId: '29',
     name: 'Lucas Bergström',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas',
     appliedDate: '2022-06-30',
@@ -318,7 +352,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'DevOps Engineer',
   },
   {
-    id: '30',
+    id: '34',
+    applicantId: '30',
     name: 'Mei Lin',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mei',
     appliedDate: '2022-08-04',
@@ -327,7 +362,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '31',
+    id: '35',
+    applicantId: '31',
     name: 'Noah Fischer',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Noah',
     appliedDate: '2022-09-18',
@@ -337,7 +373,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Jessica Okafor also applied for Product Manager
   {
-    id: '9',
+    id: '36',
+    applicantId: '9',
     name: 'Jessica Okafor',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
     appliedDate: '2022-10-05',
@@ -346,7 +383,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Product Manager',
   },
   {
-    id: '32',
+    id: '37',
+    applicantId: '32',
     name: 'Sara Lindqvist',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara',
     appliedDate: '2022-11-22',
@@ -357,7 +395,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2023 ──────────────────────────────────────────────
   {
-    id: '33',
+    id: '38',
+    applicantId: '33',
     name: 'Adrian Popescu',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Adrian',
     appliedDate: '2023-01-14',
@@ -366,7 +405,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Backend Developer',
   },
   {
-    id: '34',
+    id: '39',
+    applicantId: '34',
     name: 'Zara Khan',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zara',
     appliedDate: '2023-02-28',
@@ -376,7 +416,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Hannah Müller also applied for UX Researcher
   {
-    id: '7',
+    id: '40',
+    applicantId: '7',
     name: 'Hannah Müller',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hannah',
     appliedDate: '2023-03-16',
@@ -385,7 +426,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'UX Researcher',
   },
   {
-    id: '35',
+    id: '41',
+    applicantId: '35',
     name: 'Victor Andrei',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Victor',
     appliedDate: '2023-04-09',
@@ -394,7 +436,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'DevOps Engineer',
   },
   {
-    id: '36',
+    id: '42',
+    applicantId: '36',
     name: 'Olivia Thompson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia',
     appliedDate: '2023-05-21',
@@ -403,7 +446,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Marketing Coordinator',
   },
   {
-    id: '37',
+    id: '43',
+    applicantId: '37',
     name: 'Hassan El-Amin',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hassan',
     appliedDate: '2023-06-07',
@@ -412,7 +456,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Frontend Developer',
   },
   {
-    id: '38',
+    id: '44',
+    applicantId: '38',
     name: 'Maria Santos',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
     appliedDate: '2023-07-19',
@@ -422,7 +467,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Kevin Tanaka also applied for Frontend Developer
   {
-    id: '10',
+    id: '45',
+    applicantId: '10',
     name: 'Kevin Tanaka',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kevin',
     appliedDate: '2023-08-22',
@@ -431,7 +477,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Frontend Developer',
   },
   {
-    id: '39',
+    id: '46',
+    applicantId: '39',
     name: 'Freya Jørgensen',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Freya',
     appliedDate: '2023-09-30',
@@ -440,7 +487,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '40',
+    id: '47',
+    applicantId: '40',
     name: 'David Okonkwo',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
     appliedDate: '2023-11-11',
@@ -451,7 +499,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2024 ──────────────────────────────────────────────
   {
-    id: '41',
+    id: '48',
+    applicantId: '41',
     name: 'Emma Svensson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
     appliedDate: '2024-01-08',
@@ -460,7 +509,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Content Writer',
   },
   {
-    id: '42',
+    id: '49',
+    applicantId: '42',
     name: 'Ryan Mitchell',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ryan',
     appliedDate: '2024-02-14',
@@ -470,7 +520,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Priya Sharma also applied for Data Analyst
   {
-    id: '15',
+    id: '50',
+    applicantId: '15',
     name: 'Priya Sharma',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Priya',
     appliedDate: '2024-03-01',
@@ -479,7 +530,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '43',
+    id: '51',
+    applicantId: '43',
     name: 'Leo Moretti',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo',
     appliedDate: '2024-04-17',
@@ -488,7 +540,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Social Media Assistant',
   },
   {
-    id: '44',
+    id: '52',
+    applicantId: '44',
     name: 'Nadia Volkov',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nadia',
     appliedDate: '2024-05-23',
@@ -497,7 +550,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'UX Researcher',
   },
   {
-    id: '45',
+    id: '53',
+    applicantId: '45',
     name: 'Oscar Reyes',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Oscar',
     appliedDate: '2024-06-10',
@@ -507,7 +561,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Nina Johansson also applied for Marketing Coordinator
   {
-    id: '13',
+    id: '54',
+    applicantId: '13',
     name: 'Nina Johansson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nina',
     appliedDate: '2024-07-05',
@@ -516,7 +571,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Marketing Coordinator',
   },
   {
-    id: '46',
+    id: '55',
+    applicantId: '46',
     name: 'Grace Adeyemi',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Grace',
     appliedDate: '2024-08-19',
@@ -525,7 +581,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Senior Designer',
   },
   {
-    id: '47',
+    id: '56',
+    applicantId: '47',
     name: 'Samuel Eriksson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel',
     appliedDate: '2024-09-28',
@@ -534,7 +591,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Project Manager',
   },
   {
-    id: '48',
+    id: '57',
+    applicantId: '48',
     name: 'Ling Wei',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ling',
     appliedDate: '2024-11-06',
@@ -545,7 +603,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2025 ──────────────────────────────────────────────
   {
-    id: '49',
+    id: '58',
+    applicantId: '49',
     name: 'Maya Jefferson',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
     appliedDate: '2025-01-15',
@@ -555,7 +614,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Omar Farouk also applied for DevOps Engineer
   {
-    id: '14',
+    id: '59',
+    applicantId: '14',
     name: 'Omar Farouk',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omar',
     appliedDate: '2025-02-20',
@@ -564,7 +624,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'DevOps Engineer',
   },
   {
-    id: '50',
+    id: '60',
+    applicantId: '50',
     name: 'Isla Campbell',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Isla',
     appliedDate: '2025-03-12',
@@ -573,7 +634,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Content Writer',
   },
   {
-    id: '51',
+    id: '61',
+    applicantId: '51',
     name: 'Arjun Reddy',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun',
     appliedDate: '2025-04-04',
@@ -582,7 +644,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '52',
+    id: '62',
+    applicantId: '52',
     name: 'Clara Hoffmann',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Clara',
     appliedDate: '2025-05-18',
@@ -592,7 +655,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Laura Martínez also applied for Product Manager
   {
-    id: '11',
+    id: '63',
+    applicantId: '11',
     name: 'Laura Martínez',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Laura',
     appliedDate: '2025-06-09',
@@ -601,7 +665,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Product Manager',
   },
   {
-    id: '53',
+    id: '64',
+    applicantId: '53',
     name: 'Felix Dubois',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
     appliedDate: '2025-07-22',
@@ -610,7 +675,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Senior Designer',
   },
   {
-    id: '54',
+    id: '65',
+    applicantId: '54',
     name: 'Thandiwe Nkosi',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Thandiwe',
     appliedDate: '2025-08-30',
@@ -619,7 +685,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Social Media Assistant',
   },
   {
-    id: '55',
+    id: '66',
+    applicantId: '55',
     name: 'Kenji Watanabe',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kenji',
     appliedDate: '2025-10-14',
@@ -628,7 +695,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'UX Researcher',
   },
   {
-    id: '56',
+    id: '67',
+    applicantId: '56',
     name: 'Rosalie Fournier',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rosalie',
     appliedDate: '2025-11-25',
@@ -639,7 +707,8 @@ export const allApplicants: AllApplicant[] = [
 
   // ── 2026 ──────────────────────────────────────────────
   {
-    id: '57',
+    id: '68',
+    applicantId: '57',
     name: 'Alexander Novak',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alexander',
     appliedDate: '2026-01-06',
@@ -649,7 +718,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Fatima Al-Hassan also applied for Frontend Developer
   {
-    id: '5',
+    id: '69',
+    applicantId: '5',
     name: 'Fatima Al-Hassan',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima',
     appliedDate: '2026-01-20',
@@ -658,7 +728,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Frontend Developer',
   },
   {
-    id: '58',
+    id: '70',
+    applicantId: '58',
     name: 'Beatrice Mwangi',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Beatrice',
     appliedDate: '2026-02-03',
@@ -667,7 +738,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'Data Analyst',
   },
   {
-    id: '59',
+    id: '71',
+    applicantId: '59',
     name: 'Henrik Larsen',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Henrik',
     appliedDate: '2026-02-17',
@@ -677,7 +749,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // Marcus Williams also applied for DevOps Engineer
   {
-    id: '12',
+    id: '72',
+    applicantId: '12',
     name: 'Marcus Williams',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
     appliedDate: '2026-02-25',
@@ -686,7 +759,8 @@ export const allApplicants: AllApplicant[] = [
     appliedRole: 'DevOps Engineer',
   },
   {
-    id: '60',
+    id: '73',
+    applicantId: '60',
     name: 'Valentina Rossi',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Valentina',
     appliedDate: '2026-03-08',
@@ -696,7 +770,8 @@ export const allApplicants: AllApplicant[] = [
   },
   // George Chen also applied for Marketing Coordinator
   {
-    id: '6',
+    id: '74',
+    applicantId: '6',
     name: 'George Chen',
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George',
     appliedDate: '2026-03-10',

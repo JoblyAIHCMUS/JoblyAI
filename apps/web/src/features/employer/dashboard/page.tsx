@@ -97,7 +97,7 @@ export default function EmployerDashboardPage() {
         <DashboardBigButton
           count={76}
           label="New candidates to review"
-          href="/employer/all-applicants"
+          href="/employer/all-applications"
           bgColor="bg-indigo-600"
           hoverBgColor="hover:bg-indigo-700"
         />

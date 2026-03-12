@@ -156,7 +156,7 @@ export default function JobApplicantsKanban({
                           {applicant.name}
                         </KanbanBoardCardTitle>
                         <Link
-                          href={`/employer/all-applicants/${applicant.id}`}
+                          href={`/employer/all-applications/${applicant.id}`}
                           className="text-xs text-blue-600 hover:underline"
                           onClick={(e) => e.stopPropagation()}
                           draggable={false}
