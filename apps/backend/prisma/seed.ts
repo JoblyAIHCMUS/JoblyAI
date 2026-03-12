@@ -1,11 +1,36 @@
 import { PrismaClient } from '@prisma/client';
+import { randomBytes } from 'crypto';
+import { scryptAsync } from '@noble/hashes/scrypt.js';
 
 const prisma = new PrismaClient();
+
+// Better-auth password hashing config
+const SCRYPT_CONFIG = {
+  N: 16384,
+  r: 16,
+  p: 1,
+  dkLen: 64,
+};
+
+// Hash password using scrypt (compatible with Better-auth)
+async function hashPassword(password: string): Promise<string> {
+  const salt = Buffer.from(randomBytes(16)).toString('hex');
+  const key = await scryptAsync(password.normalize('NFKC'), salt, {
+    N: SCRYPT_CONFIG.N,
+    p: SCRYPT_CONFIG.p,
+    r: SCRYPT_CONFIG.r,
+    dkLen: SCRYPT_CONFIG.dkLen,
+    maxmem: 128 * SCRYPT_CONFIG.N * SCRYPT_CONFIG.r * 2,
+  });
+  return `${salt}:${Buffer.from(key).toString('hex')}`;
+}
 
 async function main() {
   console.log('Cleaning up existing data...');
 
   // Delete all data in reverse order of foreign key dependencies
+  await prisma.application.deleteMany({});
+  await prisma.resume.deleteMany({});
   await prisma.employer.deleteMany({});
   await prisma.company.deleteMany({});
   await prisma.jobRequirement.deleteMany({});
@@ -63,55 +88,73 @@ async function main() {
   });
   console.log(`Created ${skills.count} skills`);
 
-  // Create test users
-  console.log('Creating users...');
-  const users = await prisma.user.createMany({
-    data: [
-      {
-        name: 'Alice Johnson',
-        email: 'alice@example.com',
-        emailVerified: true,
-        role: 'candidate',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+  // Create test users with accounts (for Better-auth email/password login)
+  console.log('Creating users and accounts...');
+  const hashedPassword = await hashPassword('password123');
+
+  const usersData = [
+    {
+      name: 'Alice Johnson',
+      email: 'alice@example.com',
+      emailVerified: true,
+      role: 'candidate',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+    },
+    {
+      name: 'Bob Smith',
+      email: 'bob@example.com',
+      emailVerified: true,
+      role: 'candidate',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
+    },
+    {
+      name: 'Carol White',
+      email: 'carol@example.com',
+      emailVerified: true,
+      role: 'employer',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
+    },
+    {
+      name: 'David Brown',
+      email: 'david@example.com',
+      emailVerified: true,
+      role: 'employer',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+    },
+    {
+      name: 'Eve Davis',
+      email: 'eve@example.com',
+      emailVerified: false,
+      role: 'candidate',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
+    },
+    {
+      name: 'Frank Miller',
+      email: 'frank@example.com',
+      emailVerified: true,
+      role: 'employer',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
+    },
+  ];
+
+  // Create each user with their account
+  for (const userData of usersData) {
+    const user = await prisma.user.create({
+      data: userData,
+    });
+
+    // Create account for Better-auth email/password authentication
+    await prisma.account.create({
+      data: {
+        userId: user.id,
+        accountId: user.email, // Better-auth uses email as accountId for credential provider
+        providerId: 'credential', // Better-auth provider for email/password
+        password: hashedPassword,
       },
-      {
-        name: 'Bob Smith',
-        email: 'bob@example.com',
-        emailVerified: true,
-        role: 'candidate',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
-      },
-      {
-        name: 'Carol White',
-        email: 'carol@example.com',
-        emailVerified: true,
-        role: 'employer',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
-      },
-      {
-        name: 'David Brown',
-        email: 'david@example.com',
-        emailVerified: true,
-        role: 'employer',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-      },
-      {
-        name: 'Eve Davis',
-        email: 'eve@example.com',
-        emailVerified: false,
-        role: 'candidate',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
-      },
-      {
-        name: 'Frank Miller',
-        email: 'frank@example.com',
-        emailVerified: true,
-        role: 'employer',
-        image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
-      },
-    ],
-  });
-  console.log(`Created ${users.count} users`);
+    });
+  }
+
+  console.log(`Created ${usersData.length} users with accounts`);
 
   // Get users for creating job postings
   const allUsers = await prisma.user.findMany();
@@ -400,69 +443,6 @@ async function main() {
   });
   console.log(`Created ${jobRequirements.count} job requirements`);
 
-  // Create sessions for some users
-  console.log('Creating sessions...');
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
-
-  const sessions = await prisma.session.createMany({
-    data: [
-      {
-        token: 'session_token_alice_' + Date.now(),
-        expiresAt,
-        userId: jobSeekers[0].id,
-        ipAddress: '192.168.1.1',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      },
-      {
-        token: 'session_token_bob_' + Date.now(),
-        expiresAt,
-        userId: jobSeekers[1].id,
-        ipAddress: '192.168.1.2',
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      },
-      {
-        token: 'session_token_carol_' + Date.now(),
-        expiresAt,
-        userId: employers[0].id,
-        ipAddress: '192.168.1.3',
-        userAgent: 'Mozilla/5.0 (X11; Linux x86_64)',
-      },
-    ],
-  });
-  console.log(`Created ${sessions.count} sessions`);
-
-  // Create accounts
-  console.log('Creating accounts...');
-  const accounts = await prisma.account.createMany({
-    data: [
-      {
-        accountId: 'google_alice',
-        providerId: 'google',
-        userId: jobSeekers[0].id,
-        accessToken: 'google_access_token_alice',
-        refreshToken: 'google_refresh_token_alice',
-        scope: 'openid profile email',
-      },
-      {
-        accountId: 'github_bob',
-        providerId: 'github',
-        userId: jobSeekers[1].id,
-        accessToken: 'github_access_token_bob',
-        refreshToken: 'github_refresh_token_bob',
-        scope: 'user repo',
-      },
-      {
-        accountId: 'email_carol',
-        providerId: 'email',
-        userId: employers[0].id,
-        password:
-          '$2a$10$fake_hashed_password_carol_should_be_real_in_production',
-      },
-    ],
-  });
-  console.log(`Created ${accounts.count} accounts`);
-
   // Create verifications
   console.log('Creating verifications...');
   const verificationExpiresAt = new Date();
@@ -472,17 +452,166 @@ async function main() {
     data: [
       {
         identifier: 'eve@example.com',
-        value: 'email_verification_code_eve_' + Math.random().toString(36),
+        value: 'email_verification_code_eve_' + randomBytes(16).toString('hex'),
         expiresAt: verificationExpiresAt,
       },
       {
         identifier: 'frank@example.com',
-        value: 'password_reset_code_frank_' + Math.random().toString(36),
+        value: 'password_reset_code_frank_' + randomBytes(16).toString('hex'),
         expiresAt: verificationExpiresAt,
       },
     ],
   });
   console.log(`Created ${verifications.count} verifications`);
+
+  // Create resumes for candidates
+  console.log('Creating resumes...');
+  const resumes = await Promise.all([
+    // Alice's resumes
+    prisma.resume.create({
+      data: {
+        candidateId: jobSeekers[0].id, // Alice
+        fileUrl: 'https://example.com/resumes/alice-senior-dev.pdf',
+        fileName: 'alice-senior-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 245678,
+        parsedText:
+          'Alice Johnson - Senior Full Stack Developer\n\nExperience:\n- 5+ years TypeScript, React, Node.js\n- Led team of 5 developers\n- Built scalable microservices\n\nSkills: TypeScript, React, Node.js, PostgreSQL, Docker',
+        aiScore: 0.92,
+        isDefault: true,
+      },
+    }),
+    prisma.resume.create({
+      data: {
+        candidateId: jobSeekers[0].id, // Alice - alternative resume
+        fileUrl: 'https://example.com/resumes/alice-fullstack.pdf',
+        fileName: 'alice-fullstack.pdf',
+        fileType: 'application/pdf',
+        fileSize: 198234,
+        parsedText:
+          'Alice Johnson - Full Stack Engineer\n\nFocused on modern web technologies and cloud infrastructure.',
+        aiScore: 0.88,
+        isDefault: false,
+      },
+    }),
+    // Bob's resume
+    prisma.resume.create({
+      data: {
+        candidateId: jobSeekers[1].id, // Bob
+        fileUrl: 'https://example.com/resumes/bob-react-dev.pdf',
+        fileName: 'bob-react-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 186543,
+        parsedText:
+          'Bob Smith - React Developer\n\nExperience:\n- 2 years React development\n- Built responsive SPAs\n- Strong JavaScript fundamentals\n\nSkills: React, JavaScript, HTML, CSS, Git',
+        aiScore: 0.75,
+        isDefault: true,
+      },
+    }),
+    // Eve's resume
+    prisma.resume.create({
+      data: {
+        candidateId: jobSeekers[2].id, // Eve
+        fileUrl: 'https://example.com/resumes/eve-junior-dev.pdf',
+        fileName: 'eve-junior-dev.pdf',
+        fileType: 'application/pdf',
+        fileSize: 123456,
+        parsedText:
+          'Eve Davis - Junior Developer\n\nRecent graduate with passion for web development.\n\nSkills: JavaScript, React basics, Git',
+        aiScore: 0.68,
+        isDefault: true,
+      },
+    }),
+  ]);
+  console.log(`Created ${resumes.length} resumes`);
+
+  // Create applications
+  console.log('Creating applications...');
+  const applications = await Promise.all([
+    // Alice applies to Senior Full Stack Engineer
+    prisma.application.create({
+      data: {
+        jobId: jobPostings[0].id, // Senior Full Stack Engineer
+        candidateId: jobSeekers[0].id, // Alice
+        resumeId: resumes[0].id, // Alice's default resume
+        status: 'APPLIED',
+        matchPercentage: 0.92,
+        aiFeedback: {
+          summary:
+            'Excellent match! Strong background in required technologies.',
+          strengths: [
+            'TypeScript expertise',
+            'React experience',
+            'Leadership skills',
+          ],
+          gaps: [],
+        },
+      },
+    }),
+    // Alice applies to DevOps Engineer
+    prisma.application.create({
+      data: {
+        jobId: jobPostings[2].id, // DevOps Engineer
+        candidateId: jobSeekers[0].id, // Alice
+        resumeId: resumes[1].id, // Alice's alternative resume
+        status: 'INTERVIEW',
+        matchPercentage: 0.78,
+        aiFeedback: {
+          summary: 'Good match with some DevOps experience.',
+          strengths: ['Docker knowledge', 'Cloud infrastructure'],
+          gaps: ['Limited Kubernetes experience'],
+        },
+      },
+    }),
+    // Bob applies to Junior React Developer
+    prisma.application.create({
+      data: {
+        jobId: jobPostings[5].id, // Junior React Developer
+        candidateId: jobSeekers[1].id, // Bob
+        resumeId: resumes[2].id, // Bob's resume
+        status: 'APPLIED',
+        matchPercentage: 0.85,
+        aiFeedback: {
+          summary: 'Great fit for junior position.',
+          strengths: ['React skills', 'JavaScript fundamentals'],
+          gaps: [],
+        },
+      },
+    }),
+    // Bob applies to Senior Full Stack (overqualified rejection example)
+    prisma.application.create({
+      data: {
+        jobId: jobPostings[0].id, // Senior Full Stack Engineer
+        candidateId: jobSeekers[1].id, // Bob
+        resumeId: resumes[2].id,
+        status: 'REJECTED',
+        matchPercentage: 0.45,
+        aiFeedback: {
+          reason: 'Insufficient experience for senior position',
+          tips: 'Consider applying for mid-level positions and gain 2-3 more years of experience in backend technologies.',
+          summary: 'Good React skills but lacking senior-level experience.',
+          strengths: ['React knowledge'],
+          gaps: ['Backend experience', 'Team leadership', 'System design'],
+        },
+      },
+    }),
+    // Eve applies to Junior React Developer
+    prisma.application.create({
+      data: {
+        jobId: jobPostings[5].id, // Junior React Developer
+        candidateId: jobSeekers[2].id, // Eve
+        resumeId: resumes[3].id,
+        status: 'APPLIED',
+        matchPercentage: 0.72,
+        aiFeedback: {
+          summary: 'Entry-level candidate with potential.',
+          strengths: ['Enthusiasm', 'Basic React knowledge'],
+          gaps: ['Limited professional experience'],
+        },
+      },
+    }),
+  ]);
+  console.log(`Created ${applications.length} applications`);
 
   // Create Maria Kelly (employer)
   console.log('Creating Maria Kelly...');
@@ -531,12 +660,33 @@ async function main() {
 Summary:
 - Job Categories: ${categories.count}
 - Skills: ${skills.count}
-- Users: ${users.count}
+- Users: ${usersData.length} (with credential accounts)
+  * Candidates: ${jobSeekers.length}
+  * Employers: ${employers.length}
+- Resumes: ${resumes.length}
 - Job Postings: ${jobPostings.length}
 - Job Requirements: ${jobRequirements.count}
-- Sessions: ${sessions.count}
-- Accounts: ${accounts.count}
+- Applications: ${applications.length}
 - Verifications: ${verifications.count}
+
+📝 Test Data:
+Candidates:
+  - Alice (alice@example.com) - Senior developer, 2 resumes, 2 applications
+  - Bob (bob@example.com) - React developer, 1 resume, 2 applications (1 rejected)
+  - Eve (eve@example.com) - Junior developer, 1 resume, 1 application
+
+Employers:
+  - Carol (carol@example.com) - Posted Senior Full Stack job
+  - David (david@example.com) - Posted Data Scientist job
+  - Frank (frank@example.com) - Posted DevOps job
+
+Jobs (OPEN):
+  1. Senior Full Stack Engineer (Tech Corp) - 2 applications
+  2. Data Scientist (DataFlow Inc)
+  3. DevOps Engineer (CloudStack) - 1 application
+  4. UI/UX Designer (Design Studios)
+  5. Product Manager (Innovation Labs)
+  6. Junior React Developer (StartUp Hub) - 2 applications
 - Companies: 1 (Nomad)
 - Employer Roles: 1 (Maria Kelly -> HR @ Nomad)
   `);
