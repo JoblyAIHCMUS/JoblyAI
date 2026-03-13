@@ -1,7 +1,7 @@
 'use client';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface ApplicantResumeViewerProps {
@@ -24,8 +24,11 @@ const ApplicantResumeViewer: React.FC<ApplicantResumeViewerProps> = ({
   url,
 }) => {
   const pdfUrl = getPdfUrl(url);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDownload = async () => {
+    // Clear any previous error
+    setError(null);
     // For external URLs, just open/download
     if (pdfUrl.startsWith('http')) {
       window.open(pdfUrl, '_blank');
@@ -43,20 +46,25 @@ const ApplicantResumeViewer: React.FC<ApplicantResumeViewerProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
     } catch (err) {
-      alert('Failed to download resume. Error: ' + err);
+      setError('Failed to download resume. Please try again.');
     }
   };
 
   return (
     <div className="h-[80vh] w-full overflow-hidden bg-white">
       <div className="flex justify-end mb-2">
-        <Button
-          onClick={handleDownload}
-          variant="default"
-          className="font-medium"
-        >
-          Download PDF
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button
+            onClick={handleDownload}
+            variant="default"
+            className="font-medium"
+          >
+            Download PDF
+          </Button>
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
+        </div>
       </div>
       <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
         <Viewer fileUrl={pdfUrl} />
