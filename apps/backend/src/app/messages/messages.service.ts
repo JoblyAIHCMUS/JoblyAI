@@ -1,7 +1,7 @@
     import { Injectable } from "@nestjs/common";
     import { Client, types } from "cassandra-driver";
     import { InjectPrisma, InjectScylla } from "../decorators/inject.decorator";
-    import { ChatStatusResponse } from "./messages.interface";
+    import { ChatStatusResponse, ChatHistoryResponse } from "./messages.interface";
     import { SendMessageDTO } from "./dto/sendMessageDTO";
     import { PrismaClient } from "@prisma/client";
 
@@ -35,16 +35,21 @@
                 participantId: senderId
             };
 
+            const updatePayload = {
+                lastMessage: dto.text,
+                lastMessageAt: new Date(), 
+            };
+
             await Promise.all([
                 this.prisma.conversation.upsert({ 
                     where: { ownerId_participantId: { ownerId: senderId, participantId: dto.recipientId } },
-                    update: {},
-                    create: senderData
+                    update: updatePayload,
+                    create: { ...senderData, ...updatePayload }
                 }),
                 this.prisma.conversation.upsert({ 
                     where: { ownerId_participantId: { ownerId: dto.recipientId, participantId: senderId } },
-                    update: {},
-                    create: recipientData 
+                    update: updatePayload,
+                    create: { ...recipientData, ...updatePayload }
                 })
             ]);
         }
@@ -59,7 +64,14 @@
             // 1. Get all active conversations for this user from PostgreSQL
             const activeConversations = await this.prisma.conversation.findMany({
                 where: { ownerId: userId },
-                select: { scyllaChatId: true, participantId: true }
+                select: {
+                    scyllaChatId: true,
+                    participantId: true,
+                    participant: {
+                        select: { id: true, name: true, image: true }
+                    }
+                },
+                orderBy: { lastMessageAt: 'desc' }
             });
 
             // 2. Map those specific conversations to ScyllaDB details
@@ -107,5 +119,21 @@
                     participantId: participantId,
                 },
             });
+        }
+
+        async getChatHistory(senderId: string, recipientId: string, limit = 50): Promise<ChatHistoryResponse> {
+            const chatId = MessagesService.getChatId(senderId, recipientId);
+            const query = 'SELECT * FROM messages WHERE chat_id = ? LIMIT ?';
+            
+            const result = await this.scylla.execute(query, [chatId, limit], { prepare: true });
+            
+            return {
+                messages: result.rows.map(row => ({
+                    messageId: row.message_id,
+                    senderId: row.sender_id,
+                    content: row.content,
+                    timestamp: row.message_id.getTimestamp()
+                }))
+            };
         }
     }

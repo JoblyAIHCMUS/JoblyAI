@@ -3,3 +3,12 @@ export interface ChatStatusResponse {
   latestMessage?: string;
   hasUnread: boolean;
 }
+
+export interface ChatHistoryResponse {
+  messages: {
+    messageId: string;
+    senderId: string;
+    content: string;
+    timestamp: Date;
+  }[];
+}
