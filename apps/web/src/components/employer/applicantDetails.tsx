@@ -2,13 +2,19 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import ApplicantResumeViewer from './applicantResumeViewer';
+import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
 
-export default function ApplicantDetails() {
+export default function ApplicantDetails({
+  applicant,
+}: {
+  applicant: ApplicantDetail;
+}) {
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
         <Tabs defaultValue="profile">
-          <TabsList className="w-full flex-wrap justify-start">
+          <TabsList className="inline-flex flex-wrap justify-start">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="resume">Resume</TabsTrigger>
             <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
@@ -22,9 +28,7 @@ export default function ApplicantDetails() {
           </TabsContent>
 
           <TabsContent value="resume" className="mt-6">
-            <p className="text-sm text-muted-foreground">
-              Resume details coming soon.
-            </p>
+            <ApplicantResumeViewer url={applicant.resume} />
           </TabsContent>
 
           <TabsContent value="cover-letter" className="mt-6">

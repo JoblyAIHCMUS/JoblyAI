@@ -30,7 +30,7 @@ export default function ApplicantDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
         <ApplicantOverview applicant={applicant} />
-        <ApplicantDetails />
+        <ApplicantDetails applicant={applicant} />
       </div>
     </div>
   );
