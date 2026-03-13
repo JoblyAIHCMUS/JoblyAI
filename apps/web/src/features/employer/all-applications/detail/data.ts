@@ -15,6 +15,7 @@ export interface ApplicantDetail {
   jobCategory: Category;
   employmentType: EmploymentType;
   appliedDate: string;
+  resume: string;
   score: number;
   hiringStage: HiringStage;
 }
@@ -28,7 +29,7 @@ export const hiringStageProgress: Record<HiringStage, number> = {
 };
 
 export const hiringStageColor: Record<HiringStage, string> = {
-  'In Review': 'bg-blue-500',
+  'In Review': 'bg-indigo-500',
   Shortlisted: 'bg-amber-500',
   Interviewed: 'bg-purple-500',
   Hired: 'bg-green-500',
@@ -49,6 +50,7 @@ export const applicantDetails: Record<string, ApplicantDetail> = {
     jobCategory: 'marketing',
     employmentType: 'FULL_TIME',
     appliedDate: '2020-05-21',
+    resume: 'mock_resume.pdf',
     score: 8.2,
     hiringStage: 'Interviewed',
   },

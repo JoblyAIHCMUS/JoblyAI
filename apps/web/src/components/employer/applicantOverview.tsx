@@ -91,8 +91,6 @@ export default function ApplicantOverview({
           <p className="text-sm font-semibold">{applicant.score.toFixed(1)}</p>
         </div>
 
-        <Separator />
-
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
