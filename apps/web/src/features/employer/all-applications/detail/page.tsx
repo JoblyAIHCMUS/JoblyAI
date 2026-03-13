@@ -5,11 +5,16 @@ import { ArrowLeft } from 'lucide-react';
 import ApplicantOverview from '@/components/employer/applicantOverview';
 import ApplicantDetails from '@/components/employer/applicantDetails';
 import { applicantDetails } from './data';
+import { useState } from 'react';
+import { type HiringStage } from '@/features/employer/hiringStage';
 
 export default function ApplicantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const applicant = applicantDetails[id];
+  const [hiringStage, setHiringStage] = useState<HiringStage>(
+    applicant?.hiringStage ?? 'In Review'
+  );
 
   if (!applicant) {
     return (
@@ -29,8 +34,12 @@ export default function ApplicantDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-        <ApplicantOverview applicant={applicant} />
-        <ApplicantDetails applicant={applicant} />
+        <ApplicantOverview applicant={{ ...applicant, hiringStage }} />
+        <ApplicantDetails
+          applicant={{ ...applicant, hiringStage }}
+          hiringStage={hiringStage}
+          setHiringStage={setHiringStage}
+        />
       </div>
     </div>
   );

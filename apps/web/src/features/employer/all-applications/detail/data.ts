@@ -29,7 +29,7 @@ export const hiringStageProgress: Record<HiringStage, number> = {
 };
 
 export const hiringStageColor: Record<HiringStage, string> = {
-  'In Review': 'bg-blue-500',
+  'In Review': 'bg-indigo-500',
   Shortlisted: 'bg-amber-500',
   Interviewed: 'bg-purple-500',
   Hired: 'bg-green-500',
