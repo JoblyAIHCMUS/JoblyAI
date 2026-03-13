@@ -419,9 +419,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@react-pdf-viewer/core':
-        specifier: 3.12.0
-        version: 3.12.0(pdfjs-dist@5.5.207)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@stepperize/react':
         specifier: ^6.1.0
         version: 6.1.0(react@19.2.4)(typescript@5.9.3)
@@ -460,7 +457,7 @@ importers:
         version: 0.473.0(react@19.2.4)
       next:
         specifier: ~16.1.6
-        version: 16.1.6(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0)
+        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0)
       pdfjs-dist:
         specifier: 5.5.207
         version: 5.5.207
@@ -6211,16 +6208,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  '@react-pdf-viewer/core@3.12.0':
-    resolution:
-      {
-        integrity: sha512-8MsdlQJ4jaw3GT+zpCHS33nwnvzpY0ED6DEahZg9WngG++A5RMhk8LSlxdHelwaFFHFiXBjmOaj2Kpxh50VQRg==,
-      }
-    peerDependencies:
-      pdfjs-dist: ^2.16.105 || ^3.0.279
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
 
   '@remirror/core-constants@3.0.0':
     resolution:
@@ -26159,12 +26146,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@react-pdf-viewer/core@3.12.0(pdfjs-dist@5.5.207)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
-    dependencies:
-      pdfjs-dist: 5.5.207
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
   '@remirror/core-constants@3.0.0': {}
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
@@ -32776,6 +32757,31 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
+  next@16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0):
+    dependencies:
+      '@next/env': 16.1.6
+      '@swc/helpers': 0.5.15
+      baseline-browser-mapping: 2.10.7
+      caniuse-lite: 1.0.30001777
+      postcss: 8.4.31
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      styled-jsx: 5.1.6(react@19.2.4)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 16.1.6
+      '@next/swc-darwin-x64': 16.1.6
+      '@next/swc-linux-arm64-gnu': 16.1.6
+      '@next/swc-linux-arm64-musl': 16.1.6
+      '@next/swc-linux-x64-gnu': 16.1.6
+      '@next/swc-linux-x64-musl': 16.1.6
+      '@next/swc-win32-arm64-msvc': 16.1.6
+      '@next/swc-win32-x64-msvc': 16.1.6
+      sass: 1.98.0
+      sharp: 0.34.5
+    transitivePeerDependencies:
+      - '@babel/core'
+      - babel-plugin-macros
+
   no-case@3.0.4:
     dependencies:
       lower-case: 2.0.2
@@ -35032,6 +35038,11 @@ snapshots:
     optionalDependencies:
       '@babel/core': 7.29.0
       babel-plugin-macros: 3.1.0
+
+  styled-jsx@5.1.6(react@19.2.4):
+    dependencies:
+      client-only: 0.0.1
+      react: 19.2.4
 
   stylehacks@6.1.1(postcss@8.5.8):
     dependencies:
