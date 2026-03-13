@@ -61,7 +61,7 @@ export default function ApplicationNotes() {
     setNotes([
       ...notes,
       {
-        id: String(notes.length + 1),
+        id: crypto.randomUUID(),
         name: employer.name,
         avatar: employer.avatar,
         content: newNote,
