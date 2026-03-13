@@ -29,8 +29,37 @@ model User {
   experiences   Experience[]
   certificates  Certificate[]
   resumes       Resume[]
+  conversations  Conversation[] @relation("UserConversations")
+  participating  Conversation[] @relation("ParticipantInConversations")
 
   @@map("user")
+}
+
+model Conversation {
+  id             Int      @id @default(autoincrement())
+  
+  // Who owns this sidebar entry
+  ownerId        String
+  owner          User     @relation("UserConversations", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Who they are talking to
+  participantId  String
+  participant    User     @relation("ParticipantInConversations", fields: [participantId], references: [id], onDelete: Cascade)
+
+  // Preview data for the UI
+  lastMessage    String?
+  lastMessageAt  DateTime @default(now())
+  
+  // The link to the ScyllaDB partition
+  scyllaChatId   String
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Unique constraint to prevent duplicate conversations between the same two users
+  @@unique([ownerId, participantId])
+  @@index([ownerId, lastMessageAt(sort: Desc)])
+  @@map("conversation")
 }
 
 model Session {
