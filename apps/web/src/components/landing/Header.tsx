@@ -1,12 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Menu, X, ArrowRight, Search } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+function isPathActive(pathname: string, basePath: string): boolean {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
+}
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isFindJobsActive = isPathActive(pathname, '/find-jobs');
+
+  const isBrowseCompaniesActive = isPathActive(pathname, '/browse-companies');
 
   return (
     <>
@@ -38,15 +48,34 @@ export default function Header() {
             <div className="flex flex-col gap-4">
               <Link
                 href="/find-jobs"
-                className="flex items-center gap-2 text-indigo-600 font-semibold text-base"
+                className={`flex flex-col items-start gap-1 font-semibold text-base transition-colors ${
+                  isFindJobsActive
+                    ? 'text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
               >
                 <span>Browse Jobs</span>
-                <ArrowRight className="w-5 h-5" />
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isFindJobsActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </Link>
-              <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
+              <Link
+                href="/browse-companies"
+                className={`flex flex-col items-start gap-1 font-semibold text-base transition-colors ${
+                  isBrowseCompaniesActive
+                    ? 'text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
                 <span>Browse Companies</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isBrowseCompaniesActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </Link>
             </div>
 
             <div className="border-t border-slate-300" />
@@ -68,7 +97,7 @@ export default function Header() {
 
       <header className="fixed top-0 left-0 right-0 bg-indigo-50 border-b border-slate-200 z-50 overflow-hidden box-border">
         {/* Mobile Header */}
-        <div className="lg:hidden px-1 sm:px-1.5 py-1.5 flex items-center gap-1 sm:gap-1.5 box-border w-full">
+        <div className="lg:hidden px-2 sm:px-3 py-3 flex items-center gap-1.5 sm:gap-2 box-border w-full">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-1 bg-white rounded-full border border-slate-300 hover:bg-slate-50 flex-shrink-0"
@@ -97,16 +126,34 @@ export default function Header() {
             <nav className="flex items-center gap-8">
               <Link
                 href="/find-jobs"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+                className={`border-b-2 pb-1 text-sm font-medium transition-colors ${
+                  isFindJobsActive
+                    ? 'border-indigo-600 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
-                Find Jobs
+                <span>Find Jobs</span>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isFindJobsActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </Link>
-              <a
-                href="#"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+              <Link
+                href="/browse-companies"
+                className={`border-b-2 pb-1 text-sm font-medium transition-colors ${
+                  isBrowseCompaniesActive
+                    ? 'border-indigo-600 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
-                Browse Companies
-              </a>
+                <span>Browse Companies</span>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isBrowseCompaniesActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

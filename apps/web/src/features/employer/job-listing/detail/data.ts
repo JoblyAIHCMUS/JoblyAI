@@ -33,6 +33,7 @@ export type HiringStage =
 
 export interface Applicant {
   id: string;
+  applicantId: string;
   name: string;
   image: string;
   appliedDate: string;
@@ -106,14 +107,16 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
     applicants: [
       {
         id: '1',
+        applicantId: '1',
         name: 'Alice Johnson',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
         appliedDate: '2020-05-21',
         score: 8.2,
-        hiringStage: 'Hired',
+        hiringStage: 'Interviewed',
       },
       {
         id: '2',
+        applicantId: '2',
         name: 'Bob Smith',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
         appliedDate: '2020-05-22',
@@ -122,6 +125,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '3',
+        applicantId: '3',
         name: 'Carol Lee',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
         appliedDate: '2020-05-23',
@@ -130,6 +134,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '4',
+        applicantId: '4',
         name: 'Ethan Park',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
         appliedDate: '2020-05-23',
@@ -138,6 +143,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '5',
+        applicantId: '5',
         name: 'Fatima Al-Hassan',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima',
         appliedDate: '2020-05-24',
@@ -146,6 +152,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '6',
+        applicantId: '6',
         name: 'George Chen',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George',
         appliedDate: '2020-05-24',
@@ -154,6 +161,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '7',
+        applicantId: '7',
         name: 'Hannah Müller',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hannah',
         appliedDate: '2020-05-25',
@@ -162,6 +170,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '8',
+        applicantId: '8',
         name: 'Ivan Petrov',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ivan',
         appliedDate: '2020-05-25',
@@ -170,6 +179,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '9',
+        applicantId: '9',
         name: 'Jessica Okafor',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
         appliedDate: '2020-05-26',
@@ -178,6 +188,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '10',
+        applicantId: '10',
         name: 'Kevin Tanaka',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kevin',
         appliedDate: '2020-05-26',
@@ -186,6 +197,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '11',
+        applicantId: '11',
         name: 'Laura Martínez',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Laura',
         appliedDate: '2020-05-27',
@@ -194,6 +206,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '12',
+        applicantId: '12',
         name: 'Marcus Williams',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
         appliedDate: '2020-05-27',
@@ -202,6 +215,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '13',
+        applicantId: '13',
         name: 'Nina Johansson',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nina',
         appliedDate: '2020-05-28',
@@ -210,6 +224,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '14',
+        applicantId: '14',
         name: 'Omar Farouk',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omar',
         appliedDate: '2020-05-28',
@@ -218,6 +233,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
       },
       {
         id: '15',
+        applicantId: '15',
         name: 'Priya Sharma',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Priya',
         appliedDate: '2020-05-29',
@@ -270,7 +286,8 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
     ],
     applicants: [
       {
-        id: '3',
+        id: '16',
+        applicantId: '3',
         name: 'Carol Lee',
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
         appliedDate: '2020-05-17',

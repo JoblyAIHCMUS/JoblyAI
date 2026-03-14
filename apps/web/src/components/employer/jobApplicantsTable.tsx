@@ -23,26 +23,15 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 
+import { type Applicant } from '@/features/employer/job-listing/detail/data';
 import {
-  type Applicant,
   type HiringStage,
-} from '@/features/employer/job-listing/detail/data';
+  hiringStageStyles,
+  nextStageMap,
+  hiringStageOrder,
+} from '@/features/employer/hiringStage';
 
-const hiringStageStyles: Record<HiringStage, string> = {
-  'In Review': 'border-blue-500 text-blue-600 bg-transparent hover:bg-blue-50',
-  Shortlisted:
-    'border-amber-500 text-amber-600 bg-transparent hover:bg-amber-50',
-  Interviewed:
-    'border-purple-500 text-purple-600 bg-transparent hover:bg-purple-50',
-  Hired: 'border-green-500 text-green-600 bg-transparent hover:bg-green-50',
-  Declined: 'border-red-500 text-red-600 bg-transparent hover:bg-red-50',
-};
-
-export const nextStageMap: Partial<Record<HiringStage, HiringStage>> = {
-  'In Review': 'Shortlisted',
-  Shortlisted: 'Interviewed',
-  Interviewed: 'Hired',
-};
+export { nextStageMap };
 
 export const columns: ColumnDef<Applicant>[] = [
   {
@@ -86,7 +75,7 @@ export const columns: ColumnDef<Applicant>[] = [
     },
     cell: ({ row }) => (
       <Link
-        href={`/employer/all-applicants/${row.original.id}`}
+        href={`/employer/all-applications/${row.original.id}`}
         className="flex items-center gap-3 font-medium hover:underline"
       >
         <Avatar className="h-8 w-8">
@@ -150,6 +139,11 @@ export const columns: ColumnDef<Applicant>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.getValue<HiringStage>('hiringStage');
+      const b = rowB.getValue<HiringStage>('hiringStage');
+      return hiringStageOrder[a] - hiringStageOrder[b];
+    },
     cell: ({ row }) => {
       const stage = row.getValue('hiringStage') as HiringStage;
       return (
@@ -176,7 +170,7 @@ export const columns: ColumnDef<Applicant>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/employer/all-applicants/${applicant.id}`}>
+              <Link href={`/employer/all-applications/${applicant.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>

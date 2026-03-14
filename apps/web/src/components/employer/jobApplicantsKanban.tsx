@@ -23,10 +23,8 @@ import {
   type KanbanBoardDropDirection,
 } from '@/components/ui/kanban';
 
-import {
-  type Applicant,
-  type HiringStage,
-} from '@/features/employer/job-listing/detail/data';
+import { type Applicant } from '@/features/employer/job-listing/detail/data';
+import { type HiringStage } from '@/features/employer/hiringStage';
 
 const HIRING_STAGE_COLUMNS: {
   stage: HiringStage;
@@ -156,7 +154,7 @@ export default function JobApplicantsKanban({
                           {applicant.name}
                         </KanbanBoardCardTitle>
                         <Link
-                          href={`/employer/all-applicants/${applicant.id}`}
+                          href={`/employer/all-applications/${applicant.id}`}
                           className="text-xs text-blue-600 hover:underline"
                           onClick={(e) => e.stopPropagation()}
                           draggable={false}

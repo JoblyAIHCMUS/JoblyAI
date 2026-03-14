@@ -4,15 +4,14 @@ import { useState } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import JobApplicantsTable, {
-  nextStageMap,
-} from '@/components/employer/jobApplicantsTable';
+import JobApplicantsTable from '@/components/employer/jobApplicantsTable';
 import JobApplicantsKanban from '@/components/employer/jobApplicantsKanban';
 
+import { type Applicant } from '@/features/employer/job-listing/detail/data';
 import {
-  type Applicant,
   type HiringStage,
-} from '@/features/employer/job-listing/detail/data';
+  nextStageMap,
+} from '@/features/employer/hiringStage';
 
 interface JobApplicantsViewProps {
   applicants: Applicant[];
