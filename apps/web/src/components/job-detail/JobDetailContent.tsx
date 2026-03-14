@@ -47,8 +47,12 @@ function CategoryPill({
 }
 
 export default function JobDetailContent() {
-  const { jobDetail, descriptionContent, applicationProgress, formattedSalary } =
-    useJobDetail();
+  const {
+    jobDetail,
+    descriptionContent,
+    applicationProgress,
+    formattedSalary,
+  } = useJobDetail();
 
   return (
     <section className="bg-white">
@@ -59,7 +63,9 @@ export default function JobDetailContent() {
             {/* Description */}
             <div className="flex flex-col gap-4">
               <SectionHeading>Description</SectionHeading>
-              <p className="text-sm sm:text-base leading-6 text-slate-500">{descriptionContent.overview}</p>
+              <p className="text-sm sm:text-base leading-6 text-slate-500">
+                {descriptionContent.overview}
+              </p>
             </div>
 
             {/* Responsibilities */}
@@ -102,31 +108,54 @@ export default function JobDetailContent() {
               {/* Progress bar */}
               <div className="flex flex-col gap-2 py-3">
                 <p className="text-sm sm:text-base text-slate-900">
-                  <span className="font-medium">{jobDetail.aboutRole.appliedCount} applied</span>{' '}
-                  <span className="text-slate-500">of {jobDetail.aboutRole.capacity} capacity</span>
+                  <span className="font-medium">
+                    {jobDetail.aboutRole.appliedCount} applied
+                  </span>{' '}
+                  <span className="text-slate-500">
+                    of {jobDetail.aboutRole.capacity} capacity
+                  </span>
                 </p>
                 <div className="flex h-2 w-full rounded-full overflow-hidden bg-slate-200">
-                  <div className="bg-emerald-500 h-full" style={{ width: applicationProgress }} />
+                  <div
+                    className="bg-emerald-500 h-full"
+                    style={{ width: applicationProgress }}
+                  />
                 </div>
               </div>
 
               {/* Meta rows */}
               <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-slate-900">Apply Before</span>
-                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">{jobDetail.aboutRole.applyBefore}</span>
+                  <span className="text-sm sm:text-base text-slate-900">
+                    Apply Before
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">
+                    {jobDetail.aboutRole.applyBefore}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-slate-900">Job Posted On</span>
-                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">{jobDetail.aboutRole.postedOn}</span>
+                  <span className="text-sm sm:text-base text-slate-900">
+                    Job Posted On
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">
+                    {jobDetail.aboutRole.postedOn}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-slate-900">Job Type</span>
-                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">{jobDetail.aboutRole.jobType}</span>
+                  <span className="text-sm sm:text-base text-slate-900">
+                    Job Type
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#25324B]">
+                    {jobDetail.aboutRole.jobType}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-slate-900">Salary</span>
-                  <span className="text-sm sm:text-base font-semibold text-[#202430]">{formattedSalary}</span>
+                  <span className="text-sm sm:text-base text-slate-900">
+                    Salary
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#202430]">
+                    {formattedSalary}
+                  </span>
                 </div>
               </div>
             </div>

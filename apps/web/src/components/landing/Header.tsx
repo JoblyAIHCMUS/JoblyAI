@@ -12,11 +12,9 @@ export default function Header() {
   const searchParams = useSearchParams();
   const fullUrlText = `${pathname}?${searchParams.toString()}`.toLowerCase();
 
-  const isFindJobsActive =
-    fullUrlText.includes('find-jobs');
+  const isFindJobsActive = fullUrlText.includes('find-jobs');
 
-  const isBrowseCompaniesActive =
-    fullUrlText.includes('browse-companies');
+  const isBrowseCompaniesActive = fullUrlText.includes('browse-companies');
 
   return (
     <>

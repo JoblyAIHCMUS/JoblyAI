@@ -75,7 +75,10 @@ export default function JobCompanySection({
               {galleryPhotos.length > 0 && (
                 <div className="grid grid-cols-3 gap-3">
                   {galleryPhotos.map((photo, index) => (
-                    <div key={`${photo}-${index}`} className="relative h-[130px] rounded overflow-hidden">
+                    <div
+                      key={`${photo}-${index}`}
+                      className="relative h-[130px] rounded overflow-hidden"
+                    >
                       <Image
                         src={photo}
                         alt={`${companyName} office ${index + 2}`}
