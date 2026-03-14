@@ -1,9 +1,17 @@
+'use client';
+
+import { useCompanyNavigation } from '@/hooks/useCompanyNavigation';
 import type { CompanyCardData } from '@/types/company';
 import CompanyLogo from './CompanyLogo';
 
 export default function CompanyCard({ company }: { company: CompanyCardData }) {
+  const { getCompanyCardNavigationProps } = useCompanyNavigation();
+
   return (
-    <article className="flex flex-col items-center gap-8 rounded-lg border border-slate-300 bg-white px-6 py-6">
+    <article
+      {...getCompanyCardNavigationProps(company.id)}
+      className="flex cursor-pointer flex-col items-center gap-8 rounded-lg border border-slate-300 bg-white px-6 py-6"
+    >
       <CompanyLogo company={company} />
 
       <div className="flex flex-col items-center gap-4">

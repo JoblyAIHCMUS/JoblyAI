@@ -1,20 +1,18 @@
-export type CompanyCategory =
-  | 'design'
-  | 'fintech'
-  | 'hosting'
-  | 'business-service'
-  | 'developer';
-
 export interface CompanyCardData {
   id: string;
   name: string;
   openJobs: number;
   logoUrl: string;
   logoAlt: string;
-  category: CompanyCategory;
+  categoryId: string;
 }
 
 export interface CompaniesByCategoryData {
   totalResults: number;
   companies: CompanyCardData[];
 }
+
+export type CompanyCategoryTab = {
+  id: string;
+  name: string;
+};

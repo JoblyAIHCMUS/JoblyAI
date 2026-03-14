@@ -1,3 +1,6 @@
+'use client';
+
+import { useCompanyNavigation } from '@/hooks/useCompanyNavigation';
 import type { RecommendedCompany } from '@/types/recommendedCompany';
 import CategoryBadge from './CategoryBadge';
 import CompanyLogo from './CompanyLogo';
@@ -7,8 +10,13 @@ export default function CompanyCard({
 }: {
   company: RecommendedCompany;
 }) {
+  const { getCompanyCardNavigationProps } = useCompanyNavigation();
+
   return (
-    <article className="rounded-[10px] border border-slate-300 bg-white p-6">
+    <article
+      {...getCompanyCardNavigationProps(company.id)}
+      className="cursor-pointer rounded-[10px] border border-slate-300 bg-white p-6"
+    >
       <div className="mb-4 flex items-start justify-between gap-4">
         <CompanyLogo company={company} />
         <span className="inline-flex rounded-sm bg-indigo-50 px-3 py-1 text-base font-normal leading-[22px] tracking-[-0.18px] text-indigo-700">
@@ -25,9 +33,7 @@ export default function CompanyCard({
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
-        {company.tags.map((tag) => (
-          <CategoryBadge key={`${company.name}-${tag.label}`} tag={tag} />
-        ))}
+        <CategoryBadge key={`${company.name}-${company.tag.label}`} tag={company.tag} />
       </div>
     </article>
   );
