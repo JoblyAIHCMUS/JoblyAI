@@ -1,12 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Menu, X, ArrowRight, Search } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fullUrlText = `${pathname}?${searchParams.toString()}`.toLowerCase();
+
+  const isFindJobsActive =
+    fullUrlText.includes('find-jobs');
+
+  const isBrowseCompaniesActive =
+    fullUrlText.includes('browse-companies');
 
   return (
     <>
@@ -38,15 +48,26 @@ export default function Header() {
             <div className="flex flex-col gap-4">
               <Link
                 href="/find-jobs"
-                className="flex items-center gap-2 text-indigo-600 font-semibold text-base"
+                className="flex flex-col items-start gap-1 text-indigo-600 font-semibold text-base"
               >
                 <span>Browse Jobs</span>
-                <ArrowRight className="w-5 h-5" />
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isFindJobsActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </Link>
-              <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
+              <Link
+                href="/browse-companies"
+                className="flex flex-col items-start gap-1 text-indigo-600 font-semibold text-base"
+              >
                 <span>Browse Companies</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isBrowseCompaniesActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </Link>
             </div>
 
             <div className="border-t border-slate-300" />
@@ -97,16 +118,26 @@ export default function Header() {
             <nav className="flex items-center gap-8">
               <Link
                 href="/find-jobs"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+                className="flex flex-col items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-700"
               >
-                Find Jobs
+                <span>Find Jobs</span>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isFindJobsActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </Link>
-              <a
-                href="#"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+              <Link
+                href="/browse-companies"
+                className="flex flex-col items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-700"
               >
-                Browse Companies
-              </a>
+                <span>Browse Companies</span>
+                <span
+                  className={`h-[2px] w-full bg-indigo-600 transition-opacity ${
+                    isBrowseCompaniesActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
