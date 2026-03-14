@@ -10,19 +10,32 @@ import { Server, Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { SendMessageDTO } from './dto/sendMessageDTO';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class MessagesGateway implements OnGatewayConnection {
   @WebSocketServer() server!: Server;
 
-  constructor(private readonly messagesService: MessagesService) {}
+  constructor(
+    private readonly messagesService: MessagesService,
+    private readonly authService: AuthService
+  ) {}
 
   async handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
+    const headers = client.handshake.headers as
+      | Headers
+      | Record<string, string | string[]>;
 
-    if (userId) {
+    const session = await this.authService.validateToken(headers);
+
+    if (session?.user?.id) {
+      const userId = String(session.user.id);
+      client.data.userId = userId;
       await client.join(userId);
       console.log(`User ${userId} is now online and joined room ${userId}`);
+    } else {
+      console.log('Unauthenticated websocket connection rejected');
+      client.disconnect();
     }
   }
 
@@ -32,7 +45,7 @@ export class MessagesGateway implements OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() dto: SendMessageDTO
   ) {
-    const senderId = client.handshake.query.userId as string;
+    const senderId = client.data.userId as string;
 
     await this.messagesService.sendMessage(senderId, dto);
 
@@ -51,7 +64,7 @@ export class MessagesGateway implements OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { friendId: string }
   ) {
-    const userId = client.handshake.query.userId as string;
+    const userId = client.data.userId as string;
     await this.messagesService.markAsRead(userId, data.friendId);
 
     // Notify the friend that Alice read the message
