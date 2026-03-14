@@ -11,8 +11,8 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
-import CategoryTab from '@/components/brown-companies/ending/CategoryTab';
-import CompanyCard from '@/components/brown-companies/ending/CompanyCard';
+import CategoryTab from '@/components/brown-companies/category-section/CategoryTab';
+import CompanyCard from '@/components/brown-companies/category-section/CompanyCard';
 import { companyService } from '@/services/companyService';
 import type { CompanyCategory } from '@/types/company';
 import type { ComponentType } from 'react';
