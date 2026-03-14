@@ -4,9 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, ArrowRight, Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isFindJobsActive =
+    pathname === '/find-jobs' || pathname.startsWith('/find-jobs/');
+  const isBrownCompaniesActive =
+    pathname === '/brown-companies' || pathname.startsWith('/brown-companies/');
 
   return (
     <>
@@ -38,15 +45,22 @@ export default function Header() {
             <div className="flex flex-col gap-4">
               <Link
                 href="/find-jobs"
-                className="flex items-center gap-2 text-indigo-600 font-semibold text-base"
+                className={`flex items-center gap-2 text-base font-semibold ${
+                  isFindJobsActive ? 'text-indigo-700' : 'text-indigo-600'
+                }`}
               >
                 <span>Browse Jobs</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <button className="flex items-center gap-2 text-indigo-600 font-semibold text-base">
+              <Link
+                href="/brown-companies"
+                className={`flex items-center gap-2 text-base font-semibold ${
+                  isBrownCompaniesActive ? 'text-indigo-700' : 'text-indigo-600'
+                }`}
+              >
                 <span>Browse Companies</span>
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
 
             <div className="border-t border-slate-300" />
@@ -97,16 +111,24 @@ export default function Header() {
             <nav className="flex items-center gap-8">
               <Link
                 href="/find-jobs"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+                className={`border-b-2 pb-1 text-sm font-medium transition-colors ${
+                  isFindJobsActive
+                    ? 'border-indigo-600 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
                 Find Jobs
               </Link>
-              <a
-                href="#"
-                className="text-slate-500 text-sm font-medium hover:text-slate-700"
+              <Link
+                href="/brown-companies"
+                className={`border-b-2 pb-1 text-sm font-medium transition-colors ${
+                  isBrownCompaniesActive
+                    ? 'border-indigo-600 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
                 Browse Companies
-              </a>
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
