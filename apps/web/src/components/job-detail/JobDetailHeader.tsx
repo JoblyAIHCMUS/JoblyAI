@@ -84,7 +84,9 @@ export default function JobDetailHeader({
                   </Link>
                 ) : (
                   <span
-                    className={`truncate ${isLast ? 'font-semibold text-slate-900' : ''}`}
+                    className={`truncate ${
+                      isLast ? 'font-semibold text-slate-900' : ''
+                    }`}
                   >
                     {item.label}
                   </span>

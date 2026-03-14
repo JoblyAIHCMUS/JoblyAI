@@ -14,7 +14,9 @@ export function useJobDetail() {
     jobDetail.aboutRole.appliedCount,
     jobDetail.aboutRole.capacity
   );
-  const formattedSalary = jobDetailService.formatSalary(jobDetail.aboutRole.salary);
+  const formattedSalary = jobDetailService.formatSalary(
+    jobDetail.aboutRole.salary
+  );
 
   return {
     jobDetail,

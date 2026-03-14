@@ -48,6 +48,8 @@ export const jobDetailService = {
   },
 
   formatSalary(salary: JobSalary): string {
-    return `$${Math.floor(salary.min / 1000)}k-$${Math.floor(salary.max / 1000)}k ${salary.currency}`;
+    return `$${Math.floor(salary.min / 1000)}k-$${Math.floor(
+      salary.max / 1000
+    )}k ${salary.currency}`;
   },
 };
