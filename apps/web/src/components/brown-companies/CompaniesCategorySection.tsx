@@ -6,11 +6,17 @@ import CompanyCard from '@/components/brown-companies/category-section/CompanyCa
 import { useCategoryCompanies } from '@/hooks/useCategoryCompanies';
 import { useScrollCues } from '@/hooks/useScrollCues';
 import { getCategoryIconByIndex } from '@/lib/categoryIcons';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { companyService } from '@/services/companyService';
 
 export default function CompaniesCategorySection() {
   const { companies } = companyService.getCompaniesByCategory();
   const categories = companyService.getCategories();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const categoryIdFromUrl = searchParams.get('categoryId') ?? undefined;
+  const companyIdFromUrl = searchParams.get('companyId') ?? undefined;
 
   const {
     selectedCategory,
@@ -20,7 +26,20 @@ export default function CompaniesCategorySection() {
     visibleCompanies,
     shouldShowViewMoreButton,
     loadMore,
-  } = useCategoryCompanies(companies, categories);
+  } = useCategoryCompanies(companies, categories, {
+    initialCategoryId: categoryIdFromUrl,
+    initialCompanyId: companyIdFromUrl,
+  });
+
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set('categoryId', categoryId);
+    nextParams.delete('companyId');
+
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  };
 
   const { tabsContainerRef, isCompactScreen, showLeftCue, showRightCue } =
     useScrollCues();
@@ -48,7 +67,7 @@ export default function CompaniesCategorySection() {
                 name={category.name}
                 icon={getCategoryIconByIndex(index)}
                 active={selectedCategory === category.id}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => handleCategoryClick(category.id)}
               />
             ))}
           </div>

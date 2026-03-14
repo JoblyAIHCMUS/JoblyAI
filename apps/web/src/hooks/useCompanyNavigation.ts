@@ -14,7 +14,9 @@ export function useCompanyNavigation() {
 
   const goToCompany = useCallback(
     (companyId: string) => {
-      router.push(`/brown-companies?companyId=${companyId}`);
+      const searchParams = new URLSearchParams();
+      searchParams.set('companyId', companyId);
+      router.push(`/brown-companies?${searchParams.toString()}`);
     },
     [router]
   );
