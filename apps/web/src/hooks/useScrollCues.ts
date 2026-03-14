@@ -43,7 +43,9 @@ export function useScrollCues(compactBreakpoint = 1279): ScrollCues {
     updateScrollCues();
 
     const tabsElement = tabsContainerRef.current;
-    tabsElement?.addEventListener('scroll', updateScrollCues, { passive: true });
+    tabsElement?.addEventListener('scroll', updateScrollCues, {
+      passive: true,
+    });
     window.addEventListener('resize', updateScrollCues);
 
     return () => {

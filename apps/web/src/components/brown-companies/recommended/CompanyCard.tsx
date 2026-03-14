@@ -33,7 +33,10 @@ export default function CompanyCard({
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
-        <CategoryBadge key={`${company.name}-${company.tag.label}`} tag={company.tag} />
+        <CategoryBadge
+          key={`${company.name}-${company.tag.label}`}
+          tag={company.tag}
+        />
       </div>
     </article>
   );

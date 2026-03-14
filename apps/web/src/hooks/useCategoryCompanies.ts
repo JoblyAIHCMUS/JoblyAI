@@ -25,7 +25,8 @@ export function useCategoryCompanies(
   }, [selectedCategory]);
 
   const filteredCompanies = useMemo(
-    () => companies.filter((company) => company.categoryId === selectedCategory),
+    () =>
+      companies.filter((company) => company.categoryId === selectedCategory),
     [companies, selectedCategory]
   );
 
