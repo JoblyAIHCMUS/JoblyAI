@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -15,8 +16,9 @@ export default function AuthCallbackPage() {
         const session = await authClient.getSession();
 
         if (session?.data?.user) {
-          // Redirect to home on successful auth
-          router.push('/');
+          const redirect = sessionStorage.getItem('auth_redirect');
+          sessionStorage.removeItem('auth_redirect');
+          router.push(sanitizeRedirectPath(redirect));
         } else {
           // Redirect back to login if no session
           router.push('/login');
