@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { similarJobService } from '@/services/similarJobService';
 import type { SimilarJob } from '@/types/similarJob';
+import { cn } from '@/lib/utils';
 
 function SimilarJobCard({ job }: { job: SimilarJob }) {
   return (
@@ -33,22 +34,39 @@ function SimilarJobCard({ job }: { job: SimilarJob }) {
   );
 }
 
-export default function JobDetailSimilarJobs() {
-  const similarJobs = similarJobService.getSimilarJobs();
+export default function JobDetailSimilarJobs({
+  title = 'Similar Jobs',
+  jobs,
+  href = '/find-jobs',
+  ctaLabel = 'Show all jobs',
+  className,
+}: {
+  title?: string;
+  jobs?: SimilarJob[];
+  href?: string;
+  ctaLabel?: string;
+  className?: string;
+}) {
+  const similarJobs = jobs ?? similarJobService.getSimilarJobs();
 
   return (
-    <section className="bg-white py-[72px] border-t border-slate-100">
+    <section
+      className={cn(
+        'border-t border-slate-100 bg-white py-[72px]',
+        className
+      )}
+    >
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-[28px] sm:text-[32px] font-semibold text-slate-900">
-            Similar Jobs
+            {title}
           </h2>
           <Link
-            href="/find-jobs"
+            href={href}
             className="flex items-center gap-1 text-indigo-600 font-semibold text-base hover:text-indigo-700 transition-colors"
           >
-            Show all jobs
+            {ctaLabel}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
