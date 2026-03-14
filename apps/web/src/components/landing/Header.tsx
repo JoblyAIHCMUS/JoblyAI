@@ -12,9 +12,11 @@ export default function Header() {
   const searchParams = useSearchParams();
   const fullUrlText = `${pathname}?${searchParams.toString()}`.toLowerCase();
 
-  const isFindJobsActive = fullUrlText.includes('find-jobs');
+  const isFindJobsActive =
+    fullUrlText.includes('find-jobs') ;
 
-  const isBrowseCompaniesActive = fullUrlText.includes('browse-companies');
+  const isBrowseCompaniesActive =
+    fullUrlText.includes('browse-companies');
 
   return (
     <>
@@ -95,7 +97,7 @@ export default function Header() {
 
       <header className="fixed top-0 left-0 right-0 bg-indigo-50 border-b border-slate-200 z-50 overflow-hidden box-border">
         {/* Mobile Header */}
-        <div className="lg:hidden px-1 sm:px-1.5 py-2.5 flex items-center gap-1 sm:gap-1.5 box-border w-full">
+        <div className="lg:hidden px-2 sm:px-3 py-3 flex items-center gap-1.5 sm:gap-2 box-border w-full">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-1 bg-white rounded-full border border-slate-300 hover:bg-slate-50 flex-shrink-0"
@@ -113,7 +115,7 @@ export default function Header() {
         </div>
 
         {/* Desktop Header */}
-        <div className="hidden lg:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-5 justify-between items-center">
+        <div className="hidden lg:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4 justify-between items-center">
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
