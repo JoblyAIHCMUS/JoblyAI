@@ -7,6 +7,7 @@ import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 const loginSchema = z.object({
   email: z.email('Invalid email address'),
@@ -19,7 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
   const { mutate: login, isPending, error } = useLogin();
   const {
     register,

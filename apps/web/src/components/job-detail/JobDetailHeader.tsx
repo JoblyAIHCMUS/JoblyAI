@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 export type JobDetailBreadcrumbItem = {
   label: string;
@@ -34,8 +35,10 @@ export default function JobDetailHeader({
   const { data: user } = useUser();
 
   const handleApply = () => {
+    const redirectPath = sanitizeRedirectPath(`/find-jobs/${jobId}`);
+
     if (!user) {
-      router.push(`/login?redirect=/find-jobs/${jobId}`);
+      router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     } else {
       router.push(`/find-jobs/${jobId}/apply`);
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
+import { sanitizeRedirectPath } from '@/lib/utils';
 
 export function GoogleAuthButton({
   variant = 'login',
@@ -19,9 +20,8 @@ export function GoogleAuthButton({
       // Preserve any redirect URL so auth/callback can forward the user after OAuth
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get('redirect');
-      if (redirect) {
-        sessionStorage.setItem('auth_redirect', redirect);
-      }
+      const safeRedirect = sanitizeRedirectPath(redirect);
+      sessionStorage.setItem('auth_redirect', safeRedirect);
       // Use better-auth's signIn.social method for Google OAuth
       // Must use absolute URL for callbackURL to point to frontend
       const callbackUrl = `${window.location.origin}/auth/callback`;

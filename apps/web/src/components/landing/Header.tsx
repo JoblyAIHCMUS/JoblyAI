@@ -4,17 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+
+function isPathActive(pathname: string, basePath: string): boolean {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
+}
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const fullUrlText = `${pathname}?${searchParams.toString()}`.toLowerCase();
 
-  const isFindJobsActive = fullUrlText.includes('find-jobs');
+  const isFindJobsActive = isPathActive(pathname, '/find-jobs');
 
-  const isBrowseCompaniesActive = fullUrlText.includes('browse-companies');
+  const isBrowseCompaniesActive = isPathActive(pathname, '/browse-companies');
 
   return (
     <>
