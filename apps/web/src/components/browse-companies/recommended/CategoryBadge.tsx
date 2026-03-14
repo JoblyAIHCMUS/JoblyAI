@@ -22,7 +22,7 @@ export default function CategoryBadge({ tag }: { tag: CompanyTag }) {
 
   return (
     <Link
-      href={`/brown-companies?categoryId=${tag.id}`}
+      href={`/browse-companies?categoryId=${tag.id}`}
       onClick={handleCategoryClick}
       onKeyDown={handleCategoryKeyDown}
       className={`inline-flex items-center justify-center rounded-full text-sm font-semibold leading-5 tracking-[-0.16px] ${
