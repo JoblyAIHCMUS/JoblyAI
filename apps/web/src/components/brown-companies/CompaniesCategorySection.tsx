@@ -1,93 +1,29 @@
 'use client';
 
-import {
-  ArrowRight,
-  Briefcase,
-  ChevronLeft,
-  ChevronRight,
-  Code,
-  Globe,
-  Paintbrush,
-  Wallet,
-  Wrench,
-} from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
 import CategoryTab from '@/components/brown-companies/category-section/CategoryTab';
 import CompanyCard from '@/components/brown-companies/category-section/CompanyCard';
+import { useCategoryCompanies } from '@/hooks/useCategoryCompanies';
+import { useScrollCues } from '@/hooks/useScrollCues';
+import { getCategoryIconByIndex } from '@/lib/categoryIcons';
 import { companyService } from '@/services/companyService';
-import type { CompanyCategory } from '@/types/company';
-import type { ComponentType } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-
-type Category = {
-  id: CompanyCategory;
-  name: string;
-  icon: ComponentType<{ className?: string }>;
-};
-
-const categories: Category[] = [
-  { id: 'design', name: 'Design', icon: Paintbrush },
-  { id: 'fintech', name: 'Fintech', icon: Wallet },
-  { id: 'hosting', name: 'Hosting', icon: Globe },
-  { id: 'business-service', name: 'Business Service', icon: Briefcase },
-  { id: 'developer', name: 'Developer', icon: Code },
-];
 
 export default function CompaniesCategorySection() {
   const { companies } = companyService.getCompaniesByCategory();
-  const [selectedCategory, setSelectedCategory] =
-    useState<CompanyCategory>('design');
-  const tabsContainerRef = useRef<HTMLDivElement>(null);
-  const [isCompactScreen, setIsCompactScreen] = useState(false);
-  const [showLeftCue, setShowLeftCue] = useState(false);
-  const [showRightCue, setShowRightCue] = useState(false);
+  const categories = companyService.getCategories();
 
-  const filteredCompanies = useMemo(
-    () => companies.filter((company) => company.category === selectedCategory),
-    [companies, selectedCategory]
-  );
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    selectedCategoryName,
+    filteredCompanies,
+    visibleCompanies,
+    shouldShowViewMoreButton,
+    loadMore,
+  } = useCategoryCompanies(companies, categories);
 
-  const selectedCategoryName =
-    categories.find((category) => category.id === selectedCategory)?.name ??
-    'Design';
-
-  useEffect(() => {
-    const updateScrollCues = () => {
-      const tabsElement = tabsContainerRef.current;
-      if (!tabsElement) {
-        return;
-      }
-
-      const compact = window.matchMedia('(max-width: 1279px)').matches;
-      setIsCompactScreen(compact);
-
-      if (!compact) {
-        setShowLeftCue(false);
-        setShowRightCue(false);
-        return;
-      }
-
-      const canScroll = tabsElement.scrollWidth > tabsElement.clientWidth + 1;
-      setShowLeftCue(canScroll && tabsElement.scrollLeft > 4);
-      setShowRightCue(
-        canScroll &&
-          tabsElement.scrollLeft <
-            tabsElement.scrollWidth - tabsElement.clientWidth - 4
-      );
-    };
-
-    updateScrollCues();
-
-    const tabsElement = tabsContainerRef.current;
-    tabsElement?.addEventListener('scroll', updateScrollCues, {
-      passive: true,
-    });
-    window.addEventListener('resize', updateScrollCues);
-
-    return () => {
-      tabsElement?.removeEventListener('scroll', updateScrollCues);
-      window.removeEventListener('resize', updateScrollCues);
-    };
-  }, []);
+  const { tabsContainerRef, isCompactScreen, showLeftCue, showRightCue } =
+    useScrollCues();
 
   return (
     <section className="relative overflow-hidden bg-[color:var(--bg-accent-primary)] px-4 pb-16 pt-14 sm:px-6 lg:px-8 lg:pb-24 lg:pt-16">
@@ -106,11 +42,11 @@ export default function CompaniesCategorySection() {
             ref={tabsContainerRef}
             className="flex gap-6 overflow-x-auto pb-2 pr-4 xl:overflow-visible"
           >
-            {categories.map((category) => (
+            {categories.map((category, index) => (
               <CategoryTab
-                key={category.name}
+                key={category.id}
                 name={category.name}
-                icon={category.icon}
+                icon={getCategoryIconByIndex(index)}
                 active={selectedCategory === category.id}
                 onClick={() => setSelectedCategory(category.id)}
               />
@@ -140,18 +76,21 @@ export default function CompaniesCategorySection() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {filteredCompanies.map((company) => (
+          {visibleCompanies.map((company) => (
             <CompanyCard key={company.id} company={company} />
           ))}
         </div>
 
-        <button
-          type="button"
-          className="mt-8 inline-flex items-center gap-2 text-base font-semibold leading-6 tracking-tight text-indigo-600"
-        >
-          View more {selectedCategoryName} companies
-          <ArrowRight className="h-5 w-5" />
-        </button>
+        {shouldShowViewMoreButton ? (
+          <button
+            type="button"
+            onClick={loadMore}
+            className="mt-8 inline-flex items-center gap-2 text-base font-semibold leading-6 tracking-tight text-indigo-600"
+          >
+            View more {selectedCategoryName} companies
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        ) : null}
       </div>
     </section>
   );

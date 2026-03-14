@@ -1,11 +1,13 @@
 export type BadgeTone = 'orange-outline' | 'orange-soft' | 'indigo-soft';
 
 export interface CompanyTag {
+  id: string;
   label: string;
   tone: BadgeTone;
 }
 
 export interface RecommendedCompany {
+  id: string;
   name: string;
   jobs: number;
   description: string;
@@ -14,5 +16,5 @@ export interface RecommendedCompany {
     alt: string;
     rounded?: 'full' | 'square';
   };
-  tags: CompanyTag[];
+  tag: CompanyTag;
 }

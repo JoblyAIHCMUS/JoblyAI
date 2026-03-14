@@ -1,4 +1,6 @@
 import type { BadgeTone, CompanyTag } from '@/types/recommendedCompany';
+import Link from 'next/link';
+import type { MouseEvent } from 'react';
 
 const toneMap: Record<BadgeTone, string> = {
   'orange-outline':
@@ -8,13 +10,19 @@ const toneMap: Record<BadgeTone, string> = {
 };
 
 export default function CategoryBadge({ tag }: { tag: CompanyTag }) {
+  const handleCategoryClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.stopPropagation();
+  };
+
   return (
-    <span
+    <Link
+      href={`/brown-companies?categoryId=${tag.id}`}
+      onClick={handleCategoryClick}
       className={`inline-flex items-center justify-center rounded-full text-sm font-semibold leading-5 tracking-[-0.16px] ${
         toneMap[tag.tone]
       }`}
     >
       {tag.label}
-    </span>
+    </Link>
   );
 }
