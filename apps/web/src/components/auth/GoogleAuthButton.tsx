@@ -16,6 +16,12 @@ export function GoogleAuthButton({
   const handleGoogleAuth = async () => {
     try {
       setIsLoading(true);
+      // Preserve any redirect URL so auth/callback can forward the user after OAuth
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        sessionStorage.setItem('auth_redirect', redirect);
+      }
       // Use better-auth's signIn.social method for Google OAuth
       // Must use absolute URL for callbackURL to point to frontend
       const callbackUrl = `${window.location.origin}/auth/callback`;
