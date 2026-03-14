@@ -7,7 +7,7 @@ export interface CompanyTag {
 
 export interface RecommendedCompany {
   name: string;
-  jobs: string;
+  jobs: number;
   description: string;
   logo: {
     imageUrl: string;
