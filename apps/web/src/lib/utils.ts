@@ -52,7 +52,12 @@ export function sanitizeRedirectPath(redirectTo?: string | null): string {
       return '/';
     }
 
-    if (/[\u0000-\u001F\u007F]/.test(value)) {
+    const hasControlChars = Array.from(value).some((char) => {
+      const code = char.charCodeAt(0);
+      return code <= 31 || code === 127;
+    });
+
+    if (hasControlChars) {
       return '/';
     }
   }
