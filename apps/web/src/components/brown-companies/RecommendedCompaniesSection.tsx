@@ -18,7 +18,7 @@ export default function RecommendedCompaniesSection() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {companies.map((company) => (
-            <CompanyCard key={company.name} company={company} />
+            <CompanyCard key={company.id} company={company} />
           ))}
         </div>
       </div>
