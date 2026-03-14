@@ -98,7 +98,12 @@ describe('MessagesService', () => {
       // Assert
       expect(mockScylla.execute).toHaveBeenCalledWith(
         'INSERT INTO messages (chat_id, message_id, sender_id, content) VALUES (?, ?, ?, ?)',
-        expect.arrayContaining([mockChatId, expect.any(Object), senderId, messageText]),
+        expect.arrayContaining([
+          mockChatId,
+          expect.any(Object),
+          senderId,
+          messageText,
+        ]),
         { prepare: true }
       );
 
@@ -161,9 +166,9 @@ describe('MessagesService', () => {
       mockScylla.execute.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(service.sendMessage(senderId, sendMessageDto)).rejects.toThrow(
-        'ScyllaDB connection error'
-      );
+      await expect(
+        service.sendMessage(senderId, sendMessageDto)
+      ).rejects.toThrow('ScyllaDB connection error');
     });
   });
 
@@ -289,7 +294,7 @@ describe('MessagesService', () => {
       // Act
       const result = await service.getChatListSummary(userId);
 
-      // Assert  
+      // Assert
       // Message timestamp (newer) > Read timestamp (older) = true (unread)
       expect(result[0].hasUnread).toBe(true);
     });
@@ -547,8 +552,12 @@ describe('MessagesService', () => {
       // Assert - both should use the same sorted chat ID
       // First sendMessage makes 1 scylla call + 2 prisma calls
       // Second sendMessage makes 1 more scylla call + 2 more prisma calls
-      const firstScyllaCall = (mockScylla.execute.mock.calls[0] as unknown[])[1] as unknown[];
-      const secondScyllaCall = (mockScylla.execute.mock.calls[1] as unknown[])[1] as unknown[];
+      const firstScyllaCall = (
+        mockScylla.execute.mock.calls[0] as unknown[]
+      )[1] as unknown[];
+      const secondScyllaCall = (
+        mockScylla.execute.mock.calls[1] as unknown[]
+      )[1] as unknown[];
 
       expect(firstScyllaCall[0]).toBe(secondScyllaCall[0]); // Chat ID should be identical
     });

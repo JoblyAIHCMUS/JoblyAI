@@ -109,7 +109,7 @@ describe('MessagesGateway', () => {
     };
 
     mockServer = createMockServer();
-    
+
     // 2. Manually instantiate the gateway with the mock services
     // This bypasses NestJS dependency injection since the real services
     // have complex dependencies (Scylla, Prisma) that we don't need for unit tests
@@ -117,7 +117,7 @@ describe('MessagesGateway', () => {
       mockMessagesService as unknown as MessagesService,
       mockAuthService as unknown as AuthService
     );
-    
+
     // 3. Attach the mock server (since @WebSocketServer() decorator doesn't work in tests)
     (gateway as unknown as Record<string, MockServer>).server = mockServer;
 
@@ -243,10 +243,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.sendMessage.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleSendMessage(
-        client as unknown as Socket,
-        dto
-      );
+      await gateway.handleSendMessage(client as unknown as Socket, dto);
 
       // Assert
       expect(mockMessagesService.sendMessage).toHaveBeenCalledWith(
@@ -292,14 +289,12 @@ describe('MessagesGateway', () => {
       mockMessagesService.sendMessage.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleSendMessage(
-        client as unknown as Socket,
-        dto
-      );
+      await gateway.handleSendMessage(client as unknown as Socket, dto);
 
       // Assert - Socket.IO emit should happen after service call succeeds
       // Fix: Access invocationCallOrder correctly via .mock property
-      const serviceCallOrder = mockMessagesService.sendMessage.mock.invocationCallOrder[0];
+      const serviceCallOrder =
+        mockMessagesService.sendMessage.mock.invocationCallOrder[0];
       const emitCallOrder = mockServer._toMock.mock.invocationCallOrder[0];
       expect(serviceCallOrder).toBeLessThan(emitCallOrder);
     });
@@ -319,10 +314,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.sendMessage.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleSendMessage(
-        client as unknown as Socket,
-        dto
-      );
+      await gateway.handleSendMessage(client as unknown as Socket, dto);
 
       // Assert
       const emitCall = mockServer._emitMock.mock.calls[0];
@@ -346,10 +338,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.markAsRead.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleMarkRead(
-        client as unknown as Socket,
-        data
-      );
+      await gateway.handleMarkRead(client as unknown as Socket, data);
 
       // Assert
       expect(mockMessagesService.markAsRead).toHaveBeenCalledWith(
@@ -375,10 +364,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.markAsRead.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleMarkRead(
-        client as unknown as Socket,
-        data
-      );
+      await gateway.handleMarkRead(client as unknown as Socket, data);
 
       // Assert
       expect(mockMessagesService.markAsRead).toHaveBeenCalledWith(
@@ -418,10 +404,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.markAsRead.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleMarkRead(
-        client as unknown as Socket,
-        data
-      );
+      await gateway.handleMarkRead(client as unknown as Socket, data);
 
       // Assert
       expect(mockMessagesService.markAsRead).toHaveBeenCalledWith(
@@ -447,10 +430,7 @@ describe('MessagesGateway', () => {
       mockMessagesService.markAsRead.mockResolvedValue(undefined);
 
       // Act
-      await gateway.handleMarkRead(
-        client as unknown as Socket,
-        data
-      );
+      await gateway.handleMarkRead(client as unknown as Socket, data);
 
       // Assert
       const emitCall = mockServer._emitMock.mock.calls[0];
