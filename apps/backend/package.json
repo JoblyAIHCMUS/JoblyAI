@@ -119,7 +119,9 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.1.16",
     "@nestjs/swagger": "^11.2.5",
+    "@nestjs/websockets": "^11.1.16",
     "@prisma/adapter-pg": "^6.3.0",
     "@prisma/client": "^6.3.0",
     "better-auth": "^1.4.18",
@@ -131,6 +133,7 @@
     "pg": "^8.11.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
+    "socket.io": "^4.8.3",
     "swagger-ui-express": "^5.0.1",
     "tslib": "^2.3.0",
     "yaml": "^2.3.4"
