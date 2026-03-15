@@ -1,20 +1,23 @@
 export interface Conversation {
-  id: number;
+  chatId: string;
+  participantId: string;
   name: string;
   role: string;
   avatar: string;
-  lastMessage: string;
+  lastMessage?: string;
   timestamp: string;
   unread: boolean;
   isActive: boolean;
+  lastMessageAt?: Date;
 }
 
 export interface Message {
-  id: number;
+  messageId: string;
+  senderId: string;
   sender: string;
   senderAvatar: string;
   isSent: boolean;
   content: string;
-  timestamp: string;
+  timestamp: Date;
   timestamp24: string;
 }
