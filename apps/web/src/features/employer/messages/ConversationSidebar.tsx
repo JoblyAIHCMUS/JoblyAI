@@ -6,23 +6,37 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Conversation } from './types';
+import { markChatRead } from '@/services/messagesService';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
-  selectedConversation: Conversation;
+  selectedConversation: Conversation | null;
   onSelectConversation: (conversation: Conversation) => void;
+  isLoading?: boolean;
 }
 
 export function ConversationSidebar({
   conversations,
   selectedConversation,
   onSelectConversation,
+  isLoading = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   );
+
+  const handleSelectConversation = async (conversation: Conversation) => {
+    onSelectConversation(conversation);
+    // Mark conversation as read
+    try {
+      await markChatRead(conversation.participantId);
+    } catch (error) {
+      console.error('Error marking chat as read:', error);
+    }
+  };
 
   return (
     <div className="w-1/3 border-r border-slate-200 flex flex-col h-full overflow-hidden">
@@ -42,23 +56,35 @@ export function ConversationSidebar({
       {/* Conversations List wrapped in ScrollArea */}
       <ScrollArea className="flex-1">
         <div>
+          {isLoading && (
+            <div className="p-4 text-center text-sm text-slate-500">
+              Loading conversations...
+            </div>
+          )}
+          {!isLoading && filteredConversations.length === 0 && (
+            <div className="p-4 text-center text-sm text-slate-500">
+              No conversations found
+            </div>
+          )}
           {filteredConversations.map((conversation) => (
             <button
-              key={conversation.id}
-              onClick={() => onSelectConversation(conversation)}
+              key={conversation.chatId}
+              onClick={() => handleSelectConversation(conversation)}
               className={`w-full border-b border-slate-100 p-3 text-left transition-colors hover:bg-slate-50 ${
-                selectedConversation.id === conversation.id ? 'bg-slate-50' : ''
+                selectedConversation?.chatId === conversation.chatId
+                  ? 'bg-slate-50'
+                  : ''
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className="relative mt-1">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={conversation.avatar}
-                      alt={conversation.name}
+                      src={conversation.avatar || undefined}
+                      alt={conversation.name || 'User'}
                     />
                     <AvatarFallback>
-                      {conversation.name.charAt(0)}
+                      {conversation.name?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
                   {conversation.unread && (
@@ -75,9 +101,8 @@ export function ConversationSidebar({
                       {conversation.timestamp}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">{conversation.role}</p>
                   <p className="mt-1 text-sm text-slate-600 truncate">
-                    {conversation.lastMessage}
+                    {conversation.lastMessage || 'No messages yet'}
                   </p>
                 </div>
               </div>

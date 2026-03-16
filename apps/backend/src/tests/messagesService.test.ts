@@ -215,26 +215,31 @@ describe('MessagesService', () => {
     it('should return chat status for all active conversations', async () => {
       // Arrange
       const userId = mockUser1.id;
+      const lastMessageDate = new Date();
       const conversation = {
         scyllaChatId: mockChatId,
         participantId: mockUser2.id,
-        participant: mockUser2,
+        lastMessageAt: lastMessageDate,
+        lastMessage: 'Hello there!',
+        participant: { ...mockUser2, role: null },
       };
 
       mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
 
       // Mock the ScyllaDB responses for message and seen data
-      const messageId = createMockMessageId();
+      // Message timestamp should be OLDER than read timestamp for it to show as read
+      const messageTimestamp = Date.now();
+      const messageId = createMockTimeUuid(messageTimestamp);
       const mockMessageRow = {
-        content: 'Hello there!',
         message_id: messageId,
       };
 
-      const lastReadId = createMockMessageId();
+      const lastReadId = createMockTimeUuid(messageTimestamp + 1000); // 1 second AFTER message
 
+      // IMPORTANT: The service queries last_read FIRST, then message_id
       mockScylla.execute
-        .mockResolvedValueOnce({ first: () => mockMessageRow })
-        .mockResolvedValueOnce({ first: () => ({ last_read: lastReadId }) });
+        .mockResolvedValueOnce({ first: () => ({ last_read: lastReadId }) }) // 1st call: SELECT last_read
+        .mockResolvedValueOnce({ first: () => mockMessageRow }); // 2nd call: SELECT message_id
 
       // Act
       const result = await service.getChatListSummary(userId);
@@ -245,8 +250,10 @@ describe('MessagesService', () => {
         select: {
           scyllaChatId: true,
           participantId: true,
+          lastMessageAt: true,
+          lastMessage: true,
           participant: {
-            select: { id: true, name: true, image: true },
+            select: { id: true, name: true, image: true, role: true },
           },
         },
         orderBy: { lastMessageAt: 'desc' },
@@ -255,18 +262,27 @@ describe('MessagesService', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         chatId: mockChatId,
+        participantId: mockUser2.id,
+        participantName: mockUser2.name,
+        participantRole: null,
+        participantAvatar: mockUser2.image,
         latestMessage: 'Hello there!',
         hasUnread: false,
+        lastMessageAt: lastMessageDate,
+        isActive: true,
       });
     });
 
     it('should mark a chat as unread when last message is newer than last read', async () => {
       // Arrange
       const userId = mockUser1.id;
+      const lastMessageDate = new Date();
       const conversation = {
         scyllaChatId: mockChatId,
         participantId: mockUser2.id,
-        participant: mockUser2,
+        lastMessageAt: lastMessageDate,
+        lastMessage: 'New message',
+        participant: { ...mockUser2, role: null },
       };
 
       mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
@@ -278,18 +294,12 @@ describe('MessagesService', () => {
       const messageTimeUuid = createMockTimeUuid(newerMessageTimestamp);
       const readTimeUuid = createMockTimeUuid(olderReadTimestamp);
 
+      // IMPORTANT: The service queries last_read FIRST, then message_id
       mockScylla.execute
+        .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) }) // 1st call: SELECT last_read
         .mockResolvedValueOnce({
-          first: () => ({
-            content: 'New message',
-            message_id: messageTimeUuid,
-          }),
-        })
-        .mockResolvedValueOnce({
-          first: () => ({
-            last_read: readTimeUuid,
-          }),
-        });
+          first: () => ({ message_id: messageTimeUuid }),
+        }); // 2nd call: SELECT message_id
 
       // Act
       const result = await service.getChatListSummary(userId);
@@ -314,26 +324,23 @@ describe('MessagesService', () => {
     it('should handle missing last_read timestamp', async () => {
       // Arrange
       const userId = mockUser1.id;
+      const lastMessageDate = new Date();
       const conversation = {
         scyllaChatId: mockChatId,
         participantId: mockUser2.id,
-        participant: mockUser2,
+        lastMessageAt: lastMessageDate,
+        lastMessage: 'First message',
+        participant: { ...mockUser2, role: null },
       };
 
       mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
 
       const messageId = createMockMessageId();
 
+      // IMPORTANT: The service queries last_read FIRST, then message_id
       mockScylla.execute
-        .mockResolvedValueOnce({
-          first: () => ({
-            content: 'First message',
-            message_id: messageId,
-          }),
-        })
-        .mockResolvedValueOnce({
-          first: () => null, // No seen record
-        });
+        .mockResolvedValueOnce({ first: () => null }) // 1st call: SELECT last_read returns null
+        .mockResolvedValueOnce({ first: () => ({ message_id: messageId }) }); // 2nd call: SELECT message_id
 
       // Act
       const result = await service.getChatListSummary(userId);
@@ -345,30 +352,31 @@ describe('MessagesService', () => {
     it('should handle conversations without latest message', async () => {
       // Arrange
       const userId = mockUser1.id;
+      const lastMessageDate = new Date();
       const conversation = {
         scyllaChatId: mockChatId,
         participantId: mockUser2.id,
-        participant: mockUser2,
+        lastMessageAt: lastMessageDate,
+        lastMessage: null,
+        participant: { ...mockUser2, role: null },
       };
 
       mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
 
+      // IMPORTANT: The service queries last_read FIRST, then message_id
       mockScylla.execute
-        .mockResolvedValueOnce({
-          first: () => null, // No messages
-        })
-        .mockResolvedValueOnce({
-          first: () => null,
-        });
+        .mockResolvedValueOnce({ first: () => null }) // 1st call: SELECT last_read returns null
+        .mockResolvedValueOnce({ first: () => null }); // 2nd call: SELECT message_id returns null
 
       // Act
       const result = await service.getChatListSummary(userId);
 
       // Assert
-      expect(result[0]).toEqual({
+      expect(result[0]).toMatchObject({
         chatId: mockChatId,
-        latestMessage: undefined,
-        hasUnread: null, // When no latest message, the && operator returns null
+        latestMessage: null,
+        hasUnread: false,
+        participantId: mockUser2.id,
       });
     });
   });
@@ -379,7 +387,7 @@ describe('MessagesService', () => {
       const userId = mockUser1.id;
       const participantId = mockUser2.id;
 
-      mockPrisma.conversation.create.mockResolvedValue({
+      mockPrisma.conversation.upsert.mockResolvedValue({
         id: 1,
         ...mockConversation,
       });
@@ -388,11 +396,35 @@ describe('MessagesService', () => {
       await service.createConversation(userId, participantId);
 
       // Assert
-      expect(mockPrisma.conversation.create).toHaveBeenCalledWith({
-        data: {
+      // Should upsert for the initiator
+      expect(mockPrisma.conversation.upsert).toHaveBeenNthCalledWith(1, {
+        where: {
+          ownerId_participantId: {
+            ownerId: userId,
+            participantId: participantId,
+          },
+        },
+        update: {},
+        create: {
           scyllaChatId: mockChatId,
           ownerId: userId,
           participantId: participantId,
+        },
+      });
+
+      // Should upsert for the recipient
+      expect(mockPrisma.conversation.upsert).toHaveBeenNthCalledWith(2, {
+        where: {
+          ownerId_participantId: {
+            ownerId: participantId,
+            participantId: userId,
+          },
+        },
+        update: {},
+        create: {
+          scyllaChatId: mockChatId,
+          ownerId: participantId,
+          participantId: userId,
         },
       });
     });
@@ -402,7 +434,7 @@ describe('MessagesService', () => {
       const userId = mockUser2.id;
       const participantId = mockUser1.id;
 
-      mockPrisma.conversation.create.mockResolvedValue({
+      mockPrisma.conversation.upsert.mockResolvedValue({
         id: 1,
       });
 
@@ -410,11 +442,35 @@ describe('MessagesService', () => {
       await service.createConversation(userId, participantId);
 
       // Assert
-      expect(mockPrisma.conversation.create).toHaveBeenCalledWith({
-        data: {
+      // Should upsert for the initiator
+      expect(mockPrisma.conversation.upsert).toHaveBeenNthCalledWith(1, {
+        where: {
+          ownerId_participantId: {
+            ownerId: userId,
+            participantId: participantId,
+          },
+        },
+        update: {},
+        create: {
           scyllaChatId: mockChatId, // Should be the same sorted ID
           ownerId: userId,
           participantId: participantId,
+        },
+      });
+
+      // Should upsert for the recipient
+      expect(mockPrisma.conversation.upsert).toHaveBeenNthCalledWith(2, {
+        where: {
+          ownerId_participantId: {
+            ownerId: participantId,
+            participantId: userId,
+          },
+        },
+        update: {},
+        create: {
+          scyllaChatId: mockChatId, // Should be the same sorted ID
+          ownerId: participantId,
+          participantId: userId,
         },
       });
     });
@@ -458,10 +514,10 @@ describe('MessagesService', () => {
 
       expect(result.messages).toHaveLength(2);
       expect(result.messages[0]).toEqual({
-        messageId: messageId1,
+        messageId: messageId1.toString(),
         senderId: senderId,
         content: 'First message',
-        timestamp: expect.any(Number), // getTimestamp() returns a number (milliseconds)
+        timestamp: expect.any(Date), // getDate() returns a Date object
       });
     });
 

@@ -12,7 +12,17 @@ import { SendMessageDTO } from './dto/sendMessageDTO';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({
+  cors: {
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL
+        : 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST'],
+    allowEIO3: true,
+  },
+})
 export class MessagesGateway implements OnGatewayConnection {
   @WebSocketServer() server!: Server;
 
