@@ -30,7 +30,7 @@ export default function CompanyDetailHero({
           />
         </div>
 
-        <div className="absolute right-0 top-20 h-[600px] w-[260px] overflow-hidden opacity-60 sm:w-[26 0px] sm:opacity-100 lg:w-[244px] lg:opacity-100">
+        <div className="absolute right-0 top-20 h-[600px] w-[260px] overflow-hidden opacity-60 sm:w-[260px] sm:opacity-100 lg:w-[244px] lg:opacity-100">
           <Image
             src="/landing/Pattern.svg"
             alt="Pattern right"
