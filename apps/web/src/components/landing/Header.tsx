@@ -81,15 +81,19 @@ export default function Header() {
             <div className="border-t border-slate-300" />
 
             <div className="flex flex-col gap-4">
-              <Button className="w-full bg-indigo-600 text-white py-3 hover:bg-indigo-700 font-semibold">
-                Sign Up
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full py-3 border-slate-300 text-indigo-600 font-semibold"
-              >
-                Login
-              </Button>
+              <Link href="/signup" className="w-full">
+                <Button className="w-full bg-indigo-600 text-white py-3 hover:bg-indigo-700 font-semibold">
+                  Sign Up
+                </Button>
+              </Link>
+              <Link href="/login" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full py-3 border-slate-300 text-indigo-600 font-semibold"
+                >
+                  Login
+                </Button>
+              </Link>
             </div>
           </div>
         </>
@@ -157,13 +161,15 @@ export default function Header() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-indigo-600 px-6 py-2 text-sm font-semibold hover:text-indigo-700">
+            <Link href="/login" className="text-indigo-600 px-6 py-2 text-sm font-semibold hover:text-indigo-700">
               Login
-            </button>
+            </Link>
             <div className="w-px h-6 bg-slate-300"></div>
-            <Button className="bg-indigo-600 text-white px-6 py-2 text-sm font-semibold hover:bg-indigo-700">
-              Sign Up
-            </Button>
+            <Link href="/signup">
+              <Button className="bg-indigo-600 text-white px-6 py-2 text-sm font-semibold hover:bg-indigo-700">
+                Sign Up
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
