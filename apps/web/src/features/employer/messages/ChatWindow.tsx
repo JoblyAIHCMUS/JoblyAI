@@ -32,10 +32,7 @@ export function ChatWindow({
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const history = await getChatHistory(
-          conversation.participantId,
-          50
-        );
+        const history = await getChatHistory(conversation.participantId, 50);
         // Transform backend messages to frontend format
         const transformedMessages = history.map((msg) => ({
           messageId: msg.messageId,

@@ -161,7 +161,10 @@ export default function Header() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-indigo-600 px-6 py-2 text-sm font-semibold hover:text-indigo-700">
+            <Link
+              href="/login"
+              className="text-indigo-600 px-6 py-2 text-sm font-semibold hover:text-indigo-700"
+            >
               Login
             </Link>
             <div className="w-px h-6 bg-slate-300"></div>

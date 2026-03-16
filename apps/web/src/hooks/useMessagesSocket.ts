@@ -4,8 +4,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { ChatMessage, SendMessageRequest } from '@/services/messagesService';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface UseMessagesSocketReturn {
   socket: Socket | null;
@@ -108,27 +107,24 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
   }, []);
 
   // Send message via WebSocket
-  const sendMessage = useCallback(
-    (recipientId: string, text: string) => {
-      if (!socketRef.current?.connected) {
-        console.error('WebSocket not connected, cannot send message');
-        return;
+  const sendMessage = useCallback((recipientId: string, text: string) => {
+    if (!socketRef.current?.connected) {
+      console.error('WebSocket not connected, cannot send message');
+      return;
+    }
+
+    const payload: SendMessageRequest = {
+      recipientId,
+      text,
+    };
+
+    // Emit 'send_message' event to backend
+    socketRef.current.emit('send_message', payload, (response: unknown) => {
+      if (response) {
+        console.log('Message sent successfully:', response);
       }
-
-      const payload: SendMessageRequest = {
-        recipientId,
-        text,
-      };
-
-      // Emit 'send_message' event to backend
-      socketRef.current.emit('send_message', payload, (response: unknown) => {
-        if (response) {
-          console.log('Message sent successfully:', response);
-        }
-      });
-    },
-    []
-  );
+    });
+  }, []);
 
   // Register callback for new messages
   const onNewMessage = useCallback(

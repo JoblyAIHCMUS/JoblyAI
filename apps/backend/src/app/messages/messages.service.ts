@@ -130,18 +130,33 @@ export class MessagesService {
   }
 
   async createConversation(
-    userId: string,
-    participantId: string
-  ): Promise<void> {
-    const chatId = MessagesService.getChatId(userId, participantId);
-    await this.prisma.conversation.create({
-      data: {
-        scyllaChatId: chatId,
-        ownerId: userId,
-        participantId: participantId,
+  userId: string,
+  participantId: string
+): Promise<void> {
+  const chatId = MessagesService.getChatId(userId, participantId);
+
+  // Define the common data
+  const baseData = { scyllaChatId: chatId };
+
+  await Promise.all([
+    // Create for the initiator
+    this.prisma.conversation.upsert({
+      where: {
+        ownerId_participantId: { ownerId: userId, participantId },
       },
-    });
-  }
+      update: {}, // No update needed if it exists
+      create: { ...baseData, ownerId: userId, participantId },
+    }),
+    // Create for the recipient
+    this.prisma.conversation.upsert({
+      where: {
+        ownerId_participantId: { ownerId: participantId, participantId: userId },
+      },
+      update: {}, 
+      create: { ...baseData, ownerId: participantId, participantId: userId },
+    }),
+  ]);
+}
 
   async getChatHistory(
     senderId: string,
