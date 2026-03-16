@@ -297,7 +297,9 @@ describe('MessagesService', () => {
       // IMPORTANT: The service queries last_read FIRST, then message_id
       mockScylla.execute
         .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) }) // 1st call: SELECT last_read
-        .mockResolvedValueOnce({ first: () => ({ message_id: messageTimeUuid }) }); // 2nd call: SELECT message_id
+        .mockResolvedValueOnce({
+          first: () => ({ message_id: messageTimeUuid }),
+        }); // 2nd call: SELECT message_id
 
       // Act
       const result = await service.getChatListSummary(userId);
