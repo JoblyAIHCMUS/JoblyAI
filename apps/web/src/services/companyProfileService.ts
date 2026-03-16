@@ -102,7 +102,8 @@ export const companyProfileService = {
       categoryCompany?.openJobs ?? recommendedCompany?.jobs ?? 4;
     const override = COMPANY_PROFILE_OVERRIDES[id];
     const website =
-      override?.website ?? `https://${name.toLowerCase().replace(/\s+/g, '')}.com`;
+      override?.website ??
+      `https://${name.toLowerCase().replace(/\s+/g, '')}.com`;
 
     return {
       id,
@@ -124,7 +125,11 @@ export const companyProfileService = {
         'Singapore',
       ],
       contacts: override?.contacts ?? [
-        { type: 'website', label: website.replace(/^https?:\/\//, ''), href: website },
+        {
+          type: 'website',
+          label: website.replace(/^https?:\/\//, ''),
+          href: website,
+        },
         {
           type: 'linkedin',
           label: `linkedin.com/company/${id}`,

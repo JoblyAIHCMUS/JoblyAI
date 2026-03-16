@@ -1,12 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  Briefcase,
-  CalendarDays,
-  Globe,
-  MapPin,
-  Users,
-} from 'lucide-react';
+import { Briefcase, CalendarDays, Globe, MapPin, Users } from 'lucide-react';
 import type { CompanyProfile } from '@/types/companyProfile';
 
 const statIconMap = {
@@ -60,9 +54,7 @@ export default function CompanyDetailHero({
             Companies
           </Link>
           <span>/</span>
-          <span className="font-semibold text-slate-900">
-            {company.name}
-          </span>
+          <span className="font-semibold text-slate-900">{company.name}</span>
         </nav>
 
         <div className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-2xl sm:bg-transparent sm:p-6 lg:p-8">
@@ -111,7 +103,8 @@ export default function CompanyDetailHero({
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
                   {company.stats.map((stat) => {
                     const Icon =
-                      statIconMap[stat.label as keyof typeof statIconMap] ?? Globe;
+                      statIconMap[stat.label as keyof typeof statIconMap] ??
+                      Globe;
 
                     return (
                       <div key={stat.label} className="flex items-start gap-3">
@@ -132,7 +125,6 @@ export default function CompanyDetailHero({
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import type { CompanyProfile } from '@/types/companyProfile';
 
-export const COMPANY_PROFILE_OVERRIDES: Partial<Record<string, Partial<CompanyProfile>>> = {
+export const COMPANY_PROFILE_OVERRIDES: Partial<
+  Record<string, Partial<CompanyProfile>>
+> = {
   stripe: {
     website: 'https://stripe.com',
     description:
-      'Stripe is a software platform for starting and running internet businesses. Millions of businesses rely on Stripe\'s software tools to accept payments, expand globally, and manage their businesses online. Stripe has been at the forefront of expanding internet commerce, powering new business models, and supporting the latest platforms, from marketplaces to mobile commerce sites. We believe that growing the GDP of the internet is a problem rooted in code and design, not finance. Stripe is built for developers, makers, and creators. We work on solving the hard technical problems necessary to build global economic infrastructure, from designing highly reliable systems to developing advanced machine learning algorithms to prevent fraud.',
+      "Stripe is a software platform for starting and running internet businesses. Millions of businesses rely on Stripe's software tools to accept payments, expand globally, and manage their businesses online. Stripe has been at the forefront of expanding internet commerce, powering new business models, and supporting the latest platforms, from marketplaces to mobile commerce sites. We believe that growing the GDP of the internet is a problem rooted in code and design, not finance. Stripe is built for developers, makers, and creators. We work on solving the hard technical problems necessary to build global economic infrastructure, from designing highly reliable systems to developing advanced machine learning algorithms to prevent fraud.",
     officeSummary: 'Stripe offices spread across 20 countries',
     stats: [
       { label: 'Founded', value: 'July 31, 2011' },
@@ -20,8 +22,16 @@ export const COMPANY_PROFILE_OVERRIDES: Partial<Record<string, Partial<CompanyPr
       'China',
     ],
     contacts: [
-      { type: 'twitter', label: 'twitter.com/stripe', href: 'https://twitter.com/stripe' },
-      { type: 'facebook', label: 'facebook.com/StripeHQ', href: 'https://facebook.com/StripeHQ' },
+      {
+        type: 'twitter',
+        label: 'twitter.com/stripe',
+        href: 'https://twitter.com/stripe',
+      },
+      {
+        type: 'facebook',
+        label: 'facebook.com/StripeHQ',
+        href: 'https://facebook.com/StripeHQ',
+      },
       {
         type: 'linkedin',
         label: 'linkedin.com/company/stripe',
@@ -76,11 +86,6 @@ export const COMPANY_PROFILE_OVERRIDES: Partial<Record<string, Partial<CompanyPr
       { label: 'Location', value: '12 countries' },
       { label: 'Industry', value: 'Business Service' },
     ],
-    officeLocations: [
-      'France',
-      'Germany',
-      'Singapore',
-      'United Kingdom',
-    ],
+    officeLocations: ['France', 'Germany', 'Singapore', 'United Kingdom'],
   },
 };

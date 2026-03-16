@@ -51,10 +51,7 @@ export default function JobDetailSimilarJobs({
 
   return (
     <section
-      className={cn(
-        'border-t border-slate-100 bg-white py-[72px]',
-        className
-      )}
+      className={cn('border-t border-slate-100 bg-white py-[72px]', className)}
     >
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
         {/* Header */}

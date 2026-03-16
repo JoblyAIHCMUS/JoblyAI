@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { Facebook, Globe, Linkedin, MapPin, Twitter } from 'lucide-react';
-import type { CompanyProfile, CompanyContactLink } from '@/types/companyProfile';
+import type {
+  CompanyProfile,
+  CompanyContactLink,
+} from '@/types/companyProfile';
 
 function ContactIcon({ type }: { type: CompanyContactLink['type'] }) {
   const iconClassName = 'h-4 w-4';
@@ -137,7 +140,8 @@ export default function CompanyOverviewSection({
                   Global Presence
                 </p>
                 <p className="text-base leading-7 text-slate-600">
-                  Teams are distributed across product, design, operations, and go-to-market hubs with a hybrid collaboration model.
+                  Teams are distributed across product, design, operations, and
+                  go-to-market hubs with a hybrid collaboration model.
                 </p>
               </div>
             </div>
