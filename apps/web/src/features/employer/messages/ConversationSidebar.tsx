@@ -24,7 +24,7 @@ export function ConversationSidebar({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   );
 
   const handleSelectConversation = async (conversation: Conversation) => {
@@ -79,8 +79,8 @@ export function ConversationSidebar({
                 <div className="relative mt-1">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={conversation.avatar}
-                      alt={conversation.name}
+                      src={conversation.avatar || undefined}
+                      alt={conversation.name || 'User'}
                     />
                     <AvatarFallback>
                       {conversation.name?.charAt(0) || '?'}
@@ -100,7 +100,6 @@ export function ConversationSidebar({
                       {conversation.timestamp}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">{conversation.role}</p>
                   <p className="mt-1 text-sm text-slate-600 truncate">
                     {conversation.lastMessage || 'No messages yet'}
                   </p>

@@ -3,12 +3,13 @@ import { apiClient } from '@/lib/api';
 export interface ChatSummary {
   chatId: string;
   participantId: string;
-  participantName: string;
-  participantRole: string;
-  participantAvatar: string;
-  latestMessage?: string;
+  participantName: string | null;
+  participantRole: string | null;
+  participantAvatar: string | null;
+  latestMessage: string | null;
   hasUnread: boolean;
-  lastMessageAt?: Date;
+  lastMessageAt: Date;
+  isActive: boolean;
 }
 
 export interface ChatMessage {

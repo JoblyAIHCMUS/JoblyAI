@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Client, types } from 'cassandra-driver';
 import { InjectPrisma, InjectScylla } from '../decorators/inject.decorator';
-import { ChatStatusResponse, ChatHistoryResponse } from './messages.interface';
+import { ChatSummaryResponse, ChatHistoryResponse } from './messages.interface';
 import { SendMessageDTO } from './dto/sendMessageDTO';
 import { PrismaClient } from '@prisma/client';
 
@@ -74,7 +74,7 @@ export class MessagesService {
     await this.scylla.execute(query, [senderId, chatId], { prepare: true });
   }
 
-  async getChatListSummary(userId: string): Promise<ChatStatusResponse[]> {
+  async getChatListSummary(userId: string): Promise<ChatSummaryResponse[]> {
     try {
       console.log('🔍 getChatListSummary SERVICE: fetching conversations for userId:', userId);
       // 1. Get all active conversations for this user from PostgreSQL
@@ -83,18 +83,20 @@ export class MessagesService {
         select: {
           scyllaChatId: true,
           participantId: true,
+          lastMessageAt: true,
+          lastMessage: true,
           participant: {
-            select: { id: true, name: true, image: true },
+            select: { id: true, name: true, image: true, role: true },
           },
         },
         orderBy: { lastMessageAt: 'desc' },
       });
       console.log('📝 Found conversations:', activeConversations.length);
 
-      // 2. Map those specific conversations to ScyllaDB details
+      // 2. Map those specific conversations to include ScyllaDB details
       const chatDetails = await Promise.all(
         activeConversations.map((conv) =>
-          this.getChatDetailsByChatId(userId, conv.scyllaChatId)
+          this.getChatDetailsByChatId(userId, conv.scyllaChatId, conv)
         )
       );
       console.log('✅ getChatListSummary SERVICE: returning', chatDetails.length, 'chats');
@@ -105,38 +107,52 @@ export class MessagesService {
     }
   }
 
-  // Helper method that uses the pre-calculated chatId
+  // Helper method that uses the pre-calculated chatId and conversation data
   private async getChatDetailsByChatId(
     userId: string,
-    chatId: string
-  ): Promise<ChatStatusResponse> {
+    chatId: string,
+    conversationData: {
+      scyllaChatId: string;
+      participantId: string;
+      lastMessageAt: Date;
+      lastMessage: string | null;
+      participant: { id: string; name: string | null; image: string | null; role: string | null };
+    }
+  ): Promise<ChatSummaryResponse> {
     try {
       console.log('🔎 getChatDetailsByChatId for chatId:', chatId);
-      const [msgRes, seenRes] = await Promise.all([
-        this.scylla.execute(
-          'SELECT content, message_id FROM messages WHERE chat_id = ? LIMIT 1',
-          [chatId],
-          { prepare: true }
-        ),
-        this.scylla.execute(
-          'SELECT last_read FROM last_seen WHERE user_id = ? AND chat_id = ?',
-          [userId, chatId],
-          { prepare: true }
-        ),
-      ]);
+      const seenRes = await this.scylla.execute(
+        'SELECT last_read FROM last_seen WHERE user_id = ? AND chat_id = ?',
+        [userId, chatId],
+        { prepare: true }
+      );
+
+      const lastReadTime = seenRes.first()?.last_read;
+
+      // Check if there's a latestMessage in ScyllaDB to determine unread status
+      const msgRes = await this.scylla.execute(
+        'SELECT message_id FROM messages WHERE chat_id = ? LIMIT 1',
+        [chatId],
+        { prepare: true }
+      );
 
       const latestMessage = msgRes.first();
-      const lastReadTime = seenRes.first()?.last_read;
 
       const hasUnread =
         latestMessage &&
         (!lastReadTime ||
           latestMessage.message_id.getTimestamp() > lastReadTime.getTimestamp());
 
-      const response = {
+      const response: ChatSummaryResponse = {
         chatId,
-        latestMessage: latestMessage?.content,
-        hasUnread,
+        participantId: conversationData.participantId,
+        participantName: conversationData.participant.name,
+        participantRole: conversationData.participant.role,
+        participantAvatar: conversationData.participant.image,
+        latestMessage: conversationData.lastMessage,
+        hasUnread: hasUnread || false,
+        lastMessageAt: conversationData.lastMessageAt,
+        isActive: true, // Set to true as these are from active conversations
       };
       console.log('✅ getChatDetailsByChatId result:', response);
       return response;

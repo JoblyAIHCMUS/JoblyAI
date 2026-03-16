@@ -1,14 +1,14 @@
 export interface Conversation {
   chatId: string;
   participantId: string;
-  name: string;
-  role: string;
-  avatar: string;
-  lastMessage?: string;
+  name: string | null;
+  role: string | null;
+  avatar: string | null;
+  lastMessage: string | null;
   timestamp: string;
   unread: boolean;
   isActive: boolean;
-  lastMessageAt?: Date;
+  lastMessageAt: Date;
 }
 
 export interface Message {

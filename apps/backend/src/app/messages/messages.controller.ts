@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Request, Param, Post, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service';
-import { ChatStatusResponse } from './messages.interface';
+import { ChatSummaryResponse } from './messages.interface';
 import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -12,7 +12,7 @@ export class MessagesController {
   @UseGuards(AuthGuard)
   async getChatListSummary(
     @Query('userId') userId: string
-  ): Promise<ChatStatusResponse[]> {
+  ): Promise<ChatSummaryResponse[]> {
     try {
       console.log('📨 getChatListSummary called with userId:', userId);
       const result = await this.messagesService.getChatListSummary(userId);
