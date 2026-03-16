@@ -123,7 +123,7 @@ export default function EmployerMessagesPage() {
 
   // Handle loading messages when conversation changes
   const handleLoadMessages = useCallback((newMessages: Message[]) => {
-    setMessages(newMessages);
+    setMessages([...newMessages].reverse());
   }, []);
 
   // Show loading state
