@@ -19,7 +19,6 @@ export interface SignupCredentials extends LoginCredentials {
 
 export function useLogin() {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -46,8 +45,7 @@ export function useLogin() {
       // We already have the user data, so we don't need to fetch it again.
       queryClient.setQueryData(['user'], user);
 
-      // Optional: Redirect immediately
-      router.push('/dashboard');
+      // Component is responsible for routing
     },
   });
 }

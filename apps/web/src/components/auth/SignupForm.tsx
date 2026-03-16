@@ -54,11 +54,11 @@ export function SignupForm() {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: roleMap[data.userType],
+        role: roleMap[userType],
       },
       {
         onSuccess: () => {
-          router.push('/');
+          router.push('/login');
         },
       }
     );
