@@ -1,11 +1,11 @@
 import BrowseCompaniesCompanyProfilePage from '@/features/browse-companies/company-profile/page';
 
-export default function BrowseCompaniesCompanyDetailRoute({
+export default async function BrowseCompaniesCompanyDetailRoute({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   return <BrowseCompaniesCompanyProfilePage companyId={id} />;
 }
