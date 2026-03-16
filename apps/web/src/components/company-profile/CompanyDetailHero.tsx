@@ -24,18 +24,30 @@ export default function CompanyDetailHero({
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-16 sm:pt-20 lg:pt-24">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute right-0 top-0 hidden h-[436px] w-[520px] overflow-hidden opacity-60 lg:block">
+        <div className="absolute inset-0 bg-[#F8F8FD]" />
+
+        <div className="absolute left-0 top-5 hidden h-[600px] w-[260px] overflow-hidden lg:block">
           <Image
             src="/landing/Pattern.svg"
-            alt=""
+            alt="Pattern left"
             width={834}
             height={436}
-            className="absolute left-0 top-5 h-auto w-[834px] max-w-none"
+            className="absolute top-0 right-1/3 h-auto w-[400px] max-w-none opacity-90"
+          />
+        </div>
+
+        <div className="absolute right-0 top-20 h-[600px] w-[260px] overflow-hidden opacity-60 sm:w-[26 0px] sm:opacity-100 lg:w-[244px] lg:opacity-100">
+          <Image
+            src="/landing/Pattern.svg"
+            alt="Pattern right"
+            width={834}
+            height={436}
+            className="absolute left-2/3 top-1/2 h-auto w-[834px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-90"
           />
         </div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+      <div className="relative mx-auto w-full max-w-[1240px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-10">
         <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-sm text-slate-500 sm:mb-7">
           <Link href="/" className="transition-colors hover:text-slate-700">
             Home
@@ -49,43 +61,54 @@ export default function CompanyDetailHero({
           </Link>
           <span>/</span>
           <span className="font-semibold text-slate-900">
-            {company.breadcrumbLabel}
+            {company.name}
           </span>
         </nav>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:p-8">
+        <div className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-2xl sm:bg-transparent sm:p-6 lg:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-400 text-4xl font-semibold text-white shadow-sm">
-                {company.logoUrl ? (
-                  <img
-                    src={company.logoUrl}
-                    alt={company.logoAlt}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  company.name.slice(0, 1).toUpperCase()
-                )}
+              <div className="flex items-start justify-between gap-4 sm:block">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded from-indigo-600 to-cyan-400 text-2xl font-semibold text-white sm:h-20 sm:w-20 sm:rounded-xl sm:text-4xl">
+                  {company.logoUrl ? (
+                    <img
+                      src={company.logoUrl}
+                      alt={`${company.name} logo`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    company.name.slice(0, 1).toUpperCase()
+                  )}
+                </div>
+
+                <div className="inline-flex w-fit rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 sm:px-4 sm:py-2 sm:text-sm sm:hidden">
+                  {company.openJobsCount} open jobs
+                </div>
               </div>
 
               <div className="min-w-0 space-y-3">
                 <div>
-                  <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
-                    {company.name}
-                  </h1>
+                  <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
+                      {company.name}
+                    </h1>
+                    <div className="hidden w-fit rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 md:inline-flex">
+                      {company.openJobsCount} open jobs
+                    </div>
+                  </div>
                   <a
                     href={company.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-1 inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-indigo-700"
+                    className="mt-1 inline-flex text-sm text-indigo-700 underline-offset-2 transition-colors hover:text-indigo-800 hover:underline"
                   >
-                    <Globe className="h-4 w-4" />
-                    {company.website.replace(/^https?:\/\//, '')}
+                    <Globe className="h-5 w-5" />
+                    {company.website}
                   </a>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
                   {company.stats.map((stat) => {
                     const Icon =
                       statIconMap[stat.label as keyof typeof statIconMap] ?? Globe;
@@ -110,9 +133,6 @@ export default function CompanyDetailHero({
               </div>
             </div>
 
-            <div className="inline-flex w-fit rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">
-              {company.openJobsCount} open jobs
-            </div>
           </div>
         </div>
       </div>

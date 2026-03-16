@@ -29,9 +29,7 @@ export interface CompanyProfile {
   id: string;
   name: string;
   logoUrl: string;
-  logoAlt: string;
   website: string;
-  breadcrumbLabel: string;
   openJobsCount: number;
   description: string;
   officeSummary: string;

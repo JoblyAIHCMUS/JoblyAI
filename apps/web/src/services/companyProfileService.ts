@@ -103,8 +103,6 @@ export const companyProfileService = {
     const name = categoryCompany?.name ?? recommendedCompany?.name ?? 'Company';
     const logoUrl =
       categoryCompany?.logoUrl ?? recommendedCompany?.logo.imageUrl ?? '';
-    const logoAlt =
-      categoryCompany?.logoAlt ?? recommendedCompany?.logo.alt ?? `${name} logo`;
     const categoryName = categoryCompany?.categoryId
       ? categoryNameMap.get(categoryCompany.categoryId) ?? 'Technology'
       : recommendedCompany?.tag.label ?? 'Technology';
@@ -118,9 +116,7 @@ export const companyProfileService = {
       id,
       name,
       logoUrl,
-      logoAlt,
       website,
-      breadcrumbLabel: override?.breadcrumbLabel ?? name,
       openJobsCount,
       description:
         override?.description ??
