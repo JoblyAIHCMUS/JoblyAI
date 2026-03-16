@@ -75,25 +75,34 @@ export class MessagesService {
   }
 
   async getChatListSummary(userId: string): Promise<ChatStatusResponse[]> {
-    // 1. Get all active conversations for this user from PostgreSQL
-    const activeConversations = await this.prisma.conversation.findMany({
-      where: { ownerId: userId },
-      select: {
-        scyllaChatId: true,
-        participantId: true,
-        participant: {
-          select: { id: true, name: true, image: true },
+    try {
+      console.log('🔍 getChatListSummary SERVICE: fetching conversations for userId:', userId);
+      // 1. Get all active conversations for this user from PostgreSQL
+      const activeConversations = await this.prisma.conversation.findMany({
+        where: { ownerId: userId },
+        select: {
+          scyllaChatId: true,
+          participantId: true,
+          participant: {
+            select: { id: true, name: true, image: true },
+          },
         },
-      },
-      orderBy: { lastMessageAt: 'desc' },
-    });
+        orderBy: { lastMessageAt: 'desc' },
+      });
+      console.log('📝 Found conversations:', activeConversations.length);
 
-    // 2. Map those specific conversations to ScyllaDB details
-    return await Promise.all(
-      activeConversations.map((conv) =>
-        this.getChatDetailsByChatId(userId, conv.scyllaChatId)
-      )
-    );
+      // 2. Map those specific conversations to ScyllaDB details
+      const chatDetails = await Promise.all(
+        activeConversations.map((conv) =>
+          this.getChatDetailsByChatId(userId, conv.scyllaChatId)
+        )
+      );
+      console.log('✅ getChatListSummary SERVICE: returning', chatDetails.length, 'chats');
+      return chatDetails;
+    } catch (error) {
+      console.error('❌ getChatListSummary SERVICE ERROR:', error);
+      throw error;
+    }
   }
 
   // Helper method that uses the pre-calculated chatId
@@ -101,32 +110,40 @@ export class MessagesService {
     userId: string,
     chatId: string
   ): Promise<ChatStatusResponse> {
-    const [msgRes, seenRes] = await Promise.all([
-      this.scylla.execute(
-        'SELECT content, message_id FROM messages WHERE chat_id = ? LIMIT 1',
-        [chatId],
-        { prepare: true }
-      ),
-      this.scylla.execute(
-        'SELECT last_read FROM last_seen WHERE user_id = ? AND chat_id = ?',
-        [userId, chatId],
-        { prepare: true }
-      ),
-    ]);
+    try {
+      console.log('🔎 getChatDetailsByChatId for chatId:', chatId);
+      const [msgRes, seenRes] = await Promise.all([
+        this.scylla.execute(
+          'SELECT content, message_id FROM messages WHERE chat_id = ? LIMIT 1',
+          [chatId],
+          { prepare: true }
+        ),
+        this.scylla.execute(
+          'SELECT last_read FROM last_seen WHERE user_id = ? AND chat_id = ?',
+          [userId, chatId],
+          { prepare: true }
+        ),
+      ]);
 
-    const latestMessage = msgRes.first();
-    const lastReadTime = seenRes.first()?.last_read;
+      const latestMessage = msgRes.first();
+      const lastReadTime = seenRes.first()?.last_read;
 
-    const hasUnread =
-      latestMessage &&
-      (!lastReadTime ||
-        latestMessage.message_id.getTimestamp() > lastReadTime.getTimestamp());
+      const hasUnread =
+        latestMessage &&
+        (!lastReadTime ||
+          latestMessage.message_id.getTimestamp() > lastReadTime.getTimestamp());
 
-    return {
-      chatId,
-      latestMessage: latestMessage?.content,
-      hasUnread,
-    };
+      const response = {
+        chatId,
+        latestMessage: latestMessage?.content,
+        hasUnread,
+      };
+      console.log('✅ getChatDetailsByChatId result:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ getChatDetailsByChatId ERROR for chatId:', chatId, 'error:', error);
+      throw error;
+    }
   }
 
   async createConversation(
