@@ -838,6 +838,33 @@ components:
         logoUrl:
           type: string
           format: uri
+        description:
+          type: string
+        galleryImages:
+          type: array
+          items:
+            type: string
+            format: uri
+        officeSummary:
+          type: string
+        officeLocations:
+          type: array
+          items:
+            type: string
+        links:
+          type: array
+          items:
+            type: object
+            required: [type, label, href]
+            properties:
+              type:
+                type: string
+                enum: [website, twitter, facebook, linkedin]
+              label:
+                type: string
+              href:
+                type: string
+                format: uri
         companySize:
           type: string
           enum: [1-10, 11-50, 51-200, 201-1000, 1000+]

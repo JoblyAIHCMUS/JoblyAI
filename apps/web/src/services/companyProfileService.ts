@@ -126,10 +126,10 @@ export const companyProfileService = {
         override?.officeSummary ??
         `${name} teams collaborate across hybrid offices and distributed hubs worldwide`,
       officeLocations: override?.officeLocations ?? [
-        { emoji: '🇺🇸', label: 'United States' },
-        { emoji: '🇬🇧', label: 'United Kingdom' },
-        { emoji: '🇩🇪', label: 'Germany' },
-        { emoji: '🇸🇬', label: 'Singapore' },
+        'United States',
+        'United Kingdom',
+        'Germany',
+        'Singapore',
       ],
       contacts: override?.contacts ?? [
         { type: 'website', label: website.replace(/^https?:\/\//, ''), href: website },

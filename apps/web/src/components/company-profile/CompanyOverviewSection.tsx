@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Facebook, Globe, Linkedin, MapPin, Twitter } from 'lucide-react';
 import type { CompanyProfile, CompanyContactLink } from '@/types/companyProfile';
 
@@ -22,6 +25,12 @@ export default function CompanyOverviewSection({
   company: CompanyProfile;
 }) {
   const [mainImage, ...galleryImages] = company.gallery;
+  const [showAllLocations, setShowAllLocations] = useState(false);
+  const maxVisibleLocations = 4;
+  const hasMoreLocations = company.officeLocations.length > maxVisibleLocations;
+  const visibleLocations = showAllLocations
+    ? company.officeLocations
+    : company.officeLocations.slice(0, maxVisibleLocations);
 
   return (
     <section className="bg-white py-12 sm:py-16 lg:py-[72px]">
@@ -96,14 +105,26 @@ export default function CompanyOverviewSection({
           </div>
 
           <div className="space-y-4 border-b border-slate-200 pb-6">
-            {company.officeLocations.map((location) => (
-              <div key={location.label} className="flex items-center gap-3">
-                <span className="text-2xl leading-none">{location.emoji}</span>
+            {visibleLocations.map((location) => (
+              <div key={location} className="flex items-center gap-3">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                  <MapPin className="h-4 w-4" />
+                </span>
                 <span className="text-base font-medium text-slate-900">
-                  {location.label}
+                  {location}
                 </span>
               </div>
             ))}
+
+            {hasMoreLocations ? (
+              <button
+                type="button"
+                onClick={() => setShowAllLocations((prev) => !prev)}
+                className="text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-800"
+              >
+                {showAllLocations ? 'See fewer locations' : 'See all locations'}
+              </button>
+            ) : null}
           </div>
 
           <div className="rounded-2xl bg-slate-50 p-6">

@@ -13,11 +13,11 @@ export const COMPANY_PROFILE_OVERRIDES: Partial<Record<string, Partial<CompanyPr
       { label: 'Industry', value: 'Fintech' },
     ],
     officeLocations: [
-      { emoji: '🇺🇸', label: 'United States' },
-      { emoji: '🏴', label: 'England' },
-      { emoji: '🇯🇵', label: 'Japan' },
-      { emoji: '🇦🇺', label: 'Australia' },
-      { emoji: '🇨🇳', label: 'China' },
+      'United States',
+      'England',
+      'Japan',
+      'Australia',
+      'China',
     ],
     contacts: [
       { type: 'twitter', label: 'twitter.com/stripe', href: 'https://twitter.com/stripe' },
@@ -87,10 +87,10 @@ export const COMPANY_PROFILE_OVERRIDES: Partial<Record<string, Partial<CompanyPr
       { label: 'Industry', value: 'Business Service' },
     ],
     officeLocations: [
-      { emoji: '🇫🇷', label: 'France' },
-      { emoji: '🇩🇪', label: 'Germany' },
-      { emoji: '🇸🇬', label: 'Singapore' },
-      { emoji: '🇬🇧', label: 'United Kingdom' },
+      'France',
+      'Germany',
+      'Singapore',
+      'United Kingdom',
     ],
   },
 };

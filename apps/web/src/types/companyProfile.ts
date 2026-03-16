@@ -11,11 +11,6 @@ export interface CompanyContactLink {
   href: string;
 }
 
-export interface CompanyOfficeLocation {
-  emoji: string;
-  label: string;
-}
-
 export interface CompanyTeamMember {
   id: string;
   name: string;
@@ -33,7 +28,7 @@ export interface CompanyProfile {
   openJobsCount: number;
   description: string;
   officeSummary: string;
-  officeLocations: CompanyOfficeLocation[];
+  officeLocations: string[];
   contacts: CompanyContactLink[];
   stats: CompanyProfileStat[];
   gallery: string[];
