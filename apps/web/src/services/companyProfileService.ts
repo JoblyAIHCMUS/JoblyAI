@@ -22,32 +22,24 @@ const fallbackTeam: CompanyTeamMember[] = [
     name: 'Maya Thomas',
     role: 'People Lead',
     avatarUrl: 'https://i.pravatar.cc/160?img=45',
-    instagramUrl: '#',
-    linkedinUrl: '#',
   },
   {
     id: 'logan',
     name: 'Logan Cross',
     role: 'Head of Design',
     avatarUrl: 'https://i.pravatar.cc/160?img=13',
-    instagramUrl: '#',
-    linkedinUrl: '#',
   },
   {
     id: 'irene',
     name: 'Irene Fox',
     role: 'Engineering Manager',
     avatarUrl: 'https://i.pravatar.cc/160?img=29',
-    instagramUrl: '#',
-    linkedinUrl: '#',
   },
   {
     id: 'henry',
     name: 'Henry Miles',
     role: 'Product Director',
     avatarUrl: 'https://i.pravatar.cc/160?img=68',
-    instagramUrl: '#',
-    linkedinUrl: '#',
   },
 ];
 

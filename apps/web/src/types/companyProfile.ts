@@ -16,8 +16,6 @@ export interface CompanyTeamMember {
   name: string;
   role: string;
   avatarUrl: string;
-  instagramUrl?: string;
-  linkedinUrl?: string;
 }
 
 export interface CompanyProfile {
