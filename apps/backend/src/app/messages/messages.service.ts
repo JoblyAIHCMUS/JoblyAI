@@ -213,28 +213,63 @@ export class MessagesService {
   ): Promise<ChatHistoryResponse> {
     const chatId = MessagesService.getChatId(senderId, recipientId);
     const query = 'SELECT * FROM messages WHERE chat_id = ? LIMIT ?';
-
     const result = await this.scylla.execute(query, [chatId, limit], {
       prepare: true,
     });
 
     return {
       messages: result.rows.map((row) => {
-        // Handle both TimeUuid objects and plain values for message_id
-        let timestampMs: number;
-        if (typeof row.message_id.getTimestamp === 'function') {
-          timestampMs = row.message_id.getTimestamp();
-        } else if (row.message_id instanceof Date) {
-          timestampMs = row.message_id.getTime();
-        } else {
-          timestampMs = new Date(row.message_id).getTime();
+        // Extract timestamp from TimeUuid message_id
+        let timestamp: Date;
+        try {
+          if (row.message_id instanceof types.TimeUuid) {
+            // Extract timestamp from UUID v1 buffer
+            // UUID v1 timestamp is in the first 8 bytes (60 bits) in 100-nanosecond intervals since Oct 15, 1582
+            const buf = (row.message_id as any).buffer;
+            
+            // Reconstruct the 60-bit timestamp from UUID v1 structure
+            // time_low (4 bytes), time_mid (2 bytes), time_hi (12 bits of next 2 bytes)
+            const timeLow = buf.readUInt32BE(0);
+            const timeMid = buf.readUInt16BE(4);
+            const timeHiVersion = buf.readUInt16BE(6);
+            const timeHi = timeHiVersion & 0x0fff; // Remove version bits
+            
+            // Combine into 60-bit timestamp
+            const timestamp100ns = (BigInt(timeHi) << BigInt(48)) | 
+                                   (BigInt(timeMid) << BigInt(32)) | 
+                                   BigInt(timeLow);
+            
+            // Convert from 100-nanosecond intervals since 1582 to milliseconds since 1970
+            // Gregorian calendar epoch (Oct 15, 1582) to Unix epoch (Jan 1, 1970) = 122192928000 seconds
+            // = 12219292800000 milliseconds = 122192928000000000 in 100ns intervals
+            const gregorianToUnixEpoch = BigInt(122192928000000000);
+            const timestampMs = Number((timestamp100ns - gregorianToUnixEpoch) / BigInt(10000));
+            
+            timestamp = new Date(timestampMs);
+            console.log(`✅ Extracted timestamp from UUID: ${timestamp.toISOString()}`);
+          } else if (row.message_id instanceof Date) {
+            timestamp = row.message_id;
+          } else {
+            // Fallback for other types
+            timestamp = new Date();
+            console.warn(`⚠️ Unknown message_id type: ${typeof row.message_id}`);
+          }
+
+          // Validate the timestamp is valid
+          if (isNaN(timestamp.getTime())) {
+            console.warn(`⚠️ Invalid timestamp for message ${row.message_id}. Using current time.`);
+            timestamp = new Date();
+          }
+        } catch (error) {
+          console.error(`❌ Error extracting timestamp from message_id ${row.message_id}:`, error);
+          timestamp = new Date();
         }
 
         return {
           messageId: row.message_id.toString(),
           senderId: row.sender_id,
           content: row.content,
-          timestamp: new Date(timestampMs),
+          timestamp,
         };
       }),
     };
