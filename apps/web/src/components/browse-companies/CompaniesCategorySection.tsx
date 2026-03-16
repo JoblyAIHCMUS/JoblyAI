@@ -1,8 +1,8 @@
 'use client';
 
 import { ArrowRight, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
-import CategoryTab from '@/components/brown-companies/category-section/CategoryTab';
-import CompanyCard from '@/components/brown-companies/category-section/CompanyCard';
+import CategoryTab from '@/components/browse-companies/category-section/CategoryTab';
+import CompanyCard from '@/components/browse-companies/category-section/CompanyCard';
 import { useCategoryCompanies } from '@/hooks/useCategoryCompanies';
 import { useScrollCues } from '@/hooks/useScrollCues';
 import { getCategoryIconByIndex } from '@/lib/categoryIcons';

@@ -53,7 +53,7 @@ export const JOB_DETAIL_PAGE_DATA_MOCK: JobDetailPageData = {
   jobId: 'job-001',
   breadcrumbItems: [
     { label: 'Home', href: '/' },
-    { label: 'Companies', href: '/companies' },
+    { label: 'Companies', href: '/browse-companies' },
     { label: 'Nomad', href: '/companies/nomad' },
     { label: 'Social Media Assistant' },
   ],

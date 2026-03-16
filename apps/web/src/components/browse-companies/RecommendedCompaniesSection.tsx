@@ -1,4 +1,4 @@
-import CompanyCard from '@/components/brown-companies/recommended/CompanyCard';
+import CompanyCard from '@/components/browse-companies/recommended/CompanyCard';
 import { recommendedCompanyService } from '@/services/recommendedCompanyService';
 
 export default function RecommendedCompaniesSection() {
