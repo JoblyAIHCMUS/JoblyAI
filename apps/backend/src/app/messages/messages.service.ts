@@ -138,10 +138,25 @@ export class MessagesService {
 
       const latestMessage = msgRes.first();
 
-      const hasUnread =
-        latestMessage &&
-        (!lastReadTime ||
-          latestMessage.message_id.getTimestamp() > lastReadTime.getTimestamp());
+      // Handle message_id which may or may not be a TimeUuid with getTimestamp method
+      let hasUnread = false;
+      if (latestMessage && !lastReadTime) {
+        hasUnread = true;
+      } else if (latestMessage && lastReadTime) {
+        // Try to get timestamp from message_id, handle both TimeUuid objects and plain values
+        const messageTimestamp =
+          typeof latestMessage.message_id.getTimestamp === 'function'
+            ? latestMessage.message_id.getTimestamp()
+            : new Date(latestMessage.message_id).getTime?.() ||
+              latestMessage.message_id.getTime?.();
+
+        const lastReadTimestamp =
+          typeof lastReadTime.getTimestamp === 'function'
+            ? lastReadTime.getTimestamp()
+            : lastReadTime.getTime?.() || new Date(lastReadTime).getTime();
+
+        hasUnread = messageTimestamp > lastReadTimestamp;
+      }
 
       const response: ChatSummaryResponse = {
         chatId,
@@ -204,12 +219,24 @@ export class MessagesService {
     });
 
     return {
-      messages: result.rows.map((row) => ({
-        messageId: row.message_id,
-        senderId: row.sender_id,
-        content: row.content,
-        timestamp: row.message_id.getTimestamp(),
-      })),
+      messages: result.rows.map((row) => {
+        // Handle both TimeUuid objects and plain values for message_id
+        let timestampMs: number;
+        if (typeof row.message_id.getTimestamp === 'function') {
+          timestampMs = row.message_id.getTimestamp();
+        } else if (row.message_id instanceof Date) {
+          timestampMs = row.message_id.getTime();
+        } else {
+          timestampMs = new Date(row.message_id).getTime();
+        }
+
+        return {
+          messageId: row.message_id.toString(),
+          senderId: row.sender_id,
+          content: row.content,
+          timestamp: new Date(timestampMs),
+        };
+      }),
     };
   }
 }

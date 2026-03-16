@@ -6,6 +6,23 @@ import { ChatMessage, SendMessageRequest } from '@/services/messagesService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+// Debug logging utility
+const DEBUG = true;
+const logDebug = {
+  info: (label: string, data?: unknown) => {
+    if (DEBUG) console.log(`[MessagesSocket] ${label}`, data || '');
+  },
+  warn: (label: string, data?: unknown) => {
+    if (DEBUG) console.warn(`[MessagesSocket] ⚠️  ${label}`, data || '');
+  },
+  error: (label: string, data?: unknown) => {
+    if (DEBUG) console.error(`[MessagesSocket] ❌ ${label}`, data || '');
+  },
+  success: (label: string, data?: unknown) => {
+    if (DEBUG) console.log(`[MessagesSocket] ✅ ${label}`, data || '');
+  },
+};
+
 export interface UseMessagesSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
@@ -25,30 +42,31 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
     null
   );
   const readCallbackRef = useRef<((friendId: string) => void) | null>(null);
+  const mountedRef = useRef(true);
 
   // Initialize socket connection
   useEffect(() => {
-    // Extract token from cookies
-    const getTokenFromCookie = (): string | null => {
-      const cookies = document.cookie.split('; ');
-      const sessionCookie = cookies.find((c) =>
-        c.startsWith('better-auth.session-token=')
-      );
-      return sessionCookie ? sessionCookie.split('=')[1] : null;
-    };
-
-    const token = getTokenFromCookie();
-
-    // Skip connection if no token
-    if (!token) {
-      console.warn('No auth token found, WebSocket will not connect');
-      return undefined;
+    logDebug.info('Initializing WebSocket connection');
+    
+    // If socket already exists, don't create a new one (React 18 Strict Mode cleanup)
+    if (socketRef.current?.connected) {
+      logDebug.info('Socket already connected, skipping initialization');
+      return () => {
+        // Cleanup only on actual unmount, not on Strict Mode re-run
+      };
     }
 
     let socket: Socket | null = null;
 
     try {
-      // Initialize Socket.io client with auth token in handshake headers
+      logDebug.info('Socket.io configuration', {
+        apiUrl: API_BASE_URL,
+        path: '/socket.io',
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+      });
+
+      // Initialize Socket.io client with withCredentials to send httpOnly cookies
       socket = io(API_BASE_URL, {
         path: '/socket.io',
         reconnection: true,
@@ -56,60 +74,103 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
         reconnectionDelayMax: 5000,
         reconnectionAttempts: 10,
         transports: ['websocket', 'polling'],
-        extraHeaders: {
-          Authorization: `Bearer ${token}`,
-          Cookie: `better-auth.session-token=${token}`,
-        },
+        withCredentials: true, // Allow cookies to be sent with the request
       });
 
+      logDebug.success('Socket.io client created');
       socketRef.current = socket;
 
       // Connection event handlers
       socket.on('connect', () => {
-        console.log('WebSocket connected:', socket?.id);
-        setIsConnected(true);
+        if (mountedRef.current) {
+          logDebug.success('WebSocket connected', { socketId: socket?.id });
+          setIsConnected(true);
+        }
       });
 
-      socket.on('disconnect', () => {
-        console.log('WebSocket disconnected');
-        setIsConnected(false);
+      socket.on('disconnect', (reason: string) => {
+        if (mountedRef.current) {
+          logDebug.warn('WebSocket disconnected', { reason });
+          setIsConnected(false);
+        }
       });
 
       socket.on('connect_error', (error: Error) => {
-        console.error('WebSocket connection error:', error);
+        logDebug.error('WebSocket connection error', {
+          message: error.message,
+          name: error.name,
+        });
+      });
+
+      socket.on('reconnect_attempt', (attemptNumber: number) => {
+        logDebug.info('WebSocket reconnection attempt', { attempt: attemptNumber });
+      });
+
+      socket.on('reconnect_failed', () => {
+        logDebug.error('WebSocket reconnection failed', 'Max reconnection attempts reached');
       });
 
       // Listen for new messages
       socket.on('new_message', (message: ChatMessage) => {
-        console.log('New message received:', message);
+        logDebug.info('New message received', {
+          senderId: message.senderId,
+          contentLength: message.content?.length,
+          timestamp: message.timestamp,
+        });
         if (messageCallbackRef.current) {
           messageCallbackRef.current(message);
         }
       });
 
       // Listen for message read receipts
-      socket.on('message_read', (data: { friendId: string }) => {
-        console.log('Message read receipt:', data);
+      socket.on('message_read', (data: { friendId: string; by?: string }) => {
+        logDebug.info('Message read receipt received', data);
         if (readCallbackRef.current) {
           readCallbackRef.current(data.friendId);
         }
       });
 
+      logDebug.success('All socket event listeners registered');
+
       return () => {
-        if (socket) {
+        logDebug.info('Cleaning up WebSocket connection');
+        mountedRef.current = false;
+        if (socket && socket.connected) {
           socket.disconnect();
         }
       };
     } catch (error) {
-      console.error('Error initializing WebSocket:', error);
-      return undefined;
+      logDebug.error('Error initializing WebSocket', {
+        message: error instanceof Error ? error.message : String(error),
+        error,
+      });
+      return () => {
+        mountedRef.current = false;
+      };
     }
+  }, []);
+
+  // Set mounted flag on mount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   // Send message via WebSocket
   const sendMessage = useCallback((recipientId: string, text: string) => {
+    logDebug.info('Send message requested', {
+      recipientId,
+      textLength: text.length,
+      isConnected: socketRef.current?.connected,
+    });
+
     if (!socketRef.current?.connected) {
-      console.error('WebSocket not connected, cannot send message');
+      logDebug.error('WebSocket not connected, cannot send message', {
+        connected: socketRef.current?.connected,
+        socketExists: !!socketRef.current,
+      });
       return;
     }
 
@@ -118,10 +179,14 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
       text,
     };
 
+    logDebug.info('Emitting send_message event', { recipientId });
+
     // Emit 'send_message' event to backend
     socketRef.current.emit('send_message', payload, (response: unknown) => {
       if (response) {
-        console.log('Message sent successfully:', response);
+        logDebug.success('Message sent successfully', response);
+      } else {
+        logDebug.warn('Message sent but no acknowledgment received');
       }
     });
   }, []);
