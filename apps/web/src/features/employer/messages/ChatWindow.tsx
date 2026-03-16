@@ -71,8 +71,8 @@ export function ChatWindow({
       <div className="border-b border-slate-200 p-6 flex items-center justify-between bg-white">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={conversation.avatar} alt={conversation.name} />
-            <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={conversation.avatar ?? undefined} alt={conversation.name ?? undefined} />
+            <AvatarFallback>{(conversation.name ?? 'U').charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
@@ -109,8 +109,8 @@ export function ChatWindow({
           </div>
         )}
 
-        {messages.map((message) => (
-          <MessageBubble key={message.messageId} message={message} />
+        {messages.map((message, index) => (
+          <MessageBubble key={message.messageId || `msg-${index}`} message={message} />
         ))}
       </div>
 
