@@ -1,0 +1,73 @@
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { MessagesService } from './messages.service';
+import { SendMessageDTO } from './dto/sendMessageDTO';
+import { UsePipes, ValidationPipe } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
+
+@WebSocketGateway({ cors: { origin: '*' } })
+export class MessagesGateway implements OnGatewayConnection {
+  @WebSocketServer() server!: Server;
+
+  constructor(
+    private readonly messagesService: MessagesService,
+    private readonly authService: AuthService
+  ) {}
+
+  async handleConnection(client: Socket) {
+    const headers = client.handshake.headers as
+      | Headers
+      | Record<string, string | string[]>;
+
+    const session = await this.authService.validateToken(headers);
+
+    if (session?.user?.id) {
+      const userId = String(session.user.id);
+      client.data.userId = userId;
+      await client.join(userId);
+      console.log(`User ${userId} is now online and joined room ${userId}`);
+    } else {
+      console.log('Unauthenticated websocket connection rejected');
+      client.disconnect();
+    }
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('send_message')
+  async handleSendMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: SendMessageDTO
+  ) {
+    const senderId = client.data.userId as string;
+
+    await this.messagesService.sendMessage(senderId, dto);
+
+    // 2. Real-time Push: Emit only to the recipient's private room
+    this.server.to(dto.recipientId).emit('new_message', {
+      senderId,
+      content: dto.text,
+      timestamp: new Date(),
+    });
+
+    return { status: 'ok' };
+  }
+
+  @SubscribeMessage('mark_read')
+  async handleMarkRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { friendId: string }
+  ) {
+    const userId = client.data.userId as string;
+    await this.messagesService.markAsRead(userId, data.friendId);
+
+    // Notify the friend that Alice read the message
+    this.server.to(data.friendId).emit('message_read', { by: userId });
+  }
+}
