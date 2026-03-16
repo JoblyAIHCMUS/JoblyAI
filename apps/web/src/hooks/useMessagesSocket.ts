@@ -48,7 +48,7 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
   // Initialize socket connection
   useEffect(() => {
     logDebug.info('Initializing WebSocket connection');
-    
+
     // Prevent double initialization on React 18 Strict Mode
     if (initializedRef.current) {
       logDebug.info('Socket already initialized, skipping');
@@ -103,11 +103,16 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
       });
 
       socket.on('reconnect_attempt', (attemptNumber: number) => {
-        logDebug.info('WebSocket reconnection attempt', { attempt: attemptNumber });
+        logDebug.info('WebSocket reconnection attempt', {
+          attempt: attemptNumber,
+        });
       });
 
       socket.on('reconnect_failed', () => {
-        logDebug.error('WebSocket reconnection failed', 'Max reconnection attempts reached');
+        logDebug.error(
+          'WebSocket reconnection failed',
+          'Max reconnection attempts reached'
+        );
       });
 
       // Listen for new messages

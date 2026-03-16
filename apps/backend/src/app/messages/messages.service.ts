@@ -76,7 +76,10 @@ export class MessagesService {
 
   async getChatListSummary(userId: string): Promise<ChatSummaryResponse[]> {
     try {
-      console.log('🔍 getChatListSummary SERVICE: fetching conversations for userId:', userId);
+      console.log(
+        '🔍 getChatListSummary SERVICE: fetching conversations for userId:',
+        userId
+      );
       // 1. Get all active conversations for this user from PostgreSQL
       const activeConversations = await this.prisma.conversation.findMany({
         where: { ownerId: userId },
@@ -99,7 +102,11 @@ export class MessagesService {
           this.getChatDetailsByChatId(userId, conv.scyllaChatId, conv)
         )
       );
-      console.log('✅ getChatListSummary SERVICE: returning', chatDetails.length, 'chats');
+      console.log(
+        '✅ getChatListSummary SERVICE: returning',
+        chatDetails.length,
+        'chats'
+      );
       return chatDetails;
     } catch (error) {
       console.error('❌ getChatListSummary SERVICE ERROR:', error);
@@ -116,7 +123,12 @@ export class MessagesService {
       participantId: string;
       lastMessageAt: Date;
       lastMessage: string | null;
-      participant: { id: string; name: string | null; image: string | null; role: string | null };
+      participant: {
+        id: string;
+        name: string | null;
+        image: string | null;
+        role: string | null;
+      };
     }
   ): Promise<ChatSummaryResponse> {
     try {
@@ -172,39 +184,47 @@ export class MessagesService {
       console.log('✅ getChatDetailsByChatId result:', response);
       return response;
     } catch (error) {
-      console.error('❌ getChatDetailsByChatId ERROR for chatId:', chatId, 'error:', error);
+      console.error(
+        '❌ getChatDetailsByChatId ERROR for chatId:',
+        chatId,
+        'error:',
+        error
+      );
       throw error;
     }
   }
 
   async createConversation(
-  userId: string,
-  participantId: string
-): Promise<void> {
-  const chatId = MessagesService.getChatId(userId, participantId);
+    userId: string,
+    participantId: string
+  ): Promise<void> {
+    const chatId = MessagesService.getChatId(userId, participantId);
 
-  // Define the common data
-  const baseData = { scyllaChatId: chatId };
+    // Define the common data
+    const baseData = { scyllaChatId: chatId };
 
-  await Promise.all([
-    // Create for the initiator
-    this.prisma.conversation.upsert({
-      where: {
-        ownerId_participantId: { ownerId: userId, participantId },
-      },
-      update: {}, // No update needed if it exists
-      create: { ...baseData, ownerId: userId, participantId },
-    }),
-    // Create for the recipient
-    this.prisma.conversation.upsert({
-      where: {
-        ownerId_participantId: { ownerId: participantId, participantId: userId },
-      },
-      update: {}, 
-      create: { ...baseData, ownerId: participantId, participantId: userId },
-    }),
-  ]);
-}
+    await Promise.all([
+      // Create for the initiator
+      this.prisma.conversation.upsert({
+        where: {
+          ownerId_participantId: { ownerId: userId, participantId },
+        },
+        update: {}, // No update needed if it exists
+        create: { ...baseData, ownerId: userId, participantId },
+      }),
+      // Create for the recipient
+      this.prisma.conversation.upsert({
+        where: {
+          ownerId_participantId: {
+            ownerId: participantId,
+            participantId: userId,
+          },
+        },
+        update: {},
+        create: { ...baseData, ownerId: participantId, participantId: userId },
+      }),
+    ]);
+  }
 
   async getChatHistory(
     senderId: string,
@@ -219,51 +239,11 @@ export class MessagesService {
 
     return {
       messages: result.rows.map((row) => {
-        // Extract timestamp from TimeUuid message_id
-        let timestamp: Date;
-        try {
-          if (row.message_id instanceof types.TimeUuid) {
-            // Extract timestamp from UUID v1 buffer
-            // UUID v1 timestamp is in the first 8 bytes (60 bits) in 100-nanosecond intervals since Oct 15, 1582
-            const buf = (row.message_id as any).buffer;
-            
-            // Reconstruct the 60-bit timestamp from UUID v1 structure
-            // time_low (4 bytes), time_mid (2 bytes), time_hi (12 bits of next 2 bytes)
-            const timeLow = buf.readUInt32BE(0);
-            const timeMid = buf.readUInt16BE(4);
-            const timeHiVersion = buf.readUInt16BE(6);
-            const timeHi = timeHiVersion & 0x0fff; // Remove version bits
-            
-            // Combine into 60-bit timestamp
-            const timestamp100ns = (BigInt(timeHi) << BigInt(48)) | 
-                                   (BigInt(timeMid) << BigInt(32)) | 
-                                   BigInt(timeLow);
-            
-            // Convert from 100-nanosecond intervals since 1582 to milliseconds since 1970
-            // Gregorian calendar epoch (Oct 15, 1582) to Unix epoch (Jan 1, 1970) = 122192928000 seconds
-            // = 12219292800000 milliseconds = 122192928000000000 in 100ns intervals
-            const gregorianToUnixEpoch = BigInt(122192928000000000);
-            const timestampMs = Number((timestamp100ns - gregorianToUnixEpoch) / BigInt(10000));
-            
-            timestamp = new Date(timestampMs);
-            console.log(`✅ Extracted timestamp from UUID: ${timestamp.toISOString()}`);
-          } else if (row.message_id instanceof Date) {
-            timestamp = row.message_id;
-          } else {
-            // Fallback for other types
-            timestamp = new Date();
-            console.warn(`⚠️ Unknown message_id type: ${typeof row.message_id}`);
-          }
-
-          // Validate the timestamp is valid
-          if (isNaN(timestamp.getTime())) {
-            console.warn(`⚠️ Invalid timestamp for message ${row.message_id}. Using current time.`);
-            timestamp = new Date();
-          }
-        } catch (error) {
-          console.error(`❌ Error extracting timestamp from message_id ${row.message_id}:`, error);
-          timestamp = new Date();
-        }
+        // Use the built-in .getDate() method instead of manual bit-shifting
+        const timestamp =
+          row.message_id instanceof types.TimeUuid
+            ? row.message_id.getDate()
+            : new Date();
 
         return {
           messageId: row.message_id.toString(),

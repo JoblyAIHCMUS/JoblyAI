@@ -23,8 +23,9 @@ export function ConversationSidebar({
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   );
 
   const handleSelectConversation = async (conversation: Conversation) => {

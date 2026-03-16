@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Request, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Request,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { ChatSummaryResponse } from './messages.interface';
 import type { AuthenticatedRequest } from '../types/authenticatedRequest';
