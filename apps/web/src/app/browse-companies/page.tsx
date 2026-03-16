@@ -1,3 +1,3 @@
-import BrownCompaniesPage from '@/features/browse-companies/page';
+import BrowseCompaniesPage from '@/features/browse-companies/page';
 
-export default BrownCompaniesPage;
+export default BrowseCompaniesPage;
