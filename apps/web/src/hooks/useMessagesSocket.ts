@@ -37,6 +37,7 @@ export interface UseMessagesSocketReturn {
  */
 export function useMessagesSocket(): UseMessagesSocketReturn {
   const socketRef = useRef<Socket | null>(null);
+  const initializedRef = useRef(false);
   const [isConnected, setIsConnected] = useState(false);
   const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(
     null
@@ -48,13 +49,12 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
   useEffect(() => {
     logDebug.info('Initializing WebSocket connection');
     
-    // If socket already exists, don't create a new one (React 18 Strict Mode cleanup)
-    if (socketRef.current?.connected) {
-      logDebug.info('Socket already connected, skipping initialization');
-      return () => {
-        // Cleanup only on actual unmount, not on Strict Mode re-run
-      };
+    // Prevent double initialization on React 18 Strict Mode
+    if (initializedRef.current) {
+      logDebug.info('Socket already initialized, skipping');
+      return;
     }
+    initializedRef.current = true;
 
     let socket: Socket | null = null;
 
