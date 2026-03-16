@@ -34,8 +34,13 @@ export function LoginForm() {
     login(
       { email: data.email, password: data.password },
       {
-        onSuccess: () => {
-          router.push(redirectTo);
+        onSuccess: (user) => {
+          // Check if user is an employer and redirect accordingly
+          if (user.role === 'employer') {
+            router.push('/employer');
+          } else {
+            router.push(redirectTo);
+          }
         },
       }
     );
