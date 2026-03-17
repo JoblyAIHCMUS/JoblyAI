@@ -26,7 +26,7 @@ function StatusPill({
 
   return (
     <span
-      className={`inline-flex rounded-full border px-3 py-2 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 ${className}`}
+      className={`inline-flex rounded-full border px-2.5 py-1.5 font-[family-name:var(--family-primary)] text-xs font-semibold leading-4 sm:px-3 sm:py-2 sm:text-sm sm:leading-5 ${className}`}
     >
       {label}
     </span>
@@ -38,7 +38,7 @@ function CompanyBadge({ item }: { item: ApplicationItem }) {
 
   return (
     <div
-      className="flex h-16 w-16 items-center justify-center rounded-[20px] text-xl font-semibold text-white"
+      className="flex h-14 w-14 items-center justify-center rounded-[18px] text-lg font-semibold text-white sm:h-16 sm:w-16 sm:rounded-[20px] sm:text-xl"
       style={{ backgroundColor: item.accent }}
     >
       {initials}
@@ -75,10 +75,10 @@ export function ApplicationRow({
         </div>
 
         <div>
-          <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+          <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
             {item.title}
           </p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-base leading-6 text-[#515b6f]">
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm leading-5 text-[#515b6f] sm:text-base sm:leading-6">
             <span>{item.company}</span>
             <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
             <span>{item.location}</span>
@@ -89,8 +89,12 @@ export function ApplicationRow({
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-base leading-[22px] text-[#515b6f]">Date Applied</p>
-            <p className="text-base font-medium leading-6 text-[#25324b]">{item.appliedDate}</p>
+            <p className="text-sm leading-5 text-[#515b6f] sm:text-base sm:leading-[22px]">
+              Date Applied
+            </p>
+            <p className="text-sm font-medium leading-5 text-[#25324b] sm:text-base sm:leading-6">
+              {item.appliedDate}
+            </p>
           </div>
           <StatusPill status={item.status} statusMeta={statusMeta} />
         </div>

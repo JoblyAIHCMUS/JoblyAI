@@ -10,13 +10,13 @@ export function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-[10px] border border-[#d6ddeb] bg-white p-6">
-      <div className="flex flex-col gap-7">
-        <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+    <div className="overflow-hidden rounded-[10px] border border-[#d6ddeb] bg-white p-4 sm:p-6">
+      <div className="flex flex-col gap-5 sm:gap-7">
+        <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
           {label}
         </p>
         <div className="flex items-end justify-between gap-4">
-          <p className="font-[family-name:var(--family-primary)] text-[64px] font-medium leading-[80px] tracking-[-0.8px] text-[#25324b]">
+          <p className="font-[family-name:var(--family-primary)] text-[44px] font-medium leading-[56px] tracking-[-0.6px] text-[#25324b] sm:text-[64px] sm:leading-[80px] sm:tracking-[-0.8px]">
             {value}
           </p>
           <div className="shrink-0 text-[#26a4ff]/30">{icon}</div>

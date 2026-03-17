@@ -43,7 +43,7 @@ export function StatusChartsSection({
   ];
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden rounded-[10px] border border-[#d6ddeb] bg-white p-6">
+    <div className="w-full max-w-full overflow-x-hidden rounded-[10px] border border-[#d6ddeb] bg-white p-4 sm:p-6">
       <div className="mt-2 max-w-full overflow-x-auto">
         <div className="inline-flex rounded-lg border border-[#d6ddeb] p-1">
           {chartTabs.map((tab) => (
@@ -51,7 +51,7 @@ export function StatusChartsSection({
               key={tab.key}
               type="button"
               onClick={() => setActiveView(tab.key)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                 activeView === tab.key
                   ? 'bg-[#eef0ff] text-[#4640de]'
                   : 'text-[#7c8493] hover:text-[#25324b]'
@@ -66,7 +66,7 @@ export function StatusChartsSection({
       <div className="mt-4">
         {activeView === 'timeline' && (
           <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-xl p-4">
-            <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+            <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
               CV Submitted Timeline
             </p>
 
@@ -84,7 +84,9 @@ export function StatusChartsSection({
                         key={item.key}
                         className="grid h-full w-14 grid-rows-[20px_148px_32px] place-items-center"
                       >
-                        <p className="text-xs font-semibold text-[#25324b]">{item.count}</p>
+                        <p className="text-[11px] font-semibold text-[#25324b] sm:text-xs">
+                          {item.count}
+                        </p>
                         <div className="flex h-[148px] w-7 items-end rounded-md bg-[#e8ecff]">
                           <div
                             className="w-full rounded-md bg-[#4640de]"
@@ -93,7 +95,7 @@ export function StatusChartsSection({
                             }}
                           />
                         </div>
-                        <p className="h-8 text-center text-[11px] leading-4 text-[#7c8493] break-words">
+                        <p className="h-8 break-words text-center text-[10px] leading-4 text-[#7c8493] sm:text-[11px]">
                           {item.label}
                         </p>
                       </div>
@@ -111,7 +113,7 @@ export function StatusChartsSection({
 
         {activeView === 'status' && (
           <div className="w-full overflow-hidden rounded-xl bg-white p-4">
-            <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+            <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
               Jobs Applied Status
             </p>
 
@@ -131,10 +133,10 @@ export function StatusChartsSection({
                       style={{ backgroundColor: item.color }}
                     />
                     <div className="min-w-0">
-                      <p className="font-[family-name:var(--family-primary)] text-base font-semibold leading-[22px] text-[#25324b]">
+                      <p className="font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 text-[#25324b] sm:text-base sm:leading-[22px]">
                         {Math.round(item.percent)}% ({item.count})
                       </p>
-                      <p className="break-words text-base leading-6 text-[#515b6f]">
+                      <p className="break-words text-sm leading-5 text-[#515b6f] sm:text-base sm:leading-6">
                         {item.label}
                       </p>
                     </div>

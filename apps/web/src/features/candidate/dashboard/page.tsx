@@ -96,13 +96,13 @@ export default function CandidateDashboardPage() {
 
   return (
     <div className="min-h-full bg-white">
-      <div className="flex flex-col gap-8 px-4 py-6 md:px-8 md:py-6">
+      <div className="flex flex-col gap-6 px-4 py-5 sm:gap-8 sm:py-6 md:px-8 md:py-6">
         <section className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h2 className="font-[family-name:var(--family-primary)] text-[32px] font-semibold leading-[38px] tracking-[-0.2px] text-[#25324b]">
+            <h2 className="font-[family-name:var(--family-primary)] text-[26px] font-semibold leading-[32px] tracking-[-0.2px] text-[#25324b] sm:text-[32px] sm:leading-[38px]">
               {greeting}, {firstName}
             </h2>
-            <p className="mt-2 max-w-3xl text-base leading-6 text-[#7c8493]">
+            <p className="mt-2 max-w-3xl text-sm leading-5 text-[#7c8493] sm:text-base sm:leading-6">
               Here is what&apos;s happening with your job search applications{' '}
               {activityRangeText}.
             </p>
@@ -136,12 +136,17 @@ export default function CandidateDashboardPage() {
             <StatCard
               label="Total Jobs Applied"
               value={pieChartItems.total}
-              icon={<FileText className="h-28 w-28" strokeWidth={1.4} />}
+              icon={<FileText className="h-18 w-18 sm:h-28 sm:w-28" strokeWidth={1.4} />}
             />
             <StatCard
               label="Interviewed"
               value={interviewedCount}
-              icon={<MessageCircleQuestion className="h-28 w-28" strokeWidth={1.4} />}
+              icon={
+                <MessageCircleQuestion
+                  className="h-18 w-18 sm:h-28 sm:w-28"
+                  strokeWidth={1.4}
+                />
+              }
             />
           </div>
 
@@ -154,10 +159,10 @@ export default function CandidateDashboardPage() {
 
         <section
           id="applications"
-          className="rounded-none border border-[#d6ddeb] bg-white p-6 md:p-8"
+          className="rounded-none border border-[#d6ddeb] bg-white p-4 sm:p-6 md:p-8"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+            <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
               Recent Applications History
             </p>
 
@@ -235,7 +240,7 @@ export default function CandidateDashboardPage() {
 
           <Link
             href="/candidate/dashboard#applications"
-            className="mt-8 inline-flex items-center gap-3 font-[family-name:var(--family-primary)] text-base font-semibold leading-[22px] text-[#4640de]"
+            className="mt-8 inline-flex items-center gap-3 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 text-[#4640de] sm:text-base sm:leading-[22px]"
           >
             View all applications history
             <ChevronRight className="h-5 w-5" />
