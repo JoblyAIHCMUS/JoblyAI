@@ -1,5 +1,5 @@
 import { CalendarDays } from 'lucide-react';
-import type { RefObject } from 'react';
+import type { KeyboardEvent, RefObject } from 'react';
 
 export function DateRangePicker({
   dateRangeLabel,
@@ -28,6 +28,15 @@ export function DateRangePicker({
   onClear: () => void;
   onApply: () => void;
 }) {
+  const handleDateInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' || isInvalidDateRange) {
+      return;
+    }
+
+    event.preventDefault();
+    onApply();
+  };
+
   return (
     <div className="relative" ref={datePickerRef}>
       <button
@@ -86,6 +95,7 @@ export function DateRangePicker({
                 type="date"
                 value={draftStartDate}
                 onChange={(event) => setDraftStartDate(event.target.value)}
+                onKeyDown={handleDateInputKeyDown}
                 max={draftEndDate || undefined}
                 className="mt-2 w-full rounded-md border border-[#d6ddeb] bg-white px-3 py-2 text-sm text-[#25324b] focus:border-[#4640de] focus:outline-none"
               />
@@ -97,6 +107,7 @@ export function DateRangePicker({
                 type="date"
                 value={draftEndDate}
                 onChange={(event) => setDraftEndDate(event.target.value)}
+                onKeyDown={handleDateInputKeyDown}
                 min={draftStartDate || undefined}
                 className="mt-2 w-full rounded-md border border-[#d6ddeb] bg-white px-3 py-2 text-sm text-[#25324b] focus:border-[#4640de] focus:outline-none"
               />
