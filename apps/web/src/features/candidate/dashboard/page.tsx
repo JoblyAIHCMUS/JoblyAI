@@ -10,52 +10,13 @@ import {
 } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
-
-type ApplicationStatus = 'In Review' | 'Shortlisted' | 'Declined';
-
-type ApplicationItem = {
-  id: string;
-  company: string;
-  location: string;
-  jobType: string;
-  title: string;
-  appliedDate: string;
-  status: ApplicationStatus;
-  accent: string;
-};
-
-const applications: ApplicationItem[] = [
-  {
-    id: 'nomad',
-    company: 'Nomad',
-    location: 'Paris, France',
-    jobType: 'Full-Time',
-    title: 'Social Media Assistant',
-    appliedDate: '24 July 2021',
-    status: 'In Review',
-    accent: '#7fd4b1',
-  },
-  {
-    id: 'udacity',
-    company: 'Udacity',
-    location: 'New York, USA',
-    jobType: 'Full-Time',
-    title: 'Social Media Assistant',
-    appliedDate: '23 July 2021',
-    status: 'Shortlisted',
-    accent: '#1fb5e9',
-  },
-  {
-    id: 'packer',
-    company: 'Packer',
-    location: 'Madrid, Spain',
-    jobType: 'Full-Time',
-    title: 'Social Media Assistant',
-    appliedDate: '22 July 2021',
-    status: 'Declined',
-    accent: '#ff6550',
-  },
-];
+import {
+  ApplicationFilter,
+  ApplicationStatusMeta,
+  ApplicationItem,
+  ApplicationStatus,
+} from '../../../types/candidateDashboard';
+import { useCandidateDashboard } from '../../../hooks/useCandidateDashboard';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -99,18 +60,20 @@ function StatCard({
   );
 }
 
-function StatusPill({ status }: { status: ApplicationStatus }) {
-  const styles = {
-    'In Review': 'border-[#f97316] text-[#f97316]',
-    Shortlisted: 'border-[#4640de] text-[#4640de]',
-    Declined: 'border-[#ff6550] text-[#ff6550]',
-  } as const;
+function StatusPill({
+  status,
+  statusMeta,
+}: {
+  status: ApplicationStatus;
+  statusMeta: Record<ApplicationStatus, { label: string; className: string }>;
+}) {
+  const { label, className } = statusMeta[status];
 
   return (
     <span
-      className={`inline-flex rounded-full border px-3 py-2 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 ${styles[status]}`}
+      className={`inline-flex rounded-full border px-3 py-2 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 ${className}`}
     >
-      {status}
+      {label}
     </span>
   );
 }
@@ -128,7 +91,15 @@ function CompanyBadge({ item }: { item: ApplicationItem }) {
   );
 }
 
-function ApplicationRow({ item, tinted }: { item: ApplicationItem; tinted: boolean }) {
+function ApplicationRow({
+  item,
+  tinted,
+  statusMeta,
+}: {
+  item: ApplicationItem;
+  tinted: boolean;
+  statusMeta: ApplicationStatusMeta;
+}) {
   return (
     <div
       className={`grid items-center gap-5 rounded-sm px-6 py-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(150px,0.7fr)_117px_24px] ${
@@ -159,7 +130,7 @@ function ApplicationRow({ item, tinted }: { item: ApplicationItem; tinted: boole
       </div>
 
       <div>
-        <StatusPill status={item.status} />
+        <StatusPill status={item.status} statusMeta={statusMeta} />
       </div>
 
       <button
@@ -175,6 +146,19 @@ function ApplicationRow({ item, tinted }: { item: ApplicationItem; tinted: boole
 
 export default function CandidateDashboardPage() {
   const { data: user } = useUser();
+  const {
+    applicationFilter,
+    setApplicationFilter,
+    filteredApplications,
+    paginatedApplications,
+    currentPage,
+    totalPages,
+    goToPreviousPage,
+    goToNextPage,
+    statusMeta,
+    filterMeta,
+  } = useCandidateDashboard();
+
   const firstName = user?.name?.split(' ')[0] ?? 'Jake';
   const greeting = getGreeting();
   const unsuitableShare = 60;
@@ -264,20 +248,73 @@ export default function CandidateDashboardPage() {
           id="applications"
           className="rounded-none border border-[#d6ddeb] bg-white p-6 md:p-8"
         >
-          <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
-            Recent Applications History
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+              Recent Applications History
+            </p>
+
+            <div className="inline-flex w-full rounded-lg border border-[#d6ddeb] p-1 sm:w-auto">
+              {(Object.keys(filterMeta) as ApplicationFilter[]).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setApplicationFilter(filter)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none ${
+                    applicationFilter === filter
+                      ? 'bg-[#eef0ff] text-[#4640de]'
+                      : 'text-[#7c8493] hover:text-[#25324b]'
+                  }`}
+                >
+                  {filterMeta[filter].label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="mt-7 h-px w-full bg-[#d6ddeb]" />
 
           <div className="mt-6 space-y-0">
-            {applications.map((item, index) => (
+            {paginatedApplications.map((item, index) => (
               <ApplicationRow
                 key={item.id}
                 item={item}
-                tinted={index === 0 || index === 2}
+                tinted={index % 2 === 0}
+                statusMeta={statusMeta}
               />
             ))}
+
+            {filteredApplications.length === 0 && (
+              <div className="rounded-sm bg-[#f8fafc] px-6 py-10 text-center text-sm text-[#7c8493]">
+                No applications found for this filter.
+              </div>
+            )}
           </div>
+
+          {filteredApplications.length > 0 && totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <p className="text-sm text-[#7c8493]">
+                Page {currentPage} of {totalPages}
+              </p>
+
+              <div className="inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="rounded-md border border-[#d6ddeb] px-3 py-1.5 text-sm font-medium text-[#515b6f] transition-colors enabled:hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="rounded-md border border-[#d6ddeb] px-3 py-1.5 text-sm font-medium text-[#515b6f] transition-colors enabled:hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
 
           <Link
             href="/candidate/dashboard#applications"
