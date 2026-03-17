@@ -137,7 +137,7 @@ function CandidateSidebarItem({
 export function CandidateSidebar() {
   const pathname = usePathname();
   const isActive = (url: string) =>
-     pathname === url || pathname.startsWith(url + '/');
+    pathname === url || pathname.startsWith(url + '/');
   return (
     <Sidebar
       collapsible="icon"

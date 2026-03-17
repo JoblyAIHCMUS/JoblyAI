@@ -11,9 +11,7 @@ function formatNotificationTime(createdAt: string) {
   }
 
   const now = new Date();
-  const diffInMinutes = Math.floor(
-    (now.getTime() - createdAtTime) / 60000
-  );
+  const diffInMinutes = Math.floor((now.getTime() - createdAtTime) / 60000);
 
   if (diffInMinutes < 1) {
     return 'Just now';
