@@ -1,30 +1,9 @@
 import { MoreHorizontal } from 'lucide-react';
 
-import {
-  ApplicationItem,
-  ApplicationStatus,
-  ApplicationStatusMeta,
-} from '../types';
-import { formatCreatedAtForDisplay } from '../utils/dashboardFormatters';
+import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
+import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
+import { formatCreatedAtForDisplay } from '@/lib/candidateDate';
 import { getInitials } from '@/lib/utils';
-
-function StatusPill({
-  status,
-  statusMeta,
-}: {
-  status: ApplicationStatus;
-  statusMeta: Record<ApplicationStatus, { label: string; className: string }>;
-}) {
-  const { label, className } = statusMeta[status];
-
-  return (
-    <span
-      className={`inline-flex rounded-full border px-2.5 py-1.5 font-[family-name:var(--family-primary)] text-xs font-semibold leading-4 sm:px-3 sm:py-2 sm:text-sm sm:leading-5 ${className}`}
-    >
-      {label}
-    </span>
-  );
-}
 
 function CompanyBadge({ item }: { item: ApplicationItem }) {
   const initials = getInitials(item.company);
@@ -91,7 +70,7 @@ export function ApplicationRow({
               {displayCreatedAt}
             </p>
           </div>
-          <StatusPill status={item.status} statusMeta={statusMeta} />
+          <ApplicationStatusPill status={item.status} statusMeta={statusMeta} />
         </div>
       </div>
 
@@ -120,7 +99,7 @@ export function ApplicationRow({
         </div>
 
         <div>
-          <StatusPill status={item.status} statusMeta={statusMeta} />
+          <ApplicationStatusPill status={item.status} statusMeta={statusMeta} />
         </div>
 
         <button

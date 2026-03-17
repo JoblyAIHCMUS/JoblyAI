@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { candidateDashboardService } from '@/services/candidateDashboardService';
+import { ApplicationFilter } from '@/types/candidate';
+import { toDateInputValue } from '@/lib/candidateDate';
 import {
-  ApplicationFilter,
-  ApplicationStatus,
-} from '@/features/candidate/dashboard/types';
-import { toDateInputValue } from '@/features/candidate/dashboard/utils/dashboardFormatters';
+  isActiveApplicationStatus,
+  isClosedApplicationStatus,
+} from '@/lib/candidateStatus';
 import { usePagination } from './usePagination';
 
 function getInitialWeekRange() {
@@ -17,16 +18,6 @@ function getInitialWeekRange() {
     startDate: toDateInputValue(start),
     endDate: toDateInputValue(end),
   };
-}
-
-function isActiveStatus(status: ApplicationStatus) {
-  return (
-    status === 'applied' || status === 'viewed' || status === 'interviewing'
-  );
-}
-
-function isClosedStatus(status: ApplicationStatus) {
-  return status === 'offered' || status === 'rejected';
 }
 
 export function useCandidateDashboard() {
@@ -50,10 +41,14 @@ export function useCandidateDashboard() {
     }
 
     if (applicationFilter === 'active') {
-      return applications.filter((item) => isActiveStatus(item.status));
+      return applications.filter((item) =>
+        isActiveApplicationStatus(item.status)
+      );
     }
 
-    return applications.filter((item) => isClosedStatus(item.status));
+    return applications.filter((item) =>
+      isClosedApplicationStatus(item.status)
+    );
   }, [applicationFilter, applications]);
 
   const filteredApplications = useMemo(() => {
@@ -99,6 +94,7 @@ export function useCandidateDashboard() {
     currentPage,
     totalPages,
     pageSize: PAGE_SIZE,
+    goToPage: setCurrentPage,
     goToPreviousPage: goPrev,
     goToNextPage: goNext,
     statusMeta,

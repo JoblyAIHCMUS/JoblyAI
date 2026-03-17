@@ -4,8 +4,8 @@ import {
   ApplicationItem,
   ApplicationStatus,
   ApplicationStatusMeta,
-} from '../types';
-import { toDateInputValue } from '../utils/dashboardFormatters';
+} from '@/types/candidate';
+import { toDateInputValue } from '@/lib/candidateDate';
 
 export function useDashboardInsights({
   filteredApplications,

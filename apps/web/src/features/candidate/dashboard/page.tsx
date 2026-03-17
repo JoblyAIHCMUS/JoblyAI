@@ -5,10 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
-import { ApplicationFilter } from './types';
+import { DateRangePicker } from '@/components/candidate/dateRangePicker';
+import { ApplicationFilter } from '@/types/candidate';
 import { useCandidateDashboard } from '@/hooks/useCandidateDashboard';
 import { ApplicationRow } from './components/ApplicationRow';
-import { DateRangePicker } from './components/DateRangePicker';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
@@ -16,7 +16,7 @@ import {
   formatDateRangeLabel,
   getGreeting,
   toDateInputValue,
-} from './utils/dashboardFormatters';
+} from '@/lib/candidateDate';
 
 export default function CandidateDashboardPage() {
   const { data: user } = useUser();
