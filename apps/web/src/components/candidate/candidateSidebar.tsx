@@ -39,16 +39,16 @@ const mainNav: NavItem[] = [
   { title: 'Dashboard', href: '/candidate/dashboard', icon: House },
   {
     title: 'Messages',
-    href: '/candidate/dashboard#messages',
+    href: '/candidate/messages',
     icon: MessageSquareText,
     badge: '1',
   },
   {
     title: 'My Applications',
-    href: '/candidate/dashboard#applications',
+    href: '/candidate/applications',
     icon: FileText,
   },
-  { title: 'Find Jobs', href: '/find-jobs', icon: Search },
+  { title: 'Find Jobs', href: '/candidate/find-jobs', icon: Search },
   {
     title: 'Browse Companies',
     href: '/browse-companies',
@@ -56,7 +56,7 @@ const mainNav: NavItem[] = [
   },
   {
     title: 'My Public Profile',
-    href: '/candidate/dashboard#profile',
+    href: '/candidate/profile',
     icon: UserRound,
   },
 ];
@@ -64,12 +64,12 @@ const mainNav: NavItem[] = [
 const secondaryNav: NavItem[] = [
   {
     title: 'Settings',
-    href: '/candidate/dashboard#settings',
+    href: '/candidate/settings',
     icon: Settings,
   },
   {
     title: 'Help Center',
-    href: '/candidate/dashboard#help',
+    href: '/candidate/help',
     icon: HelpCircle,
   },
   { title: 'Logout', href: '/logout', icon: LogOut, destructive: true },
@@ -140,7 +140,7 @@ export function CandidateSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-[#d6ddeb] bg-white"
+      className="h-screen max-h-screen border-r border-[#d6ddeb] bg-white"
     >
       <SidebarHeader className="border-b border-transparent px-4 pb-0 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <Link href="/candidate/dashboard" className="flex items-center gap-2.5">
@@ -184,7 +184,7 @@ export function CandidateSidebar() {
               src="/applicant/Pattern.png"
               alt=""
               fill
-              className="object-contain object-bottom-left opacity-95"
+              className="object-contain object-right-bottom opacity-95"
             />
           </div>
         </div>
