@@ -136,7 +136,8 @@ function CandidateSidebarItem({
 
 export function CandidateSidebar() {
   const pathname = usePathname();
-
+  const isActive = (url: string) =>
+     pathname === url || pathname.startsWith(url + '/');
   return (
     <Sidebar
       collapsible="icon"
@@ -159,7 +160,7 @@ export function CandidateSidebar() {
                 <CandidateSidebarItem
                   key={item.title}
                   item={item}
-                  active={pathname === item.href}
+                  active={isActive(item.href)}
                 />
               ))}
             </SidebarMenu>
@@ -174,7 +175,7 @@ export function CandidateSidebar() {
                 <CandidateSidebarItem
                   key={item.title}
                   item={item}
-                  active={pathname === item.href}
+                  active={isActive(item.href)}
                 />
               ))}
             </SidebarMenu>

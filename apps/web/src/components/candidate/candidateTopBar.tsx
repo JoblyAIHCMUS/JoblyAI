@@ -6,15 +6,7 @@ import { Bell, Menu } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUser } from '@/hooks/useUser';
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('');
-}
+import { getInitials } from '@/lib/utils';
 
 export function CandidateTopBar() {
   const { data: user } = useUser();
@@ -73,7 +65,8 @@ export function CandidateTopBar() {
             <button
               type="button"
               aria-label="Notifications"
-              aria-pressed={isBellEnabled}
+              aria-expanded={isBellEnabled}
+              aria-haspopup="menu"
               onClick={handleBellToggle}
               className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
                 isBellEnabled

@@ -6,7 +6,7 @@ import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
 import { ApplicationFilter } from './types';
-import { useCandidateDashboard } from '../../../hooks/useCandidateDashboard';
+import { useCandidateDashboard } from '@/hooks/useCandidateDashboard';
 import { ApplicationRow } from './components/ApplicationRow';
 import { DateRangePicker } from './components/DateRangePicker';
 import { StatCard } from './components/StatCard';

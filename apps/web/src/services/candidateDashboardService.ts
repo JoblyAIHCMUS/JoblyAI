@@ -32,7 +32,7 @@ export const candidateDashboardService = {
     return items.filter((item) => {
       const createdAt = parseCreatedAt(item.createdAt);
       if (!createdAt) {
-        return true;
+        return false;
       }
 
       if (startDate) {
