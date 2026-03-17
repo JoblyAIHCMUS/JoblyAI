@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { candidateDashboardService } from '@/services/candidateDashboardService';
-import { ApplicationFilter, ApplicationStatus } from '@/features/candidate/dashboard/types';
+import {
+  ApplicationFilter,
+  ApplicationStatus,
+} from '@/features/candidate/dashboard/types';
 import { usePagination } from './usePagination';
 
 function toDateInputValue(date: Date) {
@@ -23,7 +26,9 @@ function getInitialWeekRange() {
 }
 
 function isActiveStatus(status: ApplicationStatus) {
-  return status === 'applied' || status === 'viewed' || status === 'interviewing';
+  return (
+    status === 'applied' || status === 'viewed' || status === 'interviewing'
+  );
 }
 
 function isClosedStatus(status: ApplicationStatus) {
@@ -38,10 +43,12 @@ export function useCandidateDashboard() {
   const initialWeekRange = getInitialWeekRange();
   const [applicationFilter, setApplicationFilter] =
     useState<ApplicationFilter>('all');
-  const [selectedStartDate, setSelectedStartDate] =
-    useState(initialWeekRange.startDate);
-  const [selectedEndDate, setSelectedEndDate] =
-    useState(initialWeekRange.endDate);
+  const [selectedStartDate, setSelectedStartDate] = useState(
+    initialWeekRange.startDate
+  );
+  const [selectedEndDate, setSelectedEndDate] = useState(
+    initialWeekRange.endDate
+  );
 
   const statusFilteredApplications = useMemo(() => {
     if (applicationFilter === 'all') {
@@ -63,7 +70,10 @@ export function useCandidateDashboard() {
     );
   }, [statusFilteredApplications, selectedStartDate, selectedEndDate]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredApplications.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredApplications.length / PAGE_SIZE)
+  );
   const { currentPage, setCurrentPage, goPrev, goNext } =
     usePagination(totalPages);
 

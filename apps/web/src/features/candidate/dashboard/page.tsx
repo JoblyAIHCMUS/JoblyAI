@@ -43,9 +43,14 @@ export default function CandidateDashboardPage() {
 
   const firstName = user?.name?.split(' ')[0] ?? 'Jake';
   const greeting = getGreeting();
-  const dateRangeLabel = formatDateRangeLabel(selectedStartDate, selectedEndDate);
+  const dateRangeLabel = formatDateRangeLabel(
+    selectedStartDate,
+    selectedEndDate
+  );
   const activityRangeText =
-    dateRangeLabel === 'Select date range' ? 'from all time' : `from ${dateRangeLabel}`;
+    dateRangeLabel === 'Select date range'
+      ? 'from all time'
+      : `from ${dateRangeLabel}`;
   const isInvalidDateRange =
     !!draftStartDate && !!draftEndDate && draftStartDate > draftEndDate;
 
@@ -136,7 +141,12 @@ export default function CandidateDashboardPage() {
             <StatCard
               label="Total Jobs Applied"
               value={pieChartItems.total}
-              icon={<FileText className="h-18 w-18 sm:h-28 sm:w-28" strokeWidth={1.4} />}
+              icon={
+                <FileText
+                  className="h-18 w-18 sm:h-28 sm:w-28"
+                  strokeWidth={1.4}
+                />
+              }
             />
             <StatCard
               label="Interviewed"
@@ -167,20 +177,22 @@ export default function CandidateDashboardPage() {
             </p>
 
             <div className="inline-flex w-full rounded-lg border border-[#d6ddeb] p-1 sm:w-auto">
-              {(Object.keys(filterMeta) as ApplicationFilter[]).map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setApplicationFilter(filter)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none ${
-                    applicationFilter === filter
-                      ? 'bg-[#eef0ff] text-[#4640de]'
-                      : 'text-[#7c8493] hover:text-[#25324b]'
-                  }`}
-                >
-                  {filterMeta[filter].label}
-                </button>
-              ))}
+              {(Object.keys(filterMeta) as ApplicationFilter[]).map(
+                (filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setApplicationFilter(filter)}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none ${
+                      applicationFilter === filter
+                        ? 'bg-[#eef0ff] text-[#4640de]'
+                        : 'text-[#7c8493] hover:text-[#25324b]'
+                    }`}
+                  >
+                    {filterMeta[filter].label}
+                  </button>
+                )
+              )}
             </div>
           </div>
           <div className="mt-7 h-px w-full bg-[#d6ddeb]" />

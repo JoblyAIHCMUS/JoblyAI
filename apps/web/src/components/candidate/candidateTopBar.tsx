@@ -93,44 +93,48 @@ export function CandidateTopBar() {
                 />
 
                 <div className="fixed inset-x-2 top-[72px] z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[360px]">
-                <div className="border-b border-[#eef1f6] px-4 py-3">
-                  <p className="font-[family-name:var(--family-primary)] text-lg font-semibold text-[#25324b]">
-                    Notifications
-                  </p>
-                </div>
+                  <div className="border-b border-[#eef1f6] px-4 py-3">
+                    <p className="font-[family-name:var(--family-primary)] text-lg font-semibold text-[#25324b]">
+                      Notifications
+                    </p>
+                  </div>
 
-                <ul
-                  className="max-h-[calc(100vh-180px)] overflow-auto py-2 sm:max-h-[360px]"
-                  onScroll={handleNotificationScroll}
-                >
-                  {visibleNotifications.map((notification) => (
-                    <li key={notification.id}>
-                      <Link
-                        href={notification.href}
-                        onClick={closeNotificationMenu}
-                        className="flex gap-3 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
-                      >
-                        <span
-                          className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${notification.unread ? 'bg-[#4640de]' : 'bg-[#d6ddeb]'}`}
-                        />
-                        <div className="min-w-0">
-                          <p className="line-clamp-2 text-sm text-[#25324b]">
-                            {notification.title}
-                          </p>
-                          <p className="mt-1 text-xs text-[#7c8493]">
-                            {formatNotificationTime(notification.createdAt)}
-                          </p>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
+                  <ul
+                    className="max-h-[calc(100vh-180px)] overflow-auto py-2 sm:max-h-[360px]"
+                    onScroll={handleNotificationScroll}
+                  >
+                    {visibleNotifications.map((notification) => (
+                      <li key={notification.id}>
+                        <Link
+                          href={notification.href}
+                          onClick={closeNotificationMenu}
+                          className="flex gap-3 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                        >
+                          <span
+                            className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                              notification.unread
+                                ? 'bg-[#4640de]'
+                                : 'bg-[#d6ddeb]'
+                            }`}
+                          />
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm text-[#25324b]">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 text-xs text-[#7c8493]">
+                              {formatNotificationTime(notification.createdAt)}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
 
-                  {hasMoreNotifications && (
-                    <li className="px-4 py-2 text-center text-xs text-[#7c8493]">
-                      Scroll to load more
-                    </li>
-                  )}
-                </ul>
+                    {hasMoreNotifications && (
+                      <li className="px-4 py-2 text-center text-xs text-[#7c8493]">
+                        Scroll to load more
+                      </li>
+                    )}
+                  </ul>
                 </div>
               </>
             )}

@@ -119,7 +119,9 @@ export function ApplicationRow({
         </div>
 
         <div>
-          <p className="text-base leading-6 text-[#515b6f]">{item.appliedDate}</p>
+          <p className="text-base leading-6 text-[#515b6f]">
+            {item.appliedDate}
+          </p>
         </div>
 
         <div>

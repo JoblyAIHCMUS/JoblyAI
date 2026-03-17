@@ -23,4 +23,7 @@ export type ApplicationStatusMeta = Record<
   { label: string; className: string }
 >;
 
-export type ApplicationFilterMeta = Record<ApplicationFilter, { label: string }>;
+export type ApplicationFilterMeta = Record<
+  ApplicationFilter,
+  { label: string }
+>;

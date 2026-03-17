@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 
-import { ApplicationItem, ApplicationStatus, ApplicationStatusMeta } from '../types';
+import {
+  ApplicationItem,
+  ApplicationStatus,
+  ApplicationStatusMeta,
+} from '../types';
 import { toDateInputValue } from '../utils/dashboardFormatters';
 
 export function useDashboardInsights({
@@ -133,7 +137,9 @@ export function useDashboardInsights({
           monthEndCandidate > endDate ? new Date(endDate) : monthEndCandidate;
 
         buckets.push({
-          key: `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`,
+          key: `${cursor.getFullYear()}-${String(
+            cursor.getMonth() + 1
+          ).padStart(2, '0')}`,
           label: cursor.toLocaleDateString('en-US', {
             month: 'short',
             year: 'numeric',

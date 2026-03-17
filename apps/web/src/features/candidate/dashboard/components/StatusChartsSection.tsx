@@ -91,7 +91,9 @@ export function StatusChartsSection({
                           <div
                             className="w-full rounded-md bg-[#4640de]"
                             style={{
-                              height: `${item.count > 0 ? Math.max(heightPercent, 10) : 0}%`,
+                              height: `${
+                                item.count > 0 ? Math.max(heightPercent, 10) : 0
+                              }%`,
                             }}
                           />
                         </div>
@@ -144,7 +146,9 @@ export function StatusChartsSection({
                 ))}
 
                 {pieChartItems.total === 0 && (
-                  <p className="text-sm text-[#7c8493]">No applications in current range.</p>
+                  <p className="text-sm text-[#7c8493]">
+                    No applications in current range.
+                  </p>
                 )}
               </div>
             </div>
