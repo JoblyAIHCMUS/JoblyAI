@@ -13,7 +13,7 @@ export type ApplicationItem = {
   location: string;
   jobType: string;
   title: string;
-  appliedDate: string;
+  createdAt: string;
   status: ApplicationStatus;
   accent: string;
 };

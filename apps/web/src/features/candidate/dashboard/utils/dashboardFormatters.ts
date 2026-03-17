@@ -28,6 +28,20 @@ export function toDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+export function formatCreatedAtForDisplay(value: string) {
+  const parsed = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good morning';

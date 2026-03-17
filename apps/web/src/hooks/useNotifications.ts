@@ -4,9 +4,15 @@ import { notificationService } from '@/services/notificationService';
 
 function formatNotificationTime(createdAt: string) {
   const createdAtDate = new Date(createdAt);
+  const createdAtTime = createdAtDate.getTime();
+
+  if (Number.isNaN(createdAtTime)) {
+    return 'Just now';
+  }
+
   const now = new Date();
   const diffInMinutes = Math.floor(
-    (now.getTime() - createdAtDate.getTime()) / 60000
+    (now.getTime() - createdAtTime) / 60000
   );
 
   if (diffInMinutes < 1) {

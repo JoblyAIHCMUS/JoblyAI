@@ -37,7 +37,7 @@ export function useDashboardInsights({
     };
 
     const validDates = filteredApplications
-      .map((item) => new Date(item.appliedDate))
+      .map((item) => new Date(`${item.createdAt}T00:00:00`))
       .filter((date) => !Number.isNaN(date.getTime()))
       .map(toStartOfDay);
 

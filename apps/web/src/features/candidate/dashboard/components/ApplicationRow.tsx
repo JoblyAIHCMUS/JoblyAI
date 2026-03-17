@@ -5,6 +5,7 @@ import {
   ApplicationStatus,
   ApplicationStatusMeta,
 } from '../types';
+import { formatCreatedAtForDisplay } from '../utils/dashboardFormatters';
 
 function getInitials(name: string) {
   return name
@@ -55,6 +56,8 @@ export function ApplicationRow({
   tinted: boolean;
   statusMeta: ApplicationStatusMeta;
 }) {
+  const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
+
   return (
     <div
       className={`rounded-[10px] lg:rounded-sm ${
@@ -93,7 +96,7 @@ export function ApplicationRow({
               Date Applied
             </p>
             <p className="text-sm font-medium leading-5 text-[#25324b] sm:text-base sm:leading-6">
-              {item.appliedDate}
+              {displayCreatedAt}
             </p>
           </div>
           <StatusPill status={item.status} statusMeta={statusMeta} />
@@ -120,7 +123,7 @@ export function ApplicationRow({
 
         <div>
           <p className="text-base leading-6 text-[#515b6f]">
-            {item.appliedDate}
+            {displayCreatedAt}
           </p>
         </div>
 

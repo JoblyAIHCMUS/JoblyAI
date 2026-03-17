@@ -5,8 +5,8 @@ import {
 } from '@/mocks/candidateDashboard';
 import { ApplicationItem } from '@/features/candidate/dashboard/types';
 
-function parseAppliedDate(value: string) {
-  const parsed = new Date(value);
+function parseCreatedAt(value: string) {
+  const parsed = new Date(`${value}T00:00:00`);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -30,21 +30,21 @@ export const candidateDashboardService = {
     }
 
     return items.filter((item) => {
-      const appliedDate = parseAppliedDate(item.appliedDate);
-      if (!appliedDate) {
+      const createdAt = parseCreatedAt(item.createdAt);
+      if (!createdAt) {
         return true;
       }
 
       if (startDate) {
         const start = new Date(`${startDate}T00:00:00`);
-        if (appliedDate < start) {
+        if (createdAt < start) {
           return false;
         }
       }
 
       if (endDate) {
         const end = new Date(`${endDate}T23:59:59`);
-        if (appliedDate > end) {
+        if (createdAt > end) {
           return false;
         }
       }
