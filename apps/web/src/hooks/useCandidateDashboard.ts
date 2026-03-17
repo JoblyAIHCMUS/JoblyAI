@@ -5,14 +5,8 @@ import {
   ApplicationFilter,
   ApplicationStatus,
 } from '@/features/candidate/dashboard/types';
+import { toDateInputValue } from '@/features/candidate/dashboard/utils/dashboardFormatters';
 import { usePagination } from './usePagination';
-
-function toDateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 function getInitialWeekRange() {
   const end = new Date();
