@@ -4,6 +4,24 @@ import { candidateDashboardService } from '@/services/candidateDashboardService'
 import { ApplicationFilter, ApplicationStatus } from '@/types/candidateDashboard';
 import { usePagination } from './usePagination';
 
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getInitialWeekRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+
+  return {
+    startDate: toDateInputValue(start),
+    endDate: toDateInputValue(end),
+  };
+}
+
 function isActiveStatus(status: ApplicationStatus) {
   return status === 'applied' || status === 'viewed' || status === 'interviewing';
 }
@@ -17,10 +35,15 @@ export function useCandidateDashboard() {
   const applications = candidateDashboardService.getApplications();
   const statusMeta = candidateDashboardService.getStatusMeta();
   const filterMeta = candidateDashboardService.getFilterMeta();
+  const initialWeekRange = getInitialWeekRange();
   const [applicationFilter, setApplicationFilter] =
     useState<ApplicationFilter>('all');
+  const [selectedStartDate, setSelectedStartDate] =
+    useState(initialWeekRange.startDate);
+  const [selectedEndDate, setSelectedEndDate] =
+    useState(initialWeekRange.endDate);
 
-  const filteredApplications = useMemo(() => {
+  const statusFilteredApplications = useMemo(() => {
     if (applicationFilter === 'all') {
       return applications;
     }
@@ -32,13 +55,21 @@ export function useCandidateDashboard() {
     return applications.filter((item) => isClosedStatus(item.status));
   }, [applicationFilter, applications]);
 
+  const filteredApplications = useMemo(() => {
+    return candidateDashboardService.filterApplicationsByDate(
+      statusFilteredApplications,
+      selectedStartDate,
+      selectedEndDate
+    );
+  }, [statusFilteredApplications, selectedStartDate, selectedEndDate]);
+
   const totalPages = Math.max(1, Math.ceil(filteredApplications.length / PAGE_SIZE));
   const { currentPage, setCurrentPage, goPrev, goNext } =
     usePagination(totalPages);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [applicationFilter, setCurrentPage]);
+  }, [applicationFilter, selectedStartDate, selectedEndDate, setCurrentPage]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -54,6 +85,10 @@ export function useCandidateDashboard() {
   return {
     applicationFilter,
     setApplicationFilter,
+    selectedStartDate,
+    selectedEndDate,
+    setSelectedStartDate,
+    setSelectedEndDate,
     applications,
     filteredApplications,
     paginatedApplications,

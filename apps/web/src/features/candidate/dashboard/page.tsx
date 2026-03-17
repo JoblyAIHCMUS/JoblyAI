@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import {
   CalendarDays,
   ChevronRight,
@@ -17,6 +18,36 @@ import {
   ApplicationStatus,
 } from '../../../types/candidateDashboard';
 import { useCandidateDashboard } from '../../../hooks/useCandidateDashboard';
+
+function formatDateRangeLabel(startDate: string, endDate: string) {
+  if (!startDate && !endDate) {
+    return 'Select date range';
+  }
+
+  const formatDate = (value: string) =>
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(`${value}T00:00:00`));
+
+  if (startDate && endDate) {
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  }
+
+  if (startDate) {
+    return `From ${formatDate(startDate)}`;
+  }
+
+  return `Until ${formatDate(endDate)}`;
+}
+
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -146,9 +177,15 @@ function ApplicationRow({
 
 export default function CandidateDashboardPage() {
   const { data: user } = useUser();
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const datePickerRef = useRef<HTMLDivElement>(null);
   const {
     applicationFilter,
     setApplicationFilter,
+    selectedStartDate,
+    selectedEndDate,
+    setSelectedStartDate,
+    setSelectedEndDate,
     filteredApplications,
     paginatedApplications,
     currentPage,
@@ -162,6 +199,41 @@ export default function CandidateDashboardPage() {
   const firstName = user?.name?.split(' ')[0] ?? 'Jake';
   const greeting = getGreeting();
   const unsuitableShare = 60;
+  const dateRangeLabel = formatDateRangeLabel(selectedStartDate, selectedEndDate);
+  const activityRangeText =
+    dateRangeLabel === 'Select date range' ? 'from all time' : `from ${dateRangeLabel}`;
+  const isInvalidDateRange =
+    !!selectedStartDate &&
+    !!selectedEndDate &&
+    selectedStartDate > selectedEndDate;
+
+  useEffect(() => {
+    if (!isDatePickerOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(event.target as Node)
+      ) {
+        setIsDatePickerOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDatePickerOpen]);
+
+  const applyQuickRange = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days + 1);
+    setSelectedStartDate(toDateInputValue(start));
+    setSelectedEndDate(toDateInputValue(end));
+  };
 
   return (
     <div className="min-h-full bg-white">
@@ -172,17 +244,106 @@ export default function CandidateDashboardPage() {
               {greeting}, {firstName}
             </h2>
             <p className="mt-2 max-w-3xl text-base leading-6 text-[#7c8493]">
-              Here is what&apos;s happening with your job search applications from July 19 - July 25.
+              Here is what&apos;s happening with your job search applications{' '}
+              {activityRangeText}.
             </p>
           </div>
 
-          <button
-            type="button"
-            className="inline-flex h-12 items-center gap-3 rounded-[6px] border border-[#d6ddeb] bg-white px-4 text-base font-medium text-[#515b6f]"
-          >
-            <span>Jul 19 - Jul 25</span>
-            <CalendarDays className="h-4 w-4 text-[#4640de]" />
-          </button>
+          <div className="relative" ref={datePickerRef}>
+            <button
+              type="button"
+              onClick={() => setIsDatePickerOpen((prev) => !prev)}
+              className="inline-flex h-12 items-center gap-3 rounded-[6px] border border-[#d6ddeb] bg-white px-4 text-base font-medium text-[#515b6f]"
+            >
+              <span>{dateRangeLabel}</span>
+              <CalendarDays className="h-4 w-4 text-[#4640de]" />
+            </button>
+
+            {isDatePickerOpen && (
+              <div className="absolute left-0 top-full z-20 mt-2 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#d6ddeb] bg-white shadow-[0_20px_50px_rgba(37,50,75,0.16)] xl:left-auto xl:right-0 xl:w-[340px]">
+                <div className="bg-[linear-gradient(180deg,#f7f8ff_0%,#ffffff_100%)] px-5 pb-4 pt-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-[family-name:var(--family-primary)] text-base font-semibold text-[#25324b]">
+                        Filter by date range
+                      </p>
+                      <p className="mt-1 text-xs text-[#7c8493]">
+                        Choose a period to narrow your applications
+                      </p>
+                    </div>
+                    <CalendarDays className="h-4 w-4 text-[#4640de]" />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange(1)}
+                      className="rounded-full border border-[#d6ddeb] bg-white px-3 py-1 text-xs font-medium text-[#515b6f] hover:border-[#c7cdf0] hover:text-[#25324b]"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange(7)}
+                      className="rounded-full border border-[#d6ddeb] bg-white px-3 py-1 text-xs font-medium text-[#515b6f] hover:border-[#c7cdf0] hover:text-[#25324b]"
+                    >
+                      Last 7 days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange(30)}
+                      className="rounded-full border border-[#d6ddeb] bg-white px-3 py-1 text-xs font-medium text-[#515b6f] hover:border-[#c7cdf0] hover:text-[#25324b]"
+                    >
+                      Last 30 days
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3 px-5 py-4">
+                  <label className="block rounded-xl border border-[#e7ebf3] bg-[#fafbff] p-3 text-sm font-medium text-[#25324b]">
+                    From
+                    <input
+                      type="date"
+                      value={selectedStartDate}
+                      onChange={(event) => setSelectedStartDate(event.target.value)}
+                      max={selectedEndDate || undefined}
+                      className="mt-2 w-full rounded-md border border-[#d6ddeb] bg-white px-3 py-2 text-sm text-[#25324b] focus:border-[#4640de] focus:outline-none"
+                    />
+                  </label>
+
+                  <label className="block rounded-xl border border-[#e7ebf3] bg-[#fafbff] p-3 text-sm font-medium text-[#25324b]">
+                    To
+                    <input
+                      type="date"
+                      value={selectedEndDate}
+                      onChange={(event) => setSelectedEndDate(event.target.value)}
+                      min={selectedStartDate || undefined}
+                      className="mt-2 w-full rounded-md border border-[#d6ddeb] bg-white px-3 py-2 text-sm text-[#25324b] focus:border-[#4640de] focus:outline-none"
+                    />
+                  </label>
+
+                  {isInvalidDateRange && (
+                    <p className="text-xs text-[#ff6550]">
+                      Start date must be earlier than or equal to end date.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-start border-t border-[#eef1f6] px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedStartDate('');
+                      setSelectedEndDate('');
+                    }}
+                    className="rounded-md border border-[#d6ddeb] px-3 py-1.5 text-sm font-medium text-[#515b6f] hover:bg-[#f8fafc]"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[258px_1fr]">
