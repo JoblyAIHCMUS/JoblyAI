@@ -74,6 +74,7 @@ export function useNotifications() {
 
   const visibleNotifications = notifications.slice(0, visibleCount);
   const hasMoreNotifications = visibleCount < notifications.length;
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleNotificationScroll = (event: UIEvent<HTMLUListElement>) => {
     if (!hasMoreNotifications) {
@@ -94,6 +95,7 @@ export function useNotifications() {
     notifications,
     visibleNotifications,
     hasMoreNotifications,
+    unreadCount,
     isBellEnabled,
     showNotificationMenu,
     notificationWrapperRef,

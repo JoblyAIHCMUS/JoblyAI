@@ -21,6 +21,7 @@ export function CandidateTopBar() {
   const {
     visibleNotifications,
     hasMoreNotifications,
+    unreadCount,
     isBellEnabled,
     showNotificationMenu,
     notificationWrapperRef,
@@ -74,13 +75,18 @@ export function CandidateTopBar() {
               aria-label="Notifications"
               aria-pressed={isBellEnabled}
               onClick={handleBellToggle}
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
                 isBellEnabled
                   ? 'bg-[#eef0ff] text-[#4640de]'
                   : 'text-[#25324b] hover:bg-[#f8fafc] hover:text-[#4640de]'
               }`}
             >
               <Bell className="h-5 w-5" strokeWidth={1.8} />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 text-[10px] font-bold leading-none text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
 
             {showNotificationMenu && (
