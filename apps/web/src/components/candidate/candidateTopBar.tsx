@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { Bell, Menu } from 'lucide-react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useUser } from '@/hooks/useUser';
-import { useCandidateNotifications } from '../../hooks/useCandidateNotifications';
 
 function getInitials(name: string) {
   return name
@@ -28,7 +28,7 @@ export function CandidateTopBar() {
     handleNotificationScroll,
     closeNotificationMenu,
     formatNotificationTime,
-  } = useCandidateNotifications();
+  } = useNotifications();
 
   const fullName = user?.name ?? 'Jake Gyll';
   const email = user?.email ?? 'jakegyll@email.com';

@@ -3,7 +3,7 @@ import {
   CANDIDATE_DASHBOARD_FILTER_META,
   CANDIDATE_DASHBOARD_STATUS_META,
 } from '@/mocks/candidateDashboard';
-import { ApplicationItem } from '@/types/candidateDashboard';
+import { ApplicationItem } from '@/features/candidate/dashboard/types';
 
 function parseAppliedDate(value: string) {
   const parsed = new Date(value);

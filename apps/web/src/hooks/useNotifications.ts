@@ -33,7 +33,7 @@ function formatNotificationTime(createdAt: string) {
   }).format(createdAtDate);
 }
 
-export function useCandidateNotifications() {
+export function useNotifications() {
   const PAGE_SIZE = 7;
   const notifications = notificationService.getCandidateNotifications();
   const [isBellEnabled, setIsBellEnabled] = useState(false);

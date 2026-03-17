@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { candidateDashboardService } from '@/services/candidateDashboardService';
-import { ApplicationFilter, ApplicationStatus } from '@/types/candidateDashboard';
+import { ApplicationFilter, ApplicationStatus } from '@/features/candidate/dashboard/types';
 import { usePagination } from './usePagination';
 
 function toDateInputValue(date: Date) {
