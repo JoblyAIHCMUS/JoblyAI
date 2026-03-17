@@ -60,7 +60,7 @@ export function CandidateTopBar() {
               </div>
             )}
 
-            <div className="min-w-0 hidden md:block lg:hidden">
+            <div className="min-w-0 hidden md:block ">
               <p className="truncate font-[family-name:var(--family-primary)] text-[20px] font-medium leading-6 text-[#25324b]">
                 {fullName}
               </p>
