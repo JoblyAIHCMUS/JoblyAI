@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
-import { ApplicationStatus } from '../types';
+import { ApplicationStatus } from '@/types/candidate';
 
 type BarChartItem = {
   key: string;

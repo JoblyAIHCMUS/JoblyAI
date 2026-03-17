@@ -2,7 +2,7 @@ import {
   ApplicationFilterMeta,
   ApplicationItem,
   ApplicationStatusMeta,
-} from '@/features/candidate/dashboard/types';
+} from '@/types/candidate';
 
 export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
   {
