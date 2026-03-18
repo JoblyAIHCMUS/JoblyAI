@@ -1,23 +1,20 @@
 import { useMemo } from 'react';
 
 import {
-  ApplicationItem,
   ApplicationStatus,
-  ApplicationStatusMeta,
 } from '@/types/candidate';
 import { toDateInputValue } from '@/lib/candidateDate';
+import {
+  DashboardInsightsParams,
+  DashboardInsightsResult,
+} from '@/features/candidate/dashboard/types';
 
 export function useDashboardInsights({
   filteredApplications,
   selectedStartDate,
   selectedEndDate,
   statusMeta,
-}: {
-  filteredApplications: ApplicationItem[];
-  selectedStartDate: string;
-  selectedEndDate: string;
-  statusMeta: ApplicationStatusMeta;
-}) {
+}: DashboardInsightsParams): DashboardInsightsResult {
   const statusChartColors: Record<ApplicationStatus, string> = {
     applied: '#7c8493',
     viewed: '#1fb5e9',
