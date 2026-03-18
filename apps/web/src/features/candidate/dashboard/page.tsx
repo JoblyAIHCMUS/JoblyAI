@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
 import { DateRangePicker } from '@/components/candidate/dateRangePicker';
+import { ApplicationTable } from '@/components/candidate/applicationTable';
+import { ApplicationRow } from './components/ApplicationRow';
 import { ApplicationFilter } from '@/types/candidate';
 import { useCandidateDashboard } from '@/hooks/useCandidateDashboard';
-import { ApplicationRow } from './components/ApplicationRow';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
@@ -32,14 +33,14 @@ export default function CandidateDashboardPage() {
     setSelectedStartDate,
     setSelectedEndDate,
     filteredApplications,
-    paginatedApplications,
-    currentPage,
-    totalPages,
-    goToPreviousPage,
-    goToNextPage,
     statusMeta,
     filterMeta,
   } = useCandidateDashboard();
+
+  const recentApplications = useMemo(
+    () => filteredApplications.slice(0, 10),
+    [filteredApplications]
+  );
 
   const firstName = user?.name?.split(' ')[0] ?? 'Jake';
   const greeting = getGreeting();
@@ -197,66 +198,29 @@ export default function CandidateDashboardPage() {
           </div>
           <div className="mt-7 h-px w-full bg-[#d6ddeb]" />
 
-          <div className="mt-6 flex flex-col gap-4 lg:gap-0">
-            {filteredApplications.length > 0 && (
-              <div className="hidden items-center gap-5 border-b border-[#eef1f6] px-6 py-3 text-sm font-medium text-[#7c8493] lg:grid lg:grid-cols-[minmax(0,1.7fr)_minmax(150px,0.7fr)_117px_24px]">
-                <p>Job</p>
-                <p>Date Applied</p>
-                <p>Status</p>
-                <p className="text-right">Actions</p>
-              </div>
-            )}
-
-            {paginatedApplications.map((item, index) => (
+          <ApplicationTable
+            filteredApplications={recentApplications}
+            paginatedApplications={recentApplications}
+            statusMeta={statusMeta}
+            renderRow={(item, _index, tinted, statusMeta) => (
               <ApplicationRow
                 key={item.id}
                 item={item}
-                tinted={index % 2 === 0}
+                tinted={tinted}
                 statusMeta={statusMeta}
               />
-            ))}
-
-            {filteredApplications.length === 0 && (
-              <div className="rounded-sm bg-[#f8fafc] px-6 py-10 text-center text-sm text-[#7c8493]">
-                No applications found for this filter.
-              </div>
             )}
-          </div>
+          />
 
-          {filteredApplications.length > 0 && totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between gap-3">
-              <p className="text-sm text-[#7c8493]">
-                Page {currentPage} of {totalPages}
-              </p>
-
-              <div className="inline-flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={goToPreviousPage}
-                  disabled={currentPage === 1}
-                  className="rounded-md border border-[#d6ddeb] px-3 py-1.5 text-sm font-medium text-[#515b6f] transition-colors enabled:hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className="rounded-md border border-[#d6ddeb] px-3 py-1.5 text-sm font-medium text-[#515b6f] transition-colors enabled:hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+          {filteredApplications.length > 7 && (
+            <Link
+              href="/candidate/applications"
+              className="mt-8 inline-flex items-center gap-3 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 text-[#4640de] sm:text-base sm:leading-[22px]"
+            >
+              View all applications history
+              <ChevronRight className="h-5 w-5" />
+            </Link>
           )}
-
-          <Link
-            href="/candidate/dashboard#applications"
-            className="mt-8 inline-flex items-center gap-3 font-[family-name:var(--family-primary)] text-sm font-semibold leading-5 text-[#4640de] sm:text-base sm:leading-[22px]"
-          >
-            View all applications history
-            <ChevronRight className="h-5 w-5" />
-          </Link>
         </section>
       </div>
     </div>
