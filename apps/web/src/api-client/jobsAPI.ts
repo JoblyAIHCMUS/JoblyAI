@@ -24,18 +24,10 @@ export interface CreateJobPayload {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export async function createJobPosting(
-  payload: CreateJobPayload,
-  token?: string
-) {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+export async function createJobPosting(payload: CreateJobPayload) {
   const response = await axios.post(`${API_BASE_URL}/jobs`, payload, {
-    headers,
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: true,
   });
   return response.data;
 }

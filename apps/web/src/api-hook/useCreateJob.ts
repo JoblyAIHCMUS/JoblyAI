@@ -11,11 +11,11 @@ export function useCreateJob(options?: UseCreateJobOptions) {
   const [error, setError] = useState<any>(null);
   const [data, setData] = useState<any>(null);
 
-  const createJob = async (payload: CreateJobPayload, token?: string) => {
+  const createJob = async (payload: CreateJobPayload) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await createJobPosting(payload, token);
+      const result = await createJobPosting(payload);
       setData(result);
       options?.onSuccess?.(result);
       return result;
