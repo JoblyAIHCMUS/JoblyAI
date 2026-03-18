@@ -1,6 +1,5 @@
 import {
   ApplicationFilter,
-  ApplicationItem,
   CandidateApplicationsAdvancedFilter,
 } from '@/types/candidate';
 
@@ -18,15 +17,10 @@ export type FilterDraft = {
 };
 
 export type UseApplicationsPageStateParams = {
-  applications: ApplicationItem[];
   applicationFilter: ApplicationFilter;
   setApplicationFilter: (filter: ApplicationFilter) => void;
-  selectedStartDate: string;
-  selectedEndDate: string;
   advancedFilters: CandidateApplicationsAdvancedFilter;
   applyAdvancedFilters: (filters: CandidateApplicationsAdvancedFilter) => void;
   clearAdvancedFilters: () => void;
   applySearch: () => void;
-  currentPage: number;
-  totalPages: number;
 };

@@ -14,9 +14,9 @@ import { useCandidateDashboard } from '@/features/candidate/hook/useCandidateDas
 export default function CandidateApplicationsPage() {
   const { data: user } = useUser();
   const {
-    applications,
     applicationFilter,
     setApplicationFilter,
+    dateRangeLabel,
     selectedStartDate,
     selectedEndDate,
     setSelectedStartDate,
@@ -26,6 +26,8 @@ export default function CandidateApplicationsPage() {
     currentPage,
     totalPages,
     pageSize,
+    tabs,
+    visiblePages,
     goToPage,
     goToPreviousPage,
     goToNextPage,
@@ -48,29 +50,26 @@ export default function CandidateApplicationsPage() {
     setIsFilterDialogOpen,
     filterDraft,
     setFilterDraft,
-    dateRangeLabel,
-    activityRangeText,
-    tabs,
-    visiblePages,
     handleSearchSubmit,
     handleSearchKeyDown,
     handleApplyFilters,
     handleClearFilters,
   } = useApplicationsPageState({
-    applications,
     applicationFilter,
     setApplicationFilter,
-    selectedStartDate,
-    selectedEndDate,
     advancedFilters,
     applyAdvancedFilters,
     clearAdvancedFilters,
     applySearch,
-    currentPage,
-    totalPages,
   });
 
   const firstName = user?.name?.split(' ')[0] ?? 'Jake';
+  const activityStatusText =
+    dateRangeLabel === 'Select date range'
+      ? 'from all time'
+      : `from ${dateRangeLabel}`;
+  const activityRangeText =
+    `Here is job applications status ${activityStatusText}.`;
 
   return (
     <div className="min-h-full bg-white">
