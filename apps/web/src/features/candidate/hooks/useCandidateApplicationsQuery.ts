@@ -49,12 +49,13 @@ export function useCandidateApplicationsQuery() {
   const [filteredApplications, setFilteredApplications] =
     useState(applications);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
 
     const runSearch = async () => {
-      // TODO(real-api): Handle API errors with toast/error-state when endpoint is connected.
+      setSearchError(null);
       setIsSearching(true);
 
       try {
@@ -70,6 +71,20 @@ export function useCandidateApplicationsQuery() {
 
         if (!isCancelled) {
           setFilteredApplications(result);
+        }
+      } catch (error) {
+        // TODO(real-api): Replace this log with centralized telemetry (Sentry/DataDog).
+        console.error('[CandidateApplicationsQuery] Search failed', {
+          error,
+          query: searchKeyword,
+          status: applicationFilter,
+          startDate: selectedStartDate,
+          endDate: selectedEndDate,
+          advancedFilters,
+        });
+
+        if (!isCancelled) {
+          setSearchError('Unable to load applications. Please try again.');
         }
       } finally {
         if (!isCancelled) {
@@ -167,6 +182,7 @@ export function useCandidateApplicationsQuery() {
     searchKeyword,
     applySearch,
     isSearching,
+    searchError,
     advancedFilters,
     applyAdvancedFilters,
     clearAdvancedFilters,

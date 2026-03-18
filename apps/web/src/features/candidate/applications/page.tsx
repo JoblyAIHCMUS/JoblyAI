@@ -36,6 +36,7 @@ export default function CandidateApplicationsPage() {
     setSearchQuery,
     applySearch,
     isSearching,
+    searchError,
     advancedFilters,
     applyAdvancedFilters,
     clearAdvancedFilters,
@@ -117,6 +118,15 @@ export default function CandidateApplicationsPage() {
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
           />
+
+          {searchError && (
+            <div
+              role="alert"
+              className="mt-4 rounded-md border border-[#ffd9d4] bg-[#fff7f5] px-4 py-3 text-sm text-[#9b2c2c]"
+            >
+              {searchError}
+            </div>
+          )}
 
           <ApplicationTable
             filteredApplications={filteredApplications}
