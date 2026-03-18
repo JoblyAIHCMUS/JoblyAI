@@ -1,7 +1,10 @@
 import {
   Injectable,
   BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import {
   PutObjectCommand,
@@ -20,6 +23,17 @@ import {
 
 @Injectable()
 export class S3Service {
+  private readonly extensionByMimeType: Record<string, string> = {
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      'docx',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/svg+xml': 'svg',
+  };
+
   /**
    * Generate presigned URL
    *
@@ -40,8 +54,8 @@ export class S3Service {
     // Validate file type
     this.validateFileType(fileType, folder);
 
-    // Generate unique filename
-    const fileExtension = fileName.split('.').pop();
+    // Build key extension from validated MIME type instead of trusting fileName.
+    const fileExtension = this.getExtensionFromMimeType(fileType);
     const uniqueFileName = `${randomUUID()}.${fileExtension}`;
     const fileKey = `${folder}/${uniqueFileName}`;
 
@@ -50,8 +64,6 @@ export class S3Service {
       Bucket: s3Config.bucketName,
       Key: fileKey,
       ContentType: fileType,
-      // Note: Removed ContentLength to allow any file size up to maxSizeMB
-      // AWS S3 will accept files <= maxSizeMB, validation should be done on frontend
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, {
@@ -101,11 +113,33 @@ export class S3Service {
         message: `File "${fileKey}" deleted successfully`,
       };
     } catch (error: any) {
-      throw new NotFoundException(
-        `Failed to delete file "${fileKey}". Error: ${
-          error?.message || 'Unknown error'
-        }`
-      );
+      const statusCode = error?.$metadata?.httpStatusCode;
+      const errorMessage = error?.message || 'Unknown error';
+      const errorName = String(error?.name || '').toLowerCase();
+      const lowerMessage = String(errorMessage).toLowerCase();
+      const baseMessage = `Failed to delete file "${fileKey}". Error: ${errorMessage}`;
+
+      if (statusCode === 403) {
+        throw new ForbiddenException(baseMessage);
+      }
+
+      if (typeof statusCode === 'number' && statusCode >= 500) {
+        throw new ServiceUnavailableException(baseMessage);
+      }
+
+      const isTransientNetworkError =
+        errorName.includes('timeout') ||
+        lowerMessage.includes('timeout') ||
+        lowerMessage.includes('timed out') ||
+        lowerMessage.includes('econn') ||
+        lowerMessage.includes('network') ||
+        lowerMessage.includes('socket');
+
+      if (isTransientNetworkError) {
+        throw new ServiceUnavailableException(baseMessage);
+      }
+
+      throw new InternalServerErrorException(baseMessage);
     }
   }
 
@@ -163,5 +197,17 @@ export class S3Service {
           `Only the following types are allowed: ${allowed.join(', ')}`
       );
     }
+  }
+
+  private getExtensionFromMimeType(fileType: string): string {
+    const extension = this.extensionByMimeType[fileType];
+
+    if (!extension) {
+      throw new BadRequestException(
+        `Cannot determine file extension for MIME type "${fileType}"`
+      );
+    }
+
+    return extension;
   }
 }

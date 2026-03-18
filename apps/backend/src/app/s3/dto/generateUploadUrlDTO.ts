@@ -1,13 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsNumber,
-  IsEnum,
-  Min,
-  Max,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
 import { S3Folder } from '../s3.interface';
 
 export class GenerateUploadUrlDTO {
@@ -22,11 +13,4 @@ export class GenerateUploadUrlDTO {
   @IsOptional()
   @IsEnum(S3Folder)
   folder?: S3Folder;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(1)
-  @Max(10)
-  @Type(() => Number)
-  maxSizeMB?: number;
 }

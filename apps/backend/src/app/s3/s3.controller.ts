@@ -19,16 +19,18 @@ export class S3Controller {
   constructor(private readonly s3Service: S3Service) {}
 
   /**
-   * GET PRESIGNED UPLOAD URL
+   * CREATE PRESIGNED UPLOAD URL
    *
    * POST /api/s3/presigned-upload
    *
    * Body: {
    *   fileName: "resume.pdf",
    *   fileType: "application/pdf",
-   *   folder: "resumes",
-   *   maxSizeMB: 5
+   *   folder: "resumes"
    * }
+   *
+   * Notes:
+   * - file key extension is derived from validated MIME type, not fileName.
    *
    * Response: {
    *   uploadUrl: "https://...",
@@ -48,7 +50,7 @@ export class S3Controller {
   }
 
   /**
-   * GET PRESIGNED DOWNLOAD URL
+   * CREATE PRESIGNED DOWNLOAD URL
    *
    * POST /api/s3/presigned-download
    *

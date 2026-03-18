@@ -1,6 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 
 // Hoisted mock functions
 const mockSend = vi.hoisted(() => vi.fn());
@@ -436,7 +442,22 @@ describe('S3Service - Integration Tests', () => {
 
         // Assert
         expect(result).toBeDefined();
-        expect(result.fileKey).toMatch(/^resumes\/[0-9a-f-]+\.resume$/);
+        expect(result.fileKey).toMatch(/^resumes\/[0-9a-f-]+\.pdf$/);
+      });
+
+      it('should derive extension from MIME type when fileName extension mismatches', async () => {
+        // Arrange
+        mockGetSignedUrl.mockResolvedValue('https://signed-url');
+
+        // Act
+        const result = await service.generatePresignedUploadUrl(
+          'avatar.png',
+          'image/jpeg',
+          S3Folder.AVATARS
+        );
+
+        // Assert
+        expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.jpg$/);
       });
     });
   });
@@ -522,7 +543,7 @@ describe('S3Service - Integration Tests', () => {
         );
       });
 
-      it('should throw NotFoundException when S3 deletion fails', async () => {
+      it('should throw InternalServerErrorException when S3 deletion fails with unknown error', async () => {
         // Arrange
         mockSend.mockRejectedValue(
           new Error('NoSuchKey: The specified key does not exist')
@@ -531,39 +552,55 @@ describe('S3Service - Integration Tests', () => {
         // Act & Assert
         await expect(
           service.deleteFile('resumes/non-existent.pdf')
-        ).rejects.toThrow(NotFoundException);
+        ).rejects.toThrow(InternalServerErrorException);
       });
 
-      it('should include error message in NotFoundException', async () => {
+      it('should include error message in ServiceUnavailableException', async () => {
         // Arrange
         mockSend.mockRejectedValue(new Error('S3 connection timeout'));
 
         // Act & Assert
         try {
           await service.deleteFile('resumes/timeout.pdf');
-          expect.fail('Should have thrown NotFoundException');
+          expect.fail('Should have thrown ServiceUnavailableException');
         } catch (error: any) {
-          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error).toBeInstanceOf(ServiceUnavailableException);
           expect(error.message).toContain('Failed to delete file');
           expect(error.message).toContain('resumes/timeout.pdf');
           expect(error.message).toContain('S3 connection timeout');
         }
       });
 
-      it('should handle AWS SDK errors gracefully', async () => {
+      it('should map AWS 403 to ForbiddenException', async () => {
         // Arrange
         mockSend.mockRejectedValue({
-          name: 'NoSuchKey',
-          message: 'The specified key does not exist',
+          name: 'AccessDenied',
+          message: 'Access Denied',
           $metadata: {
-            httpStatusCode: 404,
+            httpStatusCode: 403,
           },
         });
 
         // Act & Assert
         await expect(service.deleteFile('resumes/missing.pdf')).rejects.toThrow(
-          NotFoundException
+          ForbiddenException
         );
+      });
+
+      it('should map AWS 5xx to ServiceUnavailableException', async () => {
+        // Arrange
+        mockSend.mockRejectedValue({
+          name: 'InternalError',
+          message: 'S3 internal error',
+          $metadata: {
+            httpStatusCode: 503,
+          },
+        });
+
+        // Act & Assert
+        await expect(
+          service.deleteFile('resumes/server-error.pdf')
+        ).rejects.toThrow(ServiceUnavailableException);
       });
 
       it('should handle network errors', async () => {
@@ -573,7 +610,7 @@ describe('S3Service - Integration Tests', () => {
         // Act & Assert
         await expect(
           service.deleteFile('resumes/network-fail.pdf')
-        ).rejects.toThrow(NotFoundException);
+        ).rejects.toThrow(ServiceUnavailableException);
       });
     });
 
