@@ -7,7 +7,7 @@ import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
-import { ApplicationRow } from './components/ApplicationRow';
+import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationFilter } from '@/types/candidate';
 import { useCandidateDashboard } from '@/features/candidate/hook/useCandidateDashboard';
 import { StatCard } from './components/StatCard';
@@ -136,10 +136,11 @@ export default function CandidateDashboardPage() {
             filteredApplications={recentApplications}
             paginatedApplications={recentApplications}
             statusMeta={statusMeta}
-            renderRow={(item, _index, tinted, statusMeta) => (
-              <ApplicationRow
+            renderRow={(item, index, tinted, statusMeta) => (
+              <ApplicationHistoryRow
                 key={item.id}
                 item={item}
+                index={index}
                 tinted={tinted}
                 statusMeta={statusMeta}
               />
