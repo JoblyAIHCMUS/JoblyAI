@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { formatDateRangeLabel } from '@/lib/candidateDate';
+import {
+  isActiveApplicationStatus,
+  isClosedApplicationStatus,
+} from '@/lib/candidateStatus';
 import { candidateDashboardService } from '@/services/candidateDashboardService';
 import {
   ApplicationFilter,
@@ -142,6 +147,48 @@ export function useCandidateDashboard() {
     return filteredApplications.slice(startIndex, startIndex + PAGE_SIZE);
   }, [currentPage, filteredApplications, PAGE_SIZE]);
 
+  const dateRangeLabel = useMemo(() => {
+    return formatDateRangeLabel(selectedStartDate, selectedEndDate);
+  }, [selectedStartDate, selectedEndDate]);
+
+  const applicationsInDateRange = useMemo(() => {
+    return candidateDashboardService.filterApplicationsByDate(
+      applications,
+      selectedStartDate,
+      selectedEndDate
+    );
+  }, [applications, selectedStartDate, selectedEndDate]);
+
+  const tabs = useMemo(
+    (): Array<{ key: ApplicationFilter; label: string; count: number }> => {
+      const activeCount = applicationsInDateRange.filter((item) =>
+        isActiveApplicationStatus(item.status)
+      ).length;
+      const closedCount = applicationsInDateRange.filter((item) =>
+        isClosedApplicationStatus(item.status)
+      ).length;
+
+      return [
+        { key: 'all', label: 'All', count: applicationsInDateRange.length },
+        { key: 'active', label: 'In Review', count: activeCount },
+        { key: 'closed', label: 'Offered', count: closedCount },
+      ];
+    },
+    [applicationsInDateRange]
+  );
+
+  const visiblePages = useMemo(() => {
+    const pages: number[] = [];
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+
+    for (let page = start; page <= end; page += 1) {
+      pages.push(page);
+    }
+
+    return pages;
+  }, [currentPage, totalPages]);
+
   const applySearch = (value?: string) => {
     const normalized = (value ?? searchQuery).trim();
 
@@ -169,6 +216,7 @@ export function useCandidateDashboard() {
     selectedEndDate,
     setSelectedStartDate,
     setSelectedEndDate,
+    dateRangeLabel,
     applications,
     filteredApplications,
     paginatedApplications,
@@ -178,6 +226,8 @@ export function useCandidateDashboard() {
     goToPage: setCurrentPage,
     goToPreviousPage: goPrev,
     goToNextPage: goNext,
+    tabs,
+    visiblePages,
     statusMeta,
     filterMeta,
     searchQuery,

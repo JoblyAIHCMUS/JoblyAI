@@ -1,15 +1,7 @@
-import { KeyboardEvent, useEffect, useMemo, useState } from 'react';
-
-import { formatDateRangeLabel } from '@/lib/candidateDate';
-import {
-  isActiveApplicationStatus,
-  isClosedApplicationStatus,
-} from '@/lib/candidateStatus';
-import { candidateDashboardService } from '@/services/candidateDashboardService';
+import { KeyboardEvent, useEffect, useState } from 'react';
 
 import {
   FilterDraft,
-  StatusTab,
   UseApplicationsPageStateParams,
 } from '../types';
 
@@ -26,17 +18,12 @@ function buildFilterDraft(
 }
 
 export function useApplicationsPageState({
-  applications,
   applicationFilter,
   setApplicationFilter,
-  selectedStartDate,
-  selectedEndDate,
   advancedFilters,
   applyAdvancedFilters,
   clearAdvancedFilters,
   applySearch,
-  currentPage,
-  totalPages,
 }: UseApplicationsPageStateParams) {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [filterDraft, setFilterDraft] = useState<FilterDraft>(() =>
@@ -54,49 +41,6 @@ export function useApplicationsPageState({
     advancedFilters,
     isFilterDialogOpen,
   ]);
-
-  const dateRangeLabel = formatDateRangeLabel(selectedStartDate, selectedEndDate);
-  const activityStatusText =
-    dateRangeLabel === 'Select date range'
-      ? 'from all time'
-      : `from ${dateRangeLabel}`;
-  const activityRangeText =
-    `Here is job applications status ${activityStatusText}.`;
-
-  const applicationsInDateRange = useMemo(() => {
-    return candidateDashboardService.filterApplicationsByDate(
-      applications,
-      selectedStartDate,
-      selectedEndDate
-    );
-  }, [applications, selectedStartDate, selectedEndDate]);
-
-  const tabs: StatusTab[] = useMemo(() => {
-    const activeCount = applicationsInDateRange.filter((item) =>
-      isActiveApplicationStatus(item.status)
-    ).length;
-    const closedCount = applicationsInDateRange.filter((item) =>
-      isClosedApplicationStatus(item.status)
-    ).length;
-
-    return [
-      { key: 'all', label: 'All', count: applicationsInDateRange.length },
-      { key: 'active', label: 'In Review', count: activeCount },
-      { key: 'closed', label: 'Offered', count: closedCount },
-    ];
-  }, [applicationsInDateRange]);
-
-  const visiblePages = useMemo(() => {
-    const pages: number[] = [];
-    const start = Math.max(1, currentPage - 2);
-    const end = Math.min(totalPages, currentPage + 2);
-
-    for (let page = start; page <= end; page += 1) {
-      pages.push(page);
-    }
-
-    return pages;
-  }, [currentPage, totalPages]);
 
   const handleSearchSubmit = () => {
     // TODO(real-api): Keep this trigger; only swap implementation in hook/service.
@@ -138,10 +82,6 @@ export function useApplicationsPageState({
     setIsFilterDialogOpen,
     filterDraft,
     setFilterDraft,
-    dateRangeLabel,
-    activityRangeText,
-    tabs,
-    visiblePages,
     handleSearchSubmit,
     handleSearchKeyDown,
     handleApplyFilters,
