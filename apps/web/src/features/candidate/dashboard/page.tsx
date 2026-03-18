@@ -9,7 +9,7 @@ import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationFilter } from '@/types/candidate';
-import { useCandidateDashboard } from '@/features/candidate/hook/useCandidateDashboard';
+import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
