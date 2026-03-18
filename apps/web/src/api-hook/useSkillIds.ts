@@ -15,11 +15,9 @@ export function useSkillIds() {
       const foundNames = new Set(existing.map((s) => s.name.toLowerCase()));
       // 2. For names not found, create them
       const toCreate = names.filter((n) => !foundNames.has(n.toLowerCase()));
-      const created: Skill[] = [];
-      for (const name of toCreate) {
-        const skill = await createSkill(name);
-        created.push(skill);
-      }
+      const created: Skill[] = await Promise.all(
+        toCreate.map((name) => createSkill(name))
+      );
       return [...existing, ...created];
     } catch (err) {
       setError(err);
