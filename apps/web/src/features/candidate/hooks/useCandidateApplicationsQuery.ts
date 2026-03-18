@@ -149,7 +149,9 @@ export function useCandidateApplicationsQuery() {
     setSearchKeyword(normalized);
   };
 
-  const applyAdvancedFilters = (filters: CandidateApplicationsAdvancedFilter) => {
+  const applyAdvancedFilters = (
+    filters: CandidateApplicationsAdvancedFilter
+  ) => {
     setAdvancedFilters(filters);
   };
 

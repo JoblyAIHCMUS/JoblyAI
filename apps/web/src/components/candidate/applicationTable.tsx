@@ -11,7 +11,12 @@ interface ApplicationTableProps {
   goToPreviousPage?: () => void;
   goToNextPage?: () => void;
   goToPage?: (page: number) => void;
-  renderRow: (item: ApplicationItem, index: number, tinted: boolean, statusMeta: ApplicationStatusMeta) => React.ReactNode;
+  renderRow: (
+    item: ApplicationItem,
+    index: number,
+    tinted: boolean,
+    statusMeta: ApplicationStatusMeta
+  ) => React.ReactNode;
 }
 
 export function ApplicationTable({
@@ -57,44 +62,48 @@ export function ApplicationTable({
         )}
       </div>
 
-      {filteredApplications.length > 0 && totalPages > 1 && goToPreviousPage && goToNextPage && goToPage && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={goToPreviousPage}
-            disabled={currentPage === 1}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#d6ddeb] text-[#515b6f] disabled:opacity-40"
-            aria-label="Previous page"
-          >
-            {'<'}
-          </button>
-
-          {visiblePages.map((page) => (
+      {filteredApplications.length > 0 &&
+        totalPages > 1 &&
+        goToPreviousPage &&
+        goToNextPage &&
+        goToPage && (
+          <div className="mt-8 flex items-center justify-center gap-2">
             <button
-              key={page}
               type="button"
-              onClick={() => goToPage(page)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium ${
-                page === currentPage
-                  ? 'bg-[#4640de] text-white'
-                  : 'text-[#515b6f] hover:bg-[#f8fafc]'
-              }`}
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#d6ddeb] text-[#515b6f] disabled:opacity-40"
+              aria-label="Previous page"
             >
-              {page}
+              {'<'}
             </button>
-          ))}
 
-          <button
-            type="button"
-            onClick={goToNextPage}
-            disabled={currentPage === totalPages}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#d6ddeb] text-[#515b6f] disabled:opacity-40"
-            aria-label="Next page"
-          >
-            {'>'}
-          </button>
-        </div>
-      )}
+            {visiblePages.map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => goToPage(page)}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium ${
+                  page === currentPage
+                    ? 'bg-[#4640de] text-white'
+                    : 'text-[#515b6f] hover:bg-[#f8fafc]'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#d6ddeb] text-[#515b6f] disabled:opacity-40"
+              aria-label="Next page"
+            >
+              {'>'}
+            </button>
+          </div>
+        )}
     </>
   );
 }

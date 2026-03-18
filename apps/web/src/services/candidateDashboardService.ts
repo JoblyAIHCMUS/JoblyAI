@@ -79,8 +79,8 @@ export const candidateDashboardService = {
     items: ApplicationItem[],
     field: 'company' | 'jobType' | 'location'
   ) {
-    return Array.from(new Set(items.map((item) => item[field]))).sort(
-      (a, b) => a.localeCompare(b)
+    return Array.from(new Set(items.map((item) => item[field]))).sort((a, b) =>
+      a.localeCompare(b)
     );
   },
   async searchApplicationsApi(params: CandidateApplicationsSearchParams) {

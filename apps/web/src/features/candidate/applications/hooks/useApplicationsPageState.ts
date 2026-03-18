@@ -1,8 +1,6 @@
 import { KeyboardEvent, useEffect, useState } from 'react';
 
-import {
-  FilterDraft,
-} from '../types';
+import { FilterDraft } from '../types';
 import { UseApplicationsPageStateParams } from './types';
 
 function buildFilterDraft(
@@ -36,11 +34,7 @@ export function useApplicationsPageState({
     }
 
     setFilterDraft(buildFilterDraft(applicationFilter, advancedFilters));
-  }, [
-    applicationFilter,
-    advancedFilters,
-    isFilterDialogOpen,
-  ]);
+  }, [applicationFilter, advancedFilters, isFilterDialogOpen]);
 
   const handleSearchSubmit = () => {
     // TODO(real-api): Keep this trigger; only swap implementation in hook/service.

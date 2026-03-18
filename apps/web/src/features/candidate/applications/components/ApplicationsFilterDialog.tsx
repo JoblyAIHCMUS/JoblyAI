@@ -69,7 +69,9 @@ export function ApplicationsFilterDialog({
           </div>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#25324b]">Company</label>
+            <label className="text-sm font-medium text-[#25324b]">
+              Company
+            </label>
             <select
               value={filterDraft.company}
               onChange={(event) =>
@@ -91,7 +93,9 @@ export function ApplicationsFilterDialog({
 
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#25324b]">Job Type</label>
+              <label className="text-sm font-medium text-[#25324b]">
+                Job Type
+              </label>
               <select
                 value={filterDraft.jobType}
                 onChange={(event) =>
@@ -112,7 +116,9 @@ export function ApplicationsFilterDialog({
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#25324b]">Location</label>
+              <label className="text-sm font-medium text-[#25324b]">
+                Location
+              </label>
               <select
                 value={filterDraft.location}
                 onChange={(event) =>

@@ -1,6 +1,4 @@
-import {
-  ApplicationFilter,
-} from '@/types/candidate';
+import { ApplicationFilter } from '@/types/candidate';
 
 export type StatusTab = {
   key: ApplicationFilter;

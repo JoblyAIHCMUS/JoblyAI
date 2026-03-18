@@ -62,23 +62,24 @@ export function useCandidateApplicationsViewModel({
     );
   }, [applications, selectedStartDate, selectedEndDate]);
 
-  const tabs = useMemo(
-    (): Array<{ key: ApplicationFilter; label: string; count: number }> => {
-      const activeCount = applicationsInDateRange.filter((item) =>
-        isActiveApplicationStatus(item.status)
-      ).length;
-      const closedCount = applicationsInDateRange.filter((item) =>
-        isClosedApplicationStatus(item.status)
-      ).length;
+  const tabs = useMemo((): Array<{
+    key: ApplicationFilter;
+    label: string;
+    count: number;
+  }> => {
+    const activeCount = applicationsInDateRange.filter((item) =>
+      isActiveApplicationStatus(item.status)
+    ).length;
+    const closedCount = applicationsInDateRange.filter((item) =>
+      isClosedApplicationStatus(item.status)
+    ).length;
 
-      return [
-        { key: 'all', label: 'All', count: applicationsInDateRange.length },
-        { key: 'active', label: 'In Review', count: activeCount },
-        { key: 'closed', label: 'Offered', count: closedCount },
-      ];
-    },
-    [applicationsInDateRange]
-  );
+    return [
+      { key: 'all', label: 'All', count: applicationsInDateRange.length },
+      { key: 'active', label: 'In Review', count: activeCount },
+      { key: 'closed', label: 'Offered', count: closedCount },
+    ];
+  }, [applicationsInDateRange]);
 
   const visiblePages = useMemo(() => {
     const pages: number[] = [];
