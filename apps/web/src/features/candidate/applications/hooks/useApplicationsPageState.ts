@@ -2,8 +2,8 @@ import { KeyboardEvent, useEffect, useState } from 'react';
 
 import {
   FilterDraft,
-  UseApplicationsPageStateParams,
 } from '../types';
+import { UseApplicationsPageStateParams } from './types';
 
 function buildFilterDraft(
   applicationFilter: UseApplicationsPageStateParams['applicationFilter'],
