@@ -8,10 +8,19 @@ import { getInitials } from '@/lib/utils';
 function CompanyBadge({ item }: { item: ApplicationItem }) {
   const initials = getInitials(item.company);
 
+  if (item.logoUrl) {
+    return (
+      <img
+        src={item.logoUrl}
+        alt={`${item.company} logo`}
+        className="h-14 w-14 rounded-[18px] border border-[#e7ebf3] bg-white object-cover sm:h-16 sm:w-16 sm:rounded-[20px]"
+      />
+    );
+  }
+
   return (
     <div
-      className="flex h-14 w-14 items-center justify-center rounded-[18px] text-lg font-semibold text-white sm:h-16 sm:w-16 sm:rounded-[20px] sm:text-xl"
-      style={{ backgroundColor: item.accent }}
+      className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#7fd4b1] text-lg font-semibold text-white sm:h-16 sm:w-16 sm:rounded-[20px] sm:text-xl"
     >
       {initials}
     </div>

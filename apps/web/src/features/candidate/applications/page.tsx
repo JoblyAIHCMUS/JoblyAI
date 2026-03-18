@@ -50,6 +50,20 @@ function ApplicationHistoryRow({
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
 
+  const logoNode = item.logoUrl ? (
+    <img
+      src={item.logoUrl}
+      alt={`${item.company} logo`}
+      className="h-10 w-10 rounded-[12px] border border-[#e7ebf3] bg-white object-cover"
+    />
+  ) : (
+    <div
+      className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#7fd4b1] text-sm font-semibold text-white"
+    >
+      {initials}
+    </div>
+  );
+
   return (
     <div
       className={`rounded-[2px] px-4 py-4 lg:px-6 ${
@@ -58,12 +72,7 @@ function ApplicationHistoryRow({
     >
       <div className="flex items-center justify-between gap-4 lg:hidden">
         <div className="flex min-w-0 items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-[12px] text-sm font-semibold text-white"
-            style={{ backgroundColor: item.accent }}
-          >
-            {initials}
-          </div>
+          {logoNode}
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-[#25324b]">
               {item.company}
@@ -87,12 +96,7 @@ function ApplicationHistoryRow({
         <p className="text-base text-[#25324b]">{index}</p>
 
         <div className="flex min-w-0 items-center gap-2">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-sm font-semibold text-white"
-            style={{ backgroundColor: item.accent }}
-          >
-            {initials}
-          </div>
+          <div className="shrink-0">{logoNode}</div>
           <p className="truncate text-base font-medium text-[#25324b]">
             {item.company}
           </p>
