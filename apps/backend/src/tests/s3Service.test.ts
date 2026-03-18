@@ -17,6 +17,10 @@ vi.mock('@aws-sdk/client-s3', () => {
     constructor(public input: any) {}
   }
 
+  class MockGetObjectCommand {
+    constructor(public input: any) {}
+  }
+
   class MockDeleteObjectCommand {
     constructor(public input: any) {}
   }
@@ -24,6 +28,7 @@ vi.mock('@aws-sdk/client-s3', () => {
   return {
     S3Client: MockS3Client,
     PutObjectCommand: MockPutObjectCommand,
+    GetObjectCommand: MockGetObjectCommand,
     DeleteObjectCommand: MockDeleteObjectCommand,
   };
 });
@@ -67,8 +72,8 @@ describe('S3Service - Integration Tests', () => {
       expect(result).toBeDefined();
       expect(result.uploadUrl).toBe(mockSignedUrl);
       expect(result.fileKey).toMatch(/^resumes\/[0-9a-f-]+\.pdf$/);
-      expect(result.publicUrl).toContain('.s3.ap-southeast-1.amazonaws.com');
-      expect(result.publicUrl).toContain(result.fileKey);
+      expect(result.fileUrl).toContain('.s3.ap-southeast-1.amazonaws.com');
+      expect(result.fileUrl).toContain(result.fileKey);
       expect(result.expiresIn).toBe(300);
       expect(mockGetSignedUrl).toHaveBeenCalledTimes(1);
     });
@@ -86,7 +91,7 @@ describe('S3Service - Integration Tests', () => {
 
       // Assert
       expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.jpg$/);
-      expect(result.publicUrl).toContain('avatars/');
+      expect(result.fileUrl).toContain('avatars/');
     });
 
     it('should generate presigned URL for PNG avatar upload', async () => {
@@ -132,7 +137,7 @@ describe('S3Service - Integration Tests', () => {
 
       // Assert
       expect(result.fileKey).toMatch(/^logos\/[0-9a-f-]+\.svg$/);
-      expect(result.publicUrl).toContain('logos/');
+      expect(result.fileUrl).toContain('logos/');
     });
 
     it('should generate presigned URL for DOC resume', async () => {
@@ -319,7 +324,7 @@ describe('S3Service - Integration Tests', () => {
             S3Folder.RESUMES
           );
           expect.fail('Should have thrown BadRequestException');
-        } catch (error) {
+        } catch (error: any) {
           expect(error).toBeInstanceOf(BadRequestException);
           expect(error.message).toContain('File type');
           expect(error.message).toContain('not allowed');
@@ -537,7 +542,7 @@ describe('S3Service - Integration Tests', () => {
         try {
           await service.deleteFile('resumes/timeout.pdf');
           expect.fail('Should have thrown NotFoundException');
-        } catch (error) {
+        } catch (error: any) {
           expect(error).toBeInstanceOf(NotFoundException);
           expect(error.message).toContain('Failed to delete file');
           expect(error.message).toContain('resumes/timeout.pdf');
@@ -609,6 +614,161 @@ describe('S3Service - Integration Tests', () => {
 
         // Assert
         expect(result.success).toBe(true);
+      });
+    });
+  });
+
+  describe('generatePresignedDownloadUrl', () => {
+    it('should generate presigned download URL with default expiry', async () => {
+      // Arrange
+      const mockDownloadUrl =
+        'https://jobly-dev-assets.s3.amazonaws.com/resumes/test.pdf?X-Amz-Signature=xyz';
+      mockGetSignedUrl.mockResolvedValue(mockDownloadUrl);
+
+      // Act
+      const result = await service.generatePresignedDownloadUrl(
+        'resumes/test-uuid.pdf'
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.downloadUrl).toBe(mockDownloadUrl);
+      expect(result.expiresIn).toBe(3600); // Default 1 hour
+      expect(mockGetSignedUrl).toHaveBeenCalledTimes(1);
+    });
+
+    it('should generate presigned download URL with custom expiry', async () => {
+      // Arrange
+      const mockDownloadUrl = 'https://signed-download-url';
+      mockGetSignedUrl.mockResolvedValue(mockDownloadUrl);
+
+      // Act
+      const result = await service.generatePresignedDownloadUrl(
+        'avatars/user-avatar.jpg',
+        7200 // 2 hours
+      );
+
+      // Assert
+      expect(result.downloadUrl).toBe(mockDownloadUrl);
+      expect(result.expiresIn).toBe(7200);
+    });
+
+    it('should generate download URLs for different file types', async () => {
+      // Arrange
+      mockGetSignedUrl.mockResolvedValue('https://signed-url');
+
+      // Act
+      const result1 = await service.generatePresignedDownloadUrl(
+        'resumes/resume.pdf'
+      );
+      const result2 = await service.generatePresignedDownloadUrl(
+        'avatars/avatar.jpg'
+      );
+      const result3 = await service.generatePresignedDownloadUrl(
+        'logos/logo.svg'
+      );
+
+      // Assert
+      expect(result1).toBeDefined();
+      expect(result2).toBeDefined();
+      expect(result3).toBeDefined();
+      expect(mockGetSignedUrl).toHaveBeenCalledTimes(3);
+    });
+
+    describe('Error Handling', () => {
+      it('should throw BadRequestException for empty fileKey', async () => {
+        // Act & Assert
+        await expect(service.generatePresignedDownloadUrl('')).rejects.toThrow(
+          BadRequestException
+        );
+        await expect(
+          service.generatePresignedDownloadUrl('   ')
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should throw BadRequestException for null/undefined fileKey', async () => {
+        // Act & Assert
+        await expect(
+          service.generatePresignedDownloadUrl(null as any)
+        ).rejects.toThrow(BadRequestException);
+        await expect(
+          service.generatePresignedDownloadUrl(undefined as any)
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should throw NotFoundException when S3 operation fails', async () => {
+        // Arrange
+        mockGetSignedUrl.mockRejectedValue(
+          new Error('NoSuchKey: File does not exist')
+        );
+
+        // Act & Assert
+        await expect(
+          service.generatePresignedDownloadUrl('resumes/non-existent.pdf')
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('should include error message in NotFoundException', async () => {
+        // Arrange
+        mockGetSignedUrl.mockRejectedValue(new Error('Access Denied'));
+
+        // Act & Assert
+        try {
+          await service.generatePresignedDownloadUrl('resumes/forbidden.pdf');
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.message).toContain('Failed to generate download URL');
+          expect(error.message).toContain('resumes/forbidden.pdf');
+          expect(error.message).toContain('Access Denied');
+        }
+      });
+    });
+
+    describe('Edge Cases', () => {
+      it('should handle fileKeys with special characters', async () => {
+        // Arrange
+        mockGetSignedUrl.mockResolvedValue('https://signed-url');
+
+        // Act
+        const result = await service.generatePresignedDownloadUrl(
+          'resumes/user-123/résumé-年度報告.pdf'
+        );
+
+        // Assert
+        expect(result).toBeDefined();
+        expect(result.downloadUrl).toBe('https://signed-url');
+      });
+
+      it('should handle very long fileKeys', async () => {
+        // Arrange
+        mockGetSignedUrl.mockResolvedValue('https://signed-url');
+        const longFileKey = 'resumes/' + 'a'.repeat(500) + '.pdf';
+
+        // Act
+        const result = await service.generatePresignedDownloadUrl(longFileKey);
+
+        // Assert
+        expect(result).toBeDefined();
+      });
+
+      it('should handle different expiry times', async () => {
+        // Arrange
+        mockGetSignedUrl.mockResolvedValue('https://signed-url');
+
+        // Act
+        const result1 = await service.generatePresignedDownloadUrl(
+          'resumes/test.pdf',
+          60 // 1 minute
+        );
+        const result2 = await service.generatePresignedDownloadUrl(
+          'resumes/test.pdf',
+          86400 // 1 day
+        );
+
+        // Assert
+        expect(result1.expiresIn).toBe(60);
+        expect(result2.expiresIn).toBe(86400);
       });
     });
   });

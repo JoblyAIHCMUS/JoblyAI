@@ -1,8 +1,13 @@
 export interface PresignedUploadUrl {
-  uploadUrl: string; // URL for frontend to upload file directly to S3
-  fileKey: string; // Key of file in S3 ("resumes/abc-123.pdf")
-  publicUrl: string; // URL public for accessing the file ("https://bucket.s3.region.amazonaws.com/resumes/abc-123.pdf")
-  expiresIn: number; // Expiry time in seconds (e.g. 300 for 5 minutes)
+  uploadUrl: string; // Presigned URL for frontend to upload file directly to S3
+  fileKey: string; // S3 object key ("resumes/abc-123.pdf")
+  fileUrl: string; // S3 object URL - NOTE: Requires bucket public access or presigned GET URL for viewing
+  expiresIn: number; // Upload URL expiry time in seconds (e.g. 300 for 5 minutes)
+}
+
+export interface PresignedDownloadUrl {
+  downloadUrl: string; // Presigned URL for downloading/viewing the file
+  expiresIn: number; // Download URL expiry time in seconds
 }
 
 export enum S3Folder {

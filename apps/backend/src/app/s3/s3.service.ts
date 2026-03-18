@@ -3,12 +3,17 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, s3Config } from '../../lib/s3';
 import { randomUUID } from 'crypto';
 import {
   PresignedUploadUrl,
+  PresignedDownloadUrl,
   S3Folder,
   ALLOWED_FILE_TYPES,
 } from './s3.interface';
@@ -21,10 +26,11 @@ export class S3Service {
    * Flows
    * 1. Validate file type (PDF for resumes, images for avatars/logos)
    * 2. Generate unique filename (UUID + extension)
-   * 3. Create presigned URL with AWS SDK (PUT method, content type, size limit)
-   * 4. Return uploadUrl + publicUrl + fileKey + expiry time to frontend
+   * 3. Create presigned URL with AWS SDK (PUT method, content type)
+   * 4. Return uploadUrl + fileUrl + fileKey + expiry time to frontend
    *
-   * Frontend will use uploadUrl to upload file directly to S3, then save publicUrl/fileKey in DB for later access
+   * Frontend will use uploadUrl to upload file directly to S3, then save fileUrl/fileKey in DB.
+   * NOTE: fileUrl is an S3 object URL that requires bucket public access OR use generatePresignedDownloadUrl() for secure access.
    */
   async generatePresignedUploadUrl(
     fileName: string,
@@ -52,13 +58,15 @@ export class S3Service {
       expiresIn: s3Config.uploadExpiry, // 5 minutes
     });
 
-    // Create public URL for accessing the file
-    const publicUrl = `https://${s3Config.bucketName}.s3.${s3Config.region}.amazonaws.com/${fileKey}`;
+    // Create S3 object URL
+    // NOTE: This URL requires bucket public access to be viewable directly.
+    // For private buckets, use generatePresignedDownloadUrl() to create time-limited access URLs.
+    const fileUrl = `https://${s3Config.bucketName}.s3.${s3Config.region}.amazonaws.com/${fileKey}`;
 
     return {
       uploadUrl,
       fileKey,
-      publicUrl,
+      fileUrl,
       expiresIn: s3Config.uploadExpiry,
     };
   }
@@ -95,6 +103,51 @@ export class S3Service {
     } catch (error: any) {
       throw new NotFoundException(
         `Failed to delete file "${fileKey}". Error: ${
+          error?.message || 'Unknown error'
+        }`
+      );
+    }
+  }
+
+  /**
+   * GENERATE PRESIGNED DOWNLOAD URL
+   *
+   * Creates a time-limited URL for downloading/viewing a file from S3.
+   * Use this when bucket has Block Public Access enabled.
+   *
+   * Use case:
+   * - Employer views candidate resume (secure access)
+   * - User views their own uploaded files
+   * - Share files with expiring links
+   *
+   * @param fileKey - S3 object key (e.g., "resumes/uuid.pdf")
+   * @param expiresIn - URL expiry time in seconds (default: 3600 = 1 hour)
+   */
+  async generatePresignedDownloadUrl(
+    fileKey: string,
+    expiresIn = 3600
+  ): Promise<PresignedDownloadUrl> {
+    if (!fileKey || fileKey.trim().length === 0) {
+      throw new BadRequestException('File key is required');
+    }
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: s3Config.bucketName,
+        Key: fileKey,
+      });
+
+      const downloadUrl = await getSignedUrl(s3Client, command, {
+        expiresIn,
+      });
+
+      return {
+        downloadUrl,
+        expiresIn,
+      };
+    } catch (error: any) {
+      throw new NotFoundException(
+        `Failed to generate download URL for "${fileKey}". Error: ${
           error?.message || 'Unknown error'
         }`
       );

@@ -5,9 +5,11 @@ Hướng dẫn setup S3 bucket với Presigned URL upload từ đầu đến cu�
 ## Bước 1: Tạo S3 Bucket trên Console
 
 ### 1.1. Login AWS Console
+
 ```powershell
 $HOME\aws-login.ps1 <MFA_code>
 ```
+
 Sau đó mở: https://console.aws.amazon.com/
 
 ### 1.2. Tạo S3 Bucket
@@ -17,13 +19,13 @@ Sau đó mở: https://console.aws.amazon.com/
 3. Điền thông tin:
    - **Bucket name**: `jobly-dev-assets` (hoặc tên khác, phải unique toàn cầu)
    - **AWS Region**: `Asia Pacific (Singapore) ap-southeast-1`
-4. **Object Ownership**: 
+4. **Object Ownership**:
    - Chọn **"ACLs disabled (recommended)"**
 5. **Block Public Access settings**:
    - ✅ **Giữ TẤT CẢ checkboxes ENABLED** (Block all public access)
    - Lý do: Dùng presigned URL, không cần public access
 6. **Bucket Versioning**: Disabled (hoặc Enabled nếu cần)
-7. **Default encryption**: 
+7. **Default encryption**:
    - Chọn **"Server-side encryption with Amazon S3 managed keys (SSE-S3)"**
 8. Click **"Create bucket"**
 
@@ -117,6 +119,7 @@ Sau đó mở: https://console.aws.amazon.com/
 ### ⚠️ QUAN TRỌNG - Lưu credentials:
 
 **Copy và lưu 2 thông tin này ngay (chỉ hiện 1 lần):**
+
 - **Access key ID**: `AKIA...` (bắt đầu bằng AKIA)
 - **Secret access key**: String dài
 
@@ -129,6 +132,7 @@ Click **"Download .csv file"** để backup.
 ## Bước 3: Cấu hình Backend
 
 1. **Thêm vào `apps/backend/.env`:**
+
    ```env
    # AWS S3
    AWS_ACCESS_KEY_ID=AKIA... (từ bước 2)
@@ -139,6 +143,7 @@ Click **"Download .csv file"** để backup.
    ```
 
 2. **Thêm vào `apps/backend/.env.example`** (để team biết):
+
    ```env
    # AWS S3
    AWS_ACCESS_KEY_ID=your_access_key_here
@@ -149,6 +154,7 @@ Click **"Download .csv file"** để backup.
    ```
 
 3. **Cập nhật `apps/backend/package.json`** - thêm AWS SDK:
+
    ```json
    "dependencies": {
      "@aws-sdk/client-s3": "^3.716.0",
@@ -188,24 +194,28 @@ File: `apps/web/src/lib/upload.ts`
 ## Bước 7: Test
 
 1. **Restart backend:**
+
    ```bash
    docker compose restart backend
    ```
 
 2. **Kiểm tra env variables:**
+
    ```bash
    docker compose exec backend sh -c 'echo $AWS_REGION'
    # Phải hiển thị: ap-southeast-1
    ```
 
 3. **Test API:**
+
    ```bash
    curl -X POST http://localhost:3000/api/upload/presigned-url \
      -H "Content-Type: application/json" \
      -d '{"fileName":"test.jpg","fileType":"image/jpeg"}'
    ```
-   
+
    Response mẫu:
+
    ```json
    {
      "uploadUrl": "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/uploads/...",
@@ -235,15 +245,18 @@ File: `apps/web/src/lib/upload.ts`
 ## Troubleshooting
 
 **Backend không kết nối S3:**
+
 ```bash
 docker compose logs backend | grep -i aws
 ```
 
 **CORS errors:**
+
 - Kiểm tra CORS config của bucket
 - Verify origin trong request header
 
 **Upload failed:**
+
 - Check presigned URL chưa expire
 - Verify file type match với presigned URL
 - Check network tab trong browser DevTools
@@ -253,6 +266,7 @@ docker compose logs backend | grep -i aws
 ## Next Steps
 
 Sau khi setup xong:
+
 - [ ] Thêm file size validation
 - [ ] Thêm virus scanning (ClamAV)
 - [ ] Setup CloudFront CDN cho delivery
