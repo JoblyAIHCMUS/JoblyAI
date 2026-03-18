@@ -1,19 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { candidateDashboardService } from '@/services/candidateDashboardService';
-import { ApplicationFilter } from '@/types/candidate';
 import {
-  isActiveApplicationStatus,
-  isClosedApplicationStatus,
-} from '@/lib/candidateStatus';
+  ApplicationFilter,
+  CandidateApplicationsAdvancedFilter,
+} from '@/types/candidate';
 import { usePagination } from '@/hooks/usePagination';
 import { useCandidate } from '@/features/candidate/context/candidate-context';
 
 export function useCandidateDashboard() {
   const PAGE_SIZE = 10;
+  // TODO(real-api): Replace initial local data with query cache state (SWR/React Query) if needed.
   const applications = candidateDashboardService.getApplications();
   const statusMeta = candidateDashboardService.getStatusMeta();
   const filterMeta = candidateDashboardService.getFilterMeta();
+  const companyOptions = candidateDashboardService.getUniqueFilterOptions(
+    applications,
+    'company'
+  );
+  const jobTypeOptions = candidateDashboardService.getUniqueFilterOptions(
+    applications,
+    'jobType'
+  );
+  const locationOptions = candidateDashboardService.getUniqueFilterOptions(
+    applications,
+    'location'
+  );
+
+  const defaultAdvancedFilters: CandidateApplicationsAdvancedFilter = {
+    company: '',
+    jobType: '',
+    location: '',
+  };
+
   const {
     selectedStartDate,
     selectedEndDate,
@@ -22,30 +41,75 @@ export function useCandidateDashboard() {
   } = useCandidate();
   const [applicationFilter, setApplicationFilter] =
     useState<ApplicationFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [advancedFilters, setAdvancedFilters] =
+    useState<CandidateApplicationsAdvancedFilter>(defaultAdvancedFilters);
+  const [filteredApplications, setFilteredApplications] =
+    useState(applications);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const statusFilteredApplications = useMemo(() => {
-    if (applicationFilter === 'all') {
-      return applications;
+  const activeAdvancedFilterCount = useMemo(() => {
+    let count = 0;
+
+    if (applicationFilter !== 'all') {
+      count += 1;
+    }
+    if (advancedFilters.company) {
+      count += 1;
+    }
+    if (advancedFilters.jobType) {
+      count += 1;
+    }
+    if (advancedFilters.location) {
+      count += 1;
     }
 
-    if (applicationFilter === 'active') {
-      return applications.filter((item) =>
-        isActiveApplicationStatus(item.status)
-      );
-    }
+    return count;
+  }, [advancedFilters, applicationFilter]);
 
-    return applications.filter((item) =>
-      isClosedApplicationStatus(item.status)
-    );
-  }, [applicationFilter, applications]);
+  useEffect(() => {
+    let isCancelled = false;
 
-  const filteredApplications = useMemo(() => {
-    return candidateDashboardService.filterApplicationsByDate(
-      statusFilteredApplications,
-      selectedStartDate,
-      selectedEndDate
-    );
-  }, [statusFilteredApplications, selectedStartDate, selectedEndDate]);
+    const runSearch = async () => {
+      // TODO(real-api): Handle API errors with toast/error-state when endpoint is connected.
+      setIsSearching(true);
+
+      try {
+        const result = await candidateDashboardService.searchApplications({
+          query: searchKeyword,
+          status: applicationFilter,
+          startDate: selectedStartDate,
+          endDate: selectedEndDate,
+          company: advancedFilters.company,
+          jobType: advancedFilters.jobType,
+          location: advancedFilters.location,
+        });
+
+        if (!isCancelled) {
+          setFilteredApplications(result);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsSearching(false);
+        }
+      }
+    };
+
+    void runSearch();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    applicationFilter,
+    advancedFilters.company,
+    advancedFilters.jobType,
+    advancedFilters.location,
+    searchKeyword,
+    selectedStartDate,
+    selectedEndDate,
+  ]);
 
   const totalPages = Math.max(
     1,
@@ -56,7 +120,16 @@ export function useCandidateDashboard() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [applicationFilter, selectedStartDate, selectedEndDate, setCurrentPage]);
+  }, [
+    applicationFilter,
+    advancedFilters.company,
+    advancedFilters.jobType,
+    advancedFilters.location,
+    searchKeyword,
+    selectedStartDate,
+    selectedEndDate,
+    setCurrentPage,
+  ]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -68,6 +141,26 @@ export function useCandidateDashboard() {
     const startIndex = (currentPage - 1) * PAGE_SIZE;
     return filteredApplications.slice(startIndex, startIndex + PAGE_SIZE);
   }, [currentPage, filteredApplications, PAGE_SIZE]);
+
+  const applySearch = (value?: string) => {
+    const normalized = (value ?? searchQuery).trim();
+
+    if (typeof value === 'string') {
+      setSearchQuery(value);
+    }
+
+    setSearchKeyword(normalized);
+  };
+
+  const applyAdvancedFilters = (filters: CandidateApplicationsAdvancedFilter) => {
+    setAdvancedFilters(filters);
+  };
+
+  const clearAdvancedFilters = () => {
+    // TODO(real-api): If server stores user filter presets, clear/reset them here as well.
+    setAdvancedFilters(defaultAdvancedFilters);
+    setApplicationFilter('all');
+  };
 
   return {
     applicationFilter,
@@ -87,5 +180,17 @@ export function useCandidateDashboard() {
     goToNextPage: goNext,
     statusMeta,
     filterMeta,
+    searchQuery,
+    setSearchQuery,
+    searchKeyword,
+    applySearch,
+    isSearching,
+    advancedFilters,
+    applyAdvancedFilters,
+    clearAdvancedFilters,
+    activeAdvancedFilterCount,
+    companyOptions,
+    jobTypeOptions,
+    locationOptions,
   };
 }

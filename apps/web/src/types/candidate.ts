@@ -27,3 +27,19 @@ export type ApplicationFilterMeta = Record<
   ApplicationFilter,
   { label: string }
 >;
+
+export type CandidateApplicationsAdvancedFilter = {
+  company: string;
+  jobType: string;
+  location: string;
+};
+
+export type CandidateApplicationsSearchParams = {
+  query?: string;
+  status?: ApplicationFilter;
+  startDate?: string;
+  endDate?: string;
+  company?: string;
+  jobType?: string;
+  location?: string;
+};
