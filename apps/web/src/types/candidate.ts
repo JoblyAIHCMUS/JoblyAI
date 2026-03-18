@@ -10,12 +10,12 @@ export type ApplicationFilter = 'all' | 'active' | 'closed';
 export type ApplicationItem = {
   id: string;
   company: string;
+  logoUrl?: string;
   location: string;
   jobType: string;
   title: string;
   createdAt: string;
   status: ApplicationStatus;
-  accent: string;
 };
 
 export type ApplicationStatusMeta = Record<
