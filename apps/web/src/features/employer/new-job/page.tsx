@@ -114,8 +114,11 @@ export default function EmployerNewJobPage() {
           const skillObj = skillObjs.find(
             (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
           );
+          if (!skillObj) {
+            throw new Error(`Failed to resolve skill ID for skill "${s.name}"`);
+          }
           return {
-            skillId: skillObj ? skillObj.id : 0, // fallback 0 if not found (should not happen)
+            skillId: skillObj.id,
             importance: s.importance,
             minYearsExperience: s.minYearsExperience,
           };
