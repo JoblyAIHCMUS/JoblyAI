@@ -102,9 +102,7 @@ export function ApplicationHistoryRow({
       className="h-16 w-16 rounded-[18px] border border-[#e7ebf3] bg-white object-cover"
     />
   ) : (
-    <div
-      className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#7fd4b1] text-lg font-semibold text-white"
-    >
+    <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#7fd4b1] text-lg font-semibold text-white">
       {initials}
     </div>
   );
@@ -116,9 +114,7 @@ export function ApplicationHistoryRow({
       className="h-10 w-10 rounded-[12px] border border-[#e7ebf3] bg-white object-cover"
     />
   ) : (
-    <div
-      className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#7fd4b1] text-sm font-semibold text-white"
-    >
+    <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#7fd4b1] text-sm font-semibold text-white">
       {initials}
     </div>
   );

@@ -14,7 +14,8 @@ const LOGO_URLS = [
 ];
 
 // Helper function to get random logo URL
-const getRandomLogoUrl = () => LOGO_URLS[Math.floor(Math.random() * LOGO_URLS.length)];
+const getRandomLogoUrl = () =>
+  LOGO_URLS[Math.floor(Math.random() * LOGO_URLS.length)];
 
 export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
   {

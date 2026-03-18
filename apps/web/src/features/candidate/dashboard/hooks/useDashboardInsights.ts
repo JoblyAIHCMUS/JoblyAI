@@ -1,8 +1,6 @@
 import { useMemo } from 'react';
 
-import {
-  ApplicationStatus,
-} from '@/types/candidate';
+import { ApplicationStatus } from '@/types/candidate';
 import { toDateInputValue } from '@/lib/candidateDate';
 import {
   DashboardInsightsParams,

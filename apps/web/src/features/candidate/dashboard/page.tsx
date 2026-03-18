@@ -13,10 +13,7 @@ import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDa
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
-import {
-  formatDateRangeLabel,
-  getGreeting,
-} from '@/lib/candidateDate';
+import { formatDateRangeLabel, getGreeting } from '@/lib/candidateDate';
 
 export default function CandidateDashboardPage() {
   const { data: user } = useUser();

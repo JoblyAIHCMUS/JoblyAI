@@ -1,7 +1,4 @@
-import {
-  ApplicationStatus,
-  ApplicationStatusMeta,
-} from '@/types/candidate';
+import { ApplicationStatus, ApplicationStatusMeta } from '@/types/candidate';
 
 type ApplicationStatusPillProps = {
   status: ApplicationStatus;

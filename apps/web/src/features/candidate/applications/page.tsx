@@ -69,13 +69,11 @@ export default function CandidateApplicationsPage() {
     dateRangeLabel === 'Select date range'
       ? 'from all time'
       : `from ${dateRangeLabel}`;
-  const activityRangeText =
-    `Here is job applications status ${activityStatusText}.`;
+  const activityRangeText = `Here is job applications status ${activityStatusText}.`;
 
   return (
     <div className="min-h-full bg-white">
       <div className="flex flex-col gap-6 px-4 py-5 sm:gap-8 sm:py-6 md:px-8 md:py-6">
-
         <ApplicationsHeader
           greeting="Keep it up"
           firstName={firstName}
