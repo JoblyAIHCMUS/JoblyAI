@@ -77,7 +77,7 @@ export function ApplicationsHeader({
           <h3 className="font-[family-name:var(--family-primary)] text-[26px] font-semibold leading-[32px] tracking-[-0.2px] text-[#25324b] sm:text-[32px] sm:leading-[38px]">
             {greeting}, {firstName}
           </h3>
-          <p className="mt-2 text-base leading-6 text-[#7c8493] sm:text-sm sm:leading-5">
+          <p className="mt-2 text-sm leading-5 text-[#7c8493] sm:text-base sm:leading-6">
             {activityRangeText}
           </p>
         </div>

@@ -77,7 +77,7 @@ export function useCandidateApplicationsViewModel({
     return [
       { key: 'all', label: 'All', count: applicationsInDateRange.length },
       { key: 'active', label: 'In Review', count: activeCount },
-      { key: 'closed', label: 'Offered', count: closedCount },
+      { key: 'closed', label: 'Closed', count: closedCount },
     ];
   }, [applicationsInDateRange]);
 

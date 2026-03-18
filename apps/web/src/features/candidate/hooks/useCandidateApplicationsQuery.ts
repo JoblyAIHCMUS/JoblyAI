@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePagination } from '@/hooks/usePagination';
 import { useCandidate } from '@/features/candidate/context/candidate-context';
@@ -39,6 +39,8 @@ export function useCandidateApplicationsQuery() {
     setSelectedStartDate,
     setSelectedEndDate,
   } = useCandidate();
+  const initialStartDateRef = useRef(selectedStartDate);
+  const initialEndDateRef = useRef(selectedEndDate);
 
   const [applicationFilter, setApplicationFilter] =
     useState<ApplicationFilter>('all');
@@ -56,6 +58,31 @@ export function useCandidateApplicationsQuery() {
 
     const runSearch = async () => {
       setSearchError(null);
+
+      const isDefaultQuery =
+        searchKeyword.length === 0 &&
+        applicationFilter === 'all' &&
+        advancedFilters.company.length === 0 &&
+        advancedFilters.jobType.length === 0 &&
+        advancedFilters.location.length === 0 &&
+        selectedStartDate === initialStartDateRef.current &&
+        selectedEndDate === initialEndDateRef.current;
+
+      if (isDefaultQuery) {
+        const defaultFiltered = candidateDashboardService.filterApplicationsByDate(
+          applications,
+          selectedStartDate,
+          selectedEndDate
+        );
+
+        if (!isCancelled) {
+          setFilteredApplications(defaultFiltered);
+          setIsSearching(false);
+        }
+
+        return;
+      }
+
       setIsSearching(true);
 
       try {
@@ -99,6 +126,7 @@ export function useCandidateApplicationsQuery() {
       isCancelled = true;
     };
   }, [
+    applications,
     applicationFilter,
     advancedFilters.company,
     advancedFilters.jobType,

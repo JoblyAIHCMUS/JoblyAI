@@ -15,6 +15,7 @@ import { ApplicationFilter } from '@/types/candidate';
 import { FilterDraft } from '../types';
 
 type ApplicationsFilterDialogProps = {
+  dialogContentId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   filterDraft: FilterDraft;
@@ -28,6 +29,7 @@ type ApplicationsFilterDialogProps = {
 };
 
 export function ApplicationsFilterDialog({
+  dialogContentId,
   open,
   onOpenChange,
   filterDraft,
@@ -41,7 +43,7 @@ export function ApplicationsFilterDialog({
 }: ApplicationsFilterDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent id={dialogContentId} className="sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Filter Applications</DialogTitle>
           <DialogDescription>

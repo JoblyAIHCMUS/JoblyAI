@@ -66,7 +66,7 @@ function MoreActionsMenu({
       <button
         type="button"
         aria-label={`More actions for ${item.company}`}
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={isOpen}
         aria-controls={menuId}
         className="flex h-6 w-6 items-center justify-center text-[#25324b]"
@@ -78,14 +78,12 @@ function MoreActionsMenu({
       {isOpen && (
         <div
           id={menuId}
-          role="menu"
           className="absolute right-0 top-8 z-10 min-w-[180px] rounded-md border border-[#d6ddeb] bg-white p-1 shadow-lg"
         >
           {options.map((option) => (
             <button
               key={option}
               type="button"
-              role="menuitem"
               className="block w-full rounded px-3 py-2 text-left text-sm text-[#25324b] hover:bg-[#f8f8fd]"
               onClick={() => {
                 onSelect?.(option, item);
