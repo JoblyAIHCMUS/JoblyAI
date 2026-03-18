@@ -3,7 +3,7 @@ import { fetchSkillsByNames, createSkill, Skill } from '@/api-client/skillsAPI';
 
 export function useSkillIds() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<unknown>(null);
 
   // Given an array of skill names, returns an array of skill objects (with id and name)
   const getOrCreateSkills = async (names: string[]): Promise<Skill[]> => {
@@ -19,7 +19,7 @@ export function useSkillIds() {
         toCreate.map((name) => createSkill(name))
       );
       return [...existing, ...created];
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err);
       throw err;
     } finally {
