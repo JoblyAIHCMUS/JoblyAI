@@ -13,14 +13,14 @@ function CompanyBadge({ item }: { item: ApplicationItem }) {
       <img
         src={item.logoUrl}
         alt={`${item.company} logo`}
-        className="h-14 w-14 rounded-[18px] border border-[#e7ebf3] bg-white object-cover sm:h-16 sm:w-16 sm:rounded-[20px]"
+        className="h-16 w-16 rounded-[18px] border border-[#e7ebf3] bg-white object-cover"
       />
     );
   }
 
   return (
     <div
-      className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#7fd4b1] text-lg font-semibold text-white sm:h-16 sm:w-16 sm:rounded-[20px] sm:text-xl"
+      className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#7fd4b1] text-lg font-semibold text-white"
     >
       {initials}
     </div>
@@ -58,10 +58,10 @@ export function ApplicationRow({
         </div>
 
         <div>
-          <p className="font-[family-name:var(--family-primary)] text-lg font-semibold leading-6 text-[#25324b] sm:text-[20px]">
+          <p className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
             {item.title}
           </p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm leading-5 text-[#515b6f] sm:text-base sm:leading-6">
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-base leading-6 text-[#515b6f]">
             <span>{item.company}</span>
             <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
             <span>{item.location}</span>
@@ -72,10 +72,10 @@ export function ApplicationRow({
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm leading-5 text-[#515b6f] sm:text-base sm:leading-[22px]">
+            <p className="text-base leading-[22px] text-[#515b6f]">
               Date Applied
             </p>
-            <p className="text-sm font-medium leading-5 text-[#25324b] sm:text-base sm:leading-6">
+            <p className="text-base font-medium leading-6 text-[#25324b]">
               {displayCreatedAt}
             </p>
           </div>

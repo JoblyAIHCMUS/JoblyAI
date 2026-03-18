@@ -29,9 +29,9 @@ export function ApplicationTable({
 }: ApplicationTableProps) {
   return (
     <>
-      <div className="mt-7 flex flex-col gap-4 lg:gap-0">
+      <div className="mt-4 flex flex-col gap-4 lg:mt-7 lg:gap-0">
         {filteredApplications.length > 0 && (
-          <div className="hidden items-center gap-5 border-b border-[#eef1f6] px-6 py-3 text-sm font-medium text-[#7c8493] lg:grid lg:grid-cols-[56px_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(150px,0.7fr)_117px_24px]">
+          <div className="hidden items-center gap-3 border-b border-[#eef1f6] px-4 py-3 text-sm font-medium text-[#7c8493] lg:grid lg:grid-cols-[48px_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(120px,0.9fr)_minmax(110px,0.8fr)_24px] lg:px-5 xl:gap-5 xl:px-6 xl:grid-cols-[56px_221px_275px_194px_1fr_24px]">
             <p>#</p>
             <p>Company Name</p>
             <p>Roles</p>
