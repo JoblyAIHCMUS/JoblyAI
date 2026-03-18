@@ -12,8 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ApplicationFilter } from '@/types/candidate';
-
-import { FilterDraft } from './types';
+import { FilterDraft } from '../types';
 
 type ApplicationsFilterDialogProps = {
   open: boolean;

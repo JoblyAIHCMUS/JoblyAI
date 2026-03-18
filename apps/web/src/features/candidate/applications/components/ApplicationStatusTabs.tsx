@@ -1,7 +1,7 @@
 'use client';
 
 import { ApplicationFilter } from '@/types/candidate';
-import { StatusTab } from './types';
+import { StatusTab } from '../types';
 
 type ApplicationStatusTabsProps = {
   tabs: StatusTab[];
