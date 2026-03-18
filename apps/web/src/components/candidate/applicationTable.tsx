@@ -1,4 +1,5 @@
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
+import type { ReactNode } from 'react';
 
 interface ApplicationTableProps {
   filteredApplications: ApplicationItem[];
@@ -16,7 +17,7 @@ interface ApplicationTableProps {
     index: number,
     tinted: boolean,
     statusMeta: ApplicationStatusMeta
-  ) => React.ReactNode;
+  ) => ReactNode;
 }
 
 export function ApplicationTable({

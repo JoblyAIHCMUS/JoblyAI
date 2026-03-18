@@ -1,8 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { CalendarDays, X } from 'lucide-react';
 
 export function ApplicationsFeatureNotice() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <section className="rounded-[10px] border border-[#d6ddeb] bg-[#f8f8fd] px-5 py-4">
       <div className="flex items-start justify-between gap-3">
@@ -25,6 +32,7 @@ export function ApplicationsFeatureNotice() {
           type="button"
           aria-label="Dismiss update"
           className="text-[#25324b]"
+          onClick={() => setIsVisible(false)}
         >
           <X className="h-5 w-5" />
         </button>

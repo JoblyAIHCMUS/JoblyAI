@@ -82,29 +82,27 @@ export function ApplicationsHeader({
           </p>
         </div>
 
-        <div ref={datePickerRef}>
-          <DateRangePicker
-            dateRangeLabel={dateRangeLabel}
-            isDatePickerOpen={isDatePickerOpen}
-            setIsDatePickerOpen={setIsDatePickerOpen}
-            datePickerRef={datePickerRef}
-            draftStartDate={draftStartDate}
-            draftEndDate={draftEndDate}
-            setDraftStartDate={setDraftStartDate}
-            setDraftEndDate={setDraftEndDate}
-            isInvalidDateRange={isInvalidDateRange}
-            applyQuickRange={applyQuickRange}
-            onClear={() => {
-              setDraftStartDate('');
-              setDraftEndDate('');
-            }}
-            onApply={() => {
-              setSelectedStartDate(draftStartDate);
-              setSelectedEndDate(draftEndDate);
-              setIsDatePickerOpen(false);
-            }}
-          />
-        </div>
+        <DateRangePicker
+          dateRangeLabel={dateRangeLabel}
+          isDatePickerOpen={isDatePickerOpen}
+          setIsDatePickerOpen={setIsDatePickerOpen}
+          datePickerRef={datePickerRef}
+          draftStartDate={draftStartDate}
+          draftEndDate={draftEndDate}
+          setDraftStartDate={setDraftStartDate}
+          setDraftEndDate={setDraftEndDate}
+          isInvalidDateRange={isInvalidDateRange}
+          applyQuickRange={applyQuickRange}
+          onClear={() => {
+            setDraftStartDate('');
+            setDraftEndDate('');
+          }}
+          onApply={() => {
+            setSelectedStartDate(draftStartDate);
+            setSelectedEndDate(draftEndDate);
+            setIsDatePickerOpen(false);
+          }}
+        />
       </section>
     </>
   );

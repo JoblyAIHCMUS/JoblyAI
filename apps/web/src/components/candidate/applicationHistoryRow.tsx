@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+'use client';
+import { useEffect, useId, useRef, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
@@ -33,6 +34,7 @@ function MoreActionsMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,9 +47,17 @@ function MoreActionsMenu({
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 
@@ -56,6 +66,9 @@ function MoreActionsMenu({
       <button
         type="button"
         aria-label={`More actions for ${item.company}`}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls={menuId}
         className="flex h-6 w-6 items-center justify-center text-[#25324b]"
         onClick={() => setIsOpen((prev) => !prev)}
       >
@@ -63,11 +76,16 @@ function MoreActionsMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-8 z-10 min-w-[180px] rounded-md border border-[#d6ddeb] bg-white p-1 shadow-lg">
+        <div
+          id={menuId}
+          role="menu"
+          className="absolute right-0 top-8 z-10 min-w-[180px] rounded-md border border-[#d6ddeb] bg-white p-1 shadow-lg"
+        >
           {options.map((option) => (
             <button
               key={option}
               type="button"
+              role="menuitem"
               className="block w-full rounded px-3 py-2 text-left text-sm text-[#25324b] hover:bg-[#f8f8fd]"
               onClick={() => {
                 onSelect?.(option, item);
