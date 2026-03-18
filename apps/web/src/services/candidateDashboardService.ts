@@ -100,7 +100,8 @@ export const candidateDashboardService = {
     } = params;
 
     const normalizedQuery = normalize(query);
-    const statusFiltered = CANDIDATE_DASHBOARD_APPLICATIONS.filter((item) => {
+    const applications = this.getApplications();
+    const statusFiltered = applications.filter((item) => {
       if (status === 'all') {
         return true;
       }
