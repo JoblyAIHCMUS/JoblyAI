@@ -1,30 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
-import { DateRangePicker } from '@/components/candidate/dateRangePicker';
+import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationRow } from './components/ApplicationRow';
 import { ApplicationFilter } from '@/types/candidate';
-import { useCandidateDashboard } from '@/hooks/useCandidateDashboard';
+import { useCandidateDashboard } from '@/features/candidate/hook/useCandidateDashboard';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
 import {
   formatDateRangeLabel,
   getGreeting,
-  toDateInputValue,
 } from '@/lib/candidateDate';
 
 export default function CandidateDashboardPage() {
   const { data: user } = useUser();
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [draftStartDate, setDraftStartDate] = useState('');
-  const [draftEndDate, setDraftEndDate] = useState('');
-  const datePickerRef = useRef<HTMLDivElement>(null);
   const {
     applicationFilter,
     setApplicationFilter,
@@ -52,45 +47,7 @@ export default function CandidateDashboardPage() {
     dateRangeLabel === 'Select date range'
       ? 'from all time'
       : `from ${dateRangeLabel}`;
-  const isInvalidDateRange =
-    !!draftStartDate && !!draftEndDate && draftStartDate > draftEndDate;
-
-  useEffect(() => {
-    if (!isDatePickerOpen) {
-      return;
-    }
-
-    setDraftStartDate(selectedStartDate);
-    setDraftEndDate(selectedEndDate);
-  }, [isDatePickerOpen, selectedEndDate, selectedStartDate]);
-
-  useEffect(() => {
-    if (!isDatePickerOpen) {
-      return;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        datePickerRef.current &&
-        !datePickerRef.current.contains(event.target as Node)
-      ) {
-        setIsDatePickerOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isDatePickerOpen]);
-
-  const applyQuickRange = (days: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - days + 1);
-    setDraftStartDate(toDateInputValue(start));
-    setDraftEndDate(toDateInputValue(end));
-  };
+  const activityRangeTextFormatted = `Here is what's happening with your job search applications ${activityRangeText}.`;
 
   const { barChartItems, pieChartItems, pieChartBackground, interviewedCount } =
     useDashboardInsights({
@@ -103,39 +60,16 @@ export default function CandidateDashboardPage() {
   return (
     <div className="min-h-full bg-white">
       <div className="flex flex-col gap-6 px-4 py-5 sm:gap-8 sm:py-6 md:px-8 md:py-6">
-        <section className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div>
-            <h2 className="font-[family-name:var(--family-primary)] text-[26px] font-semibold leading-[32px] tracking-[-0.2px] text-[#25324b] sm:text-[32px] sm:leading-[38px]">
-              {greeting}, {firstName}
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-5 text-[#7c8493] sm:text-base sm:leading-6">
-              Here is what&apos;s happening with your job search applications{' '}
-              {activityRangeText}.
-            </p>
-          </div>
-
-          <DateRangePicker
-            dateRangeLabel={dateRangeLabel}
-            isDatePickerOpen={isDatePickerOpen}
-            setIsDatePickerOpen={setIsDatePickerOpen}
-            datePickerRef={datePickerRef}
-            draftStartDate={draftStartDate}
-            draftEndDate={draftEndDate}
-            setDraftStartDate={setDraftStartDate}
-            setDraftEndDate={setDraftEndDate}
-            isInvalidDateRange={isInvalidDateRange}
-            applyQuickRange={applyQuickRange}
-            onClear={() => {
-              setDraftStartDate('');
-              setDraftEndDate('');
-            }}
-            onApply={() => {
-              setSelectedStartDate(draftStartDate);
-              setSelectedEndDate(draftEndDate);
-              setIsDatePickerOpen(false);
-            }}
-          />
-        </section>
+        <ApplicationsHeader
+          greeting={greeting}
+          firstName={firstName}
+          dateRangeLabel={dateRangeLabel}
+          selectedStartDate={selectedStartDate}
+          selectedEndDate={selectedEndDate}
+          setSelectedStartDate={setSelectedStartDate}
+          setSelectedEndDate={setSelectedEndDate}
+          activityRangeText={activityRangeTextFormatted}
+        />
 
         <section className="grid gap-6 xl:grid-cols-[258px_1fr]">
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-1">

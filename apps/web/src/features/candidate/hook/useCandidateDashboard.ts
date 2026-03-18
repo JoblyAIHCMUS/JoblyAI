@@ -2,38 +2,26 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { candidateDashboardService } from '@/services/candidateDashboardService';
 import { ApplicationFilter } from '@/types/candidate';
-import { toDateInputValue } from '@/lib/candidateDate';
 import {
   isActiveApplicationStatus,
   isClosedApplicationStatus,
 } from '@/lib/candidateStatus';
-import { usePagination } from './usePagination';
-
-function getInitialWeekRange() {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 6);
-
-  return {
-    startDate: toDateInputValue(start),
-    endDate: toDateInputValue(end),
-  };
-}
+import { usePagination } from '@/hooks/usePagination';
+import { useCandidate } from '@/features/candidate/context/candidate-context';
 
 export function useCandidateDashboard() {
   const PAGE_SIZE = 10;
   const applications = candidateDashboardService.getApplications();
   const statusMeta = candidateDashboardService.getStatusMeta();
   const filterMeta = candidateDashboardService.getFilterMeta();
-  const initialWeekRange = getInitialWeekRange();
+  const {
+    selectedStartDate,
+    selectedEndDate,
+    setSelectedStartDate,
+    setSelectedEndDate,
+  } = useCandidate();
   const [applicationFilter, setApplicationFilter] =
     useState<ApplicationFilter>('all');
-  const [selectedStartDate, setSelectedStartDate] = useState(
-    initialWeekRange.startDate
-  );
-  const [selectedEndDate, setSelectedEndDate] = useState(
-    initialWeekRange.endDate
-  );
 
   const statusFilteredApplications = useMemo(() => {
     if (applicationFilter === 'all') {
