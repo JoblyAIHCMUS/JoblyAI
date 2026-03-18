@@ -51,8 +51,14 @@ export function ApplicationsFilterDialog({
 
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#25324b]">Status</label>
+            <label
+              htmlFor="applications-filter-status"
+              className="text-sm font-medium text-[#25324b]"
+            >
+              Status
+            </label>
             <select
+              id="applications-filter-status"
               value={filterDraft.status}
               onChange={(event) =>
                 setFilterDraft((prev) => ({
@@ -64,15 +70,19 @@ export function ApplicationsFilterDialog({
             >
               <option value="all">All</option>
               <option value="active">In Review</option>
-              <option value="closed">Offered</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#25324b]">
+            <label
+              htmlFor="applications-filter-company"
+              className="text-sm font-medium text-[#25324b]"
+            >
               Company
             </label>
             <select
+              id="applications-filter-company"
               value={filterDraft.company}
               onChange={(event) =>
                 setFilterDraft((prev) => ({
@@ -93,10 +103,14 @@ export function ApplicationsFilterDialog({
 
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#25324b]">
+              <label
+                htmlFor="applications-filter-job-type"
+                className="text-sm font-medium text-[#25324b]"
+              >
                 Job Type
               </label>
               <select
+                id="applications-filter-job-type"
                 value={filterDraft.jobType}
                 onChange={(event) =>
                   setFilterDraft((prev) => ({
@@ -116,10 +130,14 @@ export function ApplicationsFilterDialog({
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#25324b]">
+              <label
+                htmlFor="applications-filter-location"
+                className="text-sm font-medium text-[#25324b]"
+              >
                 Location
               </label>
               <select
+                id="applications-filter-location"
                 value={filterDraft.location}
                 onChange={(event) =>
                   setFilterDraft((prev) => ({

@@ -11,6 +11,11 @@ const LOGO_URLS = [
   'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=200&h=200&fit=crop',
   'https://images.unsplash.com/photo-1552664730-d307ca884978?w=200&h=200&fit=crop&q=80',
   'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=200&h=200&fit=crop',
 ];
 
 // Helper function to get random logo URL

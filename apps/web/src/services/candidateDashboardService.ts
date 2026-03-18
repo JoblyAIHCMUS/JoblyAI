@@ -100,7 +100,7 @@ export const candidateDashboardService = {
     } = params;
 
     const normalizedQuery = normalize(query);
-    const applications = this.getApplications();
+    const applications = candidateDashboardService.getApplications();
     const statusFiltered = applications.filter((item) => {
       if (status === 'all') {
         return true;
@@ -113,7 +113,7 @@ export const candidateDashboardService = {
       return isClosedApplicationStatus(item.status);
     });
 
-    const dateFiltered = this.filterApplicationsByDate(
+    const dateFiltered = candidateDashboardService.filterApplicationsByDate(
       statusFiltered,
       startDate,
       endDate
@@ -148,6 +148,6 @@ export const candidateDashboardService = {
   },
   async searchApplications(params: CandidateApplicationsSearchParams) {
     // TODO(real-api): Point this method to the real API client (axios/fetch) and map response shape.
-    return this.searchApplicationsApi(params);
+    return candidateDashboardService.searchApplicationsApi(params);
   },
 };

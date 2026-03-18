@@ -69,7 +69,7 @@ export default function CandidateApplicationsPage() {
     dateRangeLabel === 'Select date range'
       ? 'from all time'
       : `from ${dateRangeLabel}`;
-  const activityRangeText = `Here is job applications status ${activityStatusText}.`;
+  const activityRangeText = `Here’s the status of your applications ${activityStatusText}.`;
 
   return (
     <div className="min-h-full bg-white">
