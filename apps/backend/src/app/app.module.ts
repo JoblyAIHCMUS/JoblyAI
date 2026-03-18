@@ -9,6 +9,7 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { DatabaseModule } from './utils/databases';
 import { UserModule } from './user/user.module';
 import { EmployerModule } from './employer/employer.module';
+import { S3Module } from './s3/s3.module';
 import { MessagesModule } from './messages/messages.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { MessagesModule } from './messages/messages.module';
     CandidatesModule,
     EmployerModule,
     UserModule,
+    S3Module,
     MessagesModule,
   ],
   controllers: [AppController],
