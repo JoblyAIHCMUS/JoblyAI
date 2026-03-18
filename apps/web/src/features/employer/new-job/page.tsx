@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useCreateJob } from '@/api-hook/useCreateJob';
+import { useSkillIds } from '@/api-hook/useSkillIds';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -66,6 +69,17 @@ const isHtmlContentEmpty = (html: string): boolean => {
 
 export default function EmployerNewJobPage() {
   const { selectedCompany } = useCompany();
+  const router = useRouter();
+  const { createJob, loading, error } = useCreateJob({
+    onSuccess: () => {
+      alert('Job posted successfully!');
+      router.push('/employer/job-listing');
+    },
+    onError: (err) => {
+      alert('Failed to post job.');
+    },
+  });
+  const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
@@ -89,31 +103,41 @@ export default function EmployerNewJobPage() {
     }
   };
 
-  const handleComplete = () => {
-    // Here you would normally:
-    // 1. Validate all fields
-    // 2. Call API to create job
-    // 3. Show success toast / redirect
-    const jobData = {
-      companyId: selectedCompany?.id,
-      companyName: selectedCompany?.name,
-      title,
-      description,
-      type,
-      remote,
-      location: remote ? undefined : location,
-      categoryId,
-      currency,
-      salaryMin,
-      salaryMax,
-      skills,
-    };
-    console.log('Job posted:', jobData);
-    alert(
-      `Job posted successfully for ${
-        selectedCompany?.name || 'Unknown Company'
-      }!`
-    );
+  const handleComplete = async () => {
+    try {
+      // 1. Resolve skill IDs (create if needed)
+      let requirements = undefined;
+      if (skills.length > 0) {
+        const skillObjs = await getOrCreateSkills(skills.map((s) => s.name));
+        // Map skill names to IDs
+        requirements = skills.map((s) => {
+          const skillObj = skillObjs.find(
+            (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
+          );
+          return {
+            skillId: skillObj ? skillObj.id : 0, // fallback 0 if not found (should not happen)
+            importance: s.importance,
+            minYearsExperience: s.minYearsExperience,
+          };
+        });
+      }
+      const payload = {
+        title,
+        description,
+        type,
+        remote,
+        location: remote ? undefined : location,
+        categoryId: Number(categoryId),
+        currency: currency === 'none' ? undefined : currency.toUpperCase(),
+        salaryMin: salaryMin ? Number(salaryMin) : undefined,
+        salaryMax: salaryMax ? Number(salaryMax) : undefined,
+        companyName: selectedCompany?.name,
+        requirements,
+      };
+      await createJob(payload);
+    } catch (e) {
+      // Error handled in hook
+    }
   };
 
   return (
@@ -127,7 +151,13 @@ export default function EmployerNewJobPage() {
         steps={POST_JOB_STEPS}
         onComplete={handleComplete}
         canProceed={canProceed}
+        loading={loading || skillsLoading}
       >
+        {!!error && (
+          <div className="text-red-500 text-center mb-4">
+            {error instanceof Error ? error.message : 'Failed to post job.'}
+          </div>
+        )}
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Job Title */}

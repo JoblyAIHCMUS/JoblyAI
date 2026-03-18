@@ -19,6 +19,8 @@ interface StepperProps {
   className?: string;
   /** Controls whether the Next/Done button is enabled. Can be a boolean or a function receiving the current step index. */
   canProceed?: boolean | ((stepIndex: number) => boolean);
+  /** Optional loading state. Disables navigation and shows loading indicator on Next/Done button. */
+  loading?: boolean;
 }
 
 export function Stepper({
@@ -27,6 +29,7 @@ export function Stepper({
   onComplete,
   className,
   canProceed = true,
+  loading = false,
 }: StepperProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -43,11 +46,11 @@ export function Stepper({
   const lineOffset = steps.length > 1 ? 50 / steps.length : 0;
 
   const goNext = () => {
-    if (!isLast) setCurrentIndex((prev) => prev + 1);
+    if (!isLast && !loading) setCurrentIndex((prev) => prev + 1);
   };
 
   const goPrev = () => {
-    if (!isFirst) setCurrentIndex((prev) => prev - 1);
+    if (!isFirst && !loading) setCurrentIndex((prev) => prev - 1);
   };
 
   return (
@@ -88,6 +91,7 @@ export function Stepper({
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                   )}
                   onClick={() => {
+                    if (loading) return;
                     // Allow going back to completed steps or staying on current
                     if (idx <= currentIndex) {
                       setCurrentIndex(idx);
@@ -106,6 +110,7 @@ export function Stepper({
 
                     setCurrentIndex(idx);
                   }}
+                  disabled={loading}
                 >
                   {isCompleted ? (
                     <Check className="size-4" aria-hidden="true" />
@@ -140,7 +145,12 @@ export function Stepper({
       <div className="flex justify-between mt-10 pt-6 border-t">
         <div>
           {!isFirst && (
-            <Button variant="outline" onClick={goPrev} type="button">
+            <Button
+              variant="outline"
+              onClick={goPrev}
+              type="button"
+              disabled={loading}
+            >
               Previous Step
             </Button>
           )}
@@ -152,18 +162,78 @@ export function Stepper({
               onClick={onComplete}
               className="bg-indigo-600 hover:bg-indigo-700"
               type="button"
-              disabled={!canProceedNow}
+              disabled={!canProceedNow || loading}
             >
-              Done
+              {loading ? (
+                <span
+                  className="flex items-center gap-2"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <svg
+                    className="animate-spin h-4 w-4 mr-1"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Loading...
+                </span>
+              ) : (
+                'Done'
+              )}
             </Button>
           ) : (
             <Button
               onClick={goNext}
               className="bg-indigo-600 hover:bg-indigo-700"
               type="button"
-              disabled={!canProceedNow}
+              disabled={!canProceedNow || loading}
             >
-              Next Step
+              {loading ? (
+                <span
+                  className="flex items-center gap-2"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <svg
+                    className="animate-spin h-4 w-4 mr-1"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Loading...
+                </span>
+              ) : (
+                'Next Step'
+              )}
             </Button>
           )}
         </div>
