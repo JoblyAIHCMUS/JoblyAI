@@ -69,11 +69,12 @@ export function useCandidateApplicationsQuery() {
         selectedEndDate === initialEndDateRef.current;
 
       if (isDefaultQuery) {
-        const defaultFiltered = candidateDashboardService.filterApplicationsByDate(
-          applications,
-          selectedStartDate,
-          selectedEndDate
-        );
+        const defaultFiltered =
+          candidateDashboardService.filterApplicationsByDate(
+            applications,
+            selectedStartDate,
+            selectedEndDate
+          );
 
         if (!isCancelled) {
           setFilteredApplications(defaultFiltered);
