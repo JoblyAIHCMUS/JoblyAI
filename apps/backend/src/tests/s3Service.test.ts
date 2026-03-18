@@ -15,20 +15,22 @@ const mockGetSignedUrl = vi.hoisted(() => vi.fn());
 // Mock AWS SDK client FIRST - before lib/s3 imports it
 vi.mock('@aws-sdk/client-s3', () => {
   class MockS3Client {
-    constructor(config: any) {}
+    constructor(config: Record<string, unknown>) {
+      void config;
+    }
     send = mockSend;
   }
 
   class MockPutObjectCommand {
-    constructor(public input: any) {}
+    constructor(public input: Record<string, unknown>) {}
   }
 
   class MockGetObjectCommand {
-    constructor(public input: any) {}
+    constructor(public input: Record<string, unknown>) {}
   }
 
   class MockDeleteObjectCommand {
-    constructor(public input: any) {}
+    constructor(public input: Record<string, unknown>) {}
   }
 
   return {
@@ -330,12 +332,14 @@ describe('S3Service - Integration Tests', () => {
             S3Folder.RESUMES
           );
           expect.fail('Should have thrown BadRequestException');
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error ? error.message : String(error);
           expect(error).toBeInstanceOf(BadRequestException);
-          expect(error.message).toContain('File type');
-          expect(error.message).toContain('not allowed');
-          expect(error.message).toContain('video/mp4');
-          expect(error.message).toContain('resumes');
+          expect(message).toContain('File type');
+          expect(message).toContain('not allowed');
+          expect(message).toContain('video/mp4');
+          expect(message).toContain('resumes');
         }
       });
 
@@ -531,16 +535,16 @@ describe('S3Service - Integration Tests', () => {
 
       it('should throw BadRequestException for null fileKey', async () => {
         // Act & Assert
-        await expect(service.deleteFile(null as any)).rejects.toThrow(
-          BadRequestException
-        );
+        await expect(
+          service.deleteFile(null as unknown as string)
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw BadRequestException for undefined fileKey', async () => {
         // Act & Assert
-        await expect(service.deleteFile(undefined as any)).rejects.toThrow(
-          BadRequestException
-        );
+        await expect(
+          service.deleteFile(undefined as unknown as string)
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw InternalServerErrorException when S3 deletion fails with unknown error', async () => {
@@ -563,11 +567,13 @@ describe('S3Service - Integration Tests', () => {
         try {
           await service.deleteFile('resumes/timeout.pdf');
           expect.fail('Should have thrown ServiceUnavailableException');
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error ? error.message : String(error);
           expect(error).toBeInstanceOf(ServiceUnavailableException);
-          expect(error.message).toContain('Failed to delete file');
-          expect(error.message).toContain('resumes/timeout.pdf');
-          expect(error.message).toContain('S3 connection timeout');
+          expect(message).toContain('Failed to delete file');
+          expect(message).toContain('resumes/timeout.pdf');
+          expect(message).toContain('S3 connection timeout');
         }
       });
 
@@ -726,10 +732,10 @@ describe('S3Service - Integration Tests', () => {
       it('should throw BadRequestException for null/undefined fileKey', async () => {
         // Act & Assert
         await expect(
-          service.generatePresignedDownloadUrl(null as any)
+          service.generatePresignedDownloadUrl(null as unknown as string)
         ).rejects.toThrow(BadRequestException);
         await expect(
-          service.generatePresignedDownloadUrl(undefined as any)
+          service.generatePresignedDownloadUrl(undefined as unknown as string)
         ).rejects.toThrow(BadRequestException);
       });
 
@@ -753,11 +759,13 @@ describe('S3Service - Integration Tests', () => {
         try {
           await service.generatePresignedDownloadUrl('resumes/forbidden.pdf');
           expect.fail('Should have thrown NotFoundException');
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error ? error.message : String(error);
           expect(error).toBeInstanceOf(NotFoundException);
-          expect(error.message).toContain('Failed to generate download URL');
-          expect(error.message).toContain('resumes/forbidden.pdf');
-          expect(error.message).toContain('Access Denied');
+          expect(message).toContain('Failed to generate download URL');
+          expect(message).toContain('resumes/forbidden.pdf');
+          expect(message).toContain('Access Denied');
         }
       });
     });
