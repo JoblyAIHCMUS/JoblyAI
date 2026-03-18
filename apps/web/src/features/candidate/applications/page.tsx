@@ -8,8 +8,8 @@ import { ApplicationsFeatureNotice } from '@/features/candidate/applications/com
 import { ApplicationsFilterDialog } from '@/features/candidate/applications/components/ApplicationsFilterDialog';
 import { ApplicationsSearchToolbar } from '@/features/candidate/applications/components/ApplicationsSearchToolbar';
 import { useApplicationsPageState } from '@/features/candidate/applications/hooks/useApplicationsPageState';
+import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { useUser } from '@/hooks/useUser';
-import { useCandidateDashboard } from '@/features/candidate/hook/useCandidateDashboard';
 
 export default function CandidateApplicationsPage() {
   const { data: user } = useUser();
