@@ -165,10 +165,15 @@ export function Stepper({
               disabled={!canProceedNow || loading}
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span
+                  className="flex items-center gap-2"
+                  role="status"
+                  aria-live="polite"
+                >
                   <svg
                     className="animate-spin h-4 w-4 mr-1"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <circle
                       className="opacity-25"
@@ -199,10 +204,15 @@ export function Stepper({
               disabled={!canProceedNow || loading}
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span
+                  className="flex items-center gap-2"
+                  role="status"
+                  aria-live="polite"
+                >
                   <svg
                     className="animate-spin h-4 w-4 mr-1"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <circle
                       className="opacity-25"
