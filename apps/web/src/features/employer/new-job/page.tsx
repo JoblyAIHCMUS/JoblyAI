@@ -121,13 +121,17 @@ export default function EmployerNewJobPage() {
           };
         });
       }
+      const parsedCategoryId =
+        categoryId && !Number.isNaN(Number(categoryId))
+          ? Number(categoryId)
+          : undefined;
       const payload = {
         title,
         description,
         type,
         remote,
         location: remote ? undefined : location,
-        categoryId: Number(categoryId),
+        categoryId: parsedCategoryId,
         currency: currency === 'none' ? undefined : currency.toUpperCase(),
         salaryMin: salaryMin ? Number(salaryMin) : undefined,
         salaryMax: salaryMax ? Number(salaryMax) : undefined,
