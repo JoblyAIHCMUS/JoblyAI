@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { Bell, Menu } from 'lucide-react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -53,13 +52,7 @@ export function CandidateTopBar() {
   const fullName = user?.name ?? 'Jake Gyll';
   const email = user?.email ?? 'jakegyll@email.com';
   const initials = getInitials(fullName || 'Jake Gyll');
-  const [pageTitle, setPageTitle] = useState(() =>
-    resolveCandidatePageTitle(pathname)
-  );
-
-  useEffect(() => {
-    setPageTitle(resolveCandidatePageTitle(pathname));
-  }, [pathname]);
+  const pageTitle = resolveCandidatePageTitle(pathname);
 
   return (
     <>

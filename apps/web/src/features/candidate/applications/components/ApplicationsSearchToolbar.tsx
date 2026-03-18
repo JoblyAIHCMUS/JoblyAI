@@ -13,6 +13,8 @@ type ApplicationsSearchToolbarProps = {
   onSearchKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   isSearching: boolean;
   activeAdvancedFilterCount: number;
+  isFilterDialogOpen: boolean;
+  filterDialogId: string;
   onOpenFilter: () => void;
 };
 
@@ -23,6 +25,8 @@ export function ApplicationsSearchToolbar({
   onSearchKeyDown,
   isSearching,
   activeAdvancedFilterCount,
+  isFilterDialogOpen = false,
+  filterDialogId,
   onOpenFilter,
 }: ApplicationsSearchToolbarProps) {
   return (
@@ -55,6 +59,9 @@ export function ApplicationsSearchToolbar({
         <button
           type="button"
           onClick={onOpenFilter}
+          aria-haspopup="dialog"
+          aria-expanded={isFilterDialogOpen}
+          aria-controls={filterDialogId}
           className="inline-flex h-10 items-center gap-2 rounded-md border border-[#d6ddeb] bg-white px-4 py-2 text-base text-[#25324b]"
         >
           <SlidersHorizontal className="h-5 w-5" />

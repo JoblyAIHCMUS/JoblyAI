@@ -12,6 +12,7 @@ import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDa
 import { useUser } from '@/hooks/useUser';
 
 export default function CandidateApplicationsPage() {
+  const filterDialogId = 'applications-filter-dialog';
   const { data: user } = useUser();
   const {
     applicationFilter,
@@ -101,10 +102,13 @@ export default function CandidateApplicationsPage() {
             onSearchKeyDown={handleSearchKeyDown}
             isSearching={isSearching}
             activeAdvancedFilterCount={activeAdvancedFilterCount}
+            isFilterDialogOpen={isFilterDialogOpen}
+            filterDialogId={filterDialogId}
             onOpenFilter={() => setIsFilterDialogOpen(true)}
           />
 
           <ApplicationsFilterDialog
+            dialogContentId={filterDialogId}
             open={isFilterDialogOpen}
             onOpenChange={setIsFilterDialogOpen}
             filterDraft={filterDraft}
