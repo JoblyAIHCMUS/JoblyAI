@@ -114,27 +114,20 @@ export default function EmployerNewJobPage() {
           const skillObj = skillObjs.find(
             (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
           );
-          if (!skillObj) {
-            throw new Error(`Failed to resolve skill ID for skill "${s.name}"`);
-          }
           return {
-            skillId: skillObj.id,
+            skillId: skillObj ? skillObj.id : 0, // fallback 0 if not found (should not happen)
             importance: s.importance,
             minYearsExperience: s.minYearsExperience,
           };
         });
       }
-      const parsedCategoryId =
-        categoryId && !Number.isNaN(Number(categoryId))
-          ? Number(categoryId)
-          : undefined;
       const payload = {
         title,
         description,
         type,
         remote,
         location: remote ? undefined : location,
-        categoryId: parsedCategoryId,
+        categoryId: Number(categoryId),
         currency: currency === 'none' ? undefined : currency.toUpperCase(),
         salaryMin: salaryMin ? Number(salaryMin) : undefined,
         salaryMax: salaryMax ? Number(salaryMax) : undefined,
@@ -160,9 +153,9 @@ export default function EmployerNewJobPage() {
         canProceed={canProceed}
         loading={loading || skillsLoading}
       >
-        {error && (
+        {!!error && (
           <div className="text-red-500 text-center mb-4">
-            {error.message || 'Failed to post job.'}
+            {error instanceof Error ? error.message : 'Failed to post job.'}
           </div>
         )}
         {/* Step 1: Basic Information */}

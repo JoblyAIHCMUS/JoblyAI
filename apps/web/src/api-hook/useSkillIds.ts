@@ -10,11 +10,23 @@ export function useSkillIds() {
     setLoading(true);
     setError(null);
     try {
+      // Normalize (trim + lowercase for comparison) and de-duplicate names
+      const normalizedToOriginal = new Map<string, string>();
+      for (const rawName of names) {
+        const trimmed = rawName.trim();
+        const normalized = trimmed.toLowerCase();
+        if (!normalizedToOriginal.has(normalized)) {
+          normalizedToOriginal.set(normalized, trimmed);
+        }
+      }
+      const uniqueNames = Array.from(normalizedToOriginal.values());
       // 1. Fetch existing skills by names
-      const existing = await fetchSkillsByNames(names);
+      const existing = await fetchSkillsByNames(uniqueNames);
       const foundNames = new Set(existing.map((s) => s.name.toLowerCase()));
       // 2. For names not found, create them
-      const toCreate = names.filter((n) => !foundNames.has(n.toLowerCase()));
+      const toCreate = uniqueNames.filter(
+        (n) => !foundNames.has(n.toLowerCase())
+      );
       const created: Skill[] = await Promise.all(
         toCreate.map((name) => createSkill(name))
       );
