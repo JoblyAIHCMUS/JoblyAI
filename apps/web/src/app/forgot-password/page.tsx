@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
       email: email,
       type: 'forget-password',
     });
-    
+
     if (error) alert(error.message);
     else {
       alert('Code sent! Check your email.');
@@ -45,18 +45,21 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordsMatch) {
-      alert("Passwords do not match");
+      alert('Passwords do not match');
       return;
     }
-    try{
+    try {
       const { data, error } = await authClient.emailOtp.resetPassword({
         email: email,
         otp: otp,
         password: newPassword,
       });
       if (error) alert(error.message);
-      else alert("Password reset successful! You can now log in with your new password.");
-      if(data) {
+      else
+        alert(
+          'Password reset successful! You can now log in with your new password.'
+        );
+      if (data) {
         setEmail('');
         setOtp('');
         setNewPassword('');
@@ -64,12 +67,13 @@ export default function ForgotPasswordPage() {
         setOtpSent(false);
         router.push('/login');
       }
+    } catch (e) {
+      console.error('Error resetting password:', e);
+      alert(
+        'An error occurred while resetting your password. Please try again.'
+      );
     }
-    catch (e) {
-      console.error("Error resetting password:", e);
-      alert("An error occurred while resetting your password. Please try again.");
-    }
-  }
+  };
 
   useEffect(() => {
     setPasswordsMatch(newPassword === verifyPassword && newPassword.length > 0);
@@ -122,11 +126,21 @@ export default function ForgotPasswordPage() {
                           onClick={handleSendOTP}
                           disabled={resendTimer > 0 || !email.trim()}
                           className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed inline-flex items-center gap-2"
-                          title={resendTimer > 0 ? `Resend in ${resendTimer}s` : otpSent ? 'Resend OTP' : 'Send OTP'}
+                          title={
+                            resendTimer > 0
+                              ? `Resend in ${resendTimer}s`
+                              : otpSent
+                              ? 'Resend OTP'
+                              : 'Send OTP'
+                          }
                         >
                           <RotateCw size={16} />
                           <span className="text-sm font-medium whitespace-nowrap">
-                            {resendTimer > 0 ? `Resend ${resendTimer}s` : otpSent ? 'Resend' : 'Send OTP'}
+                            {resendTimer > 0
+                              ? `Resend ${resendTimer}s`
+                              : otpSent
+                              ? 'Resend'
+                              : 'Send OTP'}
                           </span>
                         </button>
                       </div>
@@ -151,7 +165,10 @@ export default function ForgotPasswordPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="text-sm font-semibold">
+                      <Label
+                        htmlFor="newPassword"
+                        className="text-sm font-semibold"
+                      >
                         New Password
                       </Label>
                       <Input
@@ -166,7 +183,10 @@ export default function ForgotPasswordPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="verifyPassword" className="text-sm font-semibold">
+                      <Label
+                        htmlFor="verifyPassword"
+                        className="text-sm font-semibold"
+                      >
                         Verify New Password
                       </Label>
                       <Input
@@ -179,11 +199,16 @@ export default function ForgotPasswordPage() {
                         disabled={!otpSent}
                       />
                       {verifyPassword && !passwordsMatch && (
-                        <p className="text-xs text-red-600">Passwords do not match</p>
+                        <p className="text-xs text-red-600">
+                          Passwords do not match
+                        </p>
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={!otpSent || otp.length < 6 || !passwordsMatch}
+                    <Button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={!otpSent || otp.length < 6 || !passwordsMatch}
                       onClick={handleSubmit}
                     >
                       Reset Password
