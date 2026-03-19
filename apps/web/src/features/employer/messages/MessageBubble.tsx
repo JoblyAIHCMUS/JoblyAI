@@ -17,7 +17,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       {!message.isSent && (
         <Avatar className="h-8 w-8">
           <AvatarImage src={message.senderAvatar} alt={message.sender} />
-          <AvatarFallback>{message.sender.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{message.sender?.charAt(0) || '?'}</AvatarFallback>
         </Avatar>
       )}
 
@@ -41,7 +41,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       {message.isSent && (
         <Avatar className="h-8 w-8">
           <AvatarImage src={message.senderAvatar} alt={message.sender} />
-          <AvatarFallback>{message.sender.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{message.sender?.charAt(0) || '?'}</AvatarFallback>
         </Avatar>
       )}
     </div>

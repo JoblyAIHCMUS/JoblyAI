@@ -1,25 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, UserPlus, Star, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Conversation, Message } from './types';
 import { MessageBubble } from './MessageBubble';
+import { getChatHistory } from '@/services/messagesService';
 
 interface ChatWindowProps {
   conversation: Conversation;
   messages: Message[];
   onSendMessage: (content: string) => void;
+  onLoadMessages: (messages: Message[]) => void;
+  currentUserId: string;
+  isLoadingHistory?: boolean;
 }
 
 export function ChatWindow({
   conversation,
   messages,
   onSendMessage,
+  onLoadMessages,
+  currentUserId,
+  isLoadingHistory = false,
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState('');
+
+  // Fetch message history when conversation changes
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const history = await getChatHistory(conversation.participantId, 50);
+        // Transform backend messages to frontend format
+        const transformedMessages = history.map((msg) => ({
+          messageId: msg.messageId,
+          senderId: msg.senderId,
+          sender: msg.senderName,
+          senderAvatar: msg.senderAvatar,
+          isSent: msg.senderId === currentUserId,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          timestamp24: new Date(msg.timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        }));
+        onLoadMessages(transformedMessages);
+      } catch (error) {
+        console.error('Error loading message history:', error);
+      }
+    };
+
+    if (conversation.participantId) {
+      fetchHistory();
+    }
+  }, [conversation.participantId, currentUserId, onLoadMessages]);
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {
@@ -34,8 +71,13 @@ export function ChatWindow({
       <div className="border-b border-slate-200 p-6 flex items-center justify-between bg-white">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={conversation.avatar} alt={conversation.name} />
-            <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+            <AvatarImage
+              src={conversation.avatar ?? undefined}
+              alt={conversation.name ?? undefined}
+            />
+            <AvatarFallback>
+              {(conversation.name ?? 'U').charAt(0)}
+            </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
@@ -59,13 +101,24 @@ export function ChatWindow({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        <div className="text-center text-sm text-slate-500 mb-6">
-          This is the very beginning of your direct message with{' '}
-          {conversation.name}
-        </div>
+        {isLoadingHistory && (
+          <div className="text-center text-sm text-slate-500 mb-6">
+            Loading messages...
+          </div>
+        )}
 
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+        {!isLoadingHistory && messages.length === 0 && (
+          <div className="text-center text-sm text-slate-500 mb-6">
+            This is the very beginning of your direct message with{' '}
+            {conversation.name}
+          </div>
+        )}
+
+        {messages.map((message, index) => (
+          <MessageBubble
+            key={message.messageId || `msg-${index}`}
+            message={message}
+          />
         ))}
       </div>
 

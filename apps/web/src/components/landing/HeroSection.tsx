@@ -15,14 +15,14 @@ export default function HeroSection() {
             height={600}
             className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
           />
-          <Image
+          {/* <Image
             src="/landing/hero-image.png"
             alt="Job seeker professional"
             width={500}
             height={600}
             className="object-contain absolute bottom-0 right-0 z-10 hidden lg:block"
             priority
-          />
+          /> */}
         </div>
       </div>
 

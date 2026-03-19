@@ -41,6 +41,7 @@ services:
       - '9042:9042'
     volumes:
       - scylla_data:/var/lib/scylla
+      - ./apps/backend/scylladb/schema.cql:/docker-entrypoint-initdb.d/schema.cql
     # Scylla needs more generous timeouts
     healthcheck:
       test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
@@ -48,6 +49,18 @@ services:
       timeout: 10s
       retries: 20
       start_period: 120s
+
+  scylla-init:
+    image: scylladb/scylla:5.4
+    container_name: scylla_init_jobly
+    depends_on:
+      scylla:
+        condition: service_healthy
+    volumes:
+      - ./apps/backend/scylladb/schema.cql:/schema.cql
+    entrypoint: sh
+    command: ['-c', 'cqlsh scylla -f /schema.cql && exit 0']
+    restart: on-failure
 
   # --- APPLICATIONS ---
   backend:

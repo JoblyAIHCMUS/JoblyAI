@@ -14,5 +14,5 @@ export const redis = new Redis(
 export const scylla = new Client({
   contactPoints: [process.env.CASSANDRA_CONTACT_POINT || 'localhost:9042'],
   localDataCenter: 'datacenter1',
-  keyspace: 'jobly_keyspace',
+  keyspace: 'chat_app',
 });

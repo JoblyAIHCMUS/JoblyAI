@@ -53,8 +53,8 @@ export const JOB_DETAIL_PAGE_DATA_MOCK: JobDetailPageData = {
   jobId: 'job-001',
   breadcrumbItems: [
     { label: 'Home', href: '/' },
-    { label: 'Companies', href: '/companies' },
-    { label: 'Nomad', href: '/companies/nomad' },
+    { label: 'Companies', href: '/browse-companies' },
+    { label: 'Nomad', href: '/browse-companies/nomad' },
     { label: 'Social Media Assistant' },
   ],
   jobName: 'Social Media Assistant',
@@ -71,5 +71,5 @@ export const JOB_DETAIL_PAGE_DATA_MOCK: JobDetailPageData = {
     'https://www.figma.com/api/mcp/asset/e831bd13-f785-4e83-829d-6cc815c243e2',
     'https://www.figma.com/api/mcp/asset/f0e67881-0a37-4563-80b1-9c943b64caf1',
   ],
-  companyPageUrl: '/companies/nomad',
+  companyPageUrl: '/browse-companies/nomad',
 };
