@@ -1,5 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  type Certificate,
+  type Education,
+  type Experience,
+  Prisma,
+  PrismaClient,
+  type Resume,
+} from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
 
@@ -18,7 +29,9 @@ export class CandidatesService {
       },
     });
 
-    if (!user) throw new Error(`Candidate with ID ${userId} not found`);
+    if (!user) {
+      throw new NotFoundException(`Candidate with ID ${userId} not found`);
+    }
     return {
       id: user.id || '',
       name: user.name || '',
@@ -75,7 +88,7 @@ export class CandidatesService {
   async createEducation(
     userId: string,
     createDto: Omit<Prisma.EducationCreateInput, 'candidate'>
-  ): Promise<string> {
+  ): Promise<Education> {
     const result = await this.prismaClient.education.create({
       data: {
         ...createDto,
@@ -85,32 +98,37 @@ export class CandidatesService {
       },
     });
 
-    if (!result)
-      throw new Error(
+    if (!result) {
+      throw new InternalServerErrorException(
         `Failed to create education record for candidate with ID ${userId}.`
       );
-
-    return 'Created education with ID ' + result.id;
+    }
+    return result;
   }
 
   async updateEducation(
     userId: string,
     updateDto: Prisma.EducationUpdateInput & { id: number }
-  ): Promise<string> {
-    const result = await this.prismaClient.education.updateMany({
+  ): Promise<Education> {
+    const { id, ...data } = updateDto;
+
+    const existing = await this.prismaClient.education.findFirst({
       where: {
-        id: updateDto.id,
-        candidateId: userId, // Security: Preventing ID spoofing
+        id,
+        candidateId: userId,
       },
-      data: updateDto,
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       throw new NotFoundException(
-        `Education record ${updateDto.id} not found or access denied.`
+        `Education record ${id} not found or access denied.`
       );
     }
-    return 'Updated education with ID ' + updateDto.id;
+
+    return this.prismaClient.education.update({
+      where: { id },
+      data,
+    });
   }
 
   async deleteEducation(userId: string, educationId: number): Promise<string> {
@@ -131,7 +149,7 @@ export class CandidatesService {
   async createExperience(
     userId: string,
     createDto: Omit<Prisma.ExperienceCreateInput, 'candidate'>
-  ): Promise<string> {
+  ): Promise<Experience> {
     const result = await this.prismaClient.experience.create({
       data: {
         ...createDto,
@@ -142,31 +160,36 @@ export class CandidatesService {
     });
 
     if (!result)
-      throw new Error(
+      throw new InternalServerErrorException(
         `Failed to create experience record for candidate with ID ${userId}.`
       );
 
-    return 'Created experience with ID ' + result.id;
+    return result;
   }
 
   async updateExperience(
     userId: string,
     updateDto: Prisma.ExperienceUpdateInput & { id: number }
-  ): Promise<string> {
-    const result = await this.prismaClient.experience.updateMany({
+  ): Promise<Experience> {
+    const { id, ...data } = updateDto;
+
+    const existing = await this.prismaClient.experience.findFirst({
       where: {
-        id: updateDto.id,
-        candidateId: userId, // Security: Preventing ID spoofing
+        id,
+        candidateId: userId,
       },
-      data: updateDto,
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       throw new NotFoundException(
-        `Experience record ${updateDto.id} not found or access denied.`
+        `Experience record ${id} not found or access denied.`
       );
     }
-    return 'Updated experience with ID ' + updateDto.id;
+
+    return this.prismaClient.experience.update({
+      where: { id },
+      data,
+    });
   }
 
   async deleteExperience(
@@ -190,7 +213,7 @@ export class CandidatesService {
   async createResume(
     userId: string,
     createDto: Omit<Prisma.ResumeCreateInput, 'candidate'>
-  ): Promise<string> {
+  ): Promise<Resume> {
     const result = await this.prismaClient.resume.create({
       data: {
         ...createDto,
@@ -201,31 +224,36 @@ export class CandidatesService {
     });
 
     if (!result)
-      throw new Error(
+      throw new InternalServerErrorException(
         `Failed to create resume record for candidate with ID ${userId}.`
       );
 
-    return 'Created resume with ID ' + result.id;
+    return result;
   }
 
   async updateResume(
     userId: string,
     updateDto: Prisma.ResumeUpdateInput & { id: number }
-  ): Promise<string> {
-    const result = await this.prismaClient.resume.updateMany({
+  ): Promise<Resume> {
+    const { id, ...data } = updateDto;
+
+    const existing = await this.prismaClient.resume.findFirst({
       where: {
-        id: updateDto.id,
-        candidateId: userId, // Security: Preventing ID spoofing
+        id,
+        candidateId: userId,
       },
-      data: updateDto,
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       throw new NotFoundException(
-        `Resume record ${updateDto.id} not found or access denied.`
+        `Resume record ${id} not found or access denied.`
       );
     }
-    return 'Updated resume with ID ' + updateDto.id;
+
+    return this.prismaClient.resume.update({
+      where: { id },
+      data,
+    });
   }
 
   async deleteResume(userId: string, resumeId: number): Promise<string> {
@@ -246,21 +274,26 @@ export class CandidatesService {
   async updateCertificate(
     userId: string,
     updateDto: Prisma.CertificateUpdateInput & { id: number }
-  ): Promise<string> {
-    const result = await this.prismaClient.certificate.updateMany({
+  ): Promise<Certificate> {
+    const { id, ...data } = updateDto;
+
+    const existing = await this.prismaClient.certificate.findFirst({
       where: {
-        id: updateDto.id,
-        candidateId: userId, // Security: Preventing ID spoofing
+        id,
+        candidateId: userId,
       },
-      data: updateDto,
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       throw new NotFoundException(
-        `Certificate record ${updateDto.id} not found or access denied.`
+        `Certificate record ${id} not found or access denied.`
       );
     }
-    return 'Updated certificate with ID ' + updateDto.id;
+
+    return this.prismaClient.certificate.update({
+      where: { id },
+      data,
+    });
   }
 
   async deleteCertificate(
@@ -283,7 +316,7 @@ export class CandidatesService {
   async createCertificateDetail(
     userId: string,
     createDto: Omit<Prisma.CertificateCreateInput, 'candidate'>
-  ): Promise<string> {
+  ): Promise<Certificate> {
     const result = await this.prismaClient.certificate.create({
       data: {
         ...createDto,
@@ -294,10 +327,10 @@ export class CandidatesService {
     });
 
     if (!result)
-      throw new Error(
+      throw new InternalServerErrorException(
         `Failed to create certificate record for candidate with ID ${userId}.`
       );
 
-    return 'Created certificate with ID ' + result.id;
+    return result;
   }
 }
