@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { CandidateSidebar } from '@/components/candidate/candidateSidebar';
 import { CandidateTopBar } from '@/components/candidate/candidateTopBar';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { CandidateProvider } from '@/hooks/useCandidate';
+import { CandidateProvider } from '@/features/candidate/context/candidate-context';
 
 export default function CandidateLayout({ children }: { children: ReactNode }) {
   return (

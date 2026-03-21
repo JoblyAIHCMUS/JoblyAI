@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { toDateInputValue } from '@/lib/candidateDate';
 
 export interface Candidate {
   id: string;
@@ -19,14 +20,34 @@ interface CandidateContextType {
   candidates: Candidate[];
   selectedCandidate: Candidate | null;
   setSelectedCandidate: (candidate: Candidate) => void;
+  selectedStartDate: string;
+  selectedEndDate: string;
+  setSelectedStartDate: (date: string) => void;
+  setSelectedEndDate: (date: string) => void;
 }
 
 const CandidateContext = createContext<CandidateContextType | null>(null);
 
+function getInitialWeekRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+
+  return {
+    startDate: toDateInputValue(start),
+    endDate: toDateInputValue(end),
+  };
+}
+
 export function CandidateProvider({ children }: { children: ReactNode }) {
+  const initialRange = getInitialWeekRange();
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
     MOCK_CANDIDATES[0] ?? null
   );
+  const [selectedStartDate, setSelectedStartDate] = useState(
+    initialRange.startDate
+  );
+  const [selectedEndDate, setSelectedEndDate] = useState(initialRange.endDate);
 
   return (
     <CandidateContext.Provider
@@ -34,6 +55,10 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
         candidates: MOCK_CANDIDATES,
         selectedCandidate,
         setSelectedCandidate,
+        selectedStartDate,
+        selectedEndDate,
+        setSelectedStartDate,
+        setSelectedEndDate,
       }}
     >
       {children}

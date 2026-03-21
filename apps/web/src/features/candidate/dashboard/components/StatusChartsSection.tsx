@@ -2,39 +2,16 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
-import { ApplicationStatus } from '../types';
-
-type BarChartItem = {
-  key: string;
-  label: string;
-  count: number;
-};
-
-type PieChartItem = {
-  status: ApplicationStatus;
-  label: string;
-  color: string;
-  count: number;
-  percent: number;
-};
-
-type ChartView = 'timeline' | 'status';
+import {
+  ChartView,
+  StatusChartsSectionProps,
+} from '@/features/candidate/dashboard/types';
 
 export function StatusChartsSection({
   barChartItems,
   pieChartItems,
   pieChartBackground,
-}: {
-  barChartItems: {
-    items: BarChartItem[];
-    maxCount: number;
-  };
-  pieChartItems: {
-    total: number;
-    items: PieChartItem[];
-  };
-  pieChartBackground: string;
-}) {
+}: StatusChartsSectionProps) {
   const [activeView, setActiveView] = useState<ChartView>('status');
 
   const chartTabs: Array<{ key: ChartView; label: string }> = [
