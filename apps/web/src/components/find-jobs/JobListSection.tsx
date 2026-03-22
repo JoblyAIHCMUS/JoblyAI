@@ -3,16 +3,16 @@
 import {
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   LayoutGrid,
   List,
 } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
 import { useFilters } from '@/hooks/useFilters';
 import { useJobs } from '@/hooks/useJobs';
 import { usePagination } from '@/hooks/usePagination';
+import { useState } from 'react';
 
 export default function JobListSection() {
   const {
@@ -26,8 +26,15 @@ export default function JobListSection() {
     handleApplyMobileFilters,
   } = useFilters();
 
+
+  // Số job mỗi trang, có thể tuỳ chỉnh
+  const pageSize = 5;
+
+  // Lấy currentPage từ pagination trước, truyền vào useJobs
+  const [currentPage, setCurrentPage] = useState(1);
   const {
     jobs,
+    totalPages,
     sortOptions,
     isSortOpen,
     setIsSortOpen,
@@ -35,16 +42,14 @@ export default function JobListSection() {
     handleSelectSort,
     viewMode,
     setViewMode,
-  } = useJobs();
+  } = useJobs(currentPage, pageSize);
 
+  // Pagination nhận currentPage, setCurrentPage, totalPages
   const {
-    currentPage,
-    middlePages,
-    totalPages,
-    setCurrentPage,
+    pages,
     goPrev,
     goNext,
-  } = usePagination();
+  } = usePagination(currentPage, setCurrentPage, totalPages);
 
   return (
     <section className="bg-white py-10 lg:py-[72px]">
@@ -174,45 +179,15 @@ export default function JobListSection() {
             ))}
           </div>
 
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <button
-              type="button"
-              onClick={goPrev}
-              className="flex h-9 w-9 items-center justify-center text-slate-700"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-indigo-600 text-base font-medium text-white">
-              {currentPage}
-            </button>
-            {middlePages.map((page) => (
-              <button
-                key={page}
-                type="button"
-                onClick={() => setCurrentPage(page)}
-                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-base font-medium text-slate-600"
-              >
-                {page}
-              </button>
-            ))}
-            <button className="flex h-10 w-10 items-center justify-center rounded-[10px] text-base font-medium text-slate-600">
-              ...
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(totalPages)}
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-base font-medium text-slate-600"
-            >
-              {totalPages}
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="flex h-9 w-9 items-center justify-center text-slate-700"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pages={pages}
+            onPageChange={setCurrentPage}
+            goPrev={goPrev}
+            goNext={goNext}
+            className="pt-2 justify-center"
+          />
         </div>
       </div>
 
