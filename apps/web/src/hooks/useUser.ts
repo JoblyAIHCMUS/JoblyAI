@@ -43,8 +43,23 @@ export function useUser(): UseQueryResult<User | null, Error> {
     queryKey: ['user'],
     queryFn: async () => {
       try {
-        const session = await authClient.getSession();
-        return (session?.data?.user as User) || null;
+        // Uncomment the following lines to fetch real user data from better-auth
+        // const session = await authClient.getSession();
+        // return (session?.data?.user as User) || null;
+
+        // return null; // giả lập user chưa đăng nhập
+
+        // Giả lập user đã đăng nhập
+        const User: User = {
+          id: '123',
+          email: 'candidate@example.com',
+          emailVerified: true,
+          name: 'Mock Candidate',
+          image: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        return User;
       } catch (error: unknown) {
         // Treat 401/Auth errors as "Guest User"
         if (isAuthError(error)) {
