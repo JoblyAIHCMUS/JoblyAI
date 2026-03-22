@@ -1,6 +1,4 @@
 import { notFound } from 'next/navigation';
-import Header from '@/components/landing/Header';
-import Footer from '@/components/landing/Footer';
 import CompanyDetailHero from '@/components/company-profile/CompanyDetailHero';
 import CompanyOverviewSection from '@/components/company-profile/CompanyOverviewSection';
 import CompanyTeamSection from '@/components/company-profile/CompanyTeamSection';
@@ -20,12 +18,10 @@ export default function BrowseCompaniesCompanyProfilePage({
 
   return (
     <div className="w-full bg-white">
-      <Header />
       <CompanyDetailHero company={company} />
       <CompanyOverviewSection company={company} />
       <CompanyTeamSection company={company} />
       <JobDetailSimilarJobs title="Open Jobs" jobs={company.openJobs} />
-      <Footer />
     </div>
   );
 }
