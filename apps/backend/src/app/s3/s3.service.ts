@@ -19,6 +19,7 @@ import {
   PresignedDownloadUrl,
   S3Folder,
   ALLOWED_FILE_TYPES,
+  S3_KEY_PREFIX_BY_FOLDER,
 } from './s3.interface';
 
 @Injectable()
@@ -57,7 +58,8 @@ export class S3Service {
     // Build key extension from validated MIME type instead of trusting fileName.
     const fileExtension = this.getExtensionFromMimeType(fileType);
     const uniqueFileName = `${randomUUID()}.${fileExtension}`;
-    const fileKey = `${folder}/${uniqueFileName}`;
+    const keyPrefix = S3_KEY_PREFIX_BY_FOLDER[folder];
+    const fileKey = `${keyPrefix}/${uniqueFileName}`;
 
     // Create presigned URL
     const command = new PutObjectCommand({
@@ -112,10 +114,15 @@ export class S3Service {
         success: true,
         message: `File "${fileKey}" deleted successfully`,
       };
-    } catch (error: any) {
-      const statusCode = error?.$metadata?.httpStatusCode;
-      const errorMessage = error?.message || 'Unknown error';
-      const errorName = String(error?.name || '').toLowerCase();
+    } catch (error: unknown) {
+      const awsError = error as {
+        $metadata?: { httpStatusCode?: number };
+        message?: string;
+        name?: string;
+      };
+      const statusCode = awsError.$metadata?.httpStatusCode;
+      const errorMessage = awsError.message || 'Unknown error';
+      const errorName = String(awsError.name || '').toLowerCase();
       const lowerMessage = String(errorMessage).toLowerCase();
       const baseMessage = `Failed to delete file "${fileKey}". Error: ${errorMessage}`;
 
@@ -179,10 +186,11 @@ export class S3Service {
         downloadUrl,
         expiresIn,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const awsError = error as { message?: string };
       throw new NotFoundException(
         `Failed to generate download URL for "${fileKey}". Error: ${
-          error?.message || 'Unknown error'
+          awsError.message || 'Unknown error'
         }`
       );
     }
