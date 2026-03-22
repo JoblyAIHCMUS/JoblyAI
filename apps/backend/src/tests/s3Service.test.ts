@@ -98,8 +98,8 @@ describe('S3Service - Integration Tests', () => {
       );
 
       // Assert
-      expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.jpg$/);
-      expect(result.fileUrl).toContain('avatars/');
+      expect(result.fileKey).toMatch(/^assets\/avatars\/[0-9a-f-]+\.jpg$/);
+      expect(result.fileUrl).toContain('assets/avatars/');
     });
 
     it('should generate presigned URL for PNG avatar upload', async () => {
@@ -114,7 +114,7 @@ describe('S3Service - Integration Tests', () => {
       );
 
       // Assert
-      expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.png$/);
+      expect(result.fileKey).toMatch(/^assets\/avatars\/[0-9a-f-]+\.png$/);
     });
 
     it('should generate presigned URL for WEBP avatar upload', async () => {
@@ -129,7 +129,7 @@ describe('S3Service - Integration Tests', () => {
       );
 
       // Assert
-      expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.webp$/);
+      expect(result.fileKey).toMatch(/^assets\/avatars\/[0-9a-f-]+\.webp$/);
     });
 
     it('should generate presigned URL for SVG company logo', async () => {
@@ -144,8 +144,8 @@ describe('S3Service - Integration Tests', () => {
       );
 
       // Assert
-      expect(result.fileKey).toMatch(/^logos\/[0-9a-f-]+\.svg$/);
-      expect(result.fileUrl).toContain('logos/');
+      expect(result.fileKey).toMatch(/^assets\/logos\/[0-9a-f-]+\.svg$/);
+      expect(result.fileUrl).toContain('assets/logos/');
     });
 
     it('should generate presigned URL for DOC resume', async () => {
@@ -461,7 +461,7 @@ describe('S3Service - Integration Tests', () => {
         );
 
         // Assert
-        expect(result.fileKey).toMatch(/^avatars\/[0-9a-f-]+\.jpg$/);
+        expect(result.fileKey).toMatch(/^assets\/avatars\/[0-9a-f-]+\.jpg$/);
       });
     });
   });
@@ -487,11 +487,11 @@ describe('S3Service - Integration Tests', () => {
       mockSend.mockResolvedValue({});
 
       // Act
-      const result = await service.deleteFile('avatars/user-avatar.jpg');
+      const result = await service.deleteFile('assets/avatars/user-avatar.jpg');
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.message).toContain('avatars/user-avatar.jpg');
+      expect(result.message).toContain('assets/avatars/user-avatar.jpg');
     });
 
     it('should delete logo files', async () => {
@@ -499,11 +499,11 @@ describe('S3Service - Integration Tests', () => {
       mockSend.mockResolvedValue({});
 
       // Act
-      const result = await service.deleteFile('logos/company-logo.svg');
+      const result = await service.deleteFile('assets/logos/company-logo.svg');
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.message).toContain('logos/company-logo.svg');
+      expect(result.message).toContain('assets/logos/company-logo.svg');
     });
 
     it('should delete multiple different files sequentially', async () => {
@@ -512,8 +512,8 @@ describe('S3Service - Integration Tests', () => {
 
       // Act
       const result1 = await service.deleteFile('resumes/file1.pdf');
-      const result2 = await service.deleteFile('avatars/file2.jpg');
-      const result3 = await service.deleteFile('logos/file3.png');
+      const result2 = await service.deleteFile('assets/avatars/file2.jpg');
+      const result3 = await service.deleteFile('assets/logos/file3.png');
 
       // Assert
       expect(result1.success).toBe(true);
@@ -687,7 +687,7 @@ describe('S3Service - Integration Tests', () => {
 
       // Act
       const result = await service.generatePresignedDownloadUrl(
-        'avatars/user-avatar.jpg',
+        'assets/avatars/user-avatar.jpg',
         7200 // 2 hours
       );
 
@@ -705,10 +705,10 @@ describe('S3Service - Integration Tests', () => {
         'resumes/resume.pdf'
       );
       const result2 = await service.generatePresignedDownloadUrl(
-        'avatars/avatar.jpg'
+        'assets/avatars/avatar.jpg'
       );
       const result3 = await service.generatePresignedDownloadUrl(
-        'logos/logo.svg'
+        'assets/logos/logo.svg'
       );
 
       // Assert

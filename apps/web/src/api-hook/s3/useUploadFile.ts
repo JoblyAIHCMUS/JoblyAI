@@ -1,10 +1,5 @@
 import { useState } from 'react';
-import {
-  S3Folder,
-  UploadFileResult,
-  uploadFile,
-  validateS3File,
-} from '@/api-client/s3';
+import { S3Folder, UploadFileResult, uploadFile } from '@/api-client/s3';
 
 interface UseUploadFileOptions {
   onSuccess?: (data: UploadFileResult) => void;
@@ -21,11 +16,6 @@ export function useUploadFile(options?: UseUploadFileOptions) {
     setError(null);
 
     try {
-      const validation = validateS3File(file, folder);
-      if (!validation.valid) {
-        throw new Error(validation.message || 'Invalid file for upload.');
-      }
-
       const result = await uploadFile(file, folder);
       setData(result);
       options?.onSuccess?.(result);
