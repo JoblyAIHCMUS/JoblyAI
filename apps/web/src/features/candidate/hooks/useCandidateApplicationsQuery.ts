@@ -141,8 +141,8 @@ export function useCandidateApplicationsQuery() {
     1,
     Math.ceil(filteredApplications.length / PAGE_SIZE)
   );
-  const { currentPage, setCurrentPage, goPrev, goNext } =
-    usePagination(totalPages);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { pages, goPrev, goNext } = usePagination(currentPage, setCurrentPage, totalPages);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -153,15 +153,14 @@ export function useCandidateApplicationsQuery() {
     advancedFilters.location,
     searchKeyword,
     selectedStartDate,
-    selectedEndDate,
-    setCurrentPage,
+    selectedEndDate
   ]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
-  }, [currentPage, totalPages, setCurrentPage]);
+  }, [currentPage, totalPages]);
 
   const paginatedApplications = useMemo(() => {
     const startIndex = (currentPage - 1) * PAGE_SIZE;
@@ -206,6 +205,7 @@ export function useCandidateApplicationsQuery() {
     goToPage: setCurrentPage,
     goToPreviousPage: goPrev,
     goToNextPage: goNext,
+    pages,
     statusMeta,
     filterMeta,
     searchQuery,
