@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "start": "nx run-many --target=serve --all",
-    "android": "emulator @Pixel_9_Pro_XL & pnpm nx run mobile:run-android"
+    "android": "emulator @Pixel_9_Pro_XL & pnpm nx run mobile:run-android",
+    "lint": "nx run-many --target=lint --all"
   },
   "private": true,
   "devDependencies": {
