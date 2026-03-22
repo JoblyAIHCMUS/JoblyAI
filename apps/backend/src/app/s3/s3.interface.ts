@@ -16,6 +16,13 @@ export enum S3Folder {
   LOGOS = 'logos',
 }
 
+// Keep DTO/input folder values stable while routing public assets to dedicated prefixes.
+export const S3_KEY_PREFIX_BY_FOLDER: Record<S3Folder, string> = {
+  [S3Folder.RESUMES]: 'resumes',
+  [S3Folder.AVATARS]: 'assets/avatars',
+  [S3Folder.LOGOS]: 'assets/logos',
+};
+
 export const ALLOWED_FILE_TYPES: Record<S3Folder, string[]> = {
   [S3Folder.RESUMES]: [
     'application/pdf',
