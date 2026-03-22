@@ -10,6 +10,11 @@ interface UseUploadToPresignedUrlOptions {
   onError?: (error: unknown) => void;
 }
 
+interface UploadToPresignedUrlParams {
+  contentType?: string;
+  folder?: S3Folder;
+}
+
 export function useUploadToPresignedUrl(
   options?: UseUploadToPresignedUrlOptions
 ) {
@@ -20,20 +25,20 @@ export function useUploadToPresignedUrl(
   const uploadToPresignedUrl = async (
     uploadUrl: string,
     file: File,
-    contentType?: string,
-    folder: S3Folder = 'resumes'
+    params?: UploadToPresignedUrlParams
   ) => {
     setLoading(true);
     setDone(false);
     setError(null);
 
     try {
+      const folder = params?.folder ?? 'resumes';
       const validation = validateS3File(file, folder);
       if (!validation.valid) {
         throw new Error(validation.message || 'Invalid file for upload.');
       }
 
-      await uploadFileToPresignedUrl(uploadUrl, file, contentType);
+      await uploadFileToPresignedUrl(uploadUrl, file, params?.contentType);
       setDone(true);
       options?.onSuccess?.();
     } catch (err: unknown) {
