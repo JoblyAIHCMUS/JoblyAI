@@ -51,7 +51,7 @@ const mainNav: NavItem[] = [
   { title: 'Find Jobs', href: '/candidate/find-jobs', icon: Search },
   {
     title: 'Browse Companies',
-    href: '/browse-companies',
+    href: '/candidate/browse-companies',
     icon: Building2,
   },
   {
