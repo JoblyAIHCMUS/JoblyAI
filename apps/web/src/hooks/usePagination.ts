@@ -8,13 +8,13 @@ export function usePagination(currentPage: number, setCurrentPage: (page: number
       for (let i = 1; i <= totalPages; i++) arr.push(i);
       return arr;
     }
-    if (currentPage <= 4) {
+    if (currentPage < 4) {
       for (let i = 1; i <= 4; i++) arr.push(i);
       arr.push('...');
       arr.push(totalPages);
       return arr;
     }
-    if (currentPage >= totalPages - 3) {
+    if (currentPage > totalPages - 3) {
       arr.push(1);
       arr.push('...');
       for (let i = totalPages - 3; i <= totalPages; i++) arr.push(i);
