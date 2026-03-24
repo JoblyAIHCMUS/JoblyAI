@@ -24,10 +24,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
 import { useCompany } from '@/hooks/useCompany';
-import type {
-  EmploymentType,
-  RequirementImportance,
-} from '@/api-client/jobs';
+import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
