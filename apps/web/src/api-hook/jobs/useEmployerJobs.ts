@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  JobPosting,
-  listEmployerJobs,
-} from '@/api-client/jobs';
+import { JobPosting, listEmployerJobs } from '@/api-client/jobs';
 
 interface UseEmployerJobsOptions {
   onSuccess?: (data: JobPosting[]) => void;
