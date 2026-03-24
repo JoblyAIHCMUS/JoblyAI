@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  Check,
-  ChevronDown,
-  LayoutGrid,
-  List,
-} from 'lucide-react';
+import { Check, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
@@ -26,7 +21,6 @@ export default function JobListSection() {
     handleApplyMobileFilters,
   } = useFilters();
 
-
   // Số job mỗi trang, có thể tuỳ chỉnh
   const pageSize = 5;
 
@@ -45,11 +39,11 @@ export default function JobListSection() {
   } = useJobs(currentPage, pageSize);
 
   // Pagination nhận currentPage, setCurrentPage, totalPages
-  const {
-    pages,
-    goPrev,
-    goNext,
-  } = usePagination(currentPage, setCurrentPage, totalPages);
+  const { pages, goPrev, goNext } = usePagination(
+    currentPage,
+    setCurrentPage,
+    totalPages
+  );
 
   return (
     <section className="bg-white py-10 lg:py-[72px]">

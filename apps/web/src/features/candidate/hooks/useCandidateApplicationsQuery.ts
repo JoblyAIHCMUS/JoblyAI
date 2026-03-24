@@ -142,7 +142,11 @@ export function useCandidateApplicationsQuery() {
     Math.ceil(filteredApplications.length / PAGE_SIZE)
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const { pages, goPrev, goNext } = usePagination(currentPage, setCurrentPage, totalPages);
+  const { pages, goPrev, goNext } = usePagination(
+    currentPage,
+    setCurrentPage,
+    totalPages
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -153,7 +157,7 @@ export function useCandidateApplicationsQuery() {
     advancedFilters.location,
     searchKeyword,
     selectedStartDate,
-    selectedEndDate
+    selectedEndDate,
   ]);
 
   useEffect(() => {
