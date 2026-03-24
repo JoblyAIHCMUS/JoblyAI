@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  JobPosting,
-  getJobById,
-} from '@/api-client/jobs';
+import { JobPosting, getJobById } from '@/api-client/jobs';
 
 interface UseJobDetailOptions {
   onSuccess?: (data: JobPosting) => void;

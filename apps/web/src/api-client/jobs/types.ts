@@ -1,4 +1,9 @@
-export type EmploymentType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'TEMPORARY' | 'INTERNSHIP';
+export type EmploymentType =
+  | 'FULL_TIME'
+  | 'PART_TIME'
+  | 'CONTRACT'
+  | 'TEMPORARY'
+  | 'INTERNSHIP';
 export type JobStatus = 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
 export type RequirementImportance = 'REQUIRED' | 'PREFERRED' | 'NICE_TO_HAVE';
 
