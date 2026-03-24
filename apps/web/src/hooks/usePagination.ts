@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 
-export function usePagination(currentPage: number, setCurrentPage: (page: number) => void, totalPages: number) {
+export function usePagination(
+  currentPage: number,
+  setCurrentPage: (page: number) => void,
+  totalPages: number
+) {
   // Dynamic pages array for pagination UI
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
