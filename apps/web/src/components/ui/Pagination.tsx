@@ -35,31 +35,51 @@ export default function Pagination({
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
-      {pages.map((page, idx) =>
-        typeof page === 'number' ? (
-          <button
-            key={page}
-            className={`px-2 py-1 rounded font-medium ${
-              page === currentPage
-                ? 'bg-indigo-600 text-white'
-                : 'hover:bg-slate-100 text-slate-700'
-            }`}
-            onClick={() => onPageChange(page)}
-            aria-current={page === currentPage ? 'page' : undefined}
-          >
-            {page}
-          </button>
-        ) : (
-          <span
-            key={`ellipsis-${idx}-${
-              pages.slice(0, idx).filter((p) => p === '...').length
-            }`}
-            className="px-2 py-1 text-slate-400 select-none"
-          >
-            ...
-          </span>
-        )
-      )}
+      {pages.map((page, idx) => {
+        if (typeof page === 'number') {
+          // Lazy render: chỉ render các trang gần currentPage hoặc đầu/cuối
+          if (
+            page === 1 ||
+            page === totalPages ||
+            Math.abs(page - currentPage) <= 2
+          ) {
+            return (
+              <button
+                key={`page-${page}`}
+                className={`px-2 py-1 rounded font-medium ${
+                  page === currentPage
+                    ? 'bg-indigo-600 text-white'
+                    : 'hover:bg-slate-100 text-slate-700'
+                }`}
+                onClick={() => onPageChange(page)}
+                aria-current={page === currentPage ? 'page' : undefined}
+                aria-label={
+                  page === currentPage
+                    ? `Current page, page ${page}`
+                    : `Go to page ${page}`
+                }
+              >
+                {page}
+              </button>
+            );
+          } else {
+            // Không render các trang quá xa (lazy)
+            return null;
+          }
+        } else {
+          // Tối ưu key cho dấu ...
+          const ellipsisKey = `ellipsis-${idx}-${pages.filter((p, i) => p === '...' && i <= idx).length}`;
+          return (
+            <span
+              key={ellipsisKey}
+              className="px-2 py-1 text-slate-400 select-none"
+              aria-hidden="true"
+            >
+              ...
+            </span>
+          );
+        }
+      })}
       <button
         className="px-2 py-1 rounded disabled:opacity-50"
         onClick={() => (goNext ? goNext() : onPageChange(currentPage + 1))}
