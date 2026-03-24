@@ -10,16 +10,8 @@ import { usePagination } from '@/hooks/usePagination';
 import { useState } from 'react';
 
 export default function JobListSection() {
-  const {
-    filterGroups,
-    checkedMap,
-    expandedMap,
-    isMobileFiltersOpen,
-    setIsMobileFiltersOpen,
-    handleToggle,
-    handleToggleExpand,
-    handleApplyMobileFilters,
-  } = useFilters();
+  const filterProps = useFilters();
+  const { setIsMobileFiltersOpen, isMobileFiltersOpen } = filterProps;
 
   // Số job mỗi trang, có thể tuỳ chỉnh
   const pageSize = 5;
@@ -49,15 +41,15 @@ export default function JobListSection() {
     <section className="bg-white py-10 lg:py-[72px]">
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[234px_1fr] lg:gap-10 lg:px-8">
         <aside className="hidden flex-col gap-3 lg:flex">
-          {filterGroups.map((group) => (
+          {filterProps.filterGroups.map((group) => (
             <FilterGroup
               key={group.title}
               title={group.title}
               items={group.items}
-              checked={checkedMap[group.title] ?? []}
-              expanded={expandedMap[group.title] ?? true}
-              onToggle={handleToggle}
-              onToggleExpand={handleToggleExpand}
+              checked={filterProps.checkedMap[group.title] ?? []}
+              expanded={filterProps.expandedMap[group.title] ?? true}
+              onToggle={filterProps.handleToggle}
+              onToggleExpand={filterProps.handleToggleExpand}
             />
           ))}
         </aside>
@@ -149,7 +141,7 @@ export default function JobListSection() {
           <div className="lg:hidden">
             <button
               type="button"
-              onClick={() => setIsMobileFiltersOpen((prev) => !prev)}
+              onClick={() => setIsMobileFiltersOpen((prev: boolean) => !prev)}
               className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-900"
             >
               <span>More Filters</span>
@@ -168,9 +160,13 @@ export default function JobListSection() {
                 : 'flex flex-col gap-3'
             }
           >
-            {jobs.map((job) => (
-              <JobCard key={job.title} job={job} viewMode={viewMode} />
-            ))}
+            {jobs.length === 0 ? (
+              <div className="text-center text-slate-500 py-8">No jobs found.</div>
+            ) : (
+              jobs.map((job) => (
+                <JobCard key={job.title} job={job} viewMode={viewMode} />
+              ))
+            )}
           </div>
 
           <Pagination
@@ -207,15 +203,15 @@ export default function JobListSection() {
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
-                {filterGroups.map((group) => (
+                {filterProps.filterGroups.map((group) => (
                   <FilterGroup
                     key={`mobile-${group.title}`}
                     title={group.title}
                     items={group.items}
-                    checked={checkedMap[group.title] ?? []}
-                    expanded={expandedMap[group.title] ?? true}
-                    onToggle={handleToggle}
-                    onToggleExpand={handleToggleExpand}
+                    checked={filterProps.checkedMap[group.title] ?? []}
+                    expanded={filterProps.expandedMap[group.title] ?? true}
+                    onToggle={filterProps.handleToggle}
+                    onToggleExpand={filterProps.handleToggleExpand}
                   />
                 ))}
               </div>
@@ -224,7 +220,7 @@ export default function JobListSection() {
             <div className="border-t border-slate-200 p-4">
               <button
                 type="button"
-                onClick={handleApplyMobileFilters}
+                onClick={filterProps.handleApplyMobileFilters}
                 className="h-11 w-full rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
               >
                 Apply
