@@ -1,38 +1,51 @@
 import { useMemo } from 'react';
 
+// Hàm tạo mảng số trang cho pagination, có thể test riêng
+export function getPaginationPages(currentPage: number, totalPages: number, siblingCount = 1) {
+  const totalNumbers = siblingCount * 2 + 5; // 5: first, last, current, 2 ellipsis
+
+  if (totalPages <= totalNumbers) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(currentPage - siblingCount, 1);
+  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
+
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < totalPages - 1;
+
+  const pages: (number | string)[] = [];
+
+  pages.push(1);
+
+  if (showLeftEllipsis) {
+    pages.push('...');
+  }
+
+  const left = showLeftEllipsis ? leftSibling : 2;
+  const right = showRightEllipsis ? rightSibling : totalPages - 1;
+
+  for (let i = left; i <= right; i++) {
+    pages.push(i);
+  }
+
+  if (showRightEllipsis) {
+    pages.push('...');
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+}
+
 export function usePagination(
   currentPage: number,
   setCurrentPage: (page: number) => void,
-  totalPages: number
+  totalPages: number,
+  siblingCount = 1
 ) {
   // Dynamic pages array for pagination UI
-  const pages = useMemo(() => {
-    const arr: (number | string)[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) arr.push(i);
-      return arr;
-    }
-    if (currentPage < 4) {
-      for (let i = 1; i <= 4; i++) arr.push(i);
-      arr.push('...');
-      arr.push(totalPages);
-      return arr;
-    }
-    if (currentPage > totalPages - 3) {
-      arr.push(1);
-      arr.push('...');
-      for (let i = totalPages - 3; i <= totalPages; i++) arr.push(i);
-      return arr;
-    }
-    arr.push(1);
-    arr.push('...');
-    arr.push(currentPage - 1);
-    arr.push(currentPage);
-    arr.push(currentPage + 1);
-    arr.push('...');
-    arr.push(totalPages);
-    return arr;
-  }, [currentPage, totalPages]);
+  const pages = useMemo(() => getPaginationPages(currentPage, totalPages, siblingCount), [currentPage, totalPages, siblingCount]);
 
   const goPrev = () => {
     setCurrentPage(Math.max(1, currentPage - 1));
