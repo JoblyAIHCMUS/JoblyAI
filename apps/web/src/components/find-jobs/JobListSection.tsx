@@ -161,7 +161,9 @@ export default function JobListSection() {
             }
           >
             {jobs.length === 0 ? (
-              <div className="text-center text-slate-500 py-8">No jobs found.</div>
+              <div className="text-center text-slate-500 py-8">
+                No jobs found.
+              </div>
             ) : (
               jobs.map((job) => (
                 <JobCard key={job.title} job={job} viewMode={viewMode} />

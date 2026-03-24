@@ -68,7 +68,9 @@ export default function Pagination({
           }
         } else {
           // Tối ưu key cho dấu ...
-          const ellipsisKey = `ellipsis-${idx}-${pages.filter((p, i) => p === '...' && i <= idx).length}`;
+          const ellipsisKey = `ellipsis-${idx}-${
+            pages.filter((p, i) => p === '...' && i <= idx).length
+          }`;
           return (
             <span
               key={ellipsisKey}

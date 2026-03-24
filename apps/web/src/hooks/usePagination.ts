@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 
 // Hàm tạo mảng số trang cho pagination, có thể test riêng
-export function getPaginationPages(currentPage: number, totalPages: number, siblingCount = 1) {
+export function getPaginationPages(
+  currentPage: number,
+  totalPages: number,
+  siblingCount = 1
+) {
   const totalNumbers = siblingCount * 2 + 5; // 5: first, last, current, 2 ellipsis
 
   if (totalPages <= totalNumbers) {
@@ -45,7 +49,10 @@ export function usePagination(
   siblingCount = 1
 ) {
   // Dynamic pages array for pagination UI
-  const pages = useMemo(() => getPaginationPages(currentPage, totalPages, siblingCount), [currentPage, totalPages, siblingCount]);
+  const pages = useMemo(
+    () => getPaginationPages(currentPage, totalPages, siblingCount),
+    [currentPage, totalPages, siblingCount]
+  );
 
   const goPrev = () => {
     setCurrentPage(Math.max(1, currentPage - 1));
