@@ -6,15 +6,13 @@ import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
 import { Conversation, Message } from './types';
-import {
-  getChatSummary,
-  ChatSummary,
-  ChatMessage,
-} from '@/services/messagesService';
+import { ChatSummary, ChatMessage } from '@/api-client/messages';
+import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
   const { sendMessage, onNewMessage } = useMessagesSocket();
+  const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
@@ -24,12 +22,12 @@ export default function EmployerMessagesPage() {
 
   // Fetch conversations on component mount
   useEffect(() => {
-    const fetchConversations = async () => {
+    const getConversations = async () => {
       if (!currentUser?.id) return;
 
       setConversationsLoading(true);
       try {
-        const summaries = await getChatSummary(currentUser.id);
+        const summaries = await fetchChatSummary(currentUser.id);
 
         // Transform backend response to frontend Conversation type
         const transformedConversations: Conversation[] = summaries.map(
@@ -65,8 +63,8 @@ export default function EmployerMessagesPage() {
       }
     };
 
-    fetchConversations();
-  }, [currentUser?.id, selectedConversation]);
+    getConversations();
+  }, [currentUser?.id, selectedConversation, fetchChatSummary]);
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
