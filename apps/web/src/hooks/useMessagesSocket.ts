@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ChatMessage, SendMessageRequest } from '@/services/messagesService';
+import { ChatMessage, SendMessageRequest } from '@/api-client/messages';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 

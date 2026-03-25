@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Conversation } from './types';
-import { markChatRead } from '@/services/messagesService';
+import { useMarkChatRead } from '@/api-hook/messages';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
@@ -22,6 +22,7 @@ export function ConversationSidebar({
   isLoading = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const { markRead } = useMarkChatRead();
 
   const filteredConversations = conversations.filter(
     (conv) =>
@@ -32,7 +33,7 @@ export function ConversationSidebar({
     onSelectConversation(conversation);
     // Mark conversation as read
     try {
-      await markChatRead(conversation.participantId);
+      await markRead(conversation.participantId);
     } catch (error) {
       console.error('Error marking chat as read:', error);
     }
