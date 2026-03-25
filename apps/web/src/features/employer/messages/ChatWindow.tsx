@@ -38,8 +38,14 @@ export function ChatWindow({
         const transformedMessages = history.map((msg) => ({
           messageId: msg.messageId,
           senderId: msg.senderId,
-          sender: msg.senderId === currentUserId ? 'You' : (conversation.name || 'User'),
-          senderAvatar: msg.senderId === currentUserId ? 'https://placehold.co/40x40' : (conversation.avatar || 'https://placehold.co/40x40'),
+          sender:
+            msg.senderId === currentUserId
+              ? 'You'
+              : conversation.name || 'User',
+          senderAvatar:
+            msg.senderId === currentUserId
+              ? 'https://placehold.co/40x40'
+              : conversation.avatar || 'https://placehold.co/40x40',
           isSent: msg.senderId === currentUserId,
           content: msg.content,
           timestamp: msg.timestamp,
@@ -57,7 +63,14 @@ export function ChatWindow({
     if (conversation.participantId) {
       fetchHistory();
     }
-  }, [conversation.participantId, conversation.name, conversation.avatar, currentUserId, onLoadMessages, fetchChatHistory]);
+  }, [
+    conversation.participantId,
+    conversation.name,
+    conversation.avatar,
+    currentUserId,
+    onLoadMessages,
+    fetchChatHistory,
+  ]);
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {

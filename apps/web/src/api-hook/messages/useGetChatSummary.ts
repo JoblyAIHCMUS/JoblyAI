@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  ChatSummary,
-  getChatSummary,
-} from '@/api-client/messages';
+import { ChatSummary, getChatSummary } from '@/api-client/messages';
 
 interface UseGetChatSummaryOptions {
   onSuccess?: (data: ChatSummary[]) => void;

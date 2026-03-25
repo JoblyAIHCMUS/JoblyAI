@@ -77,8 +77,14 @@ export default function EmployerMessagesPage() {
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: message.senderId === currentUser?.id ? 'You' : (selectedConversation.name || 'User'),
-          senderAvatar: message.senderId === currentUser?.id ? 'https://placehold.co/40x40' : (selectedConversation.avatar || 'https://placehold.co/40x40'),
+          sender:
+            message.senderId === currentUser?.id
+              ? 'You'
+              : selectedConversation.name || 'User',
+          senderAvatar:
+            message.senderId === currentUser?.id
+              ? 'https://placehold.co/40x40'
+              : selectedConversation.avatar || 'https://placehold.co/40x40',
           isSent: message.senderId === currentUser?.id,
           content: message.content,
           timestamp: message.timestamp,
