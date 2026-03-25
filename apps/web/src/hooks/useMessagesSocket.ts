@@ -39,9 +39,9 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
   const socketRef = useRef<Socket | null>(null);
   const initializedRef = useRef(false);
   const [isConnected, setIsConnected] = useState(false);
-  const messageCallbackRef = useRef<((message: SocketChatMessage) => void) | null>(
-    null
-  );
+  const messageCallbackRef = useRef<
+    ((message: SocketChatMessage) => void) | null
+  >(null);
   const readCallbackRef = useRef<((friendId: string) => void) | null>(null);
   const mountedRef = useRef(true);
 

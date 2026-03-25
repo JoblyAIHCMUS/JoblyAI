@@ -1,8 +1,5 @@
 import axios from 'axios';
-import {
-  ChatSummary,
-  ChatMessage,
-} from '@/api-client/messages/types';
+import { ChatSummary, ChatMessage } from '@/api-client/messages/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -52,13 +49,9 @@ export async function getChatHistory(
  */
 export async function markChatRead(friendId: string): Promise<void> {
   try {
-    await axios.post(
-      `${API_BASE_URL}/api/chats/read/${friendId}`,
-      undefined,
-      {
-        withCredentials: true,
-      }
-    );
+    await axios.post(`${API_BASE_URL}/api/chats/read/${friendId}`, undefined, {
+      withCredentials: true,
+    });
   } catch (error) {
     console.error('Error marking chat as read:', error);
     throw error;
@@ -70,13 +63,9 @@ export async function markChatRead(friendId: string): Promise<void> {
  */
 export async function initConversation(friendId: string): Promise<void> {
   try {
-    await axios.post(
-      `${API_BASE_URL}/api/chats/init/${friendId}`,
-      undefined,
-      {
-        withCredentials: true,
-      }
-    );
+    await axios.post(`${API_BASE_URL}/api/chats/init/${friendId}`, undefined, {
+      withCredentials: true,
+    });
   } catch (error) {
     console.error('Error initializing conversation:', error);
     throw error;

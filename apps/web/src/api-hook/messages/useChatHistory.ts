@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  ChatMessage,
-  getChatHistory,
-} from '@/api-client/messages';
+import { ChatMessage, getChatHistory } from '@/api-client/messages';
 
 interface UseChatHistoryOptions {
   onSuccess?: (data: ChatMessage[]) => void;
