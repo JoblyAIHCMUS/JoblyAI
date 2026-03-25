@@ -13,11 +13,14 @@ export interface ChatSummary {
 export interface ChatMessage {
   messageId: string;
   senderId: string;
-  senderName: string;
-  senderAvatar: string;
   content: string;
   timestamp: Date;
-  isOwn: boolean; // Whether the message is from the current user
+}
+
+export interface SocketChatMessage {
+  senderId: string;
+  content: string;
+  timestamp: Date;
 }
 
 export interface SendMessageRequest {
