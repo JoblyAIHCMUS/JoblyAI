@@ -6,7 +6,7 @@ import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
 import { Conversation, Message } from './types';
-import { ChatSummary, ChatMessage } from '@/api-client/messages';
+import { ChatSummary } from '@/api-client/messages';
 import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function EmployerMessagesPage() {
@@ -68,17 +68,17 @@ export default function EmployerMessagesPage() {
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
-    onNewMessage((message: ChatMessage) => {
+    onNewMessage((message) => {
       // Only add message if it's from the current conversation
       if (
         selectedConversation &&
         message.senderId === selectedConversation.participantId
       ) {
         const newMessage: Message = {
-          messageId: message.messageId,
+          messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: message.senderName,
-          senderAvatar: message.senderAvatar,
+          sender: message.senderId === currentUser?.id ? 'You' : (selectedConversation.name || 'User'),
+          senderAvatar: message.senderId === currentUser?.id ? 'https://placehold.co/40x40' : (selectedConversation.avatar || 'https://placehold.co/40x40'),
           isSent: message.senderId === currentUser?.id,
           content: message.content,
           timestamp: message.timestamp,

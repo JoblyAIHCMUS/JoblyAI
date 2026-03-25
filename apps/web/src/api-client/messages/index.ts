@@ -2,6 +2,7 @@
 export type {
   ChatSummary,
   ChatMessage,
+  SocketChatMessage,
   SendMessageRequest,
   SendMessageResponse,
 } from '@/api-client/messages/types';
