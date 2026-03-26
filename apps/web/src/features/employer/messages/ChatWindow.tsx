@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Conversation, Message } from './types';
 import { MessageBubble } from './MessageBubble';
-import { getChatHistory } from '@/services/messagesService';
+import { useChatHistory } from '@/api-hook/messages';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -27,18 +27,25 @@ export function ChatWindow({
   isLoadingHistory = false,
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState('');
+  const { fetchChatHistory } = useChatHistory();
 
   // Fetch message history when conversation changes
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const history = await getChatHistory(conversation.participantId, 50);
+        const history = await fetchChatHistory(conversation.participantId, 50);
         // Transform backend messages to frontend format
         const transformedMessages = history.map((msg) => ({
           messageId: msg.messageId,
           senderId: msg.senderId,
-          sender: msg.senderName,
-          senderAvatar: msg.senderAvatar,
+          sender:
+            msg.senderId === currentUserId
+              ? 'You'
+              : conversation.name || 'User',
+          senderAvatar:
+            msg.senderId === currentUserId
+              ? 'https://placehold.co/40x40'
+              : conversation.avatar || 'https://placehold.co/40x40',
           isSent: msg.senderId === currentUserId,
           content: msg.content,
           timestamp: msg.timestamp,
@@ -56,7 +63,14 @@ export function ChatWindow({
     if (conversation.participantId) {
       fetchHistory();
     }
-  }, [conversation.participantId, currentUserId, onLoadMessages]);
+  }, [
+    conversation.participantId,
+    conversation.name,
+    conversation.avatar,
+    currentUserId,
+    onLoadMessages,
+    fetchChatHistory,
+  ]);
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {
