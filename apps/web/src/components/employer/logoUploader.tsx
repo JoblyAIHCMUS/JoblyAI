@@ -6,7 +6,7 @@ import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 import { deleteS3File } from '@/api-client/s3/file';
 
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = 1 * 1024 * 1024; // 1 MB
 
 interface LogoUploaderProps {
   onValueChange?: (
@@ -112,25 +112,32 @@ export function LogoUploader({
         maxSize={MAX_SIZE}
         value={files}
         onValueChange={handleValueChange}
-        onUpload={async (newFiles) => {
+        onUpload={async (newFiles, options) => {
           // Only upload the latest file
           if (newFiles.length > 0) {
-            // Delete previous logo if exists
-            if (currentFileKey) {
-              try {
-                await deleteS3File({ fileKey: currentFileKey });
-              } catch {
-                /* ignore S3 delete error */
-              }
-            }
             const file = newFiles[newFiles.length - 1];
             if (onUploadFile) {
               try {
+                // Optionally implement progress reporting here if upload API supports it
+                // e.g., pass a progress callback to onUploadFile and call options.onProgress(file, percent)
                 const result = await onUploadFile(file);
+                // Only delete the previous logo after a successful upload
+                if (currentFileKey && currentFileKey !== result.fileKey) {
+                  try {
+                    await deleteS3File({ fileKey: currentFileKey });
+                  } catch {
+                    /* ignore S3 delete error */
+                  }
+                }
                 onValueChangeProp?.(result.url, file, result.fileKey);
-              } catch {
+                options?.onSuccess?.(file);
+              } catch (err) {
                 onValueChangeProp?.(null, file, null);
+                options?.onError?.(file, err as Error);
               }
+            } else {
+              // If no upload handler, treat as error
+              options?.onError?.(file, new Error('No upload handler'));
             }
           }
         }}
