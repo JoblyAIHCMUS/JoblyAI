@@ -7,7 +7,6 @@ import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
-
 interface LogoUploaderProps {
   onValueChange?: (logoUrl: string | null, file?: File | null) => void;
   onUploadFile?: (file: File) => Promise<string>;

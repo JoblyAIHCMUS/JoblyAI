@@ -46,7 +46,11 @@ export default function EmployerNewCompanyPage() {
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const { upload: uploadLogoToS3, loading: logoUploading, error: logoUploadError } = useUploadFile();
+  const {
+    upload: uploadLogoToS3,
+    loading: logoUploading,
+    error: logoUploadError,
+  } = useUploadFile();
 
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
     { ...getCurrentUser(), isEditable: true },
@@ -94,7 +98,6 @@ export default function EmployerNewCompanyPage() {
     }
   };
 
-
   return (
     <div className="container mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-6">
@@ -130,10 +133,14 @@ export default function EmployerNewCompanyPage() {
               }}
             />
             {logoUploading && (
-              <span className="text-xs text-blue-500 ml-2">Uploading logo...</span>
+              <span className="text-xs text-blue-500 ml-2">
+                Uploading logo...
+              </span>
             )}
             {Boolean(logoUploadError) && (
-              <span className="text-xs text-red-500 ml-2">Logo upload failed</span>
+              <span className="text-xs text-red-500 ml-2">
+                Logo upload failed
+              </span>
             )}
           </div>
 
