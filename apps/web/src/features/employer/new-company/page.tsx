@@ -123,25 +123,27 @@ export default function EmployerNewCompanyPage() {
                 One icon/image that represents your organization.
               </p>
             </div>
-            <LogoUploader
-              onValueChange={(url) => {
-                setLogoUrl(url || null);
-              }}
-              onUploadFile={async (file) => {
-                const result = await uploadLogoToS3(file, 'logos');
-                return result.fileUrl;
-              }}
-            />
-            {logoUploading && (
-              <span className="text-xs text-blue-500 ml-2">
-                Uploading logo...
-              </span>
-            )}
-            {Boolean(logoUploadError) && (
-              <span className="text-xs text-red-500 ml-2">
-                Logo upload failed
-              </span>
-            )}
+            <div className="space-y-1">
+              <LogoUploader
+                onValueChange={(url) => {
+                  setLogoUrl(url || null);
+                }}
+                onUploadFile={async (file) => {
+                  const result = await uploadLogoToS3(file, 'logos');
+                  return result.fileUrl;
+                }}
+              />
+              {logoUploading && (
+                <span className="text-xs text-blue-500 ml-2">
+                  Uploading logo...
+                </span>
+              )}
+              {Boolean(logoUploadError) && (
+                <span className="text-xs text-red-500 ml-2">
+                  Logo upload failed
+                </span>
+              )}
+            </div>
           </div>
 
           <Separator />
