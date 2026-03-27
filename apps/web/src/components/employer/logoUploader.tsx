@@ -7,23 +7,34 @@ import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
+
 interface LogoUploaderProps {
-  onValueChange?: (file: File | null) => void;
+  onValueChange?: (logoUrl: string | null, file?: File | null) => void;
+  onUploadFile?: (file: File) => Promise<string>;
 }
 
 export function LogoUploader({
   onValueChange: onValueChangeProp,
+  onUploadFile,
 }: LogoUploaderProps) {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [files, setFiles] = React.useState<File[]>([]);
   const previewRef = React.useRef<string | null>(null);
 
   const handleValueChange = React.useCallback(
-    (newFiles: File[]) => {
+    async (newFiles: File[]) => {
       if (newFiles.length > 0) {
         const file = newFiles[newFiles.length - 1];
         setFiles([file]);
-        onValueChangeProp?.(file);
+        let logoUrl: string | null = null;
+        if (onUploadFile) {
+          try {
+            logoUrl = await onUploadFile(file);
+          } catch {
+            logoUrl = null;
+          }
+        }
+        onValueChangeProp?.(logoUrl, file);
         const url = URL.createObjectURL(file);
         setPreview((prev) => {
           if (prev) URL.revokeObjectURL(prev);
@@ -32,7 +43,7 @@ export function LogoUploader({
         previewRef.current = url;
       } else {
         setFiles([]);
-        onValueChangeProp?.(null);
+        onValueChangeProp?.(null, null);
         setPreview((prev) => {
           if (prev) URL.revokeObjectURL(prev);
           return null;
@@ -40,12 +51,12 @@ export function LogoUploader({
         previewRef.current = null;
       }
     },
-    [onValueChangeProp]
+    [onValueChangeProp, onUploadFile]
   );
 
   const handleRemove = React.useCallback(() => {
     setFiles([]);
-    onValueChangeProp?.(null);
+    onValueChangeProp?.(null, null);
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
