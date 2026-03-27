@@ -20,19 +20,33 @@ export function LogoUploader({
   const [files, setFiles] = React.useState<File[]>([]);
   const previewRef = React.useRef<string | null>(null);
 
+  // Token to track the latest file selection and ignore stale upload results
+  const uploadTokenRef = React.useRef(0);
+
   const handleValueChange = React.useCallback(
     async (newFiles: File[]) => {
       if (newFiles.length > 0) {
         const file = newFiles[newFiles.length - 1];
         setFiles([file]);
+        // Increment token for each new file selection
+        const myToken = ++uploadTokenRef.current;
         let logoUrl: string | null = null;
         if (onUploadFile) {
           try {
-            logoUrl = await onUploadFile(file);
+            const result = await onUploadFile(file);
+            // Only use result if this is the latest selection
+            if (uploadTokenRef.current === myToken) {
+              logoUrl = result;
+            } else {
+              // Stale upload, ignore
+              return;
+            }
           } catch {
+            if (uploadTokenRef.current !== myToken) return; // Ignore stale
             logoUrl = null;
           }
         }
+        if (uploadTokenRef.current !== myToken) return; // Ignore stale
         onValueChangeProp?.(logoUrl, file);
         const url = URL.createObjectURL(file);
         setPreview((prev) => {
@@ -41,6 +55,8 @@ export function LogoUploader({
         });
         previewRef.current = url;
       } else {
+        // Clear token for no file
+        uploadTokenRef.current++;
         setFiles([]);
         onValueChangeProp?.(null, null);
         setPreview((prev) => {
