@@ -3,55 +3,65 @@
 import { ImageIcon, X } from 'lucide-react';
 import * as React from 'react';
 import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
+import { deleteS3File } from '@/api-client/s3/file';
 
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = 1 * 1024 * 1024; // 1 MB
 
 interface LogoUploaderProps {
-  onValueChange?: (file: File | null) => void;
+  onValueChange?: (
+    logoUrl: string | null,
+    file?: File | null,
+    fileKey?: string | null
+  ) => void;
+  onUploadFile?: (file: File) => Promise<{ url: string; fileKey: string }>;
+  currentFileKey?: string | null;
 }
 
 export function LogoUploader({
   onValueChange: onValueChangeProp,
+  onUploadFile,
+  currentFileKey,
 }: LogoUploaderProps) {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [files, setFiles] = React.useState<File[]>([]);
   const previewRef = React.useRef<string | null>(null);
 
-  const handleValueChange = React.useCallback(
-    (newFiles: File[]) => {
-      if (newFiles.length > 0) {
-        const file = newFiles[newFiles.length - 1];
-        setFiles([file]);
-        onValueChangeProp?.(file);
-        const url = URL.createObjectURL(file);
-        setPreview((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-        previewRef.current = url;
-      } else {
-        setFiles([]);
-        onValueChangeProp?.(null);
-        setPreview((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return null;
-        });
-        previewRef.current = null;
-      }
-    },
-    [onValueChangeProp]
-  );
+  const handleValueChange = React.useCallback((newFiles: File[]) => {
+    if (newFiles.length > 0) {
+      const file = newFiles[newFiles.length - 1];
+      setFiles([file]);
+      const url = URL.createObjectURL(file);
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
+      previewRef.current = url;
+    } else {
+      setFiles([]);
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      previewRef.current = null;
+    }
+  }, []);
 
   const handleRemove = React.useCallback(() => {
+    // Remove: delete previous logo if exists
+    if (currentFileKey) {
+      deleteS3File({ fileKey: currentFileKey }).catch(() => {
+        /* ignore error */
+      });
+    }
     setFiles([]);
-    onValueChangeProp?.(null);
+    onValueChangeProp?.(null, null, null);
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
     previewRef.current = null;
-  }, [onValueChangeProp]);
+  }, [currentFileKey, onValueChangeProp]);
 
   React.useEffect(() => {
     return () => {
@@ -102,6 +112,35 @@ export function LogoUploader({
         maxSize={MAX_SIZE}
         value={files}
         onValueChange={handleValueChange}
+        onUpload={async (newFiles, options) => {
+          // Only upload the latest file
+          if (newFiles.length > 0) {
+            const file = newFiles[newFiles.length - 1];
+            if (onUploadFile) {
+              try {
+                // Optionally implement progress reporting here if upload API supports it
+                // e.g., pass a progress callback to onUploadFile and call options.onProgress(file, percent)
+                const result = await onUploadFile(file);
+                // Only delete the previous logo after a successful upload
+                if (currentFileKey && currentFileKey !== result.fileKey) {
+                  try {
+                    await deleteS3File({ fileKey: currentFileKey });
+                  } catch {
+                    /* ignore S3 delete error */
+                  }
+                }
+                onValueChangeProp?.(result.url, file, result.fileKey);
+                options?.onSuccess?.(file);
+              } catch (err) {
+                onValueChangeProp?.(null, file, null);
+                options?.onError?.(file, err as Error);
+              }
+            } else {
+              // If no upload handler, treat as error
+              options?.onError?.(file, new Error('No upload handler'));
+            }
+          }
+        }}
         className="flex-1"
       >
         <FileUploadDropzone

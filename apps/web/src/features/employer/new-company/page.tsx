@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
+import { useUploadFile } from '@/api-hook/s3/useUploadFile';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
@@ -44,7 +45,13 @@ export default function EmployerNewCompanyPage() {
   const [scale, setScale] = useState('1-50');
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
-  const [logo, setLogo] = useState<File | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
+  const {
+    upload: uploadLogoToS3,
+    loading: logoUploading,
+    error: logoUploadError,
+  } = useUploadFile();
 
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
     { ...getCurrentUser(), isEditable: true },
@@ -70,7 +77,7 @@ export default function EmployerNewCompanyPage() {
       scale,
       industry,
       companyDescription,
-      logo,
+      logoUrl,
       teamMembers: teamMembers.map(({ firstName, lastName, email, role }) => ({
         name: `${firstName} ${lastName}`,
         email,
@@ -117,7 +124,29 @@ export default function EmployerNewCompanyPage() {
                 One icon/image that represents your organization.
               </p>
             </div>
-            <LogoUploader onValueChange={setLogo} />
+            <div className="space-y-1">
+              <LogoUploader
+                currentFileKey={logoFileKey}
+                onValueChange={(url, _file, fileKey) => {
+                  setLogoUrl(url || null);
+                  setLogoFileKey(fileKey || null);
+                }}
+                onUploadFile={async (file) => {
+                  const result = await uploadLogoToS3(file, 'logos');
+                  return { url: result.fileUrl, fileKey: result.fileKey };
+                }}
+              />
+              {logoUploading && (
+                <span className="text-xs text-blue-500 ml-2">
+                  Uploading logo...
+                </span>
+              )}
+              {Boolean(logoUploadError) && (
+                <span className="text-xs text-red-500 ml-2">
+                  Logo upload failed
+                </span>
+              )}
+            </div>
           </div>
 
           <Separator />
