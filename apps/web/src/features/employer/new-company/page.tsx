@@ -46,6 +46,7 @@ export default function EmployerNewCompanyPage() {
   const [industry, setIndustry] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
   const {
     upload: uploadLogoToS3,
     loading: logoUploading,
@@ -125,12 +126,14 @@ export default function EmployerNewCompanyPage() {
             </div>
             <div className="space-y-1">
               <LogoUploader
-                onValueChange={(url) => {
+                currentFileKey={logoFileKey}
+                onValueChange={(url, _file, fileKey) => {
                   setLogoUrl(url || null);
+                  setLogoFileKey(fileKey || null);
                 }}
                 onUploadFile={async (file) => {
                   const result = await uploadLogoToS3(file, 'logos');
-                  return result.fileUrl;
+                  return { url: result.fileUrl, fileKey: result.fileKey };
                 }}
               />
               {logoUploading && (
