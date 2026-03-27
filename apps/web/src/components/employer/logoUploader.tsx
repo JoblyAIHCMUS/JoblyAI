@@ -3,81 +3,65 @@
 import { ImageIcon, X } from 'lucide-react';
 import * as React from 'react';
 import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
+import { deleteS3File } from '@/api-client/s3/file';
 
 const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
 interface LogoUploaderProps {
-  onValueChange?: (logoUrl: string | null, file?: File | null) => void;
-  onUploadFile?: (file: File) => Promise<string>;
+  onValueChange?: (
+    logoUrl: string | null,
+    file?: File | null,
+    fileKey?: string | null
+  ) => void;
+  onUploadFile?: (file: File) => Promise<{ url: string; fileKey: string }>;
+  currentFileKey?: string | null;
 }
 
 export function LogoUploader({
   onValueChange: onValueChangeProp,
   onUploadFile,
+  currentFileKey,
 }: LogoUploaderProps) {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [files, setFiles] = React.useState<File[]>([]);
   const previewRef = React.useRef<string | null>(null);
 
-  // Token to track the latest file selection and ignore stale upload results
-  const uploadTokenRef = React.useRef(0);
-
-  const handleValueChange = React.useCallback(
-    async (newFiles: File[]) => {
-      if (newFiles.length > 0) {
-        const file = newFiles[newFiles.length - 1];
-        setFiles([file]);
-        // Increment token for each new file selection
-        const myToken = ++uploadTokenRef.current;
-        let logoUrl: string | null = null;
-        if (onUploadFile) {
-          try {
-            const result = await onUploadFile(file);
-            // Only use result if this is the latest selection
-            if (uploadTokenRef.current === myToken) {
-              logoUrl = result;
-            } else {
-              // Stale upload, ignore
-              return;
-            }
-          } catch {
-            if (uploadTokenRef.current !== myToken) return; // Ignore stale
-            logoUrl = null;
-          }
-        }
-        if (uploadTokenRef.current !== myToken) return; // Ignore stale
-        onValueChangeProp?.(logoUrl, file);
-        const url = URL.createObjectURL(file);
-        setPreview((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-        previewRef.current = url;
-      } else {
-        // Clear token for no file
-        uploadTokenRef.current++;
-        setFiles([]);
-        onValueChangeProp?.(null, null);
-        setPreview((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return null;
-        });
-        previewRef.current = null;
-      }
-    },
-    [onValueChangeProp, onUploadFile]
-  );
+  const handleValueChange = React.useCallback((newFiles: File[]) => {
+    if (newFiles.length > 0) {
+      const file = newFiles[newFiles.length - 1];
+      setFiles([file]);
+      const url = URL.createObjectURL(file);
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
+      previewRef.current = url;
+    } else {
+      setFiles([]);
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      previewRef.current = null;
+    }
+  }, []);
 
   const handleRemove = React.useCallback(() => {
+    // Remove: delete previous logo if exists
+    if (currentFileKey) {
+      deleteS3File({ fileKey: currentFileKey }).catch(() => {
+        /* ignore error */
+      });
+    }
     setFiles([]);
-    onValueChangeProp?.(null, null);
+    onValueChangeProp?.(null, null, null);
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
     previewRef.current = null;
-  }, [onValueChangeProp]);
+  }, [currentFileKey, onValueChangeProp]);
 
   React.useEffect(() => {
     return () => {
@@ -128,6 +112,28 @@ export function LogoUploader({
         maxSize={MAX_SIZE}
         value={files}
         onValueChange={handleValueChange}
+        onUpload={async (newFiles) => {
+          // Only upload the latest file
+          if (newFiles.length > 0) {
+            // Delete previous logo if exists
+            if (currentFileKey) {
+              try {
+                await deleteS3File({ fileKey: currentFileKey });
+              } catch {
+                /* ignore S3 delete error */
+              }
+            }
+            const file = newFiles[newFiles.length - 1];
+            if (onUploadFile) {
+              try {
+                const result = await onUploadFile(file);
+                onValueChangeProp?.(result.url, file, result.fileKey);
+              } catch {
+                onValueChangeProp?.(null, file, null);
+              }
+            }
+          }
+        }}
         className="flex-1"
       >
         <FileUploadDropzone
