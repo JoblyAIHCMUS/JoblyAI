@@ -57,6 +57,15 @@ export interface CandidateProfileResponse {
   experiences?: CandidateExperience[];
   resumes?: CandidateResume[];
   createdAt: Date;
+  // --- Các trường còn thiếu so với UI page profile ---
+  // location: string; // Địa chỉ, vị trí làm việc
+  // about: string[]; // Thông tin giới thiệu bản thân
+  // openForOpportunities: boolean; // Đang tìm việc
+  // skills: string[]; // Kỹ năng
+  // portfolios: { img: string; name: string }[]; // Dự án/portfolio
+  // contact: { email: string; phone: string }; // Thông tin liên hệ (phone chưa có)
+  // socials: { label: string; value: string }[]; // Mạng xã hội
+  // banner: string; // Ảnh banner hoặc màu nền
 }
 
 export interface CreateEducationPayload {
