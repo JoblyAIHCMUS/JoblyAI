@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/hooks/useUser';
+import { useLogout } from '@/hooks/useAuth';
 
 // Icons (use lucide-react)
 import {
@@ -85,6 +86,7 @@ export function EmployerSidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
   const { data: user } = useUser();
+  const logout = useLogout();
 
   // Derive the actual collapsed state based on mobile vs desktop
   const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
@@ -166,6 +168,30 @@ export function EmployerSidebar() {
           <SidebarMenu>
             {navSecondary.map((item) => {
               const isActive = pathname === item.url;
+
+              // Special handling for Logout
+              if (item.title === 'Logout') {
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => logout.mutate()}
+                      disabled={logout.isPending}
+                      tooltip={item.title}
+                      className={cn(
+                        'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 cursor-pointer',
+                        item.variant === 'destructive'
+                          ? 'text-red-600 hover:text-red-700'
+                          : ''
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="group-data-[collapsible=icon]:hidden">
+                        {logout.isPending ? 'Logging out...' : item.title}
+                      </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              }
 
               return (
                 <SidebarMenuItem key={item.title}>

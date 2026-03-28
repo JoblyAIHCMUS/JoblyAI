@@ -29,6 +29,11 @@ export class JobsController {
     return this.jobsService.getsPaginatedJobsPostings(query);
   }
 
+  @Get('categories')
+  async getCategories() {
+    return this.jobsService.getCategories();
+  }
+
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

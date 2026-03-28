@@ -25,4 +25,5 @@ export {
   updateJobPosting,
   deleteJobPosting,
   listEmployerJobs,
+  getCategories,
 } from '@/api-client/jobs/employer';
