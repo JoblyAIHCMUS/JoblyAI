@@ -65,8 +65,6 @@ export function ChatWindow({
     }
   }, [
     conversation.participantId,
-    conversation.name,
-    conversation.avatar,
     currentUserId,
     onLoadMessages,
     fetchChatHistory,
