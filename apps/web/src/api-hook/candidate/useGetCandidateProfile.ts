@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { getCandidateProfile, type CandidateProfileResponse } from '@/api-client/candidate';
+import {
+  getCandidateProfile,
+  type CandidateProfileResponse,
+} from '@/api-client/candidate';
 
 interface UseGetCandidateProfileOptions {
   onSuccess?: (data: CandidateProfileResponse) => void;
