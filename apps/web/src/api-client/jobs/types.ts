@@ -13,13 +13,23 @@ export interface JobCategory {
   slug: string;
 }
 
+export interface CompanyInfo {
+  id: number;
+  name: string;
+  websiteUrl: string | null;
+  sizeRange: string | null;
+  industry: string | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
 export interface JobPosting {
   id: number;
   employerId: string;
   category: JobCategory;
   title: string;
   description: string;
-  companyName: string | null;
+  company: CompanyInfo;
   location: string | null;
   remote: boolean;
   type: EmploymentType;
@@ -71,7 +81,7 @@ export interface CreateJobPayload {
   remote?: boolean;
   type?: EmploymentType;
   categoryId: number;
-  companyName?: string;
+  companyId: number;
   requirements?: JobRequirementInput[];
 }
 
@@ -85,6 +95,6 @@ export interface UpdateJobPayload {
   remote?: boolean;
   type?: EmploymentType;
   categoryId?: number;
-  companyName?: string;
+  companyId?: number;
   requirements?: JobRequirementInput[];
 }

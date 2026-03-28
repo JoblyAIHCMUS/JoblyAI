@@ -10,10 +10,9 @@ export default function JobDetailPage() {
     jobId,
     breadcrumbItems,
     jobName,
-    companyName,
+    company,
     address,
     workType,
-    logoUrl,
     companyDescription,
     companyPhotos,
     companyPageUrl,
@@ -24,16 +23,14 @@ export default function JobDetailPage() {
       <JobDetailHeader
         breadcrumbItems={breadcrumbItems}
         jobTitle={jobName}
-        companyName={companyName}
+        company={company}
         address={address}
         workType={workType}
-        logoUrl={logoUrl}
         jobId={jobId}
       />
       <JobDetailContent />
       <JobCompanySection
-        companyName={companyName}
-        logoUrl={logoUrl}
+        company={company}
         description={companyDescription}
         photos={companyPhotos}
         companyUrl={companyPageUrl}

@@ -60,9 +60,8 @@ export class CreateJobDTO {
   @IsNumber()
   categoryId!: number;
 
-  @IsOptional()
-  @IsString()
-  companyName?: string;
+  @IsNumber()
+  companyId!: number;
 
   @IsOptional()
   @IsArray()
