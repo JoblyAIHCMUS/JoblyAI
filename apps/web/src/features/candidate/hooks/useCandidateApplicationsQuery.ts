@@ -110,7 +110,10 @@ export function useCandidateApplicationsQuery() {
   );
   const locationOptions = useMemo(
     () =>
-      candidateDashboardService.getUniqueFilterOptions(applications, 'location'),
+      candidateDashboardService.getUniqueFilterOptions(
+        applications,
+        'location'
+      ),
     [applications]
   );
 
