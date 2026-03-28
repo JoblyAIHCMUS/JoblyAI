@@ -14,7 +14,6 @@ export default function UpdateEmailForm({ email }: UpdateEmailFormProps) {
   const validateEmail = (email: string) =>
     /^[\w.-]+@[\w-]+\.[A-Za-z]{2,}$/.test(email);
 
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError('');
