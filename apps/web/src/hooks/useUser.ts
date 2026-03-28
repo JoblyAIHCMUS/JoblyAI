@@ -2,7 +2,6 @@
 
 import { authClient } from '@/lib/auth-client';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-// import { authClient } from '../lib/auth-client';
 
 export interface User {
   id: string;
