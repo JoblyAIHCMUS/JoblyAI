@@ -145,7 +145,8 @@ model JobPosting {
   categoryId Int
   category   JobCategory @relation(fields: [categoryId], references: [id])
 
-  companyName String?
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -232,6 +233,7 @@ model Company {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   employers   Employer[]
+  jobPostings JobPosting[]
 }
 
 model Employer {

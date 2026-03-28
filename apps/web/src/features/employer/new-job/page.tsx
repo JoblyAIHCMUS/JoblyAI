@@ -133,7 +133,7 @@ export default function EmployerNewJobPage() {
         currency: currency === 'none' ? undefined : currency.toUpperCase(),
         salaryMin: salaryMin ? Number(salaryMin) : undefined,
         salaryMax: salaryMax ? Number(salaryMax) : undefined,
-        companyName: selectedCompany?.name,
+        companyId: selectedCompany ? Number(selectedCompany.id) : 0,
         requirements,
       };
       await submitJob(payload);

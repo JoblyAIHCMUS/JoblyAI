@@ -27,6 +27,16 @@ export interface JobCategory {
   color: CategoryPillColor;
 }
 
+export interface CompanyInfo {
+  id: number;
+  name: string;
+  websiteUrl: string | null;
+  sizeRange: string | null;
+  industry: string | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
 export interface JobDetail {
   description: string;
   aboutRole: JobAboutRole;
@@ -43,10 +53,9 @@ export interface JobDetailPageData {
   jobId: string;
   breadcrumbItems: JobDetailBreadcrumbItem[];
   jobName: string;
-  companyName: string;
+  company: CompanyInfo;
   address: string;
   workType: string;
-  logoUrl: string;
   companyDescription: string;
   companyPhotos: string[];
   companyPageUrl: string;

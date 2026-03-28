@@ -64,8 +64,8 @@ export class UpdateJobDTO {
   categoryId?: number;
 
   @IsOptional()
-  @IsString()
-  companyName?: string;
+  @IsNumber()
+  companyId?: number;
 
   @IsOptional()
   @IsArray()

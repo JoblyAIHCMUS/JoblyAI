@@ -12,23 +12,31 @@ export type JobDetailBreadcrumbItem = {
   href?: string;
 };
 
+export interface CompanyInfo {
+  id: number;
+  name: string;
+  websiteUrl: string | null;
+  sizeRange: string | null;
+  industry: string | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
 interface JobDetailHeaderProps {
   breadcrumbItems: JobDetailBreadcrumbItem[];
   jobTitle: string;
-  companyName: string;
+  company: CompanyInfo;
   address: string;
   workType: string;
-  logoUrl: string;
   jobId: string;
 }
 
 export default function JobDetailHeader({
   breadcrumbItems,
   jobTitle,
-  companyName,
+  company,
   address,
   workType,
-  logoUrl,
   jobId,
 }: JobDetailHeaderProps) {
   const router = useRouter();
@@ -107,8 +115,8 @@ export default function JobDetailHeader({
             <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-4 lg:gap-6">
               <div className="relative h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-100">
                 <Image
-                  src={logoUrl}
-                  alt={`${companyName} company logo`}
+                  src={company.logoUrl || '/placeholder-logo.png'}
+                  alt={`${company.name} company logo`}
                   fill
                   className="object-contain"
                   unoptimized
@@ -119,7 +127,7 @@ export default function JobDetailHeader({
                   {jobTitle}
                 </h1>
                 <div className="flex items-center gap-2 text-slate-500 text-sm sm:text-base flex-wrap">
-                  <span>{companyName}</span>
+                  <span>{company.name}</span>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
                   <span>{address}</span>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
