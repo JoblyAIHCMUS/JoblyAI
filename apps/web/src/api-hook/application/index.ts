@@ -5,3 +5,4 @@ export * from '@/api-hook/application/useWithdrawApplication';
 export * from '@/api-hook/application/useListEmployerApplications';
 export * from '@/api-hook/application/useShortlistApplication';
 export * from '@/api-hook/application/useRejectApplication';
+export * from '@/api-hook/application/useMoveToOfferApplication';

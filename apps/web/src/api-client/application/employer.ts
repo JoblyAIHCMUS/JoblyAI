@@ -49,3 +49,17 @@ export async function rejectEmployerApplication(
   );
   return response.data;
 }
+
+export async function moveToOfferEmployerApplication(
+  id: number
+): Promise<ApplicationRecord> {
+  const response = await axios.patch<ApplicationRecord>(
+    `${API_BASE_URL}/api/employers/applications/${id}/offer`,
+    undefined,
+    {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}

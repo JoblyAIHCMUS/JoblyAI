@@ -53,4 +53,13 @@ export class EmployersApplicationsController {
     const employerId = request.user.id;
     return this.applicationsService.rejectApplication(employerId, id, dto);
   }
+
+  @Patch(':id/offer')
+  async moveToOfferApplication(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const employerId = request.user.id;
+    return this.applicationsService.moveToOfferApplication(employerId, id);
+  }
 }

@@ -541,6 +541,71 @@ export class ApplicationsService {
     return this.mapToApplicationResponse(updatedApplication);
   }
 
+  async moveToOfferApplication(
+    employerId: string,
+    applicationId: number
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          select: {
+            postedById: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.job.postedById !== employerId) {
+      throw new ForbiddenException(
+        'You can only manage applications for your own jobs'
+      );
+    }
+
+    if (application.status !== ApplicationStatus.INTERVIEW) {
+      throw new BadRequestException(
+        'Only applications with INTERVIEW status can be moved to OFFER'
+      );
+    }
+
+    const updatedApplication = await this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        status: ApplicationStatus.OFFER,
+        updatedAt: new Date(),
+      },
+      include: {
+        job: {
+          include: {
+            category: true,
+            company: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileUrl: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToApplicationResponse(updatedApplication);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToApplicationResponse(application: any): Application {
     return {
