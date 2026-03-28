@@ -282,6 +282,15 @@ export class JobsService {
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
+  async getCategories(): Promise<
+    Array<{ id: number; name: string; slug: string }>
+  > {
+    const categories = await this.prisma.jobCategory.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return categories;
+  }
+
   private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
     const { requirements, postedById, ...rest } = job;
 

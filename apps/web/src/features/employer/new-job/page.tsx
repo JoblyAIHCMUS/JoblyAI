@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useCreateJob } from '@/api-hook/jobs';
 import { useSkillIds } from '@/api-hook/useSkillIds';
+import { useCategories } from '@/api-hook/jobs';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,18 +52,6 @@ const CURRENCIES = [
   { value: 'cny', label: 'CNY' },
 ] as const;
 
-const CATEGORIES = [
-  { value: 'design', label: 'Design' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'business', label: 'Business' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'sales', label: 'Sales' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'human-resources', label: 'Human Resources' },
-  { value: 'operations', label: 'Operations' },
-  { value: 'other', label: 'Other' },
-] as const;
-
 // Helper to check if HTML content has actual text (not just empty tags like <p></p>)
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -74,7 +63,7 @@ const convertToRequirementImportance = (
   importance: SkillImportance
 ): RequirementImportance => {
   if (importance === 'OPTIONAL') {
-    return 'NICE_TO_HAVE';
+    return 'OPTIONAL';
   }
   return importance as RequirementImportance;
 };
@@ -92,6 +81,7 @@ export default function EmployerNewJobPage() {
     },
   });
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
@@ -163,7 +153,7 @@ export default function EmployerNewJobPage() {
         steps={POST_JOB_STEPS}
         onComplete={handleComplete}
         canProceed={canProceed}
-        loading={loading || skillsLoading}
+        loading={loading || skillsLoading || categoriesLoading}
       >
         {!!error && (
           <div className="text-red-500 text-center mb-4">
@@ -271,9 +261,9 @@ export default function EmployerNewJobPage() {
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={String(cat.id)}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>

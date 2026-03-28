@@ -3,9 +3,24 @@ import {
   CreateJobPayload,
   JobPosting,
   UpdateJobPayload,
+  JobCategory,
 } from '@/api-client/jobs/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+
+/**
+ * Get all job categories
+ * No authentication required
+ */
+export async function getCategories(): Promise<JobCategory[]> {
+  const response = await axios.get<JobCategory[]>(
+    `${API_BASE_URL}/jobs/categories`,
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+  return response.data;
+}
 
 /**
  * Create a new job posting
