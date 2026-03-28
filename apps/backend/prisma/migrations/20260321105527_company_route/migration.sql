@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "JobStatus" AS ENUM ('OPEN', 'CLOSED', 'DRAFT');
-
--- CreateEnum
 CREATE TYPE "RequirementImportance" AS ENUM ('REQUIRED', 'PREFERRED', 'OPTIONAL');
 
 -- CreateEnum
