@@ -17,7 +17,8 @@ const CandidateProfilePage = () => {
 
   useEffect(() => {
     fetchCandidateProfile()
-      .then(setProfile).catch((err) => {
+      .then(setProfile)
+      .catch((err) => {
         // TODO(real-api): Replace this log with centralized telemetry (Sentry/DataDog).
         console.error('Failed to fetch candidate profile', { error: err });
       });
