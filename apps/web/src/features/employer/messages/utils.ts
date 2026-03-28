@@ -3,13 +3,13 @@
  */
 export function isNewDate(prevDate: Date | null, currentDate: Date): boolean {
   if (!prevDate) return true;
-  
+
   const prevDateOnly = new Date(prevDate);
   prevDateOnly.setHours(0, 0, 0, 0);
-  
+
   const currentDateOnly = new Date(currentDate);
   currentDateOnly.setHours(0, 0, 0, 0);
-  
+
   return prevDateOnly.getTime() !== currentDateOnly.getTime();
 }
 
@@ -20,21 +20,21 @@ export function isNewDate(prevDate: Date | null, currentDate: Date): boolean {
 export function getDateLabel(date: Date): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const messageDate = new Date(date);
   messageDate.setHours(0, 0, 0, 0);
-  
+
   if (messageDate.getTime() === today.getTime()) {
     return 'Today';
   }
-  
+
   if (messageDate.getTime() === yesterday.getTime()) {
     return 'Yesterday';
   }
-  
+
   // Format as "Mar 27"
   return messageDate.toLocaleDateString('en-US', {
     month: 'short',

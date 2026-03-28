@@ -80,7 +80,7 @@ export class MessagesGateway implements OnGatewayConnection {
     // Notify the current user (sender) that the chat is now marked as read
     // This allows the sidebar to refresh and remove the notification dot
     this.server.to(userId).emit('message_read', { friendId: data.friendId });
-    
+
     // Also notify the friend that the current user read the message
     this.server.to(data.friendId).emit('message_read', { by: userId });
   }

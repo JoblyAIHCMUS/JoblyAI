@@ -33,11 +33,15 @@ export function ConversationSidebar({
     onSelectConversation(conversation);
     // Mark conversation as read via WebSocket
     if (socket?.connected) {
-      socket.emit('mark_read', { friendId: conversation.participantId }, (response: unknown) => {
-        if (response) {
-          console.debug('Chat marked as read via WebSocket', response);
+      socket.emit(
+        'mark_read',
+        { friendId: conversation.participantId },
+        (response: unknown) => {
+          if (response) {
+            console.debug('Chat marked as read via WebSocket', response);
+          }
         }
-      });
+      );
     } else {
       console.warn('WebSocket not connected, cannot mark chat as read');
     }

@@ -19,23 +19,24 @@ interface UseUnreadMessagesDotReturn {
  */
 export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
   const { data: user } = useUser();
-  const { fetchChatSummary, loading, error, data: chatSummaries } =
-    useGetChatSummary();
+  const {
+    fetchChatSummary,
+    loading,
+    error,
+    data: chatSummaries,
+  } = useGetChatSummary();
   const { onNewMessage, onMessageRead } = useMessagesSocket();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   // Compute unread status from chat summaries
-  const computeUnreadStatus = useCallback(
-    (summaries: typeof chatSummaries) => {
-      if (!summaries || summaries.length === 0) {
-        setHasUnreadMessages(false);
-        return;
-      }
-      const hasUnread = summaries.some((chat) => chat.hasUnread);
-      setHasUnreadMessages(hasUnread);
-    },
-    []
-  );
+  const computeUnreadStatus = useCallback((summaries: typeof chatSummaries) => {
+    if (!summaries || summaries.length === 0) {
+      setHasUnreadMessages(false);
+      return;
+    }
+    const hasUnread = summaries.some((chat) => chat.hasUnread);
+    setHasUnreadMessages(hasUnread);
+  }, []);
 
   // Initial load: fetch chat summary on mount
   useEffect(() => {
