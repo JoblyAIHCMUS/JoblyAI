@@ -12,6 +12,7 @@ import {
 } from './components';
 import UpdateEmailForm from './components/UpdateEmailForm';
 import ChangePasswordForm from './components/ChangePasswordForm';
+import { NotificationOptions } from './components/NotificationOptions';
 
 type AccountType = 'job_seeker' | 'employer';
 
@@ -87,6 +88,17 @@ export default function CandidateSettingsPage() {
     }
   };
 
+  // Notification state
+  const [notifications, setNotifications] = useState({
+    applications: true,
+    jobs: false,
+    recommendations: false,
+  });
+
+  const handleNotificationChange = (key: keyof typeof notifications) => {
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="min-h-screen bg-primary">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -102,7 +114,9 @@ export default function CandidateSettingsPage() {
         {/* My Profile Tab Content */}
         <TabsContent
           value="my-profile"
-          className="self-stretch px-8 pt-6 pb-8 bg-primary flex flex-col justify-start items-end gap-6"
+          className={`self-stretch bg-primary flex flex-col justify-start items-end gap-6 !mt-0${
+            activeTab === 'my-profile' ? ' px-8 pt-6 pb-8' : ''
+          }`}
         >
           {/* Section Header */}
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
@@ -163,7 +177,9 @@ export default function CandidateSettingsPage() {
         {/* Login Details Tab Content */}
         <TabsContent
           value="login-details"
-          className="w-full min-h-[100%] px-8 pt-6 pb-8 flex flex-col items-end gap-6 bg-primary"
+          className={`w-full min-h-[100%] flex flex-col items-end gap-6 bg-primary !mt-0${
+            activeTab === 'login-details' ? ' px-8 pt-6 pb-8' : ''
+          }`}
         >
           {/* Section Header */}
           <div className="self-stretch flex flex-col items-start gap-1">
@@ -229,11 +245,35 @@ export default function CandidateSettingsPage() {
         {/* System Settings Tab Content */}
         <TabsContent
           value="system-settings"
-          className="self-stretch px-8 py-8 inline-flex flex-col justify-start items-start gap-6"
+          className={`self-stretch flex flex-col gap-6 bg-[var(--bg-primary,white)] !mt-0${
+            activeTab === 'system-settings' ? ' px-8 pt-6 pb-8' : ''
+          }`}
         >
-          <div className="text-center text-secondary">
-            <p>System settings coming soon...</p>
+          {/* Section Header */}
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[20px] leading-6 font-['Lexend_Deca'] font-semibold text-primary">
+              Basic Information
+            </h2>
+            <p className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+              This is notifications preferences that you can update anytime.
+            </p>
           </div>
+
+          {/* Divider */}
+          <hr
+            className="self-stretch"
+            style={{
+              borderColor: 'var(--border-primary, #CBD5E1)',
+              borderWidth: 1,
+              outlineOffset: '-0.5px',
+            }}
+          />
+
+          {/* Notifications Section */}
+          <NotificationOptions
+            notifications={notifications}
+            onChange={handleNotificationChange}
+          />
         </TabsContent>
       </Tabs>
     </div>

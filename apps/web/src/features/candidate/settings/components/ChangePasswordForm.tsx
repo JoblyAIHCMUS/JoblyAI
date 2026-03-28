@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormField } from './FormField';
@@ -12,7 +13,9 @@ export default function ChangePasswordForm() {
   const [success, setSuccess] = useState('');
 
   const validatePassword = (pw: string) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(pw);
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
+      pw
+    );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +32,9 @@ export default function ChangePasswordForm() {
       setNewError('New password is required');
       valid = false;
     } else if (!validatePassword(newPassword)) {
-      setNewError('Password must be at least 8 characters, include upper, lower, number, special character');
+      setNewError(
+        'Password must be at least 8 characters, include upper, lower, number, special character'
+      );
       valid = false;
     }
     if (!confirmPassword.trim()) {
@@ -48,7 +53,10 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form className="flex flex-col gap-6 w-full max-w-[540px]" onSubmit={handleSubmit}>
+    <form
+      className="flex flex-col gap-6 w-full max-w-[540px]"
+      onSubmit={handleSubmit}
+    >
       <FormField
         label="Old Password"
         type="password"
@@ -80,7 +88,12 @@ export default function ChangePasswordForm() {
         width="full"
       />
       {success && <span className="text-sm text-green-600">{success}</span>}
-      <Button type="submit" className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']">Change Password</Button>
+      <Button
+        type="submit"
+        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']"
+      >
+        Change Password
+      </Button>
     </form>
   );
 }
