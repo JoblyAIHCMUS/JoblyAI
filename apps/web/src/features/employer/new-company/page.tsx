@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
 import { useUploadFile } from '@/api-hook/s3/useUploadFile';
@@ -18,6 +19,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
 import { getCurrentUser, type TeamMember } from './data';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
+import { useCreateCompany } from '@/api-hook/company';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   if (!html) return true;
@@ -57,6 +59,20 @@ export default function EmployerNewCompanyPage() {
     { ...getCurrentUser(), isEditable: true },
   ]);
 
+  // Company creation hook
+  const {
+    submitCompany,
+    loading: creatingCompany,
+    error: createError,
+  } = useCreateCompany({
+    onSuccess: (data) => {
+      alert(`Company "${data.name}" registered successfully!`);
+    },
+    onError: (err) => {
+      alert('Failed to register company. Please try again.');
+    },
+  });
+
   const handleRoleChange = (email: string, newRole: string) => {
     setTeamMembers((prev) =>
       prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
@@ -70,22 +86,21 @@ export default function EmployerNewCompanyPage() {
     });
   };
 
-  const handleComplete = () => {
-    const companyData = {
-      companyName,
-      website,
-      scale,
-      industry,
-      companyDescription,
-      logoUrl,
-      teamMembers: teamMembers.map(({ firstName, lastName, email, role }) => ({
-        name: `${firstName} ${lastName}`,
-        email,
-        role,
-      })),
+  const handleComplete = async () => {
+    // Prepare payload for backend
+    const payload = {
+      name: companyName,
+      websiteUrl: website || undefined,
+      sizeRange: scale || undefined,
+      industry: industry || undefined,
+      description: companyDescription || undefined,
+      logoUrl: logoUrl || undefined, // S3 url
     };
-    console.log('Company registered:', companyData);
-    alert(`Company "${companyName}" registered successfully!`);
+    try {
+      await submitCompany(payload);
+    } catch {
+      // Error handled in onError
+    }
   };
 
   const canProceed = (stepIndex: number): boolean => {
@@ -107,6 +122,15 @@ export default function EmployerNewCompanyPage() {
       <p className="body-body-1-regular text-slate-600 mb-10">
         Company details can be updated at any time after registration.
       </p>
+      {creatingCompany && (
+        <div className="text-blue-600 mb-4">Registering company...</div>
+      )}
+      {(createError as string) && (
+        <div className="text-red-600 mb-4">
+          Failed to register company.{' '}
+          {typeof createError === 'string' ? createError : ''}
+        </div>
+      )}
       <Stepper
         steps={NEW_COMPANY_STEPS}
         canProceed={canProceed}
