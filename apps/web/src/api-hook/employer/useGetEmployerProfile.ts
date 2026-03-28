@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { getEmployerProfile, type EmployerProfileResponse } from '@/api-client/employer';
+import {
+  getEmployerProfile,
+  type EmployerProfileResponse,
+} from '@/api-client/employer';
 
 interface UseGetEmployerProfileOptions {
   onSuccess?: (data: EmployerProfileResponse) => void;

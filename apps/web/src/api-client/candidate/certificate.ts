@@ -37,7 +37,9 @@ export async function updateCertificate(
   return response.data;
 }
 
-export async function deleteCertificate(certificateId: number): Promise<string> {
+export async function deleteCertificate(
+  certificateId: number
+): Promise<string> {
   const response = await axios.delete<string>(
     `${API_BASE_URL}/api/candidate/me/certification/${certificateId}`,
     {
