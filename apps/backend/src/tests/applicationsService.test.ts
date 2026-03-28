@@ -718,4 +718,94 @@ describe('ApplicationsService', () => {
       );
     });
   });
+
+  describe('moveToOfferApplication', () => {
+    it('should move application from INTERVIEW to OFFER successfully', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      const offerApp = createMockApplication({
+        status: 'OFFER' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(offerApp);
+
+      const result = await service.moveToOfferApplication('employer-123', 1);
+
+      expect(result.status).toBe('OFFER');
+      expect(mockPrisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({
+            status: 'OFFER',
+          }),
+        })
+      );
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 999)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if job belongs to another employer', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      mockApp.job.postedById = 'another-employer';
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 1)
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if status is APPLIED', async () => {
+      const mockApp = createMockApplication({
+        status: 'APPLIED' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if status is OFFER', async () => {
+      const mockApp = createMockApplication({
+        status: 'OFFER' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if status is REJECTED', async () => {
+      const mockApp = createMockApplication({
+        status: 'REJECTED' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if status is WITHDRAWN', async () => {
+      const mockApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.moveToOfferApplication('employer-123', 1)
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });
