@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Conversation, Message } from './types';
 import { MessageBubble } from './MessageBubble';
 import { useChatHistory } from '@/api-hook/messages';
+import { isNewDate, getDateLabel } from './utils';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -63,7 +64,32 @@ export function ChatWindow({
             minute: '2-digit',
           }),
         }));
-        onLoadMessages(transformedMessages);
+
+        // Ensure messages are in ascending order (oldest first)
+        const sortedMessages = transformedMessages.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        // Add date separators between messages from different days
+        const messagesWithSeparators = sortedMessages.map((msg, index) => {
+          const prevMsg = index > 0 ? sortedMessages[index - 1] : null;
+          const showDateSeparator = isNewDate(
+            prevMsg ? new Date(prevMsg.timestamp) : null,
+            new Date(msg.timestamp)
+          );
+
+          return {
+            ...msg,
+            showDateSeparator,
+            dateLabel: showDateSeparator
+              ? getDateLabel(new Date(msg.timestamp))
+              : undefined,
+          };
+        });
+
+        // Reverse for display (newest at bottom)
+        onLoadMessages(messagesWithSeparators.reverse());
       } catch (error) {
         console.error('Error loading message history:', error);
       }
