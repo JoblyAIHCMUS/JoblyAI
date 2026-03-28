@@ -31,7 +31,7 @@ type NavItem = {
   title: string;
   href: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  badge?: string;
+  badge?: boolean;
   destructive?: boolean;
 };
 
@@ -41,7 +41,7 @@ const mainNav: NavItem[] = [
     title: 'Messages',
     href: '/candidate/messages',
     icon: MessageSquareText,
-    badge: '1',
+    badge: true,
   },
   {
     title: 'My Applications',
@@ -123,9 +123,7 @@ function CandidateSidebarItem({
               {item.title}
             </span>
             {item.badge ? (
-              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#4640de] px-1.5 text-[11px] font-semibold text-white group-data-[collapsible=icon]:hidden">
-                {item.badge}
-              </span>
+              <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
             ) : null}
           </span>
         </Link>

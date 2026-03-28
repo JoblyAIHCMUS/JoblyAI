@@ -44,7 +44,7 @@ const navMain = [
     title: 'Messages',
     url: '/employer/messages',
     icon: MessageSquare,
-    badge: '1',
+    badge: true,
   },
   {
     title: 'Company Profile',
@@ -149,9 +149,7 @@ export function EmployerSidebar() {
                         {item.title}
                       </span>
                       {item.badge && (
-                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--icon-accent-primary)] text-xs font-semibold text-[color:var(--icon-white)] group-data-[collapsible=icon]:hidden">
-                          {item.badge}
-                        </span>
+                        <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[color:var(--icon-accent-primary)] group-data-[collapsible=icon]:hidden" />
                       )}
                     </Link>
                   </SidebarMenuButton>
