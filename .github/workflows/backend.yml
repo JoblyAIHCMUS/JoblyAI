@@ -104,7 +104,7 @@ jobs:
       - name: Start backend with Docker Compose
         run: |
           cp apps/backend/.env.example apps/backend/.env
-          docker compose -f docker-compose.yml up -d postgres redis backend
+          docker compose up -d postgres redis backend
           echo "Waiting for services to initialize..."
           sleep 5
           echo "=== Docker Compose Status ==="
