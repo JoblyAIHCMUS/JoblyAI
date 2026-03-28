@@ -16,14 +16,24 @@ const CandidateProfilePage = () => {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetchCandidateProfile().then(setProfile).catch(() => {});
+    fetchCandidateProfile()
+      .then(setProfile)
+      .catch(() => {});
   }, []);
 
   if (loading || !profile) {
-    return <div className="w-full min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
   if (error) {
-    return <div className="w-full min-h-screen flex items-center justify-center text-red-500">Error loading profile.</div>;
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center text-red-500">
+        Error loading profile.
+      </div>
+    );
   }
 
   // Map API data to UI props
