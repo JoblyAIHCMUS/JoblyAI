@@ -52,10 +52,10 @@ export default function CandidateMessagesPage() {
 
         setConversations(transformedConversations);
 
-        // Select first conversation by default if available
-        if (transformedConversations.length > 0 && !selectedConversation) {
-          setSelectedConversation(transformedConversations[0]);
-        }
+        // Select first conversation by default if available and none is selected
+        setSelectedConversation(
+          (prev) => prev || transformedConversations[0] || null
+        );
       } catch (error) {
         console.error('Error fetching conversations:', error);
       } finally {
@@ -64,7 +64,7 @@ export default function CandidateMessagesPage() {
     };
 
     getConversations();
-  }, [currentUser?.id, selectedConversation, fetchChatSummary]);
+  }, [currentUser?.id, fetchChatSummary]);
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
