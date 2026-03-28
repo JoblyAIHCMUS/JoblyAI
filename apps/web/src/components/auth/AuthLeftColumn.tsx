@@ -6,7 +6,8 @@ export function AuthLeftColumn() {
     <div
       className="flex flex-col items-start justify-between rounded-xl bg-cover bg-center bg-no-repeat px-8 py-12 h-full"
       style={{
-        backgroundImage: 'url(/auth-image.jpg)',
+        backgroundImage:
+          'url(https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/auth-image.jpg)',
       }}
     >
       {/* Stats Section */}
@@ -29,7 +30,7 @@ export function AuthLeftColumn() {
           <div className="mb-4 flex items-center gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage
-                src="/auth-avatar.jpg"
+                src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/auth-avatar.jpg"
                 alt="Courtney Miller"
                 className="object-cover"
               />
