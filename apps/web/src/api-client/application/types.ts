@@ -9,7 +9,7 @@ export interface ApplicationJob {
   id: number;
   title: string;
   description: string;
-  companyName: string | null;
+  name: string | null;
   location: string | null;
   salaryMin: number | null;
   salaryMax: number | null;
