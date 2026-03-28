@@ -11,6 +11,7 @@ import { UserModule } from './user/user.module';
 import { EmployerModule } from './employer/employer.module';
 import { S3Module } from './s3/s3.module';
 import { MessagesModule } from './messages/messages.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MessagesModule } from './messages/messages.module';
     UserModule,
     S3Module,
     MessagesModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
