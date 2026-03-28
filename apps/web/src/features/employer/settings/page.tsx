@@ -195,7 +195,7 @@ export default function EmployerSettingsPage() {
           <hr className="self-stretch border-primary" />
 
           {/* Update Email Section */}
-          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col gap-6">
+          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col">
             {/* Left: Title & Desc */}
             <div className="flex flex-col gap-1">
               <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
@@ -213,7 +213,7 @@ export default function EmployerSettingsPage() {
           <hr className="self-stretch border-primary" />
 
           {/* Change Password Section */}
-          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col gap-6 sm:flex-col">
+          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
             {/* Left: Title & Desc */}
             <div className="flex flex-col gap-1">
               <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
