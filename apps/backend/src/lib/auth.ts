@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin } from 'better-auth/plugins';
+import { emailOTP } from 'better-auth/plugins';
 import { prisma, redis } from './db';
 import {
   admin as adminRole,
@@ -8,6 +9,8 @@ import {
   employer,
   superAdmin,
 } from './permission';
+import { transporter } from './mailingService';
+import nodemailer from 'nodemailer';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -78,6 +81,34 @@ export const auth = betterAuth({
         employer,
         admin: adminRole,
         superAdmin,
+      },
+    }),
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        if (type === 'forget-password') {
+          try {
+            const info = await transporter.sendMail({
+              from: 'noreply@JoblyAI.com',
+              to: email,
+              subject: 'Your Password Reset Code',
+              text: `Your password reset code is: ${otp}`,
+              html: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                  <h2>Password Reset</h2>
+                  <p>Your one-time passcode is:</p>
+                  <h1 style="letter-spacing: 5px; color: #007bff;">${otp}</h1>
+                  <p>Enter this code on the verification page to reset your password.</p>
+                </div>
+              `,
+            });
+            console.log('\n========================================');
+            console.log('MOCK EMAIL SENT');
+            console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+            console.log('========================================\n');
+          } catch (e) {
+            console.error('ERROR: Failed to send Ethereal email:', e);
+          }
+        }
       },
     }),
   ],
