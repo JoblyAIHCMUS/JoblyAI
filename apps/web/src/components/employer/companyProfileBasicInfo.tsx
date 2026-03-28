@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Users, Building2 } from 'lucide-react';
 import {
   SCALE_LABELS,
@@ -76,9 +77,11 @@ export function CompanyProfileBasicInfo({
         </div>
       </div>
       <div className="flex items-center justify-end">
-        <Button variant="outline" className="gap-2">
-          <span>Profile Settings</span>
-        </Button>
+        <Link href="/employer/company-profile/edit" passHref>
+          <Button asChild variant="outline" className="gap-2">
+            <span>Profile Settings</span>
+          </Button>
+        </Link>
       </div>
     </div>
   );
