@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCreateJob } from '@/api-hook/useCreateJob';
+import { useCreateJob } from '@/api-hook/jobs';
 import { useSkillIds } from '@/api-hook/useSkillIds';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import {
   SkillTagsManager,
   type SkillEntry,
+  type SkillImportance,
 } from '@/components/employer/skillTagsManager';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
@@ -23,6 +24,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
 import { useCompany } from '@/hooks/useCompany';
+import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
@@ -67,10 +69,20 @@ const isHtmlContentEmpty = (html: string): boolean => {
   return text === '';
 };
 
+// Helper to convert SkillImportance to RequirementImportance
+const convertToRequirementImportance = (
+  importance: SkillImportance
+): RequirementImportance => {
+  if (importance === 'OPTIONAL') {
+    return 'NICE_TO_HAVE';
+  }
+  return importance as RequirementImportance;
+};
+
 export default function EmployerNewJobPage() {
   const { selectedCompany } = useCompany();
   const router = useRouter();
-  const { createJob, loading, error } = useCreateJob({
+  const { submitJob, loading, error } = useCreateJob({
     onSuccess: () => {
       alert('Job posted successfully!');
       router.push('/employer/job-listing');
@@ -116,7 +128,7 @@ export default function EmployerNewJobPage() {
           );
           return {
             skillId: skillObj ? skillObj.id : 0, // fallback 0 if not found (should not happen)
-            importance: s.importance,
+            importance: convertToRequirementImportance(s.importance),
             minYearsExperience: s.minYearsExperience,
           };
         });
@@ -124,7 +136,7 @@ export default function EmployerNewJobPage() {
       const payload = {
         title,
         description,
-        type,
+        type: type ? (type as EmploymentType) : undefined,
         remote,
         location: remote ? undefined : location,
         categoryId: Number(categoryId),
@@ -134,8 +146,8 @@ export default function EmployerNewJobPage() {
         companyName: selectedCompany?.name,
         requirements,
       };
-      await createJob(payload);
-    } catch (e) {
+      await submitJob(payload);
+    } catch {
       // Error handled in hook
     }
   };

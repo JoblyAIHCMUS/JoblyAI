@@ -1,9 +1,16 @@
 'use client';
 
+import { CompanyProfileBasicInfo } from '@/components/employer/companyProfileBasicInfo';
+import { mockCompanyProfile } from './data';
+import { Separator } from '@/components/ui/separator';
+import { CompanyProfileAbout } from '@/components/employer/companyProfileAbout';
+
 export default function EmployerCompanyProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Company Profile</h1>
+      <CompanyProfileBasicInfo {...mockCompanyProfile} />
+      <Separator className="my-8" />
+      <CompanyProfileAbout description={mockCompanyProfile.description} />
     </div>
   );
 }

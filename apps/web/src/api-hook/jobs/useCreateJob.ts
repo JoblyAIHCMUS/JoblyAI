@@ -1,19 +1,25 @@
 import { useState } from 'react';
-import { createJobPosting, CreateJobPayload } from '@/api-client/jobsAPI';
-
-type CreateJobResult = Awaited<ReturnType<typeof createJobPosting>>;
+import {
+  CreateJobPayload,
+  JobPosting,
+  createJobPosting,
+} from '@/api-client/jobs';
 
 interface UseCreateJobOptions {
-  onSuccess?: (data: CreateJobResult) => void;
+  onSuccess?: (data: JobPosting) => void;
   onError?: (error: unknown) => void;
 }
 
+/**
+ * Hook for creating a new job posting
+ * Requires authentication with employer role
+ */
 export function useCreateJob(options?: UseCreateJobOptions) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
-  const [data, setData] = useState<CreateJobResult | null>(null);
+  const [data, setData] = useState<JobPosting | null>(null);
 
-  const createJob = async (payload: CreateJobPayload) => {
+  const submitJob = async (payload: CreateJobPayload) => {
     setLoading(true);
     setError(null);
     try {
@@ -30,5 +36,5 @@ export function useCreateJob(options?: UseCreateJobOptions) {
     }
   };
 
-  return { createJob, loading, error, data };
+  return { submitJob, loading, error, data };
 }

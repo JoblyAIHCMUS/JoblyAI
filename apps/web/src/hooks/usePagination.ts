@@ -1,23 +1,69 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-export function usePagination(totalPages = 33) {
-  const [currentPage, setCurrentPage] = useState(1);
+// Hàm tạo mảng số trang cho pagination, có thể test riêng
+export function getPaginationPages(
+  currentPage: number,
+  totalPages: number,
+  siblingCount = 1
+) {
+  const totalNumbers = siblingCount * 2 + 5; // 5: first, last, current, 2 ellipsis
 
-  const middlePages = useMemo(() => [2, 3, 4, 5], []);
+  if (totalPages <= totalNumbers) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(currentPage - siblingCount, 1);
+  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
+
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < totalPages - 1;
+
+  const pages: (number | string)[] = [];
+
+  pages.push(1);
+
+  if (showLeftEllipsis) {
+    pages.push('...');
+  }
+
+  const left = showLeftEllipsis ? leftSibling : 2;
+  const right = showRightEllipsis ? rightSibling : totalPages - 1;
+
+  for (let i = left; i <= right; i++) {
+    pages.push(i);
+  }
+
+  if (showRightEllipsis) {
+    pages.push('...');
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+}
+
+export function usePagination(
+  currentPage: number,
+  setCurrentPage: (page: number) => void,
+  totalPages: number,
+  siblingCount = 1
+) {
+  // Dynamic pages array for pagination UI
+  const pages = useMemo(
+    () => getPaginationPages(currentPage, totalPages, siblingCount),
+    [currentPage, totalPages, siblingCount]
+  );
 
   const goPrev = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
+    setCurrentPage(Math.max(1, currentPage - 1));
   };
 
   const goNext = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
   };
 
   return {
-    currentPage,
-    middlePages,
-    totalPages,
-    setCurrentPage,
+    pages,
     goPrev,
     goNext,
   };

@@ -1,45 +1,20 @@
-import { apiClient } from '@/lib/api';
+import axios from 'axios';
+import { ChatSummary, ChatMessage } from '@/api-client/messages/types';
 
-export interface ChatSummary {
-  chatId: string;
-  participantId: string;
-  participantName: string | null;
-  participantRole: string | null;
-  participantAvatar: string | null;
-  latestMessage: string | null;
-  hasUnread: boolean;
-  lastMessageAt: Date;
-  isActive: boolean;
-}
-
-export interface ChatMessage {
-  messageId: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar: string;
-  content: string;
-  timestamp: Date;
-  isOwn: boolean; // Whether the message is from the current user
-}
-
-export interface SendMessageRequest {
-  recipientId: string;
-  text: string;
-}
-
-export interface SendMessageResponse {
-  success: boolean;
-  message?: ChatMessage;
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Fetch conversations summary for the current user
  */
 export async function getChatSummary(userId: string): Promise<ChatSummary[]> {
   try {
-    const response = await apiClient.get(`/chats/summary`, {
-      params: { userId },
-    });
+    const response = await axios.get<ChatSummary[]>(
+      `${API_BASE_URL}/api/chats/summary`,
+      {
+        params: { userId },
+        withCredentials: true,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching chat summary:', error);
@@ -55,9 +30,13 @@ export async function getChatHistory(
   limit = 50
 ): Promise<ChatMessage[]> {
   try {
-    const response = await apiClient.get(`/chats/history/${friendId}`, {
-      params: { limit },
-    });
+    const response = await axios.get<{ messages: ChatMessage[] }>(
+      `${API_BASE_URL}/api/chats/history/${friendId}`,
+      {
+        params: { limit },
+        withCredentials: true,
+      }
+    );
     return response.data.messages || [];
   } catch (error) {
     console.error('Error fetching chat history:', error);
@@ -70,7 +49,9 @@ export async function getChatHistory(
  */
 export async function markChatRead(friendId: string): Promise<void> {
   try {
-    await apiClient.post(`/chats/read/${friendId}`);
+    await axios.post(`${API_BASE_URL}/api/chats/read/${friendId}`, undefined, {
+      withCredentials: true,
+    });
   } catch (error) {
     console.error('Error marking chat as read:', error);
     throw error;
@@ -82,7 +63,9 @@ export async function markChatRead(friendId: string): Promise<void> {
  */
 export async function initConversation(friendId: string): Promise<void> {
   try {
-    await apiClient.post(`/chats/init/${friendId}`);
+    await axios.post(`${API_BASE_URL}/api/chats/init/${friendId}`, undefined, {
+      withCredentials: true,
+    });
   } catch (error) {
     console.error('Error initializing conversation:', error);
     throw error;

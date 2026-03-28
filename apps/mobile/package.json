@@ -5,7 +5,8 @@
   "scripts": {
     "start": "react-native start",
     "run-android": "node ../../node_modules/react-native/cli.js run-android",
-    "run-ios": "node ../../node_modules/react-native/cli.js run-ios"
+    "run-ios": "node ../../node_modules/react-native/cli.js run-ios",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@react-native/metro-config": "*",

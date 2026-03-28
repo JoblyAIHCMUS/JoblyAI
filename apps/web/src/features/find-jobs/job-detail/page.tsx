@@ -1,11 +1,8 @@
 'use client';
-
-import Header from '@/components/landing/Header';
 import JobDetailHeader from '@/components/job-detail/JobDetailHeader';
 import JobDetailContent from '@/components/job-detail/JobDetailContent';
 import JobCompanySection from '@/components/job-detail/JobCompanySection';
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
-import Footer from '@/components/landing/Footer';
 import { useJobDetail } from '@/hooks/useJobDetail';
 
 export default function JobDetailPage() {
@@ -24,7 +21,6 @@ export default function JobDetailPage() {
 
   return (
     <div className="w-full bg-white">
-      <Header />
       <JobDetailHeader
         breadcrumbItems={breadcrumbItems}
         jobTitle={jobName}
@@ -43,7 +39,6 @@ export default function JobDetailPage() {
         companyUrl={companyPageUrl}
       />
       <JobDetailSimilarJobs />
-      <Footer />
     </div>
   );
 }

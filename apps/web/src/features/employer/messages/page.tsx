@@ -6,15 +6,13 @@ import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
 import { Conversation, Message } from './types';
-import {
-  getChatSummary,
-  ChatSummary,
-  ChatMessage,
-} from '@/services/messagesService';
+import { ChatSummary } from '@/api-client/messages';
+import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
   const { sendMessage, onNewMessage } = useMessagesSocket();
+  const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
@@ -24,12 +22,12 @@ export default function EmployerMessagesPage() {
 
   // Fetch conversations on component mount
   useEffect(() => {
-    const fetchConversations = async () => {
+    const getConversations = async () => {
       if (!currentUser?.id) return;
 
       setConversationsLoading(true);
       try {
-        const summaries = await getChatSummary(currentUser.id);
+        const summaries = await fetchChatSummary(currentUser.id);
 
         // Transform backend response to frontend Conversation type
         const transformedConversations: Conversation[] = summaries.map(
@@ -65,22 +63,28 @@ export default function EmployerMessagesPage() {
       }
     };
 
-    fetchConversations();
-  }, [currentUser?.id, selectedConversation]);
+    getConversations();
+  }, [currentUser?.id, selectedConversation, fetchChatSummary]);
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
-    onNewMessage((message: ChatMessage) => {
+    onNewMessage((message) => {
       // Only add message if it's from the current conversation
       if (
         selectedConversation &&
         message.senderId === selectedConversation.participantId
       ) {
         const newMessage: Message = {
-          messageId: message.messageId,
+          messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: message.senderName,
-          senderAvatar: message.senderAvatar,
+          sender:
+            message.senderId === currentUser?.id
+              ? 'You'
+              : selectedConversation.name || 'User',
+          senderAvatar:
+            message.senderId === currentUser?.id
+              ? 'https://placehold.co/40x40'
+              : selectedConversation.avatar || 'https://placehold.co/40x40',
           isSent: message.senderId === currentUser?.id,
           content: message.content,
           timestamp: message.timestamp,

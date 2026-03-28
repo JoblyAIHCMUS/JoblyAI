@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ChatMessage, SendMessageRequest } from '@/services/messagesService';
+import { SocketChatMessage, SendMessageRequest } from '@/api-client/messages';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -27,7 +27,7 @@ export interface UseMessagesSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
   sendMessage: (recipientId: string, text: string) => void;
-  onNewMessage: (callback: (message: ChatMessage) => void) => void;
+  onNewMessage: (callback: (message: SocketChatMessage) => void) => void;
   onMessageRead: (callback: (friendId: string) => void) => void;
 }
 
@@ -39,9 +39,9 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
   const socketRef = useRef<Socket | null>(null);
   const initializedRef = useRef(false);
   const [isConnected, setIsConnected] = useState(false);
-  const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(
-    null
-  );
+  const messageCallbackRef = useRef<
+    ((message: SocketChatMessage) => void) | null
+  >(null);
   const readCallbackRef = useRef<((friendId: string) => void) | null>(null);
   const mountedRef = useRef(true);
 
@@ -116,7 +116,7 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
       });
 
       // Listen for new messages
-      socket.on('new_message', (message: ChatMessage) => {
+      socket.on('new_message', (message: SocketChatMessage) => {
         logDebug.info('New message received', {
           senderId: message.senderId,
           contentLength: message.content?.length,
@@ -198,7 +198,7 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
 
   // Register callback for new messages
   const onNewMessage = useCallback(
-    (callback: (message: ChatMessage) => void) => {
+    (callback: (message: SocketChatMessage) => void) => {
       messageCallbackRef.current = callback;
     },
     []

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
-
 import { cn } from '@/lib/utils';
 import { Providers } from './providers';
 import './global.css';
 import './style.css';
+import ClientLayout from './ClientLayout';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         )}
       >
         <Providers>
-          <main className="min-h-screen">{children}</main>
+          <ClientLayout>{children}</ClientLayout>
         </Providers>
       </body>
     </html>
