@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+// useState import removed (duplicate)
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,11 @@ import {
   SCALES,
   INDUSTRIES,
 } from '../../new-company/constants';
-import { mockCompanyProfile } from '../data';
+
+import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
+import { useGetCompany } from '@/api-hook/company/useGetCompany';
+import { useEffect, useState } from 'react';
+import { useUpdateCompany } from '@/api-hook/company';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   if (!html) return true;
@@ -44,26 +48,73 @@ const isHtmlContentEmpty = (html: string): boolean => {
 
 export default function EmployerCompanyProfileEditPage() {
   const router = useRouter();
-  const [companyName, setCompanyName] = useState(mockCompanyProfile.name || '');
-  const [website, setWebsite] = useState(mockCompanyProfile.websiteUrl || '');
-  const [scale, setScale] = useState(mockCompanyProfile.scale || '1-50');
-  const [industry, setIndustry] = useState(mockCompanyProfile.industry || '');
-  const [companyDescription, setCompanyDescription] = useState(
-    mockCompanyProfile.description || ''
-  );
-  const [logoUrl, setLogoUrl] = useState<string | null>(
-    mockCompanyProfile.logoUrl || null
-  );
+  const {
+    data: employer,
+    loading: loadingEmployer,
+    error: errorEmployer,
+    fetchEmployerProfile,
+  } = useGetEmployerProfile();
+  const [companyId, setCompanyId] = useState<number | null>(null);
+  const {
+    data: company,
+    loading: loadingCompany,
+    error: errorCompany,
+    fetchCompany,
+  } = useGetCompany();
+
+  // State for form fields, initialized after company is loaded
+  const [companyName, setCompanyName] = useState('');
+  const [website, setWebsite] = useState('');
+  const [scale, setScale] = useState('1-50');
+  const [industry, setIndustry] = useState('');
+  const [companyDescription, setCompanyDescription] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
   const {
     upload: uploadLogoToS3,
     loading: logoUploading,
     error: logoUploadError,
   } = useUploadFile();
-
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
     { ...getCurrentUser(), isEditable: true },
   ]);
+  const {
+    submitUpdate,
+    loading: updatingCompany,
+    error: updateError,
+  } = useUpdateCompany({
+    onSuccess: (data) => {
+      alert(`Company "${data.name}" updated successfully!`);
+      router.back();
+    },
+    onError: (err) => {
+      alert('Failed to update company. Please try again.');
+    },
+  });
+
+  // Fetch employer and company on mount
+  useEffect(() => {
+    fetchEmployerProfile();
+  }, []);
+
+  useEffect(() => {
+    if (employer?.company?.id) {
+      setCompanyId(employer.company.id);
+      fetchCompany(employer.company.id);
+    }
+  }, [employer]);
+
+  // Initialize form fields when company data is loaded
+  useEffect(() => {
+    if (company) {
+      setCompanyName(company.name || '');
+      setWebsite(company.websiteUrl || '');
+      setScale(company.sizeRange || '1-50');
+      setIndustry(company.industry || '');
+      setCompanyDescription(company.description || '');
+      setLogoUrl(company.logoUrl || null);
+    }
+  }, [company]);
 
   const handleRoleChange = (email: string, newRole: string) => {
     setTeamMembers((prev) =>
@@ -78,22 +129,22 @@ export default function EmployerCompanyProfileEditPage() {
     });
   };
 
-  const handleComplete = () => {
-    const companyData = {
-      companyName,
-      website,
-      scale,
-      industry,
-      companyDescription,
-      logoUrl,
-      teamMembers: teamMembers.map(({ firstName, lastName, email, role }) => ({
-        name: `${firstName} ${lastName}`,
-        email,
-        role,
-      })),
+  const handleComplete = async () => {
+    if (!companyId) return;
+    // Prepare payload for backend
+    const payload = {
+      name: companyName,
+      websiteUrl: website || undefined,
+      sizeRange: scale || undefined,
+      industry: industry || undefined,
+      description: companyDescription || undefined,
+      logoUrl: logoUrl || undefined, // S3 url
     };
-    console.log('Company updated:', companyData);
-    alert(`Company "${companyName}" updated successfully!`);
+    try {
+      await submitUpdate(companyId, payload);
+    } catch {
+      // Error handled in onError
+    }
   };
 
   const canProceed = (stepIndex: number): boolean => {
@@ -107,6 +158,31 @@ export default function EmployerCompanyProfileEditPage() {
     }
   };
 
+  if (loadingEmployer || (companyId && loadingCompany)) {
+    return <div className="container mx-auto px-4 py-10">Loading...</div>;
+  }
+  if (errorEmployer) {
+    return (
+      <div className="container mx-auto px-4 py-10 text-red-600">
+        Failed to load employer profile.
+      </div>
+    );
+  }
+  if (companyId && errorCompany) {
+    return (
+      <div className="container mx-auto px-4 py-10 text-red-600">
+        Failed to load company profile.
+      </div>
+    );
+  }
+  if (!company) {
+    return (
+      <div className="container mx-auto px-4 py-10">
+        No company profile found.
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="flex items-center gap-3 mb-2">
@@ -118,179 +194,195 @@ export default function EmployerCompanyProfileEditPage() {
       <p className="body-body-1-regular text-slate-600 mb-10">
         Company details can be updated at any time.
       </p>
+      {updatingCompany && (
+        <div className="text-blue-600 mb-4">Updating company...</div>
+      )}
+      {(updateError as string) && (
+        <div className="text-red-600 mb-4">
+          Failed to update company.{' '}
+          {typeof updateError === 'string' ? updateError : ''}
+        </div>
+      )}
       <Stepper
         steps={NEW_COMPANY_STEPS}
         canProceed={canProceed}
         onComplete={handleComplete}
       >
-        {/* Step 1: Basic Information */}
-        <div className="space-y-8 max-w-2xl mx-auto">
-          {/* Company logo */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label htmlFor="company-logo" className="label-label-1-semibold">
-                Company logo
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                One icon/image that represents your organization.
-              </p>
-            </div>
-            <div className="space-y-4">
-              {/* Old Logo Display */}
-              <div>
-                <Label className="label-label-1-semibold mb-1 block">
-                  Old Logo
-                </Label>
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt="Current company logo"
-                    className="h-[124px] w-[124px] object-cover rounded-[var(--radius-xl)] border border-gray-200"
-                  />
-                ) : (
-                  <div className="h-[124px] w-[124px] flex items-center justify-center bg-gray-100 rounded-[var(--radius-xl)] border border-gray-200 text-gray-400">
-                    No logo
-                  </div>
-                )}
-              </div>
-              {/* New Logo Uploader */}
-              <div>
-                <Label className="label-label-1-semibold mb-1 block">
-                  New Logo (optional)
-                </Label>
-                <LogoUploader
-                  currentFileKey={logoFileKey}
-                  onValueChange={(url, _file, fileKey) => {
-                    setLogoUrl(url || null);
-                    setLogoFileKey(fileKey || null);
-                  }}
-                  onUploadFile={async (file) => {
-                    const result = await uploadLogoToS3(file, 'logos');
-                    return { url: result.fileUrl, fileKey: result.fileKey };
-                  }}
-                />
-                {logoUploading && (
-                  <span className="text-xs text-blue-500 ml-2">
-                    Uploading logo...
-                  </span>
-                )}
-                {Boolean(logoUploadError) && (
-                  <span className="text-xs text-red-500 ml-2">
-                    Logo upload failed
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Company Details */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label className="label-label-1-semibold">Company Details</Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Introduce your company core info quickly to users by fill up
-                company details
-              </p>
-            </div>
-            <div className="space-y-6">
-              {/* Company Name */}
-              <div className="space-y-2">
+        <>
+          {/* Step 1: Basic Information */}
+          <div className="space-y-8 max-w-2xl mx-auto">
+            {/* Company logo */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
                 <Label
-                  htmlFor="company-name"
+                  htmlFor="company-logo"
                   className="label-label-1-semibold"
                 >
-                  Company Name <span className="text-red-500">*</span>
+                  Company logo
                 </Label>
-                <Input
-                  id="company-name"
-                  placeholder="e.g. Google LLC"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="h-12 text-base"
-                />
+                <p className="text-xs text-slate-500 mt-1">
+                  One icon/image that represents your organization.
+                </p>
               </div>
-
-              {/* Website */}
-              <div className="space-y-2">
-                <Label htmlFor="website" className="label-label-1-semibold">
-                  Website
-                </Label>
-                <Input
-                  id="website"
-                  placeholder="https://www.example.com"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="h-12 text-base"
-                />
-              </div>
-
-              {/* Scale & Industry */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="label-label-1-semibold">
-                    Scale <span className="text-red-500">*</span>
+              <div className="space-y-4">
+                {/* Old Logo Display */}
+                <div>
+                  <Label className="label-label-1-semibold mb-1 block">
+                    Old Logo
                   </Label>
-                  <Select value={scale} onValueChange={setScale}>
-                    <SelectTrigger className="h-12 text-base">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCALES.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Current company logo"
+                      className="h-[124px] w-[124px] object-cover rounded-[var(--radius-xl)] border border-gray-200"
+                    />
+                  ) : (
+                    <div className="h-[124px] w-[124px] flex items-center justify-center bg-gray-100 rounded-[var(--radius-xl)] border border-gray-200 text-gray-400">
+                      No logo
+                    </div>
+                  )}
+                </div>
+                {/* New Logo Uploader */}
+                <div>
+                  <Label className="label-label-1-semibold mb-1 block">
+                    New Logo (optional)
+                  </Label>
+                  <LogoUploader
+                    currentFileKey={logoFileKey}
+                    onValueChange={(url, _file, fileKey) => {
+                      setLogoUrl(url || null);
+                      setLogoFileKey(fileKey || null);
+                    }}
+                    onUploadFile={async (file) => {
+                      const result = await uploadLogoToS3(file, 'logos');
+                      return { url: result.fileUrl, fileKey: result.fileKey };
+                    }}
+                  />
+                  {logoUploading && (
+                    <span className="text-xs text-blue-500 ml-2">
+                      Uploading logo...
+                    </span>
+                  )}
+                  {Boolean(logoUploadError) && (
+                    <span className="text-xs text-red-500 ml-2">
+                      Logo upload failed
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Company Details */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label className="label-label-1-semibold">
+                  Company Details
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Introduce your company core info quickly to users by fill up
+                  company details
+                </p>
+              </div>
+              <div className="space-y-6">
+                {/* Company Name */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="company-name"
+                    className="label-label-1-semibold"
+                  >
+                    Company Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="company-name"
+                    placeholder="e.g. Google LLC"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="h-12 text-base"
+                  />
                 </div>
 
+                {/* Website */}
                 <div className="space-y-2">
-                  <Label className="label-label-1-semibold">
-                    Industry <span className="text-red-500">*</span>
+                  <Label htmlFor="website" className="label-label-1-semibold">
+                    Website
                   </Label>
-                  <Select value={industry} onValueChange={setIndustry}>
-                    <SelectTrigger className="h-12 text-base">
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INDUSTRIES.map((ind) => (
-                        <SelectItem key={ind.value} value={ind.value}>
-                          {ind.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="website"
+                    placeholder="https://www.example.com"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="h-12 text-base"
+                  />
+                </div>
+
+                {/* Scale & Industry */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="label-label-1-semibold">
+                      Scale <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={scale} onValueChange={setScale}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SCALES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="label-label-1-semibold">
+                      Industry <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={industry} onValueChange={setIndustry}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDUSTRIES.map((ind) => (
+                          <SelectItem key={ind.value} value={ind.value}>
+                            {ind.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Step 2: About Company */}
-        <div className="space-y-8 max-w-3xl mx-auto">
-          <div className="space-y-3">
-            <Label className="label-label-1-semibold">
-              About Company <span className="text-red-500">*</span>
-            </Label>
-            <RichTextEditor
-              content={companyDescription}
-              onChange={setCompanyDescription}
-              placeholder="Describe your company, its mission, values, and what makes it unique..."
-              className="min-h-[360px]"
+          {/* Step 2: About Company */}
+          <div className="space-y-8 max-w-3xl mx-auto">
+            <div className="space-y-3">
+              <Label className="label-label-1-semibold">
+                About Company <span className="text-red-500">*</span>
+              </Label>
+              <RichTextEditor
+                content={companyDescription}
+                onChange={setCompanyDescription}
+                placeholder="Describe your company, its mission, values, and what makes it unique..."
+                className="min-h-[360px]"
+              />
+            </div>
+          </div>
+
+          {/* Step 3: Team */}
+          <div className="space-y-8 max-w-3xl mx-auto">
+            <TeamManager
+              members={teamMembers}
+              onRoleChange={handleRoleChange}
+              onAddMember={handleAddMember}
             />
           </div>
-        </div>
-
-        {/* Step 3: Team */}
-        <div className="space-y-8 max-w-3xl mx-auto">
-          <TeamManager
-            members={teamMembers}
-            onRoleChange={handleRoleChange}
-            onAddMember={handleAddMember}
-          />
-        </div>
+        </>
       </Stepper>
     </div>
   );
