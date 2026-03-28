@@ -26,6 +26,7 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { useUnreadMessagesDot } from '@/hooks/useMessages';
 
 type NavItem = {
   title: string;
@@ -87,9 +88,11 @@ function BrandMark() {
 function CandidateSidebarItem({
   item,
   active,
+  hasUnreadMessages,
 }: {
   item: NavItem;
   active: boolean;
+  hasUnreadMessages?: boolean;
 }) {
   return (
     <SidebarMenuItem>
@@ -122,7 +125,11 @@ function CandidateSidebarItem({
             <span className="truncate group-data-[collapsible=icon]:hidden">
               {item.title}
             </span>
-            {item.badge ? (
+            {item.title === 'Messages' ? (
+              hasUnreadMessages && (
+                <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+              )
+            ) : item.badge ? (
               <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
             ) : null}
           </span>
@@ -134,6 +141,7 @@ function CandidateSidebarItem({
 
 export function CandidateSidebar() {
   const pathname = usePathname();
+  const { hasUnreadMessages } = useUnreadMessagesDot();
   const isActive = (url: string) =>
     pathname === url || pathname.startsWith(url + '/');
   return (
@@ -159,6 +167,7 @@ export function CandidateSidebar() {
                   key={item.title}
                   item={item}
                   active={isActive(item.href)}
+                  hasUnreadMessages={hasUnreadMessages}
                 />
               ))}
             </SidebarMenu>
@@ -174,6 +183,7 @@ export function CandidateSidebar() {
                   key={item.title}
                   item={item}
                   active={isActive(item.href)}
+                  hasUnreadMessages={hasUnreadMessages}
                 />
               ))}
             </SidebarMenu>
