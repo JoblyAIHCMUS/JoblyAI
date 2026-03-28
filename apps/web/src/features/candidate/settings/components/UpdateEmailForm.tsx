@@ -12,9 +12,8 @@ export default function UpdateEmailForm({ email }: UpdateEmailFormProps) {
   const [success, setSuccess] = useState('');
 
   const validateEmail = (email: string) =>
-    /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/.test(
-      email
-    );
+    /^[\w.-]+@[\w-]+\.[A-Za-z]{2,}$/.test(email);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
