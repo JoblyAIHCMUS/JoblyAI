@@ -30,6 +30,21 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
+    /* Design System Colors (Figma Tokens) */
+    --bg-primary: #ffffff;
+    --bg-accent-primary: #e7f0fa;
+    --text-primary: #25324b;
+    --text-secondary: #767676;
+    --text-tertiary: #a0a0a0;
+    --text-accent-primary: #0a65cc;
+    --text-white: #ffffff;
+    --border-primary: #d6ddeb;
+    --border-accent-primary: #a0d4ff;
+    --icon-primary: #25324b;
+    --icon-accent-primary: #0a65cc;
+    --icon-disabled-alt: #c5c5c5;
+    --shadow-primary: inset 0px -1px 0px 0px rgba(214, 221, 235, 1);
+
     /* Family (Base Tokens) */
     --family-primary: Lexend Deca;
     --family-secondary: Be Vietnam Pro;
@@ -100,24 +115,16 @@
     --slate-950: #020617;
 
     /* Text Color Aliases */
-    --text-primary: var(--slate-900);
-    --text-secondary: var(--slate-600);
-    --text-tertiary: var(--slate-500);
     --text-disabled: var(--slate-400);
     --text-placeholder: var(--slate-400);
-    --text-white: #ffffff;
 
     /* Background Color Aliases */
-    --bg-primary: #ffffff;
     --bg-secondary: var(--slate-50);
     --bg-tertiary: var(--slate-100);
-    --bg-accent-solid: var(--indigo-600);
-    --bg-accent-solid-hover: var(--indigo-700);
+    --bg-accent-solid: #0a65cc;
+    --bg-accent-solid-hover: #0852a3;
 
-    /* Border Color Aliases */
-    --border-primary: var(--slate-300);
-    --border-secondary: var(--slate-200);
-    --border-accent-primary: var(--indigo-500);
+    /* Sidebar Colors */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -126,6 +133,8 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Kanban Colors */
     --kanban-board-circle-blue: oklch(0.6232 0.1879 259.8);
     --kanban-board-circle-cyan: oklch(0.7146 0.1256 215.13);
     --kanban-board-circle-gray: oklch(0.5513 0.0233 264.36);
@@ -205,6 +214,17 @@
   }
   .theme {
     --kanban-board-circle-primary: var(--primary);
+  }
+
+  /* Hide default date picker calendar icon */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    display: none;
+    pointer-events: none;
+  }
+
+  input[type='date'] {
+    appearance: none;
+    -webkit-appearance: none;
   }
 }
 

@@ -69,6 +69,25 @@ const config: Config = {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        'icon-primary': 'var(--icon-primary)',
+        'icon-accent-primary': 'var(--icon-accent-primary)',
+        'icon-disabled-alt': 'var(--icon-disabled-alt)',
+      },
+      backgroundColor: {
+        primary: 'var(--bg-primary)',
+        'accent-primary': 'var(--bg-accent-primary)',
+        'accent-solid': 'var(--bg-accent-solid)',
+      },
+      textColor: {
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        tertiary: 'var(--text-tertiary)',
+        'accent-primary': 'var(--text-accent-primary)',
+        white: 'var(--text-white)',
+      },
+      borderColor: {
+        primary: 'var(--border-primary)',
+        'accent-primary': 'var(--border-accent-primary)',
       },
       borderRadius: {
         lg: 'var(--radius)',
