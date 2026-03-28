@@ -19,8 +19,8 @@ const mockJobDbRecord = vi.hoisted(() => ({
   createdAt: new Date(),
   updatedAt: new Date(),
   category: { id: 1, name: 'Engineering' },
-  company: { 
-    id: 1, 
+  company: {
+    id: 1,
     name: 'Tech Corp',
     websiteUrl: null,
     sizeRange: null,

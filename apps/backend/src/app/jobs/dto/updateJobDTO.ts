@@ -73,4 +73,3 @@ export class UpdateJobDTO {
   @Type(() => JobRequirementInput)
   requirements?: JobRequirementInput[];
 }
-
