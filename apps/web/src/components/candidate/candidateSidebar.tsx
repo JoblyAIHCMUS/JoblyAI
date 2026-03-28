@@ -26,12 +26,13 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { useUnreadMessagesDot } from '@/hooks/useMessages';
 
 type NavItem = {
   title: string;
   href: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  badge?: string;
+  badge?: boolean;
   destructive?: boolean;
 };
 
@@ -41,7 +42,7 @@ const mainNav: NavItem[] = [
     title: 'Messages',
     href: '/candidate/messages',
     icon: MessageSquareText,
-    badge: '1',
+    badge: true,
   },
   {
     title: 'My Applications',
@@ -87,9 +88,11 @@ function BrandMark() {
 function CandidateSidebarItem({
   item,
   active,
+  hasUnreadMessages,
 }: {
   item: NavItem;
   active: boolean;
+  hasUnreadMessages?: boolean;
 }) {
   return (
     <SidebarMenuItem>
@@ -122,10 +125,12 @@ function CandidateSidebarItem({
             <span className="truncate group-data-[collapsible=icon]:hidden">
               {item.title}
             </span>
-            {item.badge ? (
-              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#4640de] px-1.5 text-[11px] font-semibold text-white group-data-[collapsible=icon]:hidden">
-                {item.badge}
-              </span>
+            {item.title === 'Messages' ? (
+              hasUnreadMessages && (
+                <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+              )
+            ) : item.badge ? (
+              <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
             ) : null}
           </span>
         </Link>
@@ -136,6 +141,7 @@ function CandidateSidebarItem({
 
 export function CandidateSidebar() {
   const pathname = usePathname();
+  const { hasUnreadMessages } = useUnreadMessagesDot();
   const isActive = (url: string) =>
     pathname === url || pathname.startsWith(url + '/');
   return (
@@ -161,6 +167,7 @@ export function CandidateSidebar() {
                   key={item.title}
                   item={item}
                   active={isActive(item.href)}
+                  hasUnreadMessages={hasUnreadMessages}
                 />
               ))}
             </SidebarMenu>
@@ -176,6 +183,7 @@ export function CandidateSidebar() {
                   key={item.title}
                   item={item}
                   active={isActive(item.href)}
+                  hasUnreadMessages={hasUnreadMessages}
                 />
               ))}
             </SidebarMenu>

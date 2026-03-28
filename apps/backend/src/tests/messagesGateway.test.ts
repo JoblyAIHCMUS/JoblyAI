@@ -432,8 +432,8 @@ describe('MessagesGateway', () => {
       // Act
       await gateway.handleMarkRead(client as unknown as Socket, data);
 
-      // Assert
-      const emitCall = mockServer._emitMock.mock.calls[0];
+      // Assert - Check the emit to the friend (second emit call)
+      const emitCall = mockServer._emitMock.mock.calls[1];
       expect(emitCall[0]).toBe('message_read');
       expect(emitCall[1]).toEqual({ by: userId });
     });
@@ -492,8 +492,10 @@ describe('MessagesGateway', () => {
       expect(mockMessagesService.markAsRead).toHaveBeenCalled();
 
       // Verify both events were emitted
+      // First emit is from handleSendMessage: server.to(recipientId)
       expect(mockServer._toMock).toHaveBeenNthCalledWith(1, recipientId);
-      expect(mockServer._toMock).toHaveBeenNthCalledWith(2, senderId);
+      // Second and third emits are from handleMarkRead: server.to(recipientId) then server.to(senderId)
+      expect(mockServer._toMock).toHaveBeenNthCalledWith(3, senderId);
     });
   });
 });
