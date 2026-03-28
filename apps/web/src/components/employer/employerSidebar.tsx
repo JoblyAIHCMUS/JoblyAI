@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useUser } from '@/hooks/useUser';
 import { useLogout } from '@/hooks/useAuth';
+import { useUnreadMessagesDot } from '@/hooks/useMessages';
 
 // Icons (use lucide-react)
 import {
@@ -44,7 +45,7 @@ const navMain = [
     title: 'Messages',
     url: '/employer/messages',
     icon: MessageSquare,
-    badge: '1',
+    badge: true,
   },
   {
     title: 'Company Profile',
@@ -87,6 +88,7 @@ export function EmployerSidebar() {
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
   const { data: user } = useUser();
   const logout = useLogout();
+  const { hasUnreadMessages } = useUnreadMessagesDot();
 
   // Derive the actual collapsed state based on mobile vs desktop
   const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
@@ -129,6 +131,10 @@ export function EmployerSidebar() {
               const isActive =
                 pathname === item.url || pathname?.startsWith(`${item.url}/`);
 
+              // Determine if badge should show (for Messages, use dynamic unread state)
+              const shouldShowBadge =
+                item.title === 'Messages' ? hasUnreadMessages : item.badge;
+
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -148,10 +154,8 @@ export function EmployerSidebar() {
                       <span className="group-data-[collapsible=icon]:hidden">
                         {item.title}
                       </span>
-                      {item.badge && (
-                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--icon-accent-primary)] text-xs font-semibold text-[color:var(--icon-white)] group-data-[collapsible=icon]:hidden">
-                          {item.badge}
-                        </span>
+                      {shouldShowBadge && (
+                        <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[color:var(--icon-accent-primary)] group-data-[collapsible=icon]:hidden" />
                       )}
                     </Link>
                   </SidebarMenuButton>

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Conversation } from './types';
-import { useMarkChatRead } from '@/api-hook/messages';
+import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
@@ -22,20 +22,28 @@ export function ConversationSidebar({
   isLoading = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { markRead } = useMarkChatRead();
+  const { socket } = useMessagesSocket();
 
   const filteredConversations = conversations.filter(
     (conv) =>
       conv.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   );
 
-  const handleSelectConversation = async (conversation: Conversation) => {
+  const handleSelectConversation = (conversation: Conversation) => {
     onSelectConversation(conversation);
-    // Mark conversation as read
-    try {
-      await markRead(conversation.participantId);
-    } catch (error) {
-      console.error('Error marking chat as read:', error);
+    // Mark conversation as read via WebSocket
+    if (socket?.connected) {
+      socket.emit(
+        'mark_read',
+        { friendId: conversation.participantId },
+        (response: unknown) => {
+          if (response) {
+            console.debug('Chat marked as read via WebSocket', response);
+          }
+        }
+      );
+    } else {
+      console.warn('WebSocket not connected, cannot mark chat as read');
     }
   };
 

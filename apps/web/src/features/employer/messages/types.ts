@@ -20,4 +20,6 @@ export interface Message {
   content: string;
   timestamp: Date;
   timestamp24: string;
+  showDateSeparator?: boolean;
+  dateLabel?: string;
 }

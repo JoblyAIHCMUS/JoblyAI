@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, UserPlus, Star, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Conversation, Message } from './types';
 import { MessageBubble } from './MessageBubble';
 import { useChatHistory } from '@/api-hook/messages';
+import { isNewDate, getDateLabel } from './utils';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -28,6 +29,15 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState('');
   const { fetchChatHistory } = useChatHistory();
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // Fetch message history when conversation changes
   useEffect(() => {
@@ -54,7 +64,32 @@ export function ChatWindow({
             minute: '2-digit',
           }),
         }));
-        onLoadMessages(transformedMessages);
+
+        // Ensure messages are in ascending order (oldest first)
+        const sortedMessages = transformedMessages.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        // Add date separators between messages from different days
+        const messagesWithSeparators = sortedMessages.map((msg, index) => {
+          const prevMsg = index > 0 ? sortedMessages[index - 1] : null;
+          const showDateSeparator = isNewDate(
+            prevMsg ? new Date(prevMsg.timestamp) : null,
+            new Date(msg.timestamp)
+          );
+
+          return {
+            ...msg,
+            showDateSeparator,
+            dateLabel: showDateSeparator
+              ? getDateLabel(new Date(msg.timestamp))
+              : undefined,
+          };
+        });
+
+        // Reverse for display (newest at bottom)
+        onLoadMessages(messagesWithSeparators.reverse());
       } catch (error) {
         console.error('Error loading message history:', error);
       }
@@ -112,7 +147,10 @@ export function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-6 space-y-4"
+      >
         {isLoadingHistory && (
           <div className="text-center text-sm text-slate-500 mb-6">
             Loading messages...
