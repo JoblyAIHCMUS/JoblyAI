@@ -16,6 +16,7 @@ import { UpdateJobDTO } from './dto/updateJobDTO';
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
     category: true;
+    company: true;
     requirements: {
       include: {
         skill: true;
@@ -100,6 +101,7 @@ export class JobsService {
         where: whereClause,
         include: {
           category: true,
+          company: true,
           // We must include this to flatten it later for the interface
           requirements: {
             include: {
@@ -147,6 +149,7 @@ export class JobsService {
       },
       include: {
         category: true,
+        company: true,
         requirements: {
           include: {
             skill: true,
@@ -163,6 +166,7 @@ export class JobsService {
       where: { id },
       include: {
         category: true,
+        company: true,
         requirements: {
           include: {
             skill: true,
@@ -206,6 +210,7 @@ export class JobsService {
       where: { postedById: userId },
       include: {
         category: true,
+        company: true,
         requirements: {
           include: {
             skill: true,
@@ -254,6 +259,7 @@ export class JobsService {
       },
       include: {
         category: true,
+        company: true,
         requirements: {
           include: {
             skill: true,
@@ -272,6 +278,7 @@ export class JobsService {
       where: { categoryId },
       include: {
         category: true,
+        company: true,
         requirements: {
           include: {
             skill: true,

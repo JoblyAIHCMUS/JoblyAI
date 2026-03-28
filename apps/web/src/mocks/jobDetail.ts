@@ -58,11 +58,19 @@ export const JOB_DETAIL_PAGE_DATA_MOCK: JobDetailPageData = {
     { label: 'Social Media Assistant' },
   ],
   jobName: 'Social Media Assistant',
-  companyName: 'Stripe',
+  company: {
+    id: 1,
+    name: 'Stripe',
+    websiteUrl: 'https://stripe.com',
+    sizeRange: '1000-5000',
+    industry: 'Financial Technology',
+    description:
+      'Stripe is a technology company that builds economic infrastructure for the internet. Businesses of every size-from new startups to public companies-use our software to accept payments and manage their businesses online.',
+    logoUrl:
+      'https://www.figma.com/api/mcp/asset/8a2b3230-c7d8-4f71-b19a-b7e084c79338',
+  },
   address: 'Paris, France',
   workType: 'Full-Time',
-  logoUrl:
-    'https://www.figma.com/api/mcp/asset/8a2b3230-c7d8-4f71-b19a-b7e084c79338',
   companyDescription:
     'Stripe is a technology company that builds economic infrastructure for the internet. Businesses of every size-from new startups to public companies-use our software to accept payments and manage their businesses online.',
   companyPhotos: [

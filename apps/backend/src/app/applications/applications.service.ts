@@ -20,6 +20,7 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
     job: {
       include: {
         category: true;
+        company: true;
         postedBy: {
           select: {
             id: true;
@@ -194,6 +195,7 @@ export class ApplicationsService {
           job: {
             include: {
               category: true,
+              company: true,
               postedBy: {
                 select: {
                   id: true,
@@ -238,6 +240,7 @@ export class ApplicationsService {
         job: {
           include: {
             category: true,
+            company: true,
             postedBy: {
               select: {
                 id: true,
@@ -354,6 +357,7 @@ export class ApplicationsService {
           job: {
             include: {
               category: true,
+              company: true,
               postedBy: {
                 select: {
                   id: true,
@@ -436,6 +440,7 @@ export class ApplicationsService {
         job: {
           include: {
             category: true,
+            company: true,
             postedBy: {
               select: {
                 id: true,
@@ -512,6 +517,7 @@ export class ApplicationsService {
         job: {
           include: {
             category: true,
+            company: true,
             postedBy: {
               select: {
                 id: true,

@@ -165,6 +165,72 @@ async function main() {
   const allCategories = await prisma.jobCategory.findMany();
   const allSkills = await prisma.skill.findMany();
 
+  // Create companies
+  console.log('Creating companies...');
+  const companies = await Promise.all([
+    prisma.company.create({
+      data: {
+        name: 'Tech Corp',
+        websiteUrl: 'https://techcorp.com',
+        sizeRange: '1000-5000',
+        industry: 'Software Development',
+        description: 'Leading technology innovation company',
+        logoUrl: 'https://techcorp.com/logo.png',
+      },
+    }),
+    prisma.company.create({
+      data: {
+        name: 'DataFlow Inc',
+        websiteUrl: 'https://dataflow.com',
+        sizeRange: '500-1000',
+        industry: 'Data Science',
+        description: 'Data science and analytics solutions',
+        logoUrl: 'https://dataflow.com/logo.png',
+      },
+    }),
+    prisma.company.create({
+      data: {
+        name: 'CloudStack',
+        websiteUrl: 'https://cloudstack.io',
+        sizeRange: '200-500',
+        industry: 'Cloud Infrastructure',
+        description: 'Cloud infrastructure and DevOps services',
+        logoUrl: 'https://cloudstack.io/logo.png',
+      },
+    }),
+    prisma.company.create({
+      data: {
+        name: 'Design Studios',
+        websiteUrl: 'https://designstudios.com',
+        sizeRange: '50-200',
+        industry: 'Design',
+        description: 'Creative design and UX solutions',
+        logoUrl: 'https://designstudios.com/logo.png',
+      },
+    }),
+    prisma.company.create({
+      data: {
+        name: 'Innovation Labs',
+        websiteUrl: 'https://innovationlabs.com',
+        sizeRange: '100-500',
+        industry: 'Product Development',
+        description: 'Product innovation and development',
+        logoUrl: 'https://innovationlabs.com/logo.png',
+      },
+    }),
+    prisma.company.create({
+      data: {
+        name: 'StartUp Hub',
+        websiteUrl: 'https://startuphub.com',
+        sizeRange: '20-100',
+        industry: 'Startup Incubation',
+        description: 'Startup incubation and mentorship',
+        logoUrl: 'https://startuphub.com/logo.png',
+      },
+    }),
+  ]);
+  console.log(`Created ${companies.length} companies`);
+
   // Create job postings
   console.log('Creating job postings...');
   const jobPostings = await Promise.all([
@@ -182,7 +248,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[0].id,
         categoryId: allCategories[0].id,
-        companyName: 'Tech Corp',
+        companyId: companies[0].id,
       },
     }),
     prisma.jobPosting.create({
@@ -199,7 +265,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[1].id,
         categoryId: allCategories[1].id,
-        companyName: 'DataFlow Inc',
+        companyId: companies[1].id,
       },
     }),
     prisma.jobPosting.create({
@@ -216,7 +282,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[2].id,
         categoryId: allCategories[2].id,
-        companyName: 'CloudStack',
+        companyId: companies[2].id,
       },
     }),
     prisma.jobPosting.create({
@@ -233,7 +299,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[0].id,
         categoryId: allCategories[3].id,
-        companyName: 'Design Studios',
+        companyId: companies[3].id,
       },
     }),
     prisma.jobPosting.create({
@@ -250,7 +316,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[1].id,
         categoryId: allCategories[4].id,
-        companyName: 'Innovation Labs',
+        companyId: companies[4].id,
       },
     }),
     prisma.jobPosting.create({
@@ -267,7 +333,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[2].id,
         categoryId: allCategories[0].id,
-        companyName: 'StartUp Hub',
+        companyId: companies[5].id,
       },
     }),
     prisma.jobPosting.create({
@@ -283,7 +349,7 @@ async function main() {
         type: 'FULL_TIME',
         postedById: employers[0].id,
         categoryId: allCategories[0].id,
-        companyName: 'Tech Corp',
+        companyId: companies[0].id,
       },
     }),
   ]);

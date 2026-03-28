@@ -14,10 +14,22 @@ const mockJobDbRecord = vi.hoisted(() => ({
   salaryMin: 50000,
   salaryMax: 100000,
   categoryId: 1,
+  companyId: 1,
   postedById: 'employer123',
   createdAt: new Date(),
   updatedAt: new Date(),
   category: { id: 1, name: 'Engineering' },
+  company: { 
+    id: 1, 
+    name: 'Tech Corp',
+    websiteUrl: null,
+    sizeRange: null,
+    industry: null,
+    description: null,
+    logoUrl: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
   requirements: [
     { skill: { name: 'TypeScript' } },
     { skill: { name: 'NestJS' } },
@@ -97,6 +109,7 @@ describe('JobsService', () => {
         remote: true,
         type: 'FULL_TIME' as const,
         categoryId: 1,
+        companyId: 1,
         salaryMin: 50000,
         salaryMax: 100000,
         requirements: [
@@ -124,6 +137,7 @@ describe('JobsService', () => {
           remote: true,
           type: 'FULL_TIME',
           categoryId: 1,
+          companyId: 1,
           salaryMin: 50000,
           salaryMax: 100000,
           postedById: userId,
@@ -151,6 +165,7 @@ describe('JobsService', () => {
         remote: true,
         type: 'CONTRACT' as EmploymentType,
         categoryId: 2,
+        companyId: 1,
         // Notice no salaryMin, salaryMax, or requirements
       };
 
