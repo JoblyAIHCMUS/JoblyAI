@@ -60,7 +60,7 @@ export default function FilterGroup({
                   {isChecked ? <Check className="h-4 w-4 text-white" /> : null}
                 </span>
                 <span className="text-base leading-6 text-slate-600">
-                  {item.label} ({item.count})
+                  {item.label}
                 </span>
               </button>
             );

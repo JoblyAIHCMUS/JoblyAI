@@ -2,7 +2,6 @@ export type ViewMode = 'grid' | 'list';
 
 export interface FilterItem {
   label: string;
-  count: number;
 }
 
 export interface FilterGroupData {
@@ -12,9 +11,8 @@ export interface FilterGroupData {
 }
 
 export interface Job {
-  company: string;
+  companyName: string;
   title: string;
   location: string;
-  logo: string;
-  tone: string;
+  logoUrl: string;
 }

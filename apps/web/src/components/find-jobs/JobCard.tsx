@@ -1,7 +1,8 @@
-import { Job, ViewMode } from '@/types/job';
+import { JobPosting } from '@/api-client/jobs/types';
+import { ViewMode } from '@/types/job';
 
 type JobCardProps = {
-  job: Job;
+  job: JobPosting;
   viewMode: ViewMode;
 };
 
@@ -16,9 +17,19 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
     >
       <div className="flex min-w-0 items-start gap-4">
         <div
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900 ${job.tone}`}
+          className={"flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900"}
         >
-          {job.logo}
+          {job.logoUrl ? (
+            <img
+              src={job.logoUrl}
+              alt={job.companyName || job.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-lg font-semibold text-slate-900">
+              {(job.companyName || job.title).charAt(0)}
+            </span>
+          )}
         </div>
 
         <div className="min-w-0">
@@ -26,7 +37,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             {job.title}
           </h3>
           <p className="mt-0.5 text-lg leading-7 text-slate-500">
-            {job.company} • {job.location}
+            {job.companyName || ''}{job.companyName && job.location ? ' • ' : ''}{job.location || ''}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
