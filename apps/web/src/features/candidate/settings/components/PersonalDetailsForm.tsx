@@ -37,7 +37,10 @@ export function PersonalDetailsForm({
   errors,
   disabled = false,
 }: PersonalDetailsFormProps) {
-  const handleChange = (field: keyof PersonalDetailsFormData, value: string) => {
+  const handleChange = (
+    field: keyof PersonalDetailsFormData,
+    value: string
+  ) => {
     onChange({ ...data, [field]: value });
   };
 
@@ -67,7 +70,9 @@ export function PersonalDetailsForm({
               )}
             />
             {errors?.firstName && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.firstName}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.firstName}
+              </span>
             )}
           </div>
 
@@ -88,7 +93,9 @@ export function PersonalDetailsForm({
               )}
             />
             {errors?.lastName && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.lastName}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.lastName}
+              </span>
             )}
           </div>
         </div>
@@ -112,7 +119,9 @@ export function PersonalDetailsForm({
               )}
             />
             {errors?.phoneNumber && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.phoneNumber}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.phoneNumber}
+              </span>
             )}
           </div>
 
@@ -133,7 +142,9 @@ export function PersonalDetailsForm({
               )}
             />
             {errors?.email && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.email}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.email}
+              </span>
             )}
           </div>
         </div>
@@ -159,7 +170,9 @@ export function PersonalDetailsForm({
               <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
             </div>
             {errors?.dateOfBirth && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.dateOfBirth}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.dateOfBirth}
+              </span>
             )}
           </div>
 
@@ -168,7 +181,11 @@ export function PersonalDetailsForm({
               Gender
               <span className="text-red-400 ml-1">*</span>
             </Label>
-            <Select value={data.gender} onValueChange={(val) => handleChange('gender', val)} disabled={disabled}>
+            <Select
+              value={data.gender}
+              onValueChange={(val) => handleChange('gender', val)}
+              disabled={disabled}
+            >
               <SelectTrigger
                 className={cn(
                   'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base',
@@ -186,7 +203,9 @@ export function PersonalDetailsForm({
               </SelectContent>
             </Select>
             {errors?.gender && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{errors.gender}</span>
+              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+                {errors.gender}
+              </span>
             )}
           </div>
         </div>

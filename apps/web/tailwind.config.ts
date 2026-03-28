@@ -74,19 +74,19 @@ const config: Config = {
         'icon-disabled-alt': 'var(--icon-disabled-alt)',
       },
       backgroundColor: {
-        'primary': 'var(--bg-primary)',
+        primary: 'var(--bg-primary)',
         'accent-primary': 'var(--bg-accent-primary)',
         'accent-solid': 'var(--bg-accent-solid)',
       },
       textColor: {
-        'primary': 'var(--text-primary)',
-        'secondary': 'var(--text-secondary)',
-        'tertiary': 'var(--text-tertiary)',
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        tertiary: 'var(--text-tertiary)',
         'accent-primary': 'var(--text-accent-primary)',
-        'white': 'var(--text-white)',
+        white: 'var(--text-white)',
       },
       borderColor: {
-        'primary': 'var(--border-primary)',
+        primary: 'var(--border-primary)',
         'accent-primary': 'var(--border-accent-primary)',
       },
       borderRadius: {

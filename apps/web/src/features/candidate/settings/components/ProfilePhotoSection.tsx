@@ -10,7 +10,11 @@ interface ProfilePhotoSectionProps {
   disabled?: boolean;
 }
 
-export function ProfilePhotoSection({ photoUrl, onPhotoChange, disabled = false }: ProfilePhotoSectionProps) {
+export function ProfilePhotoSection({
+  photoUrl,
+  onPhotoChange,
+  disabled = false,
+}: ProfilePhotoSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +49,8 @@ export function ProfilePhotoSection({ photoUrl, onPhotoChange, disabled = false 
           Profile Photo
         </div>
         <div className="w-64 font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
-          This image will be shown publicly as your profile picture, it will help recruiters recognize you!
+          This image will be shown publicly as your profile picture, it will
+          help recruiters recognize you!
         </div>
       </div>
 
@@ -87,7 +92,12 @@ export function ProfilePhotoSection({ photoUrl, onPhotoChange, disabled = false 
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
 
@@ -98,7 +108,8 @@ export function ProfilePhotoSection({ photoUrl, onPhotoChange, disabled = false 
                   Click to replace
                 </span>
                 <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-primary">
-                  {' '}or drag and drop
+                  {' '}
+                  or drag and drop
                 </span>
               </div>
               <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">

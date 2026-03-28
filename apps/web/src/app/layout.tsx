@@ -8,13 +8,13 @@ import './style.css';
 import ClientLayout from './ClientLayout';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const lexendDeca = Lexend_Deca({ 
-  subsets: ['latin'], 
+const lexendDeca = Lexend_Deca({
+  subsets: ['latin'],
   variable: '--family-primary',
   weight: ['400', '500', '600', '700'],
 });
-const beVietnamPro = Be_Vietnam_Pro({ 
-  subsets: ['latin'], 
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin'],
   variable: '--family-secondary',
   weight: ['400', '500', '600', '700'],
 });

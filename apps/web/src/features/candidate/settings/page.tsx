@@ -10,22 +10,29 @@ import {
   AccountTypeSection,
   type PersonalDetailsFormData,
 } from './components';
+import UpdateEmailForm from './components/UpdateEmailForm';
+import ChangePasswordForm from './components/ChangePasswordForm';
 
 type AccountType = 'job_seeker' | 'employer';
 
 export default function CandidateSettingsPage() {
   const [activeTab, setActiveTab] = useState('my-profile');
   const [accountType, setAccountType] = useState<AccountType>('job_seeker');
-  const [profilePhoto, setProfilePhoto] = useState<string>('https://placehold.co/124x124');
-  const [personalDetails, setPersonalDetails] = useState<PersonalDetailsFormData>({
-    firstName: 'Jake',
-    lastName: 'Gyll',
-    phoneNumber: '+44 1245 572 135',
-    email: 'Jakegyll@gmail.com',
-    dateOfBirth: '1997-08-09',
-    gender: 'Male',
-  });
-  const [errors, setErrors] = useState<Partial<Record<keyof PersonalDetailsFormData, string>>>({});
+  const [profilePhoto, setProfilePhoto] = useState<string>(
+    'https://placehold.co/124x124'
+  );
+  const [personalDetails, setPersonalDetails] =
+    useState<PersonalDetailsFormData>({
+      firstName: 'Jake',
+      lastName: 'Gyll',
+      phoneNumber: '+44 1245 572 135',
+      email: 'Jakegyll@gmail.com',
+      dateOfBirth: '1997-08-09',
+      gender: 'Male',
+    });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof PersonalDetailsFormData, string>>
+  >({});
 
   const tabs = [
     { id: 'my-profile', label: 'My Profile' },
@@ -85,11 +92,18 @@ export default function CandidateSettingsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Header Section with Tabs */}
         <div className="self-stretch px-8 pt-8 border-b border-primary">
-          <SettingsTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+          <SettingsTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         {/* My Profile Tab Content */}
-        <TabsContent value="my-profile" className="self-stretch px-8 pt-6 pb-8 bg-primary flex flex-col justify-start items-end gap-6">
+        <TabsContent
+          value="my-profile"
+          className="self-stretch px-8 pt-6 pb-8 bg-primary flex flex-col justify-start items-end gap-6"
+        >
           {/* Section Header */}
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
             <h2 className="text-xl font-semibold font-['Lexend_Deca'] text-primary">
@@ -105,7 +119,10 @@ export default function CandidateSettingsPage() {
 
           {/* Profile Photo */}
           <div className="self-stretch inline-flex justify-start items-start gap-28">
-            <ProfilePhotoSection photoUrl={profilePhoto} onPhotoChange={handlePhotoChange} />
+            <ProfilePhotoSection
+              photoUrl={profilePhoto}
+              onPhotoChange={handlePhotoChange}
+            />
           </div>
 
           {/* Divider */}
@@ -144,14 +161,76 @@ export default function CandidateSettingsPage() {
         </TabsContent>
 
         {/* Login Details Tab Content */}
-        <TabsContent value="login-details" className="self-stretch px-8 py-8 inline-flex flex-col justify-start items-start gap-6">
-          <div className="text-center text-secondary">
-            <p>Login details settings coming soon...</p>
+        <TabsContent
+          value="login-details"
+          className="w-full min-h-[100%] px-8 pt-6 pb-8 flex flex-col items-end gap-6 bg-primary"
+        >
+          {/* Section Header */}
+          <div className="self-stretch flex flex-col items-start gap-1">
+            <h2 className="text-[20px] leading-6 font-['Lexend_Deca'] font-semibold text-primary">
+              Basic Information
+            </h2>
+            <p className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+              This is login information that you can update anytime.
+            </p>
           </div>
+
+          {/* Divider */}
+          <hr className="self-stretch border-primary" />
+
+          {/* Update Email Section */}
+          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col gap-6">
+            {/* Left: Title & Desc */}
+            <div className="flex flex-col gap-1">
+              <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
+                Update Email
+              </div>
+              <div className="text-base wrap font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+                Update your email address to make sure it is safe
+              </div>
+            </div>
+            {/* Right: Email verified + form */}
+            <UpdateEmailForm email={personalDetails.email} />
+          </div>
+
+          {/* Divider */}
+          <hr className="self-stretch border-primary" />
+
+          {/* Change Password Section */}
+          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col gap-6 sm:flex-col">
+            {/* Left: Title & Desc */}
+            <div className="flex flex-col gap-1">
+              <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
+                New Password
+              </div>
+              <div className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+                Manage your password to make sure it is safe
+              </div>
+            </div>
+            {/* Right: Password form */}
+            <ChangePasswordForm />
+          </div>
+
+          {/* Divider */}
+          <hr className="self-stretch border-primary" />
+
+          {/* Close Account Button */}
+          <Button className="flex flex-row items-center gap-2 px-6 py-3 bg-[var(--bg-error-secondary,#DC2626)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']">
+            {/* Info Icon */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2" />
+              <rect x="11" y="10" width="2" height="6" rx="1" fill="white" />
+              <rect x="11" y="7" width="2" height="2" rx="1" fill="white" />
+            </svg>
+            Close Account
+          </Button>
         </TabsContent>
 
         {/* System Settings Tab Content */}
-        <TabsContent value="system-settings" className="self-stretch px-8 py-8 inline-flex flex-col justify-start items-start gap-6">
+        <TabsContent
+          value="system-settings"
+          className="self-stretch px-8 py-8 inline-flex flex-col justify-start items-start gap-6"
+        >
           <div className="text-center text-secondary">
             <p>System settings coming soon...</p>
           </div>
@@ -160,4 +239,3 @@ export default function CandidateSettingsPage() {
     </div>
   );
 }
-

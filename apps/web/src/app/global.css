@@ -217,12 +217,12 @@
   }
 
   /* Hide default date picker calendar icon */
-  input[type="date"]::-webkit-calendar-picker-indicator {
+  input[type='date']::-webkit-calendar-picker-indicator {
     display: none;
     pointer-events: none;
   }
 
-  input[type="date"] {
+  input[type='date'] {
     appearance: none;
     -webkit-appearance: none;
   }

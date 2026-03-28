@@ -11,7 +11,7 @@ interface FormFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  type?: 'text' | 'email' | 'tel' | 'date';
+  type?: 'text' | 'email' | 'tel' | 'date' | 'password';
   error?: string;
   icon?: ReactNode;
   disabled?: boolean;
@@ -37,10 +37,25 @@ export function FormField({
   };
 
   return (
-    <div className={cn('inline-flex flex-col items-start gap-2', widthClasses[width])}>
-      <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
+    <div
+      className={cn(
+        'inline-flex flex-col items-start gap-2',
+        widthClasses[width]
+      )}
+    >
+      <Label
+        className="text-base font-semibold leading-5"
+        style={{
+          fontFamily: 'var(--family-primary)',
+          color: 'var(--text-primary)',
+        }}
+      >
         {label}
-        {isRequired && <span className="text-red-400 ml-1">*</span>}
+        {isRequired && (
+          <span style={{ color: 'var(--destructive)' }} className="ml-1">
+            *
+          </span>
+        )}
       </Label>
       <div className="relative w-full">
         <Input
@@ -49,15 +64,39 @@ export function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
+          style={{
+            background: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+            borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
+            fontFamily: 'var(--family-secondary)',
+            fontSize: '1rem',
+          }}
           className={cn(
-            'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
+            'placeholder:text-secondary',
             error && 'border-red-400',
             icon && 'pr-10'
           )}
         />
-        {icon && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-icon-primary flex-shrink-0">{icon}</div>}
+        {icon && (
+          <div
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            style={{ color: 'var(--icon-primary)' }}
+          >
+            {icon}
+          </div>
+        )}
       </div>
-      {error && <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{error}</span>}
+      {error && (
+        <span
+          style={{
+            color: 'var(--destructive)',
+            fontFamily: 'var(--family-secondary)',
+          }}
+          className="text-sm"
+        >
+          {error}
+        </span>
+      )}
     </div>
   );
 }
