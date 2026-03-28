@@ -17,7 +17,6 @@ export function useJobs(currentPage: number, pageSize = 5) {
       pageSize,
       sort: selectedSort,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, selectedSort]);
 
   const handleSelectSort = (option: SortOption) => {
