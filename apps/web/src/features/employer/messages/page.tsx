@@ -53,8 +53,8 @@ export default function EmployerMessagesPage() {
         setConversations(transformedConversations);
 
         // Select first conversation by default if available and none is selected
-        setSelectedConversation((prev) =>
-          prev || transformedConversations[0] || null
+        setSelectedConversation(
+          (prev) => prev || transformedConversations[0] || null
         );
       } catch (error) {
         console.error('Error fetching conversations:', error);
@@ -64,7 +64,7 @@ export default function EmployerMessagesPage() {
     };
 
     getConversations();
-  }, [currentUser?.id, fetchChatSummary]); 
+  }, [currentUser?.id, fetchChatSummary]);
   // Register callback for new messages via WebSocket
   useEffect(() => {
     onNewMessage((message) => {
