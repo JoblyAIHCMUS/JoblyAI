@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { FILTER_GROUPS } from '@/constants/filters';
 import { FilterGroupData } from '@/types/job';
 
-
 export function useFilters() {
   // Use FILTER_GROUPS as the source of truth
   const [filterGroups] = useState<FilterGroupData[]>(FILTER_GROUPS);
@@ -13,13 +12,15 @@ export function useFilters() {
     });
     return map;
   });
-  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(() => {
-    const map: Record<string, boolean> = {};
-    FILTER_GROUPS.forEach((group) => {
-      map[group.title] = true;
-    });
-    return map;
-  });
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(
+    () => {
+      const map: Record<string, boolean> = {};
+      FILTER_GROUPS.forEach((group) => {
+        map[group.title] = true;
+      });
+      return map;
+    }
+  );
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const handleToggle = (groupTitle: string, itemLabel: string) => {

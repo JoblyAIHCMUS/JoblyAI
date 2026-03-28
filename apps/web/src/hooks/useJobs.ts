@@ -9,12 +9,7 @@ export function useJobs(currentPage: number, pageSize = 5) {
   const [selectedSort, setSelectedSort] = useState<SortOption>(sortOptions[0]);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  const {
-    fetchJobs,
-    loading,
-    error,
-    data,
-  } = useListJobs();
+  const { fetchJobs, loading, error, data } = useListJobs();
 
   useEffect(() => {
     fetchJobs({
@@ -32,7 +27,7 @@ export function useJobs(currentPage: number, pageSize = 5) {
 
   return {
     jobs: data?.jobs || [],
-    total: data?.total || 0, 
+    total: data?.total || 0,
     totalPages: data?.totalPages || 1,
     sortOptions,
     isSortOpen,
