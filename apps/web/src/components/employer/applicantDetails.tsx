@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import ApplicantResumeViewer from './applicantResumeViewer';
 import ApplicationNotes from './applicationNotes';
+import ApplicantProfile from './applicantProfile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -35,9 +36,8 @@ export default function ApplicantDetails({
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
-            <p className="text-sm text-muted-foreground">
-              Profile details coming soon.
-            </p>
+            {/* Applicant Profile Section */}
+            <ApplicantProfile />
           </TabsContent>
 
           <TabsContent value="resume" className="mt-6">
