@@ -5,6 +5,7 @@ import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
 import { useFilters } from '@/hooks/useFilters';
+import { FilterGroupData } from '@/types/job';
 import { useJobs } from '@/hooks/useJobs';
 import { usePagination } from '@/hooks/usePagination';
 import { useState } from 'react';
@@ -12,7 +13,6 @@ import { useState } from 'react';
 export default function JobListSection() {
   const filterProps = useFilters();
   const { setIsMobileFiltersOpen, isMobileFiltersOpen } = filterProps;
-
   // Số job mỗi trang, có thể tuỳ chỉnh
   const pageSize = 5;
 
@@ -20,6 +20,7 @@ export default function JobListSection() {
   const [currentPage, setCurrentPage] = useState(1);
   const {
     jobs,
+    total,
     totalPages,
     sortOptions,
     isSortOpen,
@@ -41,7 +42,7 @@ export default function JobListSection() {
     <section className="bg-white py-10 lg:py-[72px]">
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[234px_1fr] lg:gap-10 lg:px-8">
         <aside className="hidden flex-col gap-3 lg:flex">
-          {filterProps.filterGroups.map((group) => (
+          {filterProps.filterGroups.map((group: FilterGroupData) => (
             <FilterGroup
               key={group.title}
               title={group.title}
@@ -61,7 +62,7 @@ export default function JobListSection() {
                 All Jobs
               </h2>
               <p className="text-base leading-6 text-slate-500">
-                Showing 73 results
+                Showing {total} results
               </p>
             </div>
 
@@ -205,7 +206,7 @@ export default function JobListSection() {
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
-                {filterProps.filterGroups.map((group) => (
+                {filterProps.filterGroups.map((group: FilterGroupData) => (
                   <FilterGroup
                     key={`mobile-${group.title}`}
                     title={group.title}

@@ -20,6 +20,7 @@ export interface JobPosting {
   title: string;
   description: string;
   companyName: string | null;
+  logoUrl: string | null;
   location: string | null;
   remote: boolean;
   type: EmploymentType;

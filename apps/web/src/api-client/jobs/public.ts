@@ -15,7 +15,7 @@ export async function listJobs(
   query?: ListJobsQuery
 ): Promise<PaginatedJobsResponse> {
   const response = await axios.get<PaginatedJobsResponse>(
-    `${API_BASE_URL}/jobs`,
+    `${API_BASE_URL}/api/jobs`,
     {
       params: query,
       withCredentials: true,
@@ -43,7 +43,7 @@ export async function getJobsByCategory(
   categoryId: number
 ): Promise<JobPosting[]> {
   const response = await axios.get<JobPosting[]>(
-    `${API_BASE_URL}/jobs/category/${categoryId}`,
+    `${API_BASE_URL}/api/jobs/category/${categoryId}`,
     {
       withCredentials: true,
     }
