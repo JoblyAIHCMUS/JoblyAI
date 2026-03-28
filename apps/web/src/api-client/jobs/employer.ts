@@ -7,7 +7,7 @@ import {
 } from '@/api-client/jobs/types';
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Get all job categories
@@ -15,7 +15,7 @@ const API_BASE_URL =
  */
 export async function getCategories(): Promise<JobCategory[]> {
   const response = await axios.get<JobCategory[]>(
-    `${API_BASE_URL}/jobs/categories`,
+    `${API_BASE_URL}/api/jobs/categories`,
     {
       headers: { 'Content-Type': 'application/json' },
     }
@@ -31,7 +31,7 @@ export async function createJobPosting(
   payload: CreateJobPayload
 ): Promise<JobPosting> {
   const response = await axios.post<JobPosting>(
-    `${API_BASE_URL}/jobs`,
+    `${API_BASE_URL}/api/jobs`,
     payload,
     {
       headers: { 'Content-Type': 'application/json' },
@@ -50,7 +50,7 @@ export async function updateJobPosting(
   payload: UpdateJobPayload
 ): Promise<JobPosting> {
   const response = await axios.patch<JobPosting>(
-    `${API_BASE_URL}/jobs/${id}`,
+    `${API_BASE_URL}/api/jobs/${id}`,
     payload,
     {
       headers: { 'Content-Type': 'application/json' },
@@ -65,7 +65,7 @@ export async function updateJobPosting(
  * Requires authentication and ownership (employer/admin)
  */
 export async function deleteJobPosting(id: number): Promise<void> {
-  await axios.delete(`${API_BASE_URL}/jobs/${id}`, {
+  await axios.delete(`${API_BASE_URL}/api/jobs/${id}`, {
     withCredentials: true,
   });
 }
@@ -76,7 +76,7 @@ export async function deleteJobPosting(id: number): Promise<void> {
  */
 export async function listEmployerJobs(userId: string): Promise<JobPosting[]> {
   const response = await axios.get<JobPosting[]>(
-    `${API_BASE_URL}/jobs/user/${userId}`,
+    `${API_BASE_URL}/api/jobs/user/${userId}`,
     {
       withCredentials: true,
     }
