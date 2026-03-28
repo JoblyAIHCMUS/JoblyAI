@@ -63,14 +63,7 @@ export function ChatWindow({
     if (conversation.participantId) {
       fetchHistory();
     }
-  }, [
-    conversation.participantId,
-    conversation.name,
-    conversation.avatar,
-    currentUserId,
-    onLoadMessages,
-    fetchChatHistory,
-  ]);
+  }, [conversation.participantId, currentUserId, onLoadMessages, fetchChatHistory]);
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {

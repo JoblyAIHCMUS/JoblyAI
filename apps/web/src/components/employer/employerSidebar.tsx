@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { useUser } from '@/hooks/useUser';
 
 // Icons (use lucide-react)
 import {
@@ -83,6 +84,7 @@ const navSecondary = [
 export function EmployerSidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
+  const { data: user } = useUser();
 
   // Derive the actual collapsed state based on mobile vs desktop
   const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
@@ -197,17 +199,17 @@ export function EmployerSidebar() {
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <div className="h-12 w-12 flex-shrink-0 rounded-full bg-slate-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
             <img
-              src="https://placehold.co/48x48"
-              alt="Maria Kelly"
+              src={user?.image || 'https://placehold.co/48x48'}
+              alt={user?.name || 'User'}
               className="h-full w-full rounded-full object-cover"
             />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-lg font-medium text-[color:var(--text-primary)] font-[family-name:var(--family-primary)] leading-6">
-              Maria Kelly
+              {user?.name || 'Loading...'}
             </span>
             <span className="text-sm text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)]">
-              MariaKelly@email.com
+              {user?.email || ''}
             </span>
           </div>
         </div>
