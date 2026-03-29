@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import {
@@ -11,6 +11,8 @@ import {
   Send,
   XCircle,
   Trash2,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -25,15 +27,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
+import { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
+import { JobPosting, EmploymentType } from '@/api-client/jobs/types';
+import { deleteJobPosting } from '@/api-client/jobs/employer';
 
-import {
-  type JobListing,
-  type JobListingStatus,
-  type EmploymentType,
-  jobListings,
-} from '@/features/employer/job-listing/data';
+// Frontend representation of a job listing
+interface JobListing {
+  id: string;
+  title: string;
+  status: 'Draft' | 'Live' | 'Closed';
+  datePosted: string;
+  dateClosed: string | null;
+  employmentType: EmploymentType;
+  applicants: number;
+}
 
-const statusStyles: Record<JobListingStatus, string> = {
+const statusStyles: Record<JobListing['status'], string> = {
   Draft: 'border-yellow-500 text-yellow-600 bg-transparent hover:bg-yellow-50',
   Live: 'border-green-500 text-green-600 bg-transparent hover:bg-green-50',
   Closed: 'border-red-500 text-red-600 bg-transparent hover:bg-red-50',
@@ -56,6 +65,30 @@ const employmentTypeLabels: Record<EmploymentType, string> = {
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
 };
+
+/**
+ * Converts backend JobPosting to frontend JobListing format
+ */
+function mapJobPostingToListing(job: JobPosting): JobListing {
+  // Map backend status to frontend status
+  const statusMap: Record<string, JobListing['status']> = {
+    OPEN: 'Live',
+    DRAFT: 'Draft',
+    CLOSED: 'Closed',
+  };
+
+  return {
+    id: job.id.toString(),
+    title: job.title,
+    status: statusMap[job.status] || 'Draft',
+    datePosted: job.createdAt instanceof Date 
+      ? job.createdAt.toISOString().split('T')[0]
+      : new Date(job.createdAt).toISOString().split('T')[0],
+    dateClosed: null, // Backend doesn't track close date
+    employmentType: job.type,
+    applicants: 0, // TODO: Add applicants field to backend or fetch separately
+  };
+}
 
 export const columns: ColumnDef<JobListing>[] = [
   {
@@ -114,7 +147,7 @@ export const columns: ColumnDef<JobListing>[] = [
       </Button>
     ),
     cell: ({ row }) => {
-      const status = row.getValue('status') as JobListingStatus;
+      const status = row.getValue('status') as JobListing['status'];
       return (
         <Badge variant="outline" className={statusStyles[status]}>
           {status}
@@ -275,37 +308,158 @@ export const columns: ColumnDef<JobListing>[] = [
   },
 ];
 
-export default function JobListingTable() {
-  const [data, setData] = useState<JobListing[]>(jobListings);
+interface JobListingTableProps {
+  userId: string;
+  pageSize?: number;
+}
 
-  const publishJob = (id: string) => {
-    setData((prev) =>
-      prev.map((job) =>
-        job.id === id ? { ...job, status: 'Live' as const } : job
-      )
+export default function JobListingTable({
+  userId,
+  pageSize = 10,
+}: JobListingTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [displayData, setDisplayData] = useState<JobListing[]>([]);
+  
+  const { fetchEmployerJobs, loading, error, data, totalPages, total } =
+    useEmployerJobs({ initialPageSize: pageSize });
+
+  // Fetch jobs when component mounts or page changes
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        await fetchEmployerJobs(userId, currentPage);
+      } catch (err) {
+        console.error('Failed to load jobs:', err);
+      }
+    };
+
+    loadJobs();
+  }, [userId, currentPage]);
+
+  // Map fetched data to display format
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const mapped = data.map(mapJobPostingToListing);
+      setDisplayData(mapped);
+    } else {
+      setDisplayData([]);
+    }
+  }, [data]);
+
+  const publishJob = async (id: string) => {
+    try {
+      // Refresh the page after publishing
+      await fetchEmployerJobs(userId, currentPage);
+    } catch (err) {
+      console.error('Failed to publish job:', err);
+    }
+  };
+
+  const closeJob = async (id: string) => {
+    try {
+      // Refresh the page after closing
+      await fetchEmployerJobs(userId, currentPage);
+    } catch (err) {
+      console.error('Failed to close job:', err);
+    }
+  };
+
+  const deleteJob = async (id: string) => {
+    try {
+      await deleteJobPosting(parseInt(id, 10));
+      // Refresh the page after deletion
+      await fetchEmployerJobs(userId, currentPage);
+    } catch (err) {
+      console.error('Failed to delete job:', err);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="rounded-md border border-red-200 bg-red-50 p-4">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          <p className="text-sm text-red-700">
+            Failed to load job listings. Please try again later.
+          </p>
+        </div>
+      </div>
     );
-  };
-
-  const closeJob = (id: string) => {
-    const today = new Date().toISOString().slice(0, 10);
-    setData((prev) =>
-      prev.map((job) =>
-        job.id === id
-          ? { ...job, status: 'Closed' as const, dateClosed: today }
-          : job
-      )
-    );
-  };
-
-  const deleteJob = (id: string) => {
-    setData((prev) => prev.filter((job) => job.id !== id));
-  };
+  }
 
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      meta={{ publishJob, closeJob, deleteJob }}
-    />
+    <div className="space-y-4">
+      {loading && displayData.length === 0 && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {!loading && displayData.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            No job listings found. Create your first job posting to get started.
+          </p>
+        </div>
+      )}
+
+      {displayData.length > 0 && (
+        <>
+          <DataTable
+            columns={columns}
+            data={displayData}
+            pageSize={pageSize}
+            meta={{ publishJob, closeJob, deleteJob }}
+          />
+
+          {/* Custom pagination controls for server-side pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between py-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * pageSize + 1} to{' '}
+                {Math.min(currentPage * pageSize, total)} of {total} results
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                >
+                  Previous
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, currentPage - 2), currentPage + 1)
+                  .map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      disabled={loading}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
