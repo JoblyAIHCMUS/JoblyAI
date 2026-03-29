@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { fetchSkillsByNames, createSkill, Skill } from '@/api-client/skillsAPI';
+import {
+  fetchSkillsByNames,
+  createSkill,
+  type Skill,
+} from '@/api-client/skills';
 
 export function useSkillIds() {
   const [loading, setLoading] = useState(false);

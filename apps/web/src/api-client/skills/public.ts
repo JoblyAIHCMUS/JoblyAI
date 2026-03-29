@@ -19,3 +19,14 @@ export async function createSkill(name: string): Promise<Skill> {
   const response = await axios.post(`${API_BASE_URL}/api/skills`, { name });
   return response.data;
 }
+
+export async function searchSkills(query: string): Promise<Skill[]> {
+  // Search for skills by name pattern
+  if (!query.trim()) {
+    return [];
+  }
+  const response = await axios.get(`${API_BASE_URL}/api/skills/search`, {
+    params: { q: query },
+  });
+  return response.data;
+}
