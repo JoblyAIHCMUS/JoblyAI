@@ -125,7 +125,7 @@ export default function EmployerNewCompanyPage() {
       {creatingCompany && (
         <div className="text-blue-600 mb-4">Registering company...</div>
       )}
-      {typeof createError === 'string' && (
+      {Boolean(createError) && (
         <div className="text-red-600 mb-4">
           Failed to register company.{' '}
           {typeof createError === 'string' ? createError : ''}
@@ -135,6 +135,7 @@ export default function EmployerNewCompanyPage() {
         steps={NEW_COMPANY_STEPS}
         canProceed={canProceed}
         onComplete={handleComplete}
+        loading={creatingCompany}
       >
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">

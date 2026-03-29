@@ -140,7 +140,8 @@ export function EmployerSidebar() {
               // Disable company-profile if no companyId
               const isCompanyProfile = item.title === 'Company Profile';
               const companyId = employerProfile?.company?.id ?? null;
-              const isDisabled = isCompanyProfile && !companyId;
+              const isDisabled =
+                isCompanyProfile && employerProfile && !companyId;
 
               return (
                 <SidebarMenuItem key={item.title}>
@@ -157,7 +158,7 @@ export function EmployerSidebar() {
                       isDisabled &&
                         'opacity-50 pointer-events-none cursor-not-allowed'
                     )}
-                    disabled={isDisabled}
+                    disabled={Boolean(isDisabled)}
                   >
                     {isDisabled ? (
                       <div className="flex items-center gap-2">
