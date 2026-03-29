@@ -14,7 +14,12 @@ import { useEffect } from 'react';
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
-  const { data: profile, loading, error, fetchEmployerProfile } = useGetEmployerProfile();
+  const {
+    data: profile,
+    loading,
+    error,
+    fetchEmployerProfile,
+  } = useGetEmployerProfile();
   const company = profile?.company;
 
   useEffect(() => {
@@ -54,7 +59,9 @@ export function EmployerTopBar() {
             </span>
             <div className="flex items-center gap-1.5">
               {error ? (
-                <span className="text-red-600 text-base font-semibold">Error loading profile</span>
+                <span className="text-red-600 text-base font-semibold">
+                  Error loading profile
+                </span>
               ) : (
                 <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
                   {loading
