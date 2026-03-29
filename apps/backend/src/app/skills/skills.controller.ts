@@ -6,6 +6,19 @@ export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   /**
+   * GET /skills/search?q=javascript
+   * Search for skills by query
+   */
+  @Get('search')
+  async searchSkills(@Query('q') query?: string): Promise<SkillResponse[]> {
+    if (!query) {
+      return [];
+    }
+
+    return this.skillsService.searchSkills(query);
+  }
+
+  /**
    * GET /skills?names=JavaScript,TypeScript
    * Fetch skills by names
    */

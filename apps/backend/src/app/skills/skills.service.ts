@@ -105,4 +105,31 @@ export class SkillsService {
 
     return [...existing, ...created];
   }
+
+  /**
+   * Search skills by query pattern
+   */
+  async searchSkills(query: string, limit = 10): Promise<SkillResponse[]> {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
+    const searchTerm = query.trim();
+
+    // Search skills with name containing the query (case-insensitive)
+    const skills = await this.prisma.skill.findMany({
+      where: {
+        name: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+      take: limit,
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return skills;
+  }
 }
