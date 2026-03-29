@@ -24,14 +24,14 @@ export default function EmployerCompanyProfilePage() {
 
   useEffect(() => {
     fetchEmployerProfile();
-  }, []);
+  }, [fetchEmployerProfile]);
 
   useEffect(() => {
     if (employer?.company?.id) {
       setCompanyId(employer.company.id);
       fetchCompany(employer.company.id);
     }
-  }, [employer]);
+  }, [employer, fetchCompany]);
 
   if (loadingEmployer || (companyId && loadingCompany)) {
     return <div className="container mx-auto px-4 py-8">Loading...</div>;
