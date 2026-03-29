@@ -41,3 +41,5 @@ export function useSkillIds() {
 
   return { getOrCreateSkills, loading, error };
 }
+
+export { useSearchSkills } from './useSearchSkills';

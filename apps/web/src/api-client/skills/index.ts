@@ -1,2 +1,2 @@
 export type { Skill } from './public';
-export { fetchSkillsByNames, createSkill } from './public';
+export { fetchSkillsByNames, createSkill, searchSkills } from './public';

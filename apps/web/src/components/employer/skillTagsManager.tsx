@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useSearchSkills } from '@/api-hook/skills';
 
 export type SkillImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
 
@@ -49,11 +50,21 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   const [newImportance, setNewImportance] =
     useState<SkillImportance>('REQUIRED');
   const [newMinYears, setNewMinYears] = useState('');
+  const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(-1);
   const skillInputRef = useRef<HTMLInputElement>(null);
+  const { results: searchResults, search } = useSearchSkills();
+
+  // Filter out already-added skills
+  const filteredResults = searchResults.filter(
+    (skill) =>
+      !skills.some(
+        (s) => s.name.toLowerCase() === skill.name.toLowerCase()
+      )
+  );
 
   const handleAdd = () => {
     const trimmed = newSkillName.trim();
-    if (trimmed && !skills.some((s) => s.name === trimmed)) {
+    if (trimmed && !skills.some((s) => s.name.toLowerCase() === trimmed.toLowerCase())) {
       const entry: SkillEntry = {
         name: trimmed,
         importance: newImportance,
@@ -66,7 +77,13 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
     }
     setNewSkillName('');
     setNewMinYears('');
+    setSelectedDropdownIndex(-1);
     skillInputRef.current?.focus();
+  };
+
+  const handleSelectFromDropdown = (skillName: string) => {
+    setNewSkillName(skillName);
+    setSelectedDropdownIndex(-1);
   };
 
   const handleRemove = (skillName: string) => {
@@ -76,11 +93,33 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAdd();
+      if (selectedDropdownIndex >= 0 && filteredResults[selectedDropdownIndex]) {
+        handleSelectFromDropdown(filteredResults[selectedDropdownIndex].name);
+      } else {
+        handleAdd();
+      }
     } else if (e.key === 'Escape') {
-      setIsAdding(false);
-      setNewSkillName('');
-      setNewMinYears('');
+      setSelectedDropdownIndex(-1);
+      if (newSkillName.length === 0) {
+        setIsAdding(false);
+        setNewMinYears('');
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedDropdownIndex((prev) =>
+        prev < filteredResults.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedDropdownIndex((prev) => (prev > 0 ? prev - 1 : -1));
+    }
+  };
+
+  const handleSkillInputChange = (value: string) => {
+    setNewSkillName(value);
+    setSelectedDropdownIndex(-1);
+    if (value.trim()) {
+      search(value);
     }
   };
 
@@ -93,66 +132,89 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   return (
     <div className="space-y-3">
       {isAdding ? (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Input
-            ref={skillInputRef}
-            type="text"
-            placeholder="Enter skill name"
-            aria-label="Skill name"
-            value={newSkillName}
-            onChange={(e) => setNewSkillName(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-10 w-[200px]"
-            autoFocus
-          />
-          <Select
-            value={newImportance}
-            onValueChange={(v) => setNewImportance(v as SkillImportance)}
-          >
-            <SelectTrigger
-              className="h-10 w-[130px]"
-              aria-label="Skill importance"
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-[200px]">
+              <Input
+                ref={skillInputRef}
+                type="text"
+                placeholder="Enter skill name"
+                aria-label="Skill name"
+                value={newSkillName}
+                onChange={(e) => handleSkillInputChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="h-10 w-full"
+                autoFocus
+                autoComplete="off"
+              />
+              {newSkillName.trim() && filteredResults.length > 0 && (
+                <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {filteredResults.map((skill, index) => (
+                    <div
+                      key={skill.id}
+                      onClick={() => handleSelectFromDropdown(skill.name)}
+                      className={`px-3 py-2 cursor-pointer transition-colors ${
+                        index === selectedDropdownIndex
+                          ? 'bg-primary/20 text-primary font-medium'
+                          : 'hover:bg-slate-100'
+                      }`}
+                    >
+                      {skill.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Select
+              value={newImportance}
+              onValueChange={(v) => setNewImportance(v as SkillImportance)}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {IMPORTANCE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            type="number"
-            placeholder="Min years"
-            aria-label="Minimum years of experience"
-            value={newMinYears}
-            onChange={(e) => setNewMinYears(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-10 w-[100px]"
-            min="0"
-          />
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleAdd}
-            disabled={!newSkillName.trim()}
-          >
-            Add
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setIsAdding(false);
-              setNewSkillName('');
-              setNewMinYears('');
-            }}
-          >
-            Cancel
-          </Button>
+              <SelectTrigger
+                className="h-10 w-[130px]"
+                aria-label="Skill importance"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMPORTANCE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              placeholder="Min years"
+              aria-label="Minimum years of experience"
+              value={newMinYears}
+              onChange={(e) => setNewMinYears(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="h-10 w-[100px]"
+              min="0"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAdd}
+              disabled={!newSkillName.trim()}
+            >
+              Add
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setIsAdding(false);
+                setNewSkillName('');
+                setNewMinYears('');
+                setSelectedDropdownIndex(-1);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       ) : (
         <Button
