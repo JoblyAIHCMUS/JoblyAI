@@ -197,7 +197,7 @@ export default function EmployerCompanyProfileEditPage() {
       {updatingCompany && (
         <div className="text-blue-600 mb-4">Updating company...</div>
       )}
-      {typeof updateError === 'string' && (
+      {Boolean(updateError) && (
         <div className="text-red-600 mb-4">
           Failed to update company.{' '}
           {typeof updateError === 'string' ? updateError : ''}
