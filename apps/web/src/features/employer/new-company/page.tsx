@@ -125,7 +125,7 @@ export default function EmployerNewCompanyPage() {
       {creatingCompany && (
         <div className="text-blue-600 mb-4">Registering company...</div>
       )}
-      {(createError as string) && (
+      {typeof createError === 'string' && (
         <div className="text-red-600 mb-4">
           Failed to register company.{' '}
           {typeof createError === 'string' ? createError : ''}
