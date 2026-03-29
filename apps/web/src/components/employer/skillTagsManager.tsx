@@ -57,14 +57,15 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   // Filter out already-added skills
   const filteredResults = searchResults.filter(
     (skill) =>
-      !skills.some(
-        (s) => s.name.toLowerCase() === skill.name.toLowerCase()
-      )
+      !skills.some((s) => s.name.toLowerCase() === skill.name.toLowerCase())
   );
 
   const handleAdd = () => {
     const trimmed = newSkillName.trim();
-    if (trimmed && !skills.some((s) => s.name.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      trimmed &&
+      !skills.some((s) => s.name.toLowerCase() === trimmed.toLowerCase())
+    ) {
       const entry: SkillEntry = {
         name: trimmed,
         importance: newImportance,
@@ -93,7 +94,10 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (selectedDropdownIndex >= 0 && filteredResults[selectedDropdownIndex]) {
+      if (
+        selectedDropdownIndex >= 0 &&
+        filteredResults[selectedDropdownIndex]
+      ) {
         handleSelectFromDropdown(filteredResults[selectedDropdownIndex].name);
       } else {
         handleAdd();
