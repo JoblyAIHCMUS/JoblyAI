@@ -95,14 +95,14 @@ export default function EmployerCompanyProfileEditPage() {
   // Fetch employer and company on mount
   useEffect(() => {
     fetchEmployerProfile();
-  }, []);
+  }, [fetchEmployerProfile]);
 
   useEffect(() => {
     if (employer?.company?.id) {
       setCompanyId(employer.company.id);
       fetchCompany(employer.company.id);
     }
-  }, [employer]);
+  }, [employer, fetchCompany]);
 
   // Initialize form fields when company data is loaded
   useEffect(() => {
@@ -197,7 +197,7 @@ export default function EmployerCompanyProfileEditPage() {
       {updatingCompany && (
         <div className="text-blue-600 mb-4">Updating company...</div>
       )}
-      {(updateError as string) && (
+      {typeof updateError === 'string' && (
         <div className="text-red-600 mb-4">
           Failed to update company.{' '}
           {typeof updateError === 'string' ? updateError : ''}
@@ -207,6 +207,7 @@ export default function EmployerCompanyProfileEditPage() {
         steps={NEW_COMPANY_STEPS}
         canProceed={canProceed}
         onComplete={handleComplete}
+        loading={updatingCompany}
       >
         <>
           {/* Step 1: Basic Information */}
