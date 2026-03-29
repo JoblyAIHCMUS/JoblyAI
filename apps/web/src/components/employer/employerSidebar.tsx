@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/hooks/useUser';
 import { useLogout } from '@/hooks/useAuth';
 import { useUnreadMessagesDot } from '@/hooks/useMessages';
+import { useGetEmployerProfile } from '@/api-hook/employer';
 
 // Icons (use lucide-react)
 import {
@@ -89,6 +90,7 @@ export function EmployerSidebar() {
   const { data: user } = useUser();
   const logout = useLogout();
   const { hasUnreadMessages } = useUnreadMessagesDot();
+  const { data: employerProfile } = useGetEmployerProfile();
 
   // Derive the actual collapsed state based on mobile vs desktop
   const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
@@ -135,10 +137,16 @@ export function EmployerSidebar() {
               const shouldShowBadge =
                 item.title === 'Messages' ? hasUnreadMessages : item.badge;
 
+              // Disable company-profile if no companyId
+              const isCompanyProfile = item.title === 'Company Profile';
+              const companyId = employerProfile?.company?.id ?? null;
+              const isDisabled =
+                isCompanyProfile && employerProfile && !companyId;
+
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    asChild
+                    asChild={!isDisabled}
                     isActive={isActive}
                     tooltip={item.title}
                     className={cn(
@@ -146,18 +154,30 @@ export function EmployerSidebar() {
                       isActive &&
                         'bg-[color:var(--bg-accent-primary)] text-[color:var(--text-accent-primary)] hover:bg-[color:var(--bg-accent-primary-hover)]',
                       'data-[active=true]:border-l-4 data-[active=true]:border-[color:var(--bg-accent-solid)] data-[active=true]:pl-3',
-                      'group-data-[collapsible=icon]:data-[active=true]:border-l-0 group-data-[collapsible=icon]:data-[active=true]:pl-0'
+                      'group-data-[collapsible=icon]:data-[active=true]:border-l-0 group-data-[collapsible=icon]:data-[active=true]:pl-0',
+                      isDisabled &&
+                        'opacity-50 pointer-events-none cursor-not-allowed'
                     )}
+                    disabled={Boolean(isDisabled)}
                   >
-                    <Link href={item.url}>
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="group-data-[collapsible=icon]:hidden">
-                        {item.title}
-                      </span>
-                      {shouldShowBadge && (
-                        <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[color:var(--icon-accent-primary)] group-data-[collapsible=icon]:hidden" />
-                      )}
-                    </Link>
+                    {isDisabled ? (
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.title}
+                        </span>
+                      </div>
+                    ) : (
+                      <Link href={item.url}>
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.title}
+                        </span>
+                        {shouldShowBadge && (
+                          <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[color:var(--icon-accent-primary)] group-data-[collapsible=icon]:hidden" />
+                        )}
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

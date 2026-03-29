@@ -1,25 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, ChevronDown, Plus } from 'lucide-react';
+import { Bell, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+// Dropdown menu imports removed (unused)
 import { cn } from '@/lib/utils';
-import { useCompany } from '@/hooks/useCompany';
+// useEffect import removed (unused)
+import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
+import { useEffect } from 'react';
 
 // Optional: notification count
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
-  const { companies, selectedCompany, setSelectedCompany } = useCompany();
+  const {
+    data: profile,
+    loading,
+    error,
+    fetchEmployerProfile,
+  } = useGetEmployerProfile();
+  const company = profile?.company;
+
+  useEffect(() => {
+    fetchEmployerProfile();
+  }, []);
 
   return (
     <header
@@ -32,54 +37,50 @@ export function EmployerTopBar() {
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        {/* Left side - Company logo + name dropdown */}
+        {/* Left side - Company logo + name or Not Affiliated */}
         <div className="flex items-center gap-4">
-          {/* Company logo placeholder */}
+          {/* Company logo or placeholder */}
           <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs font-medium">
-            {selectedCompany?.logo || 'Logo'}
+            {company?.logoUrl ? (
+              <img
+                src={company.logoUrl}
+                alt={company.name}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            ) : (
+              'Logo'
+            )}
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-2 hover:opacity-90 transition"
-              >
-                <div className="flex flex-col items-start">
-                  <span className="text-sm text-[var(--text-secondary)] font-normal leading-5">
-                    Company
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
-                      {selectedCompany?.name || 'Select Company'}
-                    </span>
-                    <ChevronDown className="h-5 w-5 text-[var(--icon-primary)]" />
-                  </div>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>Switch company</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {companies.map((company) => (
-                <DropdownMenuItem
-                  key={company.id}
-                  onSelect={() => setSelectedCompany(company)}
-                  className={cn(
-                    selectedCompany?.id === company.id &&
-                      'bg-accent font-medium'
-                  )}
+          {/* Company name or Not Affiliated + Register link or Error */}
+          <div className="flex flex-col items-start">
+            <span className="text-sm text-[var(--text-secondary)] font-normal leading-5">
+              Company
+            </span>
+            <div className="flex items-center gap-1.5">
+              {error ? (
+                <span className="text-red-600 text-base font-semibold">
+                  Error loading profile
+                </span>
+              ) : (
+                <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
+                  {loading
+                    ? 'Loading...'
+                    : company?.name
+                    ? company.name
+                    : 'Not Affiliated'}
+                </span>
+              )}
+              {!company && !loading && !error && (
+                <Link
+                  href="/employer/new-company"
+                  className="ml-3 text-indigo-600 font-bold hover:underline"
                 >
-                  {company.name}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="font-bold text-indigo-600">
-                <Link href="/employer/new-company">+ Add new company</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  Register Company
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right side - Notification + Post job */}
@@ -95,10 +96,6 @@ export function EmployerTopBar() {
             <Bell className="h-6 w-6 text-[var(--icon-primary)]" />
             {/* Red dot badge */}
             <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-white" />
-            {/* If show number instead / in addition */}
-            {/* <Badge variant="destructive" className="absolute -top-2 -right-2 px-1.5 min-w-[1.25rem] h-5 text-xs">
-              {notificationCount}
-            </Badge> */}
           </Button>
 
           {/* Post a job button */}
