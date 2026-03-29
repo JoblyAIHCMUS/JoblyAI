@@ -8,13 +8,18 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 // useEffect import removed (unused)
 import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
+import { useEffect } from 'react';
 
 // Optional: notification count
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
-  const { data: profile, loading } = useGetEmployerProfile();
+  const { data: profile, loading, error, fetchEmployerProfile } = useGetEmployerProfile();
   const company = profile?.company;
+
+  useEffect(() => {
+    fetchEmployerProfile();
+  }, []);
 
   return (
     <header
@@ -42,20 +47,24 @@ export function EmployerTopBar() {
             )}
           </div>
 
-          {/* Company name or Not Affiliated + Register link */}
+          {/* Company name or Not Affiliated + Register link or Error */}
           <div className="flex flex-col items-start">
             <span className="text-sm text-[var(--text-secondary)] font-normal leading-5">
               Company
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
-                {loading
-                  ? 'Loading...'
-                  : company?.name
-                  ? company.name
-                  : 'Not Affiliated'}
-              </span>
-              {!company && !loading && (
+              {error ? (
+                <span className="text-red-600 text-base font-semibold">Error loading profile</span>
+              ) : (
+                <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
+                  {loading
+                    ? 'Loading...'
+                    : company?.name
+                    ? company.name
+                    : 'Not Affiliated'}
+                </span>
+              )}
+              {!company && !loading && !error && (
                 <Link
                   href="/employer/new-company"
                   className="ml-3 text-indigo-600 font-bold hover:underline"
