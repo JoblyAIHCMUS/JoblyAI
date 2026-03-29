@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCreateJob } from '@/api-hook/jobs';
-import { useSkillIds } from '@/api-hook/useSkillIds';
+import { useSkillIds } from '@/api-hook/skills';
 import { useCategories } from '@/api-hook/jobs';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
