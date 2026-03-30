@@ -81,9 +81,10 @@ function mapJobPostingToListing(job: JobPosting): JobListing {
     id: job.id.toString(),
     title: job.title,
     status: statusMap[job.status] || 'Draft',
-    datePosted: job.createdAt instanceof Date 
-      ? job.createdAt.toISOString().split('T')[0]
-      : new Date(job.createdAt).toISOString().split('T')[0],
+    datePosted:
+      job.createdAt instanceof Date
+        ? job.createdAt.toISOString().split('T')[0]
+        : new Date(job.createdAt).toISOString().split('T')[0],
     dateClosed: null, // Backend doesn't track close date
     employmentType: job.type,
     applicants: 0, // TODO: Add applicants field to backend or fetch separately
@@ -319,7 +320,7 @@ export default function JobListingTable({
 }: JobListingTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [displayData, setDisplayData] = useState<JobListing[]>([]);
-  
+
   const { fetchEmployerJobs, loading, error, data, totalPages, total } =
     useEmployerJobs({ initialPageSize: pageSize });
 

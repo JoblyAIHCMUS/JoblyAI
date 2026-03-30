@@ -211,7 +211,10 @@ export class JobsService {
   ): Promise<PaginatedJobsResponse> {
     // Explicitly parse query parameters to numbers to handle string values from HTTP query params
     const page = Math.max(1, parseInt(String(query?.page || 1), 10));
-    const pageSize = Math.max(1, Math.min(100, parseInt(String(query?.pageSize || 10), 10)));
+    const pageSize = Math.max(
+      1,
+      Math.min(100, parseInt(String(query?.pageSize || 10), 10))
+    );
 
     const [total, jobs] = await this.prisma.$transaction([
       this.prisma.jobPosting.count({

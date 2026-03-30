@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react';
-import { JobPosting, PaginatedJobsResponse, listEmployerJobs } from '@/api-client/jobs';
+import {
+  JobPosting,
+  PaginatedJobsResponse,
+  listEmployerJobs,
+} from '@/api-client/jobs';
 
 interface UseEmployerJobsOptions {
   onSuccess?: (data: PaginatedJobsResponse) => void;

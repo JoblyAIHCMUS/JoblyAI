@@ -488,7 +488,7 @@ describe('JobsService', () => {
 
       // Assert
       expect(mockPrisma.$transaction).toHaveBeenCalled();
-      
+
       // Verify the response structure
       expect(result).toEqual({
         jobs: [
