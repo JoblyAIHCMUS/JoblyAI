@@ -76,8 +76,8 @@ export async function deleteJobPosting(id: number): Promise<void> {
  */
 export async function listEmployerJobs(
   userId: string,
-  page: number = 1,
-  pageSize: number = 10
+  page = 1,
+  pageSize = 10
 ): Promise<PaginatedJobsResponse> {
   const response = await axios.get<PaginatedJobsResponse>(
     `${API_BASE_URL}/api/jobs/user/${userId}`,
