@@ -17,8 +17,25 @@ export class EmployerService {
       },
     });
 
-    if (!data?.employer) {
-      throw new Error('Employer profile not found');
+    if (!data) {
+      throw new Error('User not found');
+    }
+
+    // If employer profile is missing, it means the user registered as an employer
+    // but hasn't set up their company yet. Return a response with null company.
+    if (!data.employer) {
+      return {
+        id: data.id,
+        company: null,
+        firstName: data.firstName ?? '',
+        lastName: data.lastName ?? '',
+        fullName: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim(),
+        email: data.email,
+        verified: data.emailVerified,
+        banned: data.banned ?? false,
+        banExpires: data.banExpires ?? undefined,
+        bannedReason: data.banReason ?? '',
+      };
     }
 
     return {
