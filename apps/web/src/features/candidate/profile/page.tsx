@@ -64,13 +64,6 @@ const CandidateProfilePage = () => {
     loadProfile();
   }, []);
 
-  if (loading || !profile) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
   if (error) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center text-red-500">
@@ -170,10 +163,13 @@ const CandidateProfilePage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F8FAFC] px-6 py-8 flex flex-col items-center">
-      <div className="flex flex-row gap-4 w-full max-w-6xl">
+    <div
+      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
+      style={{ boxSizing: 'border-box' }}
+    >
+      <div className="flex flex-row w-full max-w-6xl gap-[var(--space-base)] items-start">
         {/* Main Content (Left) */}
-        <div className="flex flex-col gap-6 w-[728px]">
+        <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
           <ProfileHeader candidate={candidate} />
           <AboutMe about={candidate.about} />
           <CV

@@ -28,7 +28,6 @@ export function useGetCandidateProfile(
     } catch (err: unknown) {
       setError(err);
       options?.onError?.(err);
-      throw err;
     } finally {
       setLoading(false);
     }

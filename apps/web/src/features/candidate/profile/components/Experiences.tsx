@@ -1,16 +1,16 @@
 'use client';
 import React from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, Dot } from 'lucide-react';
 
 export default function Experiences({ experiences }: { experiences: any[] }) {
   return (
-    <div className="rounded-[10px] border border-[#CBD5E1] bg-white px-1 py-6 flex flex-col gap-4">
+    <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] px-[var(--space-xs2)] py-[var(--space-xl)] flex flex-col gap-[var(--space-lg)]">
       <div className="flex items-center justify-between px-4">
-        <div className="text-xl font-semibold text-[#25324B] font-['Epilogue']">
+        <div className="heading-h6-semi-bold text-primary break-words">
           Experiences
         </div>
-        <button className="p-2 rounded-[5px] border border-[#CBD5E1] bg-white hover:bg-gray-50">
-          <Edit size={20} />
+        <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+          <Edit size={20} className='text-accent-primary'/>
         </button>
       </div>
       {experiences.map((exp, idx) => (
@@ -18,31 +18,31 @@ export default function Experiences({ experiences }: { experiences: any[] }) {
           <img
             src={exp.logo}
             alt={exp.company}
-            className="w-20 h-20 rounded-lg object-cover"
+            className="w-20 h-20 rounded-[var(--radius-xl)] object-cover"
           />
           <div className="flex flex-col gap-2 flex-1">
             <div className="flex items-center justify-between">
-              <div className="text-lg font-semibold text-[#0F172A] font-['Lexend_Deca']">
+              <div className="heading-h6-semi-bold text-primary break-words ">
                 {exp.role}
               </div>
-              <button className="p-2 rounded-[5px] border border-[#CBD5E1] bg-white hover:bg-gray-50">
-                <Edit size={20} />
+              <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+                <Edit size={20} className="text-accent-primary" />
               </button>
             </div>
-            <div className="flex items-center gap-2 text-base text-[#475569] font-normal">
-              <span>{exp.company}</span>
-              <span className="w-1 h-1 bg-[#A8ADB7] rounded-full inline-block"></span>
-              <span>{exp.type}</span>
-              <span className="w-1 h-1 bg-[#A8ADB7] rounded-full inline-block"></span>
-              <span>{exp.time}</span>
+            <div className="flex items-center gap-[var(--space-xs)]">
+              <span className='body-body-1-medium text-primary break-words'>{exp.company}</span>
+              <Dot size={16} />
+              <span className="body-body-1-regular text-secondary break-words">{exp.type}</span>
+              <Dot size={16} />
+              <span className="body-body-1-regular text-secondary break-words">{exp.time}</span>
             </div>
-            <div className="text-[#64748B] text-base">{exp.location}</div>
-            <div className="text-[#475569] text-base">{exp.desc}</div>
+            <div className="text-tertiary break-words">{exp.location}</div>
+            <div className="text-secondary break-words">{exp.desc}</div>
           </div>
         </div>
       ))}
       <div className="flex justify-end px-6">
-        <span className="text-[#4338CA] font-semibold cursor-pointer">
+        <span className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words">
           Show 3 more experiences
         </span>
       </div>

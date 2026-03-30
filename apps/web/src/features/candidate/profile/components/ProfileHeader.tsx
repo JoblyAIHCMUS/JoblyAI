@@ -13,11 +13,11 @@ interface ProfileHeaderProps {
 }
 export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
   return (
-    <div className="relative rounded-[10px] border border-[#CBD5E1] bg-white overflow-hidden flex flex-col items-end pb-6">
-      <div className="w-full h-[140px] bg-[#4640DE]" />
+    <div className="relative rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] overflow-hidden flex flex-col items-end pb-[var(--space-xl)]">
+      <div className="w-full h-[140px] bg-[color:#4640DE]" />
       <div className="absolute left-8 top-[70px]">
         <div className="relative w-[140px] h-[140px]">
-          <div className="absolute w-[140px] h-[140px] rounded-full bg-[#26A4FF] border-8 border-white" />
+          <div className="absolute w-[140px] h-[140px] rounded-full bg-[color:#26A4FF] border-[8px] border-[color:var(--bg-primary)]" />
           <img
             src={candidate.avatar}
             alt="avatar"
@@ -25,33 +25,33 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
           />
         </div>
       </div>
-      <button className="absolute right-6 top-6 p-2 rounded-[5px] border border-[#E2E8F0] bg-white hover:bg-gray-50">
+      <button className="absolute right-6 top-6 p-2 rounded-[5px] border border-[#E2E8F0] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
         <span className="sr-only">Edit</span>
         <Edit size={24} />
       </button>
       <div className="w-full pl-[180px] pr-8 mt-6">
         <div className="flex flex-row justify-between items-start">
           <div className="flex flex-col gap-2">
-            <div className="text-2xl font-semibold text-[#0F172A] font-['Lexend_Deca']">
+            <div className="heading-h5-semi-bold text-primary break-words">
               {candidate.name}
             </div>
-            <div className="text-xl font-medium text-[#475569] font-['Lexend_Deca']">
+            <div className="heading-h6-regular text-secondary break-words">
               {candidate.title}
             </div>
-            <div className="flex items-center gap-2 text-[#64748B] text-base font-normal">
-              <MapPin size={16} />
+            <div className="flex items-center gap-[var(--space-xs)] text-[color:var(--slate-500)] text-base font-normal">
+              <MapPin size={20} />
               {candidate.location}
             </div>
             {candidate.openForOpportunities && (
-              <div className="mt-2 px-6 py-3 bg-[#CCFBF1] rounded-lg flex items-center gap-2">
-                <Flag size={16} color="#14B8A6" />
-                <span className="text-[#14B8A6] font-semibold text-base">
+              <div className="mt-2 px-[var(--space-xl)] py-[var(--space-base)] bg-[color:#CCFBF1] rounded-[var(--radius-xl)] flex items-center gap-[var(--space-xs)]">
+                <Flag size={20} color="#14B8A6" />
+                <span className="text-[var(--teal-500)] body-body-1-medium break-words">
                   OPEN FOR OPPORTUNITIES
                 </span>
               </div>
             )}
           </div>
-          <button className="px-6 py-3 rounded-[5px] border border-[#CBD5E1] text-[#4338CA] font-semibold text-base font-['Lexend_Deca'] hover:bg-[#EEF2FF]">
+          <button className="text-accent-primary px-[var(--space-xl)] py-[var(--space-base)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]">
             Edit Profile
           </button>
         </div>
