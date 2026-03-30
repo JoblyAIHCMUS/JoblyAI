@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Edit, Link, Mail, Smartphone } from 'lucide-react';
+import { Edit, Plus, Mail, Smartphone } from 'lucide-react';
 import { FaInstagram, FaTwitter, FaGlobe } from 'react-icons/fa';
 
 export default function SideBar({
@@ -19,12 +19,17 @@ export default function SideBar({
           <div className="heading-h6-semi-bold text-primary break-words">
             Additional Details
           </div>
-          <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-primary bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-            <Edit size={20} className='text-accent-primary'/>
-          </button>
+          <div className="flex gap-2">
+            <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+              <Plus size={20} className='text-accent-primary' />
+            </button>
+            <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+              <Edit size={20} className='text-accent-primary' />
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-4">
-          <Mail size={24} className='text-accent-primary'/>
+          <Mail size={24} className='text-accent-primary' />
           <div>
             <div className="label-label-1-medium text-secondary break-words">
               Email
@@ -35,7 +40,7 @@ export default function SideBar({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Smartphone size={24} className='text-accent-primary'/>
+          <Smartphone size={24} className='text-accent-primary' />
           <div>
             <div className="label-label-1-medium text-secondary break-words">
               Phone
@@ -52,9 +57,14 @@ export default function SideBar({
           <div className="heading-h6-semi-bold text-primary break-words">
             Social Links
           </div>
-          <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-            <Edit size={20} className='text-accent-primary'/>
-          </button>
+          <div className="flex gap-2">
+            <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+              <Plus size={20} className='text-accent-primary' />
+            </button>
+            <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+              <Edit size={20} className='text-accent-primary' />
+            </button>
+          </div>
         </div>
         {socials.map((s, idx) => (
           <div key={idx} className="flex items-center gap-4">

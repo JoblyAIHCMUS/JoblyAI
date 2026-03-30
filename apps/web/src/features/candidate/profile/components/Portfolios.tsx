@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 
 export default function Portfolios({ portfolios }: { portfolios: any[] }) {
   return (
@@ -9,9 +9,14 @@ export default function Portfolios({ portfolios }: { portfolios: any[] }) {
         <div className="heading-h6-semi-bold text-primary break-words">
           Portfolios
         </div>
-        <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-          <Edit size={20} className='text-accent-primary'/>
-        </button>
+        <div className="flex gap-2">
+          <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+            <Plus size={20} className='text-accent-primary' />
+          </button>
+          <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
+            <Edit size={20} className='text-accent-primary' />
+          </button>
+        </div>
       </div>
       <div
         className="flex flex-row py-[var(--space-lg)] overflow-x-auto custom-scrollbar"
