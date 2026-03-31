@@ -4,4 +4,5 @@ export { useCreateJob } from '@/api-hook/jobs/useCreateJob';
 export { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';
 export { useDeleteJob } from '@/api-hook/jobs/useDeleteJob';
 export { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
+export { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
 export { useCategories } from '@/api-hook/jobs/useCategories';

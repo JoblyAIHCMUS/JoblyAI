@@ -4,6 +4,7 @@ import {
   JobPosting,
   UpdateJobPayload,
   JobCategory,
+  PaginatedJobsResponse,
 } from '@/api-client/jobs/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -73,10 +74,40 @@ export async function deleteJobPosting(id: number): Promise<void> {
  * List jobs posted by the current user (employer)
  * Requires authentication
  */
-export async function listEmployerJobs(userId: string): Promise<JobPosting[]> {
-  const response = await axios.get<JobPosting[]>(
+export async function listEmployerJobs(
+  userId: string,
+  page = 1,
+  pageSize = 10
+): Promise<PaginatedJobsResponse> {
+  const response = await axios.get<PaginatedJobsResponse>(
     `${API_BASE_URL}/api/jobs/user/${userId}`,
     {
+      params: {
+        page,
+        pageSize,
+      },
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}
+
+/**
+ * List jobs posted by company
+ * Requires authentication and employer to be registered to that company
+ */
+export async function listEmployerJobsByCompany(
+  companyId: number,
+  page = 1,
+  pageSize = 10
+): Promise<PaginatedJobsResponse> {
+  const response = await axios.get<PaginatedJobsResponse>(
+    `${API_BASE_URL}/api/jobs/company/${companyId}`,
+    {
+      params: {
+        page,
+        pageSize,
+      },
       withCredentials: true,
     }
   );

@@ -34,6 +34,22 @@ export class JobsController {
     return this.jobsService.getCategories();
   }
 
+  @Get('user/:userId')
+  async getJobsByUserId(
+    @Param('userId') userId: string,
+    @Query() query: Partial<GetJobsQueryDTO>
+  ) {
+    return this.jobsService.getJobsByUserId(userId, query);
+  }
+
+  @Get('company/:companyId')
+  async getJobsByCompanyId(
+    @Param('companyId', ParseIntPipe) companyId: number,
+    @Query() query: Partial<GetJobsQueryDTO>
+  ) {
+    return this.jobsService.getJobsByCompanyId(companyId, query);
+  }
+
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')
@@ -60,11 +76,6 @@ export class JobsController {
     const userId = request.user.id;
     const userRole = request.user.role;
     return this.jobsService.deleteJobById(id, userId, userRole);
-  }
-
-  @Get('user/:userId')
-  async getJobsByUserId(@Param('userId') userId: string) {
-    return this.jobsService.getJobsByUserId(userId);
   }
 
   @Patch(':id')

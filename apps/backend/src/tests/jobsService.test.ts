@@ -478,20 +478,47 @@ describe('JobsService', () => {
   });
 
   describe('getJobsByUserId', () => {
-    it('should return mapped jobs for a specific user', async () => {
+    it('should return paginated jobs for a specific user', async () => {
       // Arrange
-      mockPrisma.jobPosting.findMany.mockResolvedValue([mockJobDbRecord]);
+      // Mock the transaction to return an array containing [total count, records]
+      mockPrisma.$transaction.mockResolvedValue([1, [mockJobDbRecord]]);
 
       // Act
       const result = await service.getJobsByUserId('employer123');
 
       // Assert
-      expect(mockPrisma.jobPosting.findMany).toHaveBeenCalledWith({
-        where: { postedById: 'employer123' },
-        include: expect.any(Object),
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
+
+      // Verify the response structure
+      expect(result).toEqual({
+        jobs: [
+          expect.objectContaining({
+            employerId: 'employer123',
+            title: 'Software Engineer',
+          }),
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
       });
-      expect(result).toHaveLength(1);
-      expect(result[0].employerId).toBe('employer123');
+    });
+
+    it('should support pagination query parameters for user jobs', async () => {
+      // Arrange
+      mockPrisma.$transaction.mockResolvedValue([25, [mockJobDbRecord]]);
+
+      // Act
+      const result = await service.getJobsByUserId('employer123', {
+        page: 2,
+        pageSize: 10,
+      });
+
+      // Assert
+      expect(result.page).toBe(2);
+      expect(result.pageSize).toBe(10);
+      expect(result.total).toBe(25);
+      expect(result.totalPages).toBe(3); // Math.ceil(25 / 10) = 3
     });
   });
 

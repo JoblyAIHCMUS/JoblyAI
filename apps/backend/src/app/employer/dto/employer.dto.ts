@@ -36,7 +36,7 @@ export class QueryResponseEmployerDto {
   role?: string;
 
   @Expose()
-  company?: Company;
+  company?: Company | null;
 
   @Expose()
   createdAt?: Date;

@@ -205,20 +205,90 @@ export class JobsService {
     });
   }
 
-  async getJobsByUserId(userId: string): Promise<JobPostingInterface[]> {
-    const jobs = await this.prisma.jobPosting.findMany({
-      where: { postedById: userId },
-      include: {
-        category: true,
-        company: true,
-        requirements: {
-          include: {
-            skill: true,
+  async getJobsByUserId(
+    userId: string,
+    query?: Partial<GetJobsQueryDTO>
+  ): Promise<PaginatedJobsResponse> {
+    // Explicitly parse query parameters to numbers to handle string values from HTTP query params
+    const page = Math.max(1, parseInt(String(query?.page || 1), 10));
+    const pageSize = Math.max(
+      1,
+      Math.min(100, parseInt(String(query?.pageSize || 10), 10))
+    );
+
+    const [total, jobs] = await this.prisma.$transaction([
+      this.prisma.jobPosting.count({
+        where: { postedById: userId },
+      }),
+      this.prisma.jobPosting.findMany({
+        where: { postedById: userId },
+        include: {
+          category: true,
+          company: true,
+          requirements: {
+            include: {
+              skill: true,
+            },
           },
         },
-      },
-    });
-    return jobs.map((job) => this.mapToJobResponse(job));
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
+
+    return {
+      jobs: mappedJobs,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  async getJobsByCompanyId(
+    companyId: number,
+    query?: Partial<GetJobsQueryDTO>
+  ): Promise<PaginatedJobsResponse> {
+    // Explicitly parse query parameters to numbers to handle string values from HTTP query params
+    const page = Math.max(1, parseInt(String(query?.page || 1), 10));
+    const pageSize = Math.max(
+      1,
+      Math.min(100, parseInt(String(query?.pageSize || 10), 10))
+    );
+
+    const [total, jobs] = await this.prisma.$transaction([
+      this.prisma.jobPosting.count({
+        where: { companyId },
+      }),
+      this.prisma.jobPosting.findMany({
+        where: { companyId },
+        include: {
+          category: true,
+          company: true,
+          requirements: {
+            include: {
+              skill: true,
+            },
+          },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
+
+    return {
+      jobs: mappedJobs,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async updateJobById(

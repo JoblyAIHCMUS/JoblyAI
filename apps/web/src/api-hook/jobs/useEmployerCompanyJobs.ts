@@ -2,20 +2,23 @@ import { useState, useCallback } from 'react';
 import {
   JobPosting,
   PaginatedJobsResponse,
-  listEmployerJobs,
+  listEmployerJobsByCompany,
 } from '@/api-client/jobs';
 
-interface UseEmployerJobsOptions {
+interface UseEmployerCompanyJobsOptions {
+  companyId?: number | null;
   onSuccess?: (data: PaginatedJobsResponse) => void;
   onError?: (error: unknown) => void;
   initialPageSize?: number;
 }
 
 /**
- * Hook for fetching jobs posted by the current user (employer) with pagination support
- * Requires authentication
+ * Hook for fetching jobs posted by a company with pagination support
+ * Requires authentication and employer to be registered to that company
  */
-export function useEmployerJobs(options?: UseEmployerJobsOptions) {
+export function useEmployerCompanyJobs(
+  options?: UseEmployerCompanyJobsOptions
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
   const [data, setData] = useState<JobPosting[] | null>(null);
@@ -24,12 +27,16 @@ export function useEmployerJobs(options?: UseEmployerJobsOptions) {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchEmployerJobs = useCallback(
-    async (userId: string, page = 1) => {
+  const fetchCompanyJobs = useCallback(
+    async (companyId: number, page = 1) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await listEmployerJobs(userId, page, pageSize);
+        const result = await listEmployerJobsByCompany(
+          companyId,
+          page,
+          pageSize
+        );
         setData(result.jobs);
         setTotal(result.total);
         setTotalPages(result.totalPages);
@@ -44,7 +51,7 @@ export function useEmployerJobs(options?: UseEmployerJobsOptions) {
         setLoading(false);
       }
     },
-    [pageSize]
+    [pageSize, options]
   );
 
   const goToPage = (page: number) => {
@@ -53,7 +60,7 @@ export function useEmployerJobs(options?: UseEmployerJobsOptions) {
   };
 
   return {
-    fetchEmployerJobs,
+    fetchCompanyJobs,
     loading,
     error,
     data,
