@@ -42,6 +42,14 @@ export class JobsController {
     return this.jobsService.getJobsByUserId(userId, query);
   }
 
+  @Get('company/:companyId')
+  async getJobsByCompanyId(
+    @Param('companyId', ParseIntPipe) companyId: number,
+    @Query() query: Partial<GetJobsQueryDTO>
+  ) {
+    return this.jobsService.getJobsByCompanyId(companyId, query);
+  }
+
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

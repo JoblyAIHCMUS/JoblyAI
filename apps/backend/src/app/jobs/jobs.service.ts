@@ -248,6 +248,49 @@ export class JobsService {
     };
   }
 
+  async getJobsByCompanyId(
+    companyId: number,
+    query?: Partial<GetJobsQueryDTO>
+  ): Promise<PaginatedJobsResponse> {
+    // Explicitly parse query parameters to numbers to handle string values from HTTP query params
+    const page = Math.max(1, parseInt(String(query?.page || 1), 10));
+    const pageSize = Math.max(
+      1,
+      Math.min(100, parseInt(String(query?.pageSize || 10), 10))
+    );
+
+    const [total, jobs] = await this.prisma.$transaction([
+      this.prisma.jobPosting.count({
+        where: { companyId },
+      }),
+      this.prisma.jobPosting.findMany({
+        where: { companyId },
+        include: {
+          category: true,
+          company: true,
+          requirements: {
+            include: {
+              skill: true,
+            },
+          },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
+
+    return {
+      jobs: mappedJobs,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
   async updateJobById(
     id: number,
     dto: UpdateJobDTO,
