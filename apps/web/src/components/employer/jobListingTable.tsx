@@ -28,8 +28,10 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
+import { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
 import { JobPosting, EmploymentType } from '@/api-client/jobs/types';
 import { deleteJobPosting } from '@/api-client/jobs/employer';
+import { getEmployerProfile } from '@/api-client/employer';
 
 // Frontend representation of a job listing
 interface JobListing {
@@ -320,22 +322,68 @@ export default function JobListingTable({
 }: JobListingTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [displayData, setDisplayData] = useState<JobListing[]>([]);
+  const [employerProfile, setEmployerProfile] = useState<{
+    id: string;
+    company?: { id: number; name: string } | null;
+  } | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  const { fetchEmployerJobs, loading, error, data, totalPages, total } =
+  const { fetchEmployerJobs, loading: userJobsLoading, error: userJobsError, data: userJobsData, totalPages: userTotalPages, total: userTotal } =
     useEmployerJobs({ initialPageSize: pageSize });
+
+  const { fetchCompanyJobs, loading: companyJobsLoading, error: companyJobsError, data: companyJobsData, totalPages: companyTotalPages, total: companyTotal } =
+    useEmployerCompanyJobs({ initialPageSize: pageSize });
+
+  // Determine which hook to use based on company registration
+  const useCompany = employerProfile?.company?.id;
+  const loading = useCompany ? companyJobsLoading : userJobsLoading;
+  const error = useCompany ? companyJobsError : userJobsError;
+  const data = useCompany ? companyJobsData : userJobsData;
+  const totalPages = useCompany ? companyTotalPages : userTotalPages;
+  const total = useCompany ? companyTotal : userTotal;
+
+  // Fetch employer profile to check company registration
+  useEffect(() => {
+    const loadEmployerProfile = async () => {
+      try {
+        setProfileLoading(true);
+        const profile = await getEmployerProfile();
+        setEmployerProfile({
+          id: profile.id,
+          company: profile.company,
+        });
+      } catch (err) {
+        console.error('Failed to load employer profile:', err);
+        // Set profile to null on error, will fall back to user-based jobs
+        setEmployerProfile({ id: userId });
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadEmployerProfile();
+  }, [userId]);
 
   // Fetch jobs when component mounts or page changes
   useEffect(() => {
+    if (profileLoading) return; // Wait for profile to load
+
     const loadJobs = async () => {
       try {
-        await fetchEmployerJobs(userId, currentPage);
+        if (useCompany && employerProfile?.company?.id) {
+          // Use company-based fetch
+          await fetchCompanyJobs(employerProfile.company.id, currentPage);
+        } else {
+          // Fall back to user-based fetch
+          await fetchEmployerJobs(userId, currentPage);
+        }
       } catch (err) {
         console.error('Failed to load jobs:', err);
       }
     };
 
     loadJobs();
-  }, [userId, currentPage]);
+  }, [userId, currentPage, profileLoading, useCompany, employerProfile?.company?.id]);
 
   // Map fetched data to display format
   useEffect(() => {
@@ -350,7 +398,11 @@ export default function JobListingTable({
   const publishJob = async (id: string) => {
     try {
       // Refresh the page after publishing
-      await fetchEmployerJobs(userId, currentPage);
+      if (useCompany && employerProfile?.company?.id) {
+        await fetchCompanyJobs(employerProfile.company.id, currentPage);
+      } else {
+        await fetchEmployerJobs(userId, currentPage);
+      }
     } catch (err) {
       console.error('Failed to publish job:', err);
     }
@@ -359,7 +411,11 @@ export default function JobListingTable({
   const closeJob = async (id: string) => {
     try {
       // Refresh the page after closing
-      await fetchEmployerJobs(userId, currentPage);
+      if (useCompany && employerProfile?.company?.id) {
+        await fetchCompanyJobs(employerProfile.company.id, currentPage);
+      } else {
+        await fetchEmployerJobs(userId, currentPage);
+      }
     } catch (err) {
       console.error('Failed to close job:', err);
     }
@@ -369,7 +425,11 @@ export default function JobListingTable({
     try {
       await deleteJobPosting(parseInt(id, 10));
       // Refresh the page after deletion
-      await fetchEmployerJobs(userId, currentPage);
+      if (useCompany && employerProfile?.company?.id) {
+        await fetchCompanyJobs(employerProfile.company.id, currentPage);
+      } else {
+        await fetchEmployerJobs(userId, currentPage);
+      }
     } catch (err) {
       console.error('Failed to delete job:', err);
     }
@@ -380,6 +440,14 @@ export default function JobListingTable({
       setCurrentPage(page);
     }
   };
+
+  if (profileLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (error) {
     return (
