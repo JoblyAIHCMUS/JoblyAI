@@ -29,7 +29,7 @@ export async function listJobs(
  * Public endpoint - no authentication required
  */
 export async function getJobById(id: number): Promise<JobPosting> {
-  const response = await axios.get<JobPosting>(`${API_BASE_URL}/jobs/${id}`, {
+  const response = await axios.get<JobPosting>(`${API_BASE_URL}/api/jobs/${id}`, {
     withCredentials: true,
   });
   return response.data;
