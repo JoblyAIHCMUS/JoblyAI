@@ -10,9 +10,7 @@ import type { JobListingStatus } from '@/features/employer/job-listing/data';
 /**
  * Map backend JobStatus to frontend JobListingStatus
  */
-function mapJobStatus(
-  status: JobStatus
-): JobListingStatus {
+function mapJobStatus(status: JobStatus): JobListingStatus {
   const statusMap: Record<JobStatus, JobListingStatus> = {
     DRAFT: 'Draft',
     OPEN: 'Live',
