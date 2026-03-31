@@ -91,3 +91,25 @@ export async function listEmployerJobs(
   );
   return response.data;
 }
+
+/**
+ * List jobs posted by company
+ * Requires authentication and employer to be registered to that company
+ */
+export async function listEmployerJobsByCompany(
+  companyId: number,
+  page = 1,
+  pageSize = 10
+): Promise<PaginatedJobsResponse> {
+  const response = await axios.get<PaginatedJobsResponse>(
+    `${API_BASE_URL}/api/jobs/company/${companyId}`,
+    {
+      params: {
+        page,
+        pageSize,
+      },
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}
