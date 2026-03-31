@@ -16,7 +16,9 @@ interface UseEmployerCompanyJobsOptions {
  * Hook for fetching jobs posted by a company with pagination support
  * Requires authentication and employer to be registered to that company
  */
-export function useEmployerCompanyJobs(options?: UseEmployerCompanyJobsOptions) {
+export function useEmployerCompanyJobs(
+  options?: UseEmployerCompanyJobsOptions
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
   const [data, setData] = useState<JobPosting[] | null>(null);
@@ -30,7 +32,11 @@ export function useEmployerCompanyJobs(options?: UseEmployerCompanyJobsOptions) 
       setLoading(true);
       setError(null);
       try {
-        const result = await listEmployerJobsByCompany(companyId, page, pageSize);
+        const result = await listEmployerJobsByCompany(
+          companyId,
+          page,
+          pageSize
+        );
         setData(result.jobs);
         setTotal(result.total);
         setTotalPages(result.totalPages);

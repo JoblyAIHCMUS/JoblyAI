@@ -328,11 +328,23 @@ export default function JobListingTable({
   } | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const { fetchEmployerJobs, loading: userJobsLoading, error: userJobsError, data: userJobsData, totalPages: userTotalPages, total: userTotal } =
-    useEmployerJobs({ initialPageSize: pageSize });
+  const {
+    fetchEmployerJobs,
+    loading: userJobsLoading,
+    error: userJobsError,
+    data: userJobsData,
+    totalPages: userTotalPages,
+    total: userTotal,
+  } = useEmployerJobs({ initialPageSize: pageSize });
 
-  const { fetchCompanyJobs, loading: companyJobsLoading, error: companyJobsError, data: companyJobsData, totalPages: companyTotalPages, total: companyTotal } =
-    useEmployerCompanyJobs({ initialPageSize: pageSize });
+  const {
+    fetchCompanyJobs,
+    loading: companyJobsLoading,
+    error: companyJobsError,
+    data: companyJobsData,
+    totalPages: companyTotalPages,
+    total: companyTotal,
+  } = useEmployerCompanyJobs({ initialPageSize: pageSize });
 
   // Determine which hook to use based on company registration
   const useCompany = employerProfile?.company?.id;
@@ -383,7 +395,13 @@ export default function JobListingTable({
     };
 
     loadJobs();
-  }, [userId, currentPage, profileLoading, useCompany, employerProfile?.company?.id]);
+  }, [
+    userId,
+    currentPage,
+    profileLoading,
+    useCompany,
+    employerProfile?.company?.id,
+  ]);
 
   // Map fetched data to display format
   useEffect(() => {
