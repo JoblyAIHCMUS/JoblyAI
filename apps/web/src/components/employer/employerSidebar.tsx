@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { toast, Toaster } from 'sonner';
 
 import {
   Sidebar,
@@ -90,16 +92,32 @@ export function EmployerSidebar() {
   const { data: user } = useUser();
   const logout = useLogout();
   const { hasUnreadMessages } = useUnreadMessagesDot();
-  const { data: employerProfile } = useGetEmployerProfile();
+  const { data: employerProfile, fetchEmployerProfile } =
+    useGetEmployerProfile();
+
+  useEffect(() => {
+    void fetchEmployerProfile().catch(() => {
+      // Keep sidebar resilient if profile fetch fails.
+    });
+  }, []);
 
   // Derive the actual collapsed state based on mobile vs desktop
   const isCollapsed = isMobile ? !openMobile : state === 'collapsed';
+
+  const handleRestrictedNavigation = () => {
+    toast.warning('Must be affiliated with a company to access this page', {
+      position: 'top-center',
+    });
+  };
 
   return (
     <Sidebar
       collapsible="icon"
       className="relative border-r border-[color:var(--border-primary)]"
     >
+      {/* Pre-render Toaster for notifications */}
+      <Toaster />
+
       {/* Collapse/Expand Toggle Button */}
       <button
         onClick={toggleSidebar}
@@ -137,28 +155,34 @@ export function EmployerSidebar() {
               const shouldShowBadge =
                 item.title === 'Messages' ? hasUnreadMessages : item.badge;
 
-              // Disable company-profile if no companyId
-              const isCompanyProfile = item.title === 'Company Profile';
+              // Restricted pages require a company affiliation.
+              const restrictedItems = [
+                'Company Profile',
+                'All Applications',
+                'Job Listing',
+              ];
+              const isRestrictedItem = restrictedItems.includes(item.title);
               const companyId = employerProfile?.company?.id ?? null;
               const isDisabled =
-                isCompanyProfile && employerProfile && !companyId;
+                isRestrictedItem && !!employerProfile && !companyId;
 
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild={!isDisabled}
                     isActive={isActive}
-                    tooltip={item.title}
+                    tooltip={isDisabled ? undefined : item.title}
                     className={cn(
                       'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                       isActive &&
                         'bg-[color:var(--bg-accent-primary)] text-[color:var(--text-accent-primary)] hover:bg-[color:var(--bg-accent-primary-hover)]',
                       'data-[active=true]:border-l-4 data-[active=true]:border-[color:var(--bg-accent-solid)] data-[active=true]:pl-3',
                       'group-data-[collapsible=icon]:data-[active=true]:border-l-0 group-data-[collapsible=icon]:data-[active=true]:pl-0',
-                      isDisabled &&
-                        'opacity-50 pointer-events-none cursor-not-allowed'
+                      isDisabled && 'opacity-50 cursor-not-allowed'
                     )}
-                    disabled={Boolean(isDisabled)}
+                    onClick={
+                      isDisabled ? handleRestrictedNavigation : undefined
+                    }
                   >
                     {isDisabled ? (
                       <div className="flex items-center gap-2">
@@ -166,6 +190,9 @@ export function EmployerSidebar() {
                         <span className="group-data-[collapsible=icon]:hidden">
                           {item.title}
                         </span>
+                        {shouldShowBadge && (
+                          <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[color:var(--icon-accent-primary)] group-data-[collapsible=icon]:hidden" />
+                        )}
                       </div>
                     ) : (
                       <Link href={item.url}>
