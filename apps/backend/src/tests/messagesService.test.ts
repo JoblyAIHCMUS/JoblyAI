@@ -6,13 +6,13 @@ import { MessagesService } from '../app/messages/messages.service';
 const mockUser1 = {
   id: 'user123',
   name: 'John Doe',
-  image: 'https://example.com/john.jpg',
+  avatarUrl: 'https://example.com/john.jpg',
 };
 
 const mockUser2 = {
   id: 'user456',
   name: 'Jane Smith',
-  image: 'https://example.com/jane.jpg',
+  avatarUrl: 'https://example.com/jane.jpg',
 };
 
 const getChatId = (userA: string, userB: string): string => {
@@ -253,7 +253,7 @@ describe('MessagesService', () => {
           lastMessageAt: true,
           lastMessage: true,
           participant: {
-            select: { id: true, name: true, image: true, role: true },
+            select: { id: true, name: true, avatarUrl: true, role: true },
           },
         },
         orderBy: { lastMessageAt: 'desc' },
@@ -265,7 +265,7 @@ describe('MessagesService', () => {
         participantId: mockUser2.id,
         participantName: mockUser2.name,
         participantRole: null,
-        participantAvatar: mockUser2.image,
+        participantAvatar: mockUser2.avatarUrl,
         latestMessage: 'Hello there!',
         hasUnread: false,
         lastMessageAt: lastMessageDate,

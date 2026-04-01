@@ -42,7 +42,7 @@ export class CandidatesService {
       banned: user.banned ?? false,
       banReason: user.banReason ?? '',
       banExpires: user.banExpires ?? undefined,
-      image: user.image || '',
+      avatarUrl: user.avatarUrl || '',
       role: user.role || 'candidate',
       createdAt: user.createdAt,
       educations: user.education.map((edu) => ({
