@@ -92,10 +92,8 @@ export function EmployerSidebar() {
   const { data: user } = useUser();
   const logout = useLogout();
   const { hasUnreadMessages } = useUnreadMessagesDot();
-  const {
-    data: employerProfile,
-    fetchEmployerProfile,
-  } = useGetEmployerProfile();
+  const { data: employerProfile, fetchEmployerProfile } =
+    useGetEmployerProfile();
 
   useEffect(() => {
     void fetchEmployerProfile().catch(() => {
