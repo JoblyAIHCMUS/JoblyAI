@@ -167,7 +167,7 @@ export function EmployerSidebar() {
               const isRestrictedItem = restrictedItems.includes(item.title);
               const companyId = employerProfile?.company?.id ?? null;
               const isDisabled =
-                isRestrictedItem && (employerProfileLoading || !companyId);
+                isRestrictedItem && !!employerProfile && !companyId;
 
               return (
                 <SidebarMenuItem key={item.title}>
