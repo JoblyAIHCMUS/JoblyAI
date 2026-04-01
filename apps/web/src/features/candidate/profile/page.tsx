@@ -50,6 +50,44 @@ const CandidateProfilePage = () => {
       setUploadErrorMsg(errorMsg);
     },
   });
+  // State quản lý section đang chỉnh sửa
+  const [editSection, setEditSection] = useState<string | null>(null);
+
+  // Hàm xử lý khi nhấn edit
+  const handleEdit = (section: string) => setEditSection(section);
+  // Hàm xử lý khi nhấn hủy
+  const handleCancel = () => setEditSection(null);
+
+  const handleUpdateAbout = async (about: string[]) => {
+    const { updateAbout } = useUpdateCandidateAbout();
+    await updateAbout(about);
+    setProfile((prev) => (prev ? { ...prev, about } : prev));
+  };
+
+  const { updateExperienceRecord } = useUpdateExperience();
+
+  const handleUpdateExperience = async (experiences: Experience) => {
+    const apiExperience = mapUIToApiUpdate(experiences);
+    await updateExperienceRecord(apiExperience);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updatedExperiences = prev.experiences.map((exp) =>
+        exp.id === experiences.id ? experiences : exp
+      );
+      return { ...prev, experiences: updatedExperiences };
+    });
+  };
+
+  const { createExperienceRecord } = useCreateExperience();
+
+  const handleAddExperience = async (experience: Experience) => {
+    const apiExperience = mapUIToApiCreate(experience);
+    await createExperienceRecord(apiExperience);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return { ...prev, experiences: [...prev.experiences, experience] };
+    });
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -63,6 +101,12 @@ const CandidateProfilePage = () => {
 
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (data) {
+      setCandidate(mapDataToCandidate(data));
+    }
+  }, [data]);
 
   if (error) {
     return (
@@ -162,6 +206,15 @@ const CandidateProfilePage = () => {
     socials: [],
   };
 
+
+  if (loading || !candidate) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div
       className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
@@ -171,7 +224,10 @@ const CandidateProfilePage = () => {
         {/* Main Content (Left) */}
         <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
           <ProfileHeader candidate={candidate} />
-          <AboutMe about={candidate.about} />
+          <AboutMe
+            about={candidate.about}
+            handleUpdateAbout={handleUpdateAbout}
+          />
           <CV
             cvFileKey={getCVFileKey()}
             cvFileName={getCVFileName()}
@@ -186,13 +242,33 @@ const CandidateProfilePage = () => {
                 : null)
             }
           />
-          <Experiences experiences={candidate.experiences} />
-          <Educations educations={candidate.educations} />
-          <Skills skills={candidate.skills} />
+          <Experiences
+            experiences={candidate.experiences}
+            handleUpdateExperience={handleUpdateExperience}
+            handleAddExperience={handleAddExperience}
+          />
+          <Educations
+            educations={candidate.educations}
+            onEdit={() => handleEdit('educations')}
+            isEditing={editSection === 'educations'}
+            onCancel={handleCancel}
+          />
+          <Skills
+            skills={candidate.skills}
+            onEdit={() => handleEdit('skills')}
+            isEditing={editSection === 'skills'}
+            onCancel={handleCancel}
+          />
           <Portfolios portfolios={candidate.portfolios} />
         </div>
         {/* Sidebar (Right) */}
-        <SideBar contact={candidate.contact} socials={candidate.socials} />
+        <SideBar
+          contact={candidate.contact}
+          socials={candidate.socials}
+          onEdit={() => handleEdit('sidebar')}
+          isEditing={editSection === 'sidebar'}
+          onCancel={handleCancel}
+        />
       </div>
     </div>
   );

@@ -11,16 +11,18 @@ export default function Portfolios({ portfolios }: { portfolios: any[] }) {
         </div>
         <div className="flex gap-2">
           <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-            <Plus size={20} className='text-accent-primary' />
+            <Plus size={20} className="text-accent-primary" />
           </button>
           <button className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-            <Edit size={20} className='text-accent-primary' />
+            <Edit size={20} className="text-accent-primary" />
           </button>
         </div>
       </div>
       <div
         className="flex flex-row py-[var(--space-lg)] overflow-x-auto custom-scrollbar"
-        style={{ scrollbarColor: 'var(--text-accent-primary) var(--bg-primary)' }}
+        style={{
+          scrollbarColor: 'var(--text-accent-primary) var(--bg-primary)',
+        }}
       >
         {portfolios.map((p, idx) => (
           <div key={idx} className="flex flex-col gap-2 min-w-[203px]">

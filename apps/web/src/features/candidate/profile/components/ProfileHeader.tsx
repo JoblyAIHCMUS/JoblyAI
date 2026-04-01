@@ -1,17 +1,23 @@
 import React from 'react';
-import { Edit, MapPin, Flag } from 'lucide-react';
+import { Flag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+interface Candidate {
+  name: string;
+  title: string;
+  // location: string;
+  avatar: string;
+  banner: string;
+  openForOpportunities: boolean;
+}
 
 interface ProfileHeaderProps {
-  candidate: {
-    name: string;
-    title: string;
-    location: string;
-    avatar: string;
-    banner: string;
-    openForOpportunities: boolean;
-  };
+  candidate: Candidate;
 }
+
 export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
+  const router = useRouter();
+
   return (
     <div className="relative rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] overflow-hidden flex flex-col items-end pb-[var(--space-xl)]">
       <div className="w-full h-[140px] bg-[color:#4640DE]" />
@@ -25,10 +31,6 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
           />
         </div>
       </div>
-      <button className="absolute right-6 top-6 p-2 rounded-[5px] border border-[#E2E8F0] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]">
-        <span className="sr-only">Edit</span>
-        <Edit size={24} />
-      </button>
       <div className="w-full pl-[180px] pr-8 mt-6">
         <div className="flex flex-row justify-between items-start">
           <div className="flex flex-col gap-2">
@@ -38,10 +40,10 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
             <div className="heading-h6-regular text-secondary break-words">
               {candidate.title}
             </div>
-            <div className="flex items-center gap-[var(--space-xs)] text-[color:var(--slate-500)] text-base font-normal">
+            {/* <div className="flex items-center gap-[var(--space-xs)] text-[color:var(--slate-500)] text-base font-normal">
               <MapPin size={20} />
               {candidate.location}
-            </div>
+            </div> */}
             {candidate.openForOpportunities && (
               <div className="mt-2 px-[var(--space-xl)] py-[var(--space-base)] bg-[color:#CCFBF1] rounded-[var(--radius-xl)] flex items-center gap-[var(--space-xs)]">
                 <Flag size={20} color="#14B8A6" />
@@ -51,7 +53,10 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
               </div>
             )}
           </div>
-          <button className="text-accent-primary px-[var(--space-xl)] py-[var(--space-base)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]">
+          <button
+            className="text-accent-primary px-[var(--space-xl)] py-[var(--space-base)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]"
+            onClick={() => router.push('/candidate/settings')}
+          >
             Edit Profile
           </button>
         </div>
