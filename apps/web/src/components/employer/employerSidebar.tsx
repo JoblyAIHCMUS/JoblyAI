@@ -94,7 +94,6 @@ export function EmployerSidebar() {
   const { hasUnreadMessages } = useUnreadMessagesDot();
   const {
     data: employerProfile,
-    loading: employerProfileLoading,
     fetchEmployerProfile,
   } = useGetEmployerProfile();
 
