@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { JobPosting, getJobById } from '@/api-client/jobs';
 
 interface UseJobDetailOptions {
@@ -14,22 +14,27 @@ export function useJobDetail(options?: UseJobDetailOptions) {
   const [error, setError] = useState<unknown | null>(null);
   const [data, setData] = useState<JobPosting | null>(null);
 
-  const fetchJobDetail = async (id: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await getJobById(id);
-      setData(result);
-      options?.onSuccess?.(result);
-      return result;
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchJobDetail = useCallback(
+    async (id: number) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await getJobById(id);
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    // Empty deps - fetchJobDetail is stable across renders
+    // Options callbacks are called but don't affect memoization
+    []
+  );
 
   return { fetchJobDetail, loading, error, data };
 }
