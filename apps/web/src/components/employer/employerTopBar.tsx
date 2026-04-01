@@ -120,7 +120,13 @@ export function EmployerTopBar() {
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
+                  <span
+                    tabIndex={0}
+                    role="button"
+                    aria-disabled="true"
+                    aria-label="Post a job is unavailable until you register your company"
+                    className="inline-flex"
+                  >
                     <Button
                       type="button"
                       disabled
