@@ -160,7 +160,7 @@ export function Stepper({
           {isLast ? (
             <Button
               onClick={onComplete}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
               type="button"
               disabled={!canProceedNow || loading}
             >
@@ -199,7 +199,7 @@ export function Stepper({
           ) : (
             <Button
               onClick={goNext}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
               type="button"
               disabled={!canProceedNow || loading}
             >
