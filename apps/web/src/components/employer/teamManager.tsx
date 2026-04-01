@@ -37,7 +37,7 @@ export function TeamManager({
       <div className="space-y-6">
         <div className="flex justify-start">
           <Button
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
             type="button"
             onClick={() => setSearchOpen(true)}
           >
