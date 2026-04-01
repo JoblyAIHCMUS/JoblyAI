@@ -4,6 +4,12 @@ import Link from 'next/link';
 import { Bell, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 // Dropdown menu imports removed (unused)
 import { cn } from '@/lib/utils';
 // useEffect import removed (unused)
@@ -21,6 +27,7 @@ export function EmployerTopBar() {
     fetchEmployerProfile,
   } = useGetEmployerProfile();
   const company = profile?.company;
+  const canPostJob = Boolean(company?.id) && !loading;
 
   useEffect(() => {
     fetchEmployerProfile();
@@ -99,15 +106,37 @@ export function EmployerTopBar() {
           </Button>
 
           {/* Post a job button */}
-          <Button
-            asChild
-            className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)]"
-          >
-            <Link href="/employer/new-job">
-              <Plus className="h-5 w-5" />
-              Post a job
-            </Link>
-          </Button>
+          {canPostJob ? (
+            <Button
+              asChild
+              className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)]"
+            >
+              <Link href="/employer/new-job">
+                <Plus className="h-5 w-5" />
+                Post a job
+              </Link>
+            </Button>
+          ) : (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      type="button"
+                      disabled
+                      className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-disabled)] text-[var(--text-disabled)] cursor-not-allowed"
+                    >
+                      <Plus className="h-5 w-5" />
+                      Post a job
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Register your company first to post jobs
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
     </header>

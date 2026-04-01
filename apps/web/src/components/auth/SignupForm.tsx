@@ -207,7 +207,7 @@ export function SignupForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-accent-solid py-6 text-base font-semibold hover:bg-accent-solid-hover"
+        className="w-full bg-accent-solid py-6 text-white font-semibold hover:bg-accent-solid-hover"
         size="lg"
         disabled={isPending}
       >
