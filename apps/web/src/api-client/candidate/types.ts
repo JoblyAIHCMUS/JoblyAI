@@ -33,7 +33,7 @@ export interface CandidateResume {
   id: number;
   isDefault?: boolean;
   fileName: string;
-  fileUrl: string;
+  fileKey?: string; // S3 object key for private resume access (might be empty during migration)
   fileType: string;
   fileSize: number;
   createdAt: string;
@@ -96,7 +96,7 @@ export interface UpdateExperiencePayload extends CreateExperiencePayload {
 }
 
 export interface CreateResumePayload {
-  fileUrl: string;
+  fileKey: string; // S3 object key for private resume access
   fileName: string;
   fileType: string;
   fileSize: number;
@@ -105,7 +105,7 @@ export interface CreateResumePayload {
 
 export interface UpdateResumePayload {
   id: number;
-  fileUrl?: string;
+  fileKey?: string; // S3 object key for private resume access
   fileName?: string;
   isDefault?: boolean;
 }

@@ -30,11 +30,11 @@ async function main() {
 
   // Delete all data in reverse order of foreign key dependencies
   await prisma.application.deleteMany({});
-  await prisma.resume.deleteMany({});
-  await prisma.employer.deleteMany({});
-  await prisma.company.deleteMany({});
   await prisma.jobRequirement.deleteMany({});
   await prisma.jobPosting.deleteMany({});
+  await prisma.employer.deleteMany({});
+  await prisma.company.deleteMany({});
+  await prisma.resume.deleteMany({});
   await prisma.verification.deleteMany({});
   await prisma.session.deleteMany({});
   await prisma.account.deleteMany({});
@@ -98,42 +98,42 @@ async function main() {
       email: 'alice@example.com',
       emailVerified: true,
       role: 'candidate',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     },
     {
       name: 'Bob Smith',
       email: 'bob@example.com',
       emailVerified: true,
       role: 'candidate',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
     },
     {
       name: 'Carol White',
       email: 'carol@example.com',
       emailVerified: true,
       role: 'employer',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
     },
     {
       name: 'David Brown',
       email: 'david@example.com',
       emailVerified: true,
       role: 'employer',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
     },
     {
       name: 'Eve Davis',
       email: 'eve@example.com',
       emailVerified: false,
       role: 'candidate',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
     },
     {
       name: 'Frank Miller',
       email: 'frank@example.com',
       emailVerified: true,
       role: 'employer',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
     },
   ];
 
@@ -537,7 +537,7 @@ async function main() {
     prisma.resume.create({
       data: {
         candidateId: jobSeekers[0].id, // Alice
-        fileUrl: 'https://example.com/resumes/alice-senior-dev.pdf',
+          fileKey: 'resumes/alice-senior-dev.pdf',
         fileName: 'alice-senior-dev.pdf',
         fileType: 'application/pdf',
         fileSize: 245678,
@@ -550,7 +550,7 @@ async function main() {
     prisma.resume.create({
       data: {
         candidateId: jobSeekers[0].id, // Alice - alternative resume
-        fileUrl: 'https://example.com/resumes/alice-fullstack.pdf',
+          fileKey: 'resumes/alice-fullstack.pdf',
         fileName: 'alice-fullstack.pdf',
         fileType: 'application/pdf',
         fileSize: 198234,
@@ -564,7 +564,7 @@ async function main() {
     prisma.resume.create({
       data: {
         candidateId: jobSeekers[1].id, // Bob
-        fileUrl: 'https://example.com/resumes/bob-react-dev.pdf',
+          fileKey: 'resumes/bob-react-dev.pdf',
         fileName: 'bob-react-dev.pdf',
         fileType: 'application/pdf',
         fileSize: 186543,
@@ -578,7 +578,7 @@ async function main() {
     prisma.resume.create({
       data: {
         candidateId: jobSeekers[2].id, // Eve
-        fileUrl: 'https://example.com/resumes/eve-junior-dev.pdf',
+          fileKey: 'resumes/eve-junior-dev.pdf',
         fileName: 'eve-junior-dev.pdf',
         fileType: 'application/pdf',
         fileSize: 123456,
@@ -689,7 +689,7 @@ async function main() {
       role: 'employer',
       firstName: 'Maria',
       lastName: 'Kelly',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
+        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
     },
   });
   console.log('Created user Maria Kelly');

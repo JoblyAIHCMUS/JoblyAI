@@ -76,7 +76,7 @@ export class CandidatesService {
         id: resume.id,
         isDefault: resume.isDefault,
         fileName: resume.fileName ?? '',
-        fileUrl: resume.fileUrl ?? '',
+        fileKey: resume.fileKey ?? '',
         fileType: resume.fileType ?? 'pdf',
         fileSize: resume.fileSize ?? undefined,
         createdAt: resume.createdAt.toISOString(),

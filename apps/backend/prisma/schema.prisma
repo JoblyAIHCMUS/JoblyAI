@@ -8,13 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String        @unique
-  emailVerified Boolean       @default(false)
-  image         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  name           String?
+  email          String        @unique
+  emailVerified  Boolean       @default(false)
+  
+  // S3 Avatar Storage - PUBLIC access (bucket policy allows public GetObject)
+  // Store direct S3 URL since avatars are publicly readable
+  avatarUrl      String?       // S3 public URL (e.g., "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/avatars/uuid.jpg")
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   banExpires    DateTime?
   banReason     String?
   banned        Boolean?      @default(false)
@@ -223,15 +227,19 @@ model Certificate {
 }
 
 model Company {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  websiteUrl  String?
-  sizeRange   String?
-  industry    String?
-  description String?
-  logoUrl     String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           Int        @id @default(autoincrement())
+  name         String     @unique
+  websiteUrl   String?
+  sizeRange    String?
+  industry     String?
+  description  String?
+  
+  // S3 Logo Storage - PUBLIC access (bucket policy allows public GetObject)
+  // Store direct S3 URL since logos are publicly readable
+  logoUrl      String?    // S3 public URL (e.g., "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/logos/uuid.png")
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   employers   Employer[]
   jobPostings JobPosting[]
 }
@@ -273,10 +281,14 @@ model Resume {
   id              Int           @id @default(autoincrement())
   candidateId     String
   candidate       User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  fileUrl         String
-  fileName        String // Original name of the uploaded file (e.g., "resume.pdf")
-  fileType        String // MIME type of the resume file (e.g., "application/pdf")
-  fileSize        Int // Size of the resume file in bytes
+  
+  // S3 File Storage - PRIVATE access (bucket policy blocks public GetObject for resumes/)
+  // Store ONLY fileKey - generate presigned download URLs dynamically for secure access
+  fileKey         String?       // S3 object key (e.g., "resumes/uuid.pdf") - use for deletion & presigned download URLs
+  fileName        String        // Original file name (e.g., "resume.pdf")
+  fileType        String        // MIME type (e.g., "application/pdf")
+  fileSize        Int           // Size of the file in bytes
+  
   parsedText      String?       @db.Text
   aiScore         Float?
   isDefault       Boolean       @default(false)

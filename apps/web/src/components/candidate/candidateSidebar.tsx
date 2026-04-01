@@ -190,7 +190,7 @@ export function CandidateSidebar() {
           </SidebarGroup>
           <div className="pointer-events-none relative hidden h-48 overflow-hidden group-data-[collapsible=icon]:hidden md:block">
             <Image
-              src="/applicant/Pattern.png"
+              src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/applicant/Pattern.png"
               alt=""
               fill
               className="object-contain object-right-bottom opacity-95"
