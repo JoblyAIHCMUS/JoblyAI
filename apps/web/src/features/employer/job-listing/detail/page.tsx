@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
+import { useListEmployerApplications } from '@/api-hook/application/useListEmployerApplications';
+import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
+import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
+import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
+import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
 import JobDetailsReview from '@/components/employer/jobDetailsReview';
 import JobStatsPanel from '@/components/employer/jobStatsPanel';
@@ -16,6 +21,19 @@ export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { fetchJobDetail, loading, error, data: backendJob } = useJobDetail();
+  const {
+    fetchApplications,
+    loading: applicationsLoading,
+    error: applicationsError,
+    data: applicationsData,
+  } = useListEmployerApplications();
+  const { shortlistApplication } = useShortlistApplication();
+  const { rejectApplication } = useRejectApplication();
+  const { moveToOffer } = useMoveToOfferApplication();
+
+  const [applicants, setApplicants] = useState(
+    mapApplicationRecordsToApplicants([])
+  );
 
   // Fetch job details on mount
   useEffect(() => {
@@ -25,14 +43,128 @@ export default function JobListingDetailPage() {
         fetchJobDetail(jobId).catch((err) => {
           console.error('Failed to fetch job details:', err);
         });
+        // Fetch applications for this job
+        fetchApplications({ jobId }).catch((err) => {
+          console.error('Failed to fetch applications:', err);
+        });
       }
     }
-  }, [id, fetchJobDetail]);
+  }, [id, fetchJobDetail, fetchApplications]);
+
+  // Update applicants when data changes
+  useEffect(() => {
+    if (applicationsData?.applications) {
+      setApplicants(
+        mapApplicationRecordsToApplicants(applicationsData.applications)
+      );
+    }
+  }, [applicationsData]);
+
+  // Advance applicant to next stage
+  const handleAdvanceApplicant = useCallback(
+    async (applicantId: string) => {
+      try {
+        const appId = parseInt(applicantId, 10);
+        // Find current applicant to determine next action
+        const applicant = applicants.find((a) => a.id === applicantId);
+        if (!applicant) return;
+
+        if (applicant.hiringStage === 'In Review') {
+          // Move from In Review to Shortlisted
+          await shortlistApplication(appId);
+        } else if (applicant.hiringStage === 'Shortlisted') {
+          // Move from Shortlisted to Hired (Offer)
+          await moveToOffer(appId);
+        }
+
+        // Refresh applications
+        const jobId = parseInt(id as string, 10);
+        if (!isNaN(jobId)) {
+          await fetchApplications({ jobId });
+        }
+      } catch (err) {
+        console.error('Failed to advance applicant:', err);
+      }
+    },
+    [applicants, id, shortlistApplication, moveToOffer, fetchApplications]
+  );
+
+  // Decline applicant
+  const handleDeclineApplicant = useCallback(
+    async (applicantId: string) => {
+      try {
+        const appId = parseInt(applicantId, 10);
+        await rejectApplication(appId, {
+          feedback:
+            'Thank you for applying. We have decided to move forward with other candidates at this time.',
+        });
+
+        // Refresh applications
+        const jobId = parseInt(id as string, 10);
+        if (!isNaN(jobId)) {
+          await fetchApplications({ jobId });
+        }
+      } catch (err) {
+        console.error('Failed to decline applicant:', err);
+      }
+    },
+    [id, rejectApplication, fetchApplications]
+  );
+
+  // Handle Kanban stage changes
+  const handleMoveApplicantToStage = useCallback(
+    async (applicantId: string, newStage: string) => {
+      try {
+        const appId = parseInt(applicantId, 10);
+        const applicant = applicants.find((a) => a.id === applicantId);
+        if (!applicant) return;
+
+        // Only handle stage transitions that require backend calls
+        const currentStage = applicant.hiringStage;
+
+        if (newStage === 'Declined') {
+          // Move to Declined
+          await rejectApplication(appId, {
+            feedback:
+              'Thank you for applying. We have decided to move forward with other candidates at this time.',
+          });
+        } else if (currentStage === 'In Review' && newStage === 'Shortlisted') {
+          // Move from In Review to Shortlisted
+          await shortlistApplication(appId);
+        } else if (currentStage === 'Shortlisted' && newStage === 'Hired') {
+          // Move from Shortlisted to Hired (Offer)
+          await moveToOffer(appId);
+        }
+        // For other moves or reordering within the same stage, just update local state
+
+        // Refresh applications
+        const jobId = parseInt(id as string, 10);
+        if (!isNaN(jobId)) {
+          await fetchApplications({ jobId });
+        }
+      } catch (err) {
+        console.error('Failed to move applicant to stage:', err);
+      }
+    },
+    [
+      applicants,
+      id,
+      shortlistApplication,
+      moveToOffer,
+      rejectApplication,
+      fetchApplications,
+    ]
+  );
 
   // Map backend data to frontend format
-  const job = backendJob ? mapJobPostingToListingDetail(backendJob) : null;
+  const job = backendJob
+    ? {
+        ...mapJobPostingToListingDetail(backendJob),
+        applicants: applicants,
+      }
+    : null;
 
-  if (loading) {
+  if (loading || applicationsLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4">
@@ -46,7 +178,7 @@ export default function JobListingDetailPage() {
     );
   }
 
-  if (error) {
+  if (error || applicationsError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <button onClick={() => router.back()} aria-label="Go back">
@@ -57,6 +189,8 @@ export default function JobListingDetailPage() {
           <p className="text-gray-600 mt-2">
             {error instanceof Error
               ? error.message
+              : applicationsError instanceof Error
+              ? applicationsError.message
               : 'Failed to load job details'}
           </p>
         </div>
@@ -94,7 +228,12 @@ export default function JobListingDetailPage() {
         </TabsList>
 
         <TabsContent value="applicants" className="mt-6">
-          <JobApplicantsView applicants={job.applicants} />
+          <JobApplicantsView
+            applicants={job.applicants}
+            onAdvanceApplicant={handleAdvanceApplicant}
+            onDeclineApplicant={handleDeclineApplicant}
+            onMoveApplicant={handleMoveApplicantToStage}
+          />
         </TabsContent>
 
         <TabsContent value="job-details" className="mt-6">

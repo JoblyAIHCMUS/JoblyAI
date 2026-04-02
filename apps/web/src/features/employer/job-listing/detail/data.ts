@@ -24,12 +24,7 @@ export type SalaryCurrency =
   | 'jpy'
   | 'cny';
 
-export type HiringStage =
-  | 'In Review'
-  | 'Shortlisted'
-  | 'Interviewed'
-  | 'Hired'
-  | 'Declined';
+export type HiringStage = 'In Review' | 'Shortlisted' | 'Hired' | 'Declined';
 
 export interface Applicant {
   id: string;
@@ -112,7 +107,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
         appliedDate: '2020-05-21',
         score: 8.2,
-        hiringStage: 'Interviewed',
+        hiringStage: 'Shortlisted',
       },
       {
         id: '2',
@@ -130,7 +125,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
         appliedDate: '2020-05-23',
         score: 8.5,
-        hiringStage: 'Interviewed',
+        hiringStage: 'Shortlisted',
       },
       {
         id: '4',
@@ -184,7 +179,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
         appliedDate: '2020-05-26',
         score: 8.0,
-        hiringStage: 'Interviewed',
+        hiringStage: 'Shortlisted',
       },
       {
         id: '10',
@@ -202,7 +197,7 @@ export const jobListingDetails: Record<string, JobListingDetail> = {
         image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Laura',
         appliedDate: '2020-05-27',
         score: 4.3,
-        hiringStage: 'Interviewed',
+        hiringStage: 'Shortlisted',
       },
       {
         id: '12',
