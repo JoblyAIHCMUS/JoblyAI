@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import {
   type Certificate,
+  type CandidateContact,
+  type CandidateDescription,
+  type CandidateSocial,
   type Education,
   type Experience,
+  type Resume,
+  type CandidateSkill,
   Prisma,
   PrismaClient,
-  type Resume,
 } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
@@ -23,9 +27,13 @@ export class CandidatesService {
       where: { id: userId },
       include: {
         education: true,
-        experiences: true,
+        experiences: true,    
         certificates: true,
         resumes: true,
+        candidateDescription: true,
+        candidateSkills: true,
+        candidateContacts: true,
+        candidateSocials: true,
       },
     });
 
@@ -82,6 +90,31 @@ export class CandidatesService {
         createdAt: resume.createdAt.toISOString(),
         updatedAt: resume.updatedAt.toISOString(),
       })),
+      about: user.candidateDescription
+        ? {
+            id: user.candidateDescription.id,
+            title: user.candidateDescription.title ?? '',
+            bio: user.candidateDescription.bio ?? '',
+          }
+        : undefined,
+      skills: user.candidateSkills.map((skill) => ({
+        id: skill.id,
+        title: skill.title,
+        level: skill.level ?? undefined,
+        years: skill.years ?? undefined,
+      })),
+      contacts: user.candidateContacts.map((contact) => ({
+        id: contact.id,
+        type: contact.type ?? undefined,
+        value: contact.value,
+        isPrimary: contact.isPrimary ?? false,
+      })),
+      socials: user.candidateSocials.map((social) => ({
+        id: social.id,
+        platform: social.platform,
+        url: social.url,
+        username: social.username ?? undefined,
+      })),
     };
   }
 
@@ -132,17 +165,26 @@ export class CandidatesService {
   }
 
   async deleteEducation(userId: string, educationId: number): Promise<string> {
-    const result = await this.prismaClient.education.delete({
+    const existing = await this.prismaClient.education.findFirst({
       where: {
         id: educationId,
         candidateId: userId,
       },
     });
-    if (!result)
+
+    if (!existing) {
       throw new NotFoundException(
         `Education record ${educationId} not found or access denied.`
       );
-    return 'Deleted education with ID ' + educationId;
+    }
+
+    await this.prismaClient.education.delete({
+      where: {
+        id: educationId,
+      },
+    });
+
+    return `Deleted education with ID ${educationId}`;
   }
 
   // Experience
@@ -196,17 +238,26 @@ export class CandidatesService {
     userId: string,
     experienceId: number
   ): Promise<string> {
-    const result = await this.prismaClient.experience.delete({
+    const existing = await this.prismaClient.experience.findFirst({
       where: {
         id: experienceId,
         candidateId: userId,
       },
     });
-    if (!result)
+
+    if (!existing) {
       throw new NotFoundException(
         `Experience record ${experienceId} not found or access denied.`
       );
-    return 'Deleted experience with ID ' + experienceId;
+    }
+
+    await this.prismaClient.experience.delete({
+      where: {
+        id: experienceId,
+      },
+    });
+
+    return `Deleted experience with ID ${experienceId}`;
   }
 
   // Resume
@@ -257,17 +308,26 @@ export class CandidatesService {
   }
 
   async deleteResume(userId: string, resumeId: number): Promise<string> {
-    const result = await this.prismaClient.resume.delete({
+    const existing = await this.prismaClient.resume.findFirst({
       where: {
         id: resumeId,
         candidateId: userId,
       },
     });
-    if (!result)
+
+    if (!existing) {
       throw new NotFoundException(
         `Resume record ${resumeId} not found or access denied.`
       );
-    return 'Deleted resume with ID ' + resumeId;
+    }
+
+    await this.prismaClient.resume.delete({
+      where: {
+        id: resumeId,
+      },
+    });
+
+    return `Deleted resume with ID ${resumeId}`;
   }
 
   // Certificate
@@ -300,17 +360,26 @@ export class CandidatesService {
     userId: string,
     certificateId: number
   ): Promise<string> {
-    const result = await this.prismaClient.certificate.delete({
+    const existing = await this.prismaClient.certificate.findFirst({
       where: {
         id: certificateId,
         candidateId: userId,
       },
     });
-    if (!result)
+
+    if (!existing) {
       throw new NotFoundException(
         `Certificate record ${certificateId} not found or access denied.`
       );
-    return 'Deleted certificate with ID ' + certificateId;
+    }
+
+    await this.prismaClient.certificate.delete({
+      where: {
+        id: certificateId,
+      },
+    });
+
+    return `Deleted certificate with ID ${certificateId}`;
   }
 
   async createCertificateDetail(
@@ -333,4 +402,230 @@ export class CandidatesService {
 
     return result;
   }
+
+  // About
+  async getAbout(userId: string): Promise<CandidateDescription | null> {
+    return this.prismaClient.candidateDescription.findUnique({
+      where: { candidateId: userId },
+    });
+  }
+
+  async createAbout(
+    userId: string,
+    createDto: Omit<Prisma.CandidateDescriptionCreateInput, 'candidate'>
+  ): Promise<CandidateDescription> {
+    const existing = await this.prismaClient.candidateDescription.findUnique({
+      where: { candidateId: userId },
+    });
+
+    if (existing) {
+      throw new InternalServerErrorException(
+        `Candidate description already exists for user ${userId}`
+      );
+    }
+
+    return this.prismaClient.candidateDescription.create({
+      data: {
+        ...createDto,
+        candidate: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async updateAbout(
+    userId: string,
+    updateDto: Prisma.CandidateDescriptionUpdateInput & { id: number }
+  ): Promise<CandidateDescription> {
+    const { id, ...data } = updateDto;
+
+    const existing = await this.prismaClient.candidateDescription.findFirst({
+      where: { id, candidateId: userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(
+        `Candidate description ${id} not found or access denied.`
+      );
+    }
+
+    return this.prismaClient.candidateDescription.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteAbout(userId: string, aboutId: number): Promise<string> {
+    const existing = await this.prismaClient.candidateDescription.findFirst({
+      where: {
+        id: aboutId,
+        candidateId: userId,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(
+        `Candidate description ${aboutId} not found or access denied.`
+      );
+    }
+
+    await this.prismaClient.candidateDescription.delete({
+      where: { id: aboutId },
+    });
+
+    return `Deleted about with ID ${aboutId}`;
+  }
+
+  // Skill
+  async createSkill(
+    userId: string,
+    createDto: Omit<Prisma.CandidateSkillCreateInput, 'candidate'>
+  ): Promise<CandidateSkill> {
+    return this.prismaClient.candidateSkill.create({
+      data: {
+        ...createDto,
+        candidate: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async updateSkill(
+    userId: string,
+    updateDto: Prisma.CandidateSkillUpdateInput & { id: number }
+  ): Promise<CandidateSkill> {
+    const { id, ...data } = updateDto;
+    const existing = await this.prismaClient.candidateSkill.findFirst({
+      where: { id, candidateId: userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Skill ${id} not found or access denied.`);
+    }
+
+    return this.prismaClient.candidateSkill.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteSkill(userId: string, skillId: number): Promise<string> {
+    const existing = await this.prismaClient.candidateSkill.findFirst({
+      where: {
+        id: skillId,
+        candidateId: userId,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Skill ${skillId} not found or access denied.`);
+    }
+
+    await this.prismaClient.candidateSkill.delete({
+      where: { id: skillId },
+    });
+
+    return `Deleted skill with ID ${skillId}`;
+  }
+
+  // Contact
+  async createContact(
+    userId: string,
+    createDto: Omit<Prisma.CandidateContactCreateInput, 'candidate'>
+  ): Promise<CandidateContact> {
+    return this.prismaClient.candidateContact.create({
+      data: {
+        ...createDto,
+        candidate: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async updateContact(
+    userId: string,
+    updateDto: Prisma.CandidateContactUpdateInput & { id: number }
+  ): Promise<CandidateContact> {
+    const { id, ...data } = updateDto;
+    const existing = await this.prismaClient.candidateContact.findFirst({
+      where: { id, candidateId: userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Contact ${id} not found or access denied.`);
+    }
+
+    return this.prismaClient.candidateContact.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteContact(userId: string, contactId: number): Promise<string> {
+    const existing = await this.prismaClient.candidateContact.findFirst({
+      where: {
+        id: contactId,
+        candidateId: userId,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Contact ${contactId} not found or access denied.`);
+    }
+
+    await this.prismaClient.candidateContact.delete({
+      where: { id: contactId },
+    });
+
+    return `Deleted contact with ID ${contactId}`;
+  }
+
+  // Socials
+  async createSocial(
+    userId: string,
+    createDto: Omit<Prisma.CandidateSocialCreateInput, 'candidate'>
+  ): Promise<CandidateSocial> {
+    return this.prismaClient.candidateSocial.create({
+      data: {
+        ...createDto,
+        candidate: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async updateSocial(
+    userId: string,
+    updateDto: Prisma.CandidateSocialUpdateInput & { id: number }
+  ): Promise<CandidateSocial> {
+    const { id, ...data } = updateDto;
+    const existing = await this.prismaClient.candidateSocial.findFirst({
+      where: { id, candidateId: userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Social ${id} not found or access denied.`);
+    }
+
+    return this.prismaClient.candidateSocial.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteSocial(userId: string, socialId: number): Promise<string> {
+    const existing = await this.prismaClient.candidateSocial.findFirst({
+      where: {
+        id: socialId,
+        candidateId: userId,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Social ${socialId} not found or access denied.`);
+    }
+
+    await this.prismaClient.candidateSocial.delete({
+      where: { id: socialId },
+    });
+
+    return `Deleted social with ID ${socialId}`;
+  }
 }
+

@@ -29,6 +29,10 @@ model User {
   experiences   Experience[]
   certificates  Certificate[]
   resumes       Resume[]
+  candidateDescription CandidateDescription?
+  candidateSkills      CandidateSkill[]
+  candidateContacts    CandidateContact[]
+  candidateSocials     CandidateSocial[]
   conversations  Conversation[] @relation("UserConversations")
   participating  Conversation[] @relation("ParticipantInConversations")
   applications  Application[]
@@ -197,9 +201,70 @@ model Experience {
   startDate   DateTime
   endDate     DateTime? // Nullable: If null, it means "Present" (currently working)
   description String? // Optional description of the work experience
+  type        String? // Optional. FULL_TIME, PART_TIME, INTERNSHIP + ONSITE or REMOTE or HYBRID
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model CandidateDescription {
+  id          Int      @id @default(autoincrement())
+  candidateId String   @unique
+  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  title       String?
+  bio         String?  @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model CandidateSkill {
+  id          Int      @id @default(autoincrement())
+  candidateId String
+  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  title       String
+  level       String?  // novice, beginner, intermediate, advanced, master
+  years       Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model CandidateContact {
+  id          Int      @id @default(autoincrement())
+  candidateId String
+  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  type        String?  // PHONE, EMAIL, FAX, WEBHOOK, anything stringable really
+  value       String
+  isPrimary   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([candidateId])
+}
+
+model CandidateSocial {
+  id          Int      @id @default(autoincrement())
+  candidateId String
+  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  platform    String
+  url         String
+  username    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([candidateId])
 }
