@@ -38,10 +38,9 @@ export function LoginForm() {
           // Check if user is an employer and redirect accordingly
           if (user.role === 'employer') {
             router.push('/employer');
-          } else  if (user.role === 'candidate') {
+          } else if (user.role === 'candidate') {
             router.push('/candidate');
-          }
-          else {
+          } else {
             router.push(redirectTo);
           }
         },
