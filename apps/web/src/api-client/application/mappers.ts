@@ -38,7 +38,7 @@ export function mapApplicationRecordToApplicant(
     applicantId: application.candidateId,
     name: candidate.name || candidate.email || 'Unknown Candidate',
     image: '', // Backend doesn't provide candidate image in ApplicationRecord
-    appliedDate: application.createdAt,
+    appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
     score: application.matchPercentage ?? 0,
     hiringStage: mapApplicationStatusToHiringStage(application.status),
   };
