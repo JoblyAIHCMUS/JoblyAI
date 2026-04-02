@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal, Star } from 'lucide-react';
 
@@ -42,11 +42,6 @@ const HIRING_STAGE_COLUMNS: {
     borderColor: 'border-t-amber-500',
   },
   {
-    stage: 'Interviewed',
-    circleColor: 'purple',
-    borderColor: 'border-t-purple-500',
-  },
-  {
     stage: 'Hired',
     circleColor: 'green',
     borderColor: 'border-t-green-500',
@@ -65,13 +60,15 @@ interface JobApplicantsKanbanProps {
     stage: HiringStage,
     targetId?: string,
     position?: 'before' | 'after'
-  ) => void;
+  ) => Promise<void> | void;
 }
 
 export default function JobApplicantsKanban({
   applicants,
   onStageChange,
 }: JobApplicantsKanbanProps) {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
   const groupedApplicants = useMemo(() => {
     const byStage = applicants.reduce<Record<string, Applicant[]>>(
       (acc, applicant) => {
@@ -86,17 +83,27 @@ export default function JobApplicantsKanban({
     }));
   }, [applicants]);
 
-  const handleDropOnColumn = (stage: HiringStage) => (data: string) => {
+  const handleDropOnColumn = (stage: HiringStage) => async (data: string) => {
     const parsed = JSON.parse(data) as { id: string };
-    onStageChange(parsed.id, stage);
+    setLoadingId(parsed.id);
+    try {
+      await onStageChange(parsed.id, stage);
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   const handleDropOnListItem =
     (stage: HiringStage, targetCardId: string) =>
-    (data: string, dropDirection: KanbanBoardDropDirection) => {
+    async (data: string, dropDirection: KanbanBoardDropDirection) => {
       const parsed = JSON.parse(data) as { id: string };
       const position = dropDirection === 'top' ? 'before' : 'after';
-      onStageChange(parsed.id, stage, targetCardId, position);
+      setLoadingId(parsed.id);
+      try {
+        await onStageChange(parsed.id, stage, targetCardId, position);
+      } finally {
+        setLoadingId(null);
+      }
     };
 
   return (
@@ -135,7 +142,14 @@ export default function JobApplicantsKanban({
                     applicant.id
                   )}
                 >
-                  <KanbanBoardCard data={{ id: applicant.id }}>
+                  <KanbanBoardCard
+                    data={{ id: applicant.id }}
+                    className={
+                      loadingId === applicant.id
+                        ? 'opacity-50 draggable={false}'
+                        : ''
+                    }
+                  >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage

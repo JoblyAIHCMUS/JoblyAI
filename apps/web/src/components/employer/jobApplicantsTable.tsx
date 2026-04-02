@@ -1,6 +1,8 @@
 'use client';
+import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   ArrowUpDown,
   MoreHorizontal,
@@ -159,11 +161,22 @@ export const columns: ColumnDef<Applicant>[] = [
     cell: ({ row, table }) => {
       const applicant = row.original;
       const nextStage = nextStageMap[applicant.hiringStage];
+      const meta = table.options.meta as {
+        advanceApplicant?: (id: string) => Promise<void>;
+        declineApplicant?: (id: string) => Promise<void>;
+        loadingId?: string | null;
+      };
+      const isLoading = meta?.loadingId === applicant.id;
 
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              disabled={isLoading}
+            >
               <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -177,12 +190,8 @@ export const columns: ColumnDef<Applicant>[] = [
             </DropdownMenuItem>
             {nextStage && (
               <DropdownMenuItem
-                onClick={() => {
-                  const meta = table.options.meta as {
-                    advanceApplicant?: (id: string) => void;
-                  };
-                  meta.advanceApplicant?.(applicant.id);
-                }}
+                disabled={isLoading}
+                onClick={() => meta.advanceApplicant?.(applicant.id)}
               >
                 <ChevronRight className="mr-2 h-4 w-4" />
                 Advance to {nextStage}
@@ -191,12 +200,8 @@ export const columns: ColumnDef<Applicant>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"
-              onClick={() => {
-                const meta = table.options.meta as {
-                  declineApplicant?: (id: string) => void;
-                };
-                meta.declineApplicant?.(applicant.id);
-              }}
+              disabled={isLoading}
+              onClick={() => meta.declineApplicant?.(applicant.id)}
             >
               <XCircle className="mr-2 h-4 w-4" />
               Decline
@@ -210,8 +215,8 @@ export const columns: ColumnDef<Applicant>[] = [
 
 interface JobApplicantsTableProps {
   applicants: Applicant[];
-  advanceApplicant: (id: string) => void;
-  declineApplicant: (id: string) => void;
+  advanceApplicant: (id: string) => Promise<void> | void;
+  declineApplicant: (id: string) => Promise<void> | void;
 }
 
 export default function JobApplicantsTable({
@@ -219,11 +224,43 @@ export default function JobApplicantsTable({
   advanceApplicant,
   declineApplicant,
 }: JobApplicantsTableProps) {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleAdvance = async (id: string) => {
+    setLoadingId(id);
+    try {
+      await advanceApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to advance applicant';
+      toast.error(message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleDecline = async (id: string) => {
+    setLoadingId(id);
+    try {
+      await declineApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to decline applicant';
+      toast.error(message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   return (
     <DataTable
       columns={columns}
       data={applicants}
-      meta={{ advanceApplicant, declineApplicant }}
+      meta={{
+        advanceApplicant: handleAdvance,
+        declineApplicant: handleDecline,
+        loadingId,
+      }}
     />
   );
 }
