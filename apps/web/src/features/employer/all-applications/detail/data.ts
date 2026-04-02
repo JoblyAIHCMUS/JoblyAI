@@ -48,7 +48,8 @@ export const applicantDetails: Record<string, ApplicantDetail> = {
     jobCategory: 'marketing',
     employmentType: 'FULL_TIME',
     appliedDate: '2020-05-21',
-    resume: 'mock_resume.pdf',
+    resume:
+      'https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/mock_resume.pdf',
     score: 8.2,
     hiringStage: 'Shortlisted',
   },

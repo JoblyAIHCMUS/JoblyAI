@@ -33,7 +33,7 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
     resume: {
       select: {
         id: true;
-        fileUrl: true;
+        fileKey: true;
         aiScore: true;
         isDefault: true;
       };
@@ -123,7 +123,7 @@ export class ApplicationsService {
             resume: {
               select: {
                 id: true,
-                fileUrl: true,
+                fileKey: true,
                 aiScore: true,
                 isDefault: true,
               },
@@ -159,7 +159,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },
@@ -208,7 +208,7 @@ export class ApplicationsService {
           resume: {
             select: {
               id: true,
-              fileUrl: true,
+              fileKey: true,
               aiScore: true,
               isDefault: true,
             },
@@ -253,7 +253,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },
@@ -316,7 +316,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },
@@ -370,7 +370,7 @@ export class ApplicationsService {
           resume: {
             select: {
               id: true,
-              fileUrl: true,
+              fileKey: true,
               aiScore: true,
               isDefault: true,
             },
@@ -453,7 +453,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },
@@ -530,7 +530,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },
@@ -595,7 +595,7 @@ export class ApplicationsService {
         resume: {
           select: {
             id: true,
-            fileUrl: true,
+            fileKey: true,
             aiScore: true,
             isDefault: true,
           },

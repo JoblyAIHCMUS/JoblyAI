@@ -3,7 +3,7 @@ export interface AuthUser {
   email: string;
   emailVerified: boolean;
   name?: string;
-  image?: string;
+  avatarUrl?: string;
   role: 'admin' | 'employer' | 'candidate';
   createdAt: Date;
   updatedAt: Date;

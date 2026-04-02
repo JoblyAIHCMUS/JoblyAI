@@ -3,14 +3,13 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
+  IsNumber,
 } from 'class-validator';
 
 export class QueryResumeDto {
   @IsString()
-  @IsNotEmpty()
-  @IsUrl()
-  fileUrl!: string;
+  @IsOptional()
+  fileKey?: string; // S3 object key (e.g., "resumes/uuid.pdf")
 
   @IsString()
   @IsNotEmpty()
@@ -19,6 +18,10 @@ export class QueryResumeDto {
   @IsString()
   @IsNotEmpty()
   fileType!: string;
+
+  @IsNumber()
+  @IsOptional()
+  fileSize?: number;
 
   @IsBoolean()
   @IsOptional()
@@ -28,8 +31,7 @@ export class QueryResumeDto {
 export class CreateResumeDto {
   @IsString()
   @IsNotEmpty()
-  @IsUrl()
-  fileUrl!: string;
+  fileKey!: string; // S3 object key (e.g., "resumes/uuid.pdf")
 
   @IsString()
   @IsNotEmpty()
@@ -38,6 +40,10 @@ export class CreateResumeDto {
   @IsString()
   @IsNotEmpty()
   fileType!: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  fileSize!: number;
 
   @IsBoolean()
   @IsOptional()
@@ -50,12 +56,15 @@ export class UpdateResumeDto {
 
   @IsString()
   @IsOptional()
-  @IsUrl()
-  fileUrl?: string;
+  fileKey?: string; // Only if updating the file
 
   @IsString()
   @IsOptional()
   fileName?: string;
+
+  @IsNumber()
+  @IsOptional()
+  fileSize?: number;
 
   @IsBoolean()
   @IsOptional()

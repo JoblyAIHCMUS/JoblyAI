@@ -9,12 +9,13 @@ export class UserService {
     userId: string,
     updateDto: UpdateUserDTO
   ): Promise<string> {
-    const { firstName, lastName } = updateDto;
+    const { firstName, lastName, avatarUrl } = updateDto;
     await this.prismaClient.user.update({
       where: { id: userId },
       data: {
         firstName,
         lastName,
+        avatarUrl,
       },
     });
     return `Profile with ID: ${userId.toString()} updated successfully`;

@@ -57,7 +57,7 @@ export default function JobDetailHeader({
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute right-0 top-0 hidden h-[436px] w-[520px] overflow-hidden lg:block opacity-60">
           <Image
-            src="/landing/Pattern.svg"
+            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
             alt=""
             width={834}
             height={436}
@@ -66,7 +66,7 @@ export default function JobDetailHeader({
         </div>
         <div className="absolute left-0 top-14 hidden h-[436px] w-[244px] overflow-hidden lg:block opacity-60">
           <Image
-            src="/landing/Pattern.svg"
+            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
             alt=""
             width={834}
             height={436}

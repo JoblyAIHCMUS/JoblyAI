@@ -20,7 +20,7 @@ export class AuthController {
       email: req.user.email,
       name: req.user.name,
       emailVerified: req.user.emailVerified,
-      avatar: req.user.image,
+      avatar: req.user.avatarUrl,
     };
   }
 

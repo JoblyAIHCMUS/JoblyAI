@@ -42,7 +42,7 @@ export interface ApplicationJob {
 
 export interface ApplicationResume {
   id: number;
-  fileUrl: string;
+  fileKey?: string; // S3 object key for private resume access - use presigned download URL to view (might be empty during migration)
   aiScore: number | null;
   isDefault: boolean;
 }
