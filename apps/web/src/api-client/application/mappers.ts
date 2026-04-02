@@ -8,7 +8,7 @@ import type { HiringStage } from '@/features/employer/hiringStage';
 /**
  * Map backend ApplicationStatus to frontend HiringStage
  */
-function mapApplicationStatusToHiringStage(
+export function mapApplicationStatusToHiringStage(
   status: ApplicationStatus
 ): HiringStage {
   const statusMap: Record<ApplicationStatus, HiringStage> = {
@@ -16,7 +16,7 @@ function mapApplicationStatusToHiringStage(
     INTERVIEW: 'Shortlisted',
     OFFER: 'Hired',
     REJECTED: 'Declined',
-    WITHDRAWN: 'In Review', // Withdrawn applications show as "In Review" but are handled separately
+    WITHDRAWN: 'Declined', // Withdrawn applications show as "Declined" but are handled separately
   };
   return statusMap[status];
 }

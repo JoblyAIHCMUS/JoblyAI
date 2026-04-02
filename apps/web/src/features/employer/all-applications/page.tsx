@@ -5,23 +5,10 @@ import { useEffect, useState } from 'react';
 import AllApplicationsTable from '@/components/employer/allApplicationsTable';
 import { nextStageMap } from '@/features/employer/hiringStage';
 import { type AllApplication } from '@/features/employer/all-applications/data';
-import {
-  type ApplicationStatus,
-  type PaginatedApplicationsResponse,
-} from '@/api-client/application';
+import { type PaginatedApplicationsResponse } from '@/api-client/application';
+import { mapApplicationStatusToHiringStage } from '@/api-client/application/mappers';
 
 import { useListEmployerApplications } from '@/api-hook/application';
-
-const statusToHiringStageMap: Record<
-  ApplicationStatus,
-  AllApplication['hiringStage']
-> = {
-  APPLIED: 'In Review',
-  INTERVIEW: 'Interviewed',
-  OFFER: 'Hired',
-  REJECTED: 'Declined',
-  WITHDRAWN: 'Declined',
-};
 
 function mapApiResponseToApplications(
   apiData: PaginatedApplicationsResponse
@@ -42,7 +29,7 @@ function mapApiResponseToApplications(
       )}`,
       appliedDate: application.createdAt.split('T')[0],
       score: 0, // TODO: Placeholder, as score is not available in the API response (AI not implemented yet)
-      hiringStage: statusToHiringStageMap[application.status],
+      hiringStage: mapApplicationStatusToHiringStage(application.status),
       appliedRole: application.job.title,
     };
   });
