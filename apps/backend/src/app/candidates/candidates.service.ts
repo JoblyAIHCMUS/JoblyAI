@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +19,9 @@ import {
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { S3Service } from '../s3/s3.service';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
+import { UpdateCertificateDto } from './dto/certificate.dto';
+import { UpdateEducationDto } from './dto/education.dto';
+import { UpdateExperienceDto } from './dto/experience.dto';
 
 @Injectable()
 export class CandidatesService {
@@ -25,6 +29,28 @@ export class CandidatesService {
     @InjectPrisma() private readonly prismaClient: PrismaClient,
     private readonly s3Service: S3Service
   ) {}
+
+  private toPrismaDateTime(value: string | Date, fieldName: string): Date {
+    const parsedDate = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) {
+      throw new BadRequestException(
+        `${fieldName} must be a valid ISO-8601 datetime`
+      );
+    }
+
+    return parsedDate;
+  }
+
+  private toPrismaNullableDateTime(
+    value: string | Date | null,
+    fieldName: string
+  ): Date | null {
+    if (value === null) {
+      return null;
+    }
+
+    return this.toPrismaDateTime(value, fieldName);
+  }
 
   async getProfileDetails(userId: string): Promise<CandidateQueryResponseDto> {
     const user = await this.prismaClient.user.findUnique({
@@ -145,9 +171,9 @@ export class CandidatesService {
 
   async updateEducation(
     userId: string,
-    updateDto: Prisma.EducationUpdateInput & { id: number }
+    updateDto: UpdateEducationDto
   ): Promise<Education> {
-    const { id, ...data } = updateDto;
+    const { id, startDate, endDate, ...rest } = updateDto;
 
     const existing = await this.prismaClient.education.findFirst({
       where: {
@@ -161,6 +187,18 @@ export class CandidatesService {
         `Education record ${id} not found or access denied.`
       );
     }
+
+    const data: Prisma.EducationUpdateInput = {
+      ...rest,
+      ...(startDate === undefined
+        ? {}
+        : { startDate: this.toPrismaDateTime(startDate, 'startDate') }),
+      ...(endDate === undefined
+        ? {}
+        : {
+            endDate: this.toPrismaNullableDateTime(endDate, 'endDate'),
+          }),
+    };
 
     return this.prismaClient.education.update({
       where: { id },
@@ -215,9 +253,9 @@ export class CandidatesService {
 
   async updateExperience(
     userId: string,
-    updateDto: Prisma.ExperienceUpdateInput & { id: number }
+    updateDto: UpdateExperienceDto
   ): Promise<Experience> {
-    const { id, ...data } = updateDto;
+    const { id, startDate, endDate, ...rest } = updateDto;
 
     const existing = await this.prismaClient.experience.findFirst({
       where: {
@@ -231,6 +269,18 @@ export class CandidatesService {
         `Experience record ${id} not found or access denied.`
       );
     }
+
+    const data: Prisma.ExperienceUpdateInput = {
+      ...rest,
+      ...(startDate === undefined
+        ? {}
+        : { startDate: this.toPrismaDateTime(startDate, 'startDate') }),
+      ...(endDate === undefined
+        ? {}
+        : {
+            endDate: this.toPrismaNullableDateTime(endDate, 'endDate'),
+          }),
+    };
 
     return this.prismaClient.experience.update({
       where: { id },
@@ -357,9 +407,9 @@ export class CandidatesService {
   // Certificate
   async updateCertificate(
     userId: string,
-    updateDto: Prisma.CertificateUpdateInput & { id: number }
+    updateDto: UpdateCertificateDto
   ): Promise<Certificate> {
-    const { id, ...data } = updateDto;
+    const { id, issueDate, expirationDate, ...rest } = updateDto;
 
     const existing = await this.prismaClient.certificate.findFirst({
       where: {
@@ -373,6 +423,21 @@ export class CandidatesService {
         `Certificate record ${id} not found or access denied.`
       );
     }
+
+    const data: Prisma.CertificateUpdateInput = {
+      ...rest,
+      ...(issueDate === undefined
+        ? {}
+        : { issueDate: this.toPrismaDateTime(issueDate, 'issueDate') }),
+      ...(expirationDate === undefined
+        ? {}
+        : {
+            expiryDate: this.toPrismaNullableDateTime(
+              expirationDate,
+              'expirationDate'
+            ),
+          }),
+    };
 
     return this.prismaClient.certificate.update({
       where: { id },
