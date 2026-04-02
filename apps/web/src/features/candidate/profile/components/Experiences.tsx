@@ -322,11 +322,13 @@ export default function Experiences({
           Experiences
         </div>
         <div className="flex gap-2">
-          <button className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]">
+          <button
+            className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+            onClick={handleAdd}
+          >
             <Plus
               size={16}
               className="text-accent-primary"
-              onClick={handleAdd}
             />
           </button>
         </div>
@@ -352,7 +354,7 @@ export default function Experiences({
         const isEditing = editingIdx === idx && editItem;
         return (
           <div
-            key={idx}
+            key={exp.id}
             className="flex flex-col gap-[var(--space-md)] px-6 flex-1"
           >
             {isEditing ? (

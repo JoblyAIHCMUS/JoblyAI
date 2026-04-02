@@ -1,3 +1,10 @@
+// Re-export types for compatibility with hooks and consumers
+export type {
+  CandidateEducation,
+  CandidateCertificate,
+  CandidateExperience,
+  CandidateResume,
+} from '@/types/candidate';
 import {
   CandidateEducation,
   CandidateCertificate,
@@ -49,7 +56,7 @@ export interface UpdateEducationPayload extends CreateEducationPayload {
 
 export interface CreateExperiencePayload {
   companyName: string;
-  type: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
+  type?: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
   jobTitle: string;
   location?: string;
   startDate: string;

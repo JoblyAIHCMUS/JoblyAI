@@ -74,8 +74,8 @@ const CandidateProfilePage = () => {
     },
   });
 
+  const { updateAbout } = useUpdateCandidateAbout();
   const handleUpdateAbout = async (about: string[]) => {
-    const { updateAbout } = useUpdateCandidateAbout();
     await updateAbout(about);
     setProfile((prev) => (prev ? { ...prev, about } : prev));
   };
@@ -98,12 +98,13 @@ const CandidateProfilePage = () => {
   const { createExperienceRecord } = useCreateExperience();
   const handleAddExperience = async (experience: CandidateExperience) => {
     const apiExperience = mapUIToApiCreateExperience(experience);
-    await createExperienceRecord(apiExperience);
+    const created = await createExperienceRecord(apiExperience);
+    if (!created) return;
     setProfile((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        experiences: [...(prev.experiences || []), experience],
+        experiences: [...(prev.experiences || []), created],
       };
     });
   };
@@ -125,8 +126,15 @@ const CandidateProfilePage = () => {
   const { updateEducationRecord } = useUpdateEducation();
   const handleUpdateEducation = async (education: CandidateEducation) => {
     const apiEducation = mapUIToApiUpdateEducation(education);
-
-    await updateEducationRecord(apiEducation);
+    const updated = await updateEducationRecord(apiEducation);
+    if (!updated) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updatedEducations = prev.educations?.map((edu) =>
+        edu.id === updated.id ? updated : edu
+      );
+      return { ...prev, educations: updatedEducations };
+    });
   };
 
   // Hàm xử lý thêm education
@@ -177,19 +185,11 @@ const CandidateProfilePage = () => {
     });
   };
 
-  const handleUpdateContact = async (contact: Contact) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
-    // Logic để cập nhật contact
-  };
-
-  const handleAddSocial = async (social: Social) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
-    // Logic để hiển thị form thêm social mới
-  };
-  const handleUpdateSocials = async (socials: Social[]) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
-    // Logic để cập nhật social
-  };
+  // Contact and Social handlers are not implemented yet
+  // Disable related edit UI until endpoints exist
+  const handleUpdateContact = undefined;
+  const handleAddSocial = undefined;
+  const handleUpdateSocials = undefined;
 
   useEffect(() => {
     const loadProfile = async () => {

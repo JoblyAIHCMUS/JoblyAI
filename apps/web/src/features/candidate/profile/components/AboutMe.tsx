@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit } from 'lucide-react';
 
 interface AboutMeProps {
@@ -13,7 +13,14 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  
+  // Sync editValue with about prop when about changes
+  useEffect(() => {
+    if (!editing) {
+      setEditValue(about.join('\n'));
+    }
+  }, [about, editing]);
+  
   const handleSave = async () => {
     if (!handleUpdateAbout) return;
     setLoading(true);

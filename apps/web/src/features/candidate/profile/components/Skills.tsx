@@ -36,7 +36,7 @@ export default function Skills({
   };
 
   return (
-    <div className="rrounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
+    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
       <div className="flex items-center justify-between px-4">
         <div className="heading-h6-semi-bold text-primary break-words">
           Skills
