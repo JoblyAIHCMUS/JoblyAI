@@ -21,9 +21,8 @@ export interface ApplicantDetail {
 }
 
 export const hiringStageProgress: Record<HiringStage, number> = {
-  'In Review': 20,
-  Shortlisted: 40,
-  Interviewed: 60,
+  'In Review': 25,
+  Shortlisted: 50,
   Hired: 100,
   Declined: 0,
 };
@@ -31,7 +30,6 @@ export const hiringStageProgress: Record<HiringStage, number> = {
 export const hiringStageColor: Record<HiringStage, string> = {
   'In Review': 'bg-indigo-500',
   Shortlisted: 'bg-amber-500',
-  Interviewed: 'bg-purple-500',
   Hired: 'bg-green-500',
   Declined: 'bg-red-500',
 };
@@ -52,6 +50,6 @@ export const applicantDetails: Record<string, ApplicantDetail> = {
     appliedDate: '2020-05-21',
     resume: 'mock_resume.pdf',
     score: 8.2,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
   },
 };
