@@ -101,6 +101,16 @@ const CandidateProfilePage = () => {
     });
   };
 
+  // Hàm xử lý delete experience
+  const { deleteExperienceRecord } = useDeleteExperience(); 
+  const handleDeleteExperience = async (id: number) => {
+    await deleteExperienceRecord(id);
+    setCandidate((prev) => {
+      if (!prev) return prev;
+      return { ...prev, experiences: prev.experiences.filter((exp) => exp.id !== id) };
+    });
+  };
+
   // Hàm xử lý cập nhật education
   const { updateEducationRecord } = useUpdateEducation();
   const handleUpdateEducation = async (education: CandidateEducation) => {
@@ -121,6 +131,16 @@ const CandidateProfilePage = () => {
     });
   };
 
+  
+  // hàm xử lý delete education 
+  const { deleteEducationRecord } = useDeleteEducation();
+  const handleDeleteEducation = async (id: number) => {
+    await deleteEducationRecord(id);
+    setCandidate((prev) => {
+      if (!prev) return prev;
+      return { ...prev, educations: prev.educations.filter((edu) => edu.id !== id) };
+    });
+  }
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -278,11 +298,13 @@ const CandidateProfilePage = () => {
             experiences={candidate.experiences}
             handleUpdateExperience={handleUpdateExperience}
             handleAddExperience={handleAddExperience}
+            handleDeleteExperience={handleDeleteExperience}
           />
           <Educations
             educations={candidate.educations}
             handleAddEducation={handleAddEducation}
             handleUpdateEducation={handleUpdateEducation}
+            handleDeleteEducation={handleDeleteEducation}
           />
           <Skills
             skills={candidate.skills}

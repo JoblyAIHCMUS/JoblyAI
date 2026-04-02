@@ -3,14 +3,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 
 import { CandidateEducation } from '@/types/profile';
+import ConfirmDelete from '@/components/ui/confirmDelete';
 
 interface EducationsProps {
   educations: CandidateEducation[];
   handleUpdateEducation?: (education: CandidateEducation) => Promise<void>;
   handleAddEducation?: (education: CandidateEducation) => Promise<void>;
+  handleDeleteEducation?: (id: number) => Promise<void>;
 }
 
 interface EducationEditFormProps {
@@ -99,7 +101,7 @@ function EducationEditForm({
       {/* Actions */}
       <div className="flex gap-2 mt-2">
         <button
-          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-"
+          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover"
           onClick={handleSave}
           disabled={loading}
         >
@@ -120,9 +122,11 @@ function EducationEditForm({
 function EducationView({
   edu,
   onEdit,
+  onDelete,
 }: {
   edu: CandidateEducation;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   // Helper to format ISO date string to 'MMM yyyy' (en-US)
   const formatDate = (iso?: string) => {
@@ -139,12 +143,20 @@ function EducationView({
         <div className="heading-h6-semi-bold text-primary break-words ">
           {edu.school}
         </div>
-        <button
-          onClick={onEdit}
-          className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
-        >
-          <Edit size={16} className="text-accent-primary" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onEdit}
+            className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+          >
+            <Edit size={16} className="text-accent-primary" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+          >
+            <Trash2 size={16} className="text-accent-primary" />
+          </button>
+        </div>
       </div>
       {/* Row 2 */}
       <div className="flex items-center gap-2">
@@ -169,6 +181,7 @@ export default function Educations({
   educations,
   handleUpdateEducation,
   handleAddEducation,
+  handleDeleteEducation,
 }: EducationsProps) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editItem, setEditItem] = useState<CandidateEducation | null>(null);
@@ -179,6 +192,8 @@ export default function Educations({
     educations.slice(0, MAX_DISPLAY)
   );
   const [isAdding, setIsAdding] = useState(false);
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const handleAdd = () => {
     setIsAdding(true);
@@ -207,6 +222,10 @@ export default function Educations({
     setEditingIdx(idx);
     setEditItem({ ...educations[idx] });
     setError(null);
+  };
+
+  const handleDelete = (idx: number) => {
+    setDeleteIdx(idx);
   };
 
   const handleChange = (field: keyof CandidateEducation, value: string) => {
@@ -264,6 +283,19 @@ export default function Educations({
     setIsAdding(false);
   };
 
+  const handleConfirmDelete = async () => {
+    if (deleteIdx === null || !handleDeleteEducation) return;
+    setLoadingDelete(true);
+    try {
+      await handleDeleteEducation(educations[deleteIdx].id);
+      setDeleteIdx(null);
+    } catch (err) {
+      // Có thể show toast hoặc error
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
   return (
     <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
       <div className="flex items-center justify-between px-4">
@@ -313,7 +345,7 @@ export default function Educations({
                 handleCancel={handleCancel}
               />
             ) : (
-              <EducationView edu={edu} onEdit={() => handleEdit(idx)} />
+              <EducationView edu={edu} onEdit={() => handleEdit(idx)} onDelete={() => handleDelete(idx)} />
             )}
             {error && isEditing && (
               <div className="text-danger text-sm mt-2">{error}</div>
@@ -346,6 +378,16 @@ export default function Educations({
             Show less
           </button>
         </div>
+      )}
+
+      {deleteIdx !== null && (
+        <ConfirmDelete
+          title="Xác nhận xoá học vấn"
+          description="Bạn có chắc chắn muốn xoá học vấn này? Hành động này không thể hoàn tác."
+          onCancel={() => setDeleteIdx(null)}
+          onConfirm={handleConfirmDelete}
+          loading={loadingDelete}
+        />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Edit, Dot, Plus } from 'lucide-react';
+import { Edit, Dot, Plus, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -12,11 +12,13 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { CandidateExperience } from '@/types/profile';
+import ConfirmDelete from '@/components/ui/confirmDelete';
 
 interface ExperiencesProps {
   experiences: CandidateExperience[];
   handleUpdateExperience?: (experience: CandidateExperience) => Promise<void>;
   handleAddExperience?: (experience: CandidateExperience) => Promise<void>;
+  handleDeleteExperience?: (id: number) => Promise<void>;
 }
 
 interface ExperienceEditFormProps {
@@ -141,9 +143,13 @@ function ExperienceEditForm({
 function ExperienceView({
   exp,
   onEdit,
+  onDelete,
+  loadingDelete
 }: {
   exp: CandidateExperience;
   onEdit: () => void;
+  onDelete: () => void;
+  loadingDelete?: boolean;
 }) {
   return (
     <>
@@ -152,12 +158,22 @@ function ExperienceView({
         <div className="heading-h6-semi-bold text-primary break-words ">
           {exp.jobTitle}
         </div>
-        <button
-          onClick={onEdit}
-          className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
-        >
-          <Edit size={16} className="text-accent-primary" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onEdit}
+            className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+          >
+            <Edit size={16} className="text-accent-primary" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-[var(--space-xs)] bg-danger hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+            disabled={loadingDelete}
+            aria-label="Xoá kinh nghiệm"
+          >
+            <Trash2 size={16} className="text-danger" />
+          </button>
+        </div>
       </div>
       {/* Row 2 */}
       <div className="flex items-center gap-2">
@@ -193,6 +209,7 @@ export default function Experiences({
   experiences,
   handleUpdateExperience,
   handleAddExperience,
+  handleDeleteExperience,
 }: ExperiencesProps) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editItem, setEditItem] = useState<CandidateExperience | null>(null);
@@ -203,6 +220,24 @@ export default function Experiences({
     experiences.slice(0, 3)
   );
   const [isAdding, setIsAdding] = useState(false);
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const handleDelete = (idx: number) => {
+    setDeleteIdx(idx);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteIdx === null || !handleDeleteExperience) return;
+    setLoadingDelete(true);
+    try {
+      await handleDeleteExperience(displayedExperiences[deleteIdx].id);
+      setDeleteIdx(null);
+    } catch (err) {
+      // Có thể show toast hoặc error
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
 
   const handleAdd = () => {
     setIsAdding(true);
@@ -330,7 +365,12 @@ export default function Experiences({
                 handleCancel={handleCancel}
               />
             ) : (
-              <ExperienceView exp={exp} onEdit={() => handleEdit(idx)} />
+              <ExperienceView
+                exp={exp}
+                onEdit={() => handleEdit(idx)}
+                onDelete={() => handleDelete(idx)}
+                loadingDelete={loadingDelete && deleteIdx === idx}
+              />
             )}
             {/* error */}
             {error && isEditing && (
@@ -343,6 +383,15 @@ export default function Experiences({
           </div>
         );
       })}
+      {deleteIdx !== null && (
+        <ConfirmDelete
+          title="Confirm delete"
+          description="Are you sure you want to delete this experience? This action cannot be undone."
+          onCancel={() => setDeleteIdx(null)}
+          onConfirm={handleConfirmDelete}
+          loading={loadingDelete}
+        />
+      )}
 
       {/* Show more */}
       {!showAll && experiences.length > 3 && (
