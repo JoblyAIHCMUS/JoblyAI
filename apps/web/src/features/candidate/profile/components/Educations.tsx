@@ -303,14 +303,11 @@ export default function Educations({
           Educations
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
             onClick={handleAdd}
           >
-            <Plus
-              size={16}
-              className="text-accent-primary"
-            />
+            <Plus size={16} className="text-accent-primary" />
           </button>
         </div>
       </div>
