@@ -38,8 +38,6 @@ import {
   CandidateEducation,
   CandidateExperience,
   CandidateResume,
-  Contact,
-  Social,
 } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 
