@@ -3,6 +3,7 @@ import {
   type EmploymentType,
 } from '@/features/employer/job-listing/data';
 import { type SkillEntry } from '@/components/employer/skillTagsManager';
+import { type HiringStage } from '@/features/employer/hiringStage';
 
 export type Category =
   | 'design'
@@ -23,8 +24,6 @@ export type SalaryCurrency =
   | 'vnd'
   | 'jpy'
   | 'cny';
-
-export type HiringStage = 'In Review' | 'Shortlisted' | 'Hired' | 'Declined';
 
 export interface Applicant {
   id: string;

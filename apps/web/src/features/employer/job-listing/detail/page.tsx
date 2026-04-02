@@ -7,10 +7,12 @@ import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
-import { useListEmployerApplications } from '@/api-hook/application/useListEmployerApplications';
-import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
-import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
-import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
+import {
+  useListEmployerApplications,
+  useShortlistApplication,
+  useRejectApplication,
+  useMoveToOfferApplication,
+} from '@/api-hook/application';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
 import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
