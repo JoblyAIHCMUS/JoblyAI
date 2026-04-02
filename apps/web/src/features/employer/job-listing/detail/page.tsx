@@ -15,6 +15,7 @@ import {
 } from '@/api-hook/application';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
 import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
+import { type HiringStage } from '@/features/employer/hiringStage';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
 import JobDetailsReview from '@/components/employer/jobDetailsReview';
 import JobStatsPanel from '@/components/employer/jobStatsPanel';
@@ -115,7 +116,7 @@ export default function JobListingDetailPage() {
 
   // Handle Kanban stage changes
   const handleMoveApplicantToStage = useCallback(
-    async (applicantId: string, newStage: string) => {
+    async (applicantId: string, newStage: HiringStage) => {
       try {
         const appId = parseInt(applicantId, 10);
         const applicant = applicants.find((a) => a.id === applicantId);
