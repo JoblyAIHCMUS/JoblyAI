@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 import ProfileHeader from './components/ProfileHeader';
 import AboutMe from './components/AboutMe';
+import CV from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
@@ -80,6 +81,15 @@ const CandidateProfilePage = () => {
         <div className="flex flex-col gap-6 w-[728px]">
           <ProfileHeader candidate={candidate} />
           <AboutMe about={candidate.about} />
+          <CV
+            cvUrl={profile.cvUrl}
+            cvFileName={profile.cvFileName || 'Resume.pdf'}
+            onCVChange={(file) => {
+              // Basic frontend file processing
+              console.log('CV file selected:', file.name, file.size, file.type);
+              // File can be read or uploaded to backend here
+            }}
+          />
           <Experiences experiences={candidate.experiences} />
           <Educations educations={candidate.educations} />
           <Skills skills={candidate.skills} />
