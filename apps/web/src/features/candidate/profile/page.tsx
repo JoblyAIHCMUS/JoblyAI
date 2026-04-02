@@ -17,8 +17,20 @@ import { useCreateResume } from '@/api-hook/candidate';
 import { deleteResume } from '@/api-client/candidate';
 import type {
   CandidateProfileResponse,
-  CandidateResume,
 } from '@/api-client/candidate/types';
+import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
+import { useUpdateExperience } from '@/api-hook/candidate/useUpdateExperience';
+import { useCreateExperience } from '@/api-hook/candidate/useCreateExperience';
+import { useUpdateEducation } from '@/api-hook/candidate/useUpdateEducation';
+import { useCreateEducation } from '@/api-hook/candidate/useCreateEducation';
+import {
+  mapUIToApiCreateExperience,
+  mapUIToApiUpdateExperience,
+  mapUIToApiUpdateEducation,
+  mapUIToApiCreateEducation,
+  mapDataToCandidate,
+} from './mapper';
+import { CandidateEducation, CandidateExperience, CandidateResume } from '@/types/profile';
 
 const CandidateProfilePage = () => {
   const { toast } = useToast();
@@ -64,10 +76,10 @@ const CandidateProfilePage = () => {
     setProfile((prev) => (prev ? { ...prev, about } : prev));
   };
 
+  // Hàm xử lý cập nhật experience
   const { updateExperienceRecord } = useUpdateExperience();
-
-  const handleUpdateExperience = async (experiences: Experience) => {
-    const apiExperience = mapUIToApiUpdate(experiences);
+  const handleUpdateExperience = async (experiences: CandidateExperience) => {
+    const apiExperience = mapUIToApiUpdateExperience(experiences);
     await updateExperienceRecord(apiExperience);
     setProfile((prev) => {
       if (!prev) return prev;
@@ -78,14 +90,34 @@ const CandidateProfilePage = () => {
     });
   };
 
+  // Hàm xử lý thêm experience
   const { createExperienceRecord } = useCreateExperience();
-
-  const handleAddExperience = async (experience: Experience) => {
-    const apiExperience = mapUIToApiCreate(experience);
+  const handleAddExperience = async (experience: CandidateExperience) => {
+    const apiExperience = mapUIToApiCreateExperience(experience);
     await createExperienceRecord(apiExperience);
     setProfile((prev) => {
       if (!prev) return prev;
       return { ...prev, experiences: [...prev.experiences, experience] };
+    });
+  };
+
+  // Hàm xử lý cập nhật education
+  const { updateEducationRecord } = useUpdateEducation();
+  const handleUpdateEducation = async (education: CandidateEducation) => {
+    const apiEducation = mapUIToApiUpdateEducation(education);
+
+    await updateEducationRecord(apiEducation);
+  };
+
+  // Hàm xử lý thêm education
+  const { createEducationRecord } = useCreateEducation();
+  const handleAddEducation = async (education: CandidateEducation) => {
+    const apiEducation = mapUIToApiCreateEducation(education);
+
+    const newEducation = await createEducationRecord(apiEducation);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return { ...prev, educations: [...prev.educations, newEducation] };
     });
   };
 
@@ -249,9 +281,8 @@ const CandidateProfilePage = () => {
           />
           <Educations
             educations={candidate.educations}
-            onEdit={() => handleEdit('educations')}
-            isEditing={editSection === 'educations'}
-            onCancel={handleCancel}
+            handleAddEducation={handleAddEducation}
+            handleUpdateEducation={handleUpdateEducation}
           />
           <Skills
             skills={candidate.skills}

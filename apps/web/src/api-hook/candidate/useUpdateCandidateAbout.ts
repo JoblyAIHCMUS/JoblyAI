@@ -6,7 +6,9 @@ interface UseUpdateCandidateAboutOptions {
   onError?: (error: unknown) => void;
 }
 
-export function useUpdateCandidateAbout(options?: UseUpdateCandidateAboutOptions) {
+export function useUpdateCandidateAbout(
+  options?: UseUpdateCandidateAboutOptions
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<{ about: string[] } | null>(null);

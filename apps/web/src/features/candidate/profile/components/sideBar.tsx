@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { Edit, Plus, Mail, Smartphone } from 'lucide-react';
-import { FaInstagram, FaTwitter, FaGlobe } from 'react-icons/fa';
 
 interface Contact {
   email: string;

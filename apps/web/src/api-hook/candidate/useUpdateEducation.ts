@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import {
   updateEducation,
-  type CandidateEducation,
   type UpdateEducationPayload,
 } from '@/api-client/candidate';
-
+import { type CandidateEducation } from '@/types/profile';
 interface UseUpdateEducationOptions {
   onSuccess?: (data: CandidateEducation) => void;
   onError?: (error: unknown) => void;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, RefObject } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Edit, Dot, Plus } from 'lucide-react';
 import {
   Select,
@@ -11,19 +11,18 @@ import {
 } from '@/components/ui/select';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Experience } from '../types/index';
+import { CandidateExperience } from '@/types/profile';
 
 interface ExperiencesProps {
-  experiences: Experience[];
-  handleUpdateExperience?: (experience: Experience) => Promise<void>;
-  handleAddExperience?: (experience: Experience) => Promise<void>;
+  experiences: CandidateExperience[];
+  handleUpdateExperience?: (experience: CandidateExperience) => Promise<void>;
+  handleAddExperience?: (experience: CandidateExperience) => Promise<void>;
 }
 
-
 interface ExperienceEditFormProps {
-  editItem: Experience;
+  editItem: CandidateExperience;
   loading: boolean;
-  handleChange: (field: keyof Experience, value: string) => void;
+  handleChange: (field: keyof CandidateExperience, value: string) => void;
   handleDateChange: (field: 'startDate' | 'endDate', date: Date | null) => void;
   handleSave: () => void;
   handleCancel: () => void;
@@ -41,25 +40,33 @@ function ExperienceEditForm({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + 'px';
     }
-  }, [editItem.desc]);
+  }, [editItem.description]);
   return (
     <>
       {/* Row 1 */}
-      <input className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary" value={editItem.role}
-        onChange={(e) => handleChange('role', e.target.value)}
+      <input
+        className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
+        value={editItem.jobTitle}
+        onChange={(e) => handleChange('jobTitle', e.target.value)}
         placeholder="Role"
       />
       {/* Row 2 */}
       <div className="flex items-center gap-2">
-        <input className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
-          value={editItem.company} onChange={(e) => handleChange('company', e.target.value)}
+        <input
+          className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
+          value={editItem.companyName}
+          onChange={(e) => handleChange('companyName', e.target.value)}
           placeholder="Company"
         />
         <Dot size={16} />
         <div className="min-w-[100px] max-w-[120px]">
-          <Select value={editItem.type} onValueChange={(val) => handleChange('type', val)}>
+          <Select
+            value={editItem.type}
+            onValueChange={(val) => handleChange('type', val)}
+          >
             <SelectTrigger className="text-tertiary break-words focus:outline-none focus:ring-2 focus:ring-accent-primary">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
@@ -75,13 +82,19 @@ function ExperienceEditForm({
         </div>
         <Dot size={16} />
         <div className="flex items-center gap-2">
-          <DatePicker selected={editItem.startDate ? new Date(editItem.startDate) : null} onChange={(date: Date | null) => handleDateChange('startDate', date)}
+          <DatePicker
+            selected={editItem.startDate ? new Date(editItem.startDate) : null}
+            onChange={(date: Date | null) =>
+              handleDateChange('startDate', date)
+            }
             dateFormat="yyyy-MM-dd"
             placeholderText="Start date"
             className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
           />
           <span className="mx-1">-</span>
-          <DatePicker selected={editItem.endDate ? new Date(editItem.endDate) : null} onChange={(date: Date | null) => handleDateChange('endDate', date)}
+          <DatePicker
+            selected={editItem.endDate ? new Date(editItem.endDate) : null}
+            onChange={(date: Date | null) => handleDateChange('endDate', date)}
             dateFormat="yyyy-MM-dd"
             placeholderText="End date"
             className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
@@ -89,7 +102,9 @@ function ExperienceEditForm({
         </div>
       </div>
       {/* Row 3 */}
-      <input className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary" value={editItem.location}
+      <input
+        className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
+        value={editItem.location}
         onChange={(e) => handleChange('location', e.target.value)}
         placeholder="Location"
       />
@@ -98,14 +113,14 @@ function ExperienceEditForm({
         ref={textareaRef}
         className="text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary min-h-[60px]"
         style={{ maxHeight: '200px', overflowY: 'auto' }}
-        value={editItem.desc}
-        onChange={(e) => handleChange('desc', e.target.value)}
+        value={editItem.description}
+        onChange={(e) => handleChange('description', e.target.value)}
         placeholder="Description"
       />
       {/* Actions */}
       <div className="flex gap-2 mt-2">
         <button
-          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-"
+          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover"
           onClick={handleSave}
           disabled={loading}
         >
@@ -123,36 +138,53 @@ function ExperienceEditForm({
   );
 }
 
-function ExperienceView({ exp, onEdit }:{ exp: Experience, onEdit: () => void }) {
+function ExperienceView({
+  exp,
+  onEdit,
+}: {
+  exp: CandidateExperience;
+  onEdit: () => void;
+}) {
   return (
     <>
       {/* Row 1 */}
       <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words ">{exp.role}</div>
-        <button onClick={onEdit} className='p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]'>
-          <Edit size={16} className='text-accent-primary' />
+        <div className="heading-h6-semi-bold text-primary break-words ">
+          {exp.jobTitle}
+        </div>
+        <button
+          onClick={onEdit}
+          className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]"
+        >
+          <Edit size={16} className="text-accent-primary" />
         </button>
       </div>
       {/* Row 2 */}
       <div className="flex items-center gap-2">
-        <div className="text-primary break-words">{exp.company}</div>
+        <div className="text-primary break-words">{exp.companyName}</div>
         <Dot size={16} />
         <div className="text-secondary break-words">{exp.type}</div>
         <Dot size={16} />
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
-            ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            ? new Date(exp.startDate).toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Start date'}
           {' - '}
           {exp.endDate
-            ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            ? new Date(exp.endDate).toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Present'}
         </span>
       </div>
       {/* Row 3 */}
       <div className="text-tertiary break-words">{exp.location}</div>
       {/* Row 4 */}
-      <div className="text-tertiary break-words">{exp.desc}</div>
+      <div className="text-tertiary break-words">{exp.description}</div>
     </>
   );
 }
@@ -163,27 +195,28 @@ export default function Experiences({
   handleAddExperience,
 }: ExperiencesProps) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
-  const [editItem, setEditItem] = useState<Experience | null>(null);
+  const [editItem, setEditItem] = useState<CandidateExperience | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const [displayedExperiences, setDisplayedExperiences] = useState(experiences.slice(0, 3));
+  const [displayedExperiences, setDisplayedExperiences] = useState(
+    experiences.slice(0, 3)
+  );
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAdd = () => {
     setIsAdding(true);
     setEditingIdx(-1); // hoặc null nhưng mình recommend -1
-    const createEmptyExperience = (): Experience => ({
+    const createEmptyExperience = (): CandidateExperience => ({
       //id là number
       id: Date.now(), // tạm thời dùng timestamp làm id, sau này backend sẽ trả về id thật
-      role: '',
-      company: '',
+      jobTitle: '',
+      companyName: '',
       type: '',
       startDate: '',
       endDate: '',
       location: '',
-      desc: '',
-      logo: '',
+      description: '',
     });
     setEditItem(createEmptyExperience());
   };
@@ -197,12 +230,17 @@ export default function Experiences({
     setError(null);
   };
 
-  const handleChange = (field: keyof Experience, value: string) => {
+  const handleChange = (field: keyof CandidateExperience, value: string) => {
     setEditItem((item) => (item ? { ...item, [field]: value } : item));
   };
 
-  const handleDateChange = (field: 'startDate' | 'endDate', date: Date | null) => {
-    setEditItem((item) => (item ? { ...item, [field]: date ? date.toISOString() : '' } : item));
+  const handleDateChange = (
+    field: 'startDate' | 'endDate',
+    date: Date | null
+  ) => {
+    setEditItem((item) =>
+      item ? { ...item, [field]: date ? date.toISOString() : '' } : item
+    );
   };
 
   const handleSaveEdit = async () => {
@@ -250,12 +288,15 @@ export default function Experiences({
         </div>
         <div className="flex gap-2">
           <button className="p-[var(--space-xs)] bg-primary hover:bg-[color:var(--bg-tertiary)] hover:rounded-[var(--radius-md)]">
-            <Plus size={16} className="text-accent-primary" onClick={handleAdd}/>
+            <Plus
+              size={16}
+              className="text-accent-primary"
+              onClick={handleAdd}
+            />
           </button>
         </div>
       </div>
 
-      
       {/* Add new experience form (not in list) */}
       {isAdding && editingIdx === -1 && editItem && (
         <div className="flex flex-col gap-[var(--space-md)] px-6 flex-1">
@@ -267,9 +308,7 @@ export default function Experiences({
             handleSave={handleSaveAdd}
             handleCancel={handleCancel}
           />
-          {error && (
-            <div className="text-danger text-sm mt-2">{error}</div>
-          )}
+          {error && <div className="text-danger text-sm mt-2">{error}</div>}
         </div>
       )}
 
@@ -277,7 +316,10 @@ export default function Experiences({
         // Chỉ item đang edit (theo idx) mới vào edit mode, còn khi isAdding thì không map vào list này
         const isEditing = editingIdx === idx && editItem;
         return (
-          <div key={idx} className="flex flex-col gap-[var(--space-md)] px-6 flex-1">
+          <div
+            key={idx}
+            className="flex flex-col gap-[var(--space-md)] px-6 flex-1"
+          >
             {isEditing ? (
               <ExperienceEditForm
                 editItem={editItem}
@@ -302,11 +344,13 @@ export default function Experiences({
         );
       })}
 
-
       {/* Show more */}
       {!showAll && experiences.length > 3 && (
         <div className="flex justify-center">
-          <button className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words" onClick={() => setShowAll(true)}>
+          <button
+            className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words"
+            onClick={() => setShowAll(true)}
+          >
             Show 3 more experiences
           </button>
         </div>
@@ -314,11 +358,14 @@ export default function Experiences({
 
       {showAll && experiences.length > 3 && (
         <div className="flex justify-center">
-          <button className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words" onClick={() => setShowAll(false)}>
+          <button
+            className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words"
+            onClick={() => setShowAll(false)}
+          >
             Show less
           </button>
         </div>
       )}
-    </div >
+    </div>
   );
 }

@@ -1,46 +1,9 @@
-export interface CandidateEducation {
-  id: number;
-  school: string;
-  degree?: string;
-  fieldOfStudy?: string;
-  startDate: string;
-  endDate?: string;
-  grade?: string;
-  description?: string;
-}
-
-export interface CandidateExperience {
-  id: number;
-  companyName: string;
-  urlLogo?: string;
-  jobTitle: string;
-  type: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
-  location?: string;
-  startDate: string;
-  endDate?: string;
-  description?: string;
-}
-
-export interface CandidateCertificate {
-  id: number;
-  name: string;
-  issuer: string;
-  issueDate: string;
-  expiryDate?: string;
-  credentialId?: string;
-  url?: string;
-}
-
-export interface CandidateResume {
-  id: number;
-  isDefault?: boolean;
-  fileName: string;
-  fileKey?: string; // S3 object key for private resume access (might be empty during migration)
-  fileType: string;
-  fileSize: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import {
+  CandidateEducation,
+  CandidateCertificate,
+  CandidateExperience,
+  CandidateResume,
+} from '@/types/profile';
 
 export interface CandidateProfileResponse {
   id: string;
@@ -86,7 +49,6 @@ export interface UpdateEducationPayload extends CreateEducationPayload {
 
 export interface CreateExperiencePayload {
   companyName: string;
-  urlLogo?: string;
   type: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
   jobTitle: string;
   location?: string;
