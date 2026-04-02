@@ -34,7 +34,7 @@ export default function HeroSection() {
             <span className="text-indigo-600">5000+ Jobs</span>
           </h1>
           <img
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/group.svg"
+            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Group.svg"
             alt="decorative group"
             className="mb-6 mx-auto lg:mx-0"
           />
