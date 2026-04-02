@@ -1,4 +1,4 @@
-import { CandidateEducation, CandidateExperience } from "@/types/profile";
+import { CandidateEducation, CandidateExperience } from '@/types/profile';
 
 export interface CandidateProfileUI {
   name: string;

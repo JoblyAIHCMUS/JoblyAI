@@ -345,7 +345,11 @@ export default function Educations({
                 handleCancel={handleCancel}
               />
             ) : (
-              <EducationView edu={edu} onEdit={() => handleEdit(idx)} onDelete={() => handleDelete(idx)} />
+              <EducationView
+                edu={edu}
+                onEdit={() => handleEdit(idx)}
+                onDelete={() => handleDelete(idx)}
+              />
             )}
             {error && isEditing && (
               <div className="text-danger text-sm mt-2">{error}</div>

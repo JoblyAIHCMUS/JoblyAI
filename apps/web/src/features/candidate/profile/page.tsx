@@ -19,11 +19,15 @@ import type {
   CandidateProfileResponse,
 } from '@/api-client/candidate/types';
 import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
-import { 
-  useUpdateExperience, useCreateExperience, useDeleteExperience,
-  useUpdateEducation, useCreateEducation, useDeleteEducation,
+import {
+  useUpdateExperience,
+  useCreateExperience,
+  useDeleteExperience,
+  useUpdateEducation,
+  useCreateEducation,
+  useDeleteEducation,
 } from '@/api-hook/candidate';
-import {  useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
+import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
 import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
 import {
   mapUIToApiCreateExperience,
@@ -104,12 +108,15 @@ const CandidateProfilePage = () => {
   };
 
   // Hàm xử lý delete experience
-  const { deleteExperienceRecord } = useDeleteExperience(); 
+  const { deleteExperienceRecord } = useDeleteExperience();
   const handleDeleteExperience = async (id: number) => {
     await deleteExperienceRecord(id);
     setCandidate((prev) => {
       if (!prev) return prev;
-      return { ...prev, experiences: prev.experiences.filter((exp) => exp.id !== id) };
+      return {
+        ...prev,
+        experiences: prev.experiences.filter((exp) => exp.id !== id),
+      };
     });
   };
 
@@ -132,16 +139,19 @@ const CandidateProfilePage = () => {
       return { ...prev, educations: [...prev.educations, newEducation] };
     });
   };
-  
-  // hàm xử lý delete education 
+
+  // hàm xử lý delete education
   const { deleteEducationRecord } = useDeleteEducation();
   const handleDeleteEducation = async (id: number) => {
     await deleteEducationRecord(id);
     setCandidate((prev) => {
       if (!prev) return prev;
-      return { ...prev, educations: prev.educations.filter((edu) => edu.id !== id) };
+      return {
+        ...prev,
+        educations: prev.educations.filter((edu) => edu.id !== id),
+      };
     });
-  }
+  };
 
   // hàm xử lý add skill
   const { createSkillRecord } = useCreateSkill();
@@ -151,7 +161,7 @@ const CandidateProfilePage = () => {
       if (!prev) return prev;
       return { ...prev, skills: [...prev.skills, skill] };
     });
-  }
+  };
 
   // Hàm xử lý delete skill
   const { deleteSkillRecord } = useDeleteSkill();
@@ -159,7 +169,7 @@ const CandidateProfilePage = () => {
     await deleteSkillRecord(skill);
     setCandidate((prev) => {
       if (!prev) return prev;
-      return { ...prev, skills: prev.skills.filter(s => s !== skill) };
+      return { ...prev, skills: prev.skills.filter((s) => s !== skill) };
     });
   };
 

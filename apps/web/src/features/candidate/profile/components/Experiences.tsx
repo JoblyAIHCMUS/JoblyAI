@@ -144,7 +144,7 @@ function ExperienceView({
   exp,
   onEdit,
   onDelete,
-  loadingDelete
+  loadingDelete,
 }: {
   exp: CandidateExperience;
   onEdit: () => void;

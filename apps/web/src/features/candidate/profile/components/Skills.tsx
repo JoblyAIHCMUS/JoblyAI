@@ -57,7 +57,7 @@ export default function Skills({
           <input
             className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px]"
             value={newSkill}
-            onChange={e => setNewSkill(e.target.value)}
+            onChange={(e) => setNewSkill(e.target.value)}
             placeholder="Nhập kỹ năng mới"
             autoFocus
           />
@@ -68,10 +68,7 @@ export default function Skills({
             >
               Lưu
             </button>
-            <button
-              className="px-4 py-2 rounded border"
-              onClick={handleCancel}
-            >
+            <button className="px-4 py-2 rounded border" onClick={handleCancel}>
               Hủy
             </button>
           </div>
