@@ -27,7 +27,7 @@ export class CandidatesService {
       where: { id: userId },
       include: {
         education: true,
-        experiences: true,    
+        experiences: true,
         certificates: true,
         resumes: true,
         candidateDescription: true,
@@ -516,7 +516,9 @@ export class CandidatesService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Skill ${skillId} not found or access denied.`);
+      throw new NotFoundException(
+        `Skill ${skillId} not found or access denied.`
+      );
     }
 
     await this.prismaClient.candidateSkill.delete({
@@ -567,7 +569,9 @@ export class CandidatesService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Contact ${contactId} not found or access denied.`);
+      throw new NotFoundException(
+        `Contact ${contactId} not found or access denied.`
+      );
     }
 
     await this.prismaClient.candidateContact.delete({
@@ -618,7 +622,9 @@ export class CandidatesService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Social ${socialId} not found or access denied.`);
+      throw new NotFoundException(
+        `Social ${socialId} not found or access denied.`
+      );
     }
 
     await this.prismaClient.candidateSocial.delete({
@@ -628,4 +634,3 @@ export class CandidatesService {
     return `Deleted social with ID ${socialId}`;
   }
 }
-

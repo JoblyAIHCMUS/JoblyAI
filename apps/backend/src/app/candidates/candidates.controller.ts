@@ -274,10 +274,7 @@ export class CandidatesController {
   @Delete('/me/skills/:id')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('candidate')
-  async deleteSkill(
-    @Request() req: AuthRequest,
-    @Param('id') skillId: string
-  ) {
+  async deleteSkill(@Request() req: AuthRequest, @Param('id') skillId: string) {
     return this.candidatesService.deleteSkill(
       req.user.id,
       Number.parseInt(skillId)
