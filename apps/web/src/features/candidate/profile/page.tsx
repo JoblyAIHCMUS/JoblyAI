@@ -36,7 +36,13 @@ import {
   mapUIToApiCreateEducation,
   mapDataToCandidate,
 } from './mapper';
-import { CandidateEducation, CandidateExperience, CandidateResume, Contact, Social } from '@/types/candidate';
+import {
+  CandidateEducation,
+  CandidateExperience, 
+  CandidateResume,
+  Contact,
+  Social,
+} from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 
 const CandidateProfilePage = () => {
@@ -172,7 +178,7 @@ const CandidateProfilePage = () => {
     // Logic để cập nhật contact
   };
 
-  const handleAddSocial = async(social: Social) => {
+  const handleAddSocial = async (social: Social) => {
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
     // Logic để hiển thị form thêm social mới
   };
