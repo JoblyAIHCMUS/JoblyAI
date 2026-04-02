@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import {
   SkillTagsManager,
   type SkillEntry,
+  type SkillImportance,
 } from '@/components/employer/skillTagsManager';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
@@ -21,7 +22,14 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { jobListingDetails } from '@/features/employer/job-listing/detail/data';
+import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
+import { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';
+import { useCategories } from '@/api-hook/jobs/useCategories';
+import { useSkillIds } from '@/api-hook/skills/useSkillIds';
+import type {
+  EmploymentType,
+  RequirementImportance,
+} from '@/api-client/jobs';
 
 const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
@@ -46,17 +54,15 @@ const CURRENCIES = [
   { value: 'cny', label: 'CNY' },
 ] as const;
 
-const CATEGORIES = [
-  { value: 'design', label: 'Design' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'business', label: 'Business' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'sales', label: 'Sales' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'human-resources', label: 'Human Resources' },
-  { value: 'operations', label: 'Operations' },
-  { value: 'other', label: 'Other' },
-] as const;
+// Helper to convert SkillImportance to RequirementImportance
+const convertToRequirementImportance = (
+  importance: SkillImportance
+): RequirementImportance => {
+  if (importance === 'OPTIONAL') {
+    return 'OPTIONAL';
+  }
+  return importance as RequirementImportance;
+};
 
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -66,22 +72,71 @@ const isHtmlContentEmpty = (html: string): boolean => {
 export default function JobListingEditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const job = jobListingDetails[id];
+  const jobId = parseInt(id, 10);
 
-  const [title, setTitle] = useState(job?.title ?? '');
-  const [description, setDescription] = useState(job?.description ?? '');
-  const [type, setType] = useState<string>(job?.employmentType ?? '');
-  const [remote, setRemote] = useState(job?.remote ?? false);
-  const [location, setLocation] = useState(job?.location ?? '');
-  const [categoryId, setCategoryId] = useState<string>(job?.category ?? '');
-  const [currency, setCurrency] = useState<string>(
-    job?.salaryCurrency ?? 'none'
-  );
-  const [salaryMin, setSalaryMin] = useState(job?.salaryMin ?? '');
-  const [salaryMax, setSalaryMax] = useState(job?.salaryMax ?? '');
-  const [skills, setSkills] = useState<SkillEntry[]>(job?.skills ?? []);
+  // API hooks for fetching and updating
+  const { fetchJobDetail, data: jobData, loading: jobLoading } = useJobDetail();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { submitUpdate, loading: submitLoading, error: submitError } =
+    useUpdateJob({
+      onSuccess: () => {
+        alert('Job updated successfully!');
+        router.replace(`/employer/job-listing/${id}`);
+      },
+      onError: (err) => {
+        alert('Failed to update job');
+      },
+    });
+  const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
 
-  if (!job) {
+  // Form state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState<string>('');
+  const [remote, setRemote] = useState(false);
+  const [location, setLocation] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [currency, setCurrency] = useState<string>('none');
+  const [salaryMin, setSalaryMin] = useState('');
+  const [salaryMax, setSalaryMax] = useState('');
+  const [skills, setSkills] = useState<SkillEntry[]>([]);
+
+  // Fetch job data on mount
+  useEffect(() => {
+    fetchJobDetail(jobId);
+  }, [jobId, fetchJobDetail]);
+
+  // Populate form state when job data is loaded
+  useEffect(() => {
+    if (jobData) {
+      setTitle(jobData.title);
+      setDescription(jobData.description);
+      setType(jobData.type);
+      setRemote(jobData.remote);
+      setLocation(jobData.location || '');
+      setCategoryId(jobData.category.id.toString());
+      setCurrency(jobData.currency ? jobData.currency.toLowerCase() : 'none');
+      setSalaryMin(jobData.salaryMin ? jobData.salaryMin.toString() : '');
+      setSalaryMax(jobData.salaryMax ? jobData.salaryMax.toString() : '');
+      // Backend only provides skill names, map to SkillEntry with default importance
+      setSkills(
+        jobData.skills.map((skillName) => ({
+          name: skillName,
+          importance: 'OPTIONAL' as const,
+        }))
+      );
+    }
+  }, [jobData]);
+
+  if (jobLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold">Loading job...</h1>
+      </div>
+    );
+  }
+
+  if (!jobData) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold">Job not found</h1>
@@ -100,23 +155,44 @@ export default function JobListingEditPage() {
     }
   };
 
-  const handleComplete = () => {
-    const jobData = {
-      id: job.id,
-      title,
-      description,
-      type,
-      remote,
-      location: remote ? undefined : location,
-      categoryId,
-      currency,
-      salaryMin,
-      salaryMax,
-      skills,
-    };
-    console.log('Job updated:', jobData);
-    alert('Job updated successfully!');
-    router.push(`/employer/job-listing/${id}`);
+  const handleComplete = async () => {
+    try {
+      // 1. Resolve skill IDs (create if needed)
+      let requirements = undefined;
+      if (skills.length > 0) {
+        const skillObjs = await getOrCreateSkills(skills.map((s) => s.name));
+        // Map skill names to IDs
+        requirements = skills.map((s) => {
+          const skillObj = skillObjs.find(
+            (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
+          );
+          return {
+            skillId: skillObj ? skillObj.id : 0,
+            importance: convertToRequirementImportance(s.importance),
+            minYearsExperience: s.minYearsExperience,
+          };
+        });
+      }
+
+      // Build the update payload
+      const payload = {
+        title,
+        description,
+        type: type as EmploymentType,
+        remote,
+        location: remote ? undefined : location,
+        categoryId: Number(categoryId),
+        currency: currency === 'none' ? undefined : currency.toUpperCase(),
+        salaryMin: salaryMin ? Number(salaryMin) : undefined,
+        salaryMax: salaryMax ? Number(salaryMax) : undefined,
+        requirements,
+      };
+
+      await submitUpdate(jobId, payload);
+    } catch (err) {
+      // Error handled in hook
+      console.error('Failed to update job:', err);
+    }
   };
 
   return (
@@ -128,13 +204,26 @@ export default function JobListingEditPage() {
         <h1 className="text-3xl font-bold">Edit Job</h1>
       </div>
       <p className="body-body-1-regular text-slate-600 mb-10">
-        Update the details for <strong>{job.title}</strong>.
+        Update the details for <strong>{jobData.title}</strong>.
       </p>
+
+      {submitError ? (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-700">
+            {submitError instanceof Error
+              ? (submitError.message as React.ReactNode)
+              : typeof submitError === 'string'
+                ? (submitError as React.ReactNode)
+                : 'Failed to update job'}
+          </p>
+        </div>
+      ) : null}
 
       <Stepper
         steps={EDIT_JOB_STEPS}
         onComplete={handleComplete}
         canProceed={canProceed}
+        loading={submitLoading || skillsLoading}
       >
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
@@ -237,11 +326,17 @@ export default function JobListingEditPage() {
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
+                {categoriesLoading ? (
+                  <div className="p-2 text-sm text-slate-500">
+                    Loading categories...
+                  </div>
+                ) : (
+                  categories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
