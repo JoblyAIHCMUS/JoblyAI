@@ -144,7 +144,11 @@ export default function JobApplicantsKanban({
                 >
                   <KanbanBoardCard
                     data={{ id: applicant.id }}
-                    className={loadingId === applicant.id ? 'opacity-50' : ''}
+                    className={
+                      loadingId === applicant.id
+                        ? 'opacity-50 draggable={false}'
+                        : ''
+                    }
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">

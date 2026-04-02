@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   ArrowUpDown,
   MoreHorizontal,
@@ -229,6 +230,10 @@ export default function JobApplicantsTable({
     setLoadingId(id);
     try {
       await advanceApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to advance applicant';
+      toast.error(message);
     } finally {
       setLoadingId(null);
     }
@@ -238,6 +243,10 @@ export default function JobApplicantsTable({
     setLoadingId(id);
     try {
       await declineApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to decline applicant';
+      toast.error(message);
     } finally {
       setLoadingId(null);
     }
