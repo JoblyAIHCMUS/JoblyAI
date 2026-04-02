@@ -36,7 +36,8 @@ import {
   mapUIToApiCreateEducation,
   mapDataToCandidate,
 } from './mapper';
-import { CandidateEducation, CandidateExperience, CandidateResume, Contact, Social } from '@/types/profile';
+import { CandidateEducation, CandidateExperience, CandidateResume, Contact, Social } from '@/types/candidate';
+import { CandidateProfileUI } from './types';
 
 const CandidateProfilePage = () => {
   const { toast } = useToast();
@@ -68,13 +69,6 @@ const CandidateProfilePage = () => {
       setUploadErrorMsg(errorMsg);
     },
   });
-  // State quản lý section đang chỉnh sửa
-  const [editSection, setEditSection] = useState<string | null>(null);
-
-  // Hàm xử lý khi nhấn edit
-  const handleEdit = (section: string) => setEditSection(section);
-  // Hàm xử lý khi nhấn hủy
-  const handleCancel = () => setEditSection(null);
 
   const handleUpdateAbout = async (about: string[]) => {
     const { updateAbout } = useUpdateCandidateAbout();
@@ -89,7 +83,7 @@ const CandidateProfilePage = () => {
     await updateExperienceRecord(apiExperience);
     setProfile((prev) => {
       if (!prev) return prev;
-      const updatedExperiences = prev.experiences.map((exp) =>
+      const updatedExperiences = prev.experiences?.map((exp) =>
         exp.id === experiences.id ? experiences : exp
       );
       return { ...prev, experiences: updatedExperiences };
@@ -103,7 +97,7 @@ const CandidateProfilePage = () => {
     await createExperienceRecord(apiExperience);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, experiences: [...prev.experiences, experience] };
+      return { ...prev, experiences: [...(prev.experiences || []) , experience] };
     });
   };
 
@@ -111,11 +105,11 @@ const CandidateProfilePage = () => {
   const { deleteExperienceRecord } = useDeleteExperience();
   const handleDeleteExperience = async (id: number) => {
     await deleteExperienceRecord(id);
-    setCandidate((prev) => {
+    setProfile((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        experiences: prev.experiences.filter((exp) => exp.id !== id),
+        experiences: prev.experiences?.filter((exp) => exp.id !== id),
       };
     });
   };
@@ -136,7 +130,7 @@ const CandidateProfilePage = () => {
     const newEducation = await createEducationRecord(apiEducation);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, educations: [...prev.educations, newEducation] };
+      return { ...prev, educations: [...(prev.educations || []), newEducation] };
     });
   };
 
@@ -144,11 +138,11 @@ const CandidateProfilePage = () => {
   const { deleteEducationRecord } = useDeleteEducation();
   const handleDeleteEducation = async (id: number) => {
     await deleteEducationRecord(id);
-    setCandidate((prev) => {
+    setProfile((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        educations: prev.educations.filter((edu) => edu.id !== id),
+        educations: prev.educations?.filter((edu) => edu.id !== id),
       };
     });
   };
@@ -157,9 +151,9 @@ const CandidateProfilePage = () => {
   const { createSkillRecord } = useCreateSkill();
   const handleAddSkill = async (skill: string) => {
     await createSkillRecord(skill);
-    setCandidate((prev) => {
+    setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, skills: [...prev.skills, skill] };
+      return { ...prev, skills: [...(prev.skills || []), skill] };
     });
   };
 
@@ -167,9 +161,9 @@ const CandidateProfilePage = () => {
   const { deleteSkillRecord } = useDeleteSkill();
   const handleDeleteSkill = async (skill: string) => {
     await deleteSkillRecord(skill);
-    setCandidate((prev) => {
+    setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, skills: prev.skills.filter((s) => s !== skill) };
+      return { ...prev, skills: prev.skills?.filter((s) => s !== skill) };
     });
   };
 
@@ -191,7 +185,7 @@ const CandidateProfilePage = () => {
     const loadProfile = async () => {
       try {
         const profileData = await fetchCandidateProfile();
-        setProfile(profileData);
+        setProfile(profileData || null);
       } catch (err) {
         console.error('Failed to fetch candidate profile', { error: err });
       }
@@ -199,12 +193,6 @@ const CandidateProfilePage = () => {
 
     loadProfile();
   }, []);
-
-  useEffect(() => {
-    if (data) {
-      setCandidate(mapDataToCandidate(data));
-    }
-  }, [data]);
 
   if (error) {
     return (
@@ -271,47 +259,16 @@ const CandidateProfilePage = () => {
     return defaultResume.fileName;
   };
 
-  const candidate = {
-    name: profile?.name || '',
-    title: profile?.role || '',
-    location: '',
-    avatar: profile?.image || '',
-    banner: '#4640DE',
-    openForOpportunities: true,
-    about: [profile?.email || ''],
-    experiences: (profile?.experiences || []).map((exp) => ({
-      company: exp.companyName || '',
-      logo: 'https://placehold.co/80x80',
-      role: exp.jobTitle || '',
-      type: 'Full-Time',
-      time: `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
-      location: exp.location || '',
-      desc: exp.description || '',
-    })),
-    educations: (profile?.educations || []).map((edu) => ({
-      school: edu.school || '',
-      logo: 'https://placehold.co/80x80',
-      degree: edu.degree || '',
-      time: `${edu.startDate || ''} - ${edu.endDate || ''}`,
-      desc: edu.description || '',
-    })),
-    skills: [],
-    portfolios: [],
-    contact: {
-      email: profile?.email || '',
-      phone: '',
-    },
-    socials: [],
-  };
 
-
-  if (loading || !candidate) {
+  if (loading || !profile) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         Loading...
       </div>
     );
   }
+
+  const candidate: CandidateProfileUI = mapDataToCandidate(profile);
 
   return (
     <div

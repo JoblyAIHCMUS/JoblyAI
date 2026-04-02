@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   updateResume,
-  type CandidateResume,
   type UpdateResumePayload,
 } from '@/api-client/candidate';
+import { CandidateResume } from '@/types/candidate';
 
 interface UseUpdateResumeOptions {
   onSuccess?: (data: CandidateResume) => void;

@@ -3,7 +3,7 @@ import {
   CandidateExperience,
   Contact,
   Social,
-} from '@/types/profile';
+} from '@/types/candidate';
 
 export interface CandidateProfileUI {
   name: string;

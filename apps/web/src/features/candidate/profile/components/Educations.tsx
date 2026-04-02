@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 
-import { CandidateEducation } from '@/types/profile';
+import { CandidateEducation } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 
 interface EducationsProps {

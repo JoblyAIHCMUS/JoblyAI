@@ -3,7 +3,7 @@ import {
   createEducation,
   type CreateEducationPayload,
 } from '@/api-client/candidate';
-import { CandidateEducation } from '@/types/profile';
+import { CandidateEducation } from '@/types/candidate';
 
 interface UseCreateEducationOptions {
   onSuccess?: (data: CandidateEducation) => void;

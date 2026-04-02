@@ -3,7 +3,7 @@ import {
   CandidateCertificate,
   CandidateExperience,
   CandidateResume,
-} from '@/types/profile';
+} from '@/types/candidate';
 
 export interface CandidateProfileResponse {
   id: string;
@@ -29,7 +29,7 @@ export interface CandidateProfileResponse {
   skills: string[]; // Kỹ năng
   portfolios: { img: string; name: string }[]; // Dự án/portfolio
   contact: { email: string; phone: string }; // Thông tin liên hệ (phone chưa có)
-  socials: { label: string; value: string }[]; // Mạng xã hội
+  socials: { type: string; url: string }[]; // Mạng xã hội
   banner: string; // Ảnh banner hoặc màu nền
 }
 

@@ -5,7 +5,7 @@ import {
   UpdateExperiencePayload,
   CandidateProfileResponse,
 } from '@/api-client/candidate';
-import { CandidateEducation, CandidateExperience } from '@/types/profile';
+import { CandidateEducation, CandidateExperience } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 
 export function mapUIToApiCreateEducation(

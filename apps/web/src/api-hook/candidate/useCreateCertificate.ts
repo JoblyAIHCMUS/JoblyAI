@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   createCertificate,
-  type CandidateCertificate,
   type CreateCertificatePayload,
 } from '@/api-client/candidate';
+import { CandidateCertificate } from '@/types/candidate';
 
 interface UseCreateCertificateOptions {
   onSuccess?: (data: CandidateCertificate) => void;

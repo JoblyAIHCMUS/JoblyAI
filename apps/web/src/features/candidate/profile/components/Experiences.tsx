@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { CandidateExperience } from '@/types/profile';
+import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 
 interface ExperiencesProps {

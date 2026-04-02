@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   updateExperience,
-  type CandidateExperience,
   type UpdateExperiencePayload,
 } from '@/api-client/candidate';
+import { CandidateExperience } from '@/types/candidate';
 
 interface UseUpdateExperienceOptions {
   onSuccess?: (data: CandidateExperience) => void;

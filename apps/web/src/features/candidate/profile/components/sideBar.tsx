@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Edit, Plus, Mail, Smartphone } from 'lucide-react';
-import { Contact, Social } from '@/types/profile';
+import { Contact, Social } from '@/types/candidate';
 
 interface SideBarProps {
   contact: Contact;

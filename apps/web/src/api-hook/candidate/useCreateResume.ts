@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   createResume,
-  type CandidateResume,
   type CreateResumePayload,
 } from '@/api-client/candidate';
+import { CandidateResume } from '@/types/candidate';
 
 interface UseCreateResumeOptions {
   onSuccess?: (data: CandidateResume) => void;

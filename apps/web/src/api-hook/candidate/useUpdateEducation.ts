@@ -3,7 +3,7 @@ import {
   updateEducation,
   type UpdateEducationPayload,
 } from '@/api-client/candidate';
-import { type CandidateEducation } from '@/types/profile';
+import { type CandidateEducation } from '@/types/candidate';
 interface UseUpdateEducationOptions {
   onSuccess?: (data: CandidateEducation) => void;
   onError?: (error: unknown) => void;

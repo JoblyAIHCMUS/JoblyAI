@@ -3,7 +3,7 @@ import type {
   CreateCertificatePayload,
   UpdateCertificatePayload,
 } from '@/api-client/candidate/types';
-import { CandidateCertificate } from '@/types/profile';
+import { CandidateCertificate } from '@/types/candidate';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 

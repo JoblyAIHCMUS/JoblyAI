@@ -3,7 +3,7 @@ import type {
   CreateExperiencePayload,
   UpdateExperiencePayload,
 } from '@/api-client/candidate/types';
-import { CandidateExperience } from '@/types/profile';
+import { CandidateExperience } from '@/types/candidate';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
