@@ -1,9 +1,9 @@
 import axios from 'axios';
 import type {
-  CandidateEducation,
   CreateEducationPayload,
   UpdateEducationPayload,
 } from '@/api-client/candidate/types';
+import { CandidateEducation } from '@/types/profile';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 

@@ -9,7 +9,7 @@ import CV from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
-import Portfolios from './components/Portfolios';
+// import Portfolios from './components/Portfolios';
 import SideBar from './components/sideBar';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import { useUploadFile } from '@/api-hook/s3';
@@ -19,10 +19,12 @@ import type {
   CandidateProfileResponse,
 } from '@/api-client/candidate/types';
 import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
-import { useUpdateExperience } from '@/api-hook/candidate/useUpdateExperience';
-import { useCreateExperience } from '@/api-hook/candidate/useCreateExperience';
-import { useUpdateEducation } from '@/api-hook/candidate/useUpdateEducation';
-import { useCreateEducation } from '@/api-hook/candidate/useCreateEducation';
+import { 
+  useUpdateExperience, useCreateExperience, useDeleteExperience,
+  useUpdateEducation, useCreateEducation, useDeleteEducation,
+} from '@/api-hook/candidate';
+import {  useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
+import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
 import {
   mapUIToApiCreateExperience,
   mapUIToApiUpdateExperience,
@@ -130,7 +132,6 @@ const CandidateProfilePage = () => {
       return { ...prev, educations: [...prev.educations, newEducation] };
     });
   };
-
   
   // hàm xử lý delete education 
   const { deleteEducationRecord } = useDeleteEducation();
@@ -141,6 +142,27 @@ const CandidateProfilePage = () => {
       return { ...prev, educations: prev.educations.filter((edu) => edu.id !== id) };
     });
   }
+
+  // hàm xử lý add skill
+  const { createSkillRecord } = useCreateSkill();
+  const handleAddSkill = async (skill: string) => {
+    await createSkillRecord(skill);
+    setCandidate((prev) => {
+      if (!prev) return prev;
+      return { ...prev, skills: [...prev.skills, skill] };
+    });
+  }
+
+  // Hàm xử lý delete skill
+  const { deleteSkillRecord } = useDeleteSkill();
+  const handleDeleteSkill = async (skill: string) => {
+    await deleteSkillRecord(skill);
+    setCandidate((prev) => {
+      if (!prev) return prev;
+      return { ...prev, skills: prev.skills.filter(s => s !== skill) };
+    });
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -308,11 +330,10 @@ const CandidateProfilePage = () => {
           />
           <Skills
             skills={candidate.skills}
-            onEdit={() => handleEdit('skills')}
-            isEditing={editSection === 'skills'}
-            onCancel={handleCancel}
+            handleAddSkill={handleAddSkill}
+            handleDeleteSkill={handleDeleteSkill}
           />
-          <Portfolios portfolios={candidate.portfolios} />
+          {/* <Portfolios portfolios={candidate.portfolios} />/ */}
         </div>
         {/* Sidebar (Right) */}
         <SideBar
