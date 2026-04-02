@@ -41,3 +41,13 @@ export interface CandidateResume {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Contact {
+  email: string;
+  phone: string;
+}
+
+export interface Social {
+  type: string;
+  url: string;
+}

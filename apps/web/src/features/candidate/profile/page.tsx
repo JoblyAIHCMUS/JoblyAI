@@ -36,7 +36,7 @@ import {
   mapUIToApiCreateEducation,
   mapDataToCandidate,
 } from './mapper';
-import { CandidateEducation, CandidateExperience, CandidateResume } from '@/types/profile';
+import { CandidateEducation, CandidateExperience, CandidateResume, Contact, Social } from '@/types/profile';
 
 const CandidateProfilePage = () => {
   const { toast } = useToast();
@@ -171,6 +171,20 @@ const CandidateProfilePage = () => {
       if (!prev) return prev;
       return { ...prev, skills: prev.skills.filter((s) => s !== skill) };
     });
+  };
+
+  const handleUpdateContact = async (contact: Contact) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
+    // Logic để cập nhật contact
+  };
+
+  const handleAddSocial = async(social: Social) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
+    // Logic để hiển thị form thêm social mới
+  };
+  const handleUpdateSocials = async (socials: Social[]) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Giả lập delay cho API
+    // Logic để cập nhật social
   };
 
   useEffect(() => {
@@ -349,9 +363,9 @@ const CandidateProfilePage = () => {
         <SideBar
           contact={candidate.contact}
           socials={candidate.socials}
-          onEdit={() => handleEdit('sidebar')}
-          isEditing={editSection === 'sidebar'}
-          onCancel={handleCancel}
+          handleUpdateContact={handleUpdateContact}
+          handleAddSocial={handleAddSocial}
+          handleUpdateSocials={handleUpdateSocials}
         />
       </div>
     </div>

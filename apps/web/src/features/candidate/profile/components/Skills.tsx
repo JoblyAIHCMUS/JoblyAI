@@ -36,26 +36,26 @@ export default function Skills({
   };
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-[var(--space-xl)] flex flex-col gap-[var(--space-lg)]">
-      <div className="flex items-center justify-between">
+    <div className="rrounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
+      <div className="flex items-center justify-between px-4">
         <div className="heading-h6-semi-bold text-primary break-words">
           Skills
         </div>
         <div className="flex gap-2">
           {!isAdding && (
             <button
-              className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
+              className="p-[var(--space-xs)] rounded-[var(--radius-md)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
               onClick={handleAddClick}
             >
-              <Plus size={20} className="text-accent-primary" />
+              <Plus size={16} className="text-accent-primary" />
             </button>
           )}
         </div>
       </div>
       {isAdding && (
-        <div className="flex flex-col gap-2 mt-2">
+        <div className="flex flex-col px-4 gap-2 mt-2">
           <input
-            className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px]"
+            className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
             placeholder="Nhập kỹ năng mới"
@@ -74,7 +74,7 @@ export default function Skills({
           </div>
         </div>
       )}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3  px-4">
         {skills.map((skill, idx) => (
           <span
             key={idx}

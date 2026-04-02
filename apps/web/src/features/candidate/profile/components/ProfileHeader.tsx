@@ -54,7 +54,7 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
             )}
           </div>
           <button
-            className="text-accent-primary px-[var(--space-xl)] py-[var(--space-base)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]"
+            className="text-accent-primary px-[var(--space-xs)] py-[var(--space-base)] rounded-[var(--radius-md)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]"
             onClick={() => router.push('/candidate/settings')}
           >
             Edit Profile

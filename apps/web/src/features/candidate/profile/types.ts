@@ -1,4 +1,9 @@
-import { CandidateEducation, CandidateExperience } from '@/types/profile';
+import {
+  CandidateEducation,
+  CandidateExperience,
+  Contact,
+  Social,
+} from '@/types/profile';
 
 export interface CandidateProfileUI {
   name: string;
@@ -11,6 +16,6 @@ export interface CandidateProfileUI {
   educations: Array<CandidateEducation>;
   skills: Array<any>;
   portfolios: Array<any>;
-  contact: { email: string; phone: string };
-  socials: Array<any>;
+  contact: Contact;
+  socials: Array<Social>;
 }

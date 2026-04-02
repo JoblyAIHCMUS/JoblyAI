@@ -333,7 +333,7 @@ export default function Educations({
         return (
           <div
             key={edu.id}
-            className="flex flex-col gap-[var(--space-md)] px-6 flex-1"
+            className="flex flex-col gap-[var(--space-md)] px-4 flex-1"
           >
             {isEditing ? (
               <EducationEditForm
