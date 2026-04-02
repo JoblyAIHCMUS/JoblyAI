@@ -24,11 +24,13 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
       <div className="absolute left-8 top-[70px]">
         <div className="relative w-[140px] h-[140px]">
           <div className="absolute w-[140px] h-[140px] rounded-full bg-[color:#26A4FF] border-[8px] border-[color:var(--bg-primary)]" />
-          <img
-            src={candidate.avatar}
-            alt="avatar"
-            className="absolute w-[140px] h-[140px] rounded-full object-cover"
-          />
+          {candidate.avatar ? (
+            <img
+              src={candidate.avatar}
+              alt="avatar"
+              className="absolute w-[140px] h-[140px] rounded-full object-cover"
+            />
+          ) : null}
         </div>
       </div>
       <div className="w-full pl-[180px] pr-8 mt-6">

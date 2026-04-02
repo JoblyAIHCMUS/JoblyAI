@@ -15,9 +15,7 @@ import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProf
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
 import { deleteResume } from '@/api-client/candidate';
-import type {
-  CandidateProfileResponse,
-} from '@/api-client/candidate/types';
+import type { CandidateProfileResponse } from '@/api-client/candidate/types';
 import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
 import {
   useUpdateExperience,
@@ -38,7 +36,7 @@ import {
 } from './mapper';
 import {
   CandidateEducation,
-  CandidateExperience, 
+  CandidateExperience,
   CandidateResume,
   Contact,
   Social,
@@ -103,7 +101,10 @@ const CandidateProfilePage = () => {
     await createExperienceRecord(apiExperience);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, experiences: [...(prev.experiences || []) , experience] };
+      return {
+        ...prev,
+        experiences: [...(prev.experiences || []), experience],
+      };
     });
   };
 
@@ -136,7 +137,10 @@ const CandidateProfilePage = () => {
     const newEducation = await createEducationRecord(apiEducation);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, educations: [...(prev.educations || []), newEducation] };
+      return {
+        ...prev,
+        educations: [...(prev.educations || []), newEducation],
+      };
     });
   };
 
@@ -264,7 +268,6 @@ const CandidateProfilePage = () => {
       profile.resumes.find((r) => r.isDefault) || profile.resumes[0];
     return defaultResume.fileName;
   };
-
 
   if (loading || !profile) {
     return (

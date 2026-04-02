@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  updateResume,
-  type UpdateResumePayload,
-} from '@/api-client/candidate';
+import { updateResume, type UpdateResumePayload } from '@/api-client/candidate';
 import { CandidateResume } from '@/types/candidate';
 
 interface UseUpdateResumeOptions {
