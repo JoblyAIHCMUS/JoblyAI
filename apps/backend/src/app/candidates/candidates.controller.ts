@@ -14,6 +14,10 @@ import { RoleGuard } from '../auth/role.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { Prisma, User } from '@prisma/client';
+import { UpdateAboutDto, CreateAboutDto } from './dto/about.dto';
+import { UpdateSkillDto, CreateSkillDto } from './dto/skill.dto';
+import { UpdateContactDto, CreateContactDto } from './dto/contact.dto';
+import { UpdateSocialDto, CreateSocialDto } from './dto/social.dto';
 import { UpdateEducationDto } from './dto/education.dto';
 import { UpdateExperienceDto } from './dto/experience.dto';
 import { UpdateResumeDto } from './dto/resume.dto';
@@ -193,6 +197,169 @@ export class CandidatesController {
     return await this.candidatesService.deleteCertificate(
       userId,
       Number.parseInt(resumeId)
+    );
+  }
+
+  // About/CandidateDescription endpoints
+  @Get('/me/about')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async getAboutDetail(@Request() req: AuthRequest) {
+    const { id: userId } = req.user;
+    return this.candidatesService.getAbout(userId);
+  }
+
+  @Post('/me/about')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async createAboutDetail(
+    @Request() req: AuthRequest,
+    @Body() createDto: CreateAboutDto
+  ) {
+    const { id: userId } = req.user;
+    return this.candidatesService.createAbout(userId, createDto);
+  }
+
+  @Patch('/me/about')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async updateAboutDetail(
+    @Request() req: AuthRequest,
+    @Body() updateDto: UpdateAboutDto
+  ) {
+    const { id: userId } = req.user;
+    return this.candidatesService.updateAbout(userId, updateDto);
+  }
+
+  @Delete('/me/about/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async deleteAboutDetail(
+    @Request() req: AuthRequest,
+    @Param('id') aboutId: string
+  ) {
+    const { id: userId } = req.user;
+    return this.candidatesService.deleteAbout(userId, Number.parseInt(aboutId));
+  }
+
+  // Skills endpoints
+  @Get('/me/skills')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async getSkills(@Request() req: AuthRequest) {
+    const profile = await this.candidatesService.getProfileDetails(req.user.id);
+    return profile.skills;
+  }
+
+  @Post('/me/skills')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async createSkill(
+    @Request() req: AuthRequest,
+    @Body() createDto: CreateSkillDto
+  ) {
+    return this.candidatesService.createSkill(req.user.id, createDto);
+  }
+
+  @Patch('/me/skills')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async updateSkill(
+    @Request() req: AuthRequest,
+    @Body() updateDto: UpdateSkillDto
+  ) {
+    return this.candidatesService.updateSkill(req.user.id, updateDto);
+  }
+
+  @Delete('/me/skills/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async deleteSkill(@Request() req: AuthRequest, @Param('id') skillId: string) {
+    return this.candidatesService.deleteSkill(
+      req.user.id,
+      Number.parseInt(skillId)
+    );
+  }
+
+  @Get('/me/contacts')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async getContacts(@Request() req: AuthRequest) {
+    const profile = await this.candidatesService.getProfileDetails(req.user.id);
+    return profile.contacts;
+  }
+
+  @Post('/me/contacts')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async createContact(
+    @Request() req: AuthRequest,
+    @Body() createDto: CreateContactDto
+  ) {
+    return this.candidatesService.createContact(req.user.id, createDto);
+  }
+
+  @Patch('/me/contacts')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async updateContact(
+    @Request() req: AuthRequest,
+    @Body() updateDto: UpdateContactDto
+  ) {
+    return this.candidatesService.updateContact(req.user.id, updateDto);
+  }
+
+  @Delete('/me/contacts/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async deleteContact(
+    @Request() req: AuthRequest,
+    @Param('id') contactId: string
+  ) {
+    return this.candidatesService.deleteContact(
+      req.user.id,
+      Number.parseInt(contactId)
+    );
+  }
+
+  @Get('/me/socials')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async getSocials(@Request() req: AuthRequest) {
+    const profile = await this.candidatesService.getProfileDetails(req.user.id);
+    return profile.socials;
+  }
+
+  @Post('/me/socials')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async createSocial(
+    @Request() req: AuthRequest,
+    @Body() createDto: CreateSocialDto
+  ) {
+    return this.candidatesService.createSocial(req.user.id, createDto);
+  }
+
+  @Patch('/me/socials')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async updateSocial(
+    @Request() req: AuthRequest,
+    @Body() updateDto: UpdateSocialDto
+  ) {
+    return this.candidatesService.updateSocial(req.user.id, updateDto);
+  }
+
+  @Delete('/me/socials/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async deleteSocial(
+    @Request() req: AuthRequest,
+    @Param('id') socialId: string
+  ) {
+    return this.candidatesService.deleteSocial(
+      req.user.id,
+      Number.parseInt(socialId)
     );
   }
 }

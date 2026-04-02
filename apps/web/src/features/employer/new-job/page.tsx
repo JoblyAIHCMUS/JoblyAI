@@ -234,6 +234,7 @@ export default function EmployerNewJobPage() {
               <div className="flex items-center gap-3 pt-1">
                 <Switch
                   id="remote"
+                  className="data-[state=checked]:bg-black"
                   checked={remote}
                   onCheckedChange={(checked) => {
                     setRemote(checked);

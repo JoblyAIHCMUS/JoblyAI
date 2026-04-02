@@ -199,6 +199,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
             />
             <Button
               type="button"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
               size="sm"
               onClick={handleAdd}
               disabled={!newSkillName.trim()}
@@ -240,7 +241,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
               <Badge
                 key={skill.name}
                 variant="secondary"
-                className="pl-3 pr-1 py-1.5 text-sm bg-primary/10 text-primary border-0 hover:bg-primary/15"
+                className="pl-3 pr-1 py-1.5 text-sm bg-zinc-500/20 text-primary border-0 hover:bg-zinc-600/25"
               >
                 {skill.name}
                 {skill.minYearsExperience != null && (

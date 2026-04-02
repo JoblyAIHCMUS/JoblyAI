@@ -38,6 +38,8 @@ export function LoginForm() {
           // Check if user is an employer and redirect accordingly
           if (user.role === 'employer') {
             router.push('/employer');
+          } else if (user.role === 'candidate') {
+            router.push('/candidate');
           } else {
             router.push(redirectTo);
           }
@@ -119,7 +121,7 @@ export function LoginForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-accent-solid py-6 text-base font-semibold hover:bg-accent-solid-hover"
+        className="w-full bg-accent-solid py-6 text-white font-semibold hover:bg-accent-solid-hover"
         size="lg"
         disabled={isPending}
       >

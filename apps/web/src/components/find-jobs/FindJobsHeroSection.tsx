@@ -10,7 +10,7 @@ export default function FindJobsHeroSection() {
 
         <div className="absolute left-0 top-20 hidden h-[436px] w-[244px] overflow-hidden lg:block">
           <Image
-            src="/landing/Pattern.svg"
+            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
             alt="Pattern left"
             width={834}
             height={436}
@@ -20,7 +20,7 @@ export default function FindJobsHeroSection() {
 
         <div className="absolute right-0 top-20 hidden h-[436px] w-[244px] overflow-hidden lg:block">
           <Image
-            src="/landing/Pattern.svg"
+            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
             alt="Pattern right"
             width={834}
             height={436}

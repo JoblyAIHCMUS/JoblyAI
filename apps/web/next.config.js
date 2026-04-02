@@ -12,6 +12,16 @@ const nextConfig = {
   nx: {},
   // Enable standalone output for Docker
   output: 'standalone',
+  // Configure external image domains for Next.js Image component
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'jobly-dev-assets.s3.ap-southeast-1.amazonaws.com',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 const plugins = [

@@ -74,7 +74,12 @@ const createMockApplication = (overrides = {}) => ({
   },
   resume: {
     id: 1,
-    fileUrl: 'https://example.com/resume.pdf',
+    candidateId: 'candidate-123',
+    fileKey: 'resumes/test-resume.pdf',
+    fileName: 'resume.pdf',
+    fileType: 'application/pdf',
+    fileSize: 245678,
+    parsedText: 'Test resume content',
     aiScore: 85,
     isDefault: true,
   },

@@ -89,7 +89,7 @@ export class MessagesService {
           lastMessageAt: true,
           lastMessage: true,
           participant: {
-            select: { id: true, name: true, image: true, role: true },
+            select: { id: true, name: true, avatarUrl: true, role: true },
           },
         },
         orderBy: { lastMessageAt: 'desc' },
@@ -126,7 +126,7 @@ export class MessagesService {
       participant: {
         id: string;
         name: string | null;
-        image: string | null;
+        avatarUrl: string | null;
         role: string | null;
       };
     }
@@ -175,7 +175,7 @@ export class MessagesService {
         participantId: conversationData.participantId,
         participantName: conversationData.participant.name,
         participantRole: conversationData.participant.role,
-        participantAvatar: conversationData.participant.image,
+        participantAvatar: conversationData.participant.avatarUrl,
         latestMessage: conversationData.lastMessage,
         hasUnread: hasUnread || false,
         lastMessageAt: conversationData.lastMessageAt,
