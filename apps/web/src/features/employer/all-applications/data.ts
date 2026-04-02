@@ -20,7 +20,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     appliedDate: '2020-05-21',
     score: 8.2,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Social Media Assistant',
   },
   {
@@ -40,7 +40,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
     appliedDate: '2020-05-23',
     score: 8.5,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Social Media Assistant',
   },
   {
@@ -100,7 +100,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica',
     appliedDate: '2020-05-26',
     score: 8.0,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Social Media Assistant',
   },
   {
@@ -120,7 +120,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Laura',
     appliedDate: '2020-05-27',
     score: 4.3,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Social Media Assistant',
   },
   {
@@ -213,7 +213,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Amara',
     appliedDate: '2021-01-10',
     score: 7.6,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Frontend Developer',
   },
   {
@@ -234,7 +234,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
     appliedDate: '2021-03-05',
     score: 7.5,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Project Manager',
   },
   {
@@ -328,7 +328,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
     appliedDate: '2022-04-11',
     score: 7.3,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Backend Developer',
   },
   {
@@ -389,7 +389,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara',
     appliedDate: '2022-11-22',
     score: 6.0,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Content Writer',
   },
 
@@ -442,7 +442,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia',
     appliedDate: '2023-05-21',
     score: 7.5,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Marketing Coordinator',
   },
   {
@@ -483,7 +483,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Freya',
     appliedDate: '2023-09-30',
     score: 7.8,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Data Analyst',
   },
   {
@@ -526,7 +526,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Priya',
     appliedDate: '2024-03-01',
     score: 8.0,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Data Analyst',
   },
   {
@@ -587,7 +587,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel',
     appliedDate: '2024-09-28',
     score: 6.9,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Project Manager',
   },
   {
@@ -620,7 +620,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omar',
     appliedDate: '2025-02-20',
     score: 7.7,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'DevOps Engineer',
   },
   {
@@ -671,7 +671,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
     appliedDate: '2025-07-22',
     score: 8.4,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Senior Designer',
   },
   {
@@ -734,7 +734,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Beatrice',
     appliedDate: '2026-02-03',
     score: 7.0,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Data Analyst',
   },
   {
@@ -776,7 +776,7 @@ export const allApplications: AllApplication[] = [
     image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George',
     appliedDate: '2026-03-10',
     score: 7.2,
-    hiringStage: 'Interviewed',
+    hiringStage: 'Shortlisted',
     appliedRole: 'Marketing Coordinator',
   },
 ];
