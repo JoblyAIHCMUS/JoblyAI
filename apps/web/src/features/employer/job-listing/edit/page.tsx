@@ -26,10 +26,7 @@ import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
 import { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillIds } from '@/api-hook/skills/useSkillIds';
-import type {
-  EmploymentType,
-  RequirementImportance,
-} from '@/api-client/jobs';
+import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 
 const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
@@ -77,16 +74,19 @@ export default function JobListingEditPage() {
   // API hooks for fetching and updating
   const { fetchJobDetail, data: jobData, loading: jobLoading } = useJobDetail();
   const { categories, loading: categoriesLoading } = useCategories();
-  const { submitUpdate, loading: submitLoading, error: submitError } =
-    useUpdateJob({
-      onSuccess: () => {
-        alert('Job updated successfully!');
-        router.replace(`/employer/job-listing/${id}`);
-      },
-      onError: (err) => {
-        alert('Failed to update job');
-      },
-    });
+  const {
+    submitUpdate,
+    loading: submitLoading,
+    error: submitError,
+  } = useUpdateJob({
+    onSuccess: () => {
+      alert('Job updated successfully!');
+      router.replace(`/employer/job-listing/${id}`);
+    },
+    onError: (err) => {
+      alert('Failed to update job');
+    },
+  });
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
 
   // Form state
@@ -213,8 +213,8 @@ export default function JobListingEditPage() {
             {submitError instanceof Error
               ? (submitError.message as React.ReactNode)
               : typeof submitError === 'string'
-                ? (submitError as React.ReactNode)
-                : 'Failed to update job'}
+              ? (submitError as React.ReactNode)
+              : 'Failed to update job'}
           </p>
         </div>
       ) : null}
