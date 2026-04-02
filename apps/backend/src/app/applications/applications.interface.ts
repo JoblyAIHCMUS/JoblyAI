@@ -45,7 +45,7 @@ export interface Application {
   };
   resume: {
     id: number;
-    fileUrl: string;
+    fileKey: string; // S3 object key for private resume access
     aiScore: number | null;
     isDefault: boolean;
   };

@@ -24,7 +24,7 @@ export class CandidateQueryResponseDto {
   verified!: boolean;
 
   @Expose()
-  image!: string;
+  avatarUrl!: string;
 
   @Expose()
   role!: string;

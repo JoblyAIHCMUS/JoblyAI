@@ -12,11 +12,15 @@ import {
   type Resume,
 } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
+import { S3Service } from '../s3/s3.service';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
 
 @Injectable()
 export class CandidatesService {
-  constructor(@InjectPrisma() private readonly prismaClient: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prismaClient: PrismaClient,
+    private readonly s3Service: S3Service
+  ) {}
 
   async getProfileDetails(userId: string): Promise<CandidateQueryResponseDto> {
     const user = await this.prismaClient.user.findUnique({
@@ -42,7 +46,7 @@ export class CandidatesService {
       banned: user.banned ?? false,
       banReason: user.banReason ?? '',
       banExpires: user.banExpires ?? undefined,
-      image: user.image || '',
+      avatarUrl: user.avatarUrl || '',
       role: user.role || 'candidate',
       createdAt: user.createdAt,
       educations: user.education.map((edu) => ({
@@ -76,7 +80,7 @@ export class CandidatesService {
         id: resume.id,
         isDefault: resume.isDefault,
         fileName: resume.fileName ?? '',
-        fileUrl: resume.fileUrl ?? '',
+        fileKey: resume.fileKey ?? '',
         fileType: resume.fileType ?? 'pdf',
         fileSize: resume.fileSize ?? undefined,
         createdAt: resume.createdAt.toISOString(),
@@ -257,17 +261,46 @@ export class CandidatesService {
   }
 
   async deleteResume(userId: string, resumeId: number): Promise<string> {
-    const result = await this.prismaClient.resume.delete({
+    // First, get the resume to get the fileKey for S3 deletion
+    const resume = await this.prismaClient.resume.findFirst({
       where: {
         id: resumeId,
         candidateId: userId,
       },
     });
-    if (!result)
+
+    if (!resume) {
       throw new NotFoundException(
         `Resume record ${resumeId} not found or access denied.`
       );
-    return 'Deleted resume with ID ' + resumeId;
+    }
+
+    // Delete from S3 if fileKey exists
+    if (resume.fileKey) {
+      try {
+        // Defensive: ensure fileKey is a string (Prisma might return it as-is from DB)
+        const fileKeyToDelete = String(resume.fileKey).trim();
+        if (fileKeyToDelete) {
+          await this.s3Service.deleteFile(fileKeyToDelete);
+        }
+      } catch (error) {
+        console.error(
+          `Failed to delete S3 file, continuing with DB deletion:`,
+          error
+        );
+        // Continue with DB deletion even if S3 deletion fails
+      }
+    }
+
+    // Delete from database
+    await this.prismaClient.resume.delete({
+      where: {
+        id: resumeId,
+        candidateId: userId,
+      },
+    });
+
+    return `Deleted resume with ID ${resumeId} and file from S3`;
   }
 
   // Certificate
