@@ -5,13 +5,15 @@ import Image from 'next/image';
 
 import { useState } from 'react';
 
-
 interface FindJobsHeroSectionProps {
   setSearchTerm?: (term: string) => void;
   setLocation?: (location: string) => void;
 }
 
-export default function FindJobsHeroSection({ setSearchTerm, setLocation }: FindJobsHeroSectionProps) {
+export default function FindJobsHeroSection({
+  setSearchTerm,
+  setLocation,
+}: FindJobsHeroSectionProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [localLocation, setLocalLocation] = useState('');
 
@@ -64,7 +66,7 @@ export default function FindJobsHeroSection({ setSearchTerm, setLocation }: Find
                     placeholder="Job title or keyword"
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
                     value={localSearchTerm}
-                    onChange={e => setLocalSearchTerm(e.target.value)}
+                    onChange={(e) => setLocalSearchTerm(e.target.value)}
                     onKeyDown={handleKeyDown}
                   />
                   <div className="h-px w-full bg-slate-300" />
@@ -81,14 +83,14 @@ export default function FindJobsHeroSection({ setSearchTerm, setLocation }: Find
                     placeholder="Location"
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
                     value={localLocation}
-                    onChange={e => setLocalLocation(e.target.value)}
+                    onChange={(e) => setLocalLocation(e.target.value)}
                     onKeyDown={handleKeyDown}
                   />
                   <div className="h-px w-full bg-slate-300" />
                 </div>
               </div>
 
-              <Button 
+              <Button
                 className="h-12 rounded-[5px] bg-indigo-600 px-6 text-base font-semibold leading-[22px] text-white hover:bg-indigo-700"
                 onClick={handleSearch}
               >

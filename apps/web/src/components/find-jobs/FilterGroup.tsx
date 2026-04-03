@@ -25,18 +25,18 @@ export default function FilterGroup({
         onClick={() => onToggleExpand(title)}
         className="flex items-center justify-between hover:bg-slate-100 rounded-[5px] px-2 py-2 w-full"
       >
-        <h3 className="label-label-1-semi-bold text-slate-900">
-          {title}
-        </h3>
+        <h3 className="label-label-1-semi-bold text-slate-900">{title}</h3>
         <ChevronDown
-          className={`h-5 w-5 text-slate-700 transition-transform ${expanded ? 'rotate-180' : 'rotate-0'
-            }`}
+          className={`h-5 w-5 text-slate-700 transition-transform ${
+            expanded ? 'rotate-180' : 'rotate-0'
+          }`}
         />
       </button>
 
       <div
-        className={`grid transition-all duration-300 ease-in-out ${expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-          }`}
+        className={`grid transition-all duration-300 ease-in-out ${
+          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
       >
         <div className="space-y-2.5 overflow-hidden">
           {items.map((item) => {
@@ -51,12 +51,15 @@ export default function FilterGroup({
                     hover:translate-x-1"
               >
                 <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-[5px] border-2 transition-all duration-200 ${isChecked
+                  className={`flex h-5 w-5 items-center justify-center rounded-[5px] border-2 transition-all duration-200 ${
+                    isChecked
                       ? 'border-slate-300 bg-indigo-700'
                       : 'border-slate-200 bg-white'
-                    }`}
+                  }`}
                 >
-                  {isChecked && <Check className="h-4 w-4 text-white transition-all duration-200" />}
+                  {isChecked && (
+                    <Check className="h-4 w-4 text-white transition-all duration-200" />
+                  )}
                 </span>
                 <span className="label-label-1-Regular text-slate-600">
                   {item.label}

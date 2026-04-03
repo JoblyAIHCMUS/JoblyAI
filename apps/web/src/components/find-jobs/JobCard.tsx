@@ -15,7 +15,7 @@ type JobCardProps = {
 };
 
 function getColorForSkill(skill: string): string {
-  let hash = 0; 
+  let hash = 0;
   for (let i = 0; i < skill.length; i++) {
     hash = skill.charCodeAt(i) + ((hash << 5) - hash);
   }
@@ -32,7 +32,6 @@ function getColorForSkill(skill: string): string {
   ];
   return colors[Math.abs(hash) % colors.length];
 }
-
 
 export default function JobCard({ job, viewMode }: JobCardProps) {
   return (
@@ -63,20 +62,22 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </div>
 
         <div className="min-w-0">
-          <h3 className="heading-h6-semi-bold text-slate-900">
-            {job.title}
-          </h3>
+          <h3 className="heading-h6-semi-bold text-slate-900">{job.title}</h3>
           <p className="body-body-1-regular mt-1 text-slate-600">
             {job.company.name} - {job.location}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className={`inline-flex items-center rounded-full bg-teal-100 px-2 py-1 label-label-2-semi-bold text-teal-500`}>
+            <span
+              className={`inline-flex items-center rounded-full bg-teal-100 px-2 py-1 label-label-2-semi-bold text-teal-500`}
+            >
               {formatJobType(job.type)}
             </span>
             {job.skills.map((skill) => (
               <span
                 key={skill}
-                className={`inline-flex items-center rounded-full border px-2 py-1 label-label-2-semi-bold ${getColorForSkill(skill)}`}
+                className={`inline-flex items-center rounded-full border px-2 py-1 label-label-2-semi-bold ${getColorForSkill(
+                  skill
+                )}`}
               >
                 {skill}
               </span>

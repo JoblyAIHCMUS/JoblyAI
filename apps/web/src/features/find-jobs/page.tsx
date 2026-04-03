@@ -3,10 +3,17 @@ import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
 import { useEffect, useRef, useState } from 'react';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
-import type { EmploymentType, FilterGroupData, JobPosting, SortOption } from '@/types/job';
+import type {
+  EmploymentType,
+  FilterGroupData,
+  JobPosting,
+  SortOption,
+} from '@/types/job';
 import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS } from './constants';
 
-function getEmploymentTypeFromLabel(label?: string): EmploymentType | undefined {
+function getEmploymentTypeFromLabel(
+  label?: string
+): EmploymentType | undefined {
   switch (label) {
     case 'Full-time':
       return 'FULL_TIME';
@@ -22,7 +29,6 @@ function getEmploymentTypeFromLabel(label?: string): EmploymentType | undefined 
       return undefined;
   }
 }
-
 
 export default function FindJobsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,7 +71,6 @@ export default function FindJobsPage() {
     return () => clearTimeout(timer);
   }, [checkedMap]);
 
-
   const { fetchJobs } = useListJobs();
   const fetchJobsRef = useRef(fetchJobs);
 
@@ -102,16 +107,20 @@ export default function FindJobsPage() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedCheckedMap, location, searchTerm, salaryMinFilter, salaryMaxFilter]);
+  }, [
+    debouncedCheckedMap,
+    location,
+    searchTerm,
+    salaryMinFilter,
+    salaryMaxFilter,
+  ]);
 
   useEffect(() => {
     const employmentSelection = debouncedCheckedMap['Type of Employment'] ?? [];
     const selectedEmploymentTypes = employmentSelection
       .map((label) => getEmploymentTypeFromLabel(label))
       .filter((type): type is EmploymentType => type !== undefined);
-    const selectedSkillLabels = [
-      ...(debouncedCheckedMap['Categories'] ?? []),
-    ];
+    const selectedSkillLabels = [...(debouncedCheckedMap['Categories'] ?? [])];
 
     const query = {
       page: currentPage,
@@ -119,7 +128,10 @@ export default function FindJobsPage() {
       sort: selectedSort,
       q: searchTerm,
       location,
-      type: selectedEmploymentTypes.length > 0 ? selectedEmploymentTypes : undefined,
+      type:
+        selectedEmploymentTypes.length > 0
+          ? selectedEmploymentTypes
+          : undefined,
       salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
       salaryMax: salaryMaxFilter,
       skills: selectedSkillLabels.length > 0 ? selectedSkillLabels : undefined,

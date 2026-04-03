@@ -59,7 +59,9 @@ export class JobsService {
 
     if (remote !== undefined) whereClause.remote = remote;
 
-    if (type && type.length > 0) {whereClause.type = { in: type as EmploymentType[] };}
+    if (type && type.length > 0) {
+      whereClause.type = { in: type as EmploymentType[] };
+    }
 
     // Filtering by skills through the requirements join table
     if (skills && skills.length > 0) {

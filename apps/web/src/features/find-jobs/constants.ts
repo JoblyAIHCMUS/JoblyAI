@@ -1,4 +1,4 @@
-import type { FilterGroupData, SortOption,  } from '@/types/job';
+import type { FilterGroupData, SortOption } from '@/types/job';
 
 export const SORT_OPTIONS: SortOption[] = [
   'Most relevant',

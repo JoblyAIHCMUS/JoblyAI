@@ -10,7 +10,6 @@ import { SORT_OPTIONS } from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
 import { useState, Ref } from 'react';
 
-
 interface JobListSectionProps {
   jobs: JobPosting[];
   total: number;
@@ -26,7 +25,6 @@ interface JobListSectionProps {
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
 }
-
 
 export default function JobListSection({
   jobs,
@@ -84,10 +82,7 @@ export default function JobListSection({
               onToggleExpand={handleToggleExpand}
             />
           ))}
-          <SalaryFilter
-            ref={salaryFilterRef}
-            onSalaryChange={onSalaryChange}
-          />
+          <SalaryFilter ref={salaryFilterRef} onSalaryChange={onSalaryChange} />
           <button
             type="button"
             onClick={handleReset}
@@ -104,7 +99,7 @@ export default function JobListSection({
                 All Jobs
               </h2>
               <p className="text-base leading-6 text-slate-500">
-                Showing {total} results 
+                Showing {total} results
               </p>
             </div>
 
@@ -279,7 +274,7 @@ export default function JobListSection({
                 >
                   Reset
                 </button>
-                <button
+                {/* <button
                   type="button"
                   onClick={() => {
                     setCurrentPage(1);  
@@ -288,7 +283,7 @@ export default function JobListSection({
                   className="h-11 flex-1 rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
                 >
                   Apply
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
