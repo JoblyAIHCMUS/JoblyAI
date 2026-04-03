@@ -53,7 +53,7 @@ export interface CreateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType[];
+  type?: EmploymentType | EmploymentType[];
   categoryId: number;
   companyId: number;
   requirements?: JobRequirementInput[];
@@ -67,7 +67,7 @@ export interface UpdateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType[];
+  type?: EmploymentType | EmploymentType[];
   categoryId?: number;
   companyId?: number;
   requirements?: JobRequirementInput[];

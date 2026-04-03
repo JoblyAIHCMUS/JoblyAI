@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
-import { SortOption, SORT_OPTIONS } from '@/mocks/sortOptions';
+import type { SortOption } from '@/types/job';
+import { SORT_OPTIONS } from '@/features/find-jobs/constants';
 import { ViewMode } from '@/types/job';
 
 export function useJobs(
