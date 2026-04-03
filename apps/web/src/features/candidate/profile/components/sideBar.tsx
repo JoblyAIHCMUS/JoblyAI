@@ -12,27 +12,14 @@ interface SideBarProps {
 }
 
 // Contact View
-function ContactView({
-  contact,
-  onEdit,
-}: {
-  contact: Contact;
-  onEdit: () => void;
-}) {
+function ContactView({ contact }: { contact: Contact }) {
   return (
     <>
       <div className="flex items-center justify-between">
         <div className="heading-h6-semi-bold text-primary break-words">
           Additional Details
         </div>
-        <div className="flex gap-2">
-          <button
-            className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
-            onClick={onEdit}
-          >
-            <Edit size={20} className="text-accent-primary" />
-          </button>
-        </div>
+        {/* Edit button disabled - users can edit from Settings page */}
       </div>
       <div className="flex items-center gap-4">
         <Mail size={24} className="text-accent-primary" />
@@ -293,10 +280,6 @@ export default function SideBar({
   const handleContactChange = (field: keyof Contact, value: string) => {
     setEditContact((prev) => ({ ...prev, [field]: value }));
   };
-  const handleContactEdit = () => {
-    setIsEditingContact(true);
-    setEditContact(contact);
-  };
   const handleContactSave = () => {
     if (handleUpdateContact) handleUpdateContact(editContact);
     setIsEditingContact(false);
@@ -358,7 +341,7 @@ export default function SideBar({
             onCancel={handleContactCancel}
           />
         ) : (
-          <ContactView contact={contact} onEdit={handleContactEdit} />
+          <ContactView contact={contact} />
         )}
       </div>
       {/* Social Links */}

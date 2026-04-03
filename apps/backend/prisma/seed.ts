@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Gender } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 
@@ -92,48 +92,89 @@ async function main() {
   console.log('Creating users and accounts...');
   const hashedPassword = await hashPassword('password123');
 
-  const usersData = [
+  const usersData: Array<{
+    name: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    emailVerified: boolean;
+    role: string;
+    avatarUrl: string;
+    phoneNumber: string;
+    dateOfBirth: Date;
+    gender: Gender;
+  }> = [
     {
       name: 'Alice Johnson',
+      firstName: 'Alice',
+      lastName: 'Johnson',
       email: 'alice@example.com',
       emailVerified: true,
       role: 'candidate',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
+      phoneNumber: '+1-555-0101',
+      dateOfBirth: new Date('1990-05-15'),
+      gender: Gender.FEMALE,
     },
     {
       name: 'Bob Smith',
+      firstName: 'Bob',
+      lastName: 'Smith',
       email: 'bob@example.com',
       emailVerified: true,
       role: 'candidate',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
+      phoneNumber: '+1-555-0102',
+      dateOfBirth: new Date('1988-08-22'),
+      gender: Gender.MALE,
     },
     {
       name: 'Carol White',
+      firstName: 'Carol',
+      lastName: 'White',
       email: 'carol@example.com',
       emailVerified: true,
       role: 'employer',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
+      phoneNumber: '+1-555-0103',
+      dateOfBirth: new Date('1985-03-10'),
+      gender: Gender.FEMALE,
     },
     {
       name: 'David Brown',
+      firstName: 'David',
+      lastName: 'Brown',
       email: 'david@example.com',
       emailVerified: true,
       role: 'employer',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+      phoneNumber: '+1-555-0104',
+      dateOfBirth: new Date('1987-11-30'),
+      gender: Gender.MALE,
     },
     {
       name: 'Eve Davis',
+      firstName: 'Eve',
+      lastName: 'Davis',
       email: 'eve@example.com',
       emailVerified: false,
       role: 'candidate',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
+      phoneNumber: '+1-555-0105',
+      dateOfBirth: new Date('1992-07-18'),
+      gender: Gender.FEMALE,
     },
     {
       name: 'Frank Miller',
+      firstName: 'Frank',
+      lastName: 'Miller',
       email: 'frank@example.com',
       emailVerified: true,
       role: 'employer',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
+      phoneNumber: '+1-555-0106',
+      dateOfBirth: new Date('1986-01-25'),
+      gender: Gender.MALE,
     },
   ];
 

@@ -25,6 +25,15 @@ export class CandidateQueryResponseDto {
   lastName?: string;
 
   @Expose()
+  phoneNumber?: string;
+
+  @Expose()
+  dateOfBirth?: Date;
+
+  @Expose()
+  gender?: string;
+
+  @Expose()
   verified!: boolean;
 
   @Expose()

@@ -11,3 +11,4 @@ export * from '@/api-hook/candidate/useDeleteResume';
 export * from '@/api-hook/candidate/useCreateCertificate';
 export * from '@/api-hook/candidate/useUpdateCertificate';
 export * from '@/api-hook/candidate/useDeleteCertificate';
+export * from '@/api-hook/candidate/useUpdateAvatar';

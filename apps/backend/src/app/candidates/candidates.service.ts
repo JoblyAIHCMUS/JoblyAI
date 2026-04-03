@@ -20,6 +20,7 @@ import { InjectPrisma } from '../decorators/inject.decorator';
 import { S3Service } from '../s3/s3.service';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
+import { UpdateAvatarDto } from './dto/avatar.dto';
 import { UpdateEducationDto } from './dto/education.dto';
 import { UpdateExperienceDto } from './dto/experience.dto';
 
@@ -76,6 +77,9 @@ export class CandidatesService {
       email: user.email,
       firstName: user.firstName ?? '',
       lastName: user.lastName ?? '',
+      phoneNumber: user.phoneNumber ?? '',
+      dateOfBirth: user.dateOfBirth ?? undefined,
+      gender: user.gender ?? '',
       verified: user.emailVerified,
       banned: user.banned ?? false,
       banReason: user.banReason ?? '',
@@ -721,5 +725,65 @@ export class CandidatesService {
     });
 
     return `Deleted social with ID ${socialId}`;
+  }
+
+  /**
+   * UPDATE USER AVATAR
+   *
+   * Flow:
+   * 1. Get current user avatar fileKey from DB
+   * 2. Update DB with new fileKey and fileUrl
+   * 3. Delete old avatar from S3 (if exists)
+   * 4. Return updated user with new avatarUrl
+   *
+   * Notes:
+   * - Avatar is PUBLIC (no presigned URL needed for viewing)
+   * - Old avatar is deleted from S3 to avoid storage waste
+   * - Uses fileKey to delete old avatar (extracted from fileUrl if needed)
+   */
+  async updateAvatar(
+    userId: string,
+    updateDto: UpdateAvatarDto
+  ): Promise<{ id: string; email: string; avatarUrl: string | null }> {
+    // Get current user with their existing avatar info
+    const user = await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Update DB with new avatar URL
+    const updatedUser = await this.prismaClient.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl: updateDto.fileUrl,
+      },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    // Delete old avatar from S3 if it exists
+    if (user.avatarUrl) {
+      try {
+        // Extract fileKey from avatarUrl (e.g., "assets/avatars/uuid.jpg" from full URL)
+        const urlParts = user.avatarUrl.split('/');
+        const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "avatars/uuid.jpg"
+
+        if (oldFileKey && oldFileKey.startsWith('avatars/')) {
+          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+        }
+      } catch (error) {
+        // Log the error but don't fail the operation
+        console.error(
+          `Warning: Failed to delete old avatar from S3. New avatar has been saved to DB.`,
+          error
+        );
+        // Continue - user's new avatar is already saved in DB
+      }
+    }
+
+    return updatedUser;
   }
 }
