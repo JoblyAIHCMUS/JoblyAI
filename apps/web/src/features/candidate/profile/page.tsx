@@ -9,16 +9,37 @@ import CV from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
-import Portfolios from './components/Portfolios';
+// import Portfolios from './components/Portfolios';
 import SideBar from './components/sideBar';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
 import { deleteResume } from '@/api-client/candidate';
-import type {
-  CandidateProfileResponse,
+import type { CandidateProfileResponse } from '@/api-client/candidate/types';
+import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
+import {
+  useUpdateExperience,
+  useCreateExperience,
+  useDeleteExperience,
+  useUpdateEducation,
+  useCreateEducation,
+  useDeleteEducation,
+} from '@/api-hook/candidate';
+import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
+import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
+import {
+  mapUIToApiCreateExperience,
+  mapUIToApiUpdateExperience,
+  mapUIToApiUpdateEducation,
+  mapUIToApiCreateEducation,
+  mapDataToCandidate,
+} from './mapper';
+import {
+  CandidateEducation,
+  CandidateExperience,
   CandidateResume,
-} from '@/api-client/candidate/types';
+} from '@/types/candidate';
+import { CandidateProfileUI } from './types';
 
 const CandidateProfilePage = () => {
   const { toast } = useToast();
@@ -51,11 +72,128 @@ const CandidateProfilePage = () => {
     },
   });
 
+  const { updateAbout } = useUpdateCandidateAbout();
+  const handleUpdateAbout = async (about: string[]) => {
+    await updateAbout(about);
+    setProfile((prev) => (prev ? { ...prev, about } : prev));
+  };
+
+  // Hàm xử lý cập nhật experience
+  const { updateExperienceRecord } = useUpdateExperience();
+  const handleUpdateExperience = async (experiences: CandidateExperience) => {
+    const apiExperience = mapUIToApiUpdateExperience(experiences);
+    await updateExperienceRecord(apiExperience);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updatedExperiences = prev.experiences?.map((exp) =>
+        exp.id === experiences.id ? experiences : exp
+      );
+      return { ...prev, experiences: updatedExperiences };
+    });
+  };
+
+  // Hàm xử lý thêm experience
+  const { createExperienceRecord } = useCreateExperience();
+  const handleAddExperience = async (experience: CandidateExperience) => {
+    const apiExperience = mapUIToApiCreateExperience(experience);
+    const created = await createExperienceRecord(apiExperience);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        experiences: [...(prev.experiences || []), created],
+      };
+    });
+  };
+
+  // Hàm xử lý delete experience
+  const { deleteExperienceRecord } = useDeleteExperience();
+  const handleDeleteExperience = async (id: number) => {
+    await deleteExperienceRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        experiences: prev.experiences?.filter((exp) => exp.id !== id),
+      };
+    });
+  };
+
+  // Hàm xử lý cập nhật education
+  const { updateEducationRecord } = useUpdateEducation();
+  const handleUpdateEducation = async (education: CandidateEducation) => {
+    const apiEducation = mapUIToApiUpdateEducation(education);
+    const updated = await updateEducationRecord(apiEducation);
+    if (!updated) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updatedEducations = prev.educations?.map((edu) =>
+        edu.id === updated.id ? updated : edu
+      );
+      return { ...prev, educations: updatedEducations };
+    });
+  };
+
+  // Hàm xử lý thêm education
+  const { createEducationRecord } = useCreateEducation();
+  const handleAddEducation = async (education: CandidateEducation) => {
+    const apiEducation = mapUIToApiCreateEducation(education);
+
+    const newEducation = await createEducationRecord(apiEducation);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        educations: [...(prev.educations || []), newEducation],
+      };
+    });
+  };
+
+  // hàm xử lý delete education
+  const { deleteEducationRecord } = useDeleteEducation();
+  const handleDeleteEducation = async (id: number) => {
+    await deleteEducationRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        educations: prev.educations?.filter((edu) => edu.id !== id),
+      };
+    });
+  };
+
+  // hàm xử lý add skill
+  const { createSkillRecord } = useCreateSkill();
+  const handleAddSkill = async (skill: string) => {
+    await createSkillRecord(skill);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return { ...prev, skills: [...(prev.skills || []), skill] };
+    });
+  };
+
+  // Hàm xử lý delete skill
+  const { deleteSkillRecord } = useDeleteSkill();
+  const handleDeleteSkill = async (skill: string) => {
+    await deleteSkillRecord(skill);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return { ...prev, skills: prev.skills?.filter((s) => s !== skill) };
+    });
+  };
+
+  // Contact and Social handlers are not implemented yet
+  // Disable related edit UI until endpoints exist
+  const handleUpdateContact = undefined;
+  const handleAddSocial = undefined;
+  const handleUpdateSocials = undefined;
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const profileData = await fetchCandidateProfile();
-        setProfile(profileData);
+        setProfile(profileData || null);
       } catch (err) {
         console.error('Failed to fetch candidate profile', { error: err });
       }
@@ -64,13 +202,6 @@ const CandidateProfilePage = () => {
     loadProfile();
   }, []);
 
-  if (loading || !profile) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
   if (error) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center text-red-500">
@@ -136,46 +267,29 @@ const CandidateProfilePage = () => {
     return defaultResume.fileName;
   };
 
-  const candidate = {
-    name: profile?.name || '',
-    title: profile?.role || '',
-    location: '',
-    avatar: profile?.image || '',
-    banner: '#4640DE',
-    openForOpportunities: true,
-    about: [profile?.email || ''],
-    experiences: (profile?.experiences || []).map((exp) => ({
-      company: exp.companyName || '',
-      logo: 'https://placehold.co/80x80',
-      role: exp.jobTitle || '',
-      type: 'Full-Time',
-      time: `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
-      location: exp.location || '',
-      desc: exp.description || '',
-    })),
-    educations: (profile?.educations || []).map((edu) => ({
-      school: edu.school || '',
-      logo: 'https://placehold.co/80x80',
-      degree: edu.degree || '',
-      time: `${edu.startDate || ''} - ${edu.endDate || ''}`,
-      desc: edu.description || '',
-    })),
-    skills: [],
-    portfolios: [],
-    contact: {
-      email: profile?.email || '',
-      phone: '',
-    },
-    socials: [],
-  };
+  if (loading || !profile) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  const candidate: CandidateProfileUI = mapDataToCandidate(profile);
 
   return (
-    <div className="w-full min-h-screen bg-[#F8FAFC] px-6 py-8 flex flex-col items-center">
-      <div className="flex flex-row gap-4 w-full max-w-6xl">
+    <div
+      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
+      style={{ boxSizing: 'border-box' }}
+    >
+      <div className="flex flex-row w-full max-w-6xl gap-[var(--space-base)] items-start">
         {/* Main Content (Left) */}
-        <div className="flex flex-col gap-6 w-[728px]">
+        <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
           <ProfileHeader candidate={candidate} />
-          <AboutMe about={candidate.about} />
+          <AboutMe
+            about={candidate.about}
+            handleUpdateAbout={handleUpdateAbout}
+          />
           <CV
             cvFileKey={getCVFileKey()}
             cvFileName={getCVFileName()}
@@ -190,13 +304,33 @@ const CandidateProfilePage = () => {
                 : null)
             }
           />
-          <Experiences experiences={candidate.experiences} />
-          <Educations educations={candidate.educations} />
-          <Skills skills={candidate.skills} />
-          <Portfolios portfolios={candidate.portfolios} />
+          <Experiences
+            experiences={candidate.experiences}
+            handleUpdateExperience={handleUpdateExperience}
+            handleAddExperience={handleAddExperience}
+            handleDeleteExperience={handleDeleteExperience}
+          />
+          <Educations
+            educations={candidate.educations}
+            handleAddEducation={handleAddEducation}
+            handleUpdateEducation={handleUpdateEducation}
+            handleDeleteEducation={handleDeleteEducation}
+          />
+          <Skills
+            skills={candidate.skills}
+            handleAddSkill={handleAddSkill}
+            handleDeleteSkill={handleDeleteSkill}
+          />
+          {/* <Portfolios portfolios={candidate.portfolios} />/ */}
         </div>
         {/* Sidebar (Right) */}
-        <SideBar contact={candidate.contact} socials={candidate.socials} />
+        <SideBar
+          contact={candidate.contact}
+          socials={candidate.socials}
+          handleUpdateContact={handleUpdateContact}
+          handleAddSocial={handleAddSocial}
+          handleUpdateSocials={handleUpdateSocials}
+        />
       </div>
     </div>
   );

@@ -16,23 +16,24 @@ export function useGetCandidateProfile(
   const [error, setError] = useState<unknown>(null as unknown);
   const [data, setData] = useState<CandidateProfileResponse | null>(null);
 
-  const fetchCandidateProfile = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchCandidateProfile =
+    async (): Promise<CandidateProfileResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const result = await getCandidateProfile();
-      setData(result);
-      options?.onSuccess?.(result);
-      return result;
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const result = await getCandidateProfile();
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return { fetchCandidateProfile, loading, error, data };
 }

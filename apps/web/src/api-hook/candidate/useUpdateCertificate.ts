@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   updateCertificate,
-  type CandidateCertificate,
   type UpdateCertificatePayload,
 } from '@/api-client/candidate';
+import { CandidateCertificate } from '@/types/candidate';
 
 interface UseUpdateCertificateOptions {
   onSuccess?: (data: CandidateCertificate) => void;

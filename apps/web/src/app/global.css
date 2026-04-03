@@ -229,6 +229,26 @@
 }
 
 @layer components {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-accent-primary) var(--bg-primary);
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    background: var(--bg-primary);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--text-accent-primary);
+    border-radius: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+@layer components {
   .bg-accent-solid {
     @apply bg-[color:var(--bg-accent-solid)];
   }

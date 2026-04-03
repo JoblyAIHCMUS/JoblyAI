@@ -1,30 +1,96 @@
 'use client';
-import React from 'react';
-import { Edit, Plus } from 'lucide-react';
 
-export default function Skills({ skills }: { skills: string[] }) {
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+
+interface SkillsProps {
+  skills: string[];
+  handleAddSkill?: (skill: string) => void;
+  handleDeleteSkill?: (skill: string) => void;
+}
+
+export default function Skills({
+  skills,
+  handleAddSkill,
+  handleDeleteSkill,
+}: SkillsProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
+
+  const handleAddClick = () => {
+    setIsAdding(true);
+    setNewSkill('');
+  };
+
+  const handleSave = () => {
+    if (handleAddSkill && newSkill.trim()) {
+      handleAddSkill(newSkill.trim());
+      setIsAdding(false);
+      setNewSkill('');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setNewSkill('');
+  };
+
   return (
-    <div className="rounded-[10px] border border-[#CBD5E1] bg-white p-6 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="text-xl font-semibold text-[#0F172A] font-['Lexend_Deca']">
+    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
+      <div className="flex items-center justify-between px-4">
+        <div className="heading-h6-semi-bold text-primary break-words">
           Skills
         </div>
         <div className="flex gap-2">
-          <button className="p-2 rounded-[5px] border border-[#CBD5E1] bg-white hover:bg-gray-50">
-            <Plus size={20} />
-          </button>
-          <button className="p-2 rounded-[5px] border border-[#CBD5E1] bg-white hover:bg-gray-50">
-            <Edit size={20} />
-          </button>
+          {!isAdding && (
+            <button
+              className="p-[var(--space-xs)] rounded-[var(--radius-md)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
+              onClick={handleAddClick}
+            >
+              <Plus size={16} className="text-accent-primary" />
+            </button>
+          )}
         </div>
       </div>
-      <div className="flex flex-wrap gap-3">
+      {isAdding && (
+        <div className="flex flex-col px-4 gap-2 mt-2">
+          <input
+            className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
+            value={newSkill}
+            onChange={(e) => setNewSkill(e.target.value)}
+            placeholder="Nhập kỹ năng mới"
+            autoFocus
+          />
+          <div className="flex gap-2 mt-2">
+            <button
+              className="px-4 py-2 rounded bg-accent-solid text-white"
+              onClick={handleSave}
+            >
+              Lưu
+            </button>
+            <button className="px-4 py-2 rounded border" onClick={handleCancel}>
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-3  px-4">
         {skills.map((skill, idx) => (
           <span
             key={idx}
-            className="px-3 py-1 bg-[#EEF2FF] rounded text-[#4338CA] text-base font-['Lexend_Deca']"
+            className="label-label-1-regular bg-accent-primary text-accent-primary break-words px-3 py-1 rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] flex items-center gap-2"
           >
             {skill}
+            {handleDeleteSkill && (
+              <button
+                className="ml-1 text-danger hover:underline"
+                onClick={() => handleDeleteSkill(skill)}
+                aria-label={`Xoá ${skill}`}
+                type="button"
+              >
+                ×
+              </button>
+            )}
           </span>
         ))}
       </div>
