@@ -66,10 +66,10 @@ export default function Skills({
               className="px-4 py-2 rounded bg-accent-solid text-white"
               onClick={handleSave}
             >
-              Lưu
+              Save
             </button>
             <button className="px-4 py-2 rounded border" onClick={handleCancel}>
-              Hủy
+              Cancel
             </button>
           </div>
         </div>

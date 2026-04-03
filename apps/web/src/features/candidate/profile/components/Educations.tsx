@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 
 import { CandidateEducation } from '@/types/candidate';
@@ -105,14 +104,14 @@ function EducationEditForm({
           onClick={handleSave}
           disabled={loading}
         >
-          {loading ? 'Đang lưu...' : 'Lưu'}
+          {loading ? 'Saving...' : 'Save'}
         </button>
         <button
           className="px-4 py-2 rounded border"
           onClick={handleCancel}
           disabled={loading}
         >
-          Hủy
+          Cancel
         </button>
       </div>
     </>

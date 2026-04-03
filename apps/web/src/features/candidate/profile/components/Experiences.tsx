@@ -10,7 +10,6 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 
@@ -126,14 +125,14 @@ function ExperienceEditForm({
           onClick={handleSave}
           disabled={loading}
         >
-          {loading ? 'Đang lưu...' : 'Lưu'}
+          {loading ? 'Saving...' : 'Save'}
         </button>
         <button
           className="px-4 py-2 rounded border"
           onClick={handleCancel}
           disabled={loading}
         >
-          Hủy
+          Cancel
         </button>
       </div>
     </>

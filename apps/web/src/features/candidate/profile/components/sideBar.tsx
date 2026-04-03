@@ -99,10 +99,10 @@ function ContactEdit({
           className="px-4 py-2 rounded bg-accent-solid text-white"
           onClick={onSave}
         >
-          Lưu
+          Save
         </button>
         <button className="px-4 py-2 rounded border" onClick={onCancel}>
-          Hủy
+          Cancel
         </button>
       </div>
     </>
@@ -187,13 +187,13 @@ function AddSocialForm({
           className="px-4 py-2 rounded bg-accent-solid text-white"
           onClick={onSaveAddSocial}
         >
-          Lưu
+          Save
         </button>
         <button
           className="px-4 py-2 rounded border"
           onClick={onCancelAddSocial}
         >
-          Hủy
+          Cancel
         </button>
       </div>
     </div>
@@ -249,10 +249,10 @@ function EditSocialsForm({
           className="px-4 py-2 rounded bg-accent-primary text-white"
           onClick={onSave}
         >
-          Lưu
+          Save
         </button>
         <button className="px-4 py-2 rounded border" onClick={onCancel}>
-          Hủy
+          Cancel
         </button>
       </div>
     </>
