@@ -64,7 +64,9 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         <div className="min-w-0">
           <h3 className="heading-h6-semi-bold text-slate-900">{job.title}</h3>
           <p className="body-body-1-regular mt-1 text-slate-600">
-            {job.company.name} - {job.location}
+            {job.location
+              ? `${job.company.name} - ${job.location}`
+              : job.company.name}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span

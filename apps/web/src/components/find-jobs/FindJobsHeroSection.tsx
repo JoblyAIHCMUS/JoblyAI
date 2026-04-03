@@ -2,27 +2,32 @@
 import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { KeyboardEvent } from 'react';
 
 import { useState } from 'react';
 
 interface FindJobsHeroSectionProps {
+  searchTerm?: string;
+  location?: string;
   setSearchTerm?: (term: string) => void;
   setLocation?: (location: string) => void;
 }
 
 export default function FindJobsHeroSection({
+  searchTerm,
+  location,
   setSearchTerm,
   setLocation,
 }: FindJobsHeroSectionProps) {
-  const [localSearchTerm, setLocalSearchTerm] = useState('');
-  const [localLocation, setLocalLocation] = useState('');
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [localLocation, setLocalLocation] = useState(location);
 
   const handleSearch = () => {
-    setSearchTerm?.(localSearchTerm);
-    setLocation?.(localLocation);
+    setSearchTerm?.(localSearchTerm || '');
+    setLocation?.(localLocation || '');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
     }

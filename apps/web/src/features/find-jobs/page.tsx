@@ -100,6 +100,8 @@ export default function FindJobsPage() {
       return newMap;
     });
     setSelectedSort('Most relevant');
+    setSalaryMinFilter(0);
+    setSalaryMaxFilter(SALARY_MAX_CAP);
     setCurrentPage(1);
     salaryFilterRef.current?.reset();
   };
@@ -138,17 +140,21 @@ export default function FindJobsPage() {
     };
     console.log('[FindJobsPage] API query:', query);
 
-    // Clear old jobs before fetching new ones
-    setJobs([]);
-
-    void fetchJobsRef.current(query).then((result) => {
-      if (result) {
-        console.log('[FindJobsPage] fetched jobs:', result.jobs);
-        setJobs(result.jobs);
-        setTotal(result.total);
-        setTotalPages(result.totalPages);
+    const fetchData = async () => {
+      try {
+        const result = await fetchJobsRef.current(query);
+        if (result) {
+          console.log('[FindJobsPage] fetched jobs:', result.jobs);
+          setJobs(result.jobs);
+          setTotal(result.total);
+          setTotalPages(result.totalPages);
+        }
+      } catch (error) {
+        console.error('[FindJobsPage] failed to fetch jobs:', error);
       }
-    });
+    };
+
+    fetchData();
   }, [
     currentPage,
     debouncedCheckedMap,
