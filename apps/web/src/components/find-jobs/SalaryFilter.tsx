@@ -65,11 +65,6 @@ export default forwardRef<{ reset: () => void }, SalaryFilterProps>(
       };
     }, [draftMin, draftMax, onSalaryChange]);
 
-    const handleReset = () => {
-      setDraftMin(0);
-      setDraftMax(toUnit(SALARY_MAX_CAP));
-      onReset?.(0, SALARY_MAX_CAP);
-    };
 
   useEffect(() => {
     if (!activeThumb) return;
