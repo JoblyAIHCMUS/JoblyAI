@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Bell, Plus } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-// Dropdown menu imports removed (unused)
 import { cn } from '@/lib/utils';
-// useEffect import removed (unused)
 import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
-import { useEffect } from 'react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Optional: notification count
 // const notificationCount = 3;
@@ -29,6 +28,19 @@ export function EmployerTopBar() {
   const company = profile?.company;
   const canPostJob = Boolean(company?.id) && !loading;
 
+  const {
+    visibleNotifications,
+    hasMoreNotifications,
+    unreadCount,
+    isBellEnabled,
+    showNotificationMenu,
+    notificationWrapperRef,
+    handleBellToggle,
+    handleNotificationScroll,
+    closeNotificationMenu,
+    formatNotificationTime,
+  } = useNotifications();
+
   useEffect(() => {
     fetchEmployerProfile();
   }, []);
@@ -39,11 +51,10 @@ export function EmployerTopBar() {
         'w-full',
         'px-6 md:px-8 py-4',
         'bg-white',
-        'shadow-[inset_0_-1px_0_0] shadow-slate-200/80',
-        'border-b border-border'
+        'border-b border-[#d6ddeb]'
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
+      <div className="flex items-center justify-between">
         {/* Left side - Company logo + name or Not Affiliated */}
         <div className="flex items-center gap-4">
           {/* Company logo or placeholder */}
@@ -66,11 +77,11 @@ export function EmployerTopBar() {
             </span>
             <div className="flex items-center gap-1.5">
               {error ? (
-                <span className="text-red-600 text-base font-semibold">
+                <span className="font-[family-name:var(--family-primary)] text-[20px] font-semibold text-[#ff6550]">
                   Error loading profile
                 </span>
               ) : (
-                <span className="text-xl font-semibold text-[var(--text-primary)] leading-6">
+                <span className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
                   {loading
                     ? 'Loading...'
                     : company?.name
@@ -81,7 +92,7 @@ export function EmployerTopBar() {
               {!company && !loading && !error && (
                 <Link
                   href="/employer/new-company"
-                  className="ml-3 text-indigo-600 font-bold hover:underline"
+                  className="ml-3 text-[#4640de] font-semibold hover:underline text-sm"
                 >
                   Register Company
                 </Link>
@@ -93,17 +104,83 @@ export function EmployerTopBar() {
         {/* Right side - Notification + Post job */}
         <div className="flex items-center gap-6 md:gap-8">
           {/* Notification bell button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative"
-            aria-label="Open notifications"
-            // onClick={() => openNotificationCenter()} // ← implement later
-          >
-            <Bell className="h-6 w-6 text-[var(--icon-primary)]" />
-            {/* Red dot badge */}
-            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-white" />
-          </Button>
+          <div className="relative" ref={notificationWrapperRef}>
+            <button
+              type="button"
+              aria-label="Notifications"
+              aria-expanded={isBellEnabled}
+              aria-haspopup="menu"
+              onClick={handleBellToggle}
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                isBellEnabled
+                  ? 'bg-[#eef0ff] text-[#4640de]'
+                  : 'text-[#25324b] hover:bg-[#f8fafc] hover:text-[#4640de]'
+              }`}
+            >
+              <Bell className="h-5 w-5" strokeWidth={1.8} />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 text-[10px] font-bold leading-none text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotificationMenu && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Close notifications"
+                  onClick={closeNotificationMenu}
+                  className="fixed inset-0 z-40 bg-black/10 sm:hidden"
+                />
+
+                <div className="fixed inset-x-2 top-[72px] z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[360px]">
+                  <div className="border-b border-[#eef1f6] px-4 py-3">
+                    <p className="font-[family-name:var(--family-primary)] text-lg font-semibold text-[#25324b]">
+                      Notifications
+                    </p>
+                  </div>
+
+                  <ul
+                    className="max-h-[calc(100vh-180px)] overflow-auto py-2 sm:max-h-[360px]"
+                    onScroll={handleNotificationScroll}
+                  >
+                    {visibleNotifications.map((notification) => (
+                      <li key={notification.id}>
+                        <Link
+                          href={notification.href}
+                          onClick={closeNotificationMenu}
+                          className="flex gap-3 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                        >
+                          <span
+                            className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                              notification.unread
+                                ? 'bg-[#4640de]'
+                                : 'bg-[#d6ddeb]'
+                            }`}
+                          />
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm text-[#25324b]">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 text-xs text-[#7c8493]">
+                              {formatNotificationTime(notification.createdAt)}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+
+                    {hasMoreNotifications && (
+                      <li className="px-4 py-2 text-center text-xs text-[#7c8493]">
+                        Scroll to load more
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Post a job button */}
           {canPostJob ? (
