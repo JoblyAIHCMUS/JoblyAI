@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
@@ -27,6 +28,12 @@ export class CompanyController {
   @Get()
   async getAllCompanies() {
     return this.companyService.getAll();
+  }
+
+  @Get('check-name')
+  async checkCompanyNameExists(@Query('name') name: string) {
+    const exists = await this.companyService.checkNameExists(name);
+    return { exists };
   }
 
   @Get(':id')

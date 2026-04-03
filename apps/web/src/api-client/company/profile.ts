@@ -79,3 +79,20 @@ export async function deleteCompany(id: number): Promise<void> {
     withCredentials: true,
   });
 }
+
+export async function checkCompanyNameExists(name: string): Promise<boolean> {
+  try {
+    const response = await axios.get<{ exists: boolean }>(
+      `${API_BASE_URL}/api/company/check-name`,
+      {
+        params: { name },
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    return response.data.exists ?? false;
+  } catch (error) {
+    // If the endpoint doesn't exist or there's an error, return false
+    // This allows the form to proceed; the server will validate on submission
+    return false;
+  }
+}
