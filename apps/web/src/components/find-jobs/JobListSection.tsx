@@ -10,7 +10,12 @@ import { useJobs } from '@/hooks/useJobs';
 import { usePagination } from '@/hooks/usePagination';
 import { useState } from 'react';
 
-export default function JobListSection() {
+interface JobListSectionProps {
+  searchTerm: string;
+  location: string;
+}
+
+export default function JobListSection({ searchTerm, location }: JobListSectionProps) {
   const filterProps = useFilters();
   const { setIsMobileFiltersOpen, isMobileFiltersOpen } = filterProps;
   // Số job mỗi trang, có thể tuỳ chỉnh
@@ -29,7 +34,7 @@ export default function JobListSection() {
     handleSelectSort,
     viewMode,
     setViewMode,
-  } = useJobs(currentPage, pageSize);
+  } = useJobs(currentPage, pageSize, searchTerm, location);
 
   // Pagination nhận currentPage, setCurrentPage, totalPages
   const { pages, goPrev, goNext } = usePagination(

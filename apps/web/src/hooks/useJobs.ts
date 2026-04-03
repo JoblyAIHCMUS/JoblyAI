@@ -3,7 +3,7 @@ import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { SortOption, SORT_OPTIONS } from '@/mocks/sortOptions';
 import { ViewMode } from '@/types/job';
 
-export function useJobs(currentPage: number, pageSize = 5) {
+export function useJobs(currentPage: number, pageSize = 5, searchTerm?: string, location?: string) {
   const sortOptions = SORT_OPTIONS.slice() as SortOption[];
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedSort, setSelectedSort] = useState<SortOption>(sortOptions[0]);
@@ -16,8 +16,10 @@ export function useJobs(currentPage: number, pageSize = 5) {
       page: currentPage,
       pageSize,
       sort: selectedSort,
+      q: searchTerm,
+      location: location,
     });
-  }, [currentPage, pageSize, selectedSort]);
+  }, [currentPage, pageSize, selectedSort, searchTerm, location]);
 
   const handleSelectSort = (option: SortOption) => {
     setSelectedSort(option);
