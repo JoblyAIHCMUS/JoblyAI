@@ -24,7 +24,11 @@ export type EmploymentType =
   | 'INTERNSHIP'
   | 'FREELANCE';
 export type JobStatus = 'OPEN' | 'CLOSED' | 'DRAFT';
+
 export type RequirementImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
+
+export type SortOption = 'Most relevant' | 'Newest' | 'Oldest' | 'Highest salary' | 'Lowest salary';
+
 
 export interface JobCategory {
   id: number;

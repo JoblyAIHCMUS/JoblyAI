@@ -3,18 +3,8 @@ import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
 import { useEffect, useRef, useState } from 'react';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
-import { useFilters } from '@/hooks/useFilters';
-import { SORT_OPTIONS, SortOption } from '@/mocks/sortOptions';
-import { EmploymentType, JobPosting, ViewMode } from '@/types/job';
-
-const SALARY_MAX_CAP = 200_000;
-
-type SearchParams = {
-  term?: string;
-  location?: string;
-  page?: number;
-  sort?: SortOption;
-};
+import type { EmploymentType, FilterGroupData, JobPosting, SortOption } from '@/types/job';
+import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS } from './constants';
 
 function getEmploymentTypeFromLabel(label?: string): EmploymentType | undefined {
   switch (label) {
@@ -26,6 +16,8 @@ function getEmploymentTypeFromLabel(label?: string): EmploymentType | undefined 
       return 'INTERNSHIP';
     case 'Contract':
       return 'CONTRACT';
+    case 'Freelance':
+      return 'FREELANCE';
     default:
       return undefined;
   }
@@ -40,21 +32,39 @@ export default function FindJobsPage() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSort, setSelectedSort] = useState<SortOption>(SORT_OPTIONS[0]);
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const {
-    filterGroups,
-    checkedMap,
-    expandedMap,
-    isMobileFiltersOpen,
-    setIsMobileFiltersOpen,
-    handleToggle,
-    handleToggleExpand,
-    handleApplyMobileFilters,
-  } = useFilters();
+  const [selectedSort, setSelectedSort] = useState<SortOption>('Most relevant');
+  const salaryFilterRef = useRef<{ reset: () => void } | null>(null);
+
+  const [filterGroups] = useState<FilterGroupData[]>(FILTER_GROUPS);
+  const [checkedMap, setCheckedMap] = useState<Record<string, string[]>>(() => {
+    const map: Record<string, string[]> = {};
+    FILTER_GROUPS.forEach((group) => {
+      map[group.title] = group.checked || [];
+    });
+    return map;
+  });
+
+  const handleToggle = (groupTitle: string, itemLabel: string) => {
+    setCheckedMap((prev) => {
+      const current = prev[groupTitle] ?? [];
+      const next = current.includes(itemLabel)
+        ? current.filter((label) => label !== itemLabel)
+        : [...current, itemLabel];
+      return {
+        ...prev,
+        [groupTitle]: next,
+      };
+    });
+  };
+
+  const [debouncedCheckedMap, setDebouncedCheckedMap] = useState(checkedMap);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCheckedMap(checkedMap), 300);
+    return () => clearTimeout(timer);
+  }, [checkedMap]);
+
 
   const { fetchJobs } = useListJobs();
   const fetchJobsRef = useRef(fetchJobs);
@@ -63,50 +73,63 @@ export default function FindJobsPage() {
     fetchJobsRef.current = fetchJobs;
   }, [fetchJobs]);
 
-  const handleSearch = (params: SearchParams = {}) => {
-    if (params.term !== undefined) {
-      setSearchTerm(params.term);
-    }
-    if (params.location !== undefined) {
-      setLocation(params.location);
-    }
-    if (params.sort !== undefined) {
-      setSelectedSort(params.sort);
-    }
-    if (params.page !== undefined) {
-      setCurrentPage(params.page);
-    }
-    if (
-      params.term !== undefined ||
-      params.location !== undefined ||
-      params.sort !== undefined
-    ) {
-      setCurrentPage(1);
-    }
+  const handleSelectSort = (option: SortOption) => {
+    setCurrentPage(1);
+    setSelectedSort(option);
   };
 
+  const handleSalaryChange = (min: number, max: number) => {
+    setSalaryMinFilter(min);
+    setSalaryMaxFilter(max);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchTerm('');
+    setLocation('');
+    setCheckedMap((prev) => {
+      const newMap: Record<string, string[]> = {};
+      Object.keys(prev).forEach((key) => {
+        newMap[key] = [];
+      });
+      return newMap;
+    });
+    setSelectedSort('Most relevant');
+    setCurrentPage(1);
+    salaryFilterRef.current?.reset();
+  };
+
+  // Reset pagination when filters change
   useEffect(() => {
-    const employmentSelection = checkedMap['Type of Employment'] ?? [];
-    const selectedEmploymentLabel = employmentSelection.find(
-      (label) => label !== 'Remote'
-    );
+    setCurrentPage(1);
+  }, [debouncedCheckedMap, location, searchTerm, salaryMinFilter, salaryMaxFilter]);
+
+  useEffect(() => {
+    const employmentSelection = debouncedCheckedMap['Type of Employment'] ?? [];
+    const selectedEmploymentTypes = employmentSelection
+      .map((label) => getEmploymentTypeFromLabel(label))
+      .filter((type): type is EmploymentType => type !== undefined);
     const selectedSkillLabels = [
-      ...(checkedMap['Categories'] ?? []),
-      ...(checkedMap['Job Level'] ?? []),
+      ...(debouncedCheckedMap['Categories'] ?? []),
     ];
 
-    void fetchJobsRef.current({
+    const query = {
       page: currentPage,
-      pageSize,
+      pageSize: PAGE_SIZE,
       sort: selectedSort,
       q: searchTerm,
       location,
-      type: getEmploymentTypeFromLabel(selectedEmploymentLabel),
-      remote: employmentSelection.includes('Remote') ? true : undefined,
+      type: selectedEmploymentTypes.length > 0 ? selectedEmploymentTypes : undefined,
       salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
       salaryMax: salaryMaxFilter,
       skills: selectedSkillLabels.length > 0 ? selectedSkillLabels : undefined,
-    }).then((result) => {
+    };
+    console.log('[FindJobsPage] API query:', query);
+
+    // Clear old jobs before fetching new ones
+    setJobs([]);
+
+    void fetchJobsRef.current(query).then((result) => {
       if (result) {
         console.log('[FindJobsPage] fetched jobs:', result.jobs);
         setJobs(result.jobs);
@@ -116,9 +139,8 @@ export default function FindJobsPage() {
     });
   }, [
     currentPage,
-    checkedMap,
+    debouncedCheckedMap,
     location,
-    pageSize,
     searchTerm,
     selectedSort,
     salaryMinFilter,
@@ -128,38 +150,23 @@ export default function FindJobsPage() {
   return (
     <>
       <FindJobsHeroSection
-        handleSearch={handleSearch}
+        setSearchTerm={setSearchTerm}
+        setLocation={setLocation}
       />
       <JobListSection
         jobs={jobs}
         total={total}
         totalPages={totalPages}
-        pageSize={pageSize}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
-        sortOptions={SORT_OPTIONS.slice()}
-        isSortOpen={isSortOpen}
-        setIsSortOpen={setIsSortOpen}
         selectedSort={selectedSort}
-        handleSelectSort={(option) => {
-          setSelectedSort(option);
-          setIsSortOpen(false);
-        }}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        handleSearch={handleSearch}
+        handleSelectSort={handleSelectSort}
         filterGroups={filterGroups}
         checkedMap={checkedMap}
-        expandedMap={expandedMap}
-        isMobileFiltersOpen={isMobileFiltersOpen}
-        setIsMobileFiltersOpen={setIsMobileFiltersOpen}
         handleToggle={handleToggle}
-        handleToggleExpand={handleToggleExpand}
-        handleApplyMobileFilters={handleApplyMobileFilters}
-        salaryMinFilter={salaryMinFilter}
-        salaryMaxFilter={salaryMaxFilter}
-        setSalaryMinFilter={setSalaryMinFilter}
-        setSalaryMaxFilter={setSalaryMaxFilter}
+        onSalaryChange={handleSalaryChange}
+        salaryFilterRef={salaryFilterRef}
+        handleReset={handleReset}
       />
     </>
   );

@@ -7,12 +7,24 @@ import { useState } from 'react';
 
 
 interface FindJobsHeroSectionProps {
-  handleSearch: (params: { term?: string; location?: string }) => void;
+  setSearchTerm?: (term: string) => void;
+  setLocation?: (location: string) => void;
 }
 
-export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectionProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [location, setLocation] = useState('');
+export default function FindJobsHeroSection({ setSearchTerm, setLocation }: FindJobsHeroSectionProps) {
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [localLocation, setLocalLocation] = useState('');
+
+  const handleSearch = () => {
+    setSearchTerm?.(localSearchTerm);
+    setLocation?.(localLocation);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <section className="relative overflow-hidden bg-indigo-50">
@@ -51,8 +63,9 @@ export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectio
                     type="text"
                     placeholder="Job title or keyword"
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    value={localSearchTerm}
+                    onChange={e => setLocalSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
                   <div className="h-px w-full bg-slate-300" />
                 </div>
@@ -67,8 +80,9 @@ export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectio
                     type="text"
                     placeholder="Location"
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                    value={location}
-                    onChange={e => setLocation(e.target.value)}
+                    value={localLocation}
+                    onChange={e => setLocalLocation(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
                   <div className="h-px w-full bg-slate-300" />
                 </div>
@@ -76,7 +90,7 @@ export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectio
 
               <Button 
                 className="h-12 rounded-[5px] bg-indigo-600 px-6 text-base font-semibold leading-[22px] text-white hover:bg-indigo-700"
-                onClick={() => handleSearch({ term: searchTerm, location })}
+                onClick={handleSearch}
               >
                 Search
               </Button>

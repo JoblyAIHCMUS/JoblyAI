@@ -31,7 +31,7 @@ export interface ListJobsQuery {
   sort?: string;
   q?: string;
   location?: string;
-  type?: EmploymentType;
+  type?: EmploymentType[];
   remote?: boolean;
   salaryMin?: number;
   salaryMax?: number;
@@ -53,7 +53,7 @@ export interface CreateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType;
+  type?: EmploymentType[];
   categoryId: number;
   companyId: number;
   requirements?: JobRequirementInput[];
@@ -67,7 +67,7 @@ export interface UpdateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType;
+  type?: EmploymentType[];
   categoryId?: number;
   companyId?: number;
   requirements?: JobRequirementInput[];

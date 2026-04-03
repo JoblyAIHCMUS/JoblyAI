@@ -14,31 +14,12 @@ type JobCardProps = {
   viewMode: ViewMode;
 };
 
-function getColorForJobType(type: string): string {
-  switch (type) {
-    case 'FULL_TIME':
-      return 'bg-green-100 text-teal-500';
-    case 'PART_TIME':
-      return 'bg-blue-100 text-blue-800';
-    case 'CONTRACT':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'INTERNSHIP':
-      return 'bg-purple-100 text-purple-800';
-    case 'FREELANCE':
-      return 'bg-pink-100 text-pink-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  } 
-}
-
 function getColorForSkill(skill: string): string {
-  // Simple hash function to generate a color based on skill name
   let hash = 0; 
   for (let i = 0; i < skill.length; i++) {
     hash = skill.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // thay đổi màu boder và texxt thôi, còn background thì để trắng cho dễ nhìn
   const colors = [
     'border-red-500 text-red-500',
     'border-green-500 text-green-500',
@@ -82,14 +63,14 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-2xl font-semibold leading-8 text-slate-900">
+          <h3 className="heading-h6-semi-bold text-slate-900">
             {job.title}
           </h3>
           <p className="body-body-1-regular mt-1 text-slate-600">
             {job.company.name} - {job.location}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className={`inline-flex items-center rounded-full bg-white px-2 py-1 label-label-2-semi-bold  text-slate-700  ${getColorForJobType(job.type)} `}>
+            <span className={`inline-flex items-center rounded-full bg-teal-100 px-2 py-1 label-label-2-semi-bold text-teal-500`}>
               {formatJobType(job.type)}
             </span>
             {job.skills.map((skill) => (

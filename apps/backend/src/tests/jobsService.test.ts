@@ -378,7 +378,7 @@ describe('JobsService', () => {
         page: 2,
         pageSize: 5,
         q: 'Engineer',
-        type: 'FULL_TIME' as EmploymentType,
+        type: ['FULL_TIME' as EmploymentType],
       };
 
       // Mock the transaction to return an array containing [count, records]

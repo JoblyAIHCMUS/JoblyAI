@@ -4,20 +4,18 @@ import {
   useEffect,
   useRef,
   useState,
-  Dispatch,
-  SetStateAction,
+  forwardRef,
+  useImperativeHandle,
 } from 'react';
+import { SALARY_MAX_CAP } from '@/features/find-jobs/constants';
 
 interface SalaryFilterProps {
-  salaryMin: number;
-  salaryMax: number;
-  setSalaryMin: Dispatch<SetStateAction<number>>;
-  setSalaryMax: Dispatch<SetStateAction<number>>;
+  onSalaryChange?: (salaryMin: number, salaryMax: number) => void;
+  onReset?: (salaryMin: number, salaryMax: number) => void;
 }
 
-const MAX_SALARY_USD = 200_000;
 const API_UNIT_VALUE = 1_000; // 1 unit => 1000 USD
-const MAX_UNITS = MAX_SALARY_USD / API_UNIT_VALUE;
+const MAX_UNITS = SALARY_MAX_CAP / API_UNIT_VALUE;
 
 function toUnit(value: number): number {
   return Math.round(value / API_UNIT_VALUE);
@@ -31,24 +29,47 @@ function formatSalaryFromUnit(unit: number): string {
   return `${unit}k`;
 }
 
-export default function SalaryFilter({
-  salaryMin,
-  salaryMax,
-  setSalaryMin,
-  setSalaryMax,
-}: SalaryFilterProps) {
-  const [draftMin, setDraftMin] = useState(toUnit(salaryMin));
-  const [draftMax, setDraftMax] = useState(toUnit(salaryMax));
-  const [activeThumb, setActiveThumb] = useState<'min' | 'max' | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
+export default forwardRef<{ reset: () => void }, SalaryFilterProps>(
+  function SalaryFilter(
+    { onSalaryChange, onReset }: SalaryFilterProps,
+    ref
+  ) {
+    const [draftMin, setDraftMin] = useState(0);
+    const [draftMax, setDraftMax] = useState(toUnit(SALARY_MAX_CAP));
+    const [activeThumb, setActiveThumb] = useState<'min' | 'max' | null>(null);
+    const trackRef = useRef<HTMLDivElement | null>(null);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    setDraftMin(toUnit(salaryMin));
-  }, [salaryMin]);
+    useImperativeHandle(ref, () => ({
+      reset: () => {
+        setDraftMin(0);
+        setDraftMax(toUnit(SALARY_MAX_CAP));
+        onReset?.(0, SALARY_MAX_CAP);
+      },
+    }));
 
-  useEffect(() => {
-    setDraftMax(toUnit(salaryMax));
-  }, [salaryMax]);
+    // Debounce salary changes
+    useEffect(() => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        onSalaryChange?.(toSalaryValue(draftMin), toSalaryValue(draftMax));
+      }, 300);
+
+      return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
+    }, [draftMin, draftMax, onSalaryChange]);
+
+    const handleReset = () => {
+      setDraftMin(0);
+      setDraftMax(toUnit(SALARY_MAX_CAP));
+      onReset?.(0, SALARY_MAX_CAP);
+    };
 
   useEffect(() => {
     if (!activeThumb) return;
@@ -77,8 +98,6 @@ export default function SalaryFilter({
 
     const handlePointerUp = (event: PointerEvent) => {
       event.preventDefault();
-      setSalaryMin(toSalaryValue(draftMin));
-      setSalaryMax(toSalaryValue(draftMax));
       setActiveThumb(null);
     };
 
@@ -89,17 +108,17 @@ export default function SalaryFilter({
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [activeThumb, draftMin, draftMax, setSalaryMax, setSalaryMin]);
+  }, [activeThumb, draftMin, draftMax]);
 
   const minPercent = (draftMin / MAX_UNITS) * 100;
   const maxPercent = (draftMax / MAX_UNITS) * 100;
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4">
-      <h3 className="text-base font-semibold text-slate-900">Salary (USD)</h3>
+    <div className="flex flex-col gap-4 px-2 py-2 w-full">
+      <h3 className="label-label-1-semi-bold text-slate-900">Salary (USD)</h3>
 
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between text-sm text-slate-600">
+        <div className="flex items-center justify-between label-label-1-Regular text-slate-600">
           <span>{formatSalaryFromUnit(draftMin)}</span>
           <span>{formatSalaryFromUnit(draftMax)}</span>
         </div>
@@ -135,3 +154,4 @@ export default function SalaryFilter({
     </div>
   );
 }
+);

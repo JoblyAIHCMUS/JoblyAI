@@ -5,39 +5,26 @@ import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
 import SalaryFilter from '@/components/find-jobs/SalaryFilter';
-import { FilterGroupData, JobPosting, ViewMode } from '@/types/job';
+import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
+import { SORT_OPTIONS } from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
-import { SortOption } from '@/mocks/sortOptions';
-import { Dispatch, SetStateAction } from 'react';
+import { useState, Ref } from 'react';
 
 
 interface JobListSectionProps {
   jobs: JobPosting[];
   total: number;
   totalPages: number;
-  pageSize: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  sortOptions: SortOption[];
-  isSortOpen: boolean;
-  setIsSortOpen: Dispatch<SetStateAction<boolean>>;
   selectedSort: SortOption;
   handleSelectSort: (option: SortOption) => void;
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-  handleSearch: (options?: { page?: number; sort?: SortOption }) => void;
   filterGroups: FilterGroupData[];
   checkedMap: Record<string, string[]>;
-  expandedMap: Record<string, boolean>;
-  isMobileFiltersOpen: boolean;
-  setIsMobileFiltersOpen: Dispatch<SetStateAction<boolean>>;
   handleToggle: (groupTitle: string, itemLabel: string) => void;
-  handleToggleExpand: (groupTitle: string) => void;
-  handleApplyMobileFilters: () => void;
-  salaryMinFilter: number;
-  salaryMaxFilter: number;
-  setSalaryMinFilter: Dispatch<SetStateAction<number>>;
-  setSalaryMaxFilter: Dispatch<SetStateAction<number>>;
+  onSalaryChange: (min: number, max: number) => void;
+  salaryFilterRef: Ref<{ reset: () => void } | null>;
+  handleReset: () => void;
 }
 
 
@@ -45,35 +32,42 @@ export default function JobListSection({
   jobs,
   total,
   totalPages,
-  pageSize,
   currentPage,
   setCurrentPage,
-  sortOptions,
-  isSortOpen,
-  setIsSortOpen,
   selectedSort,
   handleSelectSort,
-  viewMode,
-  setViewMode,
-  handleSearch,
   filterGroups,
   checkedMap,
-  expandedMap,
-  isMobileFiltersOpen,
-  setIsMobileFiltersOpen,
   handleToggle,
-  handleToggleExpand,
-  handleApplyMobileFilters,
-  salaryMinFilter,
-  salaryMaxFilter,
-  setSalaryMinFilter,
-  setSalaryMaxFilter,
+  onSalaryChange,
+  salaryFilterRef,
+  handleReset,
 }: JobListSectionProps) {
   const { pages, goPrev, goNext } = usePagination(
     currentPage,
     setCurrentPage,
     totalPages
   );
+
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(
+    () => {
+      const map: Record<string, boolean> = {};
+      filterGroups.forEach((group) => {
+        map[group.title] = true;
+      });
+      return map;
+    }
+  );
+
+  const handleToggleExpand = (groupTitle: string) => {
+    setExpandedMap((prev) => ({
+      ...prev,
+      [groupTitle]: !prev[groupTitle],
+    }));
+  };
 
   return (
     <section className="bg-white py-10 lg:py-[72px]">
@@ -91,11 +85,16 @@ export default function JobListSection({
             />
           ))}
           <SalaryFilter
-            salaryMin={salaryMinFilter}
-            salaryMax={salaryMaxFilter}
-            setSalaryMin={setSalaryMinFilter}
-            setSalaryMax={setSalaryMaxFilter}
+            ref={salaryFilterRef}
+            onSalaryChange={onSalaryChange}
           />
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover: transition-colors"
+          >
+            Reset Filters
+          </button>
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -105,7 +104,7 @@ export default function JobListSection({
                 All Jobs
               </h2>
               <p className="text-base leading-6 text-slate-500">
-                Showing {total} results · {pageSize} per page
+                Showing {total} results 
               </p>
             </div>
 
@@ -134,7 +133,7 @@ export default function JobListSection({
                       : 'pointer-events-none -translate-y-1 scale-95 opacity-0'
                   }`}
                 >
-                  {sortOptions.map((option) => {
+                  {SORT_OPTIONS.map((option) => {
                     const isActive = selectedSort === option;
                     return (
                       <button
@@ -142,7 +141,6 @@ export default function JobListSection({
                         type="button"
                         onClick={() => {
                           handleSelectSort(option);
-                          handleSearch({ page: 1, sort: option });
                         }}
                         className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
                           isActive
@@ -213,7 +211,7 @@ export default function JobListSection({
               </div>
             ) : (
               jobs.map((job) => (
-                <JobCard key={job.title} job={job} viewMode={viewMode} />
+                <JobCard key={job.id} job={job} viewMode={viewMode} />
               ))
             )}
           </div>
@@ -224,15 +222,12 @@ export default function JobListSection({
             pages={pages}
             onPageChange={(page) => {
               setCurrentPage(page);
-              handleSearch({ page });
             }}
             goPrev={() => {
               goPrev();
-              handleSearch({ page: Math.max(1, currentPage - 1) });
             }}
             goNext={() => {
               goNext();
-              handleSearch({ page: Math.min(totalPages, currentPage + 1) });
             }}
             className="pt-2 justify-center"
           />
@@ -276,16 +271,25 @@ export default function JobListSection({
             </div>
 
             <div className="border-t border-slate-200 p-4">
-              <button
-                type="button"
-                onClick={() => {
-                  handleApplyMobileFilters();
-                  handleSearch({ page: 1 });
-                }}
-                className="h-11 w-full rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
-              >
-                Apply
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="h-11 flex-1 rounded-[6px] border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(1);  
+                    setIsMobileFiltersOpen(false);
+                  }}
+                  className="h-11 flex-1 rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
           </div>
         </div>

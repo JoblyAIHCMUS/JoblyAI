@@ -1,4 +1,12 @@
-import { FilterGroupData } from '@/types/job';
+import type { FilterGroupData, SortOption,  } from '@/types/job';
+
+export const SORT_OPTIONS: SortOption[] = [
+  'Most relevant',
+  'Newest',
+  'Oldest',
+  'Highest salary',
+  'Lowest salary',
+];
 
 export const FILTER_GROUPS: FilterGroupData[] = [
   {
@@ -6,9 +14,9 @@ export const FILTER_GROUPS: FilterGroupData[] = [
     items: [
       { label: 'Full-time' },
       { label: 'Part-Time' },
-      { label: 'Remote' },
       { label: 'Internship' },
       { label: 'Contract' },
+      { label: 'Freelance' },
     ],
     checked: [],
   },
@@ -24,17 +32,9 @@ export const FILTER_GROUPS: FilterGroupData[] = [
       { label: 'Engineering' },
       { label: 'Technology' },
     ],
-    checked: ['Business', 'Technology'],
-  },
-  {
-    title: 'Job Level',
-    items: [
-      { label: 'Entry Level' },
-      { label: 'Mid Level' },
-      { label: 'Senior Level' },
-      { label: 'Director' },
-      { label: 'VP or Above' },
-    ],
-    checked: ['Director'],
+    checked: [],
   },
 ];
+
+export const SALARY_MAX_CAP = 200_000;
+export const PAGE_SIZE = 5;
