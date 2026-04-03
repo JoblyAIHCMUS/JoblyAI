@@ -280,10 +280,6 @@ export default function SideBar({
   const handleContactChange = (field: keyof Contact, value: string) => {
     setEditContact((prev) => ({ ...prev, [field]: value }));
   };
-  const handleContactEdit = () => {
-    setIsEditingContact(true);
-    setEditContact(contact);
-  };
   const handleContactSave = () => {
     if (handleUpdateContact) handleUpdateContact(editContact);
     setIsEditingContact(false);
