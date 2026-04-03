@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
+import { Calendar, User2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface PersonalDetailsFormData {
@@ -30,7 +30,7 @@ export interface PersonalDetailsFormProps {
   disabled?: boolean;
 }
 
-const genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const genderOptions = ['MALE', 'FEMALE', 'OTHER'];
 
 export function PersonalDetailsForm({
   data,
@@ -106,7 +106,6 @@ export function PersonalDetailsForm({
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
               Phone Number
-              <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="tel"
@@ -115,7 +114,7 @@ export function PersonalDetailsForm({
               placeholder="+44 1245 572 135"
               disabled={disabled}
               className={cn(
-                'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
+                'bg-primary text-primary border-primary placeholder:text-secondary placeholder:font-normal font-["Be_Vietnam_Pro"] text-base',
                 errors?.phoneNumber && 'border-red-400'
               )}
             />
@@ -186,27 +185,30 @@ export function PersonalDetailsForm({
               Gender
               <span className="text-red-400 ml-1">*</span>
             </Label>
-            <Select
-              value={data.gender}
-              onValueChange={(value) => handleChange('gender', value)}
-              disabled={disabled}
-            >
-              <SelectTrigger
-                className={cn(
-                  'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base',
-                  errors?.gender && 'border-red-400'
-                )}
+            <div className="relative w-full">
+              <Select
+                value={data.gender}
+                onValueChange={(value) => handleChange('gender', value)}
+                disabled={disabled}
               >
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                {genderOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={cn(
+                    'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10',
+                    errors?.gender && 'border-red-400'
+                  )}
+                >
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {genderOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <User2 className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
+            </div>
             {errors?.gender && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
                 {errors.gender}

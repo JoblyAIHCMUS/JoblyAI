@@ -22,6 +22,7 @@ import { UpdateEducationDto } from './dto/education.dto';
 import { UpdateExperienceDto } from './dto/experience.dto';
 import { UpdateResumeDto } from './dto/resume.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
+import { UpdateAvatarDto } from './dto/avatar.dto';
 
 export interface AuthRequest extends Request {
   user: User;
@@ -361,5 +362,37 @@ export class CandidatesController {
       req.user.id,
       Number.parseInt(socialId)
     );
+  }
+
+  /**
+   * UPDATE AVATAR
+   *
+   * PATCH /api/candidate/me/avatar
+   *
+   * Body: {
+   *   fileKey: "assets/avatars/uuid.jpg",
+   *   fileUrl: "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/avatars/uuid.jpg"
+   * }
+   *
+   * Notes:
+   * - Avatar is PUBLIC (stored in S3 bucket with public read access)
+   * - Deletes old avatar from S3 if one exists
+   * - Updates user's avatarUrl in database
+   *
+   * Response: {
+   *   id: "user-id",
+   *   avatarUrl: "https://...",
+   *   ...other user fields
+   * }
+   */
+  @Patch('/me/avatar')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async updateAvatar(
+    @Request() req: AuthRequest,
+    @Body() updateDto: UpdateAvatarDto
+  ) {
+    const { id: userId } = req.user;
+    return await this.candidatesService.updateAvatar(userId, updateDto);
   }
 }

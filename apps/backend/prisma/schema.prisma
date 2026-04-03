@@ -25,6 +25,9 @@ model User {
   role          String?       @default("candidate")
   firstName     String?
   lastName      String?
+  phoneNumber   String?
+  dateOfBirth   DateTime?
+  gender        Gender?
   employer      Employer?
   postedJobs    JobPosting[]
   accounts      Account[]
@@ -392,4 +395,10 @@ enum ApplicationStatus {
   OFFER
   REJECTED
   WITHDRAWN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }

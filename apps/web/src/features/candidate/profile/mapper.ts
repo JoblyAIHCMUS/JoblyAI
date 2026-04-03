@@ -57,20 +57,29 @@ export function mapUIToApiUpdateExperience(
 export function mapDataToCandidate(
   data: CandidateProfileResponse
 ): CandidateProfileUI {
+  // Convert about bio to array format for UI compatibility
+  const aboutArray: string[] = data.about?.bio ? [data.about.bio] : [];
+
+  // Combine firstName and lastName for display, fallback to name field
+  const fullName =
+    [data.firstName, data.lastName].filter(Boolean).join(' ').trim() ||
+    data.name ||
+    '';
+
   return {
-    name: data.name || '',
-    title: data.role || '',
-    avatar: data.image || '',
+    name: fullName,
+    title: '', // Title is no longer stored in about section
+    avatar: data.avatarUrl || '',
     banner: '#4640DE',
     openForOpportunities: data.openForOpportunities || false,
-    about: data.about || [data.email] || [],
+    about: aboutArray,
     experiences: data.experiences || [],
     educations: data.educations || [],
     skills: data.skills || [],
     portfolios: data.portfolios || [],
     contact: {
       email: data.email || '',
-      phone: data.contact?.phone || '',
+      phone: data.phoneNumber || '',
     },
     socials: data.socials || [],
   };

@@ -72,10 +72,17 @@ const CandidateProfilePage = () => {
     },
   });
 
-  const { updateAbout } = useUpdateCandidateAbout();
-  const handleUpdateAbout = async (about: string[]) => {
-    await updateAbout(about);
-    setProfile((prev) => (prev ? { ...prev, about } : prev));
+  const { updateAbout, createAbout } = useUpdateCandidateAbout();
+  const handleUpdateAbout = async (aboutData: { id: number; bio?: string }) => {
+    // If id is 0, create new about, otherwise update existing
+    if (aboutData.id === 0) {
+      const result = await createAbout({ bio: aboutData.bio });
+      setProfile((prev) => (prev ? { ...prev, about: result } : prev));
+    } else {
+      await updateAbout(aboutData);
+      // Update profile state with new about data
+      setProfile((prev) => (prev ? { ...prev, about: aboutData } : prev));
+    }
   };
 
   // Hàm xử lý cập nhật experience
@@ -287,7 +294,7 @@ const CandidateProfilePage = () => {
         <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
           <ProfileHeader candidate={candidate} />
           <AboutMe
-            about={candidate.about}
+            about={profile?.about || { id: 0, bio: '' }}
             handleUpdateAbout={handleUpdateAbout}
           />
           <CV

@@ -4,11 +4,11 @@ import { UpdateUserDTO, UpdateUserResponse } from '@/api-client/user/types';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
- * Update the current authenticated user's basic profile information
- * (firstName, lastName)
+ * Update the current authenticated user's personal details
+ * (firstName, lastName, phoneNumber, dateOfBirth, gender)
  *
- * @param updateDto - Object containing firstName and/or lastName
- * @returns Promise with update response message
+ * @param updateDto - Object containing personal details to update
+ * @returns Promise with updated user data
  */
 export async function updateUserProfile(
   updateDto: UpdateUserDTO

@@ -18,6 +18,10 @@ export interface CandidateProfileResponse {
   email: string;
   firstName?: string;
   lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: Date | string; // Can be Date or ISO string
+  gender?: string;
+  avatarUrl?: string;
   verified: boolean;
   image: string;
   role: string;
@@ -29,15 +33,18 @@ export interface CandidateProfileResponse {
   experiences?: CandidateExperience[];
   resumes?: CandidateResume[];
   createdAt: Date;
-  // --- Các trường còn thiếu so với UI page profile ---
-  location: string; // Địa chỉ, vị trí làm việc
-  about: string[]; // Thông tin giới thiệu bản thân
-  openForOpportunities: boolean; // Đang tìm việc
-  skills: string[]; // Kỹ năng
-  portfolios: { img: string; name: string }[]; // Dự án/portfolio
-  contact: { email: string; phone: string }; // Thông tin liên hệ (phone chưa có)
-  socials: { type: string; url: string }[]; // Mạng xã hội
-  banner: string; // Ảnh banner hoặc màu nền
+  location: string;
+  about?: {
+    id: number;
+    title?: string;
+    bio?: string;
+  }; // Changed from string[] to object
+  openForOpportunities?: boolean;
+  skills?: string[];
+  portfolios?: { img: string; name: string }[];
+  contact?: { email: string; phone?: string };
+  socials?: { type: string; url: string }[];
+  banner?: string;
 }
 
 export interface CreateEducationPayload {
