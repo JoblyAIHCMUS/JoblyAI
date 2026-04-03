@@ -88,14 +88,14 @@ function SummaryCard({
     <Card className="flex-1 shadow-none">
       <CardContent className="flex flex-col gap-1 p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">
+          <span className="label-label-2-medium text-muted-foreground">
             {title}
           </span>
           <div className={cn('rounded-full p-1.5', iconBg)}>
             <Icon className="h-4 w-4 text-white" />
           </div>
         </div>
-        <span className="text-3xl font-bold">{total.toLocaleString()}</span>
+        <span className="heading-h2-bold">{total.toLocaleString()}</span>
         <div className="flex items-center gap-1 text-xs">
           <span className="text-muted-foreground">{periodLabel}</span>
           <span
@@ -152,9 +152,7 @@ export function DashboardStatsPanel({
     <Card className={cn('w-full', className)}>
       <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle className="text-lg font-semibold">
-            Job statistics
-          </CardTitle>
+          <CardTitle className="heading-h6-semi-bold">Job statistics</CardTitle>
           <p className="text-sm text-muted-foreground">
             Showing job statistics for {currentDataSet.periodLabel}
           </p>

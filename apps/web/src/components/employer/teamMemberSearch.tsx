@@ -96,7 +96,7 @@ export function TeamMemberSearch({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium truncate">
+                        <span className="label-label-2-medium truncate">
                           {member.firstName} {member.lastName}
                         </span>
                         <span className="text-xs text-muted-foreground truncate">

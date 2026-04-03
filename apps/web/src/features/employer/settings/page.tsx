@@ -120,10 +120,10 @@ export default function EmployerSettingsPage() {
         >
           {/* Section Header */}
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
-            <h2 className="text-xl font-semibold font-['Lexend_Deca'] text-primary">
+            <h2 className="heading-h5-semi-bold text-primary">
               Basic Information
             </h2>
-            <p className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+            <p className="body-body-1-regular text-tertiary">
               This is your personal information that you can update anytime.
             </p>
           </div>
@@ -183,10 +183,10 @@ export default function EmployerSettingsPage() {
         >
           {/* Section Header */}
           <div className="self-stretch flex flex-col items-start gap-1">
-            <h2 className="text-[20px] leading-6 font-['Lexend_Deca'] font-semibold text-primary">
+            <h2 className="heading-h6-semi-bold text-primary">
               Basic Information
             </h2>
-            <p className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+            <p className="body-body-1-regular text-tertiary">
               This is login information that you can update anytime.
             </p>
           </div>
@@ -198,10 +198,10 @@ export default function EmployerSettingsPage() {
           <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col">
             {/* Left: Title & Desc */}
             <div className="flex flex-col gap-1">
-              <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
+              <div className="heading-h6-semi-bold text-primary">
                 Update Email
               </div>
-              <div className="text-base wrap font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+              <div className="body-body-1-regular text-tertiary">
                 Update your email address to make sure it is safe
               </div>
             </div>
@@ -216,10 +216,10 @@ export default function EmployerSettingsPage() {
           <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
             {/* Left: Title & Desc */}
             <div className="flex flex-col gap-1">
-              <div className="text-lg font-semibold font-['Lexend_Deca'] text-primary">
+              <div className="heading-h6-semi-bold text-primary">
                 New Password
               </div>
-              <div className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+              <div className="body-body-1-regular text-tertiary">
                 Manage your password to make sure it is safe
               </div>
             </div>
@@ -231,7 +231,7 @@ export default function EmployerSettingsPage() {
           <hr className="self-stretch border-primary" />
 
           {/* Close Account Button */}
-          <Button className="flex flex-row items-center gap-2 px-6 py-3 bg-[var(--bg-error-secondary,#DC2626)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']">
+          <Button className="flex flex-row items-center gap-2 px-6 py-3 bg-[var(--bg-error-secondary,#DC2626)] rounded-[5px] text-white label-label-1-semi-bold">
             {/* Info Icon */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2" />
@@ -251,10 +251,10 @@ export default function EmployerSettingsPage() {
         >
           {/* Section Header */}
           <div className="flex flex-col gap-1">
-            <h2 className="text-[20px] leading-6 font-['Lexend_Deca'] font-semibold text-primary">
+            <h2 className="heading-h6-semi-bold text-primary">
               Basic Information
             </h2>
-            <p className="text-base font-normal font-['Be_Vietnam_Pro'] text-tertiary">
+            <p className="body-body-1-regular text-tertiary">
               This is notifications preferences that you can update anytime.
             </p>
           </div>

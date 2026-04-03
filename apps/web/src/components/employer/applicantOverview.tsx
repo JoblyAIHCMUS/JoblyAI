@@ -60,19 +60,21 @@ export default function ApplicantOverview({
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <h2 className="text-xl font-semibold">{applicant.name}</h2>
-        <p className="text-sm text-muted-foreground">{applicant.title}</p>
+        <h2 className="heading-h5-semi-bold">{applicant.name}</h2>
+        <p className="label-label-2-regular text-muted-foreground">
+          {applicant.title}
+        </p>
       </CardHeader>
 
       <CardContent className="space-y-5">
         <Link href={`/employer/job-listing/${applicant.jobListingId}`}>
           <div className="rounded-lg bg-indigo-50 p-4 space-y-1 hover:bg-indigo-100 transition-colors">
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="label-label-2-medium text-muted-foreground">
               Applied Role
             </p>
             <Separator />
-            <p className="text-sm font-semibold">{applicant.appliedRole}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="label-label-2-semi-bold">{applicant.appliedRole}</p>
+            <p className="label-label-2-regular text-muted-foreground">
               {categoryLabels[applicant.jobCategory]} &bull;{' '}
               {employmentTypeLabels[applicant.employmentType]}
             </p>
@@ -80,20 +82,24 @@ export default function ApplicantOverview({
         </Link>
 
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="label-label-2-medium text-muted-foreground">
             Applied Date
           </p>
-          <p className="text-sm">{formatDate(applicant.appliedDate)}</p>
+          <p className="label-label-2-regular">
+            {formatDate(applicant.appliedDate)}
+          </p>
         </div>
 
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Score</p>
-          <p className="text-sm font-semibold">{applicant.score.toFixed(1)}</p>
+          <p className="label-label-2-medium text-muted-foreground">Score</p>
+          <p className="label-label-2-semi-bold">
+            {applicant.score.toFixed(1)}
+          </p>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="label-label-2-medium text-muted-foreground">
               Hiring Stage
             </p>
             <Badge
@@ -113,7 +119,7 @@ export default function ApplicantOverview({
         <Separator />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Contact</p>
+          <p className="label-label-2-medium text-muted-foreground">Contact</p>
           <div className="grid grid-cols-1 gap-2">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />

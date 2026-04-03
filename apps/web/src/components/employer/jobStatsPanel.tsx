@@ -83,7 +83,7 @@ export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">
+        <CardTitle className="heading-h6-semi-bold">
           Views &amp; Applications Over Time
         </CardTitle>
         <p className="text-sm text-muted-foreground">

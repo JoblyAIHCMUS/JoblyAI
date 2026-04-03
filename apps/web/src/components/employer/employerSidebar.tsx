@@ -135,9 +135,9 @@ export function EmployerSidebar() {
         <Link href="/" className="flex items-center gap-2.5">
           {/* Logo / Brand */}
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600">
-            <span className="text-lg font-bold text-white">J</span>
+            <span className="heading-h5-semi-bold text-white">J</span>
           </div>
-          <span className="text-2xl font-semibold text-[color:var(--text-primary)] font-[family-name:var(--family-primary)] group-data-[collapsible=icon]:hidden">
+          <span className="font-[family-name:var(--family-primary)] text-[24px] font-semibold tracking-[-0.15px] text-[#25324b] group-data-[collapsible=icon]:hidden">
             JoblyAI
           </span>
         </Link>
@@ -348,7 +348,7 @@ export function EmployerSidebar() {
             />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
-            <span className="text-lg font-medium text-[color:var(--text-primary)] font-[family-name:var(--family-primary)] leading-6">
+            <span className="body-body-1-medium text-[color:var(--text-primary)] leading-6">
               {user?.name || 'Loading...'}
             </span>
             <span className="text-sm text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)]">

@@ -58,7 +58,7 @@ export function EmployerTopBar() {
         {/* Left side - Company logo + name or Not Affiliated */}
         <div className="flex items-center gap-4">
           {/* Company logo or placeholder */}
-          <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs font-medium">
+          <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium">
             {company?.logoUrl ? (
               <img
                 src={company.logoUrl}
@@ -72,16 +72,16 @@ export function EmployerTopBar() {
 
           {/* Company name or Not Affiliated + Register link or Error */}
           <div className="flex flex-col items-start">
-            <span className="text-sm text-[var(--text-secondary)] font-normal leading-5">
+            <span className="label-label-2-regular text-[var(--text-secondary)]">
               Company
             </span>
             <div className="flex items-center gap-1.5">
               {error ? (
-                <span className="font-[family-name:var(--family-primary)] text-[20px] font-semibold text-[#ff6550]">
+                <span className="heading-h6-semi-bold text-[#ff6550]">
                   Error loading profile
                 </span>
               ) : (
-                <span className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-6 text-[#25324b]">
+                <span className="heading-h6-semi-bold text-[#25324b]">
                   {loading
                     ? 'Loading...'
                     : company?.name
@@ -92,7 +92,7 @@ export function EmployerTopBar() {
               {!company && !loading && !error && (
                 <Link
                   href="/employer/new-company"
-                  className="ml-3 text-[#4640de] font-semibold hover:underline text-sm"
+                  className="ml-3 text-[#4640de] label-label-2-semi-bold hover:underline"
                 >
                   Register Company
                 </Link>
@@ -119,7 +119,7 @@ export function EmployerTopBar() {
             >
               <Bell className="h-5 w-5" strokeWidth={1.8} />
               {unreadCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 text-[10px] font-bold leading-none text-white">
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 caption-caption-2-medium text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -136,7 +136,7 @@ export function EmployerTopBar() {
 
                 <div className="fixed inset-x-2 top-[72px] z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[360px]">
                   <div className="border-b border-[#eef1f6] px-4 py-3">
-                    <p className="font-[family-name:var(--family-primary)] text-lg font-semibold text-[#25324b]">
+                    <p className="heading-h6-semi-bold text-[#25324b]">
                       Notifications
                     </p>
                   </div>

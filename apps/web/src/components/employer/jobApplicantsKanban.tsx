@@ -180,11 +180,11 @@ export default function JobApplicantsKanban({
 
                     <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                       <div>
-                        <div className="font-medium">Applied on</div>
+                        <div className="body-body-1-medium">Applied on</div>
                         <div>{formatDate(applicant.appliedDate)}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">Score</div>
+                        <div className="body-body-1-medium">Score</div>
                         <div className="flex items-center gap-1">
                           <Star className="h-3 w-3" />
                           {applicant.score.toFixed(1)}

@@ -85,7 +85,7 @@ export default function ApplicationNotes() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-semibold text-lg">Notes</span>
+        <span className="heading-h6-semi-bold">Notes</span>
         {isAdding ? (
           <Button
             variant="outline"
@@ -116,8 +116,8 @@ export default function ApplicationNotes() {
             <div className="flex-1">
               <div className="flex items-center gap-2 w-full justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{note.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="label-label-2-medium">{note.name}</span>
+                  <span className="caption-caption-1-medium text-muted-foreground">
                     {note.timestamp}
                   </span>
                 </div>
@@ -131,7 +131,7 @@ export default function ApplicationNotes() {
                   <Trash2 className="w-5 h-5" />
                 </Button>
               </div>
-              <div className="mt-1 text-sm">{note.content}</div>
+              <div className="mt-1 label-label-2-regular">{note.content}</div>
             </div>
           </CardContent>
         </Card>

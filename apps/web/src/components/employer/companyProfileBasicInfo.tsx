@@ -34,7 +34,7 @@ export function CompanyProfileBasicInfo({
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-2xl font-bold truncate">{name}</h2>
+            <h2 className="heading-h3-bold truncate">{name}</h2>
           </div>
           <a
             href={websiteUrl}
@@ -51,10 +51,10 @@ export function CompanyProfileBasicInfo({
                 <Users className="w-7 h-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="label-label-3-medium text-slate-500">
                   Employees
                 </span>
-                <span className="text-md font-bold text-slate-900">
+                <span className="heading-h6-bold text-slate-900">
                   {SCALE_LABELS[scale] || scale}
                 </span>
               </div>
@@ -65,10 +65,10 @@ export function CompanyProfileBasicInfo({
                 <Building2 className="w-7 h-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="label-label-3-medium text-slate-500">
                   Industry
                 </span>
-                <span className="text-md font-bold text-slate-900">
+                <span className="heading-h6-bold text-slate-900">
                   {INDUSTRY_LABELS[industry] || industry}
                 </span>
               </div>
