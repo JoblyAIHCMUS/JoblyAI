@@ -4,39 +4,71 @@ import { Check, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
-import { useFilters } from '@/hooks/useFilters';
-import { FilterGroupData } from '@/types/job';
-import { useJobs } from '@/hooks/useJobs';
+import SalaryFilter from '@/components/find-jobs/SalaryFilter';
+import { FilterGroupData, JobPosting, ViewMode } from '@/types/job';
 import { usePagination } from '@/hooks/usePagination';
-import { useState } from 'react';
+import { SortOption } from '@/mocks/sortOptions';
+import { Dispatch, SetStateAction } from 'react';
+
 
 interface JobListSectionProps {
-  searchTerm: string;
-  location: string;
+  jobs: JobPosting[];
+  total: number;
+  totalPages: number;
+  pageSize: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  sortOptions: SortOption[];
+  isSortOpen: boolean;
+  setIsSortOpen: Dispatch<SetStateAction<boolean>>;
+  selectedSort: SortOption;
+  handleSelectSort: (option: SortOption) => void;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  handleSearch: (options?: { page?: number; sort?: SortOption }) => void;
+  filterGroups: FilterGroupData[];
+  checkedMap: Record<string, string[]>;
+  expandedMap: Record<string, boolean>;
+  isMobileFiltersOpen: boolean;
+  setIsMobileFiltersOpen: Dispatch<SetStateAction<boolean>>;
+  handleToggle: (groupTitle: string, itemLabel: string) => void;
+  handleToggleExpand: (groupTitle: string) => void;
+  handleApplyMobileFilters: () => void;
+  salaryMinFilter: number;
+  salaryMaxFilter: number;
+  setSalaryMinFilter: Dispatch<SetStateAction<number>>;
+  setSalaryMaxFilter: Dispatch<SetStateAction<number>>;
 }
 
-export default function JobListSection({ searchTerm, location }: JobListSectionProps) {
-  const filterProps = useFilters();
-  const { setIsMobileFiltersOpen, isMobileFiltersOpen } = filterProps;
-  // Số job mỗi trang, có thể tuỳ chỉnh
-  const pageSize = 5;
 
-  // Lấy currentPage từ pagination trước, truyền vào useJobs
-  const [currentPage, setCurrentPage] = useState(1);
-  const {
-    jobs,
-    total,
-    totalPages,
-    sortOptions,
-    isSortOpen,
-    setIsSortOpen,
-    selectedSort,
-    handleSelectSort,
-    viewMode,
-    setViewMode,
-  } = useJobs(currentPage, pageSize, searchTerm, location);
-
-  // Pagination nhận currentPage, setCurrentPage, totalPages
+export default function JobListSection({
+  jobs,
+  total,
+  totalPages,
+  pageSize,
+  currentPage,
+  setCurrentPage,
+  sortOptions,
+  isSortOpen,
+  setIsSortOpen,
+  selectedSort,
+  handleSelectSort,
+  viewMode,
+  setViewMode,
+  handleSearch,
+  filterGroups,
+  checkedMap,
+  expandedMap,
+  isMobileFiltersOpen,
+  setIsMobileFiltersOpen,
+  handleToggle,
+  handleToggleExpand,
+  handleApplyMobileFilters,
+  salaryMinFilter,
+  salaryMaxFilter,
+  setSalaryMinFilter,
+  setSalaryMaxFilter,
+}: JobListSectionProps) {
   const { pages, goPrev, goNext } = usePagination(
     currentPage,
     setCurrentPage,
@@ -47,17 +79,23 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
     <section className="bg-white py-10 lg:py-[72px]">
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[234px_1fr] lg:gap-10 lg:px-8">
         <aside className="hidden flex-col gap-3 lg:flex">
-          {filterProps.filterGroups.map((group: FilterGroupData) => (
+          {filterGroups.map((group: FilterGroupData) => (
             <FilterGroup
               key={group.title}
               title={group.title}
               items={group.items}
-              checked={filterProps.checkedMap[group.title] ?? []}
-              expanded={filterProps.expandedMap[group.title] ?? true}
-              onToggle={filterProps.handleToggle}
-              onToggleExpand={filterProps.handleToggleExpand}
+              checked={checkedMap[group.title] ?? []}
+              expanded={expandedMap[group.title] ?? true}
+              onToggle={handleToggle}
+              onToggleExpand={handleToggleExpand}
             />
           ))}
+          <SalaryFilter
+            salaryMin={salaryMinFilter}
+            salaryMax={salaryMaxFilter}
+            setSalaryMin={setSalaryMinFilter}
+            setSalaryMax={setSalaryMaxFilter}
+          />
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -67,7 +105,7 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
                 All Jobs
               </h2>
               <p className="text-base leading-6 text-slate-500">
-                Showing {total} results
+                Showing {total} results · {pageSize} per page
               </p>
             </div>
 
@@ -102,7 +140,10 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
                       <button
                         key={option}
                         type="button"
-                        onClick={() => handleSelectSort(option)}
+                        onClick={() => {
+                          handleSelectSort(option);
+                          handleSearch({ page: 1, sort: option });
+                        }}
                         className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
                           isActive
                             ? 'bg-indigo-50 text-indigo-700'
@@ -181,9 +222,18 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
             currentPage={currentPage}
             totalPages={totalPages}
             pages={pages}
-            onPageChange={setCurrentPage}
-            goPrev={goPrev}
-            goNext={goNext}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              handleSearch({ page });
+            }}
+            goPrev={() => {
+              goPrev();
+              handleSearch({ page: Math.max(1, currentPage - 1) });
+            }}
+            goNext={() => {
+              goNext();
+              handleSearch({ page: Math.min(totalPages, currentPage + 1) });
+            }}
             className="pt-2 justify-center"
           />
         </div>
@@ -211,15 +261,15 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
-                {filterProps.filterGroups.map((group: FilterGroupData) => (
+                {filterGroups.map((group: FilterGroupData) => (
                   <FilterGroup
                     key={`mobile-${group.title}`}
                     title={group.title}
                     items={group.items}
-                    checked={filterProps.checkedMap[group.title] ?? []}
-                    expanded={filterProps.expandedMap[group.title] ?? true}
-                    onToggle={filterProps.handleToggle}
-                    onToggleExpand={filterProps.handleToggleExpand}
+                    checked={checkedMap[group.title] ?? []}
+                    expanded={expandedMap[group.title] ?? true}
+                    onToggle={handleToggle}
+                    onToggleExpand={handleToggleExpand}
                   />
                 ))}
               </div>
@@ -228,7 +278,10 @@ export default function JobListSection({ searchTerm, location }: JobListSectionP
             <div className="border-t border-slate-200 p-4">
               <button
                 type="button"
-                onClick={filterProps.handleApplyMobileFilters}
+                onClick={() => {
+                  handleApplyMobileFilters();
+                  handleSearch({ page: 1 });
+                }}
                 className="h-11 w-full rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
               >
                 Apply

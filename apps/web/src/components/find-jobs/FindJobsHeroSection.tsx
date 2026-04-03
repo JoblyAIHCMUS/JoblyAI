@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 
 interface FindJobsHeroSectionProps {
-  handleSearch: (searchTerm: string, location: string) => void;
+  handleSearch: (params: { term?: string; location?: string }) => void;
 }
 
 export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectionProps) {
@@ -76,7 +76,7 @@ export default function FindJobsHeroSection({ handleSearch }: FindJobsHeroSectio
 
               <Button 
                 className="h-12 rounded-[5px] bg-indigo-600 px-6 text-base font-semibold leading-[22px] text-white hover:bg-indigo-700"
-                onClick={() => handleSearch(searchTerm, location)}
+                onClick={() => handleSearch({ term: searchTerm, location })}
               >
                 Search
               </Button>

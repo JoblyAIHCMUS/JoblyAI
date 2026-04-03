@@ -37,14 +37,4 @@ export const FILTER_GROUPS: FilterGroupData[] = [
     ],
     checked: ['Director'],
   },
-  {
-    title: 'Salary Range',
-    items: [
-      { label: '$700 - $1000' },
-      { label: '$100 - $1500' },
-      { label: '$1500 - $2000' },
-      { label: '$3000 or above' },
-    ],
-    checked: ['$3000 or above'],
-  },
 ];
