@@ -32,10 +32,8 @@ export function AccountTypeSection({
   return (
     <>
       <div className="inline-flex flex-col justify-start items-start gap-1">
-        <div className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-          Account Type
-        </div>
-        <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
+        <div className="label-label-1-semi-bold text-primary">Account Type</div>
+        <div className="body-body-1-regular text-tertiary">
           You can update your account type
         </div>
       </div>
@@ -64,10 +62,10 @@ export function AccountTypeSection({
 
               {/* Text */}
               <div className="inline-flex flex-col justify-start items-start gap-0">
-                <div className="font-['Lexend_Deca'] text-base font-medium leading-5 text-primary">
+                <div className="body-body-1-medium text-primary">
                   {type.title}
                 </div>
-                <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-secondary">
+                <div className="body-body-1-regular text-secondary">
                   {type.description}
                 </div>
               </div>

@@ -49,8 +49,8 @@ const DashboardBigButton = React.forwardRef<
         )}
       >
         <div className="flex items-center gap-3">
-          <span className="text-[56px] font-bold leading-none">{count}</span>
-          <span className="text-base font-medium leading-tight sm:text-lg">
+          <span className="heading-h2-bold leading-none">{count}</span>
+          <span className="body-body-1-medium leading-tight sm:heading-h6-medium">
             {label}
           </span>
         </div>

@@ -131,7 +131,7 @@ export const columns: ColumnDef<JobListing>[] = [
     cell: ({ row }) => (
       <Link
         href={`/employer/job-listing/${row.original.id}`}
-        className="font-medium hover:underline"
+        className="body-body-1-medium hover:underline"
       >
         {row.getValue('title')}
       </Link>
@@ -235,7 +235,7 @@ export const columns: ColumnDef<JobListing>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="text-center font-medium">
+      <span className="text-center body-body-1-medium">
         {row.getValue<number>('applicants').toLocaleString()}
       </span>
     ),

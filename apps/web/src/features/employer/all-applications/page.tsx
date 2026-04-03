@@ -72,7 +72,7 @@ export default function EmployerAllApplicationsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">All Applications</h1>
+      <h1 className="heading-h4-semi-bold mb-6">All Applications</h1>
       <AllApplicationsTable
         applications={applications}
         advanceApplicant={advanceApplicant}

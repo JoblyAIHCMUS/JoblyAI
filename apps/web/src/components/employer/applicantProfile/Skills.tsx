@@ -3,15 +3,15 @@ import React from 'react';
 
 export default function Skills({ skills }: { skills: string[] }) {
   return (
-    <div className="rounded-[10px] border border-[#CBD5E1] bg-white p-4 sm:p-6 flex flex-col gap-4 w-full min-w-0">
-      <div className="text-xl font-semibold text-[#0F172A] font-['Lexend_Deca'] mb-2">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-base)] sm:px-[var(--space-lg)] py-[var(--space-base)] sm:py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full min-w-0">
+      <div className="heading-h6-semi-bold text-[var(--text-primary)] mb-[var(--space-xs)]">
         Skills
       </div>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-[var(--space-xs)]">
         {skills.map((skill, idx) => (
           <span
             key={idx}
-            className="px-3 py-1 bg-[#EEF2FF] rounded text-[#4338CA] text-base font-['Lexend_Deca'] break-words"
+            className="px-[var(--space-xs)] py-[var(--space-xs2)] bg-[var(--bg-accent-primary)] rounded text-[var(--text-accent-primary)] label-label-1-semi-bold break-words"
           >
             {skill}
           </span>

@@ -3,14 +3,14 @@ import React from 'react';
 
 export default function AboutMe({ about }: { about: string[] }) {
   return (
-    <div className="rounded-[10px] border border-[#CBD5E1] bg-white p-4 sm:p-6 flex flex-col gap-4 w-full min-w-0">
-      <div className="text-xl font-semibold text-[#0F172A] font-['Lexend_Deca'] mb-2">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-xs2)] w-full min-w-0">
+      <div className="heading-h6-semi-bold text-[var(--text-primary)] break-words">
         About Me
       </div>
       {about.map((line, idx) => (
         <div
           key={idx}
-          className="text-base text-[#0F172A] font-normal font-['Be_Vietnam_Pro'] leading-6 break-words"
+          className="body-body-1-regular text-[var(--text-primary)] break-words"
         >
           {line}
         </div>

@@ -54,7 +54,7 @@ export default function ApplicantDetails({
             {/* Hiring Stage Control */}
             <div className="mb-6">
               <div className="mb-2">
-                <span className="block text-left text-base font-semibold text-gray-700">
+                <span className="block text-left label-label-1-semi-bold text-gray-700">
                   Current stage
                 </span>
               </div>

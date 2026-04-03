@@ -76,7 +76,7 @@ export const columns: ColumnDef<AllApplication>[] = [
     cell: ({ row }) => (
       <Link
         href={`/employer/all-applications/${row.original.id}`}
-        className="flex items-center gap-3 font-medium hover:underline"
+        className="flex items-center gap-3 body-body-1-medium hover:underline"
       >
         <Avatar className="h-8 w-8">
           <AvatarImage
@@ -136,7 +136,7 @@ export const columns: ColumnDef<AllApplication>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium">
+      <span className="body-body-1-medium">
         {row.getValue<number>('score').toFixed(1)}
       </span>
     ),

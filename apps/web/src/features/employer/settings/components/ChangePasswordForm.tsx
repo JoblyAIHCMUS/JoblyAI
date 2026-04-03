@@ -91,7 +91,7 @@ export default function ChangePasswordForm() {
       {success && <span className="text-sm text-green-600">{success}</span>}
       <Button
         type="submit"
-        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']"
+        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white label-label-1-semi-bold"
       >
         Change Password
       </Button>

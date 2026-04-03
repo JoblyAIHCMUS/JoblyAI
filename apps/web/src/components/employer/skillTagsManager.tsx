@@ -159,7 +159,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                       onClick={() => handleSelectFromDropdown(skill.name)}
                       className={`px-3 py-2 cursor-pointer transition-colors ${
                         index === selectedDropdownIndex
-                          ? 'bg-primary/20 text-primary font-medium'
+                          ? 'bg-primary/20 text-primary body-body-1-medium'
                           : 'hover:bg-slate-100'
                       }`}
                     >
@@ -235,7 +235,9 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
 
       {groupedSkills.map((group) => (
         <div key={group.level} className="space-y-1.5">
-          <p className="text-xs font-medium text-slate-500">{group.label}</p>
+          <p className="caption-caption-1-medium text-slate-500">
+            {group.label}
+          </p>
           <div className="flex flex-wrap gap-2">
             {group.items.map((skill) => (
               <Badge

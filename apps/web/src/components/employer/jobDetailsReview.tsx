@@ -121,30 +121,32 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
       <aside className="space-y-6">
         {/* About this role */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">About this role</h3>
+          <h3 className="heading-h6-semi-bold mb-4">About this role</h3>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Location</dt>
-              <dd className="text-right font-medium max-w-[180px]">
+              <dd className="text-right body-body-1-medium max-w-[180px]">
                 {job.remote ? 'Remote' : job.location ?? '—'}
               </dd>
             </div>
             <Separator />
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Job Posted On</dt>
-              <dd className="font-medium">{formatDate(job.datePosted)}</dd>
+              <dd className="body-body-1-medium">
+                {formatDate(job.datePosted)}
+              </dd>
             </div>
             <Separator />
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Job Type</dt>
-              <dd className="font-medium">
+              <dd className="body-body-1-medium">
                 {EMPLOYMENT_TYPE_LABELS[job.employmentType]}
               </dd>
             </div>
             <Separator />
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Salary</dt>
-              <dd className="font-medium">
+              <dd className="body-body-1-medium">
                 {formatSalary(job.salaryCurrency, job.salaryMin, job.salaryMax)}
               </dd>
             </div>
@@ -155,7 +157,7 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
 
         {/* Category */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Category</h3>
+          <h3 className="heading-h6-semi-bold mb-3">Category</h3>
           <Badge
             className={`${CATEGORY_COLORS[job.category].bg} ${
               CATEGORY_COLORS[job.category].text
@@ -172,7 +174,7 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
         {/* Skills by Importance */}
         {job.skills.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold mb-3">Required Skills</h3>
+            <h3 className="heading-h6-semi-bold mb-3">Required Skills</h3>
             <div className="space-y-4">
               {(
                 [
@@ -186,7 +188,7 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
                 )
                 .map(({ key, label }) => (
                   <div key={key}>
-                    <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                    <p className="caption-caption-1-medium text-muted-foreground mb-1.5">
                       {label}
                     </p>
                     <div className="flex flex-wrap gap-2">
