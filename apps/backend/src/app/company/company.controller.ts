@@ -7,15 +7,19 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RoleGuard } from '../auth/role.guard';
 import { Roles } from '../decorators/roles.decorator';
+import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 import { CompanyService } from './company.service';
 import {
+  CompanyAddEmployeeDto,
   CompanyCreateDto,
+  CompanyGrantAdminDto,
   CompanyPatchDto,
   CompanyUpdateDto,
 } from './dto/company.dto';
@@ -67,5 +71,45 @@ export class CompanyController {
   async deleteCompany(@Param('id', ParseIntPipe) id: number) {
     await this.companyService.delete(id);
     return { message: `Company with ID ${id} deleted successfully` };
+  }
+
+  @Post(':id/employees')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async addEmployee(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Body() dto: CompanyAddEmployeeDto,
+    @Req() request: AuthenticatedRequest
+  ) {
+    return this.companyService.addEmployee(companyId, request.user.id, dto);
+  }
+
+  @Delete(':id/employees/:employerId')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async removeEmployee(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Param('employerId') employerId: string,
+    @Req() request: AuthenticatedRequest
+  ) {
+    await this.companyService.removeEmployee(
+      companyId,
+      request.user.id,
+      employerId
+    );
+
+    return {
+      message: `Employer ${employerId} removed from company ${companyId}`,
+    };
+  }
+
+  @Patch(':id/admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('admin')
+  async grantCompanyAdmin(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Body() dto: CompanyGrantAdminDto
+  ) {
+    return this.companyService.grantCompanyAdmin(companyId, dto.employerId);
   }
 }

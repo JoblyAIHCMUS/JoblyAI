@@ -92,6 +92,23 @@ export class CompanyPatchDto {
   logoUrl?: string;
 }
 
+export class CompanyAddEmployeeDto {
+  @IsString()
+  @IsNotEmpty()
+  employerId!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  role?: string;
+}
+
+export class CompanyGrantAdminDto {
+  @IsString()
+  @IsNotEmpty()
+  employerId!: string;
+}
+
 export class CompanyDeleteDto {
   @IsInt()
   @Min(1)
