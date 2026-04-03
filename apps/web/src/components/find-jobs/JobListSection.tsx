@@ -82,7 +82,7 @@ export default function JobListSection({
               onToggleExpand={handleToggleExpand}
             />
           ))}
-          <SalaryFilter ref={salaryFilterRef} onSalaryChange={onSalaryChange} />
+          <SalaryFilter onSalaryChange={onSalaryChange} />
           <button
             type="button"
             onClick={handleReset}
