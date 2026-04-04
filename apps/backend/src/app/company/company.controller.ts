@@ -10,6 +10,7 @@ import {
   Req,
   Put,
   Request,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
@@ -37,6 +38,12 @@ export class CompanyController {
   @Get()
   async getAllCompanies() {
     return this.companyService.getAll();
+  }
+
+  @Get('check-name')
+  async checkCompanyNameExists(@Query('name') name: string) {
+    const exists = await this.companyService.checkNameExists(name);
+    return { exists };
   }
 
   @Get(':id')

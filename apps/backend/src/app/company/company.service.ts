@@ -38,6 +38,14 @@ export class CompanyService {
     return company;
   }
 
+  async checkNameExists(name: string): Promise<boolean> {
+    const company = await this.prisma.company.findUnique({
+      where: { name },
+      select: { id: true },
+    });
+    return !!company;
+  }
+
   async create(dto: CompanyCreateDto, creatorUserId: string): Promise<Company> {
     // Check if creator is already an employer in another company
     const existingEmployer = await this.prisma.employer.findUnique({
