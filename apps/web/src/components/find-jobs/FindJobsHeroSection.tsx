@@ -1,8 +1,38 @@
-import { ChevronDown, MapPin, Search } from 'lucide-react';
+'use client';
+import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { KeyboardEvent } from 'react';
 
-export default function FindJobsHeroSection() {
+import { useState } from 'react';
+
+interface FindJobsHeroSectionProps {
+  searchTerm?: string;
+  location?: string;
+  setSearchTerm?: (term: string) => void;
+  setLocation?: (location: string) => void;
+}
+
+export default function FindJobsHeroSection({
+  searchTerm,
+  location,
+  setSearchTerm,
+  setLocation,
+}: FindJobsHeroSectionProps) {
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [localLocation, setLocalLocation] = useState(location);
+
+  const handleSearch = () => {
+    setSearchTerm?.(localSearchTerm || '');
+    setLocation?.(localLocation || '');
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-indigo-50">
       <div className="absolute inset-0 pointer-events-none">
@@ -40,6 +70,9 @@ export default function FindJobsHeroSection() {
                     type="text"
                     placeholder="Job title or keyword"
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    value={localSearchTerm}
+                    onChange={(e) => setLocalSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
                   <div className="h-px w-full bg-slate-300" />
                 </div>
@@ -50,15 +83,22 @@ export default function FindJobsHeroSection() {
               <div className="flex flex-1 items-center gap-4 px-2 sm:px-4">
                 <MapPin className="h-6 w-6 text-slate-900" />
                 <div className="flex flex-1 flex-col gap-2 pt-2.5">
-                  <button className="flex w-full items-center justify-between text-left text-base leading-6 text-slate-900">
-                    <span>Florence, Italy</span>
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    value={localLocation}
+                    onChange={(e) => setLocalLocation(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
                   <div className="h-px w-full bg-slate-300" />
                 </div>
               </div>
 
-              <Button className="h-12 rounded-[5px] bg-indigo-600 px-6 text-base font-semibold leading-[22px] text-white hover:bg-indigo-700">
+              <Button
+                className="h-12 rounded-[5px] bg-indigo-600 px-6 text-base font-semibold leading-[22px] text-white hover:bg-indigo-700"
+                onClick={handleSearch}
+              >
                 Search
               </Button>
             </div>

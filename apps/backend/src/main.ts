@@ -8,6 +8,7 @@ import { AllExceptionsFilter } from './app/common/filter/http-exceptions.filter'
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
+import qs from 'qs';
 
 function loadOpenApiFromYaml(): OpenAPIObject | null {
   const candidatePaths = [
@@ -29,6 +30,16 @@ async function bootstrap() {
 
   app.useLogger(['log', 'error', 'warn', 'debug', 'verbose']);
   app.set('trust proxy', 1);
+
+  // Configure Express query parser to handle array syntax: type[]=FULL_TIME&type[]=PART_TIME
+  app.set('query parser', (str: string) => {
+    return qs.parse(str, {
+      comma: false,
+      arrayLimit: 50,
+      depth: 10,
+      delimiter: '&',
+    });
+  });
 
   app.enableCors({
     origin: [

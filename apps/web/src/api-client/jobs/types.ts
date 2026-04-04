@@ -1,46 +1,20 @@
-export type EmploymentType =
-  | 'FULL_TIME'
-  | 'PART_TIME'
-  | 'CONTRACT'
-  | 'INTERNSHIP'
-  | 'FREELANCE';
-export type JobStatus = 'OPEN' | 'CLOSED' | 'DRAFT';
-export type RequirementImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
+export type {
+  Job,
+  EmploymentType,
+  JobStatus,
+  RequirementImportance,
+  FilterItem,
+  FilterGroupData,
+  JobCategory,
+  CompanyInfo,
+  JobPosting,
+} from '@/types/job';
 
-export interface JobCategory {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-export interface CompanyInfo {
-  id: number;
-  name: string;
-  websiteUrl: string | null;
-  sizeRange: string | null;
-  industry: string | null;
-  description: string | null;
-  logoUrl: string | null;
-}
-
-export interface JobPosting {
-  id: number;
-  employerId: string;
-  category: JobCategory;
-  title: string;
-  description: string;
-  company: CompanyInfo;
-  location: string | null;
-  remote: boolean;
-  type: EmploymentType;
-  skills: string[];
-  salaryMin: number | null;
-  salaryMax: number | null;
-  currency: string | null;
-  status: JobStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type {
+  EmploymentType,
+  RequirementImportance,
+  JobPosting,
+} from '@/types/job';
 
 export interface PaginatedJobsResponse {
   jobs: JobPosting[];
@@ -57,7 +31,7 @@ export interface ListJobsQuery {
   sort?: string;
   q?: string;
   location?: string;
-  type?: EmploymentType;
+  type?: EmploymentType[];
   remote?: boolean;
   salaryMin?: number;
   salaryMax?: number;
@@ -79,7 +53,7 @@ export interface CreateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType;
+  type?: EmploymentType | EmploymentType[];
   categoryId: number;
   companyId: number;
   requirements?: JobRequirementInput[];
@@ -93,7 +67,7 @@ export interface UpdateJobPayload {
   salaryMax?: number;
   currency?: string;
   remote?: boolean;
-  type?: EmploymentType;
+  type?: EmploymentType | EmploymentType[];
   categoryId?: number;
   companyId?: number;
   requirements?: JobRequirementInput[];

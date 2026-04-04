@@ -1,10 +1,37 @@
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 
+function formatJobType(type: string): string {
+  return type
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 type JobCardProps = {
   job: JobPosting;
   viewMode: ViewMode;
 };
+
+function getColorForSkill(skill: string): string {
+  let hash = 0;
+  for (let i = 0; i < skill.length; i++) {
+    hash = skill.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const colors = [
+    'border-red-500 text-red-500',
+    'border-green-500 text-green-500',
+    'border-blue-500 text-blue-500',
+    'border-yellow-500 text-yellow-500',
+    'border-indigo-500 text-indigo-500',
+    'border-teal-500 text-teal-500',
+    'border-orange-500 text-orange-500',
+    'border-cyan-500 text-cyan-500',
+  ];
+  return colors[Math.abs(hash) % colors.length];
+}
 
 export default function JobCard({ job, viewMode }: JobCardProps) {
   return (
@@ -35,24 +62,28 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-2xl font-semibold leading-8 text-slate-900">
-            {job.title}
-          </h3>
-          <p className="mt-0.5 text-lg leading-7 text-slate-500">
-            {job.company.name || ''}
-            {job.company.name && job.location ? ' • ' : ''}
-            {job.location || ''}
+          <h3 className="heading-h6-semi-bold text-slate-900">{job.title}</h3>
+          <p className="body-body-1-regular mt-1 text-slate-600">
+            {job.location
+              ? `${job.company.name} - ${job.location}`
+              : job.company.name}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
-              Full-Time
+            <span
+              className={`inline-flex items-center rounded-full bg-teal-100 px-2 py-1 label-label-2-semi-bold text-teal-500`}
+            >
+              {formatJobType(job.type)}
             </span>
-            <span className="rounded-full border border-orange-300 px-3 py-1 text-xs font-medium text-orange-500">
-              Marketing
-            </span>
-            <span className="rounded-full border border-indigo-300 px-3 py-1 text-xs font-medium text-indigo-500">
-              Design
-            </span>
+            {job.skills.map((skill) => (
+              <span
+                key={skill}
+                className={`inline-flex items-center rounded-full border px-2 py-1 label-label-2-semi-bold ${getColorForSkill(
+                  skill
+                )}`}
+              >
+                {skill}
+              </span>
+            ))}
           </div>
         </div>
       </div>

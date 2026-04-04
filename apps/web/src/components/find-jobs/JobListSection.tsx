@@ -4,55 +4,92 @@ import { Check, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
-import { useFilters } from '@/hooks/useFilters';
-import { FilterGroupData } from '@/types/job';
-import { useJobs } from '@/hooks/useJobs';
+import SalaryFilter from '@/components/find-jobs/SalaryFilter';
+import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
+import { SORT_OPTIONS } from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
-import { useState } from 'react';
+import { useState, Ref } from 'react';
 
-export default function JobListSection() {
-  const filterProps = useFilters();
-  const { setIsMobileFiltersOpen, isMobileFiltersOpen } = filterProps;
-  // Số job mỗi trang, có thể tuỳ chỉnh
-  const pageSize = 5;
+interface JobListSectionProps {
+  jobs: JobPosting[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  selectedSort: SortOption;
+  handleSelectSort: (option: SortOption) => void;
+  filterGroups: FilterGroupData[];
+  checkedMap: Record<string, string[]>;
+  handleToggle: (groupTitle: string, itemLabel: string) => void;
+  onSalaryChange: (min: number, max: number) => void;
+  salaryFilterRef: Ref<{ reset: () => void } | null>;
+  handleReset: () => void;
+}
 
-  // Lấy currentPage từ pagination trước, truyền vào useJobs
-  const [currentPage, setCurrentPage] = useState(1);
-  const {
-    jobs,
-    total,
-    totalPages,
-    sortOptions,
-    isSortOpen,
-    setIsSortOpen,
-    selectedSort,
-    handleSelectSort,
-    viewMode,
-    setViewMode,
-  } = useJobs(currentPage, pageSize);
-
-  // Pagination nhận currentPage, setCurrentPage, totalPages
+export default function JobListSection({
+  jobs,
+  total,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+  selectedSort,
+  handleSelectSort,
+  filterGroups,
+  checkedMap,
+  handleToggle,
+  onSalaryChange,
+  salaryFilterRef,
+  handleReset,
+}: JobListSectionProps) {
   const { pages, goPrev, goNext } = usePagination(
     currentPage,
     setCurrentPage,
     totalPages
   );
 
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(
+    () => {
+      const map: Record<string, boolean> = {};
+      filterGroups.forEach((group) => {
+        map[group.title] = true;
+      });
+      return map;
+    }
+  );
+
+  const handleToggleExpand = (groupTitle: string) => {
+    setExpandedMap((prev) => ({
+      ...prev,
+      [groupTitle]: !prev[groupTitle],
+    }));
+  };
+
   return (
     <section className="bg-white py-10 lg:py-[72px]">
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[234px_1fr] lg:gap-10 lg:px-8">
         <aside className="hidden flex-col gap-3 lg:flex">
-          {filterProps.filterGroups.map((group: FilterGroupData) => (
+          {filterGroups.map((group: FilterGroupData) => (
             <FilterGroup
               key={group.title}
               title={group.title}
               items={group.items}
-              checked={filterProps.checkedMap[group.title] ?? []}
-              expanded={filterProps.expandedMap[group.title] ?? true}
-              onToggle={filterProps.handleToggle}
-              onToggleExpand={filterProps.handleToggleExpand}
+              checked={checkedMap[group.title] ?? []}
+              expanded={expandedMap[group.title] ?? true}
+              onToggle={handleToggle}
+              onToggleExpand={handleToggleExpand}
             />
           ))}
+          <SalaryFilter onSalaryChange={onSalaryChange} />
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover: transition-colors"
+          >
+            Reset Filters
+          </button>
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -91,13 +128,15 @@ export default function JobListSection() {
                       : 'pointer-events-none -translate-y-1 scale-95 opacity-0'
                   }`}
                 >
-                  {sortOptions.map((option) => {
+                  {SORT_OPTIONS.map((option) => {
                     const isActive = selectedSort === option;
                     return (
                       <button
                         key={option}
                         type="button"
-                        onClick={() => handleSelectSort(option)}
+                        onClick={() => {
+                          handleSelectSort(option);
+                        }}
                         className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
                           isActive
                             ? 'bg-indigo-50 text-indigo-700'
@@ -167,7 +206,7 @@ export default function JobListSection() {
               </div>
             ) : (
               jobs.map((job) => (
-                <JobCard key={job.title} job={job} viewMode={viewMode} />
+                <JobCard key={job.id} job={job} viewMode={viewMode} />
               ))
             )}
           </div>
@@ -176,9 +215,15 @@ export default function JobListSection() {
             currentPage={currentPage}
             totalPages={totalPages}
             pages={pages}
-            onPageChange={setCurrentPage}
-            goPrev={goPrev}
-            goNext={goNext}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+            }}
+            goPrev={() => {
+              goPrev();
+            }}
+            goNext={() => {
+              goNext();
+            }}
             className="pt-2 justify-center"
           />
         </div>
@@ -206,28 +251,40 @@ export default function JobListSection() {
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
-                {filterProps.filterGroups.map((group: FilterGroupData) => (
+                {filterGroups.map((group: FilterGroupData) => (
                   <FilterGroup
                     key={`mobile-${group.title}`}
                     title={group.title}
                     items={group.items}
-                    checked={filterProps.checkedMap[group.title] ?? []}
-                    expanded={filterProps.expandedMap[group.title] ?? true}
-                    onToggle={filterProps.handleToggle}
-                    onToggleExpand={filterProps.handleToggleExpand}
+                    checked={checkedMap[group.title] ?? []}
+                    expanded={expandedMap[group.title] ?? true}
+                    onToggle={handleToggle}
+                    onToggleExpand={handleToggleExpand}
                   />
                 ))}
               </div>
             </div>
 
             <div className="border-t border-slate-200 p-4">
-              <button
-                type="button"
-                onClick={filterProps.handleApplyMobileFilters}
-                className="h-11 w-full rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
-              >
-                Apply
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="h-11 flex-1 rounded-[6px] border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Reset
+                </button>
+                {/* <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(1);  
+                    setIsMobileFiltersOpen(false);
+                  }}
+                  className="h-11 flex-1 rounded-[6px] bg-indigo-600 text-sm font-semibold text-white"
+                >
+                  Apply
+                </button> */}
+              </div>
             </div>
           </div>
         </div>

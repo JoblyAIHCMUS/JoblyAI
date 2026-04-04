@@ -59,7 +59,9 @@ export class JobsService {
 
     if (remote !== undefined) whereClause.remote = remote;
 
-    if (type) whereClause.type = type as EmploymentType;
+    if (type && type.length > 0) {
+      whereClause.type = { in: type as EmploymentType[] };
+    }
 
     // Filtering by skills through the requirements join table
     if (skills && skills.length > 0) {
@@ -74,7 +76,7 @@ export class JobsService {
 
     // Salary range filtering with null-safe handling
     if (salaryMin !== undefined || salaryMax !== undefined) {
-      whereClause.AND = [
+      const salaryConditions = [
         // If user sets a Min (Floor), ensure Job Max is High Enough OR Unlimited
         ...(salaryMin !== undefined
           ? [
@@ -93,6 +95,13 @@ export class JobsService {
             ]
           : []),
       ];
+
+      // Merge with existing AND conditions if present, or create new
+      if (whereClause.AND && Array.isArray(whereClause.AND)) {
+        (whereClause.AND as any[]).push(...salaryConditions);
+      } else {
+        whereClause.AND = salaryConditions;
+      }
     }
 
     const [total, jobs] = await this.prisma.$transaction([

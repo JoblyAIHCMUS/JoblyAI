@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EmploymentType } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class GetJobsQueryDTO {
   @IsOptional()
@@ -38,8 +39,21 @@ export class GetJobsQueryDTO {
   location?: string;
 
   @IsOptional()
-  @IsEnum(EmploymentType)
-  type?: EmploymentType;
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    // Handle: type[]=FULL_TIME&type[]=PART_TIME (already parsed by qs into ['FULL_TIME', 'PART_TIME'])
+    if (Array.isArray(value)) {
+      return value.filter((v) => v); // Remove empty strings
+    }
+    // Handle: type=FULL_TIME (single value)
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsEnum(EmploymentType, { each: true })
+  type?: EmploymentType[];
 
   @IsOptional()
   @Type(() => Boolean)
@@ -59,6 +73,18 @@ export class GetJobsQueryDTO {
   salaryMax?: number;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    // Handle: skills[]=Business&skills[]=Technology (already parsed by qs into ['Business', 'Technology'])
+    if (Array.isArray(value)) {
+      return value.filter((v) => v); // Remove empty strings
+    }
+    // Handle: skills=Business (single value)
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
   @IsArray()
   @IsString({ each: true })
   skills?: string[];
