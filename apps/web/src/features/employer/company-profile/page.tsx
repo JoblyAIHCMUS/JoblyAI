@@ -62,7 +62,7 @@ export default function EmployerCompanyProfilePage() {
     <div className="container mx-auto px-4 py-8">
       <CompanyProfileBasicInfo
         name={company.name}
-        logoUrl={company.logoUrl || ''}
+        logoUrl={company.logoUrl || undefined}
         websiteUrl={company.websiteUrl || ''}
         scale={company.sizeRange || ''}
         industry={company.industry || ''}
