@@ -104,11 +104,11 @@ jobs:
       - name: Start backend with Docker Compose
         run: |
           cp apps/backend/.env.example apps/backend/.env
-          docker compose -f docker-compose.yml up -d postgres redis backend
+          docker compose up -d postgres redis backend
           echo "Waiting for services to initialize..."
           sleep 5
           echo "=== Docker Compose Status ==="
-          docker compose -f docker-compose.yml ps
+          docker compose ps
 
       - name: Smoke check API
         run: |
@@ -123,9 +123,9 @@ jobs:
           done
           echo "✗ Backend did not become healthy after 120 seconds"
           echo "=== Backend Logs ==="
-          docker compose -f docker-compose.yml logs backend || true
+          docker compose logs backend || true
           echo "=== Docker Processes ==="
-          docker compose -f docker-compose.yml ps || true
+          docker compose ps || true
           exit 1
 
   # JOB 3: CD (Build & Push Docker)

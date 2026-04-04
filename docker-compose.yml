@@ -89,7 +89,7 @@ services:
       [
         'sh',
         '-c',
-        'pnpm dlx prisma@6.19.2 migrate deploy --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/main',
+        'node apps/backend/dist/main',
       ]
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api || exit 1']
