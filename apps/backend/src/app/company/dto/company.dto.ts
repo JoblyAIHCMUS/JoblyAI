@@ -95,7 +95,7 @@ export class CompanyPatchDto {
 export class CompanyAddEmployeeDto {
   @IsString()
   @IsNotEmpty()
-  employerId!: string;
+  email!: string;
 
   @IsOptional()
   @IsString()
@@ -106,7 +106,7 @@ export class CompanyAddEmployeeDto {
 export class CompanyGrantAdminDto {
   @IsString()
   @IsNotEmpty()
-  employerId!: string;
+  email!: string;
 }
 
 export class CompanyDeleteDto {

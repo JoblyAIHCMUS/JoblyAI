@@ -37,9 +37,42 @@ export class CompanyService {
     return company;
   }
 
-  async create(dto: CompanyCreateDto): Promise<Company> {
+  async create(dto: CompanyCreateDto, creatorUserId: string): Promise<Company> {
+    // Check if creator is already an employer in another company
+    const existingEmployer = await this.prisma.employer.findUnique({
+      where: { employerId: creatorUserId },
+      select: { companyId: true },
+    });
+
+    if (existingEmployer && existingEmployer.companyId !== null) {
+      throw new ConflictException(
+        'You are already an employee of another company and cannot create a new one'
+      );
+    }
+
     try {
-      return await this.prisma.company.create({ data: dto });
+      // Create company and employer in a transaction
+      const company = await this.prisma.$transaction(async (tx) => {
+        // Create the company
+        const newCompany = await tx.company.create({ data: dto });
+
+        // Create employer record for creator
+        const employerRecord = await tx.employer.create({
+          data: {
+            companyId: newCompany.id,
+            employerId: creatorUserId,
+            role: 'admin',
+          },
+        });
+
+        // Update company to set creator as admin
+        return tx.company.update({
+          where: { id: newCompany.id },
+          data: { adminId: employerRecord.id },
+        });
+      });
+
+      return company;
     } catch (error) {
       this.mapPrismaError(error, dto.name);
     }
@@ -80,41 +113,44 @@ export class CompanyService {
       requesterUserId
     );
 
+    // Find user by email
     const user = await this.prisma.user.findUnique({
-      where: { id: dto.employerId },
+      where: { email: dto.email },
       select: { id: true, role: true },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${dto.employerId} not found`);
+      throw new NotFoundException(`User with email ${dto.email} not found`);
     }
 
     if (user.role !== 'employer') {
       throw new BadRequestException(
-        `User with ID ${dto.employerId} is not an employer`
+        `User with email ${dto.email} is not an employer`
       );
     }
 
+    // Check if employer already belongs to a company
     const existingMembership = await this.prisma.employer.findUnique({
-      where: { employerId: dto.employerId },
-      select: { companyId: true },
+      where: { employerId: user.id },
+      select: { id: true, companyId: true },
     });
 
     if (existingMembership) {
       if (existingMembership.companyId === companyId) {
         throw new ConflictException(
-          `User with ID ${dto.employerId} is already an employee of this company`
+          `Employer with email ${dto.email} is already a member of this company`
         );
       }
 
       if (existingMembership.companyId !== null) {
         throw new ConflictException(
-          `User with ID ${dto.employerId} already belongs to another company`
+          `Employer with email ${dto.email} is already associated with another company`
         );
       }
 
+      // If employer previously belonged to a company but was removed (companyId = null), re-add them
       return this.prisma.employer.update({
-        where: { employerId: dto.employerId },
+        where: { employerId: user.id },
         data: {
           companyId,
           role: dto.role ?? 'employee',
@@ -122,10 +158,11 @@ export class CompanyService {
       });
     }
 
+    // Create new employer record
     return this.prisma.employer.create({
       data: {
         companyId,
-        employerId: dto.employerId,
+        employerId: user.id,
         role: dto.role ?? 'employee',
       },
     });
@@ -134,21 +171,31 @@ export class CompanyService {
   async removeEmployee(
     companyId: number,
     requesterUserId: string,
-    employerUserId: string
+    employerEmail: string
   ): Promise<void> {
     const company = await this.assertRequesterIsCompanyAdminEmployer(
       companyId,
       requesterUserId
     );
 
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email: employerEmail },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${employerEmail} not found`);
+    }
+
     const membership = await this.prisma.employer.findUnique({
-      where: { employerId: employerUserId },
+      where: { employerId: user.id },
       select: { id: true, companyId: true },
     });
 
     if (membership?.companyId !== companyId) {
       throw new NotFoundException(
-        `Employer ${employerUserId} is not an employee of company ${companyId}`
+        `Employer with email ${employerEmail} is not an employee of company ${companyId}`
       );
     }
 
@@ -159,25 +206,35 @@ export class CompanyService {
     }
 
     await this.prisma.employer.update({
-      where: { employerId: employerUserId },
+      where: { employerId: user.id },
       data: { companyId: null },
     });
   }
 
   async grantCompanyAdmin(
     companyId: number,
-    employerUserId: string
+    employerEmail: string
   ): Promise<Company> {
     await this.ensureCompanyExists(companyId);
 
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email: employerEmail },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${employerEmail} not found`);
+    }
+
     const membership = await this.prisma.employer.findUnique({
-      where: { employerId: employerUserId },
+      where: { employerId: user.id },
       select: { id: true, companyId: true },
     });
 
     if (membership?.companyId !== companyId) {
       throw new NotFoundException(
-        `Employer ${employerUserId} is not an employee of company ${companyId}`
+        `Employer with email ${employerEmail} is not an employee of company ${companyId}`
       );
     }
 
@@ -192,7 +249,7 @@ export class CompanyService {
         error.code === 'P2002'
       ) {
         throw new ConflictException(
-          `Employer ${employerUserId} is already admin of another company`
+          `Employer with email ${employerEmail} is already admin of another company`
         );
       }
 

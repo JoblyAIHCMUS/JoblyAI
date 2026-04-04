@@ -41,8 +41,11 @@ export class CompanyController {
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer', 'admin')
-  async createCompany(@Body() dto: CompanyCreateDto) {
-    return this.companyService.create(dto);
+  async createCompany(
+    @Body() dto: CompanyCreateDto,
+    @Req() request: AuthenticatedRequest
+  ) {
+    return this.companyService.create(dto, request.user.id);
   }
 
   @Put(':id')
@@ -84,22 +87,22 @@ export class CompanyController {
     return this.companyService.addEmployee(companyId, request.user.id, dto);
   }
 
-  @Delete(':id/employees/:employerId')
+  @Delete(':id/employees')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')
   async removeEmployee(
     @Param('id', ParseIntPipe) companyId: number,
-    @Param('employerId') employerId: string,
+    @Body() dto: CompanyAddEmployeeDto,
     @Req() request: AuthenticatedRequest
   ) {
     await this.companyService.removeEmployee(
       companyId,
       request.user.id,
-      employerId
+      dto.email
     );
 
     return {
-      message: `Employer ${employerId} removed from company ${companyId}`,
+      message: `Employer with email ${dto.email} removed from company ${companyId}`,
     };
   }
 
@@ -110,6 +113,6 @@ export class CompanyController {
     @Param('id', ParseIntPipe) companyId: number,
     @Body() dto: CompanyGrantAdminDto
   ) {
-    return this.companyService.grantCompanyAdmin(companyId, dto.employerId);
+    return this.companyService.grantCompanyAdmin(companyId, dto.email);
   }
 }
