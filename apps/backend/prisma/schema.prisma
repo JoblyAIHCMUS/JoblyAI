@@ -306,23 +306,24 @@ model Company {
   // S3 Logo Storage - PUBLIC access (bucket policy allows public GetObject)
   // Store direct S3 URL since logos are publicly readable
   logoUrl      String?    // S3 public URL (e.g., "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/logos/uuid.png")
-  
+  adminId      Int?       @unique
+  admin        Employer?  @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  employers   Employer[]
+  employers    Employer[] @relation("CompanyEmployers")
   jobPostings JobPosting[]
 }
 
 model Employer {
   id         Int      @id @default(autoincrement())
-  companyId  Int
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId  Int?
+  company    Company? @relation("CompanyEmployers", fields: [companyId], references: [id], onDelete: SetNull)
   employerId String   @unique
   employer   User     @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  adminFor   Company? @relation("CompanyAdmin")
   role       String
   assignedAt DateTime @default(now())
 
-  @@unique([companyId, employerId])
   @@index([companyId])
   @@index([employerId])
 }
