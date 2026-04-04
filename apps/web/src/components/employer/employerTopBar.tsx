@@ -61,7 +61,7 @@ export function EmployerTopBar() {
           <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium">
             {company?.logoUrl ? (
               <img
-                src={company.logoUrl}
+                src={company.logoUrl || 'https://placehold.co/48x48'}
                 alt={company.name}
                 className="h-12 w-12 rounded-full object-cover"
               />

@@ -842,6 +842,21 @@ async function main() {
   });
   console.log('Assigned Maria Kelly as HR in Nomad');
 
+  // Assign Carol White as HR in Tech Corp
+  console.log('Creating employer role for Carol...');
+  const carol = allUsers.find((u) => u.email === 'carol@example.com');
+  if (carol) {
+    await prisma.employer.create({
+      data: {
+        companyId: companies[0].id, // Tech Corp
+        employerId: carol.id,
+        role: 'HR',
+        assignedAt: new Date('2021-01-01'),
+      },
+    });
+    console.log('Assigned Carol White as HR in Tech Corp');
+  }
+
   console.log('Database seeding completed successfully!');
   console.log(`
 Summary:
