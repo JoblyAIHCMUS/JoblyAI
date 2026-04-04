@@ -1,5 +1,9 @@
+'use client';
+
+import Link from 'next/link';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
+import { useRole } from '@/contexts/role-context';
 
 function formatJobType(type: string): string {
   return type
@@ -34,6 +38,9 @@ function getColorForSkill(skill: string): string {
 }
 
 export default function JobCard({ job, viewMode }: JobCardProps) {
+  const role = useRole();
+  const jobHref = role === 'candidate' ? `/candidate/find-jobs/${job.id}` : `/find-jobs/${job.id}`;
+  
   return (
     <article
       className={`flex flex-col gap-4 rounded-xl border border-slate-200 p-5 ${
@@ -42,7 +49,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
           : 'lg:flex-row lg:items-center lg:justify-between'
       }`}
     >
-      <div className="flex min-w-0 items-start gap-4">
+      <Link href={jobHref} className="flex min-w-0 items-start gap-4 hover:opacity-80 transition-opacity">
         <div
           className={
             'flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900'
@@ -86,7 +93,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             ))}
           </div>
         </div>
-      </div>
+      </Link>
 
       <div
         className={`flex w-full flex-col items-start gap-3 ${

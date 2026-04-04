@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
@@ -8,12 +9,19 @@ import { ApplicationsFeatureNotice } from '@/features/candidate/applications/com
 import { ApplicationsFilterDialog } from '@/features/candidate/applications/components/ApplicationsFilterDialog';
 import { ApplicationsSearchToolbar } from '@/features/candidate/applications/components/ApplicationsSearchToolbar';
 import { useApplicationsPageState } from '@/features/candidate/applications/hooks/useApplicationsPageState';
+import { usePageTitle } from '@/contexts/page-title-context';
 import { useWithdrawApplication } from '@/api-hook/application';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { useUser } from '@/hooks/useUser';
 import { ApplicationItem } from '@/types/candidate';
 
 export default function CandidateApplicationsPage() {
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle('My Applications');
+  }, [setTitle]);
+
   const filterDialogId = 'applications-filter-dialog';
   const { data: user } = useUser();
   const {

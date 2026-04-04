@@ -1,5 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
-import { useJobDetail } from '@/hooks/useJobDetail';
+import type { JobDetailContentProps } from '@/types/jobDetail';
 
 function CheckItem({ text }: { text: string }) {
   return (
@@ -46,13 +46,19 @@ function CategoryPill({
   );
 }
 
-export default function JobDetailContent() {
+/**
+ * Pure presentational component for job detail content.
+ * Receives all data as props and renders UI without any business logic or hooks.
+ */
+export default function JobDetailContent(props: JobDetailContentProps) {
   const {
-    jobDetail,
     descriptionContent,
     applicationProgress,
     formattedSalary,
-  } = useJobDetail();
+    aboutRole,
+    category,
+    requiredSkills,
+  } = props;
 
   return (
     <section className="bg-white">
@@ -109,10 +115,10 @@ export default function JobDetailContent() {
               <div className="flex flex-col gap-2 py-3">
                 <p className="text-sm sm:text-base text-slate-900">
                   <span className="font-medium">
-                    {jobDetail.aboutRole.appliedCount} applied
+                    {aboutRole.appliedCount} applied
                   </span>{' '}
                   <span className="text-slate-500">
-                    of {jobDetail.aboutRole.capacity} capacity
+                    of {aboutRole.capacity} capacity
                   </span>
                 </p>
                 <div className="flex h-2 w-full rounded-full overflow-hidden bg-slate-200">
@@ -130,7 +136,7 @@ export default function JobDetailContent() {
                     Apply Before
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-[#25324B]">
-                    {jobDetail.aboutRole.applyBefore}
+                    {aboutRole.applyBefore}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -138,7 +144,7 @@ export default function JobDetailContent() {
                     Job Posted On
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-[#25324B]">
-                    {jobDetail.aboutRole.postedOn}
+                    {aboutRole.postedOn}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -146,7 +152,7 @@ export default function JobDetailContent() {
                     Job Type
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-[#25324B]">
-                    {jobDetail.aboutRole.jobType}
+                    {aboutRole.jobType}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -166,8 +172,8 @@ export default function JobDetailContent() {
             <div className="flex flex-col gap-6">
               <SectionHeading>Category</SectionHeading>
               <div className="flex flex-wrap gap-2">
-                <CategoryPill color={jobDetail.category.color}>
-                  {jobDetail.category.label}
+                <CategoryPill color={category.color}>
+                  {category.label}
                 </CategoryPill>
               </div>
             </div>
@@ -178,7 +184,7 @@ export default function JobDetailContent() {
             <div className="flex flex-col gap-4">
               <SectionHeading>Required Skills</SectionHeading>
               <div className="flex flex-wrap gap-2">
-                {jobDetail.requiredSkills.map((skill) => (
+                {requiredSkills.map((skill) => (
                   <SkillTag key={skill}>{skill}</SkillTag>
                 ))}
               </div>

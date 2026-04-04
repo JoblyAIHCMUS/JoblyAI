@@ -3,6 +3,7 @@ import { useUser } from '@/hooks/useUser';
 import LandingLayout from '@/components/landing/LandingLayout';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import RoleContext from '@/contexts/role-context';
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const { data: user, isLoading } = useUser();
@@ -21,7 +22,16 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }
 
   if (!user) {
-    return <LandingLayout>{children}</LandingLayout>;
+    return (
+      <RoleContext.Provider value="guest">
+        <LandingLayout>{children}</LandingLayout>
+      </RoleContext.Provider>
+    );
   }
-  return <>{children}</>;
+
+  return (
+    <RoleContext.Provider value="candidate">
+      {children}
+    </RoleContext.Provider>
+  );
 }

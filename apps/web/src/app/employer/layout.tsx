@@ -1,8 +1,8 @@
 'use client';
 
-import { useUser } from '@/hooks/useUser';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 import { EmployerSidebar } from '@/components/employer/employerSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { EmployerTopBar } from '@/components/employer/employerTopBar';
