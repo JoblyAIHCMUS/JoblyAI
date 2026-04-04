@@ -8,6 +8,7 @@ import {
 interface UseListEmployerApplicationsOptions {
   onSuccess?: (data: PaginatedApplicationsResponse) => void;
   onError?: (error: unknown) => void;
+  initialPageSize?: number;
 }
 
 export function useListEmployerApplications(
@@ -15,15 +16,28 @@ export function useListEmployerApplications(
 ) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [data, setData] = useState<PaginatedApplicationsResponse | null>(null);
+  const [data, setData] = useState<
+    PaginatedApplicationsResponse['applications'] | null
+  >(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(options?.initialPageSize || 10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const fetchApplications = useCallback(
-    async (query?: EmployerApplicationsQuery) => {
+    async (query?: EmployerApplicationsQuery, page = 1) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await listEmployerApplications(query);
-        setData(result);
+        const result = await listEmployerApplications({
+          ...query,
+          page,
+          pageSize,
+        });
+        setData(result.applications);
+        setTotal(result.total);
+        setTotalPages(result.totalPages);
+        setCurrentPage(result.page);
         options?.onSuccess?.(result);
         return result;
       } catch (err: unknown) {
@@ -34,8 +48,22 @@ export function useListEmployerApplications(
         setLoading(false);
       }
     },
-    [options]
+    [pageSize, options?.onSuccess, options?.onError]
   );
 
-  return { fetchApplications, loading, error, data };
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  return {
+    fetchApplications,
+    loading,
+    error,
+    data,
+    currentPage,
+    pageSize,
+    total,
+    totalPages,
+    goToPage,
+  };
 }

@@ -226,18 +226,80 @@ interface AllApplicationsTableProps {
   applications: AllApplication[];
   advanceApplicant: (id: string) => void;
   declineApplicant: (id: string) => void;
+  pageSize?: number;
+  currentPage?: number;
+  totalPages?: number;
+  total?: number;
+  loading?: boolean;
+  onPageChange?: (page: number) => void;
 }
 
 export default function AllApplicationsTable({
   applications,
   advanceApplicant,
   declineApplicant,
+  pageSize = 10,
+  currentPage = 1,
+  totalPages = 1,
+  total = 0,
+  loading = false,
+  onPageChange,
 }: AllApplicationsTableProps) {
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages && onPageChange) {
+      onPageChange(page);
+    }
+  };
+
   return (
-    <DataTable
-      columns={columns}
-      data={applications}
-      meta={{ advanceApplicant, declineApplicant }}
-    />
+    <div className="space-y-4">
+      <DataTable
+        columns={columns}
+        data={applications}
+        pageSize={pageSize}
+        meta={{ advanceApplicant, declineApplicant }}
+      />
+
+      {/* Custom pagination controls for server-side pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between py-4">
+          <div className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * pageSize + 1} to{' '}
+            {Math.min(currentPage * pageSize, total)} of {total} results
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || loading}
+            >
+              Previous
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .slice(Math.max(0, currentPage - 2), currentPage + 1)
+              .map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handlePageChange(page)}
+                  disabled={loading}
+                >
+                  {page}
+                </Button>
+              ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || loading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
