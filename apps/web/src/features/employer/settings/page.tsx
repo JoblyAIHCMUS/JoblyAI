@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,27 +13,64 @@ import {
 import ChangePasswordForm from './components/ChangePasswordForm';
 import UpdateEmailForm from './components/UpdateEmailForm';
 import { NotificationOptions } from './components/NotificationOptions';
+import { useGetEmployerProfile } from '@/api-hook/employer';
+import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
+import { useUploadFile } from '@/api-hook/s3';
+import { useToast } from '@/hooks/useToast';
+import { formatErrorForDisplay } from '@/lib/errors';
+import { formatDateToYYYYMMDD } from '@/lib/validation';
 
 type AccountType = 'job_seeker' | 'employer';
 
 export default function EmployerSettingsPage() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('my-profile');
   const [accountType, setAccountType] = useState<AccountType>('employer');
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
+  const [email, setEmail] = useState<string>('');
   const [personalDetails, setPersonalDetails] =
     useState<PersonalDetailsFormData>({
-      firstName: 'Jake',
-      lastName: 'Gyll',
-      phoneNumber: '+44 1245 572 135',
-      email: 'Jakegyll@gmail.com',
-      dateOfBirth: '1997-08-09',
-      gender: 'Male',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      dateOfBirth: '',
+      gender: '',
     });
   const [errors, setErrors] = useState<
     Partial<Record<keyof PersonalDetailsFormData, string>>
   >({});
+
+  const { fetchEmployerProfile, loading: loadingProfile } =
+    useGetEmployerProfile({
+      onSuccess: (data) => {
+        setEmail(data.email || '');
+        setProfilePhoto(
+          data.avatarUrl || data.image || 'https://placehold.co/124x124'
+        );
+        setPersonalDetails((prev) => ({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          phoneNumber: data.phoneNumber ?? prev.phoneNumber,
+          email: data.email || '',
+          dateOfBirth: formatDateToYYYYMMDD(
+            data.dateOfBirth ?? prev.dateOfBirth
+          ),
+          gender: data.gender ?? prev.gender,
+        }));
+      },
+      onError: (error) => {
+        toast.error(
+          formatErrorForDisplay(error, 'Failed to load employer profile')
+        );
+      },
+    });
+
+  const { updateDetails, loading: updatingProfile } =
+    useUpdatePersonalDetails();
+  const { upload, loading: uploadingAvatar } = useUploadFile();
 
   const tabs = [
     { id: 'my-profile', label: 'My Profile' },
@@ -41,12 +78,21 @@ export default function EmployerSettingsPage() {
     { id: 'system-settings', label: 'System Settings' },
   ];
 
-  const handlePhotoChange = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setProfilePhoto(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+  useEffect(() => {
+    fetchEmployerProfile();
+  }, []);
+
+  const handlePhotoChange = async (file: File) => {
+    try {
+      const uploadResult = await upload(file, 'avatars');
+      await updateDetails({ avatarUrl: uploadResult.fileUrl });
+      setProfilePhoto(uploadResult.fileUrl);
+      toast.success('Profile photo updated successfully');
+    } catch (error) {
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to update profile photo')
+      );
+    }
   };
 
   const validateForm = (): boolean => {
@@ -77,14 +123,25 @@ export default function EmployerSettingsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (validateForm()) {
-      console.log('Saving profile...', {
-        accountType,
-        profilePhoto,
-        personalDetails,
+  const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await updateDetails({
+        firstName: personalDetails.firstName,
+        lastName: personalDetails.lastName,
+        phoneNumber: personalDetails.phoneNumber,
+        dateOfBirth: personalDetails.dateOfBirth,
+        gender: personalDetails.gender,
       });
-      // TODO: Send data to API
+      await fetchEmployerProfile();
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to update profile details')
+      );
     }
   };
 
@@ -98,6 +155,8 @@ export default function EmployerSettingsPage() {
   const handleNotificationChange = (key: keyof typeof notifications) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const isSaving = updatingProfile || uploadingAvatar;
 
   return (
     <div className="min-h-screen bg-primary">
@@ -136,6 +195,7 @@ export default function EmployerSettingsPage() {
             <ProfilePhotoSection
               photoUrl={profilePhoto}
               onPhotoChange={handlePhotoChange}
+              disabled={loadingProfile || isSaving}
             />
           </div>
 
@@ -148,6 +208,7 @@ export default function EmployerSettingsPage() {
               data={personalDetails}
               onChange={setPersonalDetails}
               errors={errors}
+              disabled={loadingProfile || isSaving}
             />
           </div>
 
@@ -159,6 +220,7 @@ export default function EmployerSettingsPage() {
             <AccountTypeSection
               selectedType={accountType}
               onTypeChange={setAccountType}
+              disabled
             />
           </div>
 
@@ -168,9 +230,10 @@ export default function EmployerSettingsPage() {
           {/* Save Button */}
           <Button
             onClick={handleSave}
+            disabled={loadingProfile || isSaving}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 h-auto bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded-[5px] font-label-label-1-semi-bold text-[length:var(--label-label-1-semi-bold-font-size)] text-[var(--text-white,#ffffff)] text-center tracking-[var(--label-label-1-semi-bold-letter-spacing)] leading-[var(--label-label-1-semi-bold-line-height)] whitespace-nowrap"
           >
-            Save Profile
+            {isSaving ? 'Saving...' : 'Save Profile'}
           </Button>
         </TabsContent>
 
@@ -206,7 +269,7 @@ export default function EmployerSettingsPage() {
               </div>
             </div>
             {/* Right: Email verified + form */}
-            <UpdateEmailForm email={personalDetails.email} />
+            <UpdateEmailForm email={email || personalDetails.email} />
           </div>
 
           {/* Divider */}
