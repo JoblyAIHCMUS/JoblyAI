@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 
 import { CandidateEducation } from '@/types/candidate';
+import { DateInput } from '@/components/ui/date-input';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 
 interface EducationsProps {
@@ -68,25 +68,21 @@ function EducationEditForm({
       </div>
       {/* Row 3 */}
       <div className="flex items-center gap-2">
-        <DatePicker
-          selected={editItem.startDate ? new Date(editItem.startDate) : null}
-          onChange={(date: Date | null) =>
-            handleDateChange && handleDateChange('startDate', date)
-          }
-          dateFormat="yyyy-MM-dd"
-          placeholderText="Start date"
-          className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
-        />
+        <div className="max-w-[150px]">
+          <DateInput
+            value={editItem.startDate}
+            onChange={(date) => handleDateChange && handleDateChange('startDate', date)}
+            label="Start"
+          />
+        </div>
         <span className="text-tertiary">-</span>
-        <DatePicker
-          selected={editItem.endDate ? new Date(editItem.endDate) : null}
-          onChange={(date: Date | null) =>
-            handleDateChange && handleDateChange('endDate', date)
-          }
-          dateFormat="yyyy-MM-dd"
-          placeholderText="End date"
-          className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
-        />
+        <div className="max-w-[150px]">
+          <DateInput
+            value={editItem.endDate}
+            onChange={(date) => handleDateChange && handleDateChange('endDate', date)}
+            label="End"
+          />
+        </div>
       </div>
       {/* Row 4 */}
       <textarea

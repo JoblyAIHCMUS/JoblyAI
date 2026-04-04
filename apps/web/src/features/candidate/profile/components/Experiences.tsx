@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import DatePicker from 'react-datepicker';
+import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 
@@ -81,35 +81,33 @@ function ExperienceEditForm({
             </SelectContent>
           </Select>
         </div>
-        <Dot size={16} />
-        <div className="flex items-center gap-2">
-          <DatePicker
-            selected={editItem.startDate ? new Date(editItem.startDate) : null}
-            onChange={(date: Date | null) =>
-              handleDateChange('startDate', date)
-            }
-            dateFormat="yyyy-MM-dd"
-            placeholderText="Start date"
-            className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
+      </div>
+      {/* Row 3 */}
+      <div className="flex items-center gap-2">
+        <div className="max-w-[150px]">
+          <DateInput
+            value={editItem.startDate}
+            onChange={(date) => handleDateChange('startDate', date)}
+            label="Start"
           />
-          <span className="mx-1">-</span>
-          <DatePicker
-            selected={editItem.endDate ? new Date(editItem.endDate) : null}
-            onChange={(date: Date | null) => handleDateChange('endDate', date)}
-            dateFormat="yyyy-MM-dd"
-            placeholderText="End date"
-            className="text-tertiary break-words border rounded p-1 max-w-[110px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
+        </div>
+        <span className="mx-1">-</span>
+        <div className="max-w-[150px]">
+          <DateInput
+            value={editItem.endDate}
+            onChange={(date) => handleDateChange('endDate', date)}
+            label="End"
           />
         </div>
       </div>
-      {/* Row 3 */}
+      {/* Row 4 */}
       <input
         className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
         value={editItem.location}
         onChange={(e) => handleChange('location', e.target.value)}
         placeholder="Location"
       />
-      {/* Row 4 */}
+      {/* Row 5 */}
       <textarea
         ref={textareaRef}
         className="text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary min-h-[60px]"

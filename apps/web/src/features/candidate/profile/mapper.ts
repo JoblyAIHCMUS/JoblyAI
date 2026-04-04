@@ -68,6 +68,8 @@ export function mapDataToCandidate(
 
   return {
     name: fullName,
+    email: data.email || '',
+    phone: data.phoneNumber || '',
     title: '', // Title is no longer stored in about section
     avatar: data.avatarUrl || '',
     banner: '#4640DE',

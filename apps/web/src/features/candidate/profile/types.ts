@@ -7,6 +7,8 @@ import {
 
 export interface CandidateProfileUI {
   name: string;
+  email: string;
+  phone: string;
   title: string;
   avatar: string;
   banner: string;

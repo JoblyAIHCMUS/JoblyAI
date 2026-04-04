@@ -1,112 +1,14 @@
 'use client';
 import React, { useState } from 'react';
-import { Edit, Plus, Mail, Smartphone } from 'lucide-react';
-import { Contact, Social } from '@/types/candidate';
+import { Edit, Plus } from 'lucide-react';
+import { Social } from '@/types/candidate';
 
 interface SideBarProps {
-  contact: Contact;
+  contact?: { email: string; phone?: string };
   socials: Social[];
-  handleUpdateContact?: (contact: Contact) => void;
+  handleUpdateContact?: (contact: { email: string; phone?: string }) => void;
   handleAddSocial?: (social: Social) => void;
   handleUpdateSocials?: (social: Social[]) => void;
-}
-
-// Contact View
-function ContactView({ contact }: { contact: Contact }) {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Additional Details
-        </div>
-        {/* Edit button disabled - users can edit from Settings page */}
-      </div>
-      <div className="flex items-center gap-4">
-        <Mail size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Email
-          </div>
-          <div className="body-body-1-regular text-tertiary break-words">
-            {contact.email}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Smartphone size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Phone
-          </div>
-          <div className="body-body-1-regular text-tertiary break-words">
-            {contact.phone}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// Contact Edit
-function ContactEdit({
-  editContact,
-  onChange,
-  onSave,
-  onCancel,
-}: {
-  editContact: Contact;
-  onChange: (field: keyof Contact, value: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Additional Details
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Mail size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Email
-          </div>
-          <input
-            className="body-body-1-regular text-tertiary break-words border rounded p-1"
-            value={editContact.email}
-            onChange={(e) => onChange('email', e.target.value)}
-            placeholder="Email"
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Smartphone size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Phone
-          </div>
-          <input
-            className="body-body-1-regular text-tertiary break-words border rounded p-1"
-            value={editContact.phone}
-            onChange={(e) => onChange('phone', e.target.value)}
-            placeholder="Phone"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2 mt-2">
-        <button
-          className="px-4 py-2 rounded bg-accent-solid text-white"
-          onClick={onSave}
-        >
-          Save
-        </button>
-        <button className="px-4 py-2 rounded border" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
-    </>
-  );
 }
 
 // Socials View
@@ -260,34 +162,15 @@ function EditSocialsForm({
 }
 
 export default function SideBar({
-  contact,
   socials,
-  handleUpdateContact,
   handleAddSocial,
   handleUpdateSocials,
 }: SideBarProps) {
-  // Contact state
-  const [isEditingContact, setIsEditingContact] = useState(false);
-  const [editContact, setEditContact] = useState<Contact>(contact);
-
   // Socials state
   const [isEditingSocial, setIsEditingSocial] = useState(false);
   const [editSocials, setEditSocials] = useState<Social[]>(socials);
   const [isAddingSocial, setIsAddingSocial] = useState(false);
   const [newSocial, setNewSocial] = useState<Social>({ type: '', url: '' });
-
-  // Contact handlers
-  const handleContactChange = (field: keyof Contact, value: string) => {
-    setEditContact((prev) => ({ ...prev, [field]: value }));
-  };
-  const handleContactSave = () => {
-    if (handleUpdateContact) handleUpdateContact(editContact);
-    setIsEditingContact(false);
-  };
-  const handleContactCancel = () => {
-    setIsEditingContact(false);
-    setEditContact(contact);
-  };
 
   // Social handlers
   const handleSocialChange = (
@@ -331,19 +214,6 @@ export default function SideBar({
 
   return (
     <div className="flex flex-col gap-6 w-[375px]">
-      {/* Additional Details */}
-      <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-[var(--space-lg)] flex flex-col gap-[var(--space-lg)]">
-        {isEditingContact ? (
-          <ContactEdit
-            editContact={editContact}
-            onChange={handleContactChange}
-            onSave={handleContactSave}
-            onCancel={handleContactCancel}
-          />
-        ) : (
-          <ContactView contact={contact} />
-        )}
-      </div>
       {/* Social Links */}
       <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-[var(--space-lg)] flex flex-col gap-[var(--space-lg)]">
         {isEditingSocial ? (

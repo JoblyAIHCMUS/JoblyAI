@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flag } from 'lucide-react';
+import { Flag, Mail, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Candidate {
@@ -9,6 +9,8 @@ interface Candidate {
   avatar: string;
   banner: string;
   openForOpportunities: boolean;
+  email?: string;
+  phone?: string;
 }
 
 interface ProfileHeaderProps {
@@ -46,6 +48,24 @@ export default function ProfileHeader({ candidate }: ProfileHeaderProps) {
               <MapPin size={20} />
               {candidate.location}
             </div> */}
+            <div className="flex items-center gap-3 mt-2">
+              {candidate.email && (
+                <div className="flex items-center gap-2">
+                  <Mail size={16} className="text-accent-primary flex-shrink-0" />
+                  <span className="body-body-1-regular text-tertiary break-words">
+                    {candidate.email}
+                  </span>
+                </div>
+              )}
+              {candidate.phone && (
+                <div className="flex items-center gap-2">
+                  <Smartphone size={16} className="text-accent-primary flex-shrink-0" />
+                  <span className="body-body-1-regular text-tertiary break-words">
+                    {candidate.phone}
+                  </span>
+                </div>
+              )}
+            </div>
             {candidate.openForOpportunities && (
               <div className="mt-2 px-[var(--space-xl)] py-[var(--space-base)] bg-[color:#CCFBF1] rounded-[var(--radius-xl)] flex items-center gap-[var(--space-xs)]">
                 <Flag size={20} color="#14B8A6" />

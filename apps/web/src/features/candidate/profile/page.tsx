@@ -289,55 +289,62 @@ const CandidateProfilePage = () => {
       className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
       style={{ boxSizing: 'border-box' }}
     >
-      <div className="flex flex-row w-full max-w-6xl gap-[var(--space-base)] items-start">
-        {/* Main Content (Left) */}
-        <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
+      {/* Top Row: ProfileHeader + Sidebar */}
+      <div className="flex flex-row w-full gap-[var(--space-base)] items-start">
+        {/* ProfileHeader (Left) */}
+        <div className="flex-1">
           <ProfileHeader candidate={candidate} />
-          <AboutMe
-            about={profile?.about || { id: 0, bio: '' }}
-            handleUpdateAbout={handleUpdateAbout}
-          />
-          <CV
-            cvFileKey={getCVFileKey()}
-            cvFileName={getCVFileName()}
-            onCVChange={handleCVUpload}
-            isUploading={uploading || creatingResume}
-            uploadError={
-              uploadErrorMsg ||
-              (uploadError
-                ? uploadError instanceof Error
-                  ? uploadError.message
-                  : String(uploadError)
-                : null)
-            }
-          />
-          <Experiences
-            experiences={candidate.experiences}
-            handleUpdateExperience={handleUpdateExperience}
-            handleAddExperience={handleAddExperience}
-            handleDeleteExperience={handleDeleteExperience}
-          />
-          <Educations
-            educations={candidate.educations}
-            handleAddEducation={handleAddEducation}
-            handleUpdateEducation={handleUpdateEducation}
-            handleDeleteEducation={handleDeleteEducation}
-          />
-          <Skills
-            skills={candidate.skills}
-            handleAddSkill={handleAddSkill}
-            handleDeleteSkill={handleDeleteSkill}
-          />
-          {/* <Portfolios portfolios={candidate.portfolios} />/ */}
         </div>
         {/* Sidebar (Right) */}
-        <SideBar
-          contact={candidate.contact}
-          socials={candidate.socials}
-          handleUpdateContact={handleUpdateContact}
-          handleAddSocial={handleAddSocial}
-          handleUpdateSocials={handleUpdateSocials}
+        <div className="w-[375px] flex-shrink-0">
+          <SideBar
+            contact={candidate.contact}
+            socials={candidate.socials}
+            handleUpdateContact={handleUpdateContact}
+            handleAddSocial={handleAddSocial}
+            handleUpdateSocials={handleUpdateSocials}
+          />
+        </div>
+      </div>
+
+      {/* Bottom Section: AboutMe, CV, Experiences, Educations, Skills - Full Width */}
+      <div className="w-full flex flex-col gap-[var(--space-xl)]">
+        <AboutMe
+          about={profile?.about || { id: 0, bio: '' }}
+          handleUpdateAbout={handleUpdateAbout}
         />
+        <CV
+          cvFileKey={getCVFileKey()}
+          cvFileName={getCVFileName()}
+          onCVChange={handleCVUpload}
+          isUploading={uploading || creatingResume}
+          uploadError={
+            uploadErrorMsg ||
+            (uploadError
+              ? uploadError instanceof Error
+                ? uploadError.message
+                : String(uploadError)
+              : null)
+          }
+        />
+        <Experiences
+          experiences={candidate.experiences}
+          handleUpdateExperience={handleUpdateExperience}
+          handleAddExperience={handleAddExperience}
+          handleDeleteExperience={handleDeleteExperience}
+        />
+        <Educations
+          educations={candidate.educations}
+          handleAddEducation={handleAddEducation}
+          handleUpdateEducation={handleUpdateEducation}
+          handleDeleteEducation={handleDeleteEducation}
+        />
+        <Skills
+          skills={candidate.skills}
+          handleAddSkill={handleAddSkill}
+          handleDeleteSkill={handleDeleteSkill}
+        />
+        {/* <Portfolios portfolios={candidate.portfolios} />/ */}
       </div>
     </div>
   );
