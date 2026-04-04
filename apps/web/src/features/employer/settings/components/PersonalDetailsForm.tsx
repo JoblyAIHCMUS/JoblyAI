@@ -43,8 +43,7 @@ export function PersonalDetailsForm({
         <div className="inline-flex justify-start items-start gap-6 w-full">
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              First Name{' '}
-              <span className="text-red-400 ml-1">*</span>
+              First Name <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="text"
@@ -65,8 +64,7 @@ export function PersonalDetailsForm({
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Last Name{' '}
-              <span className="text-red-400 ml-1">*</span>
+              Last Name <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="text"
@@ -111,8 +109,7 @@ export function PersonalDetailsForm({
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Email{' '}
-              <span className="text-red-400 ml-1">*</span>
+              Email <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="email"
@@ -136,8 +133,7 @@ export function PersonalDetailsForm({
         <div className="inline-flex justify-start items-start gap-6 w-full">
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Date of Birth{' '}
-              <span className="text-red-400 ml-1">*</span>
+              Date of Birth <span className="text-red-400 ml-1">*</span>
             </Label>
             <div className="relative w-full">
               <Input
@@ -164,8 +160,7 @@ export function PersonalDetailsForm({
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Gender{' '}
-              <span className="text-red-400 ml-1">*</span>
+              Gender <span className="text-red-400 ml-1">*</span>
             </Label>
             <div className="relative w-full">
               <Controller
