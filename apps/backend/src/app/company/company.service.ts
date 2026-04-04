@@ -264,6 +264,8 @@ export class CompanyService {
 
       throw error;
     }
+  }
+
   private async ensureCompanyAccess(id: number, user: User): Promise<void> {
     if (user.role === 'admin') {
       return;
@@ -273,6 +275,7 @@ export class CompanyService {
       where: {
         companyId: id,
         employerId: user.id,
+        adminFor: { id: id },
       },
       select: { id: true },
     });
