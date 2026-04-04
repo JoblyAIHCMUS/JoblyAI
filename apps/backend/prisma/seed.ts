@@ -216,7 +216,7 @@ async function main() {
         sizeRange: '1000-5000',
         industry: 'Software Development',
         description: 'Leading technology innovation company',
-        logoUrl: '',
+        logoUrl: 'https://techcorp.com/logo.png',
       },
     }),
     prisma.company.create({
@@ -226,7 +226,7 @@ async function main() {
         sizeRange: '500-1000',
         industry: 'Data Science',
         description: 'Data science and analytics solutions',
-        logoUrl: '',
+        logoUrl: 'https://dataflow.com/logo.png',
       },
     }),
     prisma.company.create({
@@ -236,7 +236,7 @@ async function main() {
         sizeRange: '200-500',
         industry: 'Cloud Infrastructure',
         description: 'Cloud infrastructure and DevOps services',
-        logoUrl: '',
+        logoUrl: 'https://cloudstack.io/logo.png',
       },
     }),
     prisma.company.create({
@@ -246,7 +246,7 @@ async function main() {
         sizeRange: '50-200',
         industry: 'Design',
         description: 'Creative design and UX solutions',
-        logoUrl: '',
+        logoUrl: 'https://designstudios.com/logo.png',
       },
     }),
     prisma.company.create({
@@ -256,7 +256,7 @@ async function main() {
         sizeRange: '100-500',
         industry: 'Product Development',
         description: 'Product innovation and development',
-        logoUrl: '',
+        logoUrl: 'https://innovationlabs.com/logo.png',
       },
     }),
     prisma.company.create({
@@ -266,7 +266,7 @@ async function main() {
         sizeRange: '20-100',
         industry: 'Startup Incubation',
         description: 'Startup incubation and mentorship',
-        logoUrl: '',
+        logoUrl: 'https://startuphub.com/logo.png',
       },
     }),
   ]);
@@ -825,7 +825,7 @@ async function main() {
       industry: 'Technology',
       description:
         'Nomad is a technology company focused on building innovative remote-first solutions for the modern workforce.',
-      logoUrl: '',
+      logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Nomad',
     },
   });
   console.log('Created company Nomad');
@@ -841,21 +841,6 @@ async function main() {
     },
   });
   console.log('Assigned Maria Kelly as HR in Nomad');
-
-  // Assign Carol White as HR in Tech Corp
-  console.log('Creating employer role for Carol...');
-  const carol = allUsers.find((u) => u.email === 'carol@example.com');
-  if (carol) {
-    await prisma.employer.create({
-      data: {
-        companyId: companies[0].id, // Tech Corp
-        employerId: carol.id,
-        role: 'HR',
-        assignedAt: new Date('2021-01-01'),
-      },
-    });
-    console.log('Assigned Carol White as HR in Tech Corp');
-  }
 
   console.log('Database seeding completed successfully!');
   console.log(`

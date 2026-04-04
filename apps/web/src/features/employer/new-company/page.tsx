@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -17,47 +20,64 @@ import { useUploadFile } from '@/api-hook/s3/useUploadFile';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
-import { getCurrentUser, type TeamMember } from './data';
+import {
+  getCurrentUser,
+  convertUserToTeamMember,
+  type TeamMember,
+} from './data';
+import { useUser } from '@/hooks/useUser';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 import { useCreateCompany } from '@/api-hook/company';
-
-const isHtmlContentEmpty = (html: string): boolean => {
-  if (!html) return true;
-
-  // In a browser environment, use DOM parsing to robustly extract text content
-  if (typeof document !== 'undefined') {
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    const rawText = container.textContent ?? container.innerText ?? '';
-    const normalizedText = rawText.replace(/\u00A0/g, ' ').trim();
-    return normalizedText === '';
-  }
-
-  // Fallback: strip tags and handle non-breaking spaces if DOM is unavailable
-  const text = html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .trim();
-  return text === '';
-};
+import {
+  companyRegistrationSchema,
+  type CompanyRegistrationFormData,
+} from './schema';
 
 export default function EmployerNewCompanyPage() {
-  const [companyName, setCompanyName] = useState('');
-  const [website, setWebsite] = useState('');
-  const [scale, setScale] = useState('1-50');
-  const [industry, setIndustry] = useState('');
-  const [companyDescription, setCompanyDescription] = useState('');
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
+  const { data: currentUser } = useUser();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValidating },
+    setValue,
+    getValues,
+  } = useForm<CompanyRegistrationFormData>({
+    resolver: zodResolver(companyRegistrationSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      companyName: '',
+      website: '',
+      scale: '1-50',
+      industry: '',
+      companyDescription: '',
+      logoUrl: null,
+    },
+  });
+
+  // Watch fields for tracking
+  const companyDescription = watch('companyDescription');
+  const logoUrl = watch('logoUrl');
+  const scale = watch('scale');
+  const industry = watch('industry');
+
   const {
     upload: uploadLogoToS3,
     loading: logoUploading,
     error: logoUploadError,
   } = useUploadFile();
 
-  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
-    { ...getCurrentUser(), isEditable: true },
-  ]);
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => {
+    // Use actual user data if available, otherwise use mock data
+    const initialUser = currentUser
+      ? convertUserToTeamMember(currentUser)
+      : getCurrentUser();
+
+    return initialUser
+      ? [{ ...initialUser, isEditable: true }]
+      : [{ ...getCurrentUser(), isEditable: true }];
+  });
 
   // Company creation hook
   const {
@@ -66,10 +86,10 @@ export default function EmployerNewCompanyPage() {
     error: createError,
   } = useCreateCompany({
     onSuccess: (data) => {
-      alert(`Company "${data.name}" registered successfully!`);
+      toast.success(`Company "${data.name}" registered successfully!`);
     },
     onError: (err) => {
-      alert('Failed to register company. Please try again.');
+      toast.error('Failed to register company. Please try again.');
     },
   });
 
@@ -86,15 +106,15 @@ export default function EmployerNewCompanyPage() {
     });
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (data: CompanyRegistrationFormData) => {
     // Prepare payload for backend
     const payload = {
-      name: companyName,
-      websiteUrl: website || undefined,
-      sizeRange: scale || undefined,
-      industry: industry || undefined,
-      description: companyDescription || undefined,
-      logoUrl: logoUrl || undefined, // S3 url
+      name: data.companyName,
+      websiteUrl: data.website || undefined,
+      sizeRange: data.scale || undefined,
+      industry: data.industry || undefined,
+      description: data.companyDescription || undefined,
+      logoUrl: data.logoUrl || undefined,
     };
     try {
       await submitCompany(payload);
@@ -104,11 +124,23 @@ export default function EmployerNewCompanyPage() {
   };
 
   const canProceed = (stepIndex: number): boolean => {
+    const currentValues = getValues();
     switch (stepIndex) {
       case 0:
-        return companyName.trim() !== '' && scale !== '' && industry !== '';
+        // Check if basic info is valid
+        return (
+          !!currentValues.companyName &&
+          currentValues.companyName.trim().length >= 2 &&
+          !!currentValues.scale &&
+          !!currentValues.industry &&
+          !errors.companyName &&
+          !errors.scale &&
+          !errors.industry &&
+          !errors.website
+        );
       case 1:
-        return !isHtmlContentEmpty(companyDescription);
+        // Check if description is valid
+        return !!currentValues.companyDescription && !errors.companyDescription;
       default:
         return true;
     }
@@ -134,7 +166,7 @@ export default function EmployerNewCompanyPage() {
       <Stepper
         steps={NEW_COMPANY_STEPS}
         canProceed={canProceed}
-        onComplete={handleComplete}
+        onComplete={handleSubmit(handleComplete)}
         loading={creatingCompany}
       >
         {/* Step 1: Basic Information */}
@@ -151,10 +183,9 @@ export default function EmployerNewCompanyPage() {
             </div>
             <div className="space-y-1">
               <LogoUploader
-                currentFileKey={logoFileKey}
+                currentFileKey={logoUrl ? logoUrl.split('/').pop() : undefined}
                 onValueChange={(url, _file, fileKey) => {
-                  setLogoUrl(url || null);
-                  setLogoFileKey(fileKey || null);
+                  setValue('logoUrl', url || null);
                 }}
                 onUploadFile={async (file) => {
                   const result = await uploadLogoToS3(file, 'logos');
@@ -197,10 +228,21 @@ export default function EmployerNewCompanyPage() {
                 <Input
                   id="company-name"
                   placeholder="e.g. Google LLC"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="h-12 text-base"
+                  className={`h-12 text-base ${
+                    errors.companyName ? 'border-red-500' : ''
+                  }`}
+                  {...register('companyName')}
                 />
+                {errors.companyName && (
+                  <p className="text-sm text-red-500">
+                    {errors.companyName.message}
+                  </p>
+                )}
+                {isValidating && (
+                  <p className="text-sm text-blue-500">
+                    Checking availability...
+                  </p>
+                )}
               </div>
 
               {/* Website */}
@@ -211,10 +253,16 @@ export default function EmployerNewCompanyPage() {
                 <Input
                   id="website"
                   placeholder="https://www.example.com"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="h-12 text-base"
+                  className={`h-12 text-base ${
+                    errors.website ? 'border-red-500' : ''
+                  }`}
+                  {...register('website')}
                 />
+                {errors.website && (
+                  <p className="text-sm text-red-500">
+                    {errors.website.message}
+                  </p>
+                )}
               </div>
 
               {/* Scale & Industry */}
@@ -223,8 +271,15 @@ export default function EmployerNewCompanyPage() {
                   <Label className="label-label-1-semibold">
                     Scale <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={scale} onValueChange={setScale}>
-                    <SelectTrigger className="h-12 text-base">
+                  <Select
+                    value={scale}
+                    onValueChange={(value) => setValue('scale', value as any)}
+                  >
+                    <SelectTrigger
+                      className={`h-12 text-base ${
+                        errors.scale ? 'border-red-500' : ''
+                      }`}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -235,14 +290,26 @@ export default function EmployerNewCompanyPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.scale && (
+                    <p className="text-sm text-red-500">
+                      {errors.scale.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label className="label-label-1-semibold">
                     Industry <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={industry} onValueChange={setIndustry}>
-                    <SelectTrigger className="h-12 text-base">
+                  <Select
+                    value={industry}
+                    onValueChange={(value) => setValue('industry', value)}
+                  >
+                    <SelectTrigger
+                      className={`h-12 text-base ${
+                        errors.industry ? 'border-red-500' : ''
+                      }`}
+                    >
                       <SelectValue placeholder="None" />
                     </SelectTrigger>
                     <SelectContent>
@@ -253,6 +320,11 @@ export default function EmployerNewCompanyPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.industry && (
+                    <p className="text-sm text-red-500">
+                      {errors.industry.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -267,10 +339,19 @@ export default function EmployerNewCompanyPage() {
             </Label>
             <RichTextEditor
               content={companyDescription}
-              onChange={setCompanyDescription}
+              onChange={(content) => {
+                setValue('companyDescription', content);
+              }}
               placeholder="Describe your company, its mission, values, and what makes it unique..."
-              className="min-h-[360px]"
+              className={`min-h-[360px] ${
+                errors.companyDescription ? 'border-red-500' : ''
+              }`}
             />
+            {errors.companyDescription && (
+              <p className="text-sm text-red-500">
+                {errors.companyDescription.message}
+              </p>
+            )}
           </div>
         </div>
 

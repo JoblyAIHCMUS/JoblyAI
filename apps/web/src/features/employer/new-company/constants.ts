@@ -26,5 +26,46 @@ export const INDUSTRIES = [
   { value: 'real-estate', label: 'Real Estate' },
   { value: 'transportation', label: 'Transportation' },
   { value: 'hospitality', label: 'Hospitality' },
+
+  // Broad / General
+  { value: 'agriculture', label: 'Agriculture' },
+  { value: 'construction', label: 'Construction' },
+  { value: 'energy', label: 'Energy & Utilities' },
+  { value: 'government', label: 'Government & Public Sector' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'logistics', label: 'Logistics & Supply Chain' },
+  { value: 'marketing', label: 'Marketing & Advertising' },
+  { value: 'nonprofit', label: 'Non-Profit & NGO' },
+  { value: 'pharmaceutical', label: 'Pharmaceutical' },
+  { value: 'telecommunications', label: 'Telecommunications' },
+
+  // Niche / Specialized
+  { value: 'aerospace', label: 'Aerospace & Defense' },
+  { value: 'automotive', label: 'Automotive' },
+  { value: 'biotechnology', label: 'Biotechnology' },
+  { value: 'chemical', label: 'Chemical' },
+  { value: 'environmental', label: 'Environmental & Sustainability' },
+  { value: 'food-beverage', label: 'Food & Beverage' },
+  { value: 'fashion', label: 'Fashion & Apparel' },
+  { value: 'mining', label: 'Mining & Resources' },
+  { value: 'sports', label: 'Sports & Recreation' },
+  { value: 'veterinary', label: 'Veterinary & Animal Care' },
+
+  // Emerging / Modern
+  { value: 'artificial-intelligence', label: 'Artificial Intelligence' },
+  { value: 'cleantech', label: 'Clean Energy & CleanTech' },
+  { value: 'crypto-blockchain', label: 'Crypto & Blockchain' },
+  { value: 'cybersecurity', label: 'Cybersecurity' },
+  { value: 'ecommerce', label: 'E-Commerce' },
+  { value: 'edtech', label: 'EdTech' },
+  { value: 'fintech', label: 'FinTech' },
+  { value: 'gaming', label: 'Gaming & Esports' },
+  { value: 'healthtech', label: 'HealthTech' },
+  { value: 'proptech', label: 'PropTech' },
+  { value: 'saas', label: 'SaaS' },
+  { value: 'social-media', label: 'Social Media' },
+  { value: 'space', label: 'Space Technology' },
+
   { value: 'other', label: 'Other' },
 ] as const;

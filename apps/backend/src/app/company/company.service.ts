@@ -30,6 +30,14 @@ export class CompanyService {
     return company;
   }
 
+  async checkNameExists(name: string): Promise<boolean> {
+    const company = await this.prisma.company.findUnique({
+      where: { name },
+      select: { id: true },
+    });
+    return !!company;
+  }
+
   async create(dto: CompanyCreateDto): Promise<Company> {
     try {
       return await this.prisma.company.create({ data: dto });
