@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Request,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
