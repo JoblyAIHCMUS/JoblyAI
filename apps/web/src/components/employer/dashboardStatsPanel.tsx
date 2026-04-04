@@ -243,9 +243,10 @@ export function DashboardStatsPanel({
             </div>
           </div>
         ) : (
-        {/* Data tab selector */}
-        <Tabs value={dataTab} onValueChange={(v) => setDataTab(v as DataTab)}>
-          <TabsList className="bg-transparent p-0 h-auto gap-4 border-b rounded-none w-full justify-start">
+          <>
+            {/* Data tab selector */}
+            <Tabs value={dataTab} onValueChange={(v) => setDataTab(v as DataTab)}>
+              <TabsList className="bg-transparent p-0 h-auto gap-4 border-b rounded-none w-full justify-start">
             <TabsTrigger
               value="overview"
               className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
@@ -338,7 +339,8 @@ export function DashboardStatsPanel({
               </TabsContent>
             )
           )}
-        </Tabs>
+            </Tabs>
+          </>
         )}
       </CardContent>
     </Card>
