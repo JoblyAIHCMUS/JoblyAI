@@ -73,7 +73,7 @@ const secondaryNav: NavItem[] = [
   {
     title: 'Help Center',
     href: '/candidate/help',
-    icon: HelpCircle || (() => <HelpCircle strokeWidth={1.5} />),
+    icon: HelpCircle,
   },
 ];
 

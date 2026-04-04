@@ -423,7 +423,9 @@ export default function Experiences({
         startDate: formData.dateRange.from
           ? formData.dateRange.from.toISOString()
           : '',
-        endDate: formData.dateRange.to
+        endDate: isCurrentlyWorking
+          ? ''
+          : formData.dateRange.to
           ? formData.dateRange.to.toISOString()
           : '',
         description: formData.description,
@@ -452,7 +454,9 @@ export default function Experiences({
         startDate: formData.dateRange.from
           ? formData.dateRange.from.toISOString()
           : '',
-        endDate: formData.dateRange.to
+        endDate: isCurrentlyWorking
+          ? ''
+          : formData.dateRange.to
           ? formData.dateRange.to.toISOString()
           : '',
         description: formData.description,

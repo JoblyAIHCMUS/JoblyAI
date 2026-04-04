@@ -389,7 +389,9 @@ export default function Educations({
         startDate: formData.dateRange.from
           ? formData.dateRange.from.toISOString()
           : '',
-        endDate: formData.dateRange.to
+        endDate: isCurrentlyStudying
+          ? ''
+          : formData.dateRange.to
           ? formData.dateRange.to.toISOString()
           : '',
       });
@@ -413,7 +415,9 @@ export default function Educations({
         startDate: formData.dateRange.from
           ? formData.dateRange.from.toISOString()
           : '',
-        endDate: formData.dateRange.to
+        endDate: isCurrentlyStudying
+          ? ''
+          : formData.dateRange.to
           ? formData.dateRange.to.toISOString()
           : '',
       });

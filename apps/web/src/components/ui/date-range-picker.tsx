@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { MonthPicker } from '@/components/ui/month-picker';
 import {
   Popover,
@@ -141,14 +141,14 @@ export function DateRangePicker({
             <div className="pt-4 border-t border-gray-200 flex items-center gap-2.5 px-1">
               <input
                 type="checkbox"
-                id="currently-working"
+                id={useId()}
                 checked={isCurrentlyWorking}
                 onChange={handleCurrentlyWorkingChange}
                 disabled={!value?.from || disabled}
                 className="w-4 h-4 rounded cursor-pointer accent-blue-600"
               />
               <label
-                htmlFor="currently-working"
+                htmlFor={useId()}
                 className={cn(
                   'text-sm font-medium cursor-pointer select-none',
                   isCurrentlyWorking && value?.from

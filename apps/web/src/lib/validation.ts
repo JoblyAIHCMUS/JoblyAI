@@ -99,8 +99,8 @@ export const EducationSchema = z.object({
     .optional()
     .or(z.literal(''))
     .refine(
-      (val) => !val || /^([0-4](\.\d{1,2})?|5(\.0{1,2})?)$/.test(val),
-      'Grade must be between 0 and 5'
+      (val) => !val || /^([0-4](\.\d{1,2})?|4(\.0{1,2})?)$/.test(val),
+      'Grade must be between 0 and 4 (GPA format)'
     ),
   description: z
     .string()
@@ -138,7 +138,7 @@ export const ExperienceSchema = z.object({
       (data) => data.from !== undefined && (!data.to || data.from <= data.to),
       {
         message: 'Start date is required and end date must be after start date',
-        path: ['from'],
+        path: ['dateRange', 'from'],
       }
     ),
   description: z

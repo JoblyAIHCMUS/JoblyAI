@@ -179,7 +179,7 @@ export default function SideBar({
   };
 
   return (
-    <div className="flex flex-col w-100">
+    <div className="flex flex-col w-full">
       {/* Social Links */}
       <div className="rounded-[var(--radius-lg)] bg-[color:var(--bg-primary)] flex flex-col">
         <div className="flex items-center justify-between">
