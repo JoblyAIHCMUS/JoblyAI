@@ -63,15 +63,12 @@ export const companyRegistrationSchema = z
         '1001-5000',
         '5001+',
       ])
-      .refine(
-        (value) => value !== undefined && value !== null,
-        'Please select a valid company size'
-      ),
+      .optional(),
     industry: z
       .string()
-      .min(1, 'Please select an industry')
       .refine(
         (industry) =>
+          industry === '' ||
           [
             'technology',
             'finance',
@@ -121,12 +118,14 @@ export const companyRegistrationSchema = z
             'other',
           ].includes(industry),
         'Please select a valid industry'
-      ),
+      )
+      .optional(),
     companyDescription: z
       .string()
+      .optional()
       .refine(
-        (description) => !isHtmlContentEmpty(description),
-        'Company description is required and cannot be empty'
+        (description) => !description || !isHtmlContentEmpty(description),
+        'Company description cannot be empty'
       ),
     logoUrl: z.string().optional().nullable(),
   })

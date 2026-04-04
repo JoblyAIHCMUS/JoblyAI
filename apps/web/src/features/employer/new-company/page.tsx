@@ -28,6 +28,7 @@ import {
 import { useUser } from '@/hooks/useUser';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 import { useCreateCompany } from '@/api-hook/company';
+import { useGetEmployerProfile } from '@/api-hook/employer';
 import {
   companyRegistrationSchema,
   type CompanyRegistrationFormData,
@@ -35,6 +36,7 @@ import {
 
 export default function EmployerNewCompanyPage() {
   const { data: currentUser } = useUser();
+  const { fetchEmployerProfile } = useGetEmployerProfile();
 
   const {
     register,
@@ -49,7 +51,7 @@ export default function EmployerNewCompanyPage() {
     defaultValues: {
       companyName: '',
       website: '',
-      scale: '1-50',
+      scale: undefined,
       industry: '',
       companyDescription: '',
       logoUrl: null,
@@ -57,7 +59,7 @@ export default function EmployerNewCompanyPage() {
   });
 
   // Watch fields for tracking
-  const companyDescription = watch('companyDescription');
+  const companyDescription: string = watch('companyDescription') ?? '';
   const logoUrl = watch('logoUrl');
   const scale = watch('scale');
   const industry = watch('industry');
@@ -85,8 +87,19 @@ export default function EmployerNewCompanyPage() {
     loading: creatingCompany,
     error: createError,
   } = useCreateCompany({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success(`Company "${data.name}" registered successfully!`);
+      // Refetch employer profile to update affiliation
+      try {
+        await fetchEmployerProfile();
+      } catch (err) {
+        console.error('Failed to refetch employer profile:', err);
+      }
+      // Redirect to dashboard after a short delay
+      // Using window.location to force sidebar and topbar to remount with fresh data
+      setTimeout(() => {
+        window.location.href = '/employer/dashboard';
+      }, 1500);
     },
     onError: (err) => {
       toast.error('Failed to register company. Please try again.');
@@ -127,20 +140,18 @@ export default function EmployerNewCompanyPage() {
     const currentValues = getValues();
     switch (stepIndex) {
       case 0:
-        // Check if basic info is valid
+        // Check if basic info is valid (only company name is required)
         return (
           !!currentValues.companyName &&
           currentValues.companyName.trim().length >= 2 &&
-          !!currentValues.scale &&
-          !!currentValues.industry &&
           !errors.companyName &&
           !errors.scale &&
           !errors.industry &&
           !errors.website
         );
       case 1:
-        // Check if description is valid
-        return !!currentValues.companyDescription && !errors.companyDescription;
+        // Description is now optional
+        return !errors.companyDescription;
       default:
         return true;
     }
@@ -268,11 +279,9 @@ export default function EmployerNewCompanyPage() {
               {/* Scale & Industry */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="label-label-1-semibold">
-                    Scale <span className="text-red-500">*</span>
-                  </Label>
+                  <Label className="label-label-1-semibold">Scale</Label>
                   <Select
-                    value={scale}
+                    value={scale || ''}
                     onValueChange={(value) => setValue('scale', value as any)}
                   >
                     <SelectTrigger
@@ -280,7 +289,7 @@ export default function EmployerNewCompanyPage() {
                         errors.scale ? 'border-red-500' : ''
                       }`}
                     >
-                      <SelectValue />
+                      <SelectValue placeholder="Select company size" />
                     </SelectTrigger>
                     <SelectContent>
                       {SCALES.map((s) => (
@@ -298,9 +307,7 @@ export default function EmployerNewCompanyPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="label-label-1-semibold">
-                    Industry <span className="text-red-500">*</span>
-                  </Label>
+                  <Label className="label-label-1-semibold">Industry</Label>
                   <Select
                     value={industry}
                     onValueChange={(value) => setValue('industry', value)}
@@ -310,7 +317,7 @@ export default function EmployerNewCompanyPage() {
                         errors.industry ? 'border-red-500' : ''
                       }`}
                     >
-                      <SelectValue placeholder="None" />
+                      <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
                     <SelectContent>
                       {INDUSTRIES.map((ind) => (
@@ -334,9 +341,7 @@ export default function EmployerNewCompanyPage() {
         {/* Step 2: About Company */}
         <div className="space-y-8 max-w-3xl mx-auto">
           <div className="space-y-3">
-            <Label className="label-label-1-semibold">
-              About Company <span className="text-red-500">*</span>
-            </Label>
+            <Label className="label-label-1-semibold">About Company</Label>
             <RichTextEditor
               content={companyDescription}
               onChange={(content) => {
