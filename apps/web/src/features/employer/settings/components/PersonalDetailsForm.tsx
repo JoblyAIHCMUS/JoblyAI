@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,37 +14,23 @@ import {
 } from '@/components/ui/select';
 import { Calendar, User2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-export interface PersonalDetailsFormData {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email: string;
-  dateOfBirth: string;
-  gender: string;
-}
+import { type PersonalDetailsFormData } from '@/lib/validation';
 
 export interface PersonalDetailsFormProps {
-  data: PersonalDetailsFormData;
-  onChange: (data: PersonalDetailsFormData) => void;
-  errors?: Partial<Record<keyof PersonalDetailsFormData, string>>;
   disabled?: boolean;
 }
 
 const genderOptions = ['MALE', 'FEMALE', 'OTHER'];
 
 export function PersonalDetailsForm({
-  data,
-  onChange,
-  errors,
   disabled = false,
-}: PersonalDetailsFormProps) {
-  const handleChange = (
-    field: keyof PersonalDetailsFormData,
-    value: string
-  ) => {
-    onChange({ ...data, [field]: value });
-  };
+}: Readonly<PersonalDetailsFormProps>) {
+  const {
+    register,
+    control,
+    formState: { errors, isSubmitting },
+  } = useFormContext<PersonalDetailsFormData>();
+  const isFieldDisabled = disabled || isSubmitting;
 
   return (
     <>
@@ -56,46 +43,42 @@ export function PersonalDetailsForm({
         <div className="inline-flex justify-start items-start gap-6 w-full">
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              First Name
-              <span className="text-red-400 ml-1">*</span>
+              First Name <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="text"
-              value={data.firstName}
-              onChange={(e) => handleChange('firstName', e.target.value)}
+              {...register('firstName')}
               placeholder="Enter first name"
-              disabled={disabled}
+              disabled={isFieldDisabled}
               className={cn(
                 'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
-                errors?.firstName && 'border-red-400'
+                errors.firstName && 'border-red-400'
               )}
             />
-            {errors?.firstName && (
+            {errors.firstName?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.firstName}
+                {errors.firstName.message.toString()}
               </span>
             )}
           </div>
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Last Name
-              <span className="text-red-400 ml-1">*</span>
+              Last Name <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="text"
-              value={data.lastName}
-              onChange={(e) => handleChange('lastName', e.target.value)}
+              {...register('lastName')}
               placeholder="Enter last name"
-              disabled={disabled}
+              disabled={isFieldDisabled}
               className={cn(
                 'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
-                errors?.lastName && 'border-red-400'
+                errors.lastName && 'border-red-400'
               )}
             />
-            {errors?.lastName && (
+            {errors.lastName?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.lastName}
+                {errors.lastName.message.toString()}
               </span>
             )}
           </div>
@@ -109,41 +92,38 @@ export function PersonalDetailsForm({
             </Label>
             <Input
               type="tel"
-              value={data.phoneNumber}
-              onChange={(e) => handleChange('phoneNumber', e.target.value)}
+              {...register('phoneNumber')}
               placeholder="+44 1245 572 135"
-              disabled={disabled}
+              disabled={isFieldDisabled}
               className={cn(
                 'bg-primary text-primary border-primary placeholder:text-secondary placeholder:font-normal font-["Be_Vietnam_Pro"] text-base',
-                errors?.phoneNumber && 'border-red-400'
+                errors.phoneNumber && 'border-red-400'
               )}
             />
-            {errors?.phoneNumber && (
+            {errors.phoneNumber?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.phoneNumber}
+                {errors.phoneNumber.message.toString()}
               </span>
             )}
           </div>
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Email
-              <span className="text-red-400 ml-1">*</span>
+              Email <span className="text-red-400 ml-1">*</span>
             </Label>
             <Input
               type="email"
-              value={data.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              {...register('email')}
               placeholder="Enter email"
-              disabled={disabled}
+              disabled={isFieldDisabled}
               className={cn(
                 'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
-                errors?.email && 'border-red-400'
+                errors.email && 'border-red-400'
               )}
             />
-            {errors?.email && (
+            {errors.email?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.email}
+                {errors.email.message.toString()}
               </span>
             )}
           </div>
@@ -153,19 +133,17 @@ export function PersonalDetailsForm({
         <div className="inline-flex justify-start items-start gap-6 w-full">
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Date of Birth
-              <span className="text-red-400 ml-1">*</span>
+              Date of Birth <span className="text-red-400 ml-1">*</span>
             </Label>
             <div className="relative w-full">
               <Input
                 type="date"
-                value={data.dateOfBirth}
-                onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+                {...register('dateOfBirth')}
                 placeholder="YYYY-MM-DD"
-                disabled={disabled}
+                disabled={isFieldDisabled}
                 className={cn(
                   'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
-                  errors?.dateOfBirth && 'border-red-400'
+                  errors.dateOfBirth && 'border-red-400'
                 )}
               />
               <Calendar
@@ -173,45 +151,50 @@ export function PersonalDetailsForm({
                 size={20}
               />
             </div>
-            {errors?.dateOfBirth && (
+            {errors.dateOfBirth?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.dateOfBirth}
+                {errors.dateOfBirth.message.toString()}
               </span>
             )}
           </div>
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Gender
-              <span className="text-red-400 ml-1">*</span>
+              Gender <span className="text-red-400 ml-1">*</span>
             </Label>
             <div className="relative w-full">
-              <Select
-                value={data.gender}
-                onValueChange={(value) => handleChange('gender', value)}
-                disabled={disabled}
-              >
-                <SelectTrigger
-                  className={cn(
-                    'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10',
-                    errors?.gender && 'border-red-400'
-                  )}
-                >
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  {genderOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="gender"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={isFieldDisabled}
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10',
+                        errors.gender && 'border-red-400'
+                      )}
+                    >
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {genderOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               <User2 className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
             </div>
-            {errors?.gender && (
+            {errors.gender?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.gender}
+                {errors.gender.message.toString()}
               </span>
             )}
           </div>

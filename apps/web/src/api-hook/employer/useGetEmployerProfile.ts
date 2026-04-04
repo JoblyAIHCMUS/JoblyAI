@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   getEmployerProfile,
   type EmployerProfileResponse,
@@ -14,7 +14,7 @@ export function useGetEmployerProfile(options?: UseGetEmployerProfileOptions) {
   const [error, setError] = useState<unknown | null>(null);
   const [data, setData] = useState<EmployerProfileResponse | null>(null);
 
-  const fetchEmployerProfile = async () => {
+  const fetchEmployerProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -30,7 +30,7 @@ export function useGetEmployerProfile(options?: UseGetEmployerProfileOptions) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [options]);
 
   return { fetchEmployerProfile, loading, error, data };
 }

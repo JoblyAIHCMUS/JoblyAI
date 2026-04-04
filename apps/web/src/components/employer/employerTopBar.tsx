@@ -66,7 +66,11 @@ export function EmployerTopBar() {
                 className="h-12 w-12 rounded-full object-cover"
               />
             ) : (
-              'Logo'
+              <img
+                src="https://placehold.co/48x48"
+                alt="Company logo placeholder"
+                className="h-12 w-12 rounded-full object-cover"
+              />
             )}
           </div>
 

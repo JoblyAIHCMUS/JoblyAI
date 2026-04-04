@@ -9,7 +9,7 @@ import * as React from 'react';
 
 export interface CompanyProfileBasicInfoProps {
   name: string;
-  logoUrl: string;
+  logoUrl?: string;
   websiteUrl: string;
   scale: string;
   industry: string;
@@ -26,11 +26,17 @@ export function CompanyProfileBasicInfo({
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 w-full">
       <div className="flex items-center gap-6 min-w-0">
         <div className="shrink-0">
-          <img
-            src={logoUrl}
-            alt={name + ' logo'}
-            className="w-28 h-28 rounded-xl object-cover bg-slate-100 border border-slate-200"
-          />
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={name + ' logo'}
+              className="w-28 h-28 rounded-xl object-cover bg-slate-100 border border-slate-200"
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+              <Building2 className="w-12 h-12 text-slate-400" />
+            </div>
+          )}
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

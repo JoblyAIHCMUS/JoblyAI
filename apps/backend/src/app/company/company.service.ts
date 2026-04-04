@@ -8,6 +8,7 @@ import {
 import {
   type Company,
   type Employer,
+  type User,
   Prisma,
   PrismaClient,
 } from '@prisma/client';
@@ -78,8 +79,25 @@ export class CompanyService {
     }
   }
 
-  async update(id: number, dto: CompanyUpdateDto): Promise<Company> {
+  async update(
+    id: number,
+    dto: CompanyUpdateDto,
+    user: User
+  ): Promise<Company> {
+    return this.applyCompanyUpdate(id, dto, user);
+  }
+
+  async patch(id: number, dto: CompanyPatchDto, user: User): Promise<Company> {
+    return this.applyCompanyUpdate(id, dto, user);
+  }
+
+  private async applyCompanyUpdate(
+    id: number,
+    dto: CompanyUpdateDto | CompanyPatchDto,
+    user: User
+  ): Promise<Company> {
     await this.ensureCompanyExists(id);
+    await this.ensureCompanyAccess(id, user);
 
     try {
       return await this.prisma.company.update({ where: { id }, data: dto });
@@ -88,18 +106,9 @@ export class CompanyService {
     }
   }
 
-  async patch(id: number, dto: CompanyPatchDto): Promise<Company> {
+  async delete(id: number, user: User): Promise<void> {
     await this.ensureCompanyExists(id);
-
-    try {
-      return await this.prisma.company.update({ where: { id }, data: dto });
-    } catch (error) {
-      this.mapPrismaError(error, dto.name);
-    }
-  }
-
-  async delete(id: number): Promise<void> {
-    await this.ensureCompanyExists(id);
+    await this.ensureCompanyAccess(id, user);
     await this.prisma.company.delete({ where: { id } });
   }
 
@@ -254,6 +263,24 @@ export class CompanyService {
       }
 
       throw error;
+    }
+  private async ensureCompanyAccess(id: number, user: User): Promise<void> {
+    if (user.role === 'admin') {
+      return;
+    }
+
+    const membership = await this.prisma.employer.findFirst({
+      where: {
+        companyId: id,
+        employerId: user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        `You are not allowed to modify company with ID ${id}`
+      );
     }
   }
 
