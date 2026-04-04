@@ -38,9 +38,42 @@ export class CompanyService {
     return !!company;
   }
 
-  async create(dto: CompanyCreateDto): Promise<Company> {
+  async create(dto: CompanyCreateDto, creatorUserId: string): Promise<Company> {
+    // Check if creator is already an employer in another company
+    const existingEmployer = await this.prisma.employer.findUnique({
+      where: { employerId: creatorUserId },
+      select: { companyId: true },
+    });
+
+    if (existingEmployer && existingEmployer.companyId !== null) {
+      throw new ConflictException(
+        'You are already an employee of another company and cannot create a new one'
+      );
+    }
+
     try {
-      return await this.prisma.company.create({ data: dto });
+      // Create company and employer in a transaction
+      const company = await this.prisma.$transaction(async (tx) => {
+        // Create the company
+        const newCompany = await tx.company.create({ data: dto });
+
+        // Create employer record for creator
+        const employerRecord = await tx.employer.create({
+          data: {
+            companyId: newCompany.id,
+            employerId: creatorUserId,
+            role: 'admin',
+          },
+        });
+
+        // Update company to set creator as admin
+        return tx.company.update({
+          where: { id: newCompany.id },
+          data: { adminId: employerRecord.id },
+        });
+      });
+
+      return company;
     } catch (error) {
       this.mapPrismaError(error, dto.name);
     }
