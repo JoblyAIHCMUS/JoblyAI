@@ -56,9 +56,9 @@ export default function JobListingDetailPage() {
 
   // Update applicants when data changes
   useEffect(() => {
-    if (applicationsData?.applications) {
+    if (applicationsData) {
       setApplicants(
-        mapApplicationRecordsToApplicants(applicationsData.applications)
+        mapApplicationRecordsToApplicants(applicationsData)
       );
     }
   }, [applicationsData]);
