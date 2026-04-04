@@ -164,6 +164,7 @@ model JobPosting {
 
   requirements JobRequirement[]
   applications Application[]
+  views        JobView[]
 }
 
 model JobRequirement {
@@ -395,6 +396,19 @@ enum ApplicationStatus {
   OFFER
   REJECTED
   WITHDRAWN
+}
+
+// Job view tracking for analytics and dashboard statistics
+model JobView {
+  id        Int       @id @default(autoincrement())
+  jobId     Int
+  job       JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime  @default(now())
+
+  // Index for efficient aggregation queries by date
+  @@index([jobId, viewedAt])
+  @@index([viewedAt])
+  @@map("job_view")
 }
 
 enum Gender {
