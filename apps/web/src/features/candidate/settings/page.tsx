@@ -31,7 +31,6 @@ export default function CandidateSettingsPage() {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
-  const [email, setEmail] = useState<string>('');
 
   // React Hook Form with Zod validation
   const methods = useForm<PersonalDetailsFormData>({
@@ -73,8 +72,6 @@ export default function CandidateSettingsPage() {
       if (data.avatarUrl) {
         setProfilePhoto(data.avatarUrl);
       }
-
-      setEmail(data.email || '');
 
       reset({
         firstName: data.firstName || '',

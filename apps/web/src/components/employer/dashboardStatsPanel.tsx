@@ -8,6 +8,7 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
+  LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -88,7 +89,7 @@ function SummaryCard({
   total: number;
   diff: number;
   periodLabel: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: LucideIcon;
   iconBg: string;
 }) {
   const isPositive = diff >= 0;

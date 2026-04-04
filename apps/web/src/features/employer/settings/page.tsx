@@ -33,7 +33,6 @@ export default function EmployerSettingsPage() {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
-  const [email, setEmail] = useState<string>('');
 
   const methods = useForm<PersonalDetailsFormData>({
     resolver: zodResolver(PersonalDetailsSchema),
@@ -56,7 +55,6 @@ export default function EmployerSettingsPage() {
 
   const handleProfileSuccess = useCallback(
     (data: any) => {
-      setEmail(data.email || '');
       setProfilePhoto(
         data.avatarUrl || data.image || 'https://placehold.co/124x124'
       );
