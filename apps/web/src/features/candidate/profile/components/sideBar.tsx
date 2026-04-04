@@ -1,153 +1,26 @@
 'use client';
 import React, { useState } from 'react';
-import { Edit, Plus, Mail, Smartphone } from 'lucide-react';
-import { Contact, Social } from '@/types/candidate';
+import { Edit, Plus } from 'lucide-react';
+import { Social } from '@/types/candidate';
 
 interface SideBarProps {
-  contact: Contact;
+  contact?: { email: string; phone?: string };
   socials: Social[];
-  handleUpdateContact?: (contact: Contact) => void;
+  handleUpdateContact?: (contact: { email: string; phone?: string }) => void;
   handleAddSocial?: (social: Social) => void;
   handleUpdateSocials?: (social: Social[]) => void;
 }
 
-// Contact View
-function ContactView({ contact }: { contact: Contact }) {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Additional Details
-        </div>
-        {/* Edit button disabled - users can edit from Settings page */}
-      </div>
-      <div className="flex items-center gap-4">
-        <Mail size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Email
-          </div>
-          <div className="body-body-1-regular text-tertiary break-words">
-            {contact.email}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Smartphone size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Phone
-          </div>
-          <div className="body-body-1-regular text-tertiary break-words">
-            {contact.phone}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// Contact Edit
-function ContactEdit({
-  editContact,
-  onChange,
-  onSave,
-  onCancel,
-}: {
-  editContact: Contact;
-  onChange: (field: keyof Contact, value: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Additional Details
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Mail size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Email
-          </div>
-          <input
-            className="body-body-1-regular text-tertiary break-words border rounded p-1"
-            value={editContact.email}
-            onChange={(e) => onChange('email', e.target.value)}
-            placeholder="Email"
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Smartphone size={24} className="text-accent-primary" />
-        <div>
-          <div className="label-label-1-medium text-secondary break-words">
-            Phone
-          </div>
-          <input
-            className="body-body-1-regular text-tertiary break-words border rounded p-1"
-            value={editContact.phone}
-            onChange={(e) => onChange('phone', e.target.value)}
-            placeholder="Phone"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2 mt-2">
-        <button
-          className="px-4 py-2 rounded bg-accent-solid text-white"
-          onClick={onSave}
-        >
-          Lưu
-        </button>
-        <button className="px-4 py-2 rounded border" onClick={onCancel}>
-          Hủy
-        </button>
-      </div>
-    </>
-  );
-}
-
 // Socials View
-function SocialsView({
-  socials,
-  onAdd,
-  onEdit,
-}: {
-  socials: Social[];
-  onAdd: () => void;
-  onEdit: () => void;
-}) {
+function SocialsView({ socials }: { socials: Social[] }) {
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Social Links
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
-            onClick={onAdd}
-          >
-            <Plus size={20} className="text-accent-primary" />
-          </button>
-          {socials.length > 0 && (
-            <button
-              className="p-[var(--space-xs)] rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
-              onClick={onEdit}
-            >
-              <Edit size={20} className="text-accent-primary" />
-            </button>
-          )}
-        </div>
-      </div>
       {socials.map((s, idx) => (
         <div key={idx} className="flex items-center gap-4">
-          <span className="label-label-1-medium text-secondary break-words">
+          <span className="label-label-2-regular text-tertiary p-1 break-words">
             {s.type}
           </span>
-          <span className="body-body-1-regular text-tertiary break-words">
+          <span className="label-label-2-regular text-tertiary p-1 break-words">
             {s.url}
           </span>
         </div>
@@ -169,15 +42,15 @@ function AddSocialForm({
   onCancelAddSocial: () => void;
 }) {
   return (
-    <div className="flex flex-col items-start gap-4 mt-2">
+    <div className="flex flex-col items-start gap-2 mt-2">
       <input
-        className="label-label-1-medium text-secondary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary w-full"
+        className="label-label-2-regular text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary w-full"
         value={newSocial.type}
         onChange={(e) => onNewSocialChange('type', e.target.value)}
         placeholder="Type (e.g. Twitter)"
       />
       <input
-        className="body-body-1-regular text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary w-full"
+        className="label-label-2-regular text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary w-full"
         value={newSocial.url}
         onChange={(e) => onNewSocialChange('url', e.target.value)}
         placeholder="URL"
@@ -187,13 +60,13 @@ function AddSocialForm({
           className="px-4 py-2 rounded bg-accent-solid text-white"
           onClick={onSaveAddSocial}
         >
-          Lưu
+          Save
         </button>
         <button
           className="px-4 py-2 rounded border"
           onClick={onCancelAddSocial}
         >
-          Hủy
+          Cancel
         </button>
       </div>
     </div>
@@ -216,21 +89,16 @@ function EditSocialsForm({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="heading-h6-semi-bold text-primary break-words">
-          Social Links
-        </div>
-      </div>
       {editSocials.map((s, idx) => (
-        <div key={idx} className="flex items-center gap-4">
+        <div key={idx} className="flex items-center gap-3">
           <input
-            className="label-label-1-medium text-secondary break-words border rounded p-1"
+            className="label-label-2-regular text-tertiary break-words border rounded p-1"
             value={s.type}
             onChange={(e) => onSocialChange(idx, 'type', e.target.value)}
             placeholder="Type (e.g. Twitter)"
           />
           <input
-            className="body-body-1-regular text-tertiary break-words border rounded p-1"
+            className="label-label-2-regular text-tertiary break-words border rounded p-1"
             value={s.url}
             onChange={(e) => onSocialChange(idx, 'url', e.target.value)}
             placeholder="URL"
@@ -249,10 +117,10 @@ function EditSocialsForm({
           className="px-4 py-2 rounded bg-accent-primary text-white"
           onClick={onSave}
         >
-          Lưu
+          Save
         </button>
         <button className="px-4 py-2 rounded border" onClick={onCancel}>
-          Hủy
+          Cancel
         </button>
       </div>
     </>
@@ -260,34 +128,15 @@ function EditSocialsForm({
 }
 
 export default function SideBar({
-  contact,
   socials,
-  handleUpdateContact,
   handleAddSocial,
   handleUpdateSocials,
 }: SideBarProps) {
-  // Contact state
-  const [isEditingContact, setIsEditingContact] = useState(false);
-  const [editContact, setEditContact] = useState<Contact>(contact);
-
   // Socials state
   const [isEditingSocial, setIsEditingSocial] = useState(false);
   const [editSocials, setEditSocials] = useState<Social[]>(socials);
   const [isAddingSocial, setIsAddingSocial] = useState(false);
   const [newSocial, setNewSocial] = useState<Social>({ type: '', url: '' });
-
-  // Contact handlers
-  const handleContactChange = (field: keyof Contact, value: string) => {
-    setEditContact((prev) => ({ ...prev, [field]: value }));
-  };
-  const handleContactSave = () => {
-    if (handleUpdateContact) handleUpdateContact(editContact);
-    setIsEditingContact(false);
-  };
-  const handleContactCancel = () => {
-    setIsEditingContact(false);
-    setEditContact(contact);
-  };
 
   // Social handlers
   const handleSocialChange = (
@@ -330,22 +179,38 @@ export default function SideBar({
   };
 
   return (
-    <div className="flex flex-col gap-6 w-[375px]">
-      {/* Additional Details */}
-      <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-[var(--space-lg)] flex flex-col gap-[var(--space-lg)]">
-        {isEditingContact ? (
-          <ContactEdit
-            editContact={editContact}
-            onChange={handleContactChange}
-            onSave={handleContactSave}
-            onCancel={handleContactCancel}
-          />
-        ) : (
-          <ContactView contact={contact} />
-        )}
-      </div>
+    <div className="flex flex-col w-full">
       {/* Social Links */}
-      <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-[var(--space-lg)] flex flex-col gap-[var(--space-lg)]">
+      <div className="rounded-[var(--radius-lg)] bg-[color:var(--bg-primary)] flex flex-col">
+        <div className="flex items-center justify-between">
+          <div className="heading-h6-semi-bold text-primary break-words p-1">
+            Social Links
+          </div>
+          <div className="flex gap-2">
+            <button
+              className="p-[var(--space-xs)] rounded-[var(--radius-md)]  bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
+              onClick={() => setIsAddingSocial(true)}
+            >
+              <Plus size={16} className="text-accent-primary" />
+            </button>
+            {socials.length > 0 && (
+              <button
+                className="p-[var(--space-xs)] rounded-[var(--radius-md)] bg-[color:var(--bg-primary)] hover:bg-[color:var(--bg-tertiary)]"
+                onClick={handleSocialEdit}
+              >
+                <Edit size={16} className="text-accent-primary" />
+              </button>
+            )}
+          </div>
+        </div>
+        {isAddingSocial && (
+          <AddSocialForm
+            newSocial={newSocial}
+            onNewSocialChange={handleNewSocialChange}
+            onSaveAddSocial={handleSaveAddSocial}
+            onCancelAddSocial={handleCancelAddSocial}
+          />
+        )}
         {isEditingSocial ? (
           <EditSocialsForm
             editSocials={editSocials}
@@ -356,19 +221,7 @@ export default function SideBar({
           />
         ) : (
           <>
-            <SocialsView
-              socials={socials}
-              onAdd={() => setIsAddingSocial(true)}
-              onEdit={handleSocialEdit}
-            />
-            {isAddingSocial && (
-              <AddSocialForm
-                newSocial={newSocial}
-                onNewSocialChange={handleNewSocialChange}
-                onSaveAddSocial={handleSaveAddSocial}
-                onCancelAddSocial={handleCancelAddSocial}
-              />
-            )}
+            <SocialsView socials={socials} />
           </>
         )}
       </div>

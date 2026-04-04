@@ -10,7 +10,6 @@ import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
 // import Portfolios from './components/Portfolios';
-import SideBar from './components/sideBar';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
@@ -195,7 +194,6 @@ const CandidateProfilePage = () => {
 
   // Contact and Social handlers are not implemented yet
   // Disable related edit UI until endpoints exist
-  const handleUpdateContact = undefined;
   const handleAddSocial = undefined;
   const handleUpdateSocials = undefined;
 
@@ -289,58 +287,56 @@ const CandidateProfilePage = () => {
 
   return (
     <div
-      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
+      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)] overflow-x-hidden"
       style={{ boxSizing: 'border-box' }}
     >
-      <div className="flex flex-row w-full max-w-6xl gap-[var(--space-base)] items-start">
-        {/* Main Content (Left) */}
-        <div className="flex flex-col w-[728px] gap-[var(--space-xl)]">
-          <ProfileHeader candidate={candidate} />
-          <AboutMe
-            about={profile?.about || { id: 0, bio: '' }}
-            handleUpdateAbout={handleUpdateAbout}
-          />
-          <CV
-            cvFileKey={getCVFileKey()}
-            cvFileName={getCVFileName()}
-            onCVChange={handleCVUpload}
-            isUploading={uploading || creatingResume}
-            uploadError={
-              uploadErrorMsg ||
-              (uploadError
-                ? uploadError instanceof Error
-                  ? uploadError.message
-                  : String(uploadError)
-                : null)
-            }
-          />
-          <Experiences
-            experiences={candidate.experiences}
-            handleUpdateExperience={handleUpdateExperience}
-            handleAddExperience={handleAddExperience}
-            handleDeleteExperience={handleDeleteExperience}
-          />
-          <Educations
-            educations={candidate.educations}
-            handleAddEducation={handleAddEducation}
-            handleUpdateEducation={handleUpdateEducation}
-            handleDeleteEducation={handleDeleteEducation}
-          />
-          <Skills
-            skills={candidate.skills}
-            handleAddSkill={handleAddSkill}
-            handleDeleteSkill={handleDeleteSkill}
-          />
-          {/* <Portfolios portfolios={candidate.portfolios} />/ */}
-        </div>
-        {/* Sidebar (Right) */}
-        <SideBar
-          contact={candidate.contact}
-          socials={candidate.socials}
-          handleUpdateContact={handleUpdateContact}
+      {/* ProfileHeader with SideBar */}
+      <div className="w-full">
+        <ProfileHeader
+          candidate={candidate}
           handleAddSocial={handleAddSocial}
           handleUpdateSocials={handleUpdateSocials}
         />
+      </div>
+
+      {/* Bottom Section: AboutMe, CV, Experiences, Educations, Skills - Full Width */}
+      <div className="w-full flex flex-col gap-[var(--space-xl)]">
+        <AboutMe
+          about={profile?.about || { id: 0, bio: '' }}
+          handleUpdateAbout={handleUpdateAbout}
+        />
+        <CV
+          cvFileKey={getCVFileKey()}
+          cvFileName={getCVFileName()}
+          onCVChange={handleCVUpload}
+          isUploading={uploading || creatingResume}
+          uploadError={
+            uploadErrorMsg ||
+            (uploadError
+              ? uploadError instanceof Error
+                ? uploadError.message
+                : String(uploadError)
+              : null)
+          }
+        />
+        <Experiences
+          experiences={candidate.experiences}
+          handleUpdateExperience={handleUpdateExperience}
+          handleAddExperience={handleAddExperience}
+          handleDeleteExperience={handleDeleteExperience}
+        />
+        <Educations
+          educations={candidate.educations}
+          handleAddEducation={handleAddEducation}
+          handleUpdateEducation={handleUpdateEducation}
+          handleDeleteEducation={handleDeleteEducation}
+        />
+        <Skills
+          skills={candidate.skills}
+          handleAddSkill={handleAddSkill}
+          handleDeleteSkill={handleDeleteSkill}
+        />
+        {/* <Portfolios portfolios={candidate.portfolios} />/ */}
       </div>
     </div>
   );

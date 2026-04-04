@@ -30,7 +30,7 @@ export function useGetEmployerProfile(options?: UseGetEmployerProfileOptions) {
     } finally {
       setLoading(false);
     }
-  }, [options]);
+  }, [options?.onSuccess, options?.onError]);
 
   return { fetchEmployerProfile, loading, error, data };
 }

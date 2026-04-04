@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   getCandidateProfile,
   type CandidateProfileResponse,
@@ -17,7 +17,7 @@ export function useGetCandidateProfile(
   const [data, setData] = useState<CandidateProfileResponse | null>(null);
 
   const fetchCandidateProfile =
-    async (): Promise<CandidateProfileResponse | null> => {
+    useCallback(async (): Promise<CandidateProfileResponse | null> => {
       setLoading(true);
       setError(null);
 
@@ -33,7 +33,7 @@ export function useGetCandidateProfile(
       } finally {
         setLoading(false);
       }
-    };
+    }, [options?.onSuccess, options?.onError]);
 
   return { fetchCandidateProfile, loading, error, data };
 }

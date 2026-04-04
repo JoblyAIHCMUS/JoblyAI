@@ -37,7 +37,7 @@ export default function Skills({
   };
 
   return (
-    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
+    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col">
       <div className="flex items-center justify-between px-4">
         <div className="heading-h6-semi-bold text-primary break-words">
           Skills
@@ -67,10 +67,10 @@ export default function Skills({
               className="px-4 py-2 rounded bg-accent-solid text-white"
               onClick={handleSave}
             >
-              Lưu
+              Save
             </button>
             <button className="px-4 py-2 rounded border" onClick={handleCancel}>
-              Hủy
+              Cancel
             </button>
           </div>
         </div>

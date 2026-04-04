@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -12,7 +12,6 @@ import {
   AccountTypeSection,
 } from './components';
 import ChangePasswordForm from './components/ChangePasswordForm';
-import UpdateEmailForm from './components/UpdateEmailForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetEmployerProfile } from '@/api-hook/employer';
 import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
@@ -34,7 +33,6 @@ export default function EmployerSettingsPage() {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
-  const [email, setEmail] = useState<string>('');
 
   const methods = useForm<PersonalDetailsFormData>({
     resolver: zodResolver(PersonalDetailsSchema),
@@ -55,28 +53,37 @@ export default function EmployerSettingsPage() {
     formState: { isSubmitting },
   } = methods;
 
+  const handleProfileSuccess = useCallback(
+    (data: any) => {
+      setProfilePhoto(
+        data.avatarUrl || data.image || 'https://placehold.co/124x124'
+      );
+
+      reset({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phoneNumber: data.phoneNumber || '',
+        email: data.email || '',
+        dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth),
+        gender: data.gender || '',
+      });
+    },
+    [reset]
+  );
+
+  const handleProfileError = useCallback(
+    (error: unknown) => {
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to load employer profile')
+      );
+    },
+    [toast]
+  );
+
   const { fetchEmployerProfile, loading: loadingProfile } =
     useGetEmployerProfile({
-      onSuccess: (data) => {
-        setEmail(data.email || '');
-        setProfilePhoto(
-          data.avatarUrl || data.image || 'https://placehold.co/124x124'
-        );
-
-        reset({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          phoneNumber: data.phoneNumber || '',
-          email: data.email || '',
-          dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth),
-          gender: data.gender || '',
-        });
-      },
-      onError: (error) => {
-        toast.error(
-          formatErrorForDisplay(error, 'Failed to load employer profile')
-        );
-      },
+      onSuccess: handleProfileSuccess,
+      onError: handleProfileError,
     });
 
   const { updateDetails, loading: updatingProfile } =
@@ -85,7 +92,6 @@ export default function EmployerSettingsPage() {
 
   const tabs = [
     { id: 'my-profile', label: 'My Profile' },
-    { id: 'login-details', label: 'Login Details' },
     { id: 'system-settings', label: 'System Settings' },
   ];
 
@@ -206,6 +212,24 @@ export default function EmployerSettingsPage() {
               {/* Divider */}
               <hr className="self-stretch border-primary" />
 
+              {/* Change Password Section */}
+              <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
+                {/* Left: Title & Desc */}
+                <div className="flex flex-col gap-1">
+                  <div className="heading-h6-semi-bold text-primary">
+                    Change Password
+                  </div>
+                  <div className="body-body-1-regular text-tertiary">
+                    Manage your password to make sure it is safe
+                  </div>
+                </div>
+                {/* Right: Password form */}
+                <ChangePasswordForm />
+              </div>
+
+              {/* Divider */}
+              <hr className="self-stretch border-primary" />
+
               {/* Save Button */}
               <Button
                 type="submit"
@@ -216,74 +240,6 @@ export default function EmployerSettingsPage() {
               </Button>
             </form>
           </FormProvider>
-        </TabsContent>
-
-        {/* Login Details Tab Content */}
-        <TabsContent
-          value="login-details"
-          className={`w-full min-h-[100%] flex flex-col items-end gap-6 bg-primary !mt-0${
-            activeTab === 'login-details' ? ' px-8 pt-6 pb-8' : ''
-          }`}
-        >
-          {/* Section Header */}
-          <div className="self-stretch flex flex-col items-start gap-1">
-            <h2 className="heading-h6-semi-bold text-primary">
-              Basic Information
-            </h2>
-            <p className="body-body-1-regular text-tertiary">
-              This is login information that you can update anytime.
-            </p>
-          </div>
-
-          {/* Divider */}
-          <hr className="self-stretch border-primary" />
-
-          {/* Update Email Section */}
-          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col">
-            {/* Left: Title & Desc */}
-            <div className="flex flex-col gap-1">
-              <div className="heading-h6-semi-bold text-primary">
-                Update Email
-              </div>
-              <div className="body-body-1-regular text-tertiary">
-                Update your email address to make sure it is safe
-              </div>
-            </div>
-            {/* Right: Email verified + form */}
-            <UpdateEmailForm email={email} />
-          </div>
-
-          {/* Divider */}
-          <hr className="self-stretch border-primary" />
-
-          {/* Change Password Section */}
-          <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
-            {/* Left: Title & Desc */}
-            <div className="flex flex-col gap-1">
-              <div className="heading-h6-semi-bold text-primary">
-                New Password
-              </div>
-              <div className="body-body-1-regular text-tertiary">
-                Manage your password to make sure it is safe
-              </div>
-            </div>
-            {/* Right: Password form */}
-            <ChangePasswordForm />
-          </div>
-
-          {/* Divider */}
-          <hr className="self-stretch border-primary" />
-
-          {/* Close Account Button */}
-          <Button className="flex flex-row items-center gap-2 px-6 py-3 bg-[var(--bg-error-secondary,#DC2626)] rounded-[5px] text-white label-label-1-semi-bold">
-            {/* Info Icon */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2" />
-              <rect x="11" y="10" width="2" height="6" rx="1" fill="white" />
-              <rect x="11" y="7" width="2" height="2" rx="1" fill="white" />
-            </svg>
-            Close Account
-          </Button>
         </TabsContent>
 
         {/* System Settings Tab Content */}

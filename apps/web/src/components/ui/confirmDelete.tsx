@@ -63,7 +63,7 @@ export default function ConfirmDelete({
             onClick={onCancel}
             disabled={loading}
           >
-            Hủy
+            Cancel
           </button>
           <button
             className="flex-1 py-2 rounded-lg bg-[#DC2626] text-white font-semibold hover:bg-[#b91c1c] transition"

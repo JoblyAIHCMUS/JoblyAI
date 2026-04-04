@@ -13,6 +13,7 @@ import {
   Search,
   Settings,
   UserRound,
+  type LucideIcon,
 } from 'lucide-react';
 
 import {
@@ -27,11 +28,12 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useUnreadMessagesDot } from '@/hooks/useMessages';
+import { useLogout } from '@/hooks/useAuth';
 
 type NavItem = {
   title: string;
   href: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: LucideIcon;
   badge?: boolean;
   destructive?: boolean;
 };
@@ -73,7 +75,6 @@ const secondaryNav: NavItem[] = [
     href: '/candidate/help',
     icon: HelpCircle,
   },
-  { title: 'Logout', href: '/logout', icon: LogOut, destructive: true },
 ];
 
 function BrandMark() {
@@ -89,11 +90,66 @@ function CandidateSidebarItem({
   item,
   active,
   hasUnreadMessages,
+  onClick,
+  disabled,
 }: {
   item: NavItem;
   active: boolean;
   hasUnreadMessages?: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
+  const content = (
+    <div className="flex w-full items-center">
+      <span
+        className={cn(
+          'h-8 w-1 rounded-r-md bg-transparent transition-colors',
+          active && 'bg-[#4640de]'
+        )}
+      />
+      <span
+        className={cn(
+          'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-tertiary hover:text-primary transition-colors',
+          'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+          active && 'bg-[#e9ebfd] text-[#4640de]',
+          item.destructive &&
+            'text-[var(--text-error-secondary)] hover:text-[var(--text-error-secondary-hover)]'
+        )}
+      >
+        <item.icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
+        <span className="truncate group-data-[collapsible=icon]:hidden">
+          {disabled && onClick ? 'Logging out...' : item.title}
+        </span>
+        {item.title === 'Messages' ? (
+          hasUnreadMessages && (
+            <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+          )
+        ) : item.badge ? (
+          <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+        ) : null}
+      </span>
+    </div>
+  );
+
+  if (onClick) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          onClick={onClick}
+          disabled={disabled}
+          tooltip={item.title}
+          className={cn(
+            'h-12 rounded-none px-0 hover:bg-transparent',
+            'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+            active && 'bg-transparent'
+          )}
+        >
+          {content}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -106,34 +162,7 @@ function CandidateSidebarItem({
           active && 'bg-transparent'
         )}
       >
-        <Link href={item.href} className="flex w-full items-center">
-          <span
-            className={cn(
-              'h-8 w-1 rounded-r-md bg-transparent transition-colors',
-              active && 'bg-[#4640de]'
-            )}
-          />
-          <span
-            className={cn(
-              'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-[#7c8493] transition-colors',
-              'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
-              active && 'bg-[#e9ebfd] text-[#4640de]',
-              item.destructive && 'text-[#ff6550]'
-            )}
-          >
-            <item.icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
-            <span className="truncate group-data-[collapsible=icon]:hidden">
-              {item.title}
-            </span>
-            {item.title === 'Messages' ? (
-              hasUnreadMessages && (
-                <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
-              )
-            ) : item.badge ? (
-              <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
-            ) : null}
-          </span>
-        </Link>
+        <Link href={item.href}>{content}</Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -142,6 +171,15 @@ function CandidateSidebarItem({
 export function CandidateSidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages } = useUnreadMessagesDot();
+  const { mutate: handleLogout, isPending: loading } = useLogout();
+
+  const logoutItem: NavItem = {
+    title: 'Logout',
+    href: '#',
+    icon: LogOut,
+    destructive: true,
+  };
+
   const isActive = (url: string) =>
     pathname === url || pathname.startsWith(url + '/');
   return (
@@ -186,6 +224,12 @@ export function CandidateSidebar() {
                   hasUnreadMessages={hasUnreadMessages}
                 />
               ))}
+              <CandidateSidebarItem
+                item={logoutItem}
+                active={false}
+                onClick={() => handleLogout()}
+                disabled={loading}
+              />
             </SidebarMenu>
           </SidebarGroup>
           <div className="pointer-events-none relative hidden h-48 overflow-hidden group-data-[collapsible=icon]:hidden md:block">

@@ -78,14 +78,14 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
               onClick={handleSave}
               disabled={loading}
             >
-              {loading ? 'Đang lưu...' : 'Lưu'}
+              {loading ? 'Saving...' : 'Save'}
             </button>
             <button
               className="px-4 py-2 rounded border"
               onClick={() => setEditing(false)}
               disabled={loading}
             >
-              Hủy
+              Cancel
             </button>
           </div>
           {error && <div className="text-red-500 mt-2">{error}</div>}
