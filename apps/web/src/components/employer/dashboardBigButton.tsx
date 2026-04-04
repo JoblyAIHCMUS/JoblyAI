@@ -18,6 +18,10 @@ export interface DashboardBigButtonProps {
   textColor?: string;
   /** Additional class names */
   className?: string;
+  /** Show loading state */
+  isLoading?: boolean;
+  /** Show error state */
+  error?: string;
 }
 
 const DashboardBigButton = React.forwardRef<
@@ -33,9 +37,14 @@ const DashboardBigButton = React.forwardRef<
       hoverBgColor,
       textColor = 'text-white',
       className,
+      isLoading = false,
+      error,
     },
     ref
   ) => {
+    const displayCount = error ? '—' : count;
+    const displayLabel = error ? error : label;
+
     return (
       <Link
         ref={ref}
@@ -45,13 +54,17 @@ const DashboardBigButton = React.forwardRef<
           bgColor,
           hoverBgColor ?? `hover:${bgColor}/90`,
           textColor,
+          error && 'opacity-60',
+          isLoading && 'opacity-75',
           className
         )}
       >
         <div className="flex items-center gap-3">
-          <span className="heading-h2-bold leading-none">{count}</span>
+          <span className="heading-h2-bold leading-none">
+            {isLoading ? '...' : displayCount}
+          </span>
           <span className="body-body-1-medium leading-tight sm:heading-h6-medium">
-            {label}
+            {displayLabel}
           </span>
         </div>
         <ChevronRight className="h-6 w-6 shrink-0 opacity-80 transition-opacity group-hover:opacity-100" />

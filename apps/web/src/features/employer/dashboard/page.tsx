@@ -1,11 +1,19 @@
 'use client';
 
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { DashboardBigButton } from '@/components/employer/dashboardBigButton';
 import {
   DashboardStatsPanel,
   type StatsDataSet,
 } from '@/components/employer/dashboardStatsPanel';
+import { useListEmployerApplications } from '@/api-hook/application';
+import { useGetChatSummary } from '@/api-hook/messages';
+import { useJobViewsAnalytics, useJobApplicationsAnalytics } from '@/api-hook/jobs';
+import {
+  aggregateAnalyticsData,
+  getDateRangeForPeriods,
+} from '@/features/employer/dashboard/utils/statsAggregation';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -14,77 +22,105 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-/* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
-/* ------------------------------------------------------------------ */
-
-const weekData: StatsDataSet = {
-  periodLabel: 'Jul 19-25',
-  data: [
-    { label: 'Mon', jobViews: 420, jobApplications: 120 },
-    { label: 'Tue', jobViews: 350, jobApplications: 90 },
-    { label: 'Wed', jobViews: 480, jobApplications: 130 },
-    { label: 'Thu', jobViews: 390, jobApplications: 110 },
-    { label: 'Fri', jobViews: 310, jobApplications: 95 },
-    { label: 'Sat', jobViews: 220, jobApplications: 60 },
-    { label: 'Sun', jobViews: 172, jobApplications: 49 },
-  ],
-  summary: {
-    totalJobViews: 2342,
-    totalJobApplications: 654,
-    jobViewsDiff: 6.4,
-    jobApplicationsDiff: -0.5,
-  },
-};
-
-const monthData: StatsDataSet = {
-  periodLabel: 'Jul 2026',
-  data: [
-    { label: 'W1', jobViews: 1800, jobApplications: 520 },
-    { label: 'W2', jobViews: 2100, jobApplications: 610 },
-    { label: 'W3', jobViews: 2342, jobApplications: 654 },
-    { label: 'W4', jobViews: 1950, jobApplications: 580 },
-  ],
-  summary: {
-    totalJobViews: 8192,
-    totalJobApplications: 2364,
-    jobViewsDiff: 12.3,
-    jobApplicationsDiff: 4.7,
-  },
-};
-
-const yearData: StatsDataSet = {
-  periodLabel: '2026',
-  data: [
-    { label: 'Jan', jobViews: 6200, jobApplications: 1800 },
-    { label: 'Feb', jobViews: 5800, jobApplications: 1650 },
-    { label: 'Mar', jobViews: 7100, jobApplications: 2100 },
-    { label: 'Apr', jobViews: 6800, jobApplications: 1950 },
-    { label: 'May', jobViews: 7500, jobApplications: 2200 },
-    { label: 'Jun', jobViews: 8100, jobApplications: 2400 },
-    { label: 'Jul', jobViews: 8192, jobApplications: 2364 },
-    { label: 'Aug', jobViews: 7900, jobApplications: 2300 },
-    { label: 'Sep', jobViews: 7200, jobApplications: 2000 },
-    { label: 'Oct', jobViews: 6800, jobApplications: 1900 },
-    { label: 'Nov', jobViews: 6400, jobApplications: 1700 },
-    { label: 'Dec', jobViews: 6000, jobApplications: 1600 },
-  ],
-  summary: {
-    totalJobViews: 49692,
-    totalJobApplications: 14464,
-    jobViewsDiff: 18.2,
-    jobApplicationsDiff: 9.1,
-  },
-};
-
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
-
 export default function EmployerDashboardPage() {
   const { data: user } = useUser();
   const greeting = getGreeting();
   const firstName = user?.name?.split(' ')[0] ?? '';
+
+  // State for dynamic data
+  const [candidateCount, setCandidateCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
+  const [statsData, setStatsData] = useState<StatsDataSet | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [errorStats, setErrorStats] = useState<string | null>(null);
+  const [loadingCounts, setLoadingCounts] = useState(true);
+  const [errorCounts, setErrorCounts] = useState<string | null>(null);
+
+  // Hooks for data fetching
+  const { fetchApplications } = useListEmployerApplications();
+  const { fetchChatSummary } = useGetChatSummary();
+  const { fetchAnalytics: fetchViewsAnalytics } = useJobViewsAnalytics();
+  const { fetchAnalytics: fetchAppsAnalytics } = useJobApplicationsAnalytics();
+
+  // Polling intervals ref
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Fetch counts: applications and messages
+   */
+  const fetchCounts = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setErrorCounts(null);
+      
+      // Fetch pending applications (status = APPLIED)
+      const appsResult = await fetchApplications({ status: 'APPLIED', pageSize: 1 });
+      setCandidateCount(appsResult.total || 0);
+
+      // Fetch chat summary to count unread messages
+      const chatsResult = await fetchChatSummary(user.id);
+      const unreadCount = chatsResult?.filter((chat) => chat.hasUnread).length || 0;
+      setMessageCount(unreadCount);
+    } catch (err) {
+      console.error('Failed to fetch counts:', err);
+      setErrorCounts('Failed to load counts');
+    } finally {
+      setLoadingCounts(false);
+    }
+  }, [user?.id, fetchApplications, fetchChatSummary]);
+
+  /**
+   * Fetch and aggregate analytics data
+   */
+  const fetchAnalyticsData = useCallback(async () => {
+    if (!user?.id) return;
+
+    setLoadingStats(true);
+    setErrorStats(null);
+
+    try {
+      // Get date range for last 7 days
+      const [startDate, endDate] = getDateRangeForPeriods('day', 7);
+
+      // Fetch both views and applications analytics
+      const [viewsData, appsData] = await Promise.all([
+        fetchViewsAnalytics(startDate, endDate, 'day'),
+        fetchAppsAnalytics(startDate, endDate, 'day'),
+      ]);
+
+      // Aggregate into StatsDataSet format
+      const aggregated = aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
+      setStatsData(aggregated);
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err);
+      setErrorStats('Failed to load statistics');
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [user?.id, fetchViewsAnalytics, fetchAppsAnalytics]);
+
+  /**
+   * Initialize data on mount
+   */
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Initial fetch for all data
+    fetchCounts();
+    fetchAnalyticsData();
+
+    // Set up polling for counts (every 30 seconds)
+    pollIntervalRef.current = setInterval(() => {
+      fetchCounts();
+    }, 30 * 1000);
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, [user?.id, fetchCounts, fetchAnalyticsData]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -93,30 +129,45 @@ export default function EmployerDashboardPage() {
         {firstName ? `, ${firstName}` : ', user'}
       </h1>
 
+      {/* Top cards with counts */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
         <DashboardBigButton
-          count={76}
+          count={candidateCount}
           label="New candidates to review"
           href="/employer/all-applications"
           bgColor="bg-indigo-600"
           hoverBgColor="hover:bg-indigo-700"
+          isLoading={loadingCounts}
+          error={errorCounts ? 'Failed to load' : undefined}
         />
 
         <DashboardBigButton
-          count={24}
+          count={messageCount}
           label="Messages received"
           href="/employer/messages"
           bgColor="bg-sky-500"
           hoverBgColor="hover:bg-sky-600"
+          isLoading={loadingCounts}
+          error={errorCounts ? 'Failed to load' : undefined}
         />
       </div>
 
-      <DashboardStatsPanel
-        weekData={weekData}
-        monthData={monthData}
-        yearData={yearData}
-        className="mt-6"
-      />
+      {/* Stats Panel */}
+      {statsData ? (
+        <DashboardStatsPanel
+          weekData={statsData}
+          monthData={statsData}
+          yearData={statsData}
+          className="mt-6"
+          isLoading={loadingStats}
+          onRefresh={fetchAnalyticsData}
+          error={errorStats || undefined}
+        />
+      ) : loadingStats ? (
+        <div className="mt-6 p-8 bg-gray-50 rounded-lg text-center text-gray-500">
+          Loading statistics...
+        </div>
+      ) : null}
     </div>
   );
 }
