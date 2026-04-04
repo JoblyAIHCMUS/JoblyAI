@@ -43,12 +43,16 @@ export const companyRegistrationSchema = z
       .refine((url) => {
         if (!url) return true; // Optional field
         try {
-          new URL(url);
+          // Add https:// if no protocol is provided
+          const urlToValidate = /^https?:\/\//.test(url)
+            ? url
+            : `https://${url}`;
+          new URL(urlToValidate);
           return true;
         } catch {
           return false;
         }
-      }, 'Please enter a valid website URL (e.g., https://www.example.com)'),
+      }, 'Please enter a valid website URL (e.g., example.com, www.example.com, or https://www.example.com)'),
     scale: z
       .enum([
         '1-50',
