@@ -34,6 +34,49 @@ export class JobsController {
     return this.jobsService.getCategories();
   }
 
+  @Get('analytics/views')
+  @UseGuards(AuthGuard)
+  async getJobViewsAnalytics(
+    @Req() request: AuthenticatedRequest,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'day'
+  ) {
+    const userId = request.user.id;
+    
+    // Default to last 30 days if not specified
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return this.jobsService.getJobViewsAnalytics(userId, start, end, groupBy);
+  }
+
+  @Get('analytics/applications')
+  @UseGuards(AuthGuard)
+  async getJobApplicationsAnalytics(
+    @Req() request: AuthenticatedRequest,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'day'
+  ) {
+    const userId = request.user.id;
+
+    // Default to last 30 days if not specified
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return this.jobsService.getJobApplicationsAnalytics(
+      userId,
+      start,
+      end,
+      groupBy
+    );
+  }
+
   @Get('user/:userId')
   async getJobsByUserId(
     @Param('userId') userId: string,
@@ -63,7 +106,12 @@ export class JobsController {
 
   @Get(':id')
   async getJobById(@Param('id', ParseIntPipe) id: number) {
-    return this.jobsService.getJobById(id);
+    const job = await this.jobsService.getJobById(id);
+    // Track view asynchronously without blocking the response
+    this.jobsService.trackJobView(id).catch((err) => {
+      console.error(`Failed to track job view:`, err);
+    });
+    return job;
   }
 
   @Delete(':id')

@@ -98,7 +98,8 @@ export class JobsService {
 
       // Merge with existing AND conditions if present, or create new
       if (whereClause.AND && Array.isArray(whereClause.AND)) {
-        (whereClause.AND as any[]).push(...salaryConditions);
+        const existingConditions = whereClause.AND as Prisma.JobPostingWhereInput[];
+        existingConditions.push(...salaryConditions);
       } else {
         whereClause.AND = salaryConditions;
       }
@@ -375,6 +376,197 @@ export class JobsService {
       orderBy: { name: 'asc' },
     });
     return categories;
+  }
+
+  /**
+   * Track a job view for analytics
+   */
+  async trackJobView(jobId: number): Promise<void> {
+    try {
+      await this.prisma.jobView.create({
+        data: {
+          jobId,
+        },
+      });
+    } catch (error) {
+      // Silently fail if view tracking fails - don't break the main flow
+      console.error(`Failed to track view for job ${jobId}:`, error);
+    }
+  }
+
+  /**
+   * Get job view analytics for an employer's jobs
+   * Aggregates views by time period for all jobs posted by the employer
+   * @param employerId The employer's user ID
+   * @param startDate Start of the date range (inclusive)
+   * @param endDate End of the date range (inclusive)
+   * @param groupBy How to group the results: 'day' | 'week' | 'month'
+   */
+  async getJobViewsAnalytics(
+    employerId: string,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Promise<Array<{ period: string; jobId: number; viewCount: number }>> {
+    // Get all jobs posted by this employer
+    const employerJobs = await this.prisma.jobPosting.findMany({
+      where: { postedById: employerId },
+      select: { id: true },
+    });
+
+    const jobIds = employerJobs.map((j) => j.id);
+
+    if (jobIds.length === 0) {
+      return [];
+    }
+
+    // Fetch all views for these jobs within the date range
+    const rawViews = await this.prisma.jobView.findMany({
+      where: {
+        jobId: { in: jobIds },
+        viewedAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        jobId: true,
+        viewedAt: true,
+      },
+    });
+
+    // Group views by period and job
+    const groupedViews = new Map<string, Map<number, number>>();
+
+    rawViews.forEach(({ jobId, viewedAt }) => {
+      let periodKey: string;
+
+      if (groupBy === 'day') {
+        periodKey = viewedAt.toISOString().split('T')[0]; // YYYY-MM-DD
+      } else if (groupBy === 'week') {
+        const date = new Date(viewedAt);
+        const dayOfWeek = date.getDay();
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - dayOfWeek); // Sunday
+        periodKey = weekStart.toISOString().split('T')[0];
+      } else {
+        // month
+        periodKey = viewedAt.toISOString().substring(0, 7); // YYYY-MM
+      }
+
+      if (!groupedViews.has(periodKey)) {
+        groupedViews.set(periodKey, new Map<number, number>());
+      }
+
+      const jobCounts = groupedViews.get(periodKey);
+      if (jobCounts) {
+        jobCounts.set(jobId, (jobCounts.get(jobId) || 0) + 1);
+      }
+    });
+
+    // Convert to flat array format
+    const result: Array<{ period: string; jobId: number; viewCount: number }> =
+      [];
+    groupedViews.forEach((jobCounts, period) => {
+      jobCounts.forEach((viewCount, jobId) => {
+        result.push({ period, jobId, viewCount });
+      });
+    });
+
+    return result.sort((a, b) => a.period.localeCompare(b.period));
+  }
+
+  /**
+   * Get aggregated job view statistics for an employer (total views by job/period)
+   * Useful for dashboard showing overall trends
+   */
+  async getJobApplicationsAnalytics(
+    employerId: string,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Promise<
+    Array<{ period: string; applicationCount: number; approvedCount: number }>
+  > {
+    // Get all jobs posted by this employer
+    const employerJobs = await this.prisma.jobPosting.findMany({
+      where: { postedById: employerId },
+      select: { id: true },
+    });
+
+    const jobIds = employerJobs.map((j) => j.id);
+
+    if (jobIds.length === 0) {
+      return [];
+    }
+
+    // Fetch applications for these jobs within the date range
+    const applications = await this.prisma.jobPosting.findMany({
+      where: { id: { in: jobIds } },
+      select: {
+        applications: {
+          where: {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            createdAt: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    // Aggregate by period
+    const groupedApps = new Map<
+      string,
+      { total: number; approved: number }
+    >();
+
+    applications.forEach((job) => {
+      job.applications.forEach(({ createdAt, status }) => {
+        let periodKey: string;
+
+        if (groupBy === 'day') {
+          periodKey = createdAt.toISOString().split('T')[0];
+        } else if (groupBy === 'week') {
+          const date = new Date(createdAt);
+          const dayOfWeek = date.getDay();
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - dayOfWeek);
+          periodKey = weekStart.toISOString().split('T')[0];
+        } else {
+          // month
+          periodKey = createdAt.toISOString().substring(0, 7);
+        }
+
+        if (!groupedApps.has(periodKey)) {
+          groupedApps.set(periodKey, { total: 0, approved: 0 });
+        }
+
+        const counts = groupedApps.get(periodKey);
+        if (counts) {
+          counts.total += 1;
+          if (status === 'INTERVIEW' || status === 'OFFER') {
+            counts.approved += 1;
+          }
+        }
+      });
+    });
+
+    // Convert to result format
+    const result: Array<{
+      period: string;
+      applicationCount: number;
+      approvedCount: number;
+    }> = [];
+    groupedApps.forEach(({ total, approved }, period) => {
+      result.push({ period, applicationCount: total, approvedCount: approved });
+    });
+
+    return result.sort((a, b) => a.period.localeCompare(b.period));
   }
 
   private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
