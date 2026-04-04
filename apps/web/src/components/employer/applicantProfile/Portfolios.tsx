@@ -10,7 +10,7 @@ export default function Portfolios({ portfolios }: { portfolios: any[] }) {
       <div className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[var(--space-xs)] sm:gap-[var(--space-base)]">
           {portfolios.map((p, idx) => (
-            <div className="flex flex-col gap-[var(--space-xs)]">
+            <div key={idx} className="flex flex-col gap-[var(--space-xs)]">
               <img
                 src={p.img}
                 alt={p.name}
