@@ -116,7 +116,7 @@ export default function CandidateSettingsPage() {
   // Load profile data on component mount (only once)
   useEffect(() => {
     fetchCandidateProfile();
-  }, []);
+  }, [fetchCandidateProfile]);
 
   return (
     <div className="min-h-screen bg-primary">

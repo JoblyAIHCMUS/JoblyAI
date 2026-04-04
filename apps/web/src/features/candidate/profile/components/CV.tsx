@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, ChangeEvent, useState, useEffect } from 'react';
+import React, { useRef, ChangeEvent, useState, useEffect, useCallback } from 'react';
 import { Download, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
@@ -29,27 +29,27 @@ export default function CV({
 
   const { createDownloadUrl } = useCreateDownloadUrl();
 
-  useEffect(() => {
+  const generateUrl = useCallback(async () => {
     if (!cvFileKey) {
       setPresignedUrl(null);
       return;
     }
 
-    const generateUrl = async () => {
-      setUrlLoading(true);
-      try {
-        const response = await createDownloadUrl({ fileKey: cvFileKey });
-        setPresignedUrl(response.downloadUrl);
-      } catch (error) {
-        console.error('Failed to generate presigned URL:', error);
-        setPresignedUrl(null);
-      } finally {
-        setUrlLoading(false);
-      }
-    };
+    setUrlLoading(true);
+    try {
+      const response = await createDownloadUrl({ fileKey: cvFileKey });
+      setPresignedUrl(response.downloadUrl);
+    } catch (error) {
+      console.error('Failed to generate presigned URL:', error);
+      setPresignedUrl(null);
+    } finally {
+      setUrlLoading(false);
+    }
+  }, [cvFileKey, createDownloadUrl]);
 
+  useEffect(() => {
     generateUrl();
-  }, [cvFileKey]);
+  }, [generateUrl]);
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
