@@ -173,20 +173,23 @@ const CandidateProfilePage = () => {
   // hàm xử lý add skill
   const { createSkillRecord } = useCreateSkill();
   const handleAddSkill = async (skill: string) => {
-    await createSkillRecord(skill);
+    const createdSkill = await createSkillRecord(skill);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, skills: [...(prev.skills || []), skill] };
+      return { ...prev, skills: [...(prev.skills || []), createdSkill] };
     });
   };
 
   // Hàm xử lý delete skill
   const { deleteSkillRecord } = useDeleteSkill();
-  const handleDeleteSkill = async (skill: string) => {
-    await deleteSkillRecord(skill);
+  const handleDeleteSkill = async (skillId: number) => {
+    await deleteSkillRecord(skillId);
     setProfile((prev) => {
       if (!prev) return prev;
-      return { ...prev, skills: prev.skills?.filter((s) => s !== skill) };
+      return {
+        ...prev,
+        skills: prev.skills?.filter((skill) => skill.id !== skillId),
+      };
     });
   };
 

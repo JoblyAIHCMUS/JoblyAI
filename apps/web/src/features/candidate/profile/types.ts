@@ -4,6 +4,7 @@ import {
   Contact,
   Social,
 } from '@/types/candidate';
+import type { CandidateSkill } from '@/api-client/candidate/types';
 
 export interface CandidateProfileUI {
   name: string;
@@ -14,7 +15,7 @@ export interface CandidateProfileUI {
   about: string[];
   experiences: Array<CandidateExperience>;
   educations: Array<CandidateEducation>;
-  skills: Array<any>;
+  skills: CandidateSkill[];
   portfolios: Array<any>;
   contact: Contact;
   socials: Array<Social>;

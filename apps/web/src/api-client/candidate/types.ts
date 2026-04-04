@@ -40,11 +40,18 @@ export interface CandidateProfileResponse {
     bio?: string;
   }; // Changed from string[] to object
   openForOpportunities?: boolean;
-  skills?: string[];
+  skills?: CandidateSkill[];
   portfolios?: { img: string; name: string }[];
   contact?: { email: string; phone?: string };
   socials?: { type: string; url: string }[];
   banner?: string;
+}
+
+export interface CandidateSkill {
+  id: number;
+  title: string;
+  level?: string;
+  years?: number;
 }
 
 export interface CreateEducationPayload {
