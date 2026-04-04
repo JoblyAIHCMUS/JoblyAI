@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  ApplicationRecord,
-  listCandidateApplications,
-} from '@/api-client/application';
+import { ApplicationRecord } from '@/api-client/application';
+import { useListCandidateApplications } from '@/api-hook/application';
 import { usePagination } from '@/hooks/usePagination';
 import { useCandidate } from '@/features/candidate/context/candidate-context';
 import {
@@ -75,14 +73,19 @@ function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
   };
 }
 
-async function fetchAllCandidateApplications() {
+async function fetchAllCandidateApplications(
+  fetchApplications: (query?: { page?: number; pageSize?: number }) => Promise<{
+    applications: ApplicationRecord[];
+    totalPages: number;
+  }>
+) {
   const pageSize = 100;
   let page = 1;
   let totalPages = 1;
   const allApplications: ApplicationRecord[] = [];
 
   do {
-    const response = await listCandidateApplications({ page, pageSize });
+    const response = await fetchApplications({ page, pageSize });
     allApplications.push(...response.applications);
     totalPages = Math.max(1, response.totalPages || 1);
     page += 1;
@@ -93,8 +96,10 @@ async function fetchAllCandidateApplications() {
 
 export function useCandidateApplicationsQuery() {
   const PAGE_SIZE = 10;
+  const { fetchApplications } = useListCandidateApplications();
 
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const statusMeta = candidateDashboardService.getStatusMeta();
   const filterMeta = candidateDashboardService.getFilterMeta();
@@ -141,40 +146,30 @@ export function useCandidateApplicationsQuery() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
+  const loadApplications = useCallback(async () => {
+    setIsLoadingApplications(true);
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const result = await fetchAllCandidateApplications(fetchApplications);
+      setApplications(result.map(mapApplicationRecord));
+    } catch (error) {
+      console.error('[CandidateApplicationsQuery] Load failed', { error });
+      setApplications([]);
+      setSearchError('Unable to load applications. Please try again.');
+    } finally {
+      setIsLoadingApplications(false);
+      setIsSearching(false);
+    }
+  }, [fetchApplications]);
+
   useEffect(() => {
-    let isCancelled = false;
-
-    const loadApplications = async () => {
-      setIsLoadingApplications(true);
-      setIsSearching(true);
-      setSearchError(null);
-
-      try {
-        const result = await fetchAllCandidateApplications();
-
-        if (!isCancelled) {
-          setApplications(result.map(mapApplicationRecord));
-        }
-      } catch (error) {
-        console.error('[CandidateApplicationsQuery] Load failed', { error });
-
-        if (!isCancelled) {
-          setApplications([]);
-          setSearchError('Unable to load applications. Please try again.');
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingApplications(false);
-          setIsSearching(false);
-        }
-      }
-    };
-
     void loadApplications();
+  }, [loadApplications, reloadTrigger]);
 
-    return () => {
-      isCancelled = true;
-    };
+  const reloadApplications = useCallback(() => {
+    setReloadTrigger((previous) => previous + 1);
   }, []);
 
   const filteredApplications = useMemo(() => {
@@ -318,6 +313,7 @@ export function useCandidateApplicationsQuery() {
     setSearchQuery,
     searchKeyword,
     applySearch,
+    reloadApplications,
     isSearching,
     searchError,
     advancedFilters,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   CandidateApplicationsQuery,
   PaginatedApplicationsResponse,
@@ -14,25 +14,28 @@ export function useListCandidateApplications(
   options?: UseListCandidateApplicationsOptions
 ) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<PaginatedApplicationsResponse | null>(null);
 
-  const fetchApplications = async (query?: CandidateApplicationsQuery) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await listCandidateApplications(query);
-      setData(result);
-      options?.onSuccess?.(result);
-      return result;
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchApplications = useCallback(
+    async (query?: CandidateApplicationsQuery) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await listCandidateApplications(query);
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [options]
+  );
 
   return { fetchApplications, loading, error, data };
 }

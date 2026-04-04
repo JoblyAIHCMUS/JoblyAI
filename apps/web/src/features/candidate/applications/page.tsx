@@ -8,8 +8,10 @@ import { ApplicationsFeatureNotice } from '@/features/candidate/applications/com
 import { ApplicationsFilterDialog } from '@/features/candidate/applications/components/ApplicationsFilterDialog';
 import { ApplicationsSearchToolbar } from '@/features/candidate/applications/components/ApplicationsSearchToolbar';
 import { useApplicationsPageState } from '@/features/candidate/applications/hooks/useApplicationsPageState';
+import { useWithdrawApplication } from '@/api-hook/application';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { useUser } from '@/hooks/useUser';
+import { ApplicationItem } from '@/types/candidate';
 
 export default function CandidateApplicationsPage() {
   const filterDialogId = 'applications-filter-dialog';
@@ -36,6 +38,7 @@ export default function CandidateApplicationsPage() {
     searchQuery,
     setSearchQuery,
     applySearch,
+    reloadApplications,
     isSearching,
     searchError,
     advancedFilters,
@@ -46,6 +49,7 @@ export default function CandidateApplicationsPage() {
     jobTypeOptions,
     locationOptions,
   } = useCandidateDashboard();
+  const { withdrawApplication } = useWithdrawApplication();
 
   const {
     isFilterDialogOpen,
@@ -71,6 +75,27 @@ export default function CandidateApplicationsPage() {
       ? 'from all time'
       : `from ${dateRangeLabel}`;
   const activityRangeText = `Here’s the status of your applications ${activityStatusText}.`;
+
+  const handleMoreActionSelect = async (
+    option: string,
+    item: ApplicationItem
+  ) => {
+    if (option !== 'Withdraw application') {
+      return;
+    }
+
+    const applicationId = Number(item.id);
+    if (Number.isNaN(applicationId)) {
+      return;
+    }
+
+    try {
+      await withdrawApplication(applicationId);
+      reloadApplications();
+    } catch (error) {
+      console.error('[CandidateApplicationsPage] Withdraw failed', { error });
+    }
+  };
 
   return (
     <div className="min-h-full bg-white">
@@ -148,6 +173,7 @@ export default function CandidateApplicationsPage() {
                 index={index}
                 tinted={tinted}
                 statusMeta={statusMeta}
+                onMoreActionSelect={handleMoreActionSelect}
               />
             )}
           />
