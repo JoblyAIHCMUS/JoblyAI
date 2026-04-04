@@ -20,7 +20,12 @@ import { useUploadFile } from '@/api-hook/s3/useUploadFile';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
-import { getCurrentUser, type TeamMember } from './data';
+import {
+  getCurrentUser,
+  convertUserToTeamMember,
+  type TeamMember,
+} from './data';
+import { useUser } from '@/hooks/useUser';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 import { useCreateCompany } from '@/api-hook/company';
 import {
@@ -29,6 +34,8 @@ import {
 } from './schema';
 
 export default function EmployerNewCompanyPage() {
+  const { data: currentUser } = useUser();
+
   const {
     register,
     handleSubmit,
@@ -61,9 +68,16 @@ export default function EmployerNewCompanyPage() {
     error: logoUploadError,
   } = useUploadFile();
 
-  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
-    { ...getCurrentUser(), isEditable: true },
-  ]);
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => {
+    // Use actual user data if available, otherwise use mock data
+    const initialUser = currentUser
+      ? convertUserToTeamMember(currentUser)
+      : getCurrentUser();
+
+    return initialUser
+      ? [{ ...initialUser, isEditable: true }]
+      : [{ ...getCurrentUser(), isEditable: true }];
+  });
 
   // Company creation hook
   const {

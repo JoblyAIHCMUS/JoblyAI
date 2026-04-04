@@ -1,3 +1,5 @@
+import type { User } from '@/hooks/useUser';
+
 export interface TeamMember {
   firstName: string;
   lastName: string;
@@ -6,11 +8,30 @@ export interface TeamMember {
   avatar?: string;
 }
 
+// Convert User to TeamMember format
+export function convertUserToTeamMember(user: User | null): TeamMember | null {
+  if (!user) return null;
+
+  // Extract first and last name from the user's name
+  const nameParts = user.name?.split(' ') || ['', ''];
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  return {
+    firstName,
+    lastName,
+    email: user.email,
+    role: 'Administrator',
+    avatar: user.image || undefined,
+  };
+}
+
+// Fallback mock user if actual user is not available
 const mockCurrentUser: TeamMember = {
   firstName: 'Maria',
   lastName: 'Kelly',
   email: 'MariaKelly@email.com',
-  role: 'None',
+  role: 'Administrator',
 };
 
 export function getCurrentUser(): TeamMember {
