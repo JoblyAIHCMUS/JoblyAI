@@ -10,6 +10,8 @@ export type {
   JobRequirementInput,
   CreateJobPayload,
   UpdateJobPayload,
+  JobViewAnalytics,
+  JobApplicationAnalytics,
 } from '@/api-client/jobs/types';
 
 // Public endpoints (no auth required)
@@ -28,3 +30,9 @@ export {
   listEmployerJobsByCompany,
   getCategories,
 } from '@/api-client/jobs/employer';
+
+// Analytics endpoints (auth required)
+export {
+  getJobViewsAnalytics,
+  getJobApplicationsAnalytics,
+} from '@/api-client/jobs/analytics';
