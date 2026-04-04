@@ -54,27 +54,33 @@ export default function EmployerSettingsPage() {
     formState: { isSubmitting },
   } = methods;
 
-  const handleProfileSuccess = useCallback((data: any) => {
-    setEmail(data.email || '');
-    setProfilePhoto(
-      data.avatarUrl || data.image || 'https://placehold.co/124x124'
-    );
+  const handleProfileSuccess = useCallback(
+    (data: any) => {
+      setEmail(data.email || '');
+      setProfilePhoto(
+        data.avatarUrl || data.image || 'https://placehold.co/124x124'
+      );
 
-    reset({
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      phoneNumber: data.phoneNumber || '',
-      email: data.email || '',
-      dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth),
-      gender: data.gender || '',
-    });
-  }, [reset]);
+      reset({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phoneNumber: data.phoneNumber || '',
+        email: data.email || '',
+        dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth),
+        gender: data.gender || '',
+      });
+    },
+    [reset]
+  );
 
-  const handleProfileError = useCallback((error: unknown) => {
-    toast.error(
-      formatErrorForDisplay(error, 'Failed to load employer profile')
-    );
-  }, [toast]);
+  const handleProfileError = useCallback(
+    (error: unknown) => {
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to load employer profile')
+      );
+    },
+    [toast]
+  );
 
   const { fetchEmployerProfile, loading: loadingProfile } =
     useGetEmployerProfile({

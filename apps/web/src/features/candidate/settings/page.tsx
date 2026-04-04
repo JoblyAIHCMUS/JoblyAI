@@ -66,24 +66,27 @@ export default function CandidateSettingsPage() {
   });
 
   // Memoized success callback for fetching profile
-  const handleProfileSuccess = useCallback((data: any) => {
-    const dobString = formatDateToYYYYMMDD(data.dateOfBirth);
+  const handleProfileSuccess = useCallback(
+    (data: any) => {
+      const dobString = formatDateToYYYYMMDD(data.dateOfBirth);
 
-    if (data.avatarUrl) {
-      setProfilePhoto(data.avatarUrl);
-    }
+      if (data.avatarUrl) {
+        setProfilePhoto(data.avatarUrl);
+      }
 
-    setEmail(data.email || '');
+      setEmail(data.email || '');
 
-    reset({
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      email: data.email || '',
-      phoneNumber: data.phoneNumber || '',
-      dateOfBirth: dobString,
-      gender: data.gender || '',
-    });
-  }, [reset]);
+      reset({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phoneNumber: data.phoneNumber || '',
+        dateOfBirth: dobString,
+        gender: data.gender || '',
+      });
+    },
+    [reset]
+  );
 
   // Hook to load candidate profile data
   const { fetchCandidateProfile } = useGetCandidateProfile({
@@ -121,9 +124,7 @@ export default function CandidateSettingsPage() {
       try {
         await fetchCandidateProfile();
       } catch (error) {
-        toast.error(
-          formatErrorForDisplay(error, 'Failed to load profile')
-        );
+        toast.error(formatErrorForDisplay(error, 'Failed to load profile'));
       }
     };
     loadProfile();
@@ -210,7 +211,6 @@ export default function CandidateSettingsPage() {
 
               {/* Divider */}
               <hr className="self-stretch border-primary" />
-
             </form>
           </FormProvider>
         </TabsContent>

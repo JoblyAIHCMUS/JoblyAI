@@ -21,12 +21,14 @@ export function MonthPicker({
 }: MonthPickerProps) {
   // Year selector (current year + range)
   const currentYear = new Date().getFullYear();
-  const [displayYear, setDisplayYear] = useState(value?.from?.getFullYear() || currentYear);
+  const [displayYear, setDisplayYear] = useState(
+    value?.from?.getFullYear() || currentYear
+  );
 
   // Get today's date (first of current month for month-level comparison)
   const today = new Date();
   const currentMonth = today.getMonth();
-  
+
   // Check if a month is in the future
   const isFutureMonth = (year: number, month: number) => {
     if (year > currentYear) return true;
@@ -43,7 +45,20 @@ export function MonthPicker({
   };
 
   // Month abbreviations
-  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthLabels = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
   // Check if month is start or end of range
   const isRangeStart = (year: number, month: number) => {
@@ -75,10 +90,11 @@ export function MonthPicker({
       // Second selection or after start
       const newRange = { from: value.from, to: selectedDate };
       onSelect(newRange);
-      
+
       // Auto-uncheck "currently working" if user selects a non-current month
       if (isCurrentlyWorking) {
-        const isCurrentMonth = displayYear === currentYear && month === currentMonth;
+        const isCurrentMonth =
+          displayYear === currentYear && month === currentMonth;
         if (!isCurrentMonth) {
           onIsCurrentlyWorkingChange?.(false);
         }
@@ -129,23 +145,39 @@ export function MonthPicker({
                 'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500',
 
                 // Future months - disabled state
-                isFuture && 'opacity-40 cursor-not-allowed text-gray-400 border border-gray-200',
-                
+                isFuture &&
+                  'opacity-40 cursor-not-allowed text-gray-400 border border-gray-200',
+
                 // Regular enabled state
                 !isFuture && 'hover:bg-blue-50 cursor-pointer',
 
                 // Range styling
-                isStart && 'bg-blue-600 text-white rounded-l-full hover:bg-blue-700',
-                isEnd && 'bg-blue-600 text-white rounded-r-full hover:bg-blue-700',
-                inRange && !isStart && !isEnd && 'bg-blue-100 text-gray-900 hover:bg-blue-200',
-                
+                isStart &&
+                  'bg-blue-600 text-white rounded-l-full hover:bg-blue-700',
+                isEnd &&
+                  'bg-blue-600 text-white rounded-r-full hover:bg-blue-700',
+                inRange &&
+                  !isStart &&
+                  !isEnd &&
+                  'bg-blue-100 text-gray-900 hover:bg-blue-200',
+
                 // Non-selected state
-                !isStart && !isEnd && !inRange && !isFuture && 'border border-gray-200 text-gray-700 hover:border-blue-300',
+                !isStart &&
+                  !isEnd &&
+                  !inRange &&
+                  !isFuture &&
+                  'border border-gray-200 text-gray-700 hover:border-blue-300'
               )}
               title={
-                isFuture 
-                  ? `${label} ${displayYear} - Future month` 
-                  : `${label} ${displayYear} - Click to ${!value?.from ? 'select start' : !value?.to ? 'select end' : 'select'}`
+                isFuture
+                  ? `${label} ${displayYear} - Future month`
+                  : `${label} ${displayYear} - Click to ${
+                      !value?.from
+                        ? 'select start'
+                        : !value?.to
+                        ? 'select end'
+                        : 'select'
+                    }`
               }
             >
               {label}
@@ -157,13 +189,25 @@ export function MonthPicker({
       {/* Info text */}
       {value?.from && (
         <div className="text-xs text-gray-600 text-center pt-2">
-          {new Date(value.from.getFullYear(), value.from.getMonth(), 1).toLocaleDateString('en-US', {
+          {new Date(
+            value.from.getFullYear(),
+            value.from.getMonth(),
+            1
+          ).toLocaleDateString('en-US', {
             month: 'short',
             year: 'numeric',
           })}
           {isCurrentlyWorking
             ? ' – Present'
-            : value?.to && ` – ${new Date(value.to.getFullYear(), value.to.getMonth(), 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
+            : value?.to &&
+              ` – ${new Date(
+                value.to.getFullYear(),
+                value.to.getMonth(),
+                1
+              ).toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              })}`}
         </div>
       )}
     </div>

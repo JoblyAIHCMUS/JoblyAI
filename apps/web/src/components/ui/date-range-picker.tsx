@@ -2,7 +2,11 @@
 
 import React, { useState } from 'react';
 import { MonthPicker } from '@/components/ui/month-picker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -34,16 +38,17 @@ export function DateRangePicker({
 
   // Format as month/year (perfect for CV)
   const fromText = value?.from ? format(value.from, 'MMM yyyy') : null;
-  const toText = value?.to && !isCurrentlyWorking ? format(value.to, 'MMM yyyy') : null;
+  const toText =
+    value?.to && !isCurrentlyWorking ? format(value.to, 'MMM yyyy') : null;
 
   const displayText =
     fromText && toText
       ? `${fromText} – ${toText}`
       : fromText
-        ? isCurrentlyWorking
-          ? `${fromText} – Present`
-          : fromText
-        : placeholder;
+      ? isCurrentlyWorking
+        ? `${fromText} – Present`
+        : fromText
+      : placeholder;
 
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,7 +60,7 @@ export function DateRangePicker({
   const handleCurrentlyWorkingChange = () => {
     const newValue = !isCurrentlyWorking;
     onIsCurrentlyWorkingChange?.(newValue);
-    
+
     // When enabling "currently working", set end date to today
     if (newValue && value?.from) {
       const today = new Date();
@@ -69,8 +74,10 @@ export function DateRangePicker({
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <label className="text-sm font-semibold text-gray-700">{label}</label>}
-      
+      {label && (
+        <label className="text-sm font-semibold text-gray-700">{label}</label>
+      )}
+
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -84,7 +91,8 @@ export function DateRangePicker({
               error
                 ? 'border-red-400 bg-red-50 text-red-900'
                 : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50',
-              disabled && 'opacity-50 cursor-not-allowed hover:border-gray-300 hover:bg-gray-50'
+              disabled &&
+                'opacity-50 cursor-not-allowed hover:border-gray-300 hover:bg-gray-50'
             )}
           >
             <span className="flex items-center gap-2.5 truncate min-w-0">
@@ -157,7 +165,9 @@ export function DateRangePicker({
       </Popover>
 
       {/* Error message */}
-      {error && <span className="text-xs font-medium text-red-600">{error}</span>}
+      {error && (
+        <span className="text-xs font-medium text-red-600">{error}</span>
+      )}
     </div>
   );
 }

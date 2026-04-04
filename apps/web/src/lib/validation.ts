@@ -82,13 +82,18 @@ export const EducationSchema = z.object({
       (val) => !val || val.length >= 2,
       'Field of study must be at least 2 characters'
     ),
-  dateRange: z.object({
-    from: z.date().optional(),
-    to: z.date().optional(),
-  }).refine((data) => data.from !== undefined && (!data.to || data.from <= data.to), {
-    message: 'Start date must be before end date',
-    path: ['dateRange'],
-  }),
+  dateRange: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .refine(
+      (data) => data.from !== undefined && (!data.to || data.from <= data.to),
+      {
+        message: 'Start date must be before end date',
+        path: ['dateRange'],
+      }
+    ),
   grade: z
     .string()
     .optional()
