@@ -63,7 +63,7 @@ function ExperienceEditForm({
           placeholder="Company"
         />
         <Dot size={16} />
-        <div className="min-w-[100px] max-w-[120px]">
+        <div className="min-w-20 max-w-80">
           <Select
             value={editItem.type}
             onValueChange={(val) => handleChange('type', val)}
@@ -81,25 +81,26 @@ function ExperienceEditForm({
             </SelectContent>
           </Select>
         </div>
+        <Dot size={16} />
+        <div className="flex items-center gap-2">
+          <div className="">
+            <DateInput
+              value={editItem.startDate}
+              onChange={(date) => handleDateChange('startDate', date)}
+              label="Start"
+            />
+          </div>
+          <span className="mx-1">-</span>
+          <div className="max-w-[150px]">
+            <DateInput
+              value={editItem.endDate}
+              onChange={(date) => handleDateChange('endDate', date)}
+              label="End"
+            />
+          </div>
+        </div>
       </div>
       {/* Row 3 */}
-      <div className="flex items-center gap-2">
-        <div className="max-w-[150px]">
-          <DateInput
-            value={editItem.startDate}
-            onChange={(date) => handleDateChange('startDate', date)}
-            label="Start"
-          />
-        </div>
-        <span className="mx-1">-</span>
-        <div className="max-w-[150px]">
-          <DateInput
-            value={editItem.endDate}
-            onChange={(date) => handleDateChange('endDate', date)}
-            label="End"
-          />
-        </div>
-      </div>
       {/* Row 4 */}
       <input
         className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
@@ -330,7 +331,7 @@ export default function Experiences({
 
       {/* Add new experience form (not in list) */}
       {isAdding && editingIdx === -1 && editItem && (
-        <div className="flex flex-col gap-[var(--space-md)] px-6 flex-1">
+        <div className="flex flex-col gap-[var(--space-sm)] px-6 flex-1">
           <ExperienceEditForm
             editItem={editItem}
             loading={loading}
@@ -349,7 +350,7 @@ export default function Experiences({
         return (
           <div
             key={exp.id}
-            className="flex flex-col gap-[var(--space-md)] px-6 flex-1"
+            className="flex flex-col gap-[var(--space-sm)] px-6 flex-1"
           >
             {isEditing ? (
               <ExperienceEditForm

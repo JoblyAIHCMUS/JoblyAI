@@ -10,7 +10,6 @@ import {
   SettingsTabs,
   ProfilePhotoSection,
   PersonalDetailsForm,
-  AccountTypeSection,
 } from './components';
 import UpdateEmailForm from './components/UpdateEmailForm';
 import ChangePasswordForm from './components/ChangePasswordForm';
@@ -30,9 +29,6 @@ export default function CandidateSettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('my-profile');
-  const [accountType, setAccountType] = useState<'job_seeker' | 'employer'>(
-    'job_seeker'
-  );
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
@@ -173,17 +169,6 @@ export default function CandidateSettingsPage() {
               {/* Personal Details Form */}
               <div className="self-stretch inline-flex justify-start items-start gap-60">
                 <PersonalDetailsForm />
-              </div>
-
-              {/* Divider */}
-              <hr className="self-stretch border-primary" />
-
-              {/* Account Type */}
-              <div className="self-stretch inline-flex justify-start items-start gap-24">
-                <AccountTypeSection
-                  selectedType={accountType}
-                  onTypeChange={setAccountType}
-                />
               </div>
 
               {/* Divider */}
