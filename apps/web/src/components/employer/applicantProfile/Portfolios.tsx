@@ -6,7 +6,11 @@ interface Portfolio {
   name: string;
 }
 
-export default function Portfolios({ portfolios }: { portfolios: Portfolio[] }) {
+export default function Portfolios({
+  portfolios,
+}: {
+  portfolios: Portfolio[];
+}) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-base)] py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full">
       <div className="heading-h6-semi-bold text-[var(--text-primary)] mb-[var(--space-xs)]">
