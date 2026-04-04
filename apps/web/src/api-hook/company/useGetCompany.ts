@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Company, getCompanyById } from '@/api-client/company';
 
 interface UseGetCompanyOptions {
@@ -11,7 +11,7 @@ export function useGetCompany(options?: UseGetCompanyOptions) {
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<Company | null>(null);
 
-  const fetchCompany = async (id: number) => {
+  const fetchCompany = useCallback(async (id: number) => {
     setLoading(true);
     setError(null);
 
@@ -27,7 +27,7 @@ export function useGetCompany(options?: UseGetCompanyOptions) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [options]);
 
   return { fetchCompany, loading, error, data };
 }
