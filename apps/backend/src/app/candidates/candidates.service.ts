@@ -50,6 +50,10 @@ export class CandidatesService {
       return null;
     }
 
+    if (typeof value === 'string' && value.trim() === '') {
+      return null;
+    }
+
     return this.toPrismaDateTime(value, fieldName);
   }
 
@@ -156,9 +160,17 @@ export class CandidatesService {
     userId: string,
     createDto: Omit<Prisma.EducationCreateInput, 'candidate'>
   ): Promise<Education> {
+    const { startDate, endDate, ...rest } = createDto;
+
     const result = await this.prismaClient.education.create({
       data: {
-        ...createDto,
+        ...rest,
+        startDate: this.toPrismaDateTime(startDate, 'startDate'),
+        ...(endDate === undefined
+          ? {}
+          : {
+              endDate: this.toPrismaNullableDateTime(endDate, 'endDate'),
+            }),
         candidate: {
           connect: { id: userId },
         },
@@ -238,9 +250,17 @@ export class CandidatesService {
     userId: string,
     createDto: Omit<Prisma.ExperienceCreateInput, 'candidate'>
   ): Promise<Experience> {
+    const { startDate, endDate, ...rest } = createDto;
+
     const result = await this.prismaClient.experience.create({
       data: {
-        ...createDto,
+        ...rest,
+        startDate: this.toPrismaDateTime(startDate, 'startDate'),
+        ...(endDate === undefined
+          ? {}
+          : {
+              endDate: this.toPrismaNullableDateTime(endDate, 'endDate'),
+            }),
         candidate: {
           connect: { id: userId },
         },
@@ -479,9 +499,20 @@ export class CandidatesService {
     userId: string,
     createDto: Omit<Prisma.CertificateCreateInput, 'candidate'>
   ): Promise<Certificate> {
+    const { issueDate, expiryDate, ...rest } = createDto;
+
     const result = await this.prismaClient.certificate.create({
       data: {
-        ...createDto,
+        ...rest,
+        issueDate: this.toPrismaDateTime(issueDate, 'issueDate'),
+        ...(expiryDate === undefined
+          ? {}
+          : {
+              expiryDate: this.toPrismaNullableDateTime(
+                expiryDate,
+                'expiryDate'
+              ),
+            }),
         candidate: {
           connect: { id: userId },
         },

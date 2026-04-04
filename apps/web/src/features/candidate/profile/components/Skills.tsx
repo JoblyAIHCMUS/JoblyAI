@@ -2,18 +2,19 @@
 
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
+import type { CandidateSkill } from '@/api-client/candidate/types';
 
 interface SkillsProps {
-  skills: string[];
+  skills: CandidateSkill[];
   handleAddSkill?: (skill: string) => void;
-  handleDeleteSkill?: (skill: string) => void;
+  handleDeleteSkill?: (skillId: number) => void;
 }
 
 export default function Skills({
   skills,
   handleAddSkill,
   handleDeleteSkill,
-}: SkillsProps) {
+}: Readonly<SkillsProps>) {
   const [isAdding, setIsAdding] = useState(false);
   const [newSkill, setNewSkill] = useState('');
 
@@ -75,17 +76,17 @@ export default function Skills({
         </div>
       )}
       <div className="flex flex-wrap gap-3  px-4">
-        {skills.map((skill, idx) => (
+        {skills.map((skill) => (
           <span
-            key={idx}
+            key={skill.id}
             className="label-label-1-regular bg-accent-primary text-accent-primary break-words px-3 py-1 rounded-[var(--radius-md)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] flex items-center gap-2"
           >
-            {skill}
+            {skill.title}
             {handleDeleteSkill && (
               <button
                 className="ml-1 text-danger hover:underline"
-                onClick={() => handleDeleteSkill(skill)}
-                aria-label={`Xoá ${skill}`}
+                onClick={() => handleDeleteSkill(skill.id)}
+                aria-label={`Xoá ${skill.title}`}
                 type="button"
               >
                 ×

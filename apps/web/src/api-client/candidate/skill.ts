@@ -1,13 +1,12 @@
 import axios from 'axios';
+import type { CandidateSkill } from '@/api-client/candidate/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export async function createSkill(skill: string): Promise<string> {
-  return skill; // Tạm thời trả về skill đã tạo, sau này có thể thay đổi nếu API trả về dữ liệu khác
-
-  const response = await axios.post<string>(
+export async function createSkill(skill: string): Promise<CandidateSkill> {
+  const response = await axios.post<CandidateSkill>(
     `${API_BASE_URL}/api/candidate/me/skills`,
-    { skill },
+    { title: skill },
     {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json' },
@@ -17,11 +16,10 @@ export async function createSkill(skill: string): Promise<string> {
   return response.data;
 }
 
-export async function deleteSkill(skill: string): Promise<string> {
-  await axios.delete(`${API_BASE_URL}/api/candidate/me/skills`, {
+export async function deleteSkill(skillId: number): Promise<number> {
+  await axios.delete(`${API_BASE_URL}/api/candidate/me/skills/${skillId}`, {
     withCredentials: true,
     headers: { 'Content-Type': 'application/json' },
-    data: { skill }, // Gửi skill cần xóa trong body của request
   });
-  return skill; // Trả về skill đã xóa, có thể thay đổi nếu API trả về dữ liệu khác
+  return skillId;
 }
