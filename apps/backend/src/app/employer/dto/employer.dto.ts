@@ -1,5 +1,5 @@
-import { Expose } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { Expose, Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 interface Company {
   id: number;
@@ -31,6 +31,18 @@ export class QueryResponseEmployerDto {
 
   @Expose()
   lastName?: string;
+
+  @Expose()
+  phoneNumber?: string;
+
+  @Expose()
+  dateOfBirth?: Date;
+
+  @Expose()
+  gender?: string;
+
+  @Expose()
+  avatarUrl?: string;
 
   @Expose()
   role?: string;
@@ -70,5 +82,8 @@ export class UpdateEmployerDto {
   role?: string;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
   companyId?: number;
 }
