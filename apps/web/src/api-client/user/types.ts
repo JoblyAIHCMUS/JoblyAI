@@ -29,6 +29,7 @@ export interface UpdateUserDTO {
   phoneNumber?: string;
   dateOfBirth?: string; // ISO 8601 date string (YYYY-MM-DD)
   gender?: string;
+  avatarUrl?: string;
 }
 
 /**

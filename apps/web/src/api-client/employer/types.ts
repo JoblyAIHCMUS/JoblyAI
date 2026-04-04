@@ -15,8 +15,12 @@ export interface EmployerProfileResponse {
   email: string;
   verified: boolean;
   image?: string;
+  avatarUrl?: string;
   firstName?: string;
   lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string | Date;
+  gender?: string;
   fullName: string;
   role?: string;
   company?: EmployerCompany;
@@ -34,6 +38,4 @@ export interface UpdateEmployerProfilePayload {
   companyId?: number;
 }
 
-export interface UpdateEmployerProfileResponse {
-  message: string;
-}
+export type UpdateEmployerProfileResponse = EmployerProfileResponse;
