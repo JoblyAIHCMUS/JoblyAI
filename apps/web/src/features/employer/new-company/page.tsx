@@ -126,7 +126,7 @@ export default function EmployerNewCompanyPage() {
         );
       case 1:
         // Check if description is valid
-        return !errors.companyDescription;
+        return !!currentValues.companyDescription && !errors.companyDescription;
       default:
         return true;
     }
