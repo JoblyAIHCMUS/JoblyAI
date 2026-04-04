@@ -830,17 +830,60 @@ async function main() {
   });
   console.log('Created company Nomad');
 
-  // Assign Maria Kelly as HR in Nomad
-  console.log('Creating employer role...');
-  await prisma.employer.create({
+  // Assign Maria Kelly as admin in Nomad
+  console.log('Setting up Maria Kelly as admin...');
+  const mariaEmployer = await prisma.employer.create({
     data: {
       companyId: nomad.id,
       employerId: maria.id,
-      role: 'HR',
+      role: 'admin',
       assignedAt: new Date('2021-01-01'),
     },
   });
-  console.log('Assigned Maria Kelly as HR in Nomad');
+
+  // Update Nomad to set Maria as admin
+  await prisma.company.update({
+    where: { id: nomad.id },
+    data: { adminId: mariaEmployer.id },
+  });
+  console.log('Assigned Maria Kelly as admin in Nomad');
+
+  // Create Grace Lee (employer to test admin add employee flow)
+  console.log('Creating Grace Lee...');
+  const grace = await prisma.user.create({
+    data: {
+      name: 'Grace Lee',
+      email: 'grace@example.com',
+      emailVerified: true,
+      role: 'employer',
+      firstName: 'Grace',
+      lastName: 'Lee',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Grace',
+    },
+  });
+
+  // Create account for Grace
+  await prisma.account.create({
+    data: {
+      userId: grace.id,
+      accountId: grace.email,
+      providerId: 'credential',
+      password: hashedPassword,
+    },
+  });
+  console.log('Created user Grace Lee');
+
+  // Add Grace to Nomad as employee (added by admin Maria)
+  console.log('Adding Grace to Nomad company...');
+  await prisma.employer.create({
+    data: {
+      companyId: nomad.id,
+      employerId: grace.id,
+      role: 'employee',
+      assignedAt: new Date(),
+    },
+  });
+  console.log('Added Grace to Nomad as employee');
 
   // Assign Carol White as HR in Tech Corp
   console.log('Creating employer role for Carol...');
@@ -881,6 +924,8 @@ Employers:
   - Carol (carol@example.com) - Posted Senior Full Stack job
   - David (david@example.com) - Posted Data Scientist job
   - Frank (frank@example.com) - Posted DevOps job
+  - Maria Kelly (MariaKelly@email.com) - Admin of Nomad
+  - Grace Lee (grace@example.com) - Employee at Nomad (added by admin)
 
 Jobs (OPEN):
   1. Senior Full Stack Engineer (Tech Corp) - 2 applications
@@ -889,8 +934,13 @@ Jobs (OPEN):
   4. UI/UX Designer (Design Studios)
   5. Product Manager (Innovation Labs)
   6. Junior React Developer (StartUp Hub) - 2 applications
-- Companies: 1 (Nomad)
-- Employer Roles: 1 (Maria Kelly -> HR @ Nomad)
+- Companies: 1 (Nomad with Maria Kelly as admin, Grace Lee as employee)
+- Employer Roles: 2 (Maria Kelly -> admin @ Nomad, Grace Lee -> employee @ Nomad)
+
+🧪 Test Cases for Employer Management:
+1. Maria Kelly (admin of Nomad) can add/remove employers
+2. Grace Lee (already employed) cannot create new company
+3. Maria Kelly can grant admin to other employers
   `);
 }
 
