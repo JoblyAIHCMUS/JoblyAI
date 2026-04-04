@@ -25,7 +25,8 @@ export async function getJobViewsAnalytics(
   groupBy: 'day' | 'week' | 'month' = 'day'
 ): Promise<JobViewAnalytics[]> {
   const params = new URLSearchParams();
-  if (startDate) params.append('startDate', startDate.toISOString().split('T')[0]);
+  if (startDate)
+    params.append('startDate', startDate.toISOString().split('T')[0]);
   if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
   params.append('groupBy', groupBy);
 
@@ -49,7 +50,8 @@ export async function getJobApplicationsAnalytics(
   groupBy: 'day' | 'week' | 'month' = 'day'
 ): Promise<JobApplicationAnalytics[]> {
   const params = new URLSearchParams();
-  if (startDate) params.append('startDate', startDate.toISOString().split('T')[0]);
+  if (startDate)
+    params.append('startDate', startDate.toISOString().split('T')[0]);
   if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
   params.append('groupBy', groupBy);
 

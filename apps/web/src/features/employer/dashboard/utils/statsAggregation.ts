@@ -78,7 +78,10 @@ export function aggregateAnalyticsData(
 
   // Calculate totals and trends
   const totalJobViews = data.reduce((sum, d) => sum + d.jobViews, 0);
-  const totalJobApplications = data.reduce((sum, d) => sum + d.jobApplications, 0);
+  const totalJobApplications = data.reduce(
+    (sum, d) => sum + d.jobApplications,
+    0
+  );
 
   // Calculate percentage differences vs previous period
   let jobViewsDiff = 0;
@@ -91,7 +94,8 @@ export function aggregateAnalyticsData(
     const prevPeriodApps = data[data.length - 2].jobApplications;
 
     if (prevPeriodViews > 0) {
-      jobViewsDiff = ((lastPeriodViews - prevPeriodViews) / prevPeriodViews) * 100;
+      jobViewsDiff =
+        ((lastPeriodViews - prevPeriodViews) / prevPeriodViews) * 100;
     }
     if (prevPeriodApps > 0) {
       jobApplicationsDiff =

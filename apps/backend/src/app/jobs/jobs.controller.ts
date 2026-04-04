@@ -43,7 +43,7 @@ export class JobsController {
     @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'day'
   ) {
     const userId = request.user.id;
-    
+
     // Default to last 30 days if not specified
     const end = endDate ? new Date(endDate) : new Date();
     const start = startDate

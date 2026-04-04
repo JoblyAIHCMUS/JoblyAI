@@ -85,4 +85,3 @@ export interface JobApplicationAnalytics {
   applicationCount: number;
   approvedCount: number;
 }
-

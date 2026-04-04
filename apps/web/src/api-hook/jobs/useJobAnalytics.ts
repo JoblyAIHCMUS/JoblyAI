@@ -22,7 +22,11 @@ export function useJobViewsAnalytics(options?: UseJobAnalyticsOptions) {
   const [data, setData] = useState<JobViewAnalytics[] | null>(null);
 
   const fetchAnalytics = useCallback(
-    async (startDate?: Date, endDate?: Date, groupBy: 'day' | 'week' | 'month' = 'day') => {
+    async (
+      startDate?: Date,
+      endDate?: Date,
+      groupBy: 'day' | 'week' | 'month' = 'day'
+    ) => {
       setLoading(true);
       setError(null);
       try {
@@ -60,11 +64,19 @@ export function useJobApplicationsAnalytics(options?: UseJobAnalyticsOptions) {
   const [data, setData] = useState<JobApplicationAnalytics[] | null>(null);
 
   const fetchAnalytics = useCallback(
-    async (startDate?: Date, endDate?: Date, groupBy: 'day' | 'week' | 'month' = 'day') => {
+    async (
+      startDate?: Date,
+      endDate?: Date,
+      groupBy: 'day' | 'week' | 'month' = 'day'
+    ) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await getJobApplicationsAnalytics(startDate, endDate, groupBy);
+        const result = await getJobApplicationsAnalytics(
+          startDate,
+          endDate,
+          groupBy
+        );
         setData(result);
         options?.onSuccess?.(result);
         return result;

@@ -2,7 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Eye, FileText, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import {
+  Eye,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ChartContainer,
@@ -245,100 +251,104 @@ export function DashboardStatsPanel({
         ) : (
           <>
             {/* Data tab selector */}
-            <Tabs value={dataTab} onValueChange={(v) => setDataTab(v as DataTab)}>
+            <Tabs
+              value={dataTab}
+              onValueChange={(v) => setDataTab(v as DataTab)}
+            >
               <TabsList className="bg-transparent p-0 h-auto gap-4 border-b rounded-none w-full justify-start">
-            <TabsTrigger
-              value="overview"
-              className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="jobViews"
-              className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
-            >
-              Job Views
-            </TabsTrigger>
-            <TabsTrigger
-              value="jobApplications"
-              className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
-            >
-              Job Applications
-            </TabsTrigger>
-          </TabsList>
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="jobViews"
+                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                >
+                  Job Views
+                </TabsTrigger>
+                <TabsTrigger
+                  value="jobApplications"
+                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                >
+                  Job Applications
+                </TabsTrigger>
+              </TabsList>
 
-          {/* All three tabs share the same chart layout */}
-          {(['overview', 'jobViews', 'jobApplications'] as DataTab[]).map(
-            (tab) => (
-              <TabsContent key={tab} value={tab}>
-                <div className="flex flex-col gap-4 lg:flex-row">
-                  {/* Chart */}
-                  <ChartContainer
-                    config={chartConfig}
-                    className="aspect-auto h-[280px] flex-1 min-w-0"
-                  >
-                    <BarChart data={currentDataSet.data}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="label"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        width={40}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      {tab === 'overview' && (
-                        <ChartLegend content={<ChartLegendContent />} />
-                      )}
-                      {(tab === 'overview' || tab === 'jobViews') && (
-                        <Bar
-                          dataKey="jobViews"
-                          fill="var(--color-jobViews)"
-                          radius={
-                            tab === 'overview' ? [0, 0, 0, 0] : [4, 4, 0, 0]
-                          }
-                          stackId={tab === 'overview' ? 'stack' : undefined}
-                        />
-                      )}
-                      {(tab === 'overview' || tab === 'jobApplications') && (
-                        <Bar
-                          dataKey="jobApplications"
-                          fill="var(--color-jobApplications)"
-                          radius={[4, 4, 0, 0]}
-                          stackId={tab === 'overview' ? 'stack' : undefined}
-                        />
-                      )}
-                    </BarChart>
-                  </ChartContainer>
+              {/* All three tabs share the same chart layout */}
+              {(['overview', 'jobViews', 'jobApplications'] as DataTab[]).map(
+                (tab) => (
+                  <TabsContent key={tab} value={tab}>
+                    <div className="flex flex-col gap-4 lg:flex-row">
+                      {/* Chart */}
+                      <ChartContainer
+                        config={chartConfig}
+                        className="aspect-auto h-[280px] flex-1 min-w-0"
+                      >
+                        <BarChart data={currentDataSet.data}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            width={40}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          {tab === 'overview' && (
+                            <ChartLegend content={<ChartLegendContent />} />
+                          )}
+                          {(tab === 'overview' || tab === 'jobViews') && (
+                            <Bar
+                              dataKey="jobViews"
+                              fill="var(--color-jobViews)"
+                              radius={
+                                tab === 'overview' ? [0, 0, 0, 0] : [4, 4, 0, 0]
+                              }
+                              stackId={tab === 'overview' ? 'stack' : undefined}
+                            />
+                          )}
+                          {(tab === 'overview' ||
+                            tab === 'jobApplications') && (
+                            <Bar
+                              dataKey="jobApplications"
+                              fill="var(--color-jobApplications)"
+                              radius={[4, 4, 0, 0]}
+                              stackId={tab === 'overview' ? 'stack' : undefined}
+                            />
+                          )}
+                        </BarChart>
+                      </ChartContainer>
 
-                  {/* Summary cards */}
-                  <div className="flex flex-row gap-4 lg:w-[220px] lg:flex-col">
-                    <SummaryCard
-                      title="Job Views"
-                      total={currentDataSet.summary.totalJobViews}
-                      diff={currentDataSet.summary.jobViewsDiff}
-                      periodLabel={timeModeLabel}
-                      icon={Eye}
-                      iconBg="bg-orange-400"
-                    />
-                    <SummaryCard
-                      title="Job Applications"
-                      total={currentDataSet.summary.totalJobApplications}
-                      diff={currentDataSet.summary.jobApplicationsDiff}
-                      periodLabel={timeModeLabel}
-                      icon={FileText}
-                      iconBg="bg-purple-500"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-            )
-          )}
+                      {/* Summary cards */}
+                      <div className="flex flex-row gap-4 lg:w-[220px] lg:flex-col">
+                        <SummaryCard
+                          title="Job Views"
+                          total={currentDataSet.summary.totalJobViews}
+                          diff={currentDataSet.summary.jobViewsDiff}
+                          periodLabel={timeModeLabel}
+                          icon={Eye}
+                          iconBg="bg-orange-400"
+                        />
+                        <SummaryCard
+                          title="Job Applications"
+                          total={currentDataSet.summary.totalJobApplications}
+                          diff={currentDataSet.summary.jobApplicationsDiff}
+                          periodLabel={timeModeLabel}
+                          icon={FileText}
+                          iconBg="bg-purple-500"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                )
+              )}
             </Tabs>
           </>
         )}

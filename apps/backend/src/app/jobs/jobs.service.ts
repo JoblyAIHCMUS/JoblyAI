@@ -98,7 +98,8 @@ export class JobsService {
 
       // Merge with existing AND conditions if present, or create new
       if (whereClause.AND && Array.isArray(whereClause.AND)) {
-        const existingConditions = whereClause.AND as Prisma.JobPostingWhereInput[];
+        const existingConditions =
+          whereClause.AND as Prisma.JobPostingWhereInput[];
         existingConditions.push(...salaryConditions);
       } else {
         whereClause.AND = salaryConditions;
@@ -520,10 +521,7 @@ export class JobsService {
     });
 
     // Aggregate by period
-    const groupedApps = new Map<
-      string,
-      { total: number; approved: number }
-    >();
+    const groupedApps = new Map<string, { total: number; approved: number }>();
 
     applications.forEach((job) => {
       job.applications.forEach(({ createdAt, status }) => {

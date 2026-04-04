@@ -9,7 +9,10 @@ import {
 } from '@/components/employer/dashboardStatsPanel';
 import { useListEmployerApplications } from '@/api-hook/application';
 import { useGetChatSummary } from '@/api-hook/messages';
-import { useJobViewsAnalytics, useJobApplicationsAnalytics } from '@/api-hook/jobs';
+import {
+  useJobViewsAnalytics,
+  useJobApplicationsAnalytics,
+} from '@/api-hook/jobs';
 import {
   aggregateAnalyticsData,
   getDateRangeForPeriods,
@@ -53,14 +56,18 @@ export default function EmployerDashboardPage() {
 
     try {
       setErrorCounts(null);
-      
+
       // Fetch pending applications (status = APPLIED)
-      const appsResult = await fetchApplications({ status: 'APPLIED', pageSize: 1 });
+      const appsResult = await fetchApplications({
+        status: 'APPLIED',
+        pageSize: 1,
+      });
       setCandidateCount(appsResult.total || 0);
 
       // Fetch chat summary to count unread messages
       const chatsResult = await fetchChatSummary(user.id);
-      const unreadCount = chatsResult?.filter((chat) => chat.hasUnread).length || 0;
+      const unreadCount =
+        chatsResult?.filter((chat) => chat.hasUnread).length || 0;
       setMessageCount(unreadCount);
     } catch (err) {
       console.error('Failed to fetch counts:', err);
@@ -90,7 +97,11 @@ export default function EmployerDashboardPage() {
       ]);
 
       // Aggregate into StatsDataSet format
-      const aggregated = aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
+      const aggregated = aggregateAnalyticsData(
+        viewsData || [],
+        appsData || [],
+        'day'
+      );
       setStatsData(aggregated);
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
