@@ -22,7 +22,11 @@ interface ProfileHeaderProps {
   handleUpdateSocials?: (social: Social[]) => void;
 }
 
-export default function ProfileHeader({ candidate, handleAddSocial, handleUpdateSocials }: ProfileHeaderProps) {
+export default function ProfileHeader({
+  candidate,
+  handleAddSocial,
+  handleUpdateSocials,
+}: ProfileHeaderProps) {
   const router = useRouter();
 
   return (
@@ -58,7 +62,10 @@ export default function ProfileHeader({ candidate, handleAddSocial, handleUpdate
               <div className="flex items-center gap-3 mt-2">
                 {candidate.email && (
                   <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-accent-primary flex-shrink-0" />
+                    <Mail
+                      size={16}
+                      className="text-accent-primary flex-shrink-0"
+                    />
                     <span className="body-body-1-regular text-tertiary break-words">
                       {candidate.email}
                     </span>
@@ -66,7 +73,10 @@ export default function ProfileHeader({ candidate, handleAddSocial, handleUpdate
                 )}
                 {candidate.phone && (
                   <div className="flex items-center gap-2">
-                    <Smartphone size={16} className="text-accent-primary flex-shrink-0" />
+                    <Smartphone
+                      size={16}
+                      className="text-accent-primary flex-shrink-0"
+                    />
                     <span className="body-body-1-regular text-tertiary break-words">
                       {candidate.phone}
                     </span>

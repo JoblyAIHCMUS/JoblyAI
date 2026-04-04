@@ -42,11 +42,7 @@ export function DateInput({
       <div className="relative w-full">
         <input
           type="date"
-          value={
-            value
-              ? new Date(value).toISOString().split('T')[0]
-              : ''
-          }
+          value={value ? new Date(value).toISOString().split('T')[0] : ''}
           onChange={handleChange}
           disabled={disabled}
           placeholder={placeholder}
@@ -58,7 +54,11 @@ export function DateInput({
         />
         <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
       </div>
-      {error && <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">{error}</span>}
+      {error && (
+        <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

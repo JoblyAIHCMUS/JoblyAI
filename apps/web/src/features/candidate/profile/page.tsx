@@ -284,12 +284,12 @@ const CandidateProfilePage = () => {
 
   return (
     <div
-      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)]"
+      className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)] overflow-x-hidden"
       style={{ boxSizing: 'border-box' }}
     >
       {/* ProfileHeader with SideBar */}
       <div className="w-full">
-        <ProfileHeader 
+        <ProfileHeader
           candidate={candidate}
           handleAddSocial={handleAddSocial}
           handleUpdateSocials={handleUpdateSocials}

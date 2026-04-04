@@ -60,3 +60,90 @@ export function parseISODate(
 export function isValidEmail(email: string): boolean {
   return email.includes('@') && email.includes('.');
 }
+
+/**
+ * Zod schema for education form validation with real-time validation
+ */
+export const EducationSchema = z.object({
+  school: z.string().min(1, 'School name is required').trim(),
+  degree: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length >= 2,
+      'Degree must be at least 2 characters'
+    ),
+  fieldOfStudy: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length >= 2,
+      'Field of study must be at least 2 characters'
+    ),
+  dateRange: z.object({
+    from: z.date().optional(),
+    to: z.date().optional(),
+  }).refine((data) => data.from !== undefined && (!data.to || data.from <= data.to), {
+    message: 'Start date must be before end date',
+    path: ['dateRange'],
+  }),
+  grade: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || /^([0-4](\.\d{1,2})?|5(\.0{1,2})?)$/.test(val),
+      'Grade must be between 0 and 5'
+    ),
+  description: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length <= 500,
+      'Description must not exceed 500 characters'
+    ),
+});
+
+export type EducationFormData = z.infer<typeof EducationSchema>;
+
+/**
+ * Zod schema for experience form validation with real-time validation
+ */
+export const ExperienceSchema = z.object({
+  jobTitle: z.string().min(1, 'Job title is required').trim(),
+  companyName: z.string().min(1, 'Company name is required').trim(),
+  type: z.string().min(1, 'Employment type is required'),
+  location: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length >= 2,
+      'Location must be at least 2 characters'
+    ),
+  dateRange: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .refine(
+      (data) => data.from !== undefined && (!data.to || data.from <= data.to),
+      {
+        message: 'Start date is required and end date must be after start date',
+        path: ['from'],
+      }
+    ),
+  description: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length <= 500,
+      'Description must not exceed 500 characters'
+    ),
+});
+
+export type ExperienceFormData = z.infer<typeof ExperienceSchema>;

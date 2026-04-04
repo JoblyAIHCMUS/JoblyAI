@@ -101,32 +101,33 @@ function CandidateSidebarItem({
 }) {
   const content = (
     <div className="flex w-full items-center">
-          <span
-            className={cn(
-              'h-8 w-1 rounded-r-md bg-transparent transition-colors',
-              active && 'bg-[#4640de]'
-            )}
-          />
-          <span
-            className={cn(
-              'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-tertiary hover:text-primary transition-colors',
-              'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
-              active && 'bg-[#e9ebfd] text-[#4640de]',
-              item.destructive && 'text-[var(--text-error-secondary)] hover:text-[var(--text-error-secondary-hover)]',
-            )}
-          >
-            <item.icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
-            <span className="truncate group-data-[collapsible=icon]:hidden">
-              {disabled && onClick ? 'Logging out...' : item.title}
-            </span>
-            {item.title === 'Messages' ? (
-              hasUnreadMessages && (
-                <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
-              )
-            ) : item.badge ? (
-              <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
-            ) : null}
-          </span>
+      <span
+        className={cn(
+          'h-8 w-1 rounded-r-md bg-transparent transition-colors',
+          active && 'bg-[#4640de]'
+        )}
+      />
+      <span
+        className={cn(
+          'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-tertiary hover:text-primary transition-colors',
+          'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+          active && 'bg-[#e9ebfd] text-[#4640de]',
+          item.destructive &&
+            'text-[var(--text-error-secondary)] hover:text-[var(--text-error-secondary-hover)]'
+        )}
+      >
+        <item.icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
+        <span className="truncate group-data-[collapsible=icon]:hidden">
+          {disabled && onClick ? 'Logging out...' : item.title}
+        </span>
+        {item.title === 'Messages' ? (
+          hasUnreadMessages && (
+            <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+          )
+        ) : item.badge ? (
+          <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#4640de] group-data-[collapsible=icon]:hidden" />
+        ) : null}
+      </span>
     </div>
   );
 
@@ -161,9 +162,7 @@ function CandidateSidebarItem({
           active && 'bg-transparent'
         )}
       >
-        <Link href={item.href}>
-          {content}
-        </Link>
+        <Link href={item.href}>{content}</Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );

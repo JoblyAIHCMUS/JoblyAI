@@ -12,11 +12,7 @@ interface SideBarProps {
 }
 
 // Socials View
-function SocialsView({
-  socials,
-}: {
-  socials: Social[];
-}) {
+function SocialsView({ socials }: { socials: Social[] }) {
   return (
     <>
       {socials.map((s, idx) => (
@@ -225,9 +221,7 @@ export default function SideBar({
           />
         ) : (
           <>
-            <SocialsView
-              socials={socials}
-            />
+            <SocialsView socials={socials} />
           </>
         )}
       </div>

@@ -2,10 +2,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { CandidateEducation } from '@/types/candidate';
-import { DateInput } from '@/components/ui/date-input';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import ConfirmDelete from '@/components/ui/confirmDelete';
+import { EducationSchema, type EducationFormData } from '@/lib/validation';
 
 interface EducationsProps {
   educations: CandidateEducation[];
@@ -17,100 +20,237 @@ interface EducationsProps {
 interface EducationEditFormProps {
   editItem: CandidateEducation;
   loading: boolean;
-  handleChange: (field: keyof CandidateEducation, value: string) => void;
-  handleDateChange?: (
-    field: 'startDate' | 'endDate',
-    date: Date | null
-  ) => void;
-  handleSave: () => void;
-  handleCancel: () => void;
+  onSubmit: (data: EducationFormData) => Promise<void>;
+  onCancel: () => void;
+  isCurrentlyStudying?: boolean;
+  onIsCurrentlyStudyingChange?: (value: boolean) => void;
 }
 
 function EducationEditForm({
   editItem,
   loading,
-  handleChange,
-  handleDateChange,
-  handleSave,
-  handleCancel,
+  onSubmit,
+  onCancel,
+  isCurrentlyStudying = false,
+  onIsCurrentlyStudyingChange,
 }: EducationEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<EducationFormData>({
+    resolver: zodResolver(EducationSchema),
+    mode: 'onChange',
+    defaultValues: {
+      school: editItem.school || '',
+      degree: editItem.degree || '',
+      fieldOfStudy: editItem.fieldOfStudy || '',
+      dateRange: {
+        from: editItem.startDate ? new Date(editItem.startDate) : undefined,
+        to: editItem.endDate ? new Date(editItem.endDate) : undefined,
+      },
+      grade: editItem.grade || '',
+      description: editItem.description || '',
+    },
+  });
+
+  const descriptionValue = watch('description');
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height =
         textareaRef.current.scrollHeight + 'px';
     }
-  }, [editItem.description]);
+  }, [descriptionValue]);
+
   return (
-    <>
-      {/* Row 1 */}
-      <input
-        className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
-        value={editItem.school}
-        onChange={(e) => handleChange('school', e.target.value)}
-        placeholder="School"
-      />
-      {/* Row 2 */}
-      <div className="flex items-center gap-2">
-        <input
-          className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
-          value={editItem.degree}
-          onChange={(e) => handleChange('degree', e.target.value)}
-          placeholder="Degree"
-        />
-        <input
-          className="text-tertiary break-words border rounded p-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-accent-primary"
-          value={editItem.fieldOfStudy}
-          onChange={(e) => handleChange('fieldOfStudy', e.target.value)}
-          placeholder="Field of Study"
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-3 w-full max-w-full"
+    >
+      {/* Row 1 - School */}
+      <div className="w-full box-border">
+        <Controller
+          name="school"
+          control={control}
+          render={({ field }) => (
+            <>
+              <input
+                {...field}
+                placeholder="School"
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.school
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
+              />
+              {errors.school && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.school.message}
+                </p>
+              )}
+            </>
+          )}
         />
       </div>
-      {/* Row 3 */}
-      <div className="flex items-center gap-2">
-        <div className="max-w-[150px]">
-          <DateInput
-            value={editItem.startDate}
-            onChange={(date) => handleDateChange && handleDateChange('startDate', date)}
-            label="Start"
+
+      {/* Row 2 - Degree & Field of Study */}
+      <div className="flex items-center gap-2 flex-wrap w-full box-border">
+        <div className="flex-1 min-w-[120px]">
+          <Controller
+            name="degree"
+            control={control}
+            render={({ field }) => (
+              <>
+                <input
+                  {...field}
+                  placeholder="Degree"
+                  className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                    errors.degree
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-accent-primary'
+                  }`}
+                />
+                {errors.degree && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.degree.message}
+                  </p>
+                )}
+              </>
+            )}
           />
         </div>
-        <span className="text-tertiary">-</span>
-        <div className="max-w-[150px]">
-          <DateInput
-            value={editItem.endDate}
-            onChange={(date) => handleDateChange && handleDateChange('endDate', date)}
-            label="End"
+        <div className="flex-1 min-w-[120px]">
+          <Controller
+            name="fieldOfStudy"
+            control={control}
+            render={({ field }) => (
+              <>
+                <input
+                  {...field}
+                  placeholder="Field of Study"
+                  className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                    errors.fieldOfStudy
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-accent-primary'
+                  }`}
+                />
+                {errors.fieldOfStudy && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.fieldOfStudy.message}
+                  </p>
+                )}
+              </>
+            )}
           />
         </div>
       </div>
-      {/* Row 4 */}
-      <textarea
-        ref={textareaRef}
-        className="text-tertiary break-words border rounded p-1 focus:outline-none focus:ring-2 focus:ring-accent-primary min-h-[60px]"
-        style={{ maxHeight: '200px', overflowY: 'auto' }}
-        value={editItem.description}
-        onChange={(e) => handleChange('description', e.target.value)}
-        placeholder="Description"
-      />
+
+      {/* Row 3 - Study Period */}
+      <div className="w-full">
+        <Controller
+          name="dateRange"
+          control={control}
+          render={({ field }) => (
+            <DateRangePicker
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Select study period"
+              error={
+                errors.dateRange?.message ||
+                errors.dateRange?.from?.message ||
+                errors.dateRange?.to?.message
+              }
+              label=""
+              isCurrentlyWorking={isCurrentlyStudying}
+              onIsCurrentlyWorkingChange={onIsCurrentlyStudyingChange}
+              checkboxLabel="I am currently studying here"
+            />
+          )}
+        />
+      </div>
+
+      {/* Grade */}
+      <div className="w-full box-border">
+        <Controller
+          name="grade"
+          control={control}
+          render={({ field }) => (
+            <>
+              <input
+                {...field}
+                placeholder="Grade (0-4)"
+                type="number"
+                step="0.01"
+                min="0"
+                max="5"
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.grade
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
+              />
+              {errors.grade && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.grade.message}
+                </p>
+              )}
+            </>
+          )}
+        />
+      </div>
+
+      {/* Description */}
+      <div className="w-full box-border">
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <>
+              <textarea
+                {...field}
+                ref={textareaRef}
+                placeholder="Description"
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
+                  errors.description
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
+                style={{ maxHeight: '200px', resize: 'vertical' }}
+              />
+              {errors.description && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.description.message}
+                </p>
+              )}
+            </>
+          )}
+        />
+      </div>
+
       {/* Actions */}
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2 mt-4">
         <button
-          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover"
-          onClick={handleSave}
-          disabled={loading}
+          type="submit"
+          disabled={loading || !isDirty}
+          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : 'Save'}
         </button>
         <button
-          className="px-4 py-2 rounded border"
-          onClick={handleCancel}
+          type="button"
+          onClick={onCancel}
           disabled={loading}
+          className="px-4 py-2 rounded border disabled:opacity-50"
         >
           Cancel
         </button>
       </div>
-    </>
+    </form>
   );
 }
 
@@ -189,13 +329,27 @@ export default function Educations({
   const [isAdding, setIsAdding] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [isCurrentlyStudying, setIsCurrentlyStudying] = useState(false);
+
+  // Lock body scroll when editing or adding
+  useEffect(() => {
+    if (isAdding || editingIdx !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAdding, editingIdx]);
 
   const handleAdd = () => {
     setIsAdding(true);
     setEditingIdx(-1);
+    setIsCurrentlyStudying(false);
     const createEmptyEducation = (): CandidateEducation => ({
       id: Date.now(),
-      // logo: '',
       school: '',
       degree: '',
       fieldOfStudy: '',
@@ -216,6 +370,7 @@ export default function Educations({
   const handleEdit = (idx: number) => {
     setEditingIdx(idx);
     setEditItem({ ...educations[idx] });
+    setIsCurrentlyStudying(!educations[idx].endDate);
     setError(null);
   };
 
@@ -223,30 +378,21 @@ export default function Educations({
     setDeleteIdx(idx);
   };
 
-  const handleChange = (field: keyof CandidateEducation, value: string) => {
-    setEditItem((item) => (item ? { ...item, [field]: value } : item));
-  };
-
-  const handleDateChange = (
-    field: 'startDate' | 'endDate',
-    date: Date | null
-  ) => {
-    setEditItem((item) =>
-      item
-        ? {
-            ...item,
-            [field]: date ? date.toISOString() : '',
-          }
-        : item
-    );
-  };
-
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = async (formData: EducationFormData) => {
     if (!handleUpdateEducation || editingIdx === null || !editItem) return;
     setLoading(true);
     setError(null);
     try {
-      await handleUpdateEducation(editItem);
+      await handleUpdateEducation({
+        ...editItem,
+        ...formData,
+        startDate: formData.dateRange.from
+          ? formData.dateRange.from.toISOString()
+          : '',
+        endDate: formData.dateRange.to
+          ? formData.dateRange.to.toISOString()
+          : '',
+      });
       setEditingIdx(null);
       setEditItem(null);
     } catch (err) {
@@ -256,12 +402,21 @@ export default function Educations({
     }
   };
 
-  const handleSaveAdd = async () => {
+  const handleSaveAdd = async (formData: EducationFormData) => {
     if (!handleAddEducation || !editItem) return;
     setLoading(true);
     setError(null);
     try {
-      await handleAddEducation(editItem);
+      await handleAddEducation({
+        ...editItem,
+        ...formData,
+        startDate: formData.dateRange.from
+          ? formData.dateRange.from.toISOString()
+          : '',
+        endDate: formData.dateRange.to
+          ? formData.dateRange.to.toISOString()
+          : '',
+      });
       setIsAdding(false);
       setEditItem(null);
     } catch (err) {
@@ -276,6 +431,7 @@ export default function Educations({
     setEditItem(null);
     setError(null);
     setIsAdding(false);
+    setIsCurrentlyStudying(false);
   };
 
   const handleConfirmDelete = async () => {
@@ -292,7 +448,7 @@ export default function Educations({
   };
 
   return (
-    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)]">
+    <div className="rounded-[var(--radius-lg)] border bg-primary px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-lg)] w-full box-border">
       <div className="flex items-center justify-between px-4">
         <div className="heading-h6-semi-bold text-primary break-words">
           Educations
@@ -309,14 +465,14 @@ export default function Educations({
 
       {/* Add new education form (not in list) */}
       {isAdding && editingIdx === -1 && editItem && (
-        <div className="flex flex-col gap-[var(--space-md)] px-6 flex-1">
+        <div className="flex flex-col gap-[var(--space-md)] px-4 w-full box-border">
           <EducationEditForm
             editItem={editItem}
             loading={loading}
-            handleChange={handleChange}
-            handleDateChange={handleDateChange}
-            handleSave={handleSaveAdd}
-            handleCancel={handleCancel}
+            onSubmit={handleSaveAdd}
+            onCancel={handleCancel}
+            isCurrentlyStudying={isCurrentlyStudying}
+            onIsCurrentlyStudyingChange={setIsCurrentlyStudying}
           />
           {error && <div className="text-danger text-sm mt-2">{error}</div>}
         </div>
@@ -327,16 +483,16 @@ export default function Educations({
         return (
           <div
             key={edu.id}
-            className="flex flex-col gap-[var(--space-md)] px-4 flex-1"
+            className="flex flex-col gap-[var(--space-md)] px-4 w-full box-border"
           >
             {isEditing ? (
               <EducationEditForm
                 editItem={editItem}
                 loading={loading}
-                handleChange={handleChange}
-                handleDateChange={handleDateChange}
-                handleSave={handleSaveEdit}
-                handleCancel={handleCancel}
+                onSubmit={handleSaveEdit}
+                onCancel={handleCancel}
+                isCurrentlyStudying={isCurrentlyStudying}
+                onIsCurrentlyStudyingChange={setIsCurrentlyStudying}
               />
             ) : (
               <EducationView
