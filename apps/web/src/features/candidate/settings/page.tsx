@@ -11,6 +11,7 @@ import {
   ProfilePhotoSection,
   PersonalDetailsForm,
 } from './components';
+import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetCandidateProfile } from '@/api-hook/candidate';
 import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
@@ -181,9 +182,6 @@ export default function CandidateSettingsPage() {
                 <PersonalDetailsForm />
               </div>
 
-              {/* Divider */}
-              <hr className="self-stretch border-primary" />
-
               {/* Save Button */}
               <Button
                 type="submit"
@@ -192,6 +190,27 @@ export default function CandidateSettingsPage() {
               >
                 {isSubmitting ? 'Saving...' : 'Save Profile'}
               </Button>
+              {/* Divider */}
+              <hr className="self-stretch border-primary" />
+
+              {/* Change Password Section */}
+              <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
+                {/* Left: Title & Desc */}
+                <div className="flex flex-col gap-1">
+                  <div className="heading-h6-semi-bold text-primary">
+                    Change Password
+                  </div>
+                  <div className="body-body-1-regular text-tertiary">
+                    Manage your password to make sure it is safe
+                  </div>
+                </div>
+                {/* Right: Password form */}
+                <ChangePasswordForm />
+              </div>
+
+              {/* Divider */}
+              <hr className="self-stretch border-primary" />
+
             </form>
           </FormProvider>
         </TabsContent>
