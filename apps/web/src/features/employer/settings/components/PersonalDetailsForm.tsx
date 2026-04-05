@@ -1,4 +1,3 @@
-/* Copied from candidate/settings/components/PersonalDetailsForm.tsx */
 'use client';
 
 import React from 'react';
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, User2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type PersonalDetailsFormData } from '@/lib/validation';
 
@@ -20,14 +19,13 @@ export interface PersonalDetailsFormProps {
   disabled?: boolean;
 }
 
-const genderOptions = ['MALE', 'FEMALE', 'OTHER'];
+const GENDER_OPTIONS = ['MALE', 'FEMALE', 'OTHER'] as const;
 
 export function PersonalDetailsForm({
   disabled = false,
 }: Readonly<PersonalDetailsFormProps>) {
   const {
     register,
-    control,
     formState: { errors, isSubmitting },
   } = useFormContext<PersonalDetailsFormData>();
   const isFieldDisabled = disabled || isSubmitting;
@@ -109,23 +107,21 @@ export function PersonalDetailsForm({
 
           <div className="w-64 inline-flex flex-col items-start gap-2">
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
-              Email <span className="text-red-400 ml-1">*</span>
+              Email
             </Label>
             <Input
               type="email"
               {...register('email')}
               placeholder="Enter email"
-              disabled={isFieldDisabled}
+              disabled={true}
               className={cn(
                 'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
                 errors.email && 'border-red-400'
               )}
             />
-            {errors.email?.message && (
-              <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
-                {errors.email.message.toString()}
-              </span>
-            )}
+            <p className="font-['Be_Vietnam_Pro'] text-sm text-secondary">
+              Email cannot be changed. Contact support to update.
+            </p>
           </div>
         </div>
 
@@ -162,36 +158,7 @@ export function PersonalDetailsForm({
             <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
               Gender <span className="text-red-400 ml-1">*</span>
             </Label>
-            <div className="relative w-full">
-              <Controller
-                name="gender"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                    disabled={isFieldDisabled}
-                  >
-                    <SelectTrigger
-                      className={cn(
-                        'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10',
-                        errors.gender && 'border-red-400'
-                      )}
-                    >
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {genderOptions.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <User2 className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
-            </div>
+            <SelectGenderField disabled={isFieldDisabled} />
             {errors.gender?.message && (
               <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
                 {errors.gender.message.toString()}
@@ -201,5 +168,42 @@ export function PersonalDetailsForm({
         </div>
       </div>
     </>
+  );
+}
+
+function SelectGenderField({ disabled }: { disabled: boolean }) {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<PersonalDetailsFormData>();
+
+  return (
+    <Controller
+      name="gender"
+      control={control}
+      render={({ field }) => (
+        <Select
+          value={field.value || ''}
+          onValueChange={field.onChange}
+          disabled={disabled}
+        >
+          <SelectTrigger
+            className={cn(
+              'w-64 bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base',
+              errors.gender && 'border-red-400'
+            )}
+          >
+            <SelectValue placeholder="Select gender" />
+          </SelectTrigger>
+          <SelectContent>
+            {GENDER_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    />
   );
 }

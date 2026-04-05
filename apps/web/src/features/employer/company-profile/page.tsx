@@ -12,7 +12,6 @@ export default function EmployerCompanyProfilePage() {
     data: employer,
     loading: loadingEmployer,
     error: errorEmployer,
-    fetchEmployerProfile,
   } = useGetEmployerProfile();
   const [companyId, setCompanyId] = useState<number | null>(null);
   const {
@@ -21,10 +20,6 @@ export default function EmployerCompanyProfilePage() {
     error: errorCompany,
     fetchCompany,
   } = useGetCompany();
-
-  useEffect(() => {
-    fetchEmployerProfile();
-  }, [fetchEmployerProfile]);
 
   useEffect(() => {
     if (employer?.company?.id) {
