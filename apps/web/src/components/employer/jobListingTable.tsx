@@ -251,9 +251,11 @@ export const columns: ColumnDef<JobListing>[] = [
                 View Details
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit Job Posting
+            <DropdownMenuItem asChild>
+              <Link href={`/employer/job-listing/${job.id}/edit`}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Job Posting
+              </Link>
             </DropdownMenuItem>
             {job.status === 'Draft' && (
               <DropdownMenuItem
