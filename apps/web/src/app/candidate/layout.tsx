@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 import { CandidateSidebar } from '@/components/candidate/candidateSidebar';
 import { CandidateTopBar } from '@/components/candidate/candidateTopBar';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { PageTitleProvider } from '@/contexts/page-title-context';
 import { CandidateProvider } from '@/features/candidate/context/candidate-context';
 import { useRouteProtection } from '@/hooks/useRouteProtection';
 
@@ -26,15 +25,14 @@ export default function CandidateLayout({ children }: { children: ReactNode }) {
   // Only render protected content after auth is confirmed
   return (
     <CandidateProvider>
-      <PageTitleProvider>
-        <SidebarProvider>
-          <CandidateSidebar />
-          <main className="flex h-screen w-full flex-col overflow-hidden bg-white">
-            <CandidateTopBar />
-            <div className="flex-1 overflow-auto">{children}</div>
-          </main>
-        </SidebarProvider>
-      </PageTitleProvider>
+      <SidebarProvider>
+        <CandidateSidebar />
+        <main className="flex h-screen w-full flex-col overflow-hidden bg-white">
+          <CandidateTopBar />
+          <div className="flex-1 overflow-auto">{children}</div>
+        </main>
+      </SidebarProvider>
     </CandidateProvider>
   );
 }
+

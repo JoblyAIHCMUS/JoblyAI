@@ -9,6 +9,7 @@ import JobDetailContent from '@/components/job-detail/JobDetailContent';
 import JobCompanySection from '@/components/job-detail/JobCompanySection';
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
+import { useJobApplicationsAnalytics } from '@/api-hook/jobs/useJobAnalytics';
 import { mapJobPostingToDetailContent } from '@/features/find-jobs/job-detail/job.mapper';
 import type { JobPosting } from '@/api-client/jobs';
 import type { JobDetailContentProps } from '@/types/jobDetail';
@@ -32,6 +33,7 @@ export default function JobDetailPage() {
   const { setTitle } = usePageTitle();
   
   const { fetchJobDetail } = useJobDetail();
+  const { fetchAnalytics: fetchApplicationsAnalytics } = useJobApplicationsAnalytics();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,24 @@ export default function JobDetailPage() {
         const jobData = await fetchJobDetail(Number(jobId));
         
         console.log('Fetched job data:', jobData); // Debug log to verify data structure
+        
+        // Fetch job applications analytics to get total applied count
+        let totalApplied = 0;
+        try {
+          const analyticsData = await fetchApplicationsAnalytics();
+          if (analyticsData && analyticsData.length > 0) {
+            // Sum up all application counts from analytics data
+            totalApplied = analyticsData.reduce(
+              (sum, period) => sum + (period.applicationCount || 0),
+              0
+            );
+            console.log('Total applied count:', totalApplied);
+          }
+        } catch (analyticsError) {
+          console.warn('Failed to fetch applications analytics:', analyticsError);
+          // Continue without analytics data
+        }
+        
         // Determine breadcrumb href based on user role
         const findJobsHref = role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
 
@@ -80,9 +100,9 @@ export default function JobDetailPage() {
         setPageData(transformedData);
 
         // Map JobPosting to JobDetailContentProps using the view model mapper
-        // TODO: appliedCount and capacity should come from a dedicated API endpoint
-        // For now, defaulting to 0 and available capacity from backend
-        const detailProps = mapJobPostingToDetailContent(jobData, 0, 10);
+        // appliedCount now comes from the analytics API
+        // TODO: capacity should come from a dedicated job posting endpoint
+        const detailProps = mapJobPostingToDetailContent(jobData, totalApplied, );
         setJobDetailProps(detailProps);
       } catch (err) {
         const errorMessage =
@@ -95,7 +115,7 @@ export default function JobDetailPage() {
     };
 
     loadJobDetail();
-  }, [jobId, role, fetchJobDetail]);
+  }, [jobId, role, fetchJobDetail, fetchApplicationsAnalytics]);
 
   if (loading) {
     return (
