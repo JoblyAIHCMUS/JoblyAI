@@ -31,14 +31,16 @@ export default function JobDetailPage() {
   const jobId = params?.id;
   const role = useRole();
   const { setTitle } = usePageTitle();
-  
+
   const { fetchJobDetail } = useJobDetail();
-  const { fetchAnalytics: fetchApplicationsAnalytics } = useJobApplicationsAnalytics();
+  const { fetchAnalytics: fetchApplicationsAnalytics } =
+    useJobApplicationsAnalytics();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pageData, setPageData] = useState<PageData | null>(null);
-  const [jobDetailProps, setJobDetailProps] = useState<JobDetailContentProps | null>(null);
+  const [jobDetailProps, setJobDetailProps] =
+    useState<JobDetailContentProps | null>(null);
 
   useEffect(() => {
     setTitle('Job Description');
@@ -58,9 +60,9 @@ export default function JobDetailPage() {
 
         // Fetch job data using the hook
         const jobData = await fetchJobDetail(Number(jobId));
-        
+
         console.log('Fetched job data:', jobData); // Debug log to verify data structure
-        
+
         // Fetch job applications analytics to get total applied count
         let totalApplied = 0;
         try {
@@ -74,12 +76,16 @@ export default function JobDetailPage() {
             console.log('Total applied count:', totalApplied);
           }
         } catch (analyticsError) {
-          console.warn('Failed to fetch applications analytics:', analyticsError);
+          console.warn(
+            'Failed to fetch applications analytics:',
+            analyticsError
+          );
           // Continue without analytics data
         }
-        
+
         // Determine breadcrumb href based on user role
-        const findJobsHref = role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
+        const findJobsHref =
+          role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
 
         // Transform JobPosting into PageData structure
         const transformedData: PageData = {
@@ -93,7 +99,9 @@ export default function JobDetailPage() {
           address: jobData.location || 'Remote',
           workType: jobData.type,
           companyDescription: jobData.company.description || '',
-          companyPhotos: jobData.company.logoUrl ? [jobData.company.logoUrl] : [],
+          companyPhotos: jobData.company.logoUrl
+            ? [jobData.company.logoUrl]
+            : [],
           companyPageUrl: jobData.company.websiteUrl || '',
         };
 
@@ -102,7 +110,7 @@ export default function JobDetailPage() {
         // Map JobPosting to JobDetailContentProps using the view model mapper
         // appliedCount now comes from the analytics API
         // TODO: capacity should come from a dedicated job posting endpoint
-        const detailProps = mapJobPostingToDetailContent(jobData, totalApplied, );
+        const detailProps = mapJobPostingToDetailContent(jobData, totalApplied);
         setJobDetailProps(detailProps);
       } catch (err) {
         const errorMessage =

@@ -175,9 +175,11 @@ export const SubmitApplicationSchema = z.object({
     .refine(
       (file) =>
         !file ||
-        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
-          file.type
-        ),
+        [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ].includes(file.type),
       'Resume must be a PDF or Word document'
     ),
 });

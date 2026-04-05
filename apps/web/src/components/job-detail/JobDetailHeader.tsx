@@ -51,7 +51,10 @@ export default function JobDetailHeader({
 
   const handleApply = () => {
     if (!user) {
-      const basePath = role === 'candidate' ? `/candidate/find-jobs/${jobId}` : `/find-jobs/${jobId}`;
+      const basePath =
+        role === 'candidate'
+          ? `/candidate/find-jobs/${jobId}`
+          : `/find-jobs/${jobId}`;
       const redirectPath = sanitizeRedirectPath(basePath);
       router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     } else {

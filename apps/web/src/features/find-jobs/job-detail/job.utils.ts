@@ -23,11 +23,11 @@ export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
 
 /**
  * Parses a job description JSON string into structured content.
- * 
+ *
  * Supports two formats:
  * 1. Structured JSON: { overview, responsibilities: [], whoYouAre: [], niceToHaves: [] }
  * 2. Plain text: falls back to using entire string as overview
- * 
+ *
  * Safely handles malformed JSON and missing fields.
  * Backend is still in development - may only send plain text description.
  */
@@ -38,9 +38,14 @@ export function parseDescription(description: string): JobDescriptionContent {
 
   try {
     const parsed = JSON.parse(description) as Partial<JobDescriptionContent>;
-    
+
     // Has structured content (backend fully developed)
-    if (parsed.overview || parsed.responsibilities || parsed.whoYouAre || parsed.niceToHaves) {
+    if (
+      parsed.overview ||
+      parsed.responsibilities ||
+      parsed.whoYouAre ||
+      parsed.niceToHaves
+    ) {
       return {
         overview: parsed.overview ?? EMPTY_DESCRIPTION_CONTENT.overview,
         responsibilities: Array.isArray(parsed.responsibilities)
@@ -54,7 +59,7 @@ export function parseDescription(description: string): JobDescriptionContent {
           : EMPTY_DESCRIPTION_CONTENT.niceToHaves,
       };
     }
-    
+
     // Fallback: treat the entire string as overview if JSON parsing succeeded but no structured fields
     return {
       overview: description || EMPTY_DESCRIPTION_CONTENT.overview,

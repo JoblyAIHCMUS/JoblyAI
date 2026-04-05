@@ -53,11 +53,21 @@ export const SubmitApplicationModal = ({
   onError,
 }: SubmitApplicationModalProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [applicationSubmitError, setApplicationSubmitError] = useState<string | null>(null);
+  const [applicationSubmitError, setApplicationSubmitError] = useState<
+    string | null
+  >(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [localResume, setLocalResume] = useState<{ id?: number; filename: string; url: string } | ''>(job.currentResume || '');
+  const [localResume, setLocalResume] = useState<
+    { id?: number; filename: string; url: string } | ''
+  >(job.currentResume || '');
 
-  const { register, handleSubmit, watch, reset, formState: { errors, isValid } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isValid },
+  } = useForm({
     resolver: zodResolver(SubmitApplicationSchema),
     mode: 'onChange',
     defaultValues: { jobTitle: '', coverLetter: '' },
@@ -67,31 +77,42 @@ export const SubmitApplicationModal = ({
 
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
-      setLocalResume({ id: resumeData.id, filename: resumeData.fileName, url: resumeData.fileUrl });
+      setLocalResume({
+        id: resumeData.id,
+        filename: resumeData.fileName,
+        url: resumeData.fileUrl,
+      });
       setUploadedFile(null);
     },
     onError: (err: unknown) => {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to upload resume';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to upload resume';
       setApplicationSubmitError(errorMessage);
       onError?.(errorMessage);
     },
   });
 
-  const { submitApplication, loading: applicationLoading } = useCreateApplication({
-    onSuccess: (data) => {
-      onSuccess?.(`Application submitted successfully for job ID ${data.jobId}`);
-      reset();
-      setUploadedFile(null);
-      setApplicationSubmitError(null);
-      setLocalResume('');
-      onClose();
-    },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to submit application';
-      setApplicationSubmitError(errorMessage);
-      onError?.(errorMessage);
-    },
-  });
+  const { submitApplication, loading: applicationLoading } =
+    useCreateApplication({
+      onSuccess: (data) => {
+        onSuccess?.(
+          `Application submitted successfully for job ID ${data.jobId}`
+        );
+        reset();
+        setUploadedFile(null);
+        setApplicationSubmitError(null);
+        setLocalResume('');
+        onClose();
+      },
+      onError: (error) => {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to submit application';
+        setApplicationSubmitError(errorMessage);
+        onError?.(errorMessage);
+      },
+    });
 
   const coverLetterValue = watch('coverLetter') || '';
   const charCount = coverLetterValue.length;
@@ -131,7 +152,8 @@ export const SubmitApplicationModal = ({
       setUploadProgress(100);
       // onSuccess callback will update localResume
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to upload resume';
+      const errorMsg =
+        error instanceof Error ? error.message : 'Failed to upload resume';
       setApplicationSubmitError(errorMsg);
       onError?.(errorMsg);
       setUploadedFile(null);
@@ -152,16 +174,20 @@ export const SubmitApplicationModal = ({
       }
 
       // Submit application with already-uploaded resume
-      const resumeId = typeof localResume === 'string' ? undefined : localResume?.id;
+      const resumeId =
+        typeof localResume === 'string' ? undefined : localResume?.id;
       if (!resumeId) {
-        throw new Error('Resume ID not found. Please try uploading the resume again.');
+        throw new Error(
+          'Resume ID not found. Please try uploading the resume again.'
+        );
       }
       await submitApplication({
         jobId: job.id,
         resumeId,
       });
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'An error occurred';
+      const errorMsg =
+        error instanceof Error ? error.message : 'An error occurred';
       setApplicationSubmitError(errorMsg);
       onError?.(errorMsg);
       console.error('Error in form submission:', error);
@@ -194,7 +220,9 @@ export const SubmitApplicationModal = ({
             </div>
           )}
           <div className="flex-1">
-            <h2 className="text-2xl font-semibold text-slate-950">{job.title}</h2>
+            <h2 className="text-2xl font-semibold text-slate-950">
+              {job.title}
+            </h2>
             <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
               <span>{job.company}</span>
               <span className="h-1 w-1 rounded-full bg-slate-400" />
@@ -228,7 +256,9 @@ export const SubmitApplicationModal = ({
               className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             {errors.jobTitle && (
-              <p className="mt-1 text-xs text-red-600">{errors.jobTitle.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {errors.jobTitle.message}
+              </p>
             )}
           </div>
 
@@ -248,12 +278,12 @@ export const SubmitApplicationModal = ({
             />
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
               <span>Maximum 1000 characters</span>
-              <span>
-                {charCount} / 1000
-              </span>
+              <span>{charCount} / 1000</span>
             </div>
             {errors.coverLetter && (
-              <p className="mt-1 text-xs text-red-600">{errors.coverLetter.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {errors.coverLetter.message}
+              </p>
             )}
           </div>
 
@@ -309,8 +339,8 @@ export const SubmitApplicationModal = ({
                   {localResume
                     ? `✓ ${localResume.filename}`
                     : uploadedFile
-                      ? uploadedFile.name
-                      : 'Attach Resume/CV'}
+                    ? uploadedFile.name
+                    : 'Attach Resume/CV'}
                 </span>
                 <input
                   type="file"
@@ -321,7 +351,6 @@ export const SubmitApplicationModal = ({
                 />
               </label>
             </div>
-
 
             {/* Upload Progress Bar */}
             {isUploading && (
@@ -354,14 +383,17 @@ export const SubmitApplicationModal = ({
               ⚠️ Note: 2 additional backend fields pending development
             </p>
             <p className="mt-1 text-xs text-yellow-700">
-              These fields will be added to the application once the backend is ready.
+              These fields will be added to the application once the backend is
+              ready.
             </p>
           </div>
 
           {applicationSubmitError && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3">
               <p className="text-xs font-semibold text-red-800">❌ Error</p>
-              <p className="mt-1 text-xs text-red-700">{applicationSubmitError}</p>
+              <p className="mt-1 text-xs text-red-700">
+                {applicationSubmitError}
+              </p>
             </div>
           )}
 
@@ -379,8 +411,8 @@ export const SubmitApplicationModal = ({
             By sending the request you can confirm that you accept our{' '}
             <Link href="/terms" className="text-indigo-600 hover:underline">
               Terms of Service
-            </Link>
-            {' '}and{' '}
+            </Link>{' '}
+            and{' '}
             <Link href="/privacy" className="text-indigo-600 hover:underline">
               Privacy Policy
             </Link>

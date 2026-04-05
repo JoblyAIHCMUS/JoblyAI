@@ -14,26 +14,26 @@ interface ProtectionConfig {
 /**
  * Hook to protect routes based on user authentication and role
  * Returns authorization state to control UI rendering
- * 
+ *
  * @param config - Configuration for route protection
- * 
+ *
  * @example
  * // In a protected layout:
  * const { isLoading, isAuthorized } = useRouteProtection();
- * 
+ *
  * // Return null while loading to prevent UI flicker
  * if (isLoading) return null;
- * 
+ *
  * // Only render if authorized
  * if (!isAuthorized) return null;
- * 
+ *
  * return <ProtectedContent />;
  */
 export function useRouteProtection(config: ProtectionConfig = {}) {
-  const { 
-    requiredRoles = ['candidate'], 
+  const {
+    requiredRoles = ['candidate'],
     redirectTo = '/login',
-    unauthorizedRedirectTo = '/unauthorized'
+    unauthorizedRedirectTo = '/unauthorized',
   } = config;
 
   const router = useRouter();
@@ -60,7 +60,14 @@ export function useRouteProtection(config: ProtectionConfig = {}) {
       // User is authenticated but lacks required role - redirect
       router.push(unauthorizedRedirectTo);
     }
-  }, [user, isLoading, requiredRoles, redirectTo, unauthorizedRedirectTo, router]);
+  }, [
+    user,
+    isLoading,
+    requiredRoles,
+    redirectTo,
+    unauthorizedRedirectTo,
+    router,
+  ]);
 
   // Determine if user is authorized
   const isAuthorized =
@@ -70,4 +77,3 @@ export function useRouteProtection(config: ProtectionConfig = {}) {
 
   return { isLoading, isAuthorized };
 }
-

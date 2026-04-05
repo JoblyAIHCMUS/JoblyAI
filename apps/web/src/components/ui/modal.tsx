@@ -98,6 +98,4 @@ export const ModalBody = ({
 }: {
   children: ReactNode;
   className?: string;
-}) => (
-  <div className={cn('px-6 pb-6 pt-4', className)}>{children}</div>
-);
+}) => <div className={cn('px-6 pb-6 pt-4', className)}>{children}</div>;

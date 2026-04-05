@@ -13,10 +13,10 @@ interface ProtectedLayoutProps {
 
 /**
  * Reusable component for protecting routes with authentication
- * 
+ *
  * Returns null while auth is being verified to prevent UI flicker
  * Only renders children if user is authenticated and authorized
- * 
+ *
  * @example
  * // Protect candidate routes
  * export default function CandidateLayout({ children }: { children: ReactNode }) {

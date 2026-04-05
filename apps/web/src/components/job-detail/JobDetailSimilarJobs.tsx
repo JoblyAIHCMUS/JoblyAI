@@ -9,8 +9,11 @@ import { useRole } from '@/contexts/role-context';
 
 function SimilarJobCard({ job }: { job: SimilarJob }) {
   const role = useRole();
-  const jobHref = role === 'candidate' ? `/candidate/find-jobs/${job.id}` : `/find-jobs/${job.id}`;
-  
+  const jobHref =
+    role === 'candidate'
+      ? `/candidate/find-jobs/${job.id}`
+      : `/find-jobs/${job.id}`;
+
   return (
     <Link href={jobHref} className="block">
       <article className="flex items-start gap-4 p-5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all">

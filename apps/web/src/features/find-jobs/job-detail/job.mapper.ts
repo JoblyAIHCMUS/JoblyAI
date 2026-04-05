@@ -1,6 +1,4 @@
-import type {
-  JobDetailContentProps,
-} from '@/types/jobDetail';
+import type { JobDetailContentProps } from '@/types/jobDetail';
 import type { JobPosting } from '@/types/job';
 import {
   parseDescription,
@@ -26,8 +24,15 @@ export function mapJobPostingToDetailContent(
   capacity: number = 0
 ): JobDetailContentProps {
   const descriptionContent = parseDescription(job.description);
-  const applicationProgress = calculateApplicationProgress(appliedCount, capacity);
-  const formattedSalary = formatSalary(job.salaryMin, job.salaryMax, job.currency);
+  const applicationProgress = calculateApplicationProgress(
+    appliedCount,
+    capacity
+  );
+  const formattedSalary = formatSalary(
+    job.salaryMin,
+    job.salaryMax,
+    job.currency
+  );
   const categoryColor = getCategoryColor(job.category.name);
   const jobType = formatJobType(job.type);
   const applyBefore = formatDate(job.updatedAt);

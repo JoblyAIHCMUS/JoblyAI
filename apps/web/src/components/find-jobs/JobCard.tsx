@@ -42,8 +42,11 @@ function getColorForSkill(skill: string): string {
 export default function JobCard({ job, viewMode }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const role = useRole();
-  const jobHref = role === 'candidate' ? `/candidate/find-jobs/${job.id}` : `/find-jobs/${job.id}`;
-  
+  const jobHref =
+    role === 'candidate'
+      ? `/candidate/find-jobs/${job.id}`
+      : `/find-jobs/${job.id}`;
+
   return (
     <>
       <article
@@ -53,7 +56,10 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             : 'lg:flex-row lg:items-center lg:justify-between'
         }`}
       >
-        <Link href={jobHref} className="flex min-w-0 items-start gap-4 hover:opacity-80 transition-opacity">
+        <Link
+          href={jobHref}
+          className="flex min-w-0 items-start gap-4 hover:opacity-80 transition-opacity"
+        >
           <div
             className={
               'flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900'

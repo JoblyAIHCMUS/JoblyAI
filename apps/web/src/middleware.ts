@@ -17,14 +17,14 @@ function getUserRoleFromCookie(request: NextRequest): string | null {
 
 /**
  * Middleware to protect routes and handle authentication-based redirects
- * 
+ *
  * This runs BEFORE the page loads on the server, preventing UI flicker entirely.
- * 
+ *
  * ✅ What it does:
  * - Blocks unauthenticated access to /candidate/* and /employer/* routes
  * - Redirects public guest routes to role-specific paths when user is authenticated
  * - Never renders wrong UI to users
- * 
+ *
  * ⚠️  Limitations:
  * - Cannot read detailed role info from cookies (would require JWT verification)
  * - Client Component (ClientLayout) still fetches full user data for RoleContext
@@ -80,4 +80,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
-
