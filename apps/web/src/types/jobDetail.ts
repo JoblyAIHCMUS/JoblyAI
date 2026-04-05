@@ -60,3 +60,22 @@ export interface JobDetailPageData {
   companyPhotos: string[];
   companyPageUrl: string;
 }
+
+/**
+ * Props for JobDetailContent presentational component.
+ * Contains all data needed for pure UI rendering, with no business logic.
+ */
+export interface JobDetailContentProps {
+  /** Parsed description content with sections */
+  descriptionContent: JobDescriptionContent;
+  /** About role information including salary, dates, and capacity */
+  aboutRole: JobAboutRole;
+  /** Category with label and color */
+  category: JobCategory;
+  /** List of required skills */
+  requiredSkills: string[];
+  /** Application progress as percentage (e.g., "50%") */
+  applicationProgress: string;
+  /** Formatted salary string (e.g., "$75,000-$85,000") */
+  formattedSalary: string;
+}

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter, Lexend_Deca, Be_Vietnam_Pro } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
-import { Providers } from './providers';
 import './global.css';
 import './style.css';
-import ClientLayout from './ClientLayout';
+import { cn } from '@/lib/utils';
+import { Providers } from './providers';
+import ClientLayout from '@/components/layouts/ClientLayout';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const lexendDeca = Lexend_Deca({

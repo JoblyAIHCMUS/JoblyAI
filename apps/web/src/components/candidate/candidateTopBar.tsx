@@ -1,40 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Bell, Menu } from 'lucide-react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { usePageTitle } from '@/contexts/page-title-context';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUser } from '@/hooks/useUser';
 import { getInitials } from '@/lib/utils';
 
-const CANDIDATE_PAGE_TITLES: Record<string, string> = {
-  '/candidate/dashboard': 'Dashboard',
-  '/candidate/applications': 'My Applications',
-};
-
-function resolveCandidatePageTitle(pathname: string) {
-  const exactTitle = CANDIDATE_PAGE_TITLES[pathname];
-  if (exactTitle) {
-    return exactTitle;
-  }
-
-  const segments = pathname.split('/').filter(Boolean);
-  const lastSegment = segments.at(-1);
-
-  if (!lastSegment || lastSegment === 'candidate') {
-    return 'Dashboard';
-  }
-
-  return lastSegment
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
 export function CandidateTopBar() {
-  const pathname = usePathname();
+  const { title: pageTitle } = usePageTitle();
   const { data: user } = useUser();
   const {
     visibleNotifications,
@@ -52,7 +28,6 @@ export function CandidateTopBar() {
   const fullName = user?.name ?? 'Jake Gyll';
   const email = user?.email ?? 'jakegyll@email.com';
   const initials = getInitials(fullName || 'Jake Gyll');
-  const pageTitle = resolveCandidatePageTitle(pathname);
 
   return (
     <>
@@ -62,7 +37,7 @@ export function CandidateTopBar() {
             <Menu className="h-6 w-6" />
           </SidebarTrigger>
           <h1 className="font-[family-name:var(--family-primary)] text-[20px] font-semibold leading-7 tracking-[-0.15px] text-[#25324b] sm:text-[24px] md:text-[40px] md:leading-[48px]">
-            {pageTitle}
+            {pageTitle || 'Dashboard'}
           </h1>
         </div>
 

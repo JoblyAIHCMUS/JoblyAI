@@ -3,6 +3,12 @@
 import { authClient } from '@/lib/auth-client';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
+/**
+ * User type with explicit role support
+ * Role is used for:
+ * - Role-aware routing decisions
+ * - Feature availability (e.g., apply button only for candidates)
+ */
 export interface User {
   id: string;
   email: string;
@@ -11,6 +17,8 @@ export interface User {
   image?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
+  /** User role - 'candidate' for job seekers, 'employer' for companies, 'admin' for system admins */
+  role?: 'candidate' | 'employer' | 'admin';
   [key: string]: unknown;
 }
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/useToast';
+import { usePageTitle } from '@/contexts/page-title-context';
 
 import ProfileHeader from './components/ProfileHeader';
 import AboutMe from './components/AboutMe';
@@ -41,7 +42,13 @@ import {
 import { CandidateProfileUI } from './types';
 
 const CandidateProfilePage = () => {
+  const { setTitle } = usePageTitle();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setTitle('Profile');
+  }, [setTitle]);
+
   const { fetchCandidateProfile, loading, error } = useGetCandidateProfile();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);

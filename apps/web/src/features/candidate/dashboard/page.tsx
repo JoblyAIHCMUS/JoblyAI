@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
+import { usePageTitle } from '@/contexts/page-title-context';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
@@ -16,6 +17,12 @@ import { useDashboardInsights } from './hooks/useDashboardInsights';
 import { formatDateRangeLabel, getGreeting } from '@/lib/candidateDate';
 
 export default function CandidateDashboardPage() {
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle('Dashboard');
+  }, [setTitle]);
+
   const { data: user } = useUser();
   const {
     applicationFilter,
