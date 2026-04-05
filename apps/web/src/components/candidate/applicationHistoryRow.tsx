@@ -113,7 +113,10 @@ export function ApplicationHistoryRow({
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
 
-  const handleMoreActionSelect = (option: string, currentItem: ApplicationItem) => {
+  const handleMoreActionSelect = (
+    option: string,
+    currentItem: ApplicationItem
+  ) => {
     if (option === 'Message recruiter' && onMessageRecruiter) {
       onMessageRecruiter(currentItem);
     }
