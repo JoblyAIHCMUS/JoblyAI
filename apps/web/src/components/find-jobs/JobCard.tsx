@@ -133,7 +133,9 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             onClick={handleApply}
             disabled={!canApply}
             className={`h-11 w-full rounded-[6px] text-sm font-semibold transition-colors lg:w-[168px] ${applyButtonClass}`}
-            title={!canApply ? 'Only candidates can apply' : 'Apply for this job'}
+            title={
+              !canApply ? 'Only candidates can apply' : 'Apply for this job'
+            }
           >
             {!canApply ? 'Sign in to Apply' : 'Apply'}
           </button>
