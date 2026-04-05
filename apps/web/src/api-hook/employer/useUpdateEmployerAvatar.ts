@@ -21,7 +21,9 @@ interface UseUpdateEmployerAvatarOptions {
  * // Call after successfully uploading file to S3:
  * await updateAvatarRecord({ fileKey: '...', fileUrl: '...' });
  */
-export function useUpdateEmployerAvatar(options?: UseUpdateEmployerAvatarOptions) {
+export function useUpdateEmployerAvatar(
+  options?: UseUpdateEmployerAvatarOptions
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<UpdateAvatarResponse | null>(null);

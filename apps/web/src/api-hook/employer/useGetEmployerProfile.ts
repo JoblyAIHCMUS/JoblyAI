@@ -7,9 +7,7 @@ interface UseGetEmployerProfileOptions {
   onError?: (error: unknown) => void;
 }
 
-export function useGetEmployerProfile(
-  options?: UseGetEmployerProfileOptions
-) {
+export function useGetEmployerProfile(options?: UseGetEmployerProfileOptions) {
   const context = useEmployerProfileContext();
 
   const fetchEmployerProfile = useCallback(

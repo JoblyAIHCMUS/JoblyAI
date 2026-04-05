@@ -16,7 +16,7 @@ import { UpdateAvatarDto } from './dto/avatar.dto';
 export class EmployerService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly s3Service: S3Service,
+    private readonly s3Service: S3Service
   ) {}
 
   private async getPersonalProfileDetails(userId: string): Promise<{

@@ -217,9 +217,7 @@ export default function EmployerSettingsPage() {
         >
           {/* Section Header */}
           <div className="flex flex-col gap-1">
-            <h2 className="heading-h6-semi-bold text-primary">
-              Notifications
-            </h2>
+            <h2 className="heading-h6-semi-bold text-primary">Notifications</h2>
             <p className="body-body-1-regular text-tertiary">
               Manage your notification preferences.
             </p>

@@ -16,33 +16,42 @@ interface EmployerProfileContextType {
   }) => Promise<EmployerProfileResponse | null>;
 }
 
-const EmployerProfileContext = createContext<EmployerProfileContextType | undefined>(undefined);
+const EmployerProfileContext = createContext<
+  EmployerProfileContextType | undefined
+>(undefined);
 
-export function EmployerProfileProvider({ children }: { children: React.ReactNode }) {
+export function EmployerProfileProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [data, setData] = useState<EmployerProfileResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchEmployerProfile = useCallback(async (options?: {
-    onSuccess?: (data: EmployerProfileResponse) => void;
-    onError?: (error: unknown) => void;
-  }): Promise<EmployerProfileResponse | null> => {
-    setLoading(true);
-    setError(null);
+  const fetchEmployerProfile = useCallback(
+    async (options?: {
+      onSuccess?: (data: EmployerProfileResponse) => void;
+      onError?: (error: unknown) => void;
+    }): Promise<EmployerProfileResponse | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const result = await getEmployerProfile();
-      setData(result);
-      options?.onSuccess?.(result);
-      return result;
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const result = await getEmployerProfile();
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const value: EmployerProfileContextType = {
     data,
@@ -61,7 +70,9 @@ export function EmployerProfileProvider({ children }: { children: React.ReactNod
 export function useEmployerProfileContext() {
   const context = useContext(EmployerProfileContext);
   if (context === undefined) {
-    throw new Error('useEmployerProfileContext must be used within EmployerProfileProvider');
+    throw new Error(
+      'useEmployerProfileContext must be used within EmployerProfileProvider'
+    );
   }
   return context;
 }

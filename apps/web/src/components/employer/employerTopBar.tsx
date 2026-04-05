@@ -18,11 +18,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
-  const {
-    data: profile,
-    loading: isPending,
-    error,
-  } = useGetEmployerProfile();
+  const { data: profile, loading: isPending, error } = useGetEmployerProfile();
   const company = profile?.company;
   const canPostJob = Boolean(company?.id) && !isPending;
 

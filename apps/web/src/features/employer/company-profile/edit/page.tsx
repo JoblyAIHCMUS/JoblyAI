@@ -16,7 +16,9 @@ import {
 } from '@/components/ui/select';
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
-import { useUploadFile } from '@/api-hook/s3/useUploadFile';
+import ConfirmLogoChange from '@/components/ui/confirmLogoChange';
+import { useCreateUploadUrl } from '@/api-hook/s3/useCreateUploadUrl';
+import { useUploadToPresignedUrl } from '@/api-hook/s3/useUploadToPresignedUrl';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
@@ -29,8 +31,10 @@ import {
 
 import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
 import { useGetCompany } from '@/api-hook/company/useGetCompany';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUpdateCompany } from '@/api-hook/company';
+import { useUpdateCompanyLogo } from '@/api-hook/company/useUpdateCompanyLogo';
+import { type LogoUploaderHandle } from '@/components/employer/logoUploader';
 import { companyUpdateSchema, type CompanyUpdateFormData } from './schema';
 
 export default function EmployerCompanyProfileEditPage() {
@@ -42,6 +46,7 @@ export default function EmployerCompanyProfileEditPage() {
     fetchEmployerProfile,
   } = useGetEmployerProfile();
   const [companyId, setCompanyId] = useState<number | null>(null);
+  const logoUploaderRef = useRef<LogoUploaderHandle>(null);
   const {
     data: company,
     loading: loadingCompany,
@@ -75,12 +80,33 @@ export default function EmployerCompanyProfileEditPage() {
   const scale = watch('scale');
   const industry = watch('industry');
 
-  const {
-    upload: uploadLogoToS3,
-    loading: logoUploading,
-    error: logoUploadError,
-  } = useUploadFile();
+  // S3 upload hooks for logo
+  const { createUploadUrl, loading: loadingUploadUrl } = useCreateUploadUrl();
+  const { uploadToPresignedUrl, loading: loadingUpload } =
+    useUploadToPresignedUrl();
   const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
+
+  // Logo confirmation state
+  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
+  const [selectedLogoPreview, setSelectedLogoPreview] = useState<string | null>(
+    null
+  );
+  const [showLogoConfirmation, setShowLogoConfirmation] = useState(false);
+
+  const {
+    updateLogoRecord,
+    loading: updatingLogo,
+    error: logoUpdateError,
+  } = useUpdateCompanyLogo({
+    onSuccess: (data) => {
+      // Success handling is done in handleLogoConfirm
+      // Just show toast here if needed
+    },
+    onError: () => {
+      toast.error('Failed to update company logo. Please try again.');
+    },
+  });
+
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
     { ...getCurrentUser(), isEditable: true },
   ]);
@@ -89,7 +115,9 @@ export default function EmployerCompanyProfileEditPage() {
     loading: updatingCompany,
     error: updateError,
   } = useUpdateCompany({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Refresh employer profile in context to update topbar
+      await fetchEmployerProfile();
       toast.success(`Company "${data.name}" updated successfully!`);
       router.back();
     },
@@ -151,20 +179,93 @@ export default function EmployerCompanyProfileEditPage() {
 
   const handleComplete = async (data: CompanyUpdateFormData) => {
     if (!companyId) return;
-    // Prepare payload for backend
+    // Prepare payload for backend - exclude logoUrl as it's handled separately by updateLogoRecord
     const payload = {
       name: data.companyName,
       websiteUrl: data.website || undefined,
       sizeRange: data.scale || undefined,
       industry: data.industry || undefined,
       description: data.companyDescription || undefined,
-      logoUrl: data.logoUrl || undefined,
     };
     try {
       await submitUpdate(companyId, payload);
     } catch {
       // Error handled in onError
     }
+  };
+
+  const handleLogoSelected = (file: File) => {
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = e.target?.result as string;
+      setSelectedLogoPreview(preview);
+      setSelectedLogoFile(file);
+      setShowLogoConfirmation(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoConfirm = async () => {
+    if (!selectedLogoFile || !companyId) return;
+
+    try {
+      // Step 1: Get presigned upload URL from S3
+      const uploadUrlResponse = await createUploadUrl({
+        fileName: selectedLogoFile.name,
+        fileType: selectedLogoFile.type,
+        folder: 'logos',
+      });
+
+      // Step 2: Upload file directly to S3
+      await uploadToPresignedUrl(
+        uploadUrlResponse.uploadUrl,
+        selectedLogoFile,
+        {
+          contentType: selectedLogoFile.type,
+          folder: 'logos',
+        }
+      );
+
+      // Step 3: Update company logo in database
+      const updatedCompany = await updateLogoRecord(companyId, {
+        fileKey: uploadUrlResponse.fileKey,
+        fileUrl: uploadUrlResponse.fileUrl,
+      });
+
+      // Step 4: Update form values with new logo
+      if (updatedCompany && updatedCompany.logoUrl) {
+        setValue('logoUrl', updatedCompany.logoUrl);
+        setLogoFileKey(
+          updatedCompany.logoUrl
+            ? updatedCompany.logoUrl.split('/').pop() || null
+            : null
+        );
+      }
+
+      // Step 5: Refresh employer profile in context to update topbar
+      await fetchEmployerProfile();
+
+      // Reset LogoUploader preview after successful upload
+      logoUploaderRef.current?.resetPreview();
+
+      // Show success toast
+      toast.success('Company logo updated successfully!');
+
+      // Reset confirmation state
+      setShowLogoConfirmation(false);
+      setSelectedLogoFile(null);
+      setSelectedLogoPreview(null);
+    } catch (err) {
+      console.error('Failed to upload logo:', err);
+      toast.error('Failed to upload logo. Please try again.');
+    }
+  };
+
+  const handleLogoCancel = () => {
+    setShowLogoConfirmation(false);
+    setSelectedLogoFile(null);
+    setSelectedLogoPreview(null);
   };
 
   const canProceed = (stepIndex: number): boolean => {
@@ -273,22 +374,27 @@ export default function EmployerCompanyProfileEditPage() {
                     : 'Upload Logo (optional)'}
                 </Label>
                 <LogoUploader
+                  ref={logoUploaderRef}
                   currentFileKey={logoFileKey || undefined}
-                  onValueChange={(url, _file, fileKey) => {
-                    setValue('logoUrl', url || null);
-                    setLogoFileKey(fileKey || null);
-                  }}
-                  onUploadFile={async (file) => {
-                    const result = await uploadLogoToS3(file, 'logos');
-                    return { url: result.fileUrl, fileKey: result.fileKey };
+                  onFileSelected={handleLogoSelected}
+                  onValueChange={(url, file, fileKey) => {
+                    // Update form when logo changes after confirmation
+                    if (url) {
+                      setValue('logoUrl', url);
+                      setLogoFileKey(fileKey || null);
+                    } else {
+                      // If removing logo
+                      setValue('logoUrl', null);
+                      setLogoFileKey(null);
+                    }
                   }}
                 />
-                {logoUploading && (
+                {(loadingUploadUrl || loadingUpload || updatingLogo) && (
                   <span className="text-xs text-blue-500 ml-2">
                     Uploading logo...
                   </span>
                 )}
-                {Boolean(logoUploadError) && (
+                {Boolean(logoUpdateError) && (
                   <span className="text-xs text-red-500 ml-2">
                     Logo upload failed
                   </span>
@@ -464,6 +570,17 @@ export default function EmployerCompanyProfileEditPage() {
           />
         </div>
       </Stepper>
+
+      {/* Logo Confirmation Dialog */}
+      {showLogoConfirmation && (
+        <ConfirmLogoChange
+          currentLogoUrl={logoUrl || undefined}
+          newLogoPreviewUrl={selectedLogoPreview || undefined}
+          onConfirm={handleLogoConfirm}
+          onCancel={handleLogoCancel}
+          loading={loadingUploadUrl || loadingUpload || updatingLogo}
+        />
+      )}
     </div>
   );
 }

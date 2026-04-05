@@ -40,7 +40,8 @@ export function ProfilePhotoSection({
   const { createUploadUrl, loading: loadingUploadUrl } = useCreateUploadUrl();
   const { uploadToPresignedUrl, loading: loadingUpload } =
     useUploadToPresignedUrl();
-  const { updateAvatarRecord, loading: loadingUpdate } = useUpdateEmployerAvatar();
+  const { updateAvatarRecord, loading: loadingUpdate } =
+    useUpdateEmployerAvatar();
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -255,4 +256,3 @@ export function ProfilePhotoSection({
     </>
   );
 }
-

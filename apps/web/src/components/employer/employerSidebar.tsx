@@ -90,7 +90,8 @@ export function EmployerSidebar() {
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
   const logout = useLogout();
   const { hasUnreadMessages } = useUnreadMessagesDot();
-  const { data: employerProfile, fetchEmployerProfile } = useGetEmployerProfile();
+  const { data: employerProfile, fetchEmployerProfile } =
+    useGetEmployerProfile();
 
   // Fetch employer profile on mount
   useEffect(() => {
