@@ -122,7 +122,7 @@ export default function EmployerNewJobPage() {
   // Fetch employer profile on mount to get company ID
   useEffect(() => {
     fetchEmployerProfile();
-  }, [fetchEmployerProfile]);
+  }, []);
 
   // Validation for each step
   const canProceed = (stepIndex: number): boolean => {

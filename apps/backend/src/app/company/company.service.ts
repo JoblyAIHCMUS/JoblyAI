@@ -13,16 +13,21 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
+import { S3Service } from '../s3/s3.service';
 import {
   CompanyAddEmployeeDto,
   CompanyCreateDto,
+  CompanyLogoDto,
   CompanyPatchDto,
   CompanyUpdateDto,
 } from './dto/company.dto';
 
 @Injectable()
 export class CompanyService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly s3Service: S3Service
+  ) {}
 
   async getAll(): Promise<Company[]> {
     return this.prisma.company.findMany({ orderBy: { createdAt: 'desc' } });
@@ -118,6 +123,54 @@ export class CompanyService {
     await this.ensureCompanyExists(id);
     await this.ensureCompanyAccess(id, user);
     await this.prisma.company.delete({ where: { id } });
+  }
+
+  async updateLogo(
+    id: number,
+    updateDto: CompanyLogoDto,
+    user: User
+  ): Promise<Company> {
+    // Ensure company exists and user has access
+    await this.ensureCompanyExists(id);
+    await this.ensureCompanyAccess(id, user);
+
+    // Get current company to retrieve old logo info
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+      select: { id: true, logoUrl: true },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    // Update DB with new logo URL
+    const updatedCompany = await this.prisma.company.update({
+      where: { id },
+      data: { logoUrl: updateDto.fileUrl },
+    });
+
+    // Delete old logo from S3 if it exists and is different from new one
+    if (company.logoUrl && company.logoUrl !== updateDto.fileUrl) {
+      try {
+        // Extract fileKey from logoUrl (e.g., "assets/logos/uuid.jpg" from full URL)
+        const urlParts = company.logoUrl.split('/');
+        const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "logos/uuid.jpg"
+
+        if (oldFileKey && oldFileKey.startsWith('logos/')) {
+          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+        }
+      } catch (error) {
+        // Log the error but don't fail the operation
+        console.error(
+          `Warning: Failed to delete old company logo from S3. New logo has been saved to DB.`,
+          error
+        );
+        // Continue - company's new logo is already saved in DB
+      }
+    }
+
+    return updatedCompany;
   }
 
   async addEmployee(

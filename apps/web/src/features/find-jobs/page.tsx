@@ -3,6 +3,7 @@ import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
 import { useEffect, useRef, useState } from 'react';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
+import { usePageTitle } from '@/contexts/page-title-context';
 import type {
   EmploymentType,
   FilterGroupData,
@@ -31,6 +32,12 @@ function getEmploymentTypeFromLabel(
 }
 
 export default function FindJobsPage() {
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle('Find Jobs');
+  }, [setTitle]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
   const [salaryMinFilter, setSalaryMinFilter] = useState(0);

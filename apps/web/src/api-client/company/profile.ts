@@ -80,6 +80,27 @@ export async function deleteCompany(id: number): Promise<void> {
   });
 }
 
+export interface UpdateCompanyLogoPayload {
+  fileKey: string;
+  fileUrl: string;
+}
+
+export async function updateCompanyLogo(
+  id: number,
+  payload: UpdateCompanyLogoPayload
+): Promise<Company> {
+  const response = await axios.patch<Company>(
+    `${API_BASE_URL}/api/company/${id}/logo`,
+    payload,
+    {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
+
 export async function checkCompanyNameExists(name: string): Promise<boolean> {
   try {
     const response = await axios.get<{ exists: boolean }>(

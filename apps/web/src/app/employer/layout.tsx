@@ -1,11 +1,12 @@
 'use client';
 
-import { useUser } from '@/hooks/useUser';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 import { EmployerSidebar } from '@/components/employer/employerSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { EmployerTopBar } from '@/components/employer/employerTopBar';
+import { EmployerProfileProvider } from '@/api-hook/employer';
 import type { ReactNode } from 'react';
 
 interface EmployerLayoutProps {
@@ -71,17 +72,19 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
   // If user passed authorization checks, render the employer dashboard
   if (user && user.role === 'employer') {
     return (
-      <SidebarProvider>
-        <EmployerSidebar />
-        <main className="w-full flex flex-col h-screen overflow-hidden">
-          <EmployerTopBar />
-          <div className="flex-1 overflow-auto">
-            {/* Trigger allows collapsing/expanding on mobile or desktop if configured */}
-            <SidebarTrigger className="p-4 md:hidden" />
-            {children}
-          </div>
-        </main>
-      </SidebarProvider>
+      <EmployerProfileProvider>
+        <SidebarProvider>
+          <EmployerSidebar />
+          <main className="w-full flex flex-col h-screen overflow-hidden">
+            <EmployerTopBar />
+            <div className="flex-1 overflow-auto">
+              {/* Trigger allows collapsing/expanding on mobile or desktop if configured */}
+              <SidebarTrigger className="p-4 md:hidden" />
+              {children}
+            </div>
+          </main>
+        </SidebarProvider>
+      </EmployerProfileProvider>
     );
   }
 

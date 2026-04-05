@@ -106,17 +106,22 @@ export function PersonalDetailsForm() {
             />
           </FormField>
 
-          <FormField label="Email" required error={errors.email?.message}>
-            <Input
-              type="email"
-              {...register('email')}
-              placeholder="Enter email"
-              disabled={isSubmitting}
-              className={cn(
-                'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base',
-                errors.email && 'border-red-400'
-              )}
-            />
+          <FormField label="Email">
+            <div className="relative w-full">
+              <Input
+                type="email"
+                {...register('email')}
+                placeholder="Enter email"
+                disabled={true}
+                className={cn(
+                  'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-base cursor-not-allowed',
+                  errors.email && 'border-red-400'
+                )}
+              />
+              <p className="font-['Be_Vietnam_Pro'] text-xs text-secondary mt-1">
+                Email cannot be changed. Contact support to update.
+              </p>
+            </div>
           </FormField>
         </div>
 

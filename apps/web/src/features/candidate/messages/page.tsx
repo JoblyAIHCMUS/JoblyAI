@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
+import { usePageTitle } from '@/contexts/page-title-context';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { ConversationSidebar } from '@/features/employer/messages/ConversationSidebar';
 import { ChatWindow } from '@/features/employer/messages/ChatWindow';
@@ -12,9 +13,14 @@ import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
+  const { setTitle } = usePageTitle();
   const { data: currentUser, isPending: userLoading } = useUser();
   const { sendMessage, onNewMessage } = useMessagesSocket();
   const { fetchChatSummary } = useGetChatSummary();
+
+  useEffect(() => {
+    setTitle('Messages');
+  }, [setTitle]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =

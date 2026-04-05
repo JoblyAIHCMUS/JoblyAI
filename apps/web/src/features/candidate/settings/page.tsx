@@ -6,6 +6,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { usePageTitle } from '@/contexts/page-title-context';
 import {
   SettingsTabs,
   ProfilePhotoSection,
@@ -25,8 +26,14 @@ import {
 import { formatErrorForDisplay } from '@/lib/errors';
 
 export default function CandidateSettingsPage() {
+  const { setTitle } = usePageTitle();
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setTitle('Settings');
+  }, [setTitle]);
+
   const [activeTab, setActiveTab] = useState('my-profile');
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'

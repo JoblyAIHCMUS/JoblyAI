@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
+import { usePageTitle } from '@/contexts/page-title-context';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
@@ -21,6 +22,12 @@ import { formatDateRangeLabel, getGreeting } from '@/lib/candidateDate';
 export default function CandidateDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle('Dashboard');
+  }, [setTitle]);
+
   const { data: user } = useUser();
   const { initChat } = useInitializeConversation({
     onError: (error) => {

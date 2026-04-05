@@ -114,3 +114,14 @@ export class CompanyDeleteDto {
   @Min(1)
   id!: number;
 }
+
+export class CompanyLogoDto {
+  @IsString()
+  @IsNotEmpty()
+  fileKey!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl()
+  fileUrl!: string;
+}

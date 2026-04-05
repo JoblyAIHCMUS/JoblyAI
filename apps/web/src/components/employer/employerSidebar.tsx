@@ -18,7 +18,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { useUser } from '@/hooks/useUser';
 import { useLogout } from '@/hooks/useAuth';
 import { useUnreadMessagesDot } from '@/hooks/useMessages';
 import { useGetEmployerProfile } from '@/api-hook/employer';
@@ -89,16 +88,14 @@ const navSecondary = [
 export function EmployerSidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
-  const { data: user } = useUser();
   const logout = useLogout();
   const { hasUnreadMessages } = useUnreadMessagesDot();
   const { data: employerProfile, fetchEmployerProfile } =
     useGetEmployerProfile();
 
+  // Fetch employer profile on mount
   useEffect(() => {
-    void fetchEmployerProfile().catch(() => {
-      // Keep sidebar resilient if profile fetch fails.
-    });
+    fetchEmployerProfile();
   }, []);
 
   // Derive the actual collapsed state based on mobile vs desktop
@@ -165,7 +162,7 @@ export function EmployerSidebar() {
                 const isRestrictedItem = restrictedItems.includes(item.title);
                 const companyId = employerProfile?.company?.id ?? null;
                 const isDisabled =
-                  isRestrictedItem && !!employerProfile && !companyId;
+                  isRestrictedItem && employerProfile && !companyId;
 
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -342,17 +339,17 @@ export function EmployerSidebar() {
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <div className="h-12 w-12 flex-shrink-0 rounded-full bg-slate-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
             <img
-              src={user?.image || 'https://placehold.co/48x48'}
-              alt={user?.name || 'User'}
+              src={employerProfile?.avatarUrl || 'https://placehold.co/48x48'}
+              alt={employerProfile?.fullName || 'User'}
               className="h-full w-full rounded-full object-cover"
             />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
             <span className="body-body-1-medium text-[color:var(--text-primary)] leading-6">
-              {user?.name || 'Loading...'}
+              {employerProfile?.fullName || 'Loading...'}
             </span>
             <span className="text-sm text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)]">
-              {user?.email || ''}
+              {employerProfile?.email || ''}
             </span>
           </div>
         </div>

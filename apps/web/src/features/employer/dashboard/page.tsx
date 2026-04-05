@@ -17,6 +17,7 @@ import {
   aggregateAnalyticsData,
   getDateRangeForPeriods,
 } from '@/features/employer/dashboard/utils/statsAggregation';
+import { useGetEmployerProfile } from '@/api-hook/employer';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -27,8 +28,9 @@ function getGreeting(): string {
 
 export default function EmployerDashboardPage() {
   const { data: user } = useUser();
+  const { data: employerProfile } = useGetEmployerProfile();
   const greeting = getGreeting();
-  const firstName = user?.name?.split(' ')[0] ?? '';
+  const firstName = employerProfile?.fullName?.split(' ')[0] ?? '';
 
   // State for dynamic data
   const [candidateCount, setCandidateCount] = useState(0);

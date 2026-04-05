@@ -1,14 +1,23 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { S3Service } from '../s3/s3.service';
 import {
   QueryResponseEmployerDto,
   UpdateEmployerDto,
 } from './dto/employer.dto';
+import { UpdateAvatarDto } from './dto/avatar.dto';
 
 @Injectable()
 export class EmployerService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly s3Service: S3Service
+  ) {}
 
   private async getPersonalProfileDetails(userId: string): Promise<{
     phoneNumber?: string;
@@ -160,5 +169,51 @@ export class EmployerService {
     });
 
     return this.getProfileDetails(userId);
+  }
+
+  async updateAvatar(
+    userId: string,
+    updateDto: UpdateAvatarDto
+  ): Promise<{ id: string; email: string; avatarUrl: string | null }> {
+    // Get current user with their existing avatar info
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Update DB with new avatar URL
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl: updateDto.fileUrl,
+      },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    // Delete old avatar from S3 if it exists
+    if (user.avatarUrl) {
+      try {
+        // Extract fileKey from avatarUrl (e.g., "assets/avatars/uuid.jpg" from full URL)
+        const urlParts = user.avatarUrl.split('/');
+        const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "avatars/uuid.jpg"
+
+        if (oldFileKey && oldFileKey.startsWith('avatars/')) {
+          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+        }
+      } catch (error) {
+        // Log the error but don't fail the operation
+        console.error(
+          `Warning: Failed to delete old avatar from S3. New avatar has been saved to DB.`,
+          error
+        );
+        // Continue - user's new avatar is already saved in DB
+      }
+    }
+
+    return updatedUser;
   }
 }
