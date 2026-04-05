@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Bell, Plus } from 'lucide-react';
-import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,14 +18,9 @@ import { useNotifications } from '@/hooks/useNotifications';
 // const notificationCount = 3;
 
 export function EmployerTopBar() {
-  const {
-    data: profile,
-    loading,
-    error,
-    fetchEmployerProfile,
-  } = useGetEmployerProfile();
+  const { data: profile, loading: isPending, error } = useGetEmployerProfile();
   const company = profile?.company;
-  const canPostJob = Boolean(company?.id) && !loading;
+  const canPostJob = Boolean(company?.id) && !isPending;
 
   const {
     visibleNotifications,
@@ -40,10 +34,6 @@ export function EmployerTopBar() {
     closeNotificationMenu,
     formatNotificationTime,
   } = useNotifications();
-
-  useEffect(() => {
-    fetchEmployerProfile();
-  }, []);
 
   return (
     <header
@@ -86,14 +76,14 @@ export function EmployerTopBar() {
                 </span>
               ) : (
                 <span className="heading-h6-semi-bold text-[#25324b]">
-                  {loading
+                  {isPending
                     ? 'Loading...'
                     : company?.name
                     ? company.name
                     : 'Not Affiliated'}
                 </span>
               )}
-              {!company && !loading && !error && (
+              {!company && !isPending && !error && (
                 <Link
                   href="/employer/new-company"
                   className="ml-3 text-[#4640de] label-label-2-semi-bold hover:underline"

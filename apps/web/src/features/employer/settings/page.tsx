@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -9,27 +10,25 @@ import {
   SettingsTabs,
   ProfilePhotoSection,
   PersonalDetailsForm,
-  AccountTypeSection,
 } from './components';
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetEmployerProfile } from '@/api-hook/employer';
 import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
-import { useUploadFile } from '@/api-hook/s3';
 import { useToast } from '@/hooks/useToast';
+import { SETTINGS_TABS } from './constants';
 import { formatErrorForDisplay } from '@/lib/errors';
 import {
   PersonalDetailsSchema,
   type PersonalDetailsFormData,
   formatDateToYYYYMMDD,
 } from '@/lib/validation';
-
-type AccountType = 'job_seeker' | 'employer';
+import type { EmployerProfileResponse } from '@/api-client/employer';
 
 export default function EmployerSettingsPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('my-profile');
-  const [accountType, setAccountType] = useState<AccountType>('employer');
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
@@ -54,62 +53,36 @@ export default function EmployerSettingsPage() {
   } = methods;
 
   const handleProfileSuccess = useCallback(
-    (data: any) => {
-      setProfilePhoto(
-        data.avatarUrl || data.image || 'https://placehold.co/124x124'
-      );
+    (data: EmployerProfileResponse) => {
+      const dobString = formatDateToYYYYMMDD(data.dateOfBirth);
+
+      if (data.avatarUrl) {
+        setProfilePhoto(data.avatarUrl);
+      }
 
       reset({
         firstName: data.firstName || '',
         lastName: data.lastName || '',
         phoneNumber: data.phoneNumber || '',
         email: data.email || '',
-        dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth),
+        dateOfBirth: dobString,
         gender: data.gender || '',
       });
     },
     [reset]
   );
 
-  const handleProfileError = useCallback(
-    (error: unknown) => {
-      toast.error(
-        formatErrorForDisplay(error, 'Failed to load employer profile')
-      );
-    },
-    [toast]
-  );
-
   const { fetchEmployerProfile, loading: loadingProfile } =
     useGetEmployerProfile({
       onSuccess: handleProfileSuccess,
-      onError: handleProfileError,
     });
 
   const { updateDetails, loading: updatingProfile } =
     useUpdatePersonalDetails();
-  const { upload, loading: uploadingAvatar } = useUploadFile();
 
-  const tabs = [
-    { id: 'my-profile', label: 'My Profile' },
-    { id: 'system-settings', label: 'System Settings' },
-  ];
-
-  useEffect(() => {
+  const handleAvatarUpdated = (newAvatarUrl: string) => {
+    setProfilePhoto(newAvatarUrl);
     fetchEmployerProfile();
-  }, []);
-
-  const handlePhotoChange = async (file: File) => {
-    try {
-      const uploadResult = await upload(file, 'avatars');
-      await updateDetails({ avatarUrl: uploadResult.fileUrl });
-      setProfilePhoto(uploadResult.fileUrl);
-      toast.success('Profile photo updated successfully');
-    } catch (error) {
-      toast.error(
-        formatErrorForDisplay(error, 'Failed to update profile photo')
-      );
-    }
   };
 
   const onSubmit = async (formData: PersonalDetailsFormData) => {
@@ -121,27 +94,32 @@ export default function EmployerSettingsPage() {
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
       });
+
       await fetchEmployerProfile();
+
       toast.success('Profile updated successfully');
-    } catch (error) {
-      toast.error(
-        formatErrorForDisplay(error, 'Failed to update profile details')
-      );
+
+      setTimeout(() => {
+        router.push('/employer/dashboard');
+      }, 800);
+    } catch {
+      // Error handled by toast in updateDetails hook
     }
   };
 
-  // Notification state
-  const [notifications, setNotifications] = useState({
-    applications: true,
-    jobs: false,
-    recommendations: false,
-  });
+  const isSaving = updatingProfile || isSubmitting;
 
-  const handleNotificationChange = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const isSaving = updatingProfile || uploadingAvatar || isSubmitting;
+  // Load profile data on component mount (only once)
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        await fetchEmployerProfile();
+      } catch (error) {
+        toast.error(formatErrorForDisplay(error, 'Failed to load profile'));
+      }
+    };
+    loadProfile();
+  }, []);
 
   return (
     <div className="min-h-screen bg-primary">
@@ -149,7 +127,7 @@ export default function EmployerSettingsPage() {
         {/* Header Section with Tabs */}
         <div className="self-stretch px-8 pt-8 border-b border-primary">
           <SettingsTabs
-            tabs={tabs}
+            tabs={SETTINGS_TABS}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
@@ -184,7 +162,7 @@ export default function EmployerSettingsPage() {
               <div className="self-stretch inline-flex justify-start items-start gap-28">
                 <ProfilePhotoSection
                   photoUrl={profilePhoto}
-                  onPhotoChange={handlePhotoChange}
+                  onAvatarUpdated={handleAvatarUpdated}
                   disabled={loadingProfile || isSaving}
                 />
               </div>
@@ -195,18 +173,6 @@ export default function EmployerSettingsPage() {
               {/* Personal Details Form */}
               <div className="self-stretch inline-flex justify-start items-start gap-60">
                 <PersonalDetailsForm disabled={loadingProfile || isSaving} />
-              </div>
-
-              {/* Divider */}
-              <hr className="self-stretch border-primary" />
-
-              {/* Account Type */}
-              <div className="self-stretch inline-flex justify-start items-start gap-24">
-                <AccountTypeSection
-                  selectedType={accountType}
-                  onTypeChange={setAccountType}
-                  disabled
-                />
               </div>
 
               {/* Divider */}
@@ -251,11 +217,9 @@ export default function EmployerSettingsPage() {
         >
           {/* Section Header */}
           <div className="flex flex-col gap-1">
-            <h2 className="heading-h6-semi-bold text-primary">
-              Basic Information
-            </h2>
+            <h2 className="heading-h6-semi-bold text-primary">Notifications</h2>
             <p className="body-body-1-regular text-tertiary">
-              This is notifications preferences that you can update anytime.
+              Manage your notification preferences.
             </p>
           </div>
 
@@ -271,8 +235,14 @@ export default function EmployerSettingsPage() {
 
           {/* Notifications Section */}
           <NotificationOptions
-            notifications={notifications}
-            onChange={handleNotificationChange}
+            notifications={{
+              applications: true,
+              jobs: false,
+              recommendations: false,
+            }}
+            onChange={(key: string) => {
+              // TODO: Implement notification preferences
+            }}
           />
         </TabsContent>
       </Tabs>

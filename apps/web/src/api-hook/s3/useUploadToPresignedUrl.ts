@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   S3Folder,
   uploadFileToPresignedUrl,
@@ -22,33 +22,36 @@ export function useUploadToPresignedUrl(
   const [error, setError] = useState<unknown | null>(null);
   const [done, setDone] = useState(false);
 
-  const uploadToPresignedUrl = async (
-    uploadUrl: string,
-    file: File,
-    params?: UploadToPresignedUrlParams
-  ) => {
-    setLoading(true);
-    setDone(false);
-    setError(null);
+  const uploadToPresignedUrl = useCallback(
+    async (
+      uploadUrl: string,
+      file: File,
+      params?: UploadToPresignedUrlParams
+    ) => {
+      setLoading(true);
+      setDone(false);
+      setError(null);
 
-    try {
-      const folder = params?.folder ?? 'resumes';
-      const validation = validateS3File(file, folder);
-      if (!validation.valid) {
-        throw new Error(validation.message || 'Invalid file for upload.');
+      try {
+        const folder = params?.folder ?? 'resumes';
+        const validation = validateS3File(file, folder);
+        if (!validation.valid) {
+          throw new Error(validation.message || 'Invalid file for upload.');
+        }
+
+        await uploadFileToPresignedUrl(uploadUrl, file, params?.contentType);
+        setDone(true);
+        options?.onSuccess?.();
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
       }
-
-      await uploadFileToPresignedUrl(uploadUrl, file, params?.contentType);
-      setDone(true);
-      options?.onSuccess?.();
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [options]
+  );
 
   return { uploadToPresignedUrl, loading, error, done };
 }

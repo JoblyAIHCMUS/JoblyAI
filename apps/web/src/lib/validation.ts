@@ -14,7 +14,7 @@ export const PersonalDetailsSchema = z.object({
       (val) => !val || /^\+?\d+$/.test(val),
       'Phone number must contain only digits or start with + followed by digits'
     ),
-  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  email: z.string().optional(), // Email is read-only, not editable
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   gender: z.string().min(1, 'Gender is required'),
 });

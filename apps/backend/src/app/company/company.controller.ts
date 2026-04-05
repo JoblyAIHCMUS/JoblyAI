@@ -23,6 +23,7 @@ import {
   CompanyAddEmployeeDto,
   CompanyCreateDto,
   CompanyGrantAdminDto,
+  CompanyLogoDto,
   CompanyPatchDto,
   CompanyUpdateDto,
 } from './dto/company.dto';
@@ -92,6 +93,17 @@ export class CompanyController {
   ) {
     await this.companyService.delete(id, req.user);
     return { message: `Company with ID ${id} deleted successfully` };
+  }
+
+  @Patch(':id/logo')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer', 'admin')
+  async updateCompanyLogo(
+    @Request() req: AuthRequest,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CompanyLogoDto
+  ) {
+    return this.companyService.updateLogo(id, dto, req.user);
   }
 
   @Post(':id/employees')
