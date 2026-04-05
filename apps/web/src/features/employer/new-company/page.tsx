@@ -140,10 +140,12 @@ export default function EmployerNewCompanyPage() {
     const currentValues = getValues();
     switch (stepIndex) {
       case 0:
-        // Check if basic info is valid (only company name is required)
+        // Check if basic info is valid
         return (
           !!currentValues.companyName &&
           currentValues.companyName.trim().length >= 2 &&
+          !!currentValues.scale &&
+          !!currentValues.industry &&
           !errors.companyName &&
           !errors.scale &&
           !errors.industry &&
@@ -279,7 +281,9 @@ export default function EmployerNewCompanyPage() {
               {/* Scale & Industry */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="label-label-1-semibold">Scale</Label>
+                  <Label className="label-label-1-semibold">
+                    Scale <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={scale || ''}
                     onValueChange={(value) => setValue('scale', value as any)}
@@ -307,7 +311,9 @@ export default function EmployerNewCompanyPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="label-label-1-semibold">Industry</Label>
+                  <Label className="label-label-1-semibold">
+                    Industry <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={industry}
                     onValueChange={(value) => setValue('industry', value)}
