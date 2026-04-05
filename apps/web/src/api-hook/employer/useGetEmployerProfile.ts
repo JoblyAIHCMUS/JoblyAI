@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useEmployerProfileContext } from './EmployerProfileContext';
 import type { EmployerProfileResponse } from '@/api-client/employer';
 
@@ -11,8 +12,13 @@ export function useGetEmployerProfile(
 ) {
   const context = useEmployerProfileContext();
 
+  const fetchEmployerProfile = useCallback(
+    () => context.fetchEmployerProfile(options),
+    [context, options]
+  );
+
   return {
-    fetchEmployerProfile: () => context.fetchEmployerProfile(options),
+    fetchEmployerProfile,
     loading: context.loading,
     error: context.error,
     data: context.data,

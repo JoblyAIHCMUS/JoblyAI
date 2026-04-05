@@ -101,7 +101,7 @@ export default function EmployerCompanyProfileEditPage() {
   // Fetch employer and company on mount
   useEffect(() => {
     fetchEmployerProfile();
-  }, [fetchEmployerProfile]);
+  }, []);
 
   useEffect(() => {
     if (employer?.company?.id) {
