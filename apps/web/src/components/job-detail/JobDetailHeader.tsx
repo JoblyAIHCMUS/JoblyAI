@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Share2 } from 'lucide-react';
@@ -7,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { useRole } from '@/contexts/role-context';
 import { sanitizeRedirectPath } from '@/lib/utils';
+import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
 
 export type JobDetailBreadcrumbItem = {
   label: string;
@@ -29,7 +31,8 @@ interface JobDetailHeaderProps {
   company: CompanyInfo;
   address: string;
   workType: string;
-  jobId: string;
+  jobId: number;
+  jobType?: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
 }
 
 export default function JobDetailHeader({
@@ -39,19 +42,20 @@ export default function JobDetailHeader({
   address,
   workType,
   jobId,
+  jobType = 'FULL_TIME',
 }: JobDetailHeaderProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: user } = useUser();
   const role = useRole();
 
   const handleApply = () => {
-    const basePath = role === 'candidate' ? `/candidate/find-jobs/${jobId}` : `/find-jobs/${jobId}`;
-    const redirectPath = sanitizeRedirectPath(basePath);
-
     if (!user) {
+      const basePath = role === 'candidate' ? `/candidate/find-jobs/${jobId}` : `/find-jobs/${jobId}`;
+      const redirectPath = sanitizeRedirectPath(basePath);
       router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     } else {
-      router.push(`${basePath}/apply`);
+      setIsModalOpen(true);
     }
   };
   return (
@@ -164,6 +168,19 @@ export default function JobDetailHeader({
           </div>
         </div>
       </div>
+
+      <SubmitApplicationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        job={{
+          id: jobId,
+          title: jobTitle,
+          company: company.name,
+          location: address,
+          jobType,
+          logoUrl: company.logoUrl || undefined,
+        }}
+      />
     </section>
   );
 }

@@ -152,3 +152,34 @@ export const ExperienceSchema = z.object({
 });
 
 export type ExperienceFormData = z.infer<typeof ExperienceSchema>;
+
+/**
+ * Zod schema for submit application form validation
+ */
+export const SubmitApplicationSchema = z.object({
+  jobTitle: z
+    .string()
+    .min(1, 'Job title is required')
+    .max(200, 'Job title must be less than 200 characters'),
+  coverLetter: z
+    .string()
+    .max(1000, 'Cover letter must be less than 1000 characters')
+    .default(''),
+  resume: z
+    .instanceof(File)
+    .optional()
+    .refine(
+      (file) => !file || file.size <= 5 * 1024 * 1024,
+      'Resume must be less than 5MB'
+    )
+    .refine(
+      (file) =>
+        !file ||
+        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
+          file.type
+        ),
+      'Resume must be a PDF or Word document'
+    ),
+});
+
+export type SubmitApplicationFormData = z.infer<typeof SubmitApplicationSchema>;

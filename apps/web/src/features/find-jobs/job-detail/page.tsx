@@ -15,7 +15,7 @@ import type { JobPosting } from '@/api-client/jobs';
 import type { JobDetailContentProps } from '@/types/jobDetail';
 
 interface PageData {
-  jobId: string;
+  jobId: number;
   breadcrumbItems: { label: string; href?: string }[];
   jobName: string;
   company: JobPosting['company'];
@@ -83,7 +83,7 @@ export default function JobDetailPage() {
 
         // Transform JobPosting into PageData structure
         const transformedData: PageData = {
-          jobId: String(jobData.id),
+          jobId: jobData.id,
           breadcrumbItems: [
             { label: 'Find Jobs', href: findJobsHref },
             { label: jobData.title },
