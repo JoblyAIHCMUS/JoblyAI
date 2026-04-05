@@ -15,6 +15,7 @@ type ApplicationHistoryRowProps = {
   showMoreActions?: boolean;
   moreActionOptions?: string[];
   onMoreActionSelect?: (option: string, item: ApplicationItem) => void;
+  onMessageRecruiter?: (item: ApplicationItem) => void;
 };
 
 const DEFAULT_MORE_ACTION_OPTIONS = [
@@ -107,9 +108,20 @@ export function ApplicationHistoryRow({
   showMoreActions = true,
   moreActionOptions = DEFAULT_MORE_ACTION_OPTIONS,
   onMoreActionSelect,
+  onMessageRecruiter,
 }: ApplicationHistoryRowProps) {
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
+
+  const handleMoreActionSelect = (
+    option: string,
+    currentItem: ApplicationItem
+  ) => {
+    if (option === 'Message recruiter' && onMessageRecruiter) {
+      onMessageRecruiter(currentItem);
+    }
+    onMoreActionSelect?.(option, currentItem);
+  };
 
   const mobileLogoNode = item.logoUrl ? (
     <img
@@ -148,7 +160,7 @@ export function ApplicationHistoryRow({
             <MoreActionsMenu
               item={item}
               options={moreActionOptions}
-              onSelect={onMoreActionSelect}
+              onSelect={handleMoreActionSelect}
             />
           )}
         </div>
@@ -210,7 +222,7 @@ export function ApplicationHistoryRow({
           <MoreActionsMenu
             item={item}
             options={moreActionOptions}
-            onSelect={onMoreActionSelect}
+            onSelect={handleMoreActionSelect}
           />
         )}
       </div>

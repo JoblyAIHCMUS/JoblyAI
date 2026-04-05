@@ -1,22 +1,27 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useEffect } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 
 import { useUser } from '@/hooks/useUser';
+import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/contexts/page-title-context';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
-import { ApplicationFilter } from '@/types/candidate';
+import { ApplicationFilter, ApplicationItem } from '@/types/candidate';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
+import { useInitializeConversation } from '@/api-hook/messages';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
 import { formatDateRangeLabel, getGreeting } from '@/lib/candidateDate';
 
 export default function CandidateDashboardPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const { setTitle } = usePageTitle();
 
   useEffect(() => {
@@ -24,6 +29,12 @@ export default function CandidateDashboardPage() {
   }, [setTitle]);
 
   const { data: user } = useUser();
+  const { initChat } = useInitializeConversation({
+    onError: (error) => {
+      console.error('Failed to initialize conversation:', error);
+      toast.error('Failed to open conversation. Please try again.');
+    },
+  });
   const {
     applicationFilter,
     setApplicationFilter,
@@ -60,6 +71,21 @@ export default function CandidateDashboardPage() {
       selectedEndDate,
       statusMeta,
     });
+
+  const handleMessageRecruiter = async (item: ApplicationItem) => {
+    if (!user?.id) {
+      toast.error('User not found. Please log in again.');
+      return;
+    }
+
+    try {
+      await initChat(user.id, item.recruiterId);
+      router.push(`/candidate/messages?recruiterId=${item.recruiterId}`);
+    } catch (error) {
+      console.error('Error initiating conversation:', error);
+      // Error toast is already shown via the hook's onError callback
+    }
+  };
 
   return (
     <div className="min-h-full bg-white">
@@ -147,6 +173,7 @@ export default function CandidateDashboardPage() {
                 index={index}
                 tinted={tinted}
                 statusMeta={statusMeta}
+                onMessageRecruiter={handleMessageRecruiter}
               />
             )}
           />

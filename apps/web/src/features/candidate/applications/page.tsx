@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
@@ -13,9 +14,13 @@ import { usePageTitle } from '@/contexts/page-title-context';
 import { useWithdrawApplication } from '@/api-hook/application';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { useUser } from '@/hooks/useUser';
+import { useToast } from '@/hooks/useToast';
+import { useInitializeConversation } from '@/api-hook/messages';
 import { ApplicationItem } from '@/types/candidate';
 
 export default function CandidateApplicationsPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const { setTitle } = usePageTitle();
 
   useEffect(() => {
@@ -24,6 +29,12 @@ export default function CandidateApplicationsPage() {
 
   const filterDialogId = 'applications-filter-dialog';
   const { data: user } = useUser();
+  const { initChat } = useInitializeConversation({
+    onError: (error) => {
+      console.error('Failed to initialize conversation:', error);
+      toast.error('Failed to open conversation. Please try again.');
+    },
+  });
   const {
     applicationFilter,
     setApplicationFilter,
@@ -105,6 +116,21 @@ export default function CandidateApplicationsPage() {
     }
   };
 
+  const handleMessageRecruiter = async (item: ApplicationItem) => {
+    if (!user?.id) {
+      toast.error('User not found. Please log in again.');
+      return;
+    }
+
+    try {
+      await initChat(user.id, item.recruiterId);
+      router.push(`/candidate/messages?recruiterId=${item.recruiterId}`);
+    } catch (error) {
+      console.error('Error initiating conversation:', error);
+      // Error toast is already shown via the hook's onError callback
+    }
+  };
+
   return (
     <div className="min-h-full bg-white">
       <div className="flex flex-col gap-6 px-4 py-5 sm:gap-8 sm:py-6 md:px-8 md:py-6">
@@ -182,6 +208,7 @@ export default function CandidateApplicationsPage() {
                 tinted={tinted}
                 statusMeta={statusMeta}
                 onMoreActionSelect={handleMoreActionSelect}
+                onMessageRecruiter={handleMessageRecruiter}
               />
             )}
           />
