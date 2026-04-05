@@ -70,6 +70,7 @@ function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
     title: record.job.title,
     createdAt: record.createdAt.split('T')[0] ?? record.createdAt,
     status: mapApiStatusToCandidateStatus(record.status),
+    recruiterId: record.job.postedBy.id,
   };
 }
 
