@@ -32,6 +32,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Social Media Assistant',
     createdAt: '2026-03-17',
     status: 'applied',
+    recruiterId: 'recruiter-nomad',
   },
   {
     id: 'udacity',
@@ -42,6 +43,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Social Media Assistant',
     createdAt: '2026-03-16',
     status: 'interviewing',
+    recruiterId: 'recruiter-udacity',
   },
   {
     id: 'packer',
@@ -52,6 +54,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Social Media Assistant',
     createdAt: '2026-03-15',
     status: 'rejected',
+    recruiterId: 'recruiter-packer',
   },
   {
     id: 'linear',
@@ -62,6 +65,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Content Designer',
     createdAt: '2026-03-12',
     status: 'viewed',
+    recruiterId: 'recruiter-linear',
   },
   {
     id: 'figma',
@@ -72,6 +76,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2026-03-05',
     status: 'offered',
+    recruiterId: 'recruiter-figma',
   },
   {
     id: 'airtable',
@@ -82,6 +87,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Visual Designer',
     createdAt: '2026-02-26',
     status: 'applied',
+    recruiterId: 'recruiter-airtable',
   },
   {
     id: 'shopify',
@@ -92,6 +98,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Design Systems Specialist',
     createdAt: '2026-02-18',
     status: 'interviewing',
+    recruiterId: 'recruiter-shopify',
   },
   {
     id: 'spotify',
@@ -102,6 +109,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Brand Designer',
     createdAt: '2026-02-07',
     status: 'rejected',
+    recruiterId: 'recruiter-spotify',
   },
   {
     id: 'slack',
@@ -112,6 +120,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UI Designer',
     createdAt: '2026-01-31',
     status: 'viewed',
+    recruiterId: 'recruiter-slack',
   },
   {
     id: 'notion',
@@ -122,6 +131,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Junior Product Designer',
     createdAt: '2026-01-19',
     status: 'applied',
+    recruiterId: 'recruiter-notion',
   },
   {
     id: 'canva',
@@ -132,6 +142,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Creative Designer',
     createdAt: '2026-01-08',
     status: 'offered',
+    recruiterId: 'recruiter-canva',
   },
   {
     id: 'revolut',
@@ -142,6 +153,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2026-01-03',
     status: 'viewed',
+    recruiterId: 'recruiter-revolut',
   },
   {
     id: 'wise',
@@ -152,6 +164,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Researcher',
     createdAt: '2025-12-29',
     status: 'applied',
+    recruiterId: 'recruiter-wise',
   },
   {
     id: 'dropbox',
@@ -162,6 +175,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Senior UI Designer',
     createdAt: '2025-12-21',
     status: 'interviewing',
+    recruiterId: 'recruiter-dropbox',
   },
   {
     id: 'atlassian',
@@ -172,6 +186,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-12-16',
     status: 'offered',
+    recruiterId: 'recruiter-atlassian',
   },
   {
     id: 'asana',
@@ -182,6 +197,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Writer',
     createdAt: '2025-12-10',
     status: 'rejected',
+    recruiterId: 'recruiter-asana',
   },
   {
     id: 'gitlab',
@@ -192,6 +208,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Design Systems Designer',
     createdAt: '2025-12-05',
     status: 'applied',
+    recruiterId: 'recruiter-gitlab',
   },
   {
     id: 'zapier',
@@ -202,6 +219,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Visual Designer',
     createdAt: '2025-11-30',
     status: 'viewed',
+    recruiterId: 'recruiter-zapier',
   },
   {
     id: 'monday',
@@ -212,6 +230,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-11-24',
     status: 'interviewing',
+    recruiterId: 'recruiter-monday',
   },
   {
     id: 'intercom',
@@ -222,6 +241,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Content Designer',
     createdAt: '2025-11-18',
     status: 'offered',
+    recruiterId: 'recruiter-intercom',
   },
   {
     id: 'stripe',
@@ -232,6 +252,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Design Intern',
     createdAt: '2025-11-12',
     status: 'rejected',
+    recruiterId: 'recruiter-stripe',
   },
   {
     id: 'coinbase',
@@ -242,6 +263,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Motion Designer',
     createdAt: '2025-11-06',
     status: 'applied',
+    recruiterId: 'recruiter-coinbase',
   },
   {
     id: 'brex',
@@ -252,6 +274,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Brand Designer',
     createdAt: '2025-10-30',
     status: 'viewed',
+    recruiterId: 'recruiter-brex',
   },
   {
     id: 'mercari',
@@ -262,6 +285,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Designer',
     createdAt: '2025-10-24',
     status: 'interviewing',
+    recruiterId: 'recruiter-mercari',
   },
   {
     id: 'rakuten',
@@ -272,6 +296,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Design Researcher',
     createdAt: '2025-10-19',
     status: 'offered',
+    recruiterId: 'recruiter-rakuten',
   },
   {
     id: 'booking',
@@ -282,6 +307,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Service Designer',
     createdAt: '2025-10-12',
     status: 'rejected',
+    recruiterId: 'recruiter-booking',
   },
   {
     id: 'bolt',
@@ -292,6 +318,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UI Designer',
     createdAt: '2025-10-05',
     status: 'applied',
+    recruiterId: 'recruiter-bolt',
   },
   {
     id: 'klarna',
@@ -302,6 +329,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Experience Designer',
     createdAt: '2025-09-28',
     status: 'viewed',
+    recruiterId: 'recruiter-klarna',
   },
   {
     id: 'adyen',
@@ -312,6 +340,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-09-21',
     status: 'interviewing',
+    recruiterId: 'recruiter-adyen',
   },
   {
     id: 'sumup',
@@ -322,6 +351,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX/UI Designer',
     createdAt: '2025-09-16',
     status: 'offered',
+    recruiterId: 'recruiter-sumup',
   },
   {
     id: 'nubank',
@@ -332,6 +362,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-09-08',
     status: 'rejected',
+    recruiterId: 'recruiter-nubank',
   },
   {
     id: 'picpay',
@@ -342,6 +373,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Interaction Designer',
     createdAt: '2025-09-01',
     status: 'applied',
+    recruiterId: 'recruiter-picpay',
   },
   {
     id: 'grab',
@@ -352,6 +384,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Design Systems Designer',
     createdAt: '2025-08-26',
     status: 'viewed',
+    recruiterId: 'recruiter-grab',
   },
   {
     id: 'gojek',
@@ -362,6 +395,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-08-20',
     status: 'interviewing',
+    recruiterId: 'recruiter-gojek',
   },
   {
     id: 'lalamove',
@@ -372,6 +406,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Visual Designer',
     createdAt: '2025-08-13',
     status: 'offered',
+    recruiterId: 'recruiter-lalamove',
   },
   {
     id: 'careem',
@@ -382,6 +417,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-08-06',
     status: 'rejected',
+    recruiterId: 'recruiter-careem',
   },
   {
     id: 'talabat',
@@ -392,6 +428,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Researcher',
     createdAt: '2025-07-31',
     status: 'applied',
+    recruiterId: 'recruiter-talabat',
   },
   {
     id: 'deliveroo',
@@ -402,6 +439,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Service Designer',
     createdAt: '2025-07-25',
     status: 'viewed',
+    recruiterId: 'recruiter-deliveroo',
   },
   {
     id: 'doordash',
@@ -412,6 +450,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-07-18',
     status: 'interviewing',
+    recruiterId: 'recruiter-doordash',
   },
   {
     id: 'instacart',
@@ -422,6 +461,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Designer',
     createdAt: '2025-07-11',
     status: 'offered',
+    recruiterId: 'recruiter-instacart',
   },
   {
     id: 'robinhood',
@@ -432,6 +472,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Interaction Designer',
     createdAt: '2025-07-05',
     status: 'rejected',
+    recruiterId: 'recruiter-robinhood',
   },
   {
     id: 'affirm',
@@ -442,6 +483,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-06-28',
     status: 'applied',
+    recruiterId: 'recruiter-affirm',
   },
   {
     id: 'afterpay',
@@ -452,6 +494,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Visual Designer',
     createdAt: '2025-06-22',
     status: 'viewed',
+    recruiterId: 'recruiter-afterpay',
   },
   {
     id: 'square',
@@ -462,6 +505,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Design Technologist',
     createdAt: '2025-06-16',
     status: 'interviewing',
+    recruiterId: 'recruiter-block',
   },
   {
     id: 'paypal',
@@ -472,6 +516,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Strategist',
     createdAt: '2025-06-09',
     status: 'offered',
+    recruiterId: 'recruiter-paypal',
   },
   {
     id: 'alipay',
@@ -482,6 +527,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-06-03',
     status: 'rejected',
+    recruiterId: 'recruiter-alipay',
   },
   {
     id: 'wechat',
@@ -492,6 +538,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Designer',
     createdAt: '2025-05-27',
     status: 'applied',
+    recruiterId: 'recruiter-wechat',
   },
   {
     id: 'tiktok',
@@ -502,6 +549,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Visual Designer',
     createdAt: '2025-05-20',
     status: 'viewed',
+    recruiterId: 'recruiter-tiktok',
   },
   {
     id: 'airbnb',
@@ -512,6 +560,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Experience Designer',
     createdAt: '2025-05-13',
     status: 'interviewing',
+    recruiterId: 'recruiter-airbnb',
   },
   {
     id: 'expedia',
@@ -522,6 +571,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Product Designer',
     createdAt: '2025-05-07',
     status: 'offered',
+    recruiterId: 'recruiter-expedia',
   },
   {
     id: 'trip',
@@ -532,6 +582,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'UX Writer',
     createdAt: '2025-04-30',
     status: 'rejected',
+    recruiterId: 'recruiter-trip',
   },
   {
     id: 'agoda',
@@ -542,6 +593,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Service Designer',
     createdAt: '2025-04-22',
     status: 'applied',
+    recruiterId: 'recruiter-agoda',
   },
   {
     id: 'skyscanner',
@@ -552,6 +604,7 @@ export const CANDIDATE_DASHBOARD_APPLICATIONS: ApplicationItem[] = [
     title: 'Interaction Designer',
     createdAt: '2025-04-15',
     status: 'viewed',
+    recruiterId: 'recruiter-skyscanner',
   },
 ];
 
