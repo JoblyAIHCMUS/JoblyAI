@@ -23,6 +23,7 @@ export interface JobApplication {
   jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
   logoUrl?: string;
   currentResume?: {
+    id?: number;
     filename: string;
     url: string;
   };
@@ -54,7 +55,7 @@ export const SubmitApplicationModal = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [applicationSubmitError, setApplicationSubmitError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [localResume, setLocalResume] = useState<{ filename: string; url: string } | ''>(job.currentResume || '');
+  const [localResume, setLocalResume] = useState<{ id?: number; filename: string; url: string } | ''>(job.currentResume || '');
 
   const { register, handleSubmit, watch, reset, formState: { errors, isValid } } = useForm({
     resolver: zodResolver(SubmitApplicationSchema),
@@ -66,7 +67,7 @@ export const SubmitApplicationModal = ({
 
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
-      setLocalResume({ filename: resumeData.fileName, url: resumeData.fileUrl });
+      setLocalResume({ id: resumeData.id, filename: resumeData.fileName, url: resumeData.fileUrl });
       setUploadedFile(null);
     },
     onError: (err: unknown) => {
@@ -151,9 +152,13 @@ export const SubmitApplicationModal = ({
       }
 
       // Submit application with already-uploaded resume
+      const resumeId = typeof localResume === 'string' ? undefined : localResume?.id;
+      if (!resumeId) {
+        throw new Error('Resume ID not found. Please try uploading the resume again.');
+      }
       await submitApplication({
         jobId: job.id,
-        resumeId: (localResume as any)?.id,
+        resumeId,
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An error occurred';
