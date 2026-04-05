@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useRole } from '@/contexts/role-context';
 import { usePageTitle } from '@/contexts/page-title-context';
@@ -9,7 +10,6 @@ import JobDetailContent from '@/components/job-detail/JobDetailContent';
 import JobCompanySection from '@/components/job-detail/JobCompanySection';
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
-import { useJobApplicationsAnalytics } from '@/api-hook/jobs/useJobAnalytics';
 import { mapJobPostingToDetailContent } from '@/features/find-jobs/job-detail/job.mapper';
 import type { JobPosting } from '@/api-client/jobs';
 import type { JobDetailContentProps } from '@/types/jobDetail';
@@ -32,9 +32,11 @@ export default function JobDetailPage() {
   const role = useRole();
   const { setTitle } = usePageTitle();
 
+  // Role-aware navigation link
+  const findJobsHref =
+    role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
+
   const { fetchJobDetail } = useJobDetail();
-  const { fetchAnalytics: fetchApplicationsAnalytics } =
-    useJobApplicationsAnalytics();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,31 +63,12 @@ export default function JobDetailPage() {
         // Fetch job data using the hook
         const jobData = await fetchJobDetail(Number(jobId));
 
-        console.log('Fetched job data:', jobData); // Debug log to verify data structure
+        // TODO: Replace with job-specific API: GET /api/jobs/{jobId}/applications/count
+        // Analytics API is employer-specific and returns cross-job aggregates
+        // Not suitable for public job detail page
+        const totalApplied = 0;
 
-        // Fetch job applications analytics to get total applied count
-        let totalApplied = 0;
-        try {
-          const analyticsData = await fetchApplicationsAnalytics();
-          if (analyticsData && analyticsData.length > 0) {
-            // Sum up all application counts from analytics data
-            totalApplied = analyticsData.reduce(
-              (sum, period) => sum + (period.applicationCount || 0),
-              0
-            );
-            console.log('Total applied count:', totalApplied);
-          }
-        } catch (analyticsError) {
-          console.warn(
-            'Failed to fetch applications analytics:',
-            analyticsError
-          );
-          // Continue without analytics data
-        }
-
-        // Determine breadcrumb href based on user role
-        const findJobsHref =
-          role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
+        // breadcrumbItems use the role-aware findJobsHref defined at component level
 
         // Transform JobPosting into PageData structure
         const transformedData: PageData = {
@@ -123,7 +106,7 @@ export default function JobDetailPage() {
     };
 
     loadJobDetail();
-  }, [jobId, role, fetchJobDetail, fetchApplicationsAnalytics]);
+  }, [jobId, role, fetchJobDetail]);
 
   if (loading) {
     return (
@@ -146,12 +129,12 @@ export default function JobDetailPage() {
           <p className="text-slate-600 mb-4">
             {error || 'Job details could not be found'}
           </p>
-          <a
-            href="/find-jobs"
+          <Link
+            href={findJobsHref}
             className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Back to Jobs
-          </a>
+          </Link>
         </div>
       </div>
     );

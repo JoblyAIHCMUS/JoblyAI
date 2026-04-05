@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Modal, ModalHeader, ModalBody } from '@/components/ui/modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import {
   SubmitApplicationSchema,
   SubmitApplicationFormData,
@@ -119,9 +125,23 @@ export const SubmitApplicationModal = ({
   const isUploading = uploading || creatingResume;
   const isSubmitting = applicationLoading;
 
+  // Reset modal state when opened to prevent stale state from previous session
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+      setUploadedFile(null);
+      setApplicationSubmitError(null);
+      setUploadProgress(0);
+      // Set localResume from job.currentResume (don't mutate props)
+      setLocalResume(job.currentResume || '');
+    }
+  }, [isOpen, reset, job.currentResume]);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    let progressInterval: NodeJS.Timeout | null = null;
 
     try {
       setApplicationSubmitError(null);
@@ -129,7 +149,7 @@ export const SubmitApplicationModal = ({
       setUploadProgress(0);
 
       // Simulate progress (since S3 upload doesn't provide real progress)
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) return 90;
           return prev + Math.random() * 30;
@@ -138,7 +158,6 @@ export const SubmitApplicationModal = ({
 
       // ✅ Upload immediately when file is selected
       const uploadResult = await uploadToS3(file, 'resumes');
-      clearInterval(progressInterval);
       setUploadProgress(95);
 
       // Create resume record in DB
@@ -158,6 +177,11 @@ export const SubmitApplicationModal = ({
       onError?.(errorMsg);
       setUploadedFile(null);
       setUploadProgress(0);
+    } finally {
+      // Always clear the progress interval to prevent memory leaks
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
     }
   };
 
@@ -194,18 +218,16 @@ export const SubmitApplicationModal = ({
     }
   };
 
-  const handleClose = () => {
-    reset();
-    setUploadedFile(null);
-    setApplicationSubmitError(null);
-    onClose();
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <ModalHeader onClose={handleClose} />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Submit Application</DialogTitle>
+          <DialogDescription className="sr-only">
+            Submit your application for {job.title} at {job.company}
+          </DialogDescription>
+        </DialogHeader>
 
-      <ModalBody>
         {/* Job Header */}
         <div className="mb-6 flex gap-6 border-b border-slate-200 pb-6">
           {job.logoUrl && (
@@ -348,6 +370,7 @@ export const SubmitApplicationModal = ({
                   accept=".pdf,.doc,.docx"
                   className="hidden"
                   disabled={isUploading}
+                  aria-label="Upload resume file"
                 />
               </label>
             </div>
@@ -363,6 +386,10 @@ export const SubmitApplicationModal = ({
                   <div
                     className="h-full rounded-full bg-indigo-600 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
+                    role="progressbar"
+                    aria-valuenow={Math.round(uploadProgress)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
                   />
                 </div>
               </div>
@@ -418,7 +445,7 @@ export const SubmitApplicationModal = ({
             </Link>
           </p>
         </form>
-      </ModalBody>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

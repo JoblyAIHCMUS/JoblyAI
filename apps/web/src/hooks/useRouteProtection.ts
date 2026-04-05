@@ -51,10 +51,12 @@ export function useRouteProtection(config: ProtectionConfig = {}) {
     }
 
     // User is authenticated, check role
-    const userRole = user.role || 'candidate';
+    if (!user.role) {
+      return; // hoặc redirect
+    }
 
     // Check if user has required role
-    const isAuthorized = requiredRoles.includes(userRole as AppRole);
+    const isAuthorized = requiredRoles.includes(user.role as AppRole);
 
     if (!isAuthorized) {
       // User is authenticated but lacks required role - redirect

@@ -49,15 +49,11 @@ export function middleware(request: NextRequest) {
   // Only redirect specific guest routes (not '/') - role-aware redirect happens on client
   // This prevents redirect loops after logout when role is unknown
   if (isAuthenticated) {
-    const guestOnlyRoutes: Record<string, string> = {
-      '/find-jobs': '/candidate/find-jobs',
-      '/browse-companies': '/candidate/browse-companies',
-    };
+    const guestOnlyRoutes = ['/find-jobs', '/browse-companies'];
 
-    // Check if current pathname matches or starts with any guest route
-    for (const [guestPath, candidatePath] of Object.entries(guestOnlyRoutes)) {
+    for (const guestPath of guestOnlyRoutes) {
       if (pathname === guestPath || pathname.startsWith(guestPath + '/')) {
-        return NextResponse.redirect(new URL(candidatePath, request.url));
+        return NextResponse.redirect(new URL('/', request.url));
       }
     }
   }

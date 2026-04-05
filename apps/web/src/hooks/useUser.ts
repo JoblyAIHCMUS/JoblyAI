@@ -5,9 +5,8 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
 /**
  * User type with explicit role support
- * Role determines:
- * - Route access (middleware.ts enforces /candidate/* only for candidates)
- * - UI rendering (RoleContext used by components)
+ * Role is used for:
+ * - Role-aware routing decisions
  * - Feature availability (e.g., apply button only for candidates)
  */
 export interface User {

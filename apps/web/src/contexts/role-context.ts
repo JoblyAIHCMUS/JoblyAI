@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react';
 
-export type AppRole = 'guest' | 'candidate' | 'employer';
+export type AppRole = 'guest' | 'candidate' | 'employer' | 'admin';
 
 const RoleContext = createContext<AppRole>('guest');
 
