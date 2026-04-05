@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { ConversationSidebar } from '@/features/employer/messages/ConversationSidebar';
@@ -10,6 +11,7 @@ import { ChatSummary } from '@/api-client/messages';
 import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function CandidateMessagesPage() {
+  const searchParams = useSearchParams();
   const { data: currentUser, isPending: userLoading } = useUser();
   const { sendMessage, onNewMessage } = useMessagesSocket();
   const { fetchChatSummary } = useGetChatSummary();
@@ -52,10 +54,24 @@ export default function CandidateMessagesPage() {
 
         setConversations(transformedConversations);
 
-        // Select first conversation by default if available and none is selected
-        setSelectedConversation(
-          (prev) => prev || transformedConversations[0] || null
-        );
+        // Check for recruiterId in query params to auto-select conversation
+        const recruiterId = searchParams.get('recruiterId');
+        if (recruiterId) {
+          const recruiterConversation = transformedConversations.find(
+            (conv) => conv.participantId === recruiterId
+          );
+          if (recruiterConversation) {
+            setSelectedConversation(recruiterConversation);
+          } else {
+            // If recruiter conversation not found, select first by default
+            setSelectedConversation(transformedConversations[0] || null);
+          }
+        } else {
+          // Select first conversation by default if available and none is selected
+          setSelectedConversation(
+            (prev) => prev || transformedConversations[0] || null
+          );
+        }
       } catch (error) {
         console.error('Error fetching conversations:', error);
       } finally {
@@ -64,7 +80,7 @@ export default function CandidateMessagesPage() {
     };
 
     getConversations();
-  }, [currentUser?.id, fetchChatSummary]);
+  }, [currentUser?.id, fetchChatSummary, searchParams]);
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
