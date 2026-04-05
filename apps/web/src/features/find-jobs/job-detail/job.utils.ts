@@ -23,25 +23,54 @@ export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
 
 /**
  * Parses a job description JSON string into structured content.
+ * 
+ * Supports two formats:
+ * 1. Structured JSON: { overview, responsibilities: [], whoYouAre: [], niceToHaves: [] }
+ * 2. Plain text: falls back to using entire string as overview
+ * 
  * Safely handles malformed JSON and missing fields.
+ * Backend is still in development - may only send plain text description.
  */
 export function parseDescription(description: string): JobDescriptionContent {
+  if (!description || typeof description !== 'string') {
+    return EMPTY_DESCRIPTION_CONTENT;
+  }
+
   try {
     const parsed = JSON.parse(description) as Partial<JobDescriptionContent>;
+    
+    // Has structured content (backend fully developed)
+    if (parsed.overview || parsed.responsibilities || parsed.whoYouAre || parsed.niceToHaves) {
+      return {
+        overview: parsed.overview ?? EMPTY_DESCRIPTION_CONTENT.overview,
+        responsibilities: Array.isArray(parsed.responsibilities)
+          ? parsed.responsibilities
+          : EMPTY_DESCRIPTION_CONTENT.responsibilities,
+        whoYouAre: Array.isArray(parsed.whoYouAre)
+          ? parsed.whoYouAre
+          : EMPTY_DESCRIPTION_CONTENT.whoYouAre,
+        niceToHaves: Array.isArray(parsed.niceToHaves)
+          ? parsed.niceToHaves
+          : EMPTY_DESCRIPTION_CONTENT.niceToHaves,
+      };
+    }
+    
+    // Fallback: treat the entire string as overview if JSON parsing succeeded but no structured fields
     return {
-      overview: parsed.overview ?? EMPTY_DESCRIPTION_CONTENT.overview,
-      responsibilities: Array.isArray(parsed.responsibilities)
-        ? parsed.responsibilities
-        : EMPTY_DESCRIPTION_CONTENT.responsibilities,
-      whoYouAre: Array.isArray(parsed.whoYouAre)
-        ? parsed.whoYouAre
-        : EMPTY_DESCRIPTION_CONTENT.whoYouAre,
-      niceToHaves: Array.isArray(parsed.niceToHaves)
-        ? parsed.niceToHaves
-        : EMPTY_DESCRIPTION_CONTENT.niceToHaves,
+      overview: description || EMPTY_DESCRIPTION_CONTENT.overview,
+      responsibilities: EMPTY_DESCRIPTION_CONTENT.responsibilities,
+      whoYouAre: EMPTY_DESCRIPTION_CONTENT.whoYouAre,
+      niceToHaves: EMPTY_DESCRIPTION_CONTENT.niceToHaves,
     };
   } catch {
-    return EMPTY_DESCRIPTION_CONTENT;
+    // JSON parse failed - treat entire string as plain text overview
+    // This handles backend-in-development case where description is just a string
+    return {
+      overview: description || EMPTY_DESCRIPTION_CONTENT.overview,
+      responsibilities: EMPTY_DESCRIPTION_CONTENT.responsibilities,
+      whoYouAre: EMPTY_DESCRIPTION_CONTENT.whoYouAre,
+      niceToHaves: EMPTY_DESCRIPTION_CONTENT.niceToHaves,
+    };
   }
 }
 

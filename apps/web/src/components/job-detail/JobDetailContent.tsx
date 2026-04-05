@@ -75,34 +75,40 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             </div>
 
             {/* Responsibilities */}
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Responsibilities</SectionHeading>
-              <div className="flex flex-col gap-2">
-                {descriptionContent.responsibilities.map((item) => (
-                  <CheckItem key={item} text={item} />
-                ))}
+            {descriptionContent.responsibilities.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <SectionHeading>Responsibilities</SectionHeading>
+                <div className="flex flex-col gap-2">
+                  {descriptionContent.responsibilities.map((item) => (
+                    <CheckItem key={item} text={item} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Who You Are */}
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Who You Are</SectionHeading>
-              <div className="flex flex-col gap-2">
-                {descriptionContent.whoYouAre.map((item) => (
-                  <CheckItem key={item} text={item} />
-                ))}
+            {descriptionContent.whoYouAre.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <SectionHeading>Who You Are</SectionHeading>
+                <div className="flex flex-col gap-2">
+                  {descriptionContent.whoYouAre.map((item) => (
+                    <CheckItem key={item} text={item} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Nice-To-Haves */}
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Nice-To-Haves</SectionHeading>
-              <div className="flex flex-col gap-2">
-                {descriptionContent.niceToHaves.map((item) => (
-                  <CheckItem key={item} text={item} />
-                ))}
+            {descriptionContent.niceToHaves.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <SectionHeading>Nice-To-Haves</SectionHeading>
+                <div className="flex flex-col gap-2">
+                  {descriptionContent.niceToHaves.map((item) => (
+                    <CheckItem key={item} text={item} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* ─── Right Column ─── */}
@@ -181,14 +187,16 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             <hr className="border-slate-200" />
 
             {/* Required Skills */}
-            <div className="flex flex-col gap-4">
-              <SectionHeading>Required Skills</SectionHeading>
-              <div className="flex flex-wrap gap-2">
-                {requiredSkills.map((skill) => (
-                  <SkillTag key={skill}>{skill}</SkillTag>
-                ))}
+            {requiredSkills.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <SectionHeading>Required Skills</SectionHeading>
+                <div className="flex flex-wrap gap-2">
+                  {requiredSkills.map((skill) => (
+                    <SkillTag key={skill}>{skill}</SkillTag>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
