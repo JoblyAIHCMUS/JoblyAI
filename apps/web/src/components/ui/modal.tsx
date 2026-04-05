@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ModalProps {
@@ -13,20 +13,22 @@ interface ModalProps {
 
 export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
   ({ isOpen, onClose, children, className, overlayClassName }, ref) => {
-    React.useEffect(() => {
-      if (isOpen) {
-        const handleEsc = (e: KeyboardEvent) => {
-          if (e.key === 'Escape') {
-            onClose();
-          }
-        };
-        document.addEventListener('keydown', handleEsc);
-        document.body.style.overflow = 'hidden';
-        return () => {
-          document.removeEventListener('keydown', handleEsc);
-          document.body.style.overflow = 'unset';
-        };
-      }
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleEsc = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.removeEventListener('keydown', handleEsc);
+        document.body.style.overflow = 'unset';
+      };
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
