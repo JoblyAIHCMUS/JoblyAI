@@ -9,7 +9,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EmploymentType, RequirementImportance } from '@prisma/client';
+import {
+  EmploymentType,
+  RequirementImportance,
+  JobStatus,
+} from '@prisma/client';
 
 export class JobRequirementInput {
   @IsNumber()
@@ -72,4 +76,8 @@ export class UpdateJobDTO {
   @ValidateNested({ each: true })
   @Type(() => JobRequirementInput)
   requirements?: JobRequirementInput[];
+
+  @IsOptional()
+  @IsEnum(JobStatus)
+  status?: JobStatus;
 }

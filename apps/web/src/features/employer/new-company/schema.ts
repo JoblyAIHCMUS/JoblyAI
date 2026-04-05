@@ -63,12 +63,12 @@ export const companyRegistrationSchema = z
         '1001-5000',
         '5001+',
       ])
-      .optional(),
+      .refine((val) => !!val, 'Company scale is required'),
     industry: z
       .string()
+      .min(1, 'Industry is required')
       .refine(
         (industry) =>
-          industry === '' ||
           [
             'technology',
             'finance',
@@ -118,8 +118,7 @@ export const companyRegistrationSchema = z
             'other',
           ].includes(industry),
         'Please select a valid industry'
-      )
-      .optional(),
+      ),
     companyDescription: z
       .string()
       .optional()
