@@ -41,7 +41,7 @@ interface JobListing {
   title: string;
   status: 'Draft' | 'Live' | 'Closed';
   datePosted: string;
-  dateClosed: string | null;
+  dateUpdated: string;
   employmentType: EmploymentType;
   applicants: number;
 }
@@ -89,7 +89,10 @@ function mapJobPostingToListing(job: JobPosting): JobListing {
       job.createdAt instanceof Date
         ? job.createdAt.toISOString().split('T')[0]
         : new Date(job.createdAt).toISOString().split('T')[0],
-    dateClosed: null, // Backend doesn't track close date
+    dateUpdated:
+      job.updatedAt instanceof Date
+        ? job.updatedAt.toISOString().split('T')[0]
+        : new Date(job.updatedAt).toISOString().split('T')[0],
     employmentType: job.type,
     applicants: 0, // TODO: Add applicants field to backend or fetch separately
   };
@@ -175,33 +178,18 @@ export const columns: ColumnDef<JobListing>[] = [
     cell: ({ row }) => formatDate(row.getValue<string>('datePosted')),
   },
   {
-    accessorKey: 'dateClosed',
+    accessorKey: 'dateUpdated',
     meta: { className: 'text-center' },
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
-        Date Closed
+        Date Updated
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => {
-      const value = row.getValue<string | null>('dateClosed');
-      return (
-        <span className="text-muted-foreground">
-          {value ? formatDate(value) : '\u2014'}
-        </span>
-      );
-    },
-    sortingFn: (rowA, rowB, columnId) => {
-      const a = rowA.getValue<string | null>(columnId);
-      const b = rowB.getValue<string | null>(columnId);
-      if (!a && !b) return 0;
-      if (!a) return 1;
-      if (!b) return -1;
-      return a < b ? -1 : a > b ? 1 : 0;
-    },
+    cell: ({ row }) => formatDate(row.getValue<string>('dateUpdated')),
   },
   {
     accessorKey: 'employmentType',
