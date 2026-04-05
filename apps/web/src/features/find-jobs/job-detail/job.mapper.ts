@@ -20,8 +20,8 @@ import {
  */
 export function mapJobPostingToDetailContent(
   job: JobPosting,
-  appliedCount: number = 0,
-  capacity: number = 0
+  appliedCount = 0,
+  capacity = 1 // Default to 1 to avoid division by zero in progress calculation
 ): JobDetailContentProps {
   const descriptionContent = parseDescription(job.description);
   const applicationProgress = calculateApplicationProgress(
