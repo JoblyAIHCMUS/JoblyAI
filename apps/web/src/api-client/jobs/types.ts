@@ -71,6 +71,7 @@ export interface UpdateJobPayload {
   categoryId?: number;
   companyId?: number;
   requirements?: JobRequirementInput[];
+  status?: 'DRAFT' | 'OPEN' | 'CLOSED';
 }
 
 // Analytics types

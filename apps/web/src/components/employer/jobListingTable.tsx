@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import {
@@ -29,6 +29,8 @@ import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
 import { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
+import { usePublishJob } from '@/api-hook/jobs/usePublishJob';
+import { useCloseJob } from '@/api-hook/jobs/useCloseJob';
 import { JobPosting, EmploymentType } from '@/api-client/jobs/types';
 import { deleteJobPosting } from '@/api-client/jobs/employer';
 import { getEmployerProfile } from '@/api-client/employer';
@@ -263,7 +265,7 @@ export const columns: ColumnDef<JobListing>[] = [
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Pencil className="mr-2 h-4 w-4" />
-              Edit Listing
+              Edit Job Posting
             </DropdownMenuItem>
             {job.status === 'Draft' && (
               <DropdownMenuItem
@@ -275,7 +277,7 @@ export const columns: ColumnDef<JobListing>[] = [
                 }}
               >
                 <Send className="mr-2 h-4 w-4" />
-                Publish Job Listing
+                Publish Job Posting
               </DropdownMenuItem>
             )}
             {job.status === 'Live' && (
@@ -288,7 +290,7 @@ export const columns: ColumnDef<JobListing>[] = [
                 }}
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                Close Job Listing
+                Close Job Posting
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -345,6 +347,9 @@ export default function JobListingTable({
     totalPages: companyTotalPages,
     total: companyTotal,
   } = useEmployerCompanyJobs({ initialPageSize: pageSize });
+
+  const { publishJob: publishJobAPI } = usePublishJob();
+  const { closeJob: closeJobAPI } = useCloseJob();
 
   // Determine which hook to use based on company registration
   const useCompany = employerProfile?.company?.id;
@@ -413,51 +418,92 @@ export default function JobListingTable({
     }
   }, [data]);
 
-  const publishJob = async (id: string) => {
-    try {
-      // Refresh the page after publishing
-      if (useCompany && employerProfile?.company?.id) {
-        await fetchCompanyJobs(employerProfile.company.id, currentPage);
-      } else {
-        await fetchEmployerJobs(userId, currentPage);
+  const publishJob = useCallback(
+    async (id: string) => {
+      try {
+        const jobId = parseInt(id, 10);
+        // Call the API to publish the job
+        await publishJobAPI(jobId);
+        // Refresh the page after publishing
+        if (useCompany && employerProfile?.company?.id) {
+          await fetchCompanyJobs(employerProfile.company.id, currentPage);
+        } else {
+          await fetchEmployerJobs(userId, currentPage);
+        }
+      } catch (err) {
+        console.error('Failed to publish job:', err);
       }
-    } catch (err) {
-      console.error('Failed to publish job:', err);
-    }
-  };
+    },
+    [
+      useCompany,
+      employerProfile?.company?.id,
+      currentPage,
+      userId,
+      publishJobAPI,
+      fetchCompanyJobs,
+      fetchEmployerJobs,
+    ]
+  );
 
-  const closeJob = async (id: string) => {
-    try {
-      // Refresh the page after closing
-      if (useCompany && employerProfile?.company?.id) {
-        await fetchCompanyJobs(employerProfile.company.id, currentPage);
-      } else {
-        await fetchEmployerJobs(userId, currentPage);
+  const closeJob = useCallback(
+    async (id: string) => {
+      try {
+        const jobId = parseInt(id, 10);
+        // Call the API to close the job
+        await closeJobAPI(jobId);
+        // Refresh the page after closing
+        if (useCompany && employerProfile?.company?.id) {
+          await fetchCompanyJobs(employerProfile.company.id, currentPage);
+        } else {
+          await fetchEmployerJobs(userId, currentPage);
+        }
+      } catch (err) {
+        console.error('Failed to close job:', err);
       }
-    } catch (err) {
-      console.error('Failed to close job:', err);
-    }
-  };
+    },
+    [
+      useCompany,
+      employerProfile?.company?.id,
+      currentPage,
+      userId,
+      closeJobAPI,
+      fetchCompanyJobs,
+      fetchEmployerJobs,
+    ]
+  );
 
-  const deleteJob = async (id: string) => {
-    try {
-      await deleteJobPosting(parseInt(id, 10));
-      // Refresh the page after deletion
-      if (useCompany && employerProfile?.company?.id) {
-        await fetchCompanyJobs(employerProfile.company.id, currentPage);
-      } else {
-        await fetchEmployerJobs(userId, currentPage);
+  const deleteJob = useCallback(
+    async (id: string) => {
+      try {
+        await deleteJobPosting(parseInt(id, 10));
+        // Refresh the page after deletion
+        if (useCompany && employerProfile?.company?.id) {
+          await fetchCompanyJobs(employerProfile.company.id, currentPage);
+        } else {
+          await fetchEmployerJobs(userId, currentPage);
+        }
+      } catch (err) {
+        console.error('Failed to delete job:', err);
       }
-    } catch (err) {
-      console.error('Failed to delete job:', err);
-    }
-  };
+    },
+    [
+      useCompany,
+      employerProfile?.company?.id,
+      currentPage,
+      userId,
+      fetchCompanyJobs,
+      fetchEmployerJobs,
+    ]
+  );
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+      }
+    },
+    [totalPages]
+  );
 
   if (profileLoading) {
     return (
