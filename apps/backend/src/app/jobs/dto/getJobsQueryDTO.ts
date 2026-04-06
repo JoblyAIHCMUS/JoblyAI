@@ -28,7 +28,7 @@ export class GetJobsQueryDTO {
 
   @IsOptional()
   @IsString()
-  sort?: string;
+  sort?: string = 'MOST_RELEVANT';
 
   @IsOptional()
   @IsString()
@@ -88,4 +88,27 @@ export class GetJobsQueryDTO {
   @IsArray()
   @IsString({ each: true })
   skills?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    // Handle: categories[]=1&categories[]=2 (already parsed by qs into ['1', '2'])
+    if (Array.isArray(value)) {
+      return value
+        .map((v) => {
+          const num = parseInt(v, 10);
+          return isNaN(num) ? null : num;
+        })
+        .filter((v) => v !== null);
+    }
+    // Handle: categories=1 (single value)
+    if (typeof value === 'string') {
+      const num = parseInt(value.trim(), 10);
+      return isNaN(num) ? undefined : [num];
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsInt({ each: true })
+  categories?: number[];
 }

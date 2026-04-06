@@ -420,12 +420,12 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange.from
+        startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
         endDate: isCurrentlyWorking
           ? ''
-          : formData.dateRange.to
+          : formData.dateRange?.to
           ? formData.dateRange.to.toISOString()
           : '',
         description: formData.description,
@@ -451,12 +451,12 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange.from
+        startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
         endDate: isCurrentlyWorking
           ? ''
-          : formData.dateRange.to
+          : formData.dateRange?.to
           ? formData.dateRange.to.toISOString()
           : '',
         description: formData.description,

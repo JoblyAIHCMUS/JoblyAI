@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { KeyboardEvent } from 'react';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface FindJobsHeroSectionProps {
   searchTerm?: string;
@@ -19,8 +19,17 @@ export default function FindJobsHeroSection({
   setSearchTerm,
   setLocation,
 }: FindJobsHeroSectionProps) {
-  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
-  const [localLocation, setLocalLocation] = useState(location);
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || '');
+  const [localLocation, setLocalLocation] = useState(location || '');
+
+  // Sync local state when props change
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm || '');
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setLocalLocation(location || '');
+  }, [location]);
 
   const handleSearch = () => {
     setSearchTerm?.(localSearchTerm || '');

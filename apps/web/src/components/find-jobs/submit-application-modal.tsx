@@ -62,6 +62,9 @@ export const SubmitApplicationModal = ({
   const [applicationSubmitError, setApplicationSubmitError] = useState<
     string | null
   >(null);
+  const [applicationSubmitSuccess, setApplicationSubmitSuccess] = useState<
+    string | null
+  >(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [localResume, setLocalResume] = useState<
     { id?: number; filename: string; url: string } | ''
@@ -101,14 +104,19 @@ export const SubmitApplicationModal = ({
   const { submitApplication, loading: applicationLoading } =
     useCreateApplication({
       onSuccess: (data) => {
-        onSuccess?.(
-          `Application submitted successfully for job ID ${data.jobId}`
-        );
+        const successMsg = `Application submitted successfully for job ID ${data.jobId}`;
+        setApplicationSubmitSuccess(successMsg);
+        onSuccess?.(successMsg);
         reset();
         setUploadedFile(null);
         setApplicationSubmitError(null);
         setLocalResume('');
-        onClose();
+        // Close modal after 2 seconds to let user see the success message
+        setTimeout(() => {
+          onClose();
+          // Reset success message when modal closes
+          setApplicationSubmitSuccess(null);
+        }, 2000);
       },
       onError: (error) => {
         const errorMessage =
@@ -131,6 +139,7 @@ export const SubmitApplicationModal = ({
       reset();
       setUploadedFile(null);
       setApplicationSubmitError(null);
+      setApplicationSubmitSuccess(null);
       setUploadProgress(0);
       // Set localResume from job.currentResume (don't mutate props)
       setLocalResume(job.currentResume || '');
@@ -415,6 +424,15 @@ export const SubmitApplicationModal = ({
             </p>
           </div>
 
+          {applicationSubmitSuccess && (
+            <div className="rounded-lg border border-green-300 bg-green-50 p-3">
+              <p className="text-xs font-semibold text-green-800">✓ Success</p>
+              <p className="mt-1 text-xs text-green-700">
+                {applicationSubmitSuccess}
+              </p>
+            </div>
+          )}
+
           {applicationSubmitError && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3">
               <p className="text-xs font-semibold text-red-800">❌ Error</p>
@@ -427,10 +445,19 @@ export const SubmitApplicationModal = ({
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isValid || !localResume || isSubmitting}
+            disabled={
+              !isValid ||
+              !localResume ||
+              isSubmitting ||
+              !!applicationSubmitSuccess
+            }
             className="w-full rounded-md bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Submitting Application...' : 'Submit Application'}
+            {applicationSubmitSuccess
+              ? 'Application Submitted! ✓'
+              : isSubmitting
+              ? 'Submitting Application...'
+              : 'Submit Application'}
           </button>
 
           {/* Terms and Privacy */}

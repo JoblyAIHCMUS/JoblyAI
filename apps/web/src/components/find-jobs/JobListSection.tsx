@@ -8,7 +8,7 @@ import SalaryFilter from '@/components/find-jobs/SalaryFilter';
 import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
 import { SORT_OPTIONS } from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
-import { useState, Ref } from 'react';
+import { useState, Ref, useRef, useEffect } from 'react';
 
 interface JobListSectionProps {
   jobs: JobPosting[];
@@ -24,6 +24,23 @@ interface JobListSectionProps {
   onSalaryChange: (min: number, max: number) => void;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
+}
+
+function getSORT_LABEL(option: SortOption): string {
+  switch (option) {
+    case 'MOST_RELEVANT':
+      return 'Most relevant';
+    case 'NEWEST':
+      return 'Newest';
+    case 'OLDEST':
+      return 'Oldest';
+    case 'SALARY_ASC':
+      return 'Lowest salary';
+    case 'SALARY_DESC':
+      return 'Highest salary';
+    default:
+      return option;
+  }
 }
 
 export default function JobListSection({
@@ -50,6 +67,25 @@ export default function JobListSection({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sortDropdownRef.current &&
+        !sortDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsSortOpen(false);
+      }
+    };
+
+    if (!isSortOpen) return;
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSortOpen]);
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(
     () => {
       const map: Record<string, boolean> = {};
@@ -104,7 +140,10 @@ export default function JobListSection({
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative flex items-center gap-3">
+              <div
+                className="relative flex items-center gap-3"
+                ref={sortDropdownRef}
+              >
                 <span className="text-sm font-medium leading-5 text-slate-500">
                   Sort by:
                 </span>
@@ -113,7 +152,7 @@ export default function JobListSection({
                   onClick={() => setIsSortOpen((prev) => !prev)}
                   className="flex items-center gap-2 text-sm font-medium leading-5 text-slate-900"
                 >
-                  {selectedSort}
+                  {getSORT_LABEL(selectedSort)}
                   <ChevronDown
                     className={`h-4 w-4 transition-transform ${
                       isSortOpen ? 'rotate-180' : 'rotate-0'
@@ -135,6 +174,7 @@ export default function JobListSection({
                         key={option}
                         type="button"
                         onClick={() => {
+                          setIsSortOpen(false);
                           handleSelectSort(option);
                         }}
                         className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
@@ -143,7 +183,7 @@ export default function JobListSection({
                             : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        <span>{option}</span>
+                        <span>{getSORT_LABEL(option)}</span>
                         {isActive ? <Check className="h-4 w-4" /> : null}
                       </button>
                     );

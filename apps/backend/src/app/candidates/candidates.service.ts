@@ -118,16 +118,25 @@ export class CandidatesService {
         credentialId: cert.credentialId ?? undefined,
         url: cert.url ?? undefined,
       })),
-      resumes: user.resumes.map((resume) => ({
-        id: resume.id,
-        isDefault: resume.isDefault,
-        fileName: resume.fileName ?? '',
-        fileKey: resume.fileKey ?? '',
-        fileType: resume.fileType ?? 'pdf',
-        fileSize: resume.fileSize ?? undefined,
-        createdAt: resume.createdAt.toISOString(),
-        updatedAt: resume.updatedAt.toISOString(),
-      })),
+      resumes: await Promise.all(
+        user.resumes.map(async (resume) => ({
+          id: resume.id,
+          isDefault: resume.isDefault,
+          fileName: resume.fileName ?? '',
+          fileKey: resume.fileKey ?? '',
+          fileType: resume.fileType ?? 'pdf',
+          fileSize: resume.fileSize ?? undefined,
+          fileUrl: resume.fileKey
+            ? (
+                await this.s3Service.generatePresignedDownloadUrl(
+                  resume.fileKey
+                )
+              ).downloadUrl
+            : '',
+          createdAt: resume.createdAt.toISOString(),
+          updatedAt: resume.updatedAt.toISOString(),
+        }))
+      ),
       about: user.candidateDescription
         ? {
             id: user.candidateDescription.id,
