@@ -80,12 +80,11 @@ export default function JobListSection({
       }
     };
 
-    if (!isSortOpen)
-      return;
+    if (!isSortOpen) return;
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-    }
+    };
   }, [isSortOpen]);
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(
     () => {
@@ -141,7 +140,10 @@ export default function JobListSection({
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative flex items-center gap-3" ref={sortDropdownRef}>
+              <div
+                className="relative flex items-center gap-3"
+                ref={sortDropdownRef}
+              >
                 <span className="text-sm font-medium leading-5 text-slate-500">
                   Sort by:
                 </span>

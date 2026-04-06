@@ -3,7 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EmploymentType, Prisma, PrismaClient, SortOption } from '@prisma/client';
+import {
+  EmploymentType,
+  Prisma,
+  PrismaClient,
+  SortOption,
+} from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
   PaginatedJobsResponse,
@@ -591,21 +596,23 @@ export class JobsService {
     };
   }
 
-
-  private buildOrderBy(sort?: SortOption, q?: string): Prisma.JobPostingOrderByWithRelationInput {
+  private buildOrderBy(
+    sort?: SortOption,
+    q?: string
+  ): Prisma.JobPostingOrderByWithRelationInput {
     switch (sort) {
       case 'MOST_RELEVANT':
-          if (q) {
-            // Use type assertion for _relevance which is only available with fullTextSearchPostgres preview feature
-            return {
-              _relevance: {
-                fields: ['title', 'description'],
-                search: q,
-                sort: 'desc',
-              },
-            } as Prisma.JobPostingOrderByWithRelationInput;
-          }
-          return { createdAt: 'desc' };
+        if (q) {
+          // Use type assertion for _relevance which is only available with fullTextSearchPostgres preview feature
+          return {
+            _relevance: {
+              fields: ['title', 'description'],
+              search: q,
+              sort: 'desc',
+            },
+          } as Prisma.JobPostingOrderByWithRelationInput;
+        }
+        return { createdAt: 'desc' };
       case 'NEWEST':
         return { createdAt: 'desc' };
       case 'OLDEST':

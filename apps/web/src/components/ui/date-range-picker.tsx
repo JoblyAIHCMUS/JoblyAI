@@ -48,12 +48,12 @@ export function DateRangePicker({
       });
       // Show toast message
       setToast(`End date is set to today (${format(today, 'MMM yyyy')})`);
-      
+
       // Clear any existing timer
       if (toastTimerRef.current) {
         clearTimeout(toastTimerRef.current);
       }
-      
+
       // Auto-hide toast after 2 seconds
       toastTimerRef.current = setTimeout(() => {
         setToast(null);
@@ -193,7 +193,8 @@ export function DateRangePicker({
                         isCurrentlyWorking && value?.from
                           ? 'text-gray-900'
                           : 'text-gray-600',
-                        (!value?.from || disabled) && 'opacity-50 cursor-not-allowed'
+                        (!value?.from || disabled) &&
+                          'opacity-50 cursor-not-allowed'
                       )}
                     >
                       {checkboxLabel}

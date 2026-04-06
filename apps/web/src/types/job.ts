@@ -34,7 +34,7 @@ export type SortOption =
   | 'OLDEST'
   | 'SALARY_ASC'
   | 'SALARY_DESC';
-  
+
 export interface JobCategory {
   id: number;
   name: string;

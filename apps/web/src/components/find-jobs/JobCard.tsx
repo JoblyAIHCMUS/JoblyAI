@@ -37,7 +37,9 @@ function formatSalaryRange(
     return `${formatter.format(salaryMin)} - ${formatter.format(salaryMax)}`;
   }
 
-  return salaryMin ? `From ${formatter.format(salaryMin)}` : `Up to ${formatter.format(salaryMax!)}`;
+  return salaryMin
+    ? `From ${formatter.format(salaryMin)}`
+    : `Up to ${formatter.format(salaryMax!)}`;
 }
 
 type JobCardProps = {
@@ -172,9 +174,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             {!canApply ? 'Sign in to Apply' : 'Apply'}
           </button>
           <div className="w-full lg:w-[168px]">
-            <p className="mb-1 text-xs font-semibold text-slate-500">
-              Salary
-            </p>
+            <p className="mb-1 text-xs font-semibold text-slate-500">Salary</p>
             <p className="text-sm font-semibold text-slate-900">
               {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
             </p>

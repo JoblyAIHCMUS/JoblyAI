@@ -40,7 +40,8 @@ export default function FilterGroup({
       >
         <div className="space-y-2.5 overflow-hidden">
           {items.map((item) => {
-            const identifier = item.value !== undefined ? String(item.value) : item.label;
+            const identifier =
+              item.value !== undefined ? String(item.value) : item.label;
             const isChecked = checked.includes(identifier);
             return (
               <button

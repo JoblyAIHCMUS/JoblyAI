@@ -6,13 +6,12 @@ import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 import { usePageTitle } from '@/contexts/page-title-context';
-import type {
-  EmploymentType, 
-  JobPosting,
-  SortOption,
-} from '@/types/job';
-import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS as INITIAL_FILTER_GROUPS } from './constants';
-
+import type { EmploymentType, JobPosting, SortOption } from '@/types/job';
+import {
+  SALARY_MAX_CAP,
+  PAGE_SIZE,
+  FILTER_GROUPS as INITIAL_FILTER_GROUPS,
+} from './constants';
 
 function getEmploymentTypeFromLabel(
   label?: string
@@ -32,7 +31,6 @@ function getEmploymentTypeFromLabel(
       return undefined;
   }
 }
-
 
 export default function FindJobsPage() {
   const { setTitle } = usePageTitle();
@@ -101,15 +99,15 @@ export default function FindJobsPage() {
       filterGroups.forEach((group) => {
         // Keep existing checked items or initialize empty
         updated[group.title] = prev[group.title] ?? [];
-        
+
         // For Categories, filter out IDs that no longer exist
         if (group.title === 'Categories') {
           const validIds = categories.map((cat) => cat.id);
-          updated[group.title] = (prev[group.title] ?? []).filter((id: string | number) =>
-            validIds.includes(Number(id))
+          updated[group.title] = (prev[group.title] ?? []).filter(
+            (id: string | number) => validIds.includes(Number(id))
           );
         }
-        
+
         // For Skills, filter out skills that no longer exist
         if (group.title === 'Skills') {
           const validSkillNames = filteredSkills.map((skill) => skill.name);
@@ -122,11 +120,16 @@ export default function FindJobsPage() {
     });
   }, [filterGroups, categories, filteredSkills]);
 
-  const handleToggle = (groupTitle: string, itemLabel: string, itemValue?: string | number) => {
+  const handleToggle = (
+    groupTitle: string,
+    itemLabel: string,
+    itemValue?: string | number
+  ) => {
     setCheckedMap((prev) => {
       const current = prev[groupTitle] ?? [];
       // For categories, use itemValue (ID); for others, use itemLabel
-      const identifier = groupTitle === 'Categories' ? String(itemValue) : itemLabel;
+      const identifier =
+        groupTitle === 'Categories' ? String(itemValue) : itemLabel;
       const next = current.includes(identifier)
         ? current.filter((label) => label !== identifier)
         : [...current, identifier];
@@ -191,7 +194,10 @@ export default function FindJobsPage() {
       .map((label) => getEmploymentTypeFromLabel(label))
       .filter((type): type is EmploymentType => type !== undefined);
     const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
-    const selectedCategoryIds = debouncedCheckedMap['Categories']?.map((id) => Number(id)).filter((id: number) => !!id) ?? [];
+    const selectedCategoryIds =
+      debouncedCheckedMap['Categories']
+        ?.map((id) => Number(id))
+        .filter((id: number) => !!id) ?? [];
     return {
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -202,11 +208,11 @@ export default function FindJobsPage() {
         selectedEmploymentTypes.length > 0
           ? selectedEmploymentTypes
           : undefined,
-      categories: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+      categories:
+        selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
       salaryMax: salaryMaxFilter,
       skills: selectedSkills.length > 0 ? selectedSkills : undefined,
-
     };
   }, [
     currentPage,
