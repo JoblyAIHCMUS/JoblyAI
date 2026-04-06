@@ -678,7 +678,7 @@ export class ApplicationsService {
         id: application.job.id,
         title: application.job.title,
         description: application.job.description,
-        companyName: application.job.companyName,
+        companyName: application.job.company.name,
         location: application.job.location,
         salaryMin: application.job.salaryMin
           ? Number(application.job.salaryMin)
