@@ -386,12 +386,12 @@ export default function Educations({
       await handleUpdateEducation({
         ...editItem,
         ...formData,
-        startDate: formData.dateRange.from
+        startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
         endDate: isCurrentlyStudying
           ? ''
-          : formData.dateRange.to
+          : formData.dateRange?.to
           ? formData.dateRange.to.toISOString()
           : '',
       });
@@ -412,12 +412,12 @@ export default function Educations({
       await handleAddEducation({
         ...editItem,
         ...formData,
-        startDate: formData.dateRange.from
+        startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
         endDate: isCurrentlyStudying
           ? ''
-          : formData.dateRange.to
+          : formData.dateRange?.to
           ? formData.dateRange.to.toISOString()
           : '',
       });

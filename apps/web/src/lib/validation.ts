@@ -87,11 +87,19 @@ export const EducationSchema = z.object({
       from: z.date().optional(),
       to: z.date().optional(),
     })
+    .optional()
     .refine(
-      (data) => data.from !== undefined && (!data.to || data.from <= data.to),
+      (data) => data?.from,
       {
-        message: 'Start date must be before end date',
-        path: ['dateRange'],
+        message: 'You must select a start date',
+        path: ['from'],
+      }
+    )
+    .refine(
+      (data) => !data?.to || (data.from && data.from <= data.to),
+      {
+        message: 'End date must be after start date',
+        path: ['to'],
       }
     ),
   grade: z
@@ -134,11 +142,19 @@ export const ExperienceSchema = z.object({
       from: z.date().optional(),
       to: z.date().optional(),
     })
+    .optional()
     .refine(
-      (data) => data.from !== undefined && (!data.to || data.from <= data.to),
+      (data) => data?.from,
       {
-        message: 'Start date is required and end date must be after start date',
-        path: ['dateRange', 'from'],
+        message: 'You must select a start date',
+        path: ['from'],
+      }
+    )
+    .refine(
+      (data) => !data?.to || (data.from && data.from <= data.to),
+      {
+        message: 'End date must be after start date',
+        path: ['to'],
       }
     ),
   description: z

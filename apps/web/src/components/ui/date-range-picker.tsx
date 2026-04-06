@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useId, useState, useEffect, useRef } from 'react';
 import { MonthPicker } from '@/components/ui/month-picker';
 import {
   Popover,
@@ -35,6 +35,41 @@ export function DateRangePicker({
   checkboxLabel = 'I am currently working here',
 }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-set end date when popup closes if only from date is set
+  useEffect(() => {
+    if (!open && value?.from && !value?.to && !isCurrentlyWorking) {
+      const today = new Date();
+      onChange({
+        from: value.from,
+        to: today,
+      });
+      // Show toast message
+      setToast(`End date is set to today (${format(today, 'MMM yyyy')})`);
+      
+      // Clear any existing timer
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+      
+      // Auto-hide toast after 2 seconds
+      toastTimerRef.current = setTimeout(() => {
+        setToast(null);
+        toastTimerRef.current = null;
+      }, 2000);
+    }
+  }, [open]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // Format as month/year (perfect for CV)
   const fromText = value?.from ? format(value.from, 'MMM yyyy') : null;
@@ -139,30 +174,44 @@ export function DateRangePicker({
 
             {/* Currently Working Checkbox */}
             <div className="pt-4 border-t border-gray-200 flex items-center gap-2.5 px-1">
-              <input
-                type="checkbox"
-                id={useId()}
-                checked={isCurrentlyWorking}
-                onChange={handleCurrentlyWorkingChange}
-                disabled={!value?.from || disabled}
-                className="w-4 h-4 rounded cursor-pointer accent-blue-600"
-              />
-              <label
-                htmlFor={useId()}
-                className={cn(
-                  'text-sm font-medium cursor-pointer select-none',
-                  isCurrentlyWorking && value?.from
-                    ? 'text-gray-900'
-                    : 'text-gray-600',
-                  (!value?.from || disabled) && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                {checkboxLabel}
-              </label>
+              {(() => {
+                const checkboxId = useId();
+                return (
+                  <>
+                    <input
+                      type="checkbox"
+                      id={checkboxId}
+                      checked={isCurrentlyWorking}
+                      onChange={handleCurrentlyWorkingChange}
+                      disabled={!value?.from || disabled}
+                      className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                    />
+                    <label
+                      htmlFor={checkboxId}
+                      className={cn(
+                        'text-sm font-medium cursor-pointer select-none',
+                        isCurrentlyWorking && value?.from
+                          ? 'text-gray-900'
+                          : 'text-gray-600',
+                        (!value?.from || disabled) && 'opacity-50 cursor-not-allowed'
+                      )}
+                    >
+                      {checkboxLabel}
+                    </label>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* Success toast message */}
+      {toast && (
+        <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1.5 rounded animate-in fade-in slide-in-from-top-2 duration-200">
+          ✓ {toast}
+        </span>
+      )}
 
       {/* Error message */}
       {error && (
