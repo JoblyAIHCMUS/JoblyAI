@@ -62,4 +62,16 @@ export class EmployersApplicationsController {
     const employerId = request.user.id;
     return this.applicationsService.moveToOfferApplication(employerId, id);
   }
+
+  @Get('stats/job/:jobId')
+  async getApplicationCountsByJob(
+    @Param('jobId', ParseIntPipe) jobId: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const employerId = request.user.id;
+    return this.applicationsService.getApplicationCountsByJob(
+      employerId,
+      jobId
+    );
+  }
 }
