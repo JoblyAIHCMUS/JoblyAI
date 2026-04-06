@@ -606,6 +606,60 @@ export class ApplicationsService {
     return this.mapToApplicationResponse(updatedApplication);
   }
 
+  async getApplicationCountsByJob(
+    employerId: string,
+    jobId: number
+  ): Promise<{
+    total: number;
+    applied: number;
+    interview: number;
+    offer: number;
+    rejected: number;
+  }> {
+    // Verify that the job belongs to the employer
+    const job = await this.prisma.jobPosting.findUnique({
+      where: { id: jobId },
+      select: { postedById: true },
+    });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.postedById !== employerId) {
+      throw new ForbiddenException(
+        'You can only view application stats for your own jobs'
+      );
+    }
+
+    // Count applications by status
+    const where = { jobId };
+
+    const [total, applied, interview, offer, rejected] = await Promise.all([
+      this.prisma.application.count({ where }),
+      this.prisma.application.count({
+        where: { ...where, status: ApplicationStatus.APPLIED },
+      }),
+      this.prisma.application.count({
+        where: { ...where, status: ApplicationStatus.INTERVIEW },
+      }),
+      this.prisma.application.count({
+        where: { ...where, status: ApplicationStatus.OFFER },
+      }),
+      this.prisma.application.count({
+        where: { ...where, status: ApplicationStatus.REJECTED },
+      }),
+    ]);
+
+    return {
+      total,
+      applied,
+      interview,
+      offer,
+      rejected,
+    };
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToApplicationResponse(application: any): Application {
     return {
@@ -624,7 +678,7 @@ export class ApplicationsService {
         id: application.job.id,
         title: application.job.title,
         description: application.job.description,
-        companyName: application.job.companyName,
+        companyName: application.job.company.name,
         location: application.job.location,
         salaryMin: application.job.salaryMin
           ? Number(application.job.salaryMin)

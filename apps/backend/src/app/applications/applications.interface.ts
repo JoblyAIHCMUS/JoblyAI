@@ -1,15 +1,5 @@
 import { ApplicationStatus } from '@prisma/client';
 
-export interface CompanyInfo {
-  id: number;
-  name: string;
-  websiteUrl: string | null;
-  sizeRange: string | null;
-  industry: string | null;
-  description: string | null;
-  logoUrl: string | null;
-}
-
 export interface Application {
   id: number;
   jobId: number;
@@ -24,7 +14,7 @@ export interface Application {
     id: number;
     title: string;
     description: string;
-    company: CompanyInfo;
+    companyName: string | null;
     location: string | null;
     salaryMin: number | null;
     salaryMax: number | null;

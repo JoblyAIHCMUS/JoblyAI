@@ -5,22 +5,11 @@ export type ApplicationStatus =
   | 'REJECTED'
   | 'WITHDRAWN';
 
-export interface CompanyInfo {
-  id: number;
-  name: string;
-  websiteUrl: string | null;
-  sizeRange: string | null;
-  industry: string | null;
-  description: string | null;
-  logoUrl: string | null;
-}
-
 export interface ApplicationJob {
   id: number;
   title: string;
   description: string;
-  name: string | null;
-  company: CompanyInfo;
+  companyName: string | null;
   location: string | null;
   salaryMin: number | null;
   salaryMax: number | null;
