@@ -43,6 +43,7 @@ export class JobsService {
       salaryMin,
       salaryMax,
       skills,
+      categories,
     } = query;
 
     const whereClause: Prisma.JobPostingWhereInput = {};
@@ -62,6 +63,11 @@ export class JobsService {
 
     if (type && type.length > 0) {
       whereClause.type = { in: type as EmploymentType[] };
+    }
+
+    // Filtering by categories
+    if (categories && categories.length > 0) {
+      whereClause.categoryId = { in: categories };
     }
 
     // Filtering by skills through the requirements join table

@@ -36,6 +36,7 @@ export interface ListJobsQuery {
   salaryMin?: number;
   salaryMax?: number;
   skills?: string[];
+  categories?: number[];
 }
 
 // Payload types for create/update operations

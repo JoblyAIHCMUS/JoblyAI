@@ -13,6 +13,7 @@ import type {
 } from '@/types/job';
 import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS as INITIAL_FILTER_GROUPS } from './constants';
 
+
 function getEmploymentTypeFromLabel(
   label?: string
 ): EmploymentType | undefined {
@@ -71,7 +72,7 @@ export default function FindJobsPage() {
       if (group.title === 'Categories') {
         return {
           ...group,
-          items: categories.map((cat) => ({ label: cat.slug })),
+          items: categories.map((cat) => ({ label: cat.name, value: cat.id })),
         };
       }
       if (group.title === 'Skills') {
@@ -101,11 +102,11 @@ export default function FindJobsPage() {
         // Keep existing checked items or initialize empty
         updated[group.title] = prev[group.title] ?? [];
         
-        // For Categories, filter out slugs that no longer exist
+        // For Categories, filter out IDs that no longer exist
         if (group.title === 'Categories') {
-          const validSlugs = categories.map((cat) => cat.slug);
-          updated[group.title] = (prev[group.title] ?? []).filter((slug) =>
-            validSlugs.includes(slug)
+          const validIds = categories.map((cat) => cat.id);
+          updated[group.title] = (prev[group.title] ?? []).filter((id: string | number) =>
+            validIds.includes(Number(id))
           );
         }
         
@@ -121,12 +122,14 @@ export default function FindJobsPage() {
     });
   }, [filterGroups, categories, filteredSkills]);
 
-  const handleToggle = (groupTitle: string, itemLabel: string) => {
+  const handleToggle = (groupTitle: string, itemLabel: string, itemValue?: string | number) => {
     setCheckedMap((prev) => {
       const current = prev[groupTitle] ?? [];
-      const next = current.includes(itemLabel)
-        ? current.filter((label) => label !== itemLabel)
-        : [...current, itemLabel];
+      // For categories, use itemValue (ID); for others, use itemLabel
+      const identifier = groupTitle === 'Categories' ? String(itemValue) : itemLabel;
+      const next = current.includes(identifier)
+        ? current.filter((label) => label !== identifier)
+        : [...current, identifier];
       return {
         ...prev,
         [groupTitle]: next,
@@ -188,6 +191,7 @@ export default function FindJobsPage() {
       .map((label) => getEmploymentTypeFromLabel(label))
       .filter((type): type is EmploymentType => type !== undefined);
     const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
+    const selectedCategoryIds = debouncedCheckedMap['Categories']?.map((id) => Number(id)).filter((id: number) => !!id) ?? [];
     return {
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -198,9 +202,11 @@ export default function FindJobsPage() {
         selectedEmploymentTypes.length > 0
           ? selectedEmploymentTypes
           : undefined,
+      categories: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
       salaryMax: salaryMaxFilter,
       skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+
     };
   }, [
     currentPage,

@@ -2,6 +2,7 @@ export type ViewMode = 'grid' | 'list';
 
 export interface FilterItem {
   label: string;
+  value?: string | number;
 }
 
 export interface FilterGroupData {

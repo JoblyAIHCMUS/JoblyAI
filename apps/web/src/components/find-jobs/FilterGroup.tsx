@@ -6,7 +6,7 @@ type FilterGroupProps = {
   items: FilterItem[];
   checked: string[];
   expanded: boolean;
-  onToggle: (title: string, label: string) => void;
+  onToggle: (title: string, label: string, value?: string | number) => void;
   onToggleExpand: (title: string) => void;
 };
 
@@ -40,12 +40,13 @@ export default function FilterGroup({
       >
         <div className="space-y-2.5 overflow-hidden">
           {items.map((item) => {
-            const isChecked = checked.includes(item.label);
+            const identifier = item.value !== undefined ? String(item.value) : item.label;
+            const isChecked = checked.includes(identifier);
             return (
               <button
-                key={item.label}
+                key={identifier}
                 type="button"
-                onClick={() => onToggle(title, item.label)}
+                onClick={() => onToggle(title, item.label, item.value)}
                 className="flex cursor-pointer items-center gap-3 rounded-[5px] px-2 hover:bg-slate-100 hover:py-1 w-full 
                     transition-all duration-200 ease-in-out 
                     hover:translate-x-1"
