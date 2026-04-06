@@ -1,11 +1,11 @@
 import type { FilterGroupData, SortOption } from '@/types/job';
 
 export const SORT_OPTIONS: SortOption[] = [
-  'Most relevant',
-  'Newest',
-  'Oldest',
-  'Highest salary',
-  'Lowest salary',
+  'MOST_RELEVANT',
+  'NEWEST',
+  'OLDEST',
+  'SALARY_ASC',
+  'SALARY_DESC',
 ];
 
 export const FILTER_GROUPS: FilterGroupData[] = [

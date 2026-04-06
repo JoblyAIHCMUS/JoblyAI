@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   ListJobsQuery,
   PaginatedJobsResponse,
@@ -19,22 +19,25 @@ export function useListJobs(options?: UseListJobsOptions) {
   const [error, setError] = useState<unknown | null>(null);
   const [data, setData] = useState<PaginatedJobsResponse | null>(null);
 
-  const fetchJobs = async (query?: ListJobsQuery) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await listJobs(query);
-      setData(result);
-      options?.onSuccess?.(result);
-      return result;
-    } catch (err: unknown) {
-      setError(err);
-      options?.onError?.(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchJobs = useCallback(
+    async (query?: ListJobsQuery) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await listJobs(query);
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [options]
+  );
 
   return { fetchJobs, loading, error, data };
 }

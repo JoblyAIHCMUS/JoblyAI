@@ -9,7 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EmploymentType } from '@prisma/client';
+import { EmploymentType, SortOption } from '@prisma/client';
 import { Transform } from 'class-transformer';
 
 export class GetJobsQueryDTO {
@@ -28,7 +28,7 @@ export class GetJobsQueryDTO {
 
   @IsOptional()
   @IsString()
-  sort?: string;
+  sort?: SortOption = 'MOST_RELEVANT';
 
   @IsOptional()
   @IsString()

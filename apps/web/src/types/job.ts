@@ -28,12 +28,12 @@ export type JobStatus = 'OPEN' | 'CLOSED' | 'DRAFT';
 export type RequirementImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
 
 export type SortOption =
-  | 'Most relevant'
-  | 'Newest'
-  | 'Oldest'
-  | 'Highest salary'
-  | 'Lowest salary';
-
+  | 'MOST_RELEVANT'
+  | 'NEWEST'
+  | 'OLDEST'
+  | 'SALARY_ASC'
+  | 'SALARY_DESC';
+  
 export interface JobCategory {
   id: number;
   name: string;

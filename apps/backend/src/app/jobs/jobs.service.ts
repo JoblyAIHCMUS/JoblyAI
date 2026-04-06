@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
+import { EmploymentType, Prisma, PrismaClient, SortOption } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
   PaginatedJobsResponse,
@@ -36,6 +36,7 @@ export class JobsService {
       page = 1,
       pageSize = 10,
       q,
+      sort,
       location,
       remote,
       type,
@@ -106,6 +107,8 @@ export class JobsService {
       }
     }
 
+    const orderBy = this.buildOrderBy(sort, q);
+
     const [total, jobs] = await this.prisma.$transaction([
       this.prisma.jobPosting.count({ where: whereClause }),
       this.prisma.jobPosting.findMany({
@@ -122,7 +125,7 @@ export class JobsService {
         },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       }),
     ]);
 
@@ -580,5 +583,35 @@ export class JobsService {
       salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
       salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
     };
+  }
+
+
+  private buildOrderBy(sort?: SortOption, q?: string): Prisma.JobPostingOrderByWithRelationInput {
+    switch (sort) {
+      case 'MOST_RELEVANT':
+          if (q) {
+            // Use type assertion for _relevance which is only available with fullTextSearchPostgres preview feature
+            return {
+              _relevance: {
+                fields: ['title', 'description'],
+                search: q,
+                sort: 'desc',
+              },
+            } as Prisma.JobPostingOrderByWithRelationInput;
+          }
+          return { createdAt: 'desc' };
+      case 'NEWEST':
+        return { createdAt: 'desc' };
+      case 'OLDEST':
+        return { createdAt: 'asc' };
+      case 'SALARY_ASC':
+        return { salaryMin: 'asc' };
+
+      case 'SALARY_DESC':
+        return { salaryMax: 'desc' };
+
+      default:
+        return { createdAt: 'desc' };
+    }
   }
 }

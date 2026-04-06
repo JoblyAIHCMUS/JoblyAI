@@ -8,6 +8,7 @@ export { useCloseJob } from '@/api-hook/jobs/useCloseJob';
 export { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
 export { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
 export { useCategories } from '@/api-hook/jobs/useCategories';
+export { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 export {
   useJobViewsAnalytics,
   useJobApplicationsAnalytics,

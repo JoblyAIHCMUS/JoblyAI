@@ -1,16 +1,17 @@
 'use client';
 import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
+import { useCategories } from '@/api-hook/jobs/useCategories';
+import { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 import { usePageTitle } from '@/contexts/page-title-context';
 import type {
-  EmploymentType,
-  FilterGroupData,
+  EmploymentType, 
   JobPosting,
   SortOption,
 } from '@/types/job';
-import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS } from './constants';
+import { SALARY_MAX_CAP, PAGE_SIZE, FILTER_GROUPS as INITIAL_FILTER_GROUPS } from './constants';
 
 function getEmploymentTypeFromLabel(
   label?: string
@@ -31,8 +32,10 @@ function getEmploymentTypeFromLabel(
   }
 }
 
+
 export default function FindJobsPage() {
   const { setTitle } = usePageTitle();
+  const { categories } = useCategories();
 
   useEffect(() => {
     setTitle('Find Jobs');
@@ -46,17 +49,77 @@ export default function FindJobsPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSort, setSelectedSort] = useState<SortOption>('Most relevant');
+  const [selectedSort, setSelectedSort] = useState<SortOption>('MOST_RELEVANT');
   const salaryFilterRef = useRef<{ reset: () => void } | null>(null);
 
-  const [filterGroups] = useState<FilterGroupData[]>(FILTER_GROUPS);
+  // Fetch skills based on search term - independent of pagination
+  const { skills: filteredSkills, fetchSkills } = useSkillsFilter();
+
+  // Fetch skills when search term changes
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      fetchSkills(searchTerm);
+    } else {
+      // Clear skills if search term is empty
+      fetchSkills('');
+    }
+  }, [searchTerm]); // Removed fetchSkills from dependency - causes infinite loop
+
+  // Derive filterGroups from categories and fetched skills using useMemo
+  const filterGroups = useMemo(() => {
+    return INITIAL_FILTER_GROUPS.map((group) => {
+      if (group.title === 'Categories') {
+        return {
+          ...group,
+          items: categories.map((cat) => ({ label: cat.slug })),
+        };
+      }
+      if (group.title === 'Skills') {
+        return {
+          ...group,
+          items: filteredSkills.map((skill) => ({ label: skill.name })),
+        };
+      }
+      return group;
+    });
+  }, [categories, filteredSkills]);
+
+  // Initialize checkedMap based on filterGroups
   const [checkedMap, setCheckedMap] = useState<Record<string, string[]>>(() => {
     const map: Record<string, string[]> = {};
-    FILTER_GROUPS.forEach((group) => {
-      map[group.title] = group.checked || [];
+    filterGroups.forEach((group) => {
+      map[group.title] = [];
     });
     return map;
   });
+
+  // Sync checkedMap when filterGroups changes (ensure all groups are present)
+  useEffect(() => {
+    setCheckedMap((prev) => {
+      const updated: Record<string, string[]> = {};
+      filterGroups.forEach((group) => {
+        // Keep existing checked items or initialize empty
+        updated[group.title] = prev[group.title] ?? [];
+        
+        // For Categories, filter out slugs that no longer exist
+        if (group.title === 'Categories') {
+          const validSlugs = categories.map((cat) => cat.slug);
+          updated[group.title] = (prev[group.title] ?? []).filter((slug) =>
+            validSlugs.includes(slug)
+          );
+        }
+        
+        // For Skills, filter out skills that no longer exist
+        if (group.title === 'Skills') {
+          const validSkillNames = filteredSkills.map((skill) => skill.name);
+          updated[group.title] = (prev[group.title] ?? []).filter((skillName) =>
+            validSkillNames.includes(skillName)
+          );
+        }
+      });
+      return updated;
+    });
+  }, [filterGroups, categories, filteredSkills]);
 
   const handleToggle = (groupTitle: string, itemLabel: string) => {
     setCheckedMap((prev) => {
@@ -79,11 +142,6 @@ export default function FindJobsPage() {
   }, [checkedMap]);
 
   const { fetchJobs } = useListJobs();
-  const fetchJobsRef = useRef(fetchJobs);
-
-  useEffect(() => {
-    fetchJobsRef.current = fetchJobs;
-  }, [fetchJobs]);
 
   const handleSelectSort = (option: SortOption) => {
     setCurrentPage(1);
@@ -106,7 +164,7 @@ export default function FindJobsPage() {
       });
       return newMap;
     });
-    setSelectedSort('Most relevant');
+    setSelectedSort('MOST_RELEVANT');
     setSalaryMinFilter(0);
     setSalaryMaxFilter(SALARY_MAX_CAP);
     setCurrentPage(1);
@@ -124,14 +182,13 @@ export default function FindJobsPage() {
     salaryMaxFilter,
   ]);
 
-  useEffect(() => {
+  const query = useMemo(() => {
     const employmentSelection = debouncedCheckedMap['Type of Employment'] ?? [];
     const selectedEmploymentTypes = employmentSelection
       .map((label) => getEmploymentTypeFromLabel(label))
       .filter((type): type is EmploymentType => type !== undefined);
-    const selectedSkillLabels = [...(debouncedCheckedMap['Categories'] ?? [])];
-
-    const query = {
+    const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
+    return {
       page: currentPage,
       pageSize: PAGE_SIZE,
       sort: selectedSort,
@@ -143,34 +200,42 @@ export default function FindJobsPage() {
           : undefined,
       salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
       salaryMax: salaryMaxFilter,
-      skills: selectedSkillLabels.length > 0 ? selectedSkillLabels : undefined,
+      skills: selectedSkills.length > 0 ? selectedSkills : undefined,
     };
-    console.log('[FindJobsPage] API query:', query);
+  }, [
+    currentPage,
+    debouncedCheckedMap,
+    selectedSort,
+    searchTerm,
+    location,
+    salaryMinFilter,
+    salaryMaxFilter,
+  ]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
-        const result = await fetchJobsRef.current(query);
-        if (result) {
-          console.log('[FindJobsPage] fetched jobs:', result.jobs);
+        const result = await fetchJobs(query);
+        if (result && !abortController.signal.aborted) {
           setJobs(result.jobs);
           setTotal(result.total);
           setTotalPages(result.totalPages);
         }
       } catch (error) {
-        console.error('[FindJobsPage] failed to fetch jobs:', error);
+        if (!abortController.signal.aborted) {
+          console.error('[FindJobsPage] failed to fetch jobs:', error);
+        }
       }
     };
 
     fetchData();
-  }, [
-    currentPage,
-    debouncedCheckedMap,
-    location,
-    searchTerm,
-    selectedSort,
-    salaryMinFilter,
-    salaryMaxFilter,
-  ]);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [query, fetchJobs]);
 
   return (
     <>
