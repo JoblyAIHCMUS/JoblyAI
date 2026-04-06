@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { useRole } from '@/contexts/role-context';
@@ -14,6 +15,29 @@ function formatJobType(type: string): string {
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+function formatSalaryRange(
+  salaryMin: number | null,
+  salaryMax: number | null,
+  currency: string | null
+): string {
+  if (!salaryMin && !salaryMax) {
+    return 'Salary not specified';
+  }
+
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency || 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+  if (salaryMin && salaryMax) {
+    return `${formatter.format(salaryMin)} - ${formatter.format(salaryMax)}`;
+  }
+
+  return salaryMin ? `From ${formatter.format(salaryMin)}` : `Up to ${formatter.format(salaryMax!)}`;
 }
 
 type JobCardProps = {
@@ -65,6 +89,14 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
   const applyButtonClass = canApply
     ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
     : 'bg-slate-300 text-slate-500 cursor-not-allowed';
+
+  const handleApplicationSuccess = (message: string) => {
+    toast.success(message);
+  };
+
+  const handleApplicationError = (error: string) => {
+    toast.error(error);
+  };
 
   return (
     <>
@@ -141,6 +173,14 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
           </button>
           <div className="w-full lg:w-[168px]">
             <p className="mb-1 text-xs font-semibold text-slate-500">
+              Salary
+            </p>
+            <p className="text-sm font-semibold text-slate-900">
+              {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
+            </p>
+          </div>
+          <div className="w-full lg:w-[168px]">
+            <p className="mb-1 text-xs font-semibold text-slate-500">
               5 applied of 10 capacity
             </p>
             <div className="h-2 w-full rounded-full bg-slate-200">
@@ -161,6 +201,8 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
           jobType: job.type,
           logoUrl: job.company.logoUrl || undefined,
         }}
+        onSuccess={handleApplicationSuccess}
+        onError={handleApplicationError}
       />
     </>
   );
