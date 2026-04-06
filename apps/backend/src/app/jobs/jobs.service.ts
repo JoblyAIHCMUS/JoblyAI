@@ -7,7 +7,6 @@ import {
   EmploymentType,
   Prisma,
   PrismaClient,
-  SortOption,
 } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
@@ -597,7 +596,7 @@ export class JobsService {
   }
 
   private buildOrderBy(
-    sort?: SortOption,
+    sort?: string,
     q?: string
   ): Prisma.JobPostingOrderByWithRelationInput {
     switch (sort) {
