@@ -3,11 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  EmploymentType,
-  Prisma,
-  PrismaClient,
-} from '@prisma/client';
+import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
   PaginatedJobsResponse,
