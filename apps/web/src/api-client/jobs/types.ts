@@ -15,7 +15,6 @@ import type {
   EmploymentType,
   RequirementImportance,
   JobPosting,
-  JobRequirement,
 } from '@/types/job';
 
 export interface PaginatedJobsResponse {
