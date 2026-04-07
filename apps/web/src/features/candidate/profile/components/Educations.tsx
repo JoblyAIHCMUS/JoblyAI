@@ -8,7 +8,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CandidateEducation } from '@/types/candidate';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import { EducationSchema, type EducationFormData } from '@/lib/validation';
+import {
+  EducationSchema,
+  DEGREE_OPTIONS,
+  type EducationFormData,
+} from '@/lib/validation';
 
 interface EducationsProps {
   educations: CandidateEducation[];
@@ -46,7 +50,7 @@ function EducationEditForm({
     mode: 'onChange',
     defaultValues: {
       school: editItem.school || '',
-      degree: editItem.degree || '',
+      degree: editItem.degree ?? undefined,
       fieldOfStudy: editItem.fieldOfStudy || '',
       dateRange: {
         from: editItem.startDate ? new Date(editItem.startDate) : undefined,
@@ -58,6 +62,17 @@ function EducationEditForm({
   });
 
   const descriptionValue = watch('description');
+  const DEGREE_LABELS: Record<string, string> = {
+    PHD: 'PhD',
+    BACHELOR: "Bachelor's",
+    MASTER: "Master's",
+    ASSOCIATE: 'Associate',
+    DIPLOMA: 'Diploma',
+    HIGH_SCHOOL: 'High School',
+    OTHER: 'Other',
+  };
+
+  const formatDegree = (d?: string) => (d ? DEGREE_LABELS[d] : '');
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -107,25 +122,27 @@ function EducationEditForm({
             render={({ field }) => (
               <>
                 <select
-                  {...field}
-                  className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value || undefined)}
+                  className={`w-full break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                    !field.value
+                      ? 'text-gray-400' //  color
+                      : 'text-primary' // selected value
+                  } ${
                     errors.degree
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-accent-primary'
                   }`}
                 >
-                  <option value="">Select degree</option>
+                  <option value="" disabled hidden>
+                    Select degree
+                  </option>
                   {DEGREE_OPTIONS.map((d) => (
-                    <option key={d} value={d}>
-                      {d.replace(/_/g, ' ').replace('PHD', 'PhD').replace('BACHELOR', "Bachelor's").replace('MASTER', "Master's").replace('ASSOCIATE', 'Associate').replace('DIPLOMA', 'Diploma').replace('HIGH SCHOOL', 'High School').replace('OTHER', 'Other')}
+                    <option key={d} value={d} className="text-tertiary">
+                      {formatDegree(d)}
                     </option>
                   ))}
                 </select>
-                {errors.degree && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.degree.message}
-                  </p>
-                )}
               </>
             )}
           />
@@ -145,16 +162,29 @@ function EducationEditForm({
                       : 'border-gray-300 focus:ring-accent-primary'
                   }`}
                 />
-                {errors.fieldOfStudy && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.fieldOfStudy.message}
-                  </p>
-                )}
               </>
             )}
           />
         </div>
       </div>
+
+      {/* Error messages for degree and field of study */}
+      {errors.degree || errors.fieldOfStudy ? (
+        <div className="flex items-center gap-2 flex-wrap w-full box-border">
+          <div className="flex-1 min-w-[120px]">
+            {errors.degree && (
+              <p className="text-red-500 text-xs">{errors.degree.message}</p>
+            )}
+          </div>
+          <div className="flex-1 min-w-[120px]">
+            {errors.fieldOfStudy && (
+              <p className="text-red-500 text-xs">
+                {errors.fieldOfStudy.message}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {/* Row 3 - Study Period */}
       <div className="w-full">
@@ -357,7 +387,7 @@ export default function Educations({
     const createEmptyEducation = (): CandidateEducation => ({
       id: Date.now(),
       school: '',
-      degree: '',
+      degree: undefined,
       fieldOfStudy: '',
       startDate: '',
       endDate: '',
@@ -392,6 +422,7 @@ export default function Educations({
       await handleUpdateEducation({
         ...editItem,
         ...formData,
+        degree: formData.degree,
         startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
@@ -418,6 +449,7 @@ export default function Educations({
       await handleAddEducation({
         ...editItem,
         ...formData,
+        degree: formData.degree,
         startDate: formData.dateRange?.from
           ? formData.dateRange.from.toISOString()
           : '',
@@ -546,8 +578,8 @@ export default function Educations({
 
       {deleteIdx !== null && (
         <ConfirmDelete
-          title="Xác nhận xoá học vấn"
-          description="Bạn có chắc chắn muốn xoá học vấn này? Hành động này không thể hoàn tác."
+          title="Confirm Deletion"
+          description="Are you sure you want to delete this education? This action cannot be undone."
           onCancel={() => setDeleteIdx(null)}
           onConfirm={handleConfirmDelete}
           loading={loadingDelete}

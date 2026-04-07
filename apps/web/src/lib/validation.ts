@@ -80,7 +80,9 @@ export const EducationSchema = z.object({
   degree: z
     .enum(DEGREE_OPTIONS as [Degree, ...Degree[]])
     .optional()
-    .or(z.literal('')),
+    .refine((val) => val !== undefined, {
+      message: 'Degree is required',
+    }),
   fieldOfStudy: z
     .string()
     .optional()
