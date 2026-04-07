@@ -8,12 +8,14 @@ export type {
   JobCategory,
   CompanyInfo,
   JobPosting,
+  JobRequirement,
 } from '@/types/job';
 
 import type {
   EmploymentType,
   RequirementImportance,
   JobPosting,
+  JobRequirement,
 } from '@/types/job';
 
 export interface PaginatedJobsResponse {

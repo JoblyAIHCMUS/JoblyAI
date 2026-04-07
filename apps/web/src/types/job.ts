@@ -51,6 +51,13 @@ export interface CompanyInfo {
   logoUrl: string | null;
 }
 
+export interface JobRequirement {
+  skillId: number;
+  skillName: string;
+  importance: RequirementImportance;
+  minYearsExperience: number | null;
+}
+
 export interface JobPosting {
   id: number;
   employerId: string;
@@ -61,7 +68,7 @@ export interface JobPosting {
   location: string | null;
   remote: boolean;
   type: EmploymentType;
-  skills: string[];
+  requirements: JobRequirement[];
   salaryMin: number | null;
   salaryMax: number | null;
   currency: string | null;

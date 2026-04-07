@@ -37,11 +37,17 @@ export interface CompanyInfo {
   logoUrl: string | null;
 }
 
+export interface RequirementDetail {
+  skillName: string;
+  importance: 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
+  minYearsExperience: number | null;
+}
+
 export interface JobDetail {
   description: string;
   aboutRole: JobAboutRole;
   category: JobCategory;
-  requiredSkills: string[];
+  requiredSkills: RequirementDetail[];
 }
 
 export interface JobDetailBreadcrumbItem {
@@ -72,8 +78,8 @@ export interface JobDetailContentProps {
   aboutRole: JobAboutRole;
   /** Category with label and color */
   category: JobCategory;
-  /** List of required skills */
-  requiredSkills: string[];
+  /** List of required skills with importance and years of experience */
+  requiredSkills: RequirementDetail[];
   /** Application progress as percentage (e.g., "50%") */
   applicationProgress: string;
   /** Formatted salary string (e.g., "$75,000-$85,000") */

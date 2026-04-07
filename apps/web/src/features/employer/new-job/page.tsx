@@ -193,19 +193,17 @@ export default function EmployerNewJobPage() {
         Fill in the details to create a new job posting.
       </p>
 
-      <Stepper
-        steps={POST_JOB_STEPS}
-        onComplete={handleSubmit((data) =>
-          handleComplete(data as unknown as JobPostingFormData)
-        )}
-        canProceed={canProceed}
-        loading={
-          creatingJob ||
-          skillsLoading ||
-          categoriesLoading ||
-          employerProfileLoading
-        }
-      >
+      <form onSubmit={handleSubmit(handleComplete)}>
+        <Stepper
+          steps={POST_JOB_STEPS}
+          canProceed={canProceed}
+          loading={
+            creatingJob ||
+            skillsLoading ||
+            categoriesLoading ||
+            employerProfileLoading
+          }
+        >
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Job Title */}
@@ -468,7 +466,8 @@ export default function EmployerNewJobPage() {
             )}
           </div>
         </div>
-      </Stepper>
+        </Stepper>
+      </form>
     </div>
   );
 }

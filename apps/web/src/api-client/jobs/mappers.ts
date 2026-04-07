@@ -1,4 +1,4 @@
-import type { JobPosting, JobStatus } from '@/api-client/jobs/types';
+import type { JobPosting, JobStatus, JobRequirement } from '@/api-client/jobs/types';
 import type {
   JobListingDetail,
   Category,
@@ -59,14 +59,15 @@ function mapCategorySlug(slug?: string): Category {
 }
 
 /**
- * Transform backend skill strings to frontend SkillEntry objects
+ * Transform backend requirements to frontend SkillEntry objects
  */
-function mapSkillsToEntries(backendSkills: string[]): SkillEntry[] {
-  // Backend only provides skill names as strings
-  // Map to SkillEntry with default importance
-  return backendSkills.map((skillName) => ({
-    name: skillName,
-    importance: 'OPTIONAL' as const,
+function mapRequirementsToEntries(requirements: JobRequirement[]): SkillEntry[] {
+  // Backend provides requirement objects with skill details
+  // Map to SkillEntry using the actual importance from the requirement
+  return (requirements || []).map((req) => ({
+    name: req.skillName,
+    importance: req.importance,
+    minYearsExperience: req.minYearsExperience ?? undefined,
   }));
 }
 
@@ -104,7 +105,7 @@ export function mapJobPostingToListingDetail(
     salaryCurrency: mapSalaryCurrency(jobPosting.currency),
     salaryMin: formatSalary(jobPosting.salaryMin),
     salaryMax: formatSalary(jobPosting.salaryMax),
-    skills: mapSkillsToEntries(jobPosting.skills),
+    skills: mapRequirementsToEntries(jobPosting.requirements),
     datePosted: formatDate(jobPosting.createdAt),
     dateClosed: null, // Backend doesn't track closure date yet
     description: jobPosting.description,

@@ -26,6 +26,24 @@ function SkillTag({ children }: { children: React.ReactNode }) {
   );
 }
 
+function RequirementStatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    REQUIRED: 'bg-red-100 text-red-700',
+    PREFERRED: 'bg-amber-100 text-amber-700',
+    OPTIONAL: 'bg-blue-100 text-blue-700',
+  };
+
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-xs font-semibold ${
+        colors[status] || colors.OPTIONAL
+      }`}
+    >
+      {status}
+    </span>
+  );
+}
+
 function CategoryPill({
   children,
   color,
@@ -190,9 +208,29 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             {requiredSkills.length > 0 && (
               <div className="flex flex-col gap-4">
                 <SectionHeading>Required Skills</SectionHeading>
-                <div className="flex flex-wrap gap-2">
-                  {requiredSkills.map((skill) => (
-                    <SkillTag key={skill}>{skill}</SkillTag>
+                <div className="flex flex-col gap-3">
+                  {requiredSkills.map((requirement) => (
+                    <div
+                      key={requirement.skillName}
+                      className="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg"
+                    >
+                      <span className="text-sm sm:text-base font-medium text-slate-900">
+                        {requirement.skillName}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {requirement.minYearsExperience !== null && (
+                          <span className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">
+                            {requirement.minYearsExperience}+{' '}
+                            {requirement.minYearsExperience === 1
+                              ? 'year'
+                              : 'years'}
+                          </span>
+                        )}
+                        <RequirementStatusBadge
+                          status={requirement.importance}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
