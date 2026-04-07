@@ -17,18 +17,23 @@ export enum ApplicationStatus {
 }
 
 // Mock @prisma/client module to include the enum
-vi.mock('@prisma/client', () => ({
-  ApplicationStatus: {
-    APPLIED: 'APPLIED',
-    INTERVIEW: 'INTERVIEW',
-    OFFER: 'OFFER',
-    REJECTED: 'REJECTED',
-    WITHDRAWN: 'WITHDRAWN',
-  },
-  Prisma: {
-    JsonNull: 'JsonNull',
-  },
-}));
+vi.mock('@prisma/client', async (importOriginal: () => Promise<any>) => {
+  const actual = await importOriginal();
+  return {
+    ...(actual as Record<string, unknown>),
+    PrismaClient: vi.fn(() => ({})),
+    ApplicationStatus: {
+      APPLIED: 'APPLIED',
+      INTERVIEW: 'INTERVIEW',
+      OFFER: 'OFFER',
+      REJECTED: 'REJECTED',
+      WITHDRAWN: 'WITHDRAWN',
+    },
+    Prisma: {
+      JsonNull: 'JsonNull',
+    },
+  };
+});
 
 // Helper to create complete mock application with all nested data
 const createMockApplication = (overrides = {}) => ({
