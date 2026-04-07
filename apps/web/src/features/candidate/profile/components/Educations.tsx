@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Dot, Edit, Plus, Trash2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -103,15 +103,16 @@ function EducationEditForm({
                     : 'border-gray-300 focus:ring-accent-primary'
                 }`}
               />
-              {errors.school && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.school.message}
-                </p>
-              )}
             </>
           )}
         />
       </div>
+      {/* Error message for school */}
+      {errors.school && (
+        <div className="w-full box-border">
+          <p className="text-red-500 text-xs">{errors.school.message}</p>
+        </div>
+      )}
 
       {/* Row 2 - Degree & Field of Study */}
       <div className="flex items-center gap-2 flex-wrap w-full box-border">
@@ -219,11 +220,27 @@ function EducationEditForm({
             <>
               <input
                 {...field}
-                placeholder="Grade (0-4)"
+                placeholder="GPA (0.00 – 4.00)"
+                inputMode="decimal"
                 type="number"
                 step="0.01"
                 min="0"
-                max="5"
+                max="4"
+                onChange={(e) => {
+                  let value = e.target.value;
+                  if (/^(?:[0-4](?:\.\d{0,2})?)?$/.test(value)) {
+                    field.onChange(value);
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+
+                  const num = parseFloat(value);
+                  if (!isNaN(num)) {
+                    field.onChange(num.toFixed(2));
+                  }
+                }}
                 className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
                   errors.grade
                     ? 'border-red-500 focus:ring-red-500'
@@ -332,7 +349,18 @@ function EducationView({
       {/* Row 2 */}
       <div className="flex items-center gap-2">
         <div className="text-primary break-words">{edu.degree}</div>
-        <div className="text-secondary break-words">{edu.fieldOfStudy}</div>
+        {edu.fieldOfStudy && (
+          <>
+            <Dot size={16} className="text-primary" />
+            <div className="text-secondary break-words">{edu.fieldOfStudy}</div>
+          </>
+        )}
+        {edu.grade && (
+          <>
+            <Dot size={16} className="text-primary" />
+            <div className="text-tertiary break-words">GPA: {edu.grade}</div>
+          </>
+        )}
       </div>
       {/* Row 3 time*/}
       <div className="text-tertiary break-words">
@@ -341,9 +369,11 @@ function EducationView({
         {edu.endDate ? formatDate(edu.endDate) : 'Present'}
       </div>
       {/* Row 4 */}
-      <div className="text-tertiary break-words">{edu.description}</div>
+      {edu.description && (
+        <div className="text-tertiary break-words">{edu.description}</div>
+      )}
     </>
-  );
+  );            
 }
 
 const MAX_DISPLAY = 3;
@@ -553,6 +583,13 @@ export default function Educations({
         );
       })}
 
+      {/* Empty state */}
+      {educations.length === 0 && (
+        <div className="text-secondary text-center py-4">
+          No educations added yet. Click the + button to add your education
+          history.
+        </div>
+      )}
       {/* Show more */}
       {!showAll && educations.length > MAX_DISPLAY && (
         <div className="flex justify-center">
