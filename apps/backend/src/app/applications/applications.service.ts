@@ -380,6 +380,7 @@ export class ApplicationsService {
               id: true,
               name: true,
               email: true,
+              avatarUrl: true,
             },
           },
         },
@@ -432,6 +433,7 @@ export class ApplicationsService {
             id: true,
             name: true,
             email: true,
+            avatarUrl: true,
           },
         },
       },
@@ -752,6 +754,7 @@ export class ApplicationsService {
           id: application.candidate.id,
           name: application.candidate.name,
           email: application.candidate.email,
+          avatarUrl: application.candidate.avatarUrl,
         },
       }),
     };

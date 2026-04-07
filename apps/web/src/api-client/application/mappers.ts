@@ -31,13 +31,14 @@ export function mapApplicationRecordToApplicant(
     id: application.candidateId,
     name: null,
     email: '',
+    avatarUrl: null,
   };
 
   return {
     id: application.id.toString(),
     applicantId: application.candidateId,
     name: candidate.name || candidate.email || 'Unknown Candidate',
-    image: '', // Backend doesn't provide candidate image in ApplicationRecord
+    image: candidate.avatarUrl || '',
     appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
     score: application.matchPercentage ?? 0,
     hiringStage: mapApplicationStatusToHiringStage(application.status),
