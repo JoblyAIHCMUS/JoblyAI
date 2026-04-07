@@ -9,14 +9,27 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { formatDate } from '@/lib/utils';
-import {
-  type ApplicantDetail,
-  hiringStageProgress,
-  hiringStageColor,
-} from '@/features/employer/all-applications/detail/data';
+import { type ApplicationRecord } from '@/api-client/application';
+import { mapApplicationStatusToHiringStage } from '@/api-client/application/mappers';
 import { type Category } from '@/features/employer/job-listing/detail/data';
 import { hiringStageStyles } from '@/features/employer/hiringStage';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
+
+const hiringStageProgress: Record<string, number> = {
+  Applied: 25,
+  Interview: 50,
+  Offer: 100,
+  Rejected: 0,
+  Withdrawn: 0,
+};
+
+const hiringStageColor: Record<string, string> = {
+  Applied: 'bg-blue-500',
+  Interview: 'bg-amber-500',
+  Offer: 'bg-green-500',
+  Rejected: 'bg-red-500',
+  Withdrawn: 'bg-gray-500',
+};
 
 const categoryLabels: Record<Category, string> = {
   design: 'Design',
@@ -39,44 +52,54 @@ const employmentTypeLabels: Record<EmploymentType, string> = {
 };
 
 interface ApplicantOverviewProps {
-  applicant: ApplicantDetail;
+  applicant: ApplicationRecord;
 }
 
 export default function ApplicantOverview({
   applicant,
 }: ApplicantOverviewProps) {
-  const progress = hiringStageProgress[applicant.hiringStage];
-  const progressColor = hiringStageColor[applicant.hiringStage];
+  const hiringStage = mapApplicationStatusToHiringStage(applicant.status);
+  const progress = hiringStageProgress[hiringStage];
+  const progressColor = hiringStageColor[hiringStage];
 
   return (
     <Card className="w-full">
       <CardHeader className="items-center text-center pb-4">
         <Avatar className="h-20 w-20 mb-3">
-          <AvatarImage src={applicant.image} alt={applicant.name} />
+          <AvatarImage
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              applicant.candidateId
+            )}`}
+            alt={applicant.candidate?.name || 'Candidate'}
+          />
           <AvatarFallback>
-            {applicant.name
+            {(applicant.candidate?.name || 'C')
               .split(' ')
               .map((n) => n[0])
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <h2 className="heading-h5-semi-bold">{applicant.name}</h2>
+        <h2 className="heading-h5-semi-bold">
+          {applicant.candidate?.name ||
+            applicant.candidate?.email ||
+            'Unknown Candidate'}
+        </h2>
         <p className="label-label-2-regular text-muted-foreground">
-          {applicant.title}
+          {applicant.job.title}
         </p>
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <Link href={`/employer/job-listing/${applicant.jobListingId}`}>
+        <Link href={`/employer/job-listing/${applicant.jobId}`}>
           <div className="rounded-lg bg-indigo-50 p-4 space-y-1 hover:bg-indigo-100 transition-colors">
             <p className="label-label-2-medium text-muted-foreground">
               Applied Role
             </p>
             <Separator />
-            <p className="label-label-2-semi-bold">{applicant.appliedRole}</p>
+            <p className="label-label-2-semi-bold">{applicant.job.title}</p>
             <p className="label-label-2-regular text-muted-foreground">
-              {categoryLabels[applicant.jobCategory]} &bull;{' '}
-              {employmentTypeLabels[applicant.employmentType]}
+              {categoryLabels[applicant.job.category.slug as Category]} &bull;{' '}
+              {employmentTypeLabels[applicant.job.type as EmploymentType]}
             </p>
           </div>
         </Link>
@@ -86,14 +109,14 @@ export default function ApplicantOverview({
             Applied Date
           </p>
           <p className="label-label-2-regular">
-            {formatDate(applicant.appliedDate)}
+            {formatDate(applicant.createdAt.split('T')[0])}
           </p>
         </div>
 
         <div className="space-y-1">
           <p className="label-label-2-medium text-muted-foreground">Score</p>
           <p className="label-label-2-semi-bold">
-            {applicant.score.toFixed(1)}
+            {(applicant.matchPercentage ?? 0).toFixed(1)}
           </p>
         </div>
 
@@ -102,11 +125,8 @@ export default function ApplicantOverview({
             <p className="label-label-2-medium text-muted-foreground">
               Hiring Stage
             </p>
-            <Badge
-              variant="outline"
-              className={hiringStageStyles[applicant.hiringStage]}
-            >
-              {applicant.hiringStage}
+            <Badge variant="outline" className={hiringStageStyles[hiringStage]}>
+              {hiringStage}
             </Badge>
           </div>
           <Progress
@@ -123,11 +143,7 @@ export default function ApplicantOverview({
           <div className="grid grid-cols-1 gap-2">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{applicant.email}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{applicant.phone}</p>
+              <p className="text-sm">{applicant.candidate?.email || 'N/A'}</p>
             </div>
           </div>
         </div>

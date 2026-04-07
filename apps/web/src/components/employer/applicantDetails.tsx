@@ -15,26 +15,25 @@ import {
   nextStageMap,
   HiringStage,
 } from '@/features/employer/hiringStage';
-import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
+import { type ApplicationRecord } from '@/api-client/application';
+import { mapApplicationStatusToHiringStage } from '@/api-client/application/mappers';
 import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
 import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
 import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
 
 export default function ApplicantDetails({
   applicant,
-  hiringStage,
-  setHiringStage,
+  onStatusChange,
 }: {
-  applicant: ApplicantDetail;
-  hiringStage: HiringStage;
-  setHiringStage: (stage: HiringStage) => void;
+  applicant: ApplicationRecord;
+  onStatusChange?: () => void;
 }) {
+  const hiringStage = mapApplicationStatusToHiringStage(applicant.status);
   const [loadingId, setLoadingId] = useState<string | null>(null);
-
   const { shortlistApplication } = useShortlistApplication({
     onSuccess: () => {
-      setHiringStage('Interview');
       toast.success('Applicant moved to interview stage');
+      onStatusChange?.();
     },
     onError: (error) => {
       const message =
@@ -47,8 +46,8 @@ export default function ApplicantDetails({
 
   const { moveToOffer } = useMoveToOfferApplication({
     onSuccess: () => {
-      setHiringStage('Offer');
       toast.success('Applicant moved to offer stage');
+      onStatusChange?.();
     },
     onError: (error) => {
       const message =
@@ -59,8 +58,8 @@ export default function ApplicantDetails({
 
   const { rejectApplication } = useRejectApplication({
     onSuccess: () => {
-      setHiringStage('Rejected');
       toast.success('Applicant rejected');
+      onStatusChange?.();
     },
     onError: (error) => {
       const message =
@@ -70,13 +69,12 @@ export default function ApplicantDetails({
   });
 
   const handleAdvanceStage = async () => {
-    setLoadingId(applicant.id);
+    setLoadingId(applicant.id.toString());
     try {
-      const applicationId = parseInt(applicant.id);
       if (hiringStage === 'Applied') {
-        await shortlistApplication(applicationId);
+        await shortlistApplication(applicant.id);
       } else if (hiringStage === 'Interview') {
-        await moveToOffer(applicationId);
+        await moveToOffer(applicant.id);
       }
     } catch (error) {
       // Error is already handled by the hook callbacks
@@ -86,10 +84,9 @@ export default function ApplicantDetails({
   };
 
   const handleDecline = async () => {
-    setLoadingId(applicant.id);
+    setLoadingId(applicant.id.toString());
     try {
-      const applicationId = parseInt(applicant.id);
-      await rejectApplication(applicationId, { feedback: '' });
+      await rejectApplication(applicant.id, { feedback: '' });
     } catch (error) {
       // Error is already handled by the hook callbacks
     } finally {
@@ -113,7 +110,7 @@ export default function ApplicantDetails({
           </TabsContent>
 
           <TabsContent value="resume" className="mt-6">
-            <ApplicantResumeViewer url={applicant.resume} />
+            <ApplicantResumeViewer url={applicant.resume.fileKey || ''} />
           </TabsContent>
 
           <TabsContent value="cover-letter" className="mt-6">
@@ -147,7 +144,8 @@ export default function ApplicantDetails({
                     className="border-red-500 text-red-600 hover:bg-red-50"
                     onClick={handleDecline}
                     disabled={
-                      loadingId === applicant.id || hiringStage === 'Rejected'
+                      loadingId === applicant.id.toString() ||
+                      hiringStage === 'Rejected'
                     }
                   >
                     Reject
@@ -156,7 +154,7 @@ export default function ApplicantDetails({
                     variant="outline"
                     onClick={handleAdvanceStage}
                     disabled={
-                      loadingId === applicant.id ||
+                      loadingId === applicant.id.toString() ||
                       !nextStageMap[hiringStage as HiringStage] ||
                       hiringStage === 'Rejected' ||
                       hiringStage === 'Withdrawn' ||

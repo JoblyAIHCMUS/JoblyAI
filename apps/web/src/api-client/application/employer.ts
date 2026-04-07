@@ -21,6 +21,18 @@ export async function listEmployerApplications(
   return response.data;
 }
 
+export async function getEmployerApplicationById(
+  id: number
+): Promise<ApplicationRecord> {
+  const response = await axios.get<ApplicationRecord>(
+    `${API_BASE_URL}/api/employers/applications/${id}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}
+
 export async function shortlistEmployerApplication(
   id: number
 ): Promise<ApplicationRecord> {

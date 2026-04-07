@@ -399,6 +399,59 @@ export class ApplicationsService {
     };
   }
 
+  async getApplicationByIdForEmployer(
+    employerId: string,
+    applicationId: number
+  ): Promise<Application> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          include: {
+            category: true,
+            company: true,
+            postedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            fileKey: true,
+            aiScore: true,
+            isDefault: true,
+          },
+        },
+        candidate: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.job.postedById !== employerId) {
+      throw new ForbiddenException(
+        'You can only view applications for your own jobs'
+      );
+    }
+
+    return this.mapToApplicationResponse(
+      application as ApplicationWithRelations
+    );
+  }
+
   async shortlistApplication(
     employerId: string,
     applicationId: number
