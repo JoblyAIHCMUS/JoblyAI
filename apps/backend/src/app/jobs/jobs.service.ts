@@ -582,8 +582,15 @@ export class JobsService {
     return {
       ...rest,
       employerId: postedById,
-      // Flatten the skills array
-      skills: requirements ? requirements.map((jr) => jr.skill.name) : [],
+      // Map requirements with full details including years and importance
+      requirements: requirements
+        ? requirements.map((jr) => ({
+            skillId: jr.skillId,
+            skillName: jr.skill.name,
+            importance: jr.importance as JobPostingInterface['requirements'][0]['importance'],
+            minYearsExperience: jr.minYearsExperience,
+          }))
+        : [],
 
       // Convert Prisma Decimals to JavaScript Numbers
       salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
