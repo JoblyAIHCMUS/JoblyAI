@@ -56,7 +56,7 @@ export interface CandidateSkill {
 
 export interface CreateEducationPayload {
   school: string;
-  degree?: string;
+  degree?: Degree;
   fieldOfStudy: string;
   startDate: string;
   endDate?: string;
@@ -109,3 +109,4 @@ export interface CreateCertificatePayload {
 export interface UpdateCertificatePayload extends CreateCertificatePayload {
   id: number;
 }
+import type { Degree } from '@/types/candidate';

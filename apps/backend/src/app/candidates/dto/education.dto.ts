@@ -7,6 +7,8 @@ import {
   IsString,
 } from 'class-validator';
 
+import { Degree } from '@prisma/client';
+
 export class QueryEducationDto {
   @IsNumber()
   id!: number;
@@ -15,9 +17,7 @@ export class QueryEducationDto {
   @IsNotEmpty()
   school!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  degree!: string;
+  degree!: Degree;
 
   @IsString()
   @IsNotEmpty()
@@ -43,6 +43,8 @@ export class CreateEducationDto {
   @IsString()
   @IsNotEmpty()
   school!: string;
+
+  degree!: Degree;
 
   @IsString()
   @IsNotEmpty()
@@ -72,9 +74,7 @@ export class UpdateEducationDto {
   @IsString()
   school?: string;
 
-  @IsOptional()
-  @IsString()
-  degree?: string;
+  degree?: Degree;
 
   @IsOptional()
   @IsString()

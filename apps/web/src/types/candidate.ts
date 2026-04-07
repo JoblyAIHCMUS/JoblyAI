@@ -45,10 +45,19 @@ export type CandidateApplicationsSearchParams = {
   location?: string;
 };
 
+export type Degree =
+  | 'HIGH_SCHOOL'
+  | 'DIPLOMA'
+  | 'ASSOCIATE'
+  | 'BACHELOR'
+  | 'MASTER'
+  | 'PHD'
+  | 'OTHER';
+
 export interface CandidateEducation {
   id: number;
   school: string;
-  degree?: string;
+  degree?: Degree;
   fieldOfStudy?: string;
   startDate: string;
   endDate?: string;

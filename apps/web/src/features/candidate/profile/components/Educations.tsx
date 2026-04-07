@@ -106,15 +106,21 @@ function EducationEditForm({
             control={control}
             render={({ field }) => (
               <>
-                <input
+                <select
                   {...field}
-                  placeholder="Degree"
                   className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
                     errors.degree
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-accent-primary'
                   }`}
-                />
+                >
+                  <option value="">Select degree</option>
+                  {DEGREE_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d.replace(/_/g, ' ').replace('PHD', 'PhD').replace('BACHELOR', "Bachelor's").replace('MASTER', "Master's").replace('ASSOCIATE', 'Associate').replace('DIPLOMA', 'Diploma').replace('HIGH SCHOOL', 'High School').replace('OTHER', 'Other')}
+                    </option>
+                  ))}
+                </select>
                 {errors.degree && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.degree.message}

@@ -64,16 +64,23 @@ export function isValidEmail(email: string): boolean {
 /**
  * Zod schema for education form validation with real-time validation
  */
+import type { Degree } from '@/types/candidate';
+export const DEGREE_OPTIONS: Degree[] = [
+  'HIGH_SCHOOL',
+  'DIPLOMA',
+  'ASSOCIATE',
+  'BACHELOR',
+  'MASTER',
+  'PHD',
+  'OTHER',
+];
+
 export const EducationSchema = z.object({
   school: z.string().min(1, 'School name is required').trim(),
   degree: z
-    .string()
+    .enum(DEGREE_OPTIONS as [Degree, ...Degree[]])
     .optional()
-    .or(z.literal(''))
-    .refine(
-      (val) => !val || val.length >= 2,
-      'Degree must be at least 2 characters'
-    ),
+    .or(z.literal('')),
   fieldOfStudy: z
     .string()
     .optional()

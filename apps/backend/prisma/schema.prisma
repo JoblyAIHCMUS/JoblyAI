@@ -187,7 +187,7 @@ model Education {
   candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   school       String // University or School name
-  degree       String? // e.g., "Bachelor of Science", "High School Diploma"
+  degree       Degree? 
   fieldOfStudy String? // e.g., "Computer Science"
   startDate    DateTime
   endDate      DateTime? // Nullable: If null, it means "Present" (currently studying)
@@ -463,5 +463,15 @@ enum CandidateSocialPlatform {
   TIKTOK
   DRIBBBLE
   BEHANCE
+  OTHER
+}
+
+enum Degree {
+  HIGH_SCHOOL
+  DIPLOMA
+  ASSOCIATE
+  BACHELOR
+  MASTER
+  PHD
   OTHER
 }
