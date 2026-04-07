@@ -32,24 +32,29 @@ const HIRING_STAGE_COLUMNS: {
   borderColor: string;
 }[] = [
   {
-    stage: 'In Review',
+    stage: 'Applied',
     circleColor: 'blue',
     borderColor: 'border-t-blue-500',
   },
   {
-    stage: 'Shortlisted',
+    stage: 'Interview',
     circleColor: 'yellow',
     borderColor: 'border-t-amber-500',
   },
   {
-    stage: 'Hired',
+    stage: 'Offer',
     circleColor: 'green',
     borderColor: 'border-t-green-500',
   },
   {
-    stage: 'Declined',
+    stage: 'Rejected',
     circleColor: 'red',
     borderColor: 'border-t-red-500',
+  },
+  {
+    stage: 'Withdrawn',
+    circleColor: 'gray',
+    borderColor: 'border-t-gray-500',
   },
 ];
 

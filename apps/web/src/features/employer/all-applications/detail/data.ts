@@ -21,17 +21,19 @@ export interface ApplicantDetail {
 }
 
 export const hiringStageProgress: Record<HiringStage, number> = {
-  'In Review': 25,
-  Shortlisted: 50,
-  Hired: 100,
-  Declined: 0,
+  Applied: 20,
+  Interview: 40,
+  Offer: 80,
+  Rejected: 0,
+  Withdrawn: 0,
 };
 
 export const hiringStageColor: Record<HiringStage, string> = {
-  'In Review': 'bg-indigo-500',
-  Shortlisted: 'bg-amber-500',
-  Hired: 'bg-green-500',
-  Declined: 'bg-red-500',
+  Applied: 'bg-blue-500',
+  Interview: 'bg-amber-500',
+  Offer: 'bg-green-500',
+  Rejected: 'bg-red-500',
+  Withdrawn: 'bg-gray-500',
 };
 
 export const applicantDetails: Record<string, ApplicantDetail> = {
@@ -51,6 +53,6 @@ export const applicantDetails: Record<string, ApplicantDetail> = {
     resume:
       'https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/mock_resume.pdf',
     score: 8.2,
-    hiringStage: 'Shortlisted',
+    hiringStage: 'Interview',
   },
 };

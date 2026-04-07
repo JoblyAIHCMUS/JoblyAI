@@ -33,38 +33,38 @@ export default function ApplicantDetails({
 
   const { shortlistApplication } = useShortlistApplication({
     onSuccess: () => {
-      setHiringStage('Shortlisted');
-      toast.success('Applicant shortlisted');
+      setHiringStage('Interview');
+      toast.success('Applicant moved to interview stage');
     },
     onError: (error) => {
       const message =
         error instanceof Error
           ? error.message
-          : 'Failed to shortlist applicant';
+          : 'Failed to move applicant to interview';
       toast.error(message);
     },
   });
 
   const { moveToOffer } = useMoveToOfferApplication({
     onSuccess: () => {
-      setHiringStage('Hired');
-      toast.success('Applicant moved to offer');
+      setHiringStage('Offer');
+      toast.success('Applicant moved to offer stage');
     },
     onError: (error) => {
       const message =
-        error instanceof Error ? error.message : 'Failed to advance applicant';
+        error instanceof Error ? error.message : 'Failed to move to offer';
       toast.error(message);
     },
   });
 
   const { rejectApplication } = useRejectApplication({
     onSuccess: () => {
-      setHiringStage('Declined');
-      toast.success('Applicant declined');
+      setHiringStage('Rejected');
+      toast.success('Applicant rejected');
     },
     onError: (error) => {
       const message =
-        error instanceof Error ? error.message : 'Failed to decline applicant';
+        error instanceof Error ? error.message : 'Failed to reject applicant';
       toast.error(message);
     },
   });
@@ -73,9 +73,9 @@ export default function ApplicantDetails({
     setLoadingId(applicant.id);
     try {
       const applicationId = parseInt(applicant.id);
-      if (hiringStage === 'In Review') {
+      if (hiringStage === 'Applied') {
         await shortlistApplication(applicationId);
-      } else if (hiringStage === 'Shortlisted') {
+      } else if (hiringStage === 'Interview') {
         await moveToOffer(applicationId);
       }
     } catch (error) {
@@ -147,10 +147,10 @@ export default function ApplicantDetails({
                     className="border-red-500 text-red-600 hover:bg-red-50"
                     onClick={handleDecline}
                     disabled={
-                      loadingId === applicant.id || hiringStage === 'Declined'
+                      loadingId === applicant.id || hiringStage === 'Rejected'
                     }
                   >
-                    Decline
+                    Reject
                   </Button>
                   <Button
                     variant="outline"
@@ -158,8 +158,9 @@ export default function ApplicantDetails({
                     disabled={
                       loadingId === applicant.id ||
                       !nextStageMap[hiringStage as HiringStage] ||
-                      hiringStage === 'Declined' ||
-                      hiringStage === 'Hired'
+                      hiringStage === 'Rejected' ||
+                      hiringStage === 'Withdrawn' ||
+                      hiringStage === 'Offer'
                     }
                   >
                     To Next Stage

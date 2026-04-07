@@ -70,11 +70,11 @@ export default function JobListingDetailPage() {
         const applicant = applicants.find((a) => a.id === applicantId);
         if (!applicant) return;
 
-        if (applicant.hiringStage === 'In Review') {
-          // Move from In Review to Shortlisted
+        if (applicant.hiringStage === 'Applied') {
+          // Move from Applied to Interview
           await shortlistApplication(appId);
-        } else if (applicant.hiringStage === 'Shortlisted') {
-          // Move from Shortlisted to Hired (Offer)
+        } else if (applicant.hiringStage === 'Interview') {
+          // Move from Interview to Offer
           await moveToOffer(appId);
         }
 
@@ -123,17 +123,17 @@ export default function JobListingDetailPage() {
         // Only handle stage transitions that require backend calls
         const currentStage = applicant.hiringStage;
 
-        if (newStage === 'Declined') {
-          // Move to Declined
+        if (newStage === 'Rejected') {
+          // Move to Rejected
           await rejectApplication(appId, {
             feedback:
               'Thank you for applying. We have decided to move forward with other candidates at this time.',
           });
-        } else if (currentStage === 'In Review' && newStage === 'Shortlisted') {
-          // Move from In Review to Shortlisted
+        } else if (currentStage === 'Applied' && newStage === 'Interview') {
+          // Move from Applied to Interview
           await shortlistApplication(appId);
-        } else if (currentStage === 'Shortlisted' && newStage === 'Hired') {
-          // Move from Shortlisted to Hired (Offer)
+        } else if (currentStage === 'Interview' && newStage === 'Offer') {
+          // Move from Interview to Offer
           await moveToOffer(appId);
         }
         // For other moves or reordering within the same stage, just update local state

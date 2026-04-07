@@ -91,7 +91,7 @@ export default function EmployerAllApplicationsPage() {
       setDisplayData((prev) =>
         prev.map((application) =>
           application.id === id
-            ? { ...application, hiringStage: 'Declined' as const }
+            ? { ...application, hiringStage: 'Rejected' as const }
             : application
         )
       );
