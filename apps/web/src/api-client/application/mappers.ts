@@ -12,11 +12,11 @@ export function mapApplicationStatusToHiringStage(
   status: ApplicationStatus
 ): HiringStage {
   const statusMap: Record<ApplicationStatus, HiringStage> = {
-    APPLIED: 'In Review',
-    INTERVIEW: 'Shortlisted',
-    OFFER: 'Hired',
-    REJECTED: 'Declined',
-    WITHDRAWN: 'Declined', // Withdrawn applications show as "Declined" but are handled separately
+    APPLIED: 'Applied',
+    INTERVIEW: 'Interview',
+    OFFER: 'Offer',
+    REJECTED: 'Rejected',
+    WITHDRAWN: 'Withdrawn',
   };
   return statusMap[status];
 }

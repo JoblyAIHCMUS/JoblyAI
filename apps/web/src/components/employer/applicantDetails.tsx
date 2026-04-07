@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import ApplicantResumeViewer from './applicantResumeViewer';
@@ -8,12 +9,16 @@ import ApplicantProfile from './applicantProfile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 import {
   hiringStageStyles,
   nextStageMap,
   HiringStage,
 } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
+import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
+import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
+import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
 
 export default function ApplicantDetails({
   applicant,
@@ -24,10 +29,78 @@ export default function ApplicantDetails({
   hiringStage: HiringStage;
   setHiringStage: (stage: HiringStage) => void;
 }) {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('profile');
+
+  const { shortlistApplication } = useShortlistApplication({
+    onSuccess: () => {
+      setHiringStage('Interview');
+      toast.success('Applicant moved to interview stage');
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to move applicant to interview';
+      toast.error(message);
+    },
+  });
+
+  const { moveToOffer } = useMoveToOfferApplication({
+    onSuccess: () => {
+      setHiringStage('Offer');
+      toast.success('Applicant moved to offer stage');
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error ? error.message : 'Failed to move to offer';
+      toast.error(message);
+    },
+  });
+
+  const { rejectApplication } = useRejectApplication({
+    onSuccess: () => {
+      setHiringStage('Rejected');
+      toast.success('Applicant rejected');
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error ? error.message : 'Failed to reject applicant';
+      toast.error(message);
+    },
+  });
+
+  const handleAdvanceStage = async () => {
+    setLoadingId(applicant.id);
+    try {
+      const applicationId = parseInt(applicant.id);
+      if (hiringStage === 'Applied') {
+        await shortlistApplication(applicationId);
+      } else if (hiringStage === 'Interview') {
+        await moveToOffer(applicationId);
+      }
+    } catch (error) {
+      // Error is already handled by the hook callbacks
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleDecline = async () => {
+    setLoadingId(applicant.id);
+    try {
+      const applicationId = parseInt(applicant.id);
+      await rejectApplication(applicationId, { feedback: '' });
+    } catch (error) {
+      // Error is already handled by the hook callbacks
+    } finally {
+      setLoadingId(null);
+    }
+  };
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
-        <Tabs defaultValue="profile">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="inline-flex flex-wrap justify-start">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="resume">Resume</TabsTrigger>
@@ -73,21 +146,22 @@ export default function ApplicantDetails({
                   <Button
                     variant="outline"
                     className="border-red-500 text-red-600 hover:bg-red-50"
-                    onClick={() => setHiringStage('Declined')}
-                    disabled={hiringStage === 'Declined'}
+                    onClick={handleDecline}
+                    disabled={
+                      loadingId === applicant.id || hiringStage === 'Rejected'
+                    }
                   >
-                    Decline
+                    Reject
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      const next = nextStageMap[hiringStage as HiringStage];
-                      if (next) setHiringStage(next);
-                    }}
+                    onClick={handleAdvanceStage}
                     disabled={
+                      loadingId === applicant.id ||
                       !nextStageMap[hiringStage as HiringStage] ||
-                      hiringStage === 'Declined' ||
-                      hiringStage === 'Hired'
+                      hiringStage === 'Rejected' ||
+                      hiringStage === 'Withdrawn' ||
+                      hiringStage === 'Offer'
                     }
                   >
                     To Next Stage
