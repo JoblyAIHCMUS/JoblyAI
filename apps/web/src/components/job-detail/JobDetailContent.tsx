@@ -18,14 +18,6 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SkillTag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="bg-indigo-50 text-indigo-700 px-2.5 sm:px-3 py-1 rounded-[2px] text-xs sm:text-sm lg:text-base font-normal">
-      {children}
-    </span>
-  );
-}
-
 function RequirementStatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     REQUIRED: 'bg-red-100 text-red-700',
