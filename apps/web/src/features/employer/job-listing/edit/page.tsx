@@ -118,11 +118,12 @@ export default function JobListingEditPage() {
       setCurrency(jobData.currency ? jobData.currency.toLowerCase() : 'none');
       setSalaryMin(jobData.salaryMin ? jobData.salaryMin.toString() : '');
       setSalaryMax(jobData.salaryMax ? jobData.salaryMax.toString() : '');
-      // Backend only provides skill names, map to SkillEntry with default importance
+      // Backend provides requirements with skill details, map to SkillEntry
       setSkills(
-        jobData.skills.map((skillName) => ({
-          name: skillName,
-          importance: 'OPTIONAL' as const,
+        (jobData.requirements || []).map((req) => ({
+          name: req.skillName,
+          importance: req.importance,
+          minYearsExperience: req.minYearsExperience ?? undefined,
         }))
       );
     }
