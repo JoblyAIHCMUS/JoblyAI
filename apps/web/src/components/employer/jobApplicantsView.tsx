@@ -32,6 +32,7 @@ export default function JobApplicantsView({
   onMoveApplicant,
 }: JobApplicantsViewProps) {
   const [data, setData] = useState<Applicant[]>(initialApplicants);
+  const [activeTab, setActiveTab] = useState<'table' | 'kanban'>('table');
 
   const advanceApplicant = async (id: string) => {
     if (onAdvanceApplicant) {
@@ -54,7 +55,7 @@ export default function JobApplicantsView({
       setData((prev) =>
         prev.map((applicant) =>
           applicant.id === id
-            ? { ...applicant, hiringStage: 'Declined' as const }
+            ? { ...applicant, hiringStage: 'Rejected' as const }
             : applicant
         )
       );
@@ -109,7 +110,10 @@ export default function JobApplicantsView({
   }, [initialApplicants]);
 
   return (
-    <Tabs defaultValue="table">
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as 'table' | 'kanban')}
+    >
       <TabsList>
         <TabsTrigger value="table">
           <List className="mr-2 h-4 w-4" />
