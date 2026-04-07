@@ -30,6 +30,7 @@ export default function ApplicantDetails({
   setHiringStage: (stage: HiringStage) => void;
 }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('profile');
 
   const { shortlistApplication } = useShortlistApplication({
     onSuccess: () => {
@@ -99,7 +100,7 @@ export default function ApplicantDetails({
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
-        <Tabs defaultValue="profile">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="inline-flex flex-wrap justify-start">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="resume">Resume</TabsTrigger>
