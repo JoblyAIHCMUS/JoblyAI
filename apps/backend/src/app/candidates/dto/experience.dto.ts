@@ -1,5 +1,7 @@
+import { CandidateExperienceType } from '@prisma/client';
 import {
   IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -21,6 +23,10 @@ export class QueryExperienceDto {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @IsOptional()
+  @IsEnum(CandidateExperienceType)
+  type?: CandidateExperienceType;
 
   @IsDateString()
   @IsNotEmpty()
@@ -47,6 +53,10 @@ export class CreateExperienceDto {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @IsOptional()
+  @IsEnum(CandidateExperienceType)
+  type?: CandidateExperienceType;
 
   @IsDateString()
   @IsNotEmpty()
@@ -88,4 +98,8 @@ export class UpdateExperienceDto {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @IsOptional()
+  @IsEnum(CandidateExperienceType)
+  type?: CandidateExperienceType;
 }

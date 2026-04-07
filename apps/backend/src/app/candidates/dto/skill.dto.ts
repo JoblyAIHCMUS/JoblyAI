@@ -1,16 +1,27 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { CandidateSkillLevel } from '@prisma/client';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export class QuerySkillDto {
   @IsInt()
   id!: number;
+
+  @IsInt()
+  skillId!: number;
 
   @IsString()
   @IsNotEmpty()
   title!: string;
 
   @IsOptional()
-  @IsString()
-  level?: string;
+  @IsEnum(CandidateSkillLevel)
+  level?: CandidateSkillLevel;
 
   @IsOptional()
   @IsInt()
@@ -18,13 +29,18 @@ export class QuerySkillDto {
 }
 
 export class CreateSkillDto {
+  @ValidateIf((o: CreateSkillDto) => o.skillId === undefined)
   @IsString()
   @IsNotEmpty()
-  title!: string;
+  title?: string;
+
+  @ValidateIf((o: CreateSkillDto) => o.title === undefined)
+  @IsInt()
+  skillId?: number;
 
   @IsOptional()
-  @IsString()
-  level?: string;
+  @IsEnum(CandidateSkillLevel)
+  level?: CandidateSkillLevel;
 
   @IsOptional()
   @IsInt()
@@ -36,12 +52,16 @@ export class UpdateSkillDto {
   id!: number;
 
   @IsOptional()
+  @IsInt()
+  skillId?: number;
+
+  @IsOptional()
   @IsString()
   title?: string;
 
   @IsOptional()
-  @IsString()
-  level?: string;
+  @IsEnum(CandidateSkillLevel)
+  level?: CandidateSkillLevel;
 
   @IsOptional()
   @IsInt()
