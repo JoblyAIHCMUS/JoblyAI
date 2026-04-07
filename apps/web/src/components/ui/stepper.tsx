@@ -21,6 +21,8 @@ interface StepperProps {
   canProceed?: boolean | ((stepIndex: number) => boolean);
   /** Optional loading state. Disables navigation and shows loading indicator on Next/Done button. */
   loading?: boolean;
+  /** If true, the Done button will be type="submit" for form submission. Default: false for backward compatibility. */
+  isFormSubmit?: boolean;
 }
 
 export function Stepper({
@@ -30,6 +32,7 @@ export function Stepper({
   className,
   canProceed = true,
   loading = false,
+  isFormSubmit = true,
 }: StepperProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -161,7 +164,7 @@ export function Stepper({
             <Button
               onClick={onComplete}
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              type="button"
+              type={isFormSubmit ? "submit" : "button"}
               disabled={!canProceedNow || loading}
             >
               {loading ? (
