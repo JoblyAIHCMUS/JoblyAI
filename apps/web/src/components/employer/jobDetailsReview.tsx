@@ -200,7 +200,8 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
                             className={`bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-0 shadow-none rounded-[5px]`}
                           >
                             {skill.name} (
-                            {skill.minYearsExperience && skill.minYearsExperience > 0
+                            {skill.minYearsExperience &&
+                            skill.minYearsExperience > 0
                               ? `${skill.minYearsExperience}+ yrs`
                               : 'Any experience'}
                             )

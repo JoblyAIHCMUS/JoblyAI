@@ -164,7 +164,7 @@ export function Stepper({
             <Button
               onClick={onComplete}
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              type={isFormSubmit ? "submit" : "button"}
+              type={isFormSubmit ? 'submit' : 'button'}
               disabled={!canProceedNow || loading}
             >
               {loading ? (

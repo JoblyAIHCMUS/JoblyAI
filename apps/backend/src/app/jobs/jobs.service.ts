@@ -587,7 +587,8 @@ export class JobsService {
         ? requirements.map((jr) => ({
             skillId: jr.skillId,
             skillName: jr.skill.name,
-            importance: jr.importance as JobPostingInterface['requirements'][0]['importance'],
+            importance:
+              jr.importance as JobPostingInterface['requirements'][0]['importance'],
             minYearsExperience: jr.minYearsExperience,
           }))
         : [],

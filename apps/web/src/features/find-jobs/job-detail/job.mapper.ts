@@ -56,7 +56,11 @@ export function mapJobPostingToDetailContent(
       label: job.category.name,
       color: categoryColor,
     },
-    requiredSkills: (job.requirements || []).map((req) => ({\n      skillName: req.skillName,\n      importance: req.importance,\n      minYearsExperience: req.minYearsExperience,\n    })),
+    requiredSkills: (job.requirements || []).map((req) => ({
+      skillName: req.skillName,
+      importance: req.importance,
+      minYearsExperience: req.minYearsExperience,
+    })),
     applicationProgress,
     formattedSalary,
   };

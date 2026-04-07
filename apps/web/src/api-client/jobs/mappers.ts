@@ -1,4 +1,8 @@
-import type { JobPosting, JobStatus, JobRequirement } from '@/api-client/jobs/types';
+import type {
+  JobPosting,
+  JobStatus,
+  JobRequirement,
+} from '@/api-client/jobs/types';
 import type {
   JobListingDetail,
   Category,
@@ -61,7 +65,9 @@ function mapCategorySlug(slug?: string): Category {
 /**
  * Transform backend requirements to frontend SkillEntry objects
  */
-function mapRequirementsToEntries(requirements: JobRequirement[]): SkillEntry[] {
+function mapRequirementsToEntries(
+  requirements: JobRequirement[]
+): SkillEntry[] {
   // Backend provides requirement objects with skill details
   // Map to SkillEntry using the actual importance from the requirement
   return (requirements || []).map((req) => ({

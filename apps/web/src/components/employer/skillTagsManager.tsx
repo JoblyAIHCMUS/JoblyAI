@@ -155,23 +155,25 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                 autoFocus
                 autoComplete="off"
               />
-              {newSkillName.trim() && filteredResults.length > 0 && showDropdown && (
-                <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {filteredResults.map((skill, index) => (
-                    <div
-                      key={skill.id}
-                      onClick={() => handleSelectFromDropdown(skill.name)}
-                      className={`px-3 py-2 cursor-pointer transition-colors ${
-                        index === selectedDropdownIndex
-                          ? 'bg-primary/20 text-primary body-body-1-medium'
-                          : 'hover:bg-slate-100'
-                      }`}
-                    >
-                      {skill.name}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {newSkillName.trim() &&
+                filteredResults.length > 0 &&
+                showDropdown && (
+                  <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {filteredResults.map((skill, index) => (
+                      <div
+                        key={skill.id}
+                        onClick={() => handleSelectFromDropdown(skill.name)}
+                        className={`px-3 py-2 cursor-pointer transition-colors ${
+                          index === selectedDropdownIndex
+                            ? 'bg-primary/20 text-primary body-body-1-medium'
+                            : 'hover:bg-slate-100'
+                        }`}
+                      >
+                        {skill.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
             <Select
               value={newImportance}

@@ -1,4 +1,8 @@
-import { EmploymentType, JobStatus, RequirementImportance } from '@prisma/client';
+import {
+  EmploymentType,
+  JobStatus,
+  RequirementImportance,
+} from '@prisma/client';
 
 export interface CompanyInfo {
   id: number;
