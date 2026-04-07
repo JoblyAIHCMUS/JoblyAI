@@ -1,6 +1,8 @@
 'use client';
+import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   ArrowUpDown,
   MoreHorizontal,
@@ -173,11 +175,22 @@ export const columns: ColumnDef<AllApplication>[] = [
     cell: ({ row, table }) => {
       const application = row.original;
       const nextStage = nextStageMap[application.hiringStage];
+      const meta = table.options.meta as {
+        advanceApplicant?: (id: string) => Promise<void>;
+        declineApplicant?: (id: string) => Promise<void>;
+        loadingId?: string | null;
+      };
+      const isLoading = meta?.loadingId === application.id;
 
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              disabled={isLoading}
+            >
               <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -191,12 +204,8 @@ export const columns: ColumnDef<AllApplication>[] = [
             </DropdownMenuItem>
             {nextStage && (
               <DropdownMenuItem
-                onClick={() => {
-                  const meta = table.options.meta as {
-                    advanceApplicant?: (id: string) => void;
-                  };
-                  meta.advanceApplicant?.(application.id);
-                }}
+                disabled={isLoading}
+                onClick={() => meta.advanceApplicant?.(application.id)}
               >
                 <ChevronRight className="mr-2 h-4 w-4" />
                 Advance to {nextStage}
@@ -205,12 +214,8 @@ export const columns: ColumnDef<AllApplication>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"
-              onClick={() => {
-                const meta = table.options.meta as {
-                  declineApplicant?: (id: string) => void;
-                };
-                meta.declineApplicant?.(application.id);
-              }}
+              disabled={isLoading}
+              onClick={() => meta.declineApplicant?.(application.id)}
             >
               <XCircle className="mr-2 h-4 w-4" />
               Decline
@@ -224,8 +229,8 @@ export const columns: ColumnDef<AllApplication>[] = [
 
 interface AllApplicationsTableProps {
   applications: AllApplication[];
-  advanceApplicant: (id: string) => void;
-  declineApplicant: (id: string) => void;
+  advanceApplicant: (id: string) => Promise<void> | void;
+  declineApplicant: (id: string) => Promise<void> | void;
   pageSize?: number;
   currentPage?: number;
   totalPages?: number;
@@ -245,6 +250,34 @@ export default function AllApplicationsTable({
   loading = false,
   onPageChange,
 }: AllApplicationsTableProps) {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleAdvance = async (id: string) => {
+    setLoadingId(id);
+    try {
+      await advanceApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to advance applicant';
+      toast.error(message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleDecline = async (id: string) => {
+    setLoadingId(id);
+    try {
+      await declineApplicant(id);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to decline applicant';
+      toast.error(message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages && onPageChange) {
       onPageChange(page);
@@ -257,7 +290,11 @@ export default function AllApplicationsTable({
         columns={columns}
         data={applications}
         pageSize={pageSize}
-        meta={{ advanceApplicant, declineApplicant }}
+        meta={{
+          advanceApplicant: handleAdvance,
+          declineApplicant: handleDecline,
+          loadingId,
+        }}
       />
 
       {/* Custom pagination controls for server-side pagination */}
