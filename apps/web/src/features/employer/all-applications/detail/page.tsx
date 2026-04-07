@@ -19,7 +19,7 @@ export default function ApplicantDetailPage() {
   if (!applicant) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="heading-h3-bold">Applicant not found</h1>
+        <h1 className="heading-h3-bold">Applicant is not found</h1>
       </div>
     );
   }
