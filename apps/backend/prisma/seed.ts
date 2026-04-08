@@ -90,7 +90,7 @@ async function main() {
 
   // Create test users with accounts (for Better-auth email/password login)
   console.log('Creating users and accounts...');
-  const hashedPassword = await hashPassword('password123');
+  const hashedPassword = await hashPassword('TestPass123!');
 
   const usersData: Array<{
     name: string;

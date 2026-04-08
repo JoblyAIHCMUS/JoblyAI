@@ -6,6 +6,10 @@ import { Roles } from '../decorators/roles.decorator';
 import { RoleGuard } from './role.guard';
 import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 import { prisma } from '../../lib/db';
+import {
+  validatePassword,
+  PASSWORD_REQUIREMENTS_TEXT,
+} from '../../lib/password-validation';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +52,16 @@ export class AuthController {
     const path = req.originalUrl || req.url || '';
     if (req.method === 'POST' && path.includes('/sign-up')) {
       const body = req.body as Record<string, unknown>;
+
+      // Validate password meets complexity requirements
+      const password = body?.password;
+      if (typeof password !== 'string' || !validatePassword(password)) {
+        return res.status(400).json({
+          error: 'Invalid password',
+          message: PASSWORD_REQUIREMENTS_TEXT,
+        });
+      }
+
       if (body?.role) {
         const requestedRole = body.role;
         if (
