@@ -377,10 +377,10 @@ export class JobsService {
     categoryId: number
   ): Promise<JobPostingInterface[]> {
     const jobs = await this.prisma.jobPosting.findMany({
-      where: { 
+      where: {
         categoryId,
         // Only return OPEN jobs for public category view
-        status: 'OPEN'
+        status: 'OPEN',
       },
       include: {
         category: true,

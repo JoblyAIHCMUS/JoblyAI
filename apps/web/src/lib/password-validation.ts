@@ -13,7 +13,8 @@ const SPECIAL_CHARACTERS = '!@#$%^&*()_+-=[]{};\':"|,.<>/?';
 // - At least one uppercase letter
 // - At least one digit
 // - At least one special character
-export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+export const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 /**
  * Validates that a password meets all requirements
@@ -42,6 +43,7 @@ export const PASSWORD_REQUIREMENTS = {
     { label: 'At least one digit', regex: /\d/ },
     {
       label: `At least one special character (${SPECIAL_CHARACTERS})`,
-      regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/ },
+      regex: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+    },
   ],
 } as const;
