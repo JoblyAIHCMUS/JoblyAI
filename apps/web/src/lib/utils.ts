@@ -65,20 +65,6 @@ export function sanitizeRedirectPath(redirectTo?: string | null): string {
   return rawValue;
 }
 
-/**
- * Format an ISO date string (e.g. "2020-05-20") for display.
- * Returns a locale-independent "d Mon YYYY" string like "20 May 2020".
- */
-export function formatDate(iso: string): string {
-  const [year, month, day] = iso.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 export function getInitials(name: string): string {
   return name
     .split(' ')
@@ -252,29 +238,38 @@ export function formatJobType(employmentType: string): string {
   return typeMap[employmentType] ?? employmentType;
 }
 
-// /**
-//  * Formats date to display format (e.g., January 15, 2026).
-//  * Handles both Date objects and string dates from API responses.
-//  */
-// export function formatDate(date: Date | string | null | undefined): string {
-//   if (!date) {
-//     return 'Unknown';
-//   }
+/**
+ * Formats date to display format (e.g., January 15, 2026).
+ * Handles both Date objects and string dates from API responses.
+ */
+export function formatDate(
+  date: Date | string | null | undefined,
+  format: 'full' | 'short' = 'full'
+): string {
+  if (!date) return 'Unknown';
 
-//   try {
-//     const dateObj = typeof date === 'string' ? new Date(date) : date;
+  try {
+    const dateObj =
+      typeof date === 'string' ? new Date(date) : date;
 
-//     // Validate date
-//     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-//       return 'Unknown';
-//     }
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return 'Unknown';
+    }
 
-//     return new Intl.DateTimeFormat(undefined, {
-//       year: 'numeric',
-//       month: 'long',
-//       day: 'numeric',
-//     }).format(dateObj);
-//   } catch {
-//     return 'Unknown';
-//   }
-// }
+    if (format === 'short') {
+      return dateObj.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(dateObj);
+  } catch {
+    return 'Unknown';
+  }
+}
