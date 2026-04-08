@@ -7,11 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DateInput } from '@/components/ui/date-input';
 import { CandidateEducation } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import {
-  EducationSchema,
-  DEGREE_OPTIONS,
-  type EducationFormData,
-} from '@/lib/validation';
+import { createEducationSchema, DEGREE_OPTIONS, type EducationFormData } from '@/lib/validation';
 
 interface EducationsProps {
   educations: CandidateEducation[];
@@ -23,6 +19,7 @@ interface EducationsProps {
 interface EducationEditFormProps {
   editItem: CandidateEducation;
   loading: boolean;
+  isNew: boolean; // true when creating, false when editing
   onSubmit: (data: EducationFormData) => Promise<void>;
   onCancel: () => void;
 }
@@ -30,20 +27,26 @@ interface EducationEditFormProps {
 function EducationEditForm({
   editItem,
   loading,
+  isNew,
   onSubmit,
   onCancel,
 }: EducationEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isCurrent, setIsCurrent] = useState(editItem.endDate ? false : true);
+  // When creating: isCurrent = true (not checked by default)
+  // When editing: isCurrent = true if no endDate, false if has endDate
+  const [isCurrent, setIsCurrent] = useState(
+    isNew ? true : editItem.endDate ? false : true
+  );
 
   const {
     control,
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors, isDirty },
   } = useForm<EducationFormData>({
-    resolver: zodResolver(EducationSchema),
+    resolver: zodResolver(createEducationSchema(isCurrent)),
     mode: 'onChange',
     defaultValues: {
       school: editItem.school || '',
@@ -57,6 +60,11 @@ function EducationEditForm({
   });
 
   const descriptionValue = watch('description');
+
+  // Revalidate endDate when isCurrent changes
+  useEffect(() => {
+    trigger('endDate');
+  }, [isCurrent, trigger]);
   const DEGREE_LABELS: Record<string, string> = {
     PHD: 'PhD',
     BACHELOR: "Bachelor's",
@@ -205,7 +213,9 @@ function EducationEditForm({
           />
         </div>
         <div className="flex-1 min-w-[150px]">          
-          <label className="block label-label-1-semi-bold mb-1">End Date</label>          
+          <label className="block label-label-1-semi-bold mb-1">
+            End Date {!isCurrent && <span className="text-red-500">*</span>}
+          </label>          
           <Controller
             name="endDate"
             control={control}
@@ -577,6 +587,7 @@ export default function Educations({
           <EducationEditForm
             editItem={editItem}
             loading={loading}
+            isNew={true}
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
           />
@@ -595,6 +606,7 @@ export default function Educations({
               <EducationEditForm
                 editItem={editItem}
                 loading={loading}
+                isNew={false}
                 onSubmit={handleSaveEdit}
                 onCancel={handleCancel}
               />

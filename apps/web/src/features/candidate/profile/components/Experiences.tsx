@@ -14,7 +14,7 @@ import {
 import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import { ExperienceSchema, type ExperienceFormData } from '@/lib/validation';
+import { createExperienceSchema, type ExperienceFormData } from '@/lib/validation';
 
 interface ExperiencesProps {
   experiences: CandidateExperience[];
@@ -26,6 +26,7 @@ interface ExperiencesProps {
 interface ExperienceEditFormProps {
   editItem: CandidateExperience;
   loading: boolean;
+  isNew: boolean; // true when creating, false when editing
   onSubmit: (data: ExperienceFormData) => Promise<void>;
   onCancel: () => void;
 }
@@ -33,20 +34,26 @@ interface ExperienceEditFormProps {
 function ExperienceEditForm({
   editItem,
   loading,
+  isNew,
   onSubmit,
   onCancel,
 }: ExperienceEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isCurrent, setIsCurrent] = useState(editItem.endDate ? false : true);
+  // When creating: isCurrent = true (not checked by default)
+  // When editing: isCurrent = true if no endDate, false if has endDate
+  const [isCurrent, setIsCurrent] = useState(
+    isNew ? true : editItem.endDate ? false : true
+  );
 
   const {
     control,
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isDirty },
+    trigger,
+    formState: { errors, isDirty, isValid },
   } = useForm<ExperienceFormData>({
-    resolver: zodResolver(ExperienceSchema),
+    resolver: zodResolver(createExperienceSchema(isCurrent)),
     mode: 'onChange',
     defaultValues: {
       jobTitle: editItem.jobTitle || '',
@@ -60,6 +67,11 @@ function ExperienceEditForm({
   });
 
   const descriptionValue = watch('description');
+
+  // Revalidate endDate when isCurrent changes
+  useEffect(() => {
+    trigger('endDate');
+  }, [isCurrent, trigger]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -184,13 +196,14 @@ function ExperienceEditForm({
                     placeholder="Select start date"
                     value={field.value}
                     onChange={field.onChange}
-                    error={errors.startDate?.message}
                   />
                 )}
               />
             </div>
             <div className="flex-1 min-w-[150px]">
-              <label className="block label-label-1-semi-bold mb-1">End Date</label>
+              <label className="block label-label-1-semi-bold mb-1">
+                End Date {!isCurrent && <span className="text-red-500">*</span>}
+              </label>
               <Controller
                 name="endDate"
                 control={control}
@@ -200,13 +213,26 @@ function ExperienceEditForm({
                     placeholder={isCurrent ? 'Present' : 'Select end date'}
                     value={field.value}
                     onChange={field.onChange}
-                    error={errors.endDate?.message}
                     disabled={isCurrent}
                   />
                 )}
               />
             </div>
           </div>
+          {errors.startDate || errors.endDate ? (
+            <div className="flex items-center gap-2 flex-wrap w-full box-border">
+              <div className="flex-1 min-w-[150px]">
+                {errors.startDate && (
+                  <p className="text-red-500 text-xs">{errors.startDate.message}</p>
+                )}
+              </div>
+              <div className="flex-1 min-w-[150px]">
+                {errors.endDate && (
+                  <p className="text-red-500 text-xs">{errors.endDate.message}</p>
+                )}
+              </div>
+            </div>
+          ) : null}
           {/* Currently Working Checkbox */}
           <div className="w-full box-border mt-2">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -218,7 +244,7 @@ function ExperienceEditForm({
                   // Clear end date when currently working is checked
                   if (e.target.checked) {
                     setValue('endDate', null);
-                  }
+                  } 
                 }}
                 className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
               />
@@ -286,7 +312,7 @@ function ExperienceEditForm({
       <div className="flex gap-2 mt-4">
         <button
           type="submit"
-          disabled={loading || !isDirty}
+          disabled={loading || !isDirty || !isValid}
           className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : 'Save'}
@@ -529,6 +555,7 @@ export default function Experiences({
           <ExperienceEditForm
             editItem={editItem}
             loading={loading}
+            isNew={true}
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
           />
@@ -547,6 +574,7 @@ export default function Experiences({
               <ExperienceEditForm
                 editItem={editItem}
                 loading={loading}
+                isNew={false}
                 onSubmit={handleSaveEdit}
                 onCancel={handleCancel}
               />

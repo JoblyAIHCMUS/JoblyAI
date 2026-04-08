@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import { Degree } from '@prisma/client';
 
@@ -55,6 +56,7 @@ export class CreateEducationDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   endDate?: string;
 
   @IsOptional()
@@ -82,10 +84,12 @@ export class UpdateEducationDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   startDate?: string;
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   endDate?: string;
 
   @IsOptional()

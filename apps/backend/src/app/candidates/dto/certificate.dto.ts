@@ -6,6 +6,7 @@ import {
   IsString,
   IsUrl,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class QueryCertificateDto {
   @IsNumber()
@@ -49,6 +50,7 @@ export class CreateCertificateDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   expirationDate?: string; // Optional: Some certs don't expire
 
   @IsOptional()
@@ -74,10 +76,12 @@ export class UpdateCertificateDto {
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   issueDate?: string;
 
   @IsOptional()
   @IsDateString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   expirationDate?: string;
 
   @IsOptional()
