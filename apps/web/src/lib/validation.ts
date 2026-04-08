@@ -91,20 +91,15 @@ export const EducationSchema = z.object({
       (val) => !val || val.length >= 2,
       'Field of study must be at least 2 characters'
     ),
-  dateRange: z
-    .object({
-      from: z.date().optional(),
-      to: z.date().optional(),
-    })
-    .optional()
-    .refine((data) => data?.from, {
-      message: 'You must select a start date',
-      path: ['from'],
-    })
-    .refine((data) => !data?.to || (data.from && data.from <= data.to), {
-      message: 'End date must be after start date',
-      path: ['to'],
-    }),
+  startDate: z.date().refine((date) => date <= new Date(), {
+    message: 'Start date cannot be in the future',
+  }),
+  endDate: z.date().optional().nullable().refine(
+    (date) => !date || date <= new Date(),
+    {
+      message: 'End date cannot be in the future',
+    }
+  ),
   grade: z
     .string()
     .optional()
@@ -121,7 +116,19 @@ export const EducationSchema = z.object({
       (val) => !val || val.length <= 500,
       'Description must not exceed 500 characters'
     ),
-});
+}).refine(
+  (data) => {
+    // If endDate is provided, it must be >= startDate
+    if (data.endDate && data.startDate) {
+      return data.endDate >= data.startDate;
+    }
+    return true;
+  },
+  {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  }
+);
 
 export type EducationFormData = z.infer<typeof EducationSchema>;
 
@@ -140,20 +147,15 @@ export const ExperienceSchema = z.object({
       (val) => !val || val.length >= 2,
       'Location must be at least 2 characters'
     ),
-  dateRange: z
-    .object({
-      from: z.date().optional(),
-      to: z.date().optional(),
-    })
-    .optional()
-    .refine((data) => data?.from, {
-      message: 'You must select a start date',
-      path: ['from'],
-    })
-    .refine((data) => !data?.to || (data.from && data.from <= data.to), {
-      message: 'End date must be after start date',
-      path: ['to'],
-    }),
+  startDate: z.date().refine((date) => date <= new Date(), {
+    message: 'Start date cannot be in the future',
+  }),
+  endDate: z.date().optional().nullable().refine(
+    (date) => !date || date <= new Date(),
+    {
+      message: 'End date cannot be in the future',
+    }
+  ),
   description: z
     .string()
     .optional()
@@ -162,7 +164,19 @@ export const ExperienceSchema = z.object({
       (val) => !val || val.length <= 500,
       'Description must not exceed 500 characters'
     ),
-});
+}).refine(
+  (data) => {
+    // If endDate is provided, it must be >= startDate
+    if (data.endDate && data.startDate) {
+      return data.endDate >= data.startDate;
+    }
+    return true;
+  },
+  {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  }
+);
 
 export type ExperienceFormData = z.infer<typeof ExperienceSchema>;
 

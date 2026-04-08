@@ -4,9 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Dot, Edit, Plus, Trash2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
+import { DateInput } from '@/components/ui/date-input';
 import { CandidateEducation } from '@/types/candidate';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 import {
   EducationSchema,
@@ -26,8 +25,6 @@ interface EducationEditFormProps {
   loading: boolean;
   onSubmit: (data: EducationFormData) => Promise<void>;
   onCancel: () => void;
-  isCurrentlyStudying?: boolean;
-  onIsCurrentlyStudyingChange?: (value: boolean) => void;
 }
 
 function EducationEditForm({
@@ -35,15 +32,15 @@ function EducationEditForm({
   loading,
   onSubmit,
   onCancel,
-  isCurrentlyStudying = false,
-  onIsCurrentlyStudyingChange,
 }: EducationEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isCurrent, setIsCurrent] = useState(editItem.endDate ? false : true);
 
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<EducationFormData>({
     resolver: zodResolver(EducationSchema),
@@ -52,10 +49,8 @@ function EducationEditForm({
       school: editItem.school || '',
       degree: editItem.degree ?? undefined,
       fieldOfStudy: editItem.fieldOfStudy || '',
-      dateRange: {
-        from: editItem.startDate ? new Date(editItem.startDate) : undefined,
-        to: editItem.endDate ? new Date(editItem.endDate) : undefined,
-      },
+      startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
+      endDate: editItem.endDate ? new Date(editItem.endDate) : null,
       grade: editItem.grade || '',
       description: editItem.description || '',
     },
@@ -85,10 +80,13 @@ function EducationEditForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-3 w-full max-w-full"
+      className="space-y-2 w-full max-w-full"
     >
       {/* Row 1 - School */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">
+          School <span className="text-red-500">*</span>
+        </label>
         <Controller
           name="school"
           control={control}
@@ -97,11 +95,10 @@ function EducationEditForm({
               <input
                 {...field}
                 placeholder="School"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                  errors.school
+                className={`w-full text-primary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.school
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                  }`}
               />
             </>
           )}
@@ -117,6 +114,9 @@ function EducationEditForm({
       {/* Row 2 - Degree & Field of Study */}
       <div className="flex items-center gap-2 flex-wrap w-full box-border">
         <div className="flex-1 min-w-[120px]">
+          <label className="block label-label-1-semi-bold mb-1">
+              Degree <span className="text-red-500">*</span>
+          </label>
           <Controller
             name="degree"
             control={control}
@@ -125,15 +125,13 @@ function EducationEditForm({
                 <select
                   value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.value || undefined)}
-                  className={`w-full break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                    !field.value
+                  className={`w-full break-words border rounded p-2 focus:outline-none focus:ring-2 ${!field.value
                       ? 'text-gray-400' //  color
                       : 'text-primary' // selected value
-                  } ${
-                    errors.degree
+                    } ${errors.degree
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                    }`}
                 >
                   <option value="" disabled hidden>
                     Select degree
@@ -149,6 +147,7 @@ function EducationEditForm({
           />
         </div>
         <div className="flex-1 min-w-[120px]">
+          <label className="block label-label-1-semi-bold mb-1">Field of Study</label>
           <Controller
             name="fieldOfStudy"
             control={control}
@@ -157,11 +156,10 @@ function EducationEditForm({
                 <input
                   {...field}
                   placeholder="Field of Study"
-                  className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                    errors.fieldOfStudy
+                  className={`w-full text-primary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.fieldOfStudy
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                    }`}
                 />
               </>
             )}
@@ -188,31 +186,78 @@ function EducationEditForm({
       ) : null}
 
       {/* Row 3 - Study Period */}
-      <div className="w-full">
-        <Controller
-          name="dateRange"
-          control={control}
-          render={({ field }) => (
-            <DateRangePicker
-              value={field.value}
-              onChange={field.onChange}
-              placeholder="Select study period"
-              error={
-                errors.dateRange?.message ||
-                errors.dateRange?.from?.message ||
-                errors.dateRange?.to?.message
+      <div className="flex items-center gap-2 flex-wrap w-full box-border">
+        <div className="flex-1 min-w-[150px]">
+          <label className="block label-label-1-semi-bold mb-1">
+            Start Date <span className="text-red-500">*</span> 
+          </label>
+          <Controller
+            name="startDate"
+            control={control}
+            render={({ field }) => (
+              <DateInput
+                label=""
+                placeholder="Select start date"
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        <div className="flex-1 min-w-[150px]">          
+          <label className="block label-label-1-semi-bold mb-1">End Date</label>          
+          <Controller
+            name="endDate"
+            control={control}
+            render={({ field }) => (
+              <DateInput
+                label=""
+                placeholder={isCurrent ? 'Present' : 'Select end date'}
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isCurrent}
+              />
+            )}
+          />
+        </div>
+      </div>
+      {errors.startDate || errors.endDate ? (
+        <div className="flex items-center gap-2 flex-wrap w-full box-border">
+          <div className="flex-1 min-w-[150px]">
+            {errors.startDate && (
+              <p className="text-red-500 text-xs">{errors.startDate.message}</p>
+            )}
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            {errors.endDate && (
+              <p className="text-red-500 text-xs">{errors.endDate.message}</p>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Currently Studying Checkbox */}
+      <div className="w-full box-border">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isCurrent}
+            onChange={(e) => {
+              setIsCurrent(e.target.checked);
+              // Clear end date when currently studying is checked
+              if (e.target.checked) {
+                setValue('endDate', null);
               }
-              label=""
-              isCurrentlyWorking={isCurrentlyStudying}
-              onIsCurrentlyWorkingChange={onIsCurrentlyStudyingChange}
-              checkboxLabel="I am currently studying here"
-            />
-          )}
-        />
+            }}
+            className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
+          />
+          <span className="text-tertiary">Currently studying here</span>
+        </label>
       </div>
 
       {/* Grade */}
       <div className="w-full box-border">
+        <label className="block label-label-1-bold mb-1">Grade (GPA)</label>
         <Controller
           name="grade"
           control={control}
@@ -241,11 +286,10 @@ function EducationEditForm({
                     field.onChange(num.toFixed(2));
                   }
                 }}
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                  errors.grade
+                className={`w-full text-primary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.grade
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                  }`}
               />
               {errors.grade && (
                 <p className="text-red-500 text-xs mt-1">
@@ -259,6 +303,7 @@ function EducationEditForm({
 
       {/* Description */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">Description</label>
         <Controller
           name="description"
           control={control}
@@ -268,11 +313,10 @@ function EducationEditForm({
                 {...field}
                 ref={textareaRef}
                 placeholder="Description"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
-                  errors.description
+                className={`w-full text-primary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${errors.description
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                  }`}
                 style={{ maxHeight: '200px', resize: 'vertical' }}
               />
               {errors.description && (
@@ -373,7 +417,7 @@ function EducationView({
         <div className="text-tertiary break-words">{edu.description}</div>
       )}
     </>
-  );            
+  );
 }
 
 const MAX_DISPLAY = 3;
@@ -395,7 +439,6 @@ export default function Educations({
   const [isAdding, setIsAdding] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [isCurrentlyStudying, setIsCurrentlyStudying] = useState(false);
 
   // Lock body scroll when editing or adding
   useEffect(() => {
@@ -413,7 +456,6 @@ export default function Educations({
   const handleAdd = () => {
     setIsAdding(true);
     setEditingIdx(-1);
-    setIsCurrentlyStudying(false);
     const createEmptyEducation = (): CandidateEducation => ({
       id: Date.now(),
       school: '',
@@ -436,7 +478,6 @@ export default function Educations({
   const handleEdit = (idx: number) => {
     setEditingIdx(idx);
     setEditItem({ ...educations[idx] });
-    setIsCurrentlyStudying(!educations[idx].endDate);
     setError(null);
   };
 
@@ -453,13 +494,11 @@ export default function Educations({
         ...editItem,
         ...formData,
         degree: formData.degree,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
+        startDate: formData.startDate
+          ? formData.startDate.toISOString()
           : '',
-        endDate: isCurrentlyStudying
-          ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+        endDate: formData.endDate
+          ? formData.endDate.toISOString()
           : '',
       });
       setEditingIdx(null);
@@ -480,13 +519,11 @@ export default function Educations({
         ...editItem,
         ...formData,
         degree: formData.degree,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
+        startDate: formData.startDate
+          ? formData.startDate.toISOString()
           : '',
-        endDate: isCurrentlyStudying
-          ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+        endDate: formData.endDate
+          ? formData.endDate.toISOString()
           : '',
       });
       setIsAdding(false);
@@ -503,7 +540,6 @@ export default function Educations({
     setEditItem(null);
     setError(null);
     setIsAdding(false);
-    setIsCurrentlyStudying(false);
   };
 
   const handleConfirmDelete = async () => {
@@ -543,8 +579,6 @@ export default function Educations({
             loading={loading}
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
-            isCurrentlyStudying={isCurrentlyStudying}
-            onIsCurrentlyStudyingChange={setIsCurrentlyStudying}
           />
           {error && <div className="text-danger text-sm mt-2">{error}</div>}
         </div>
@@ -563,8 +597,6 @@ export default function Educations({
                 loading={loading}
                 onSubmit={handleSaveEdit}
                 onCancel={handleCancel}
-                isCurrentlyStudying={isCurrentlyStudying}
-                onIsCurrentlyStudyingChange={setIsCurrentlyStudying}
               />
             ) : (
               <EducationView

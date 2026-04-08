@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter, Lexend_Deca, Be_Vietnam_Pro } from 'next/font/google';
 import type { ReactNode } from 'react';
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 import './global.css';
 import './style.css';
 import { cn } from '@/lib/utils';

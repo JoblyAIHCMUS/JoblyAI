@@ -11,7 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 import { ExperienceSchema, type ExperienceFormData } from '@/lib/validation';
@@ -28,8 +28,6 @@ interface ExperienceEditFormProps {
   loading: boolean;
   onSubmit: (data: ExperienceFormData) => Promise<void>;
   onCancel: () => void;
-  isCurrentlyWorking?: boolean;
-  onIsCurrentlyWorkingChange?: (value: boolean) => void;
 }
 
 function ExperienceEditForm({
@@ -37,15 +35,15 @@ function ExperienceEditForm({
   loading,
   onSubmit,
   onCancel,
-  isCurrentlyWorking = false,
-  onIsCurrentlyWorkingChange,
 }: ExperienceEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isCurrent, setIsCurrent] = useState(editItem.endDate ? false : true);
 
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<ExperienceFormData>({
     resolver: zodResolver(ExperienceSchema),
@@ -55,10 +53,8 @@ function ExperienceEditForm({
       companyName: editItem.companyName || '',
       type: editItem.type || '',
       location: editItem.location || '',
-      dateRange: {
-        from: editItem.startDate ? new Date(editItem.startDate) : undefined,
-        to: editItem.endDate ? new Date(editItem.endDate) : undefined,
-      },
+      startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
+      endDate: editItem.endDate ? new Date(editItem.endDate) : null,
       description: editItem.description || '',
     },
   });
@@ -76,10 +72,13 @@ function ExperienceEditForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-3 w-full max-w-full"
+      className="space-y-2 w-full max-w-full"
     >
       {/* Row 1 - Job Title */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">
+          Job Title <span className="text-red-500">*</span>
+        </label>
         <Controller
           name="jobTitle"
           control={control}
@@ -88,11 +87,10 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Job Title"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                  errors.jobTitle
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.jobTitle
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-accent-primary'
+                  }`}
               />
               {errors.jobTitle && (
                 <p className="text-red-500 text-xs mt-1">
@@ -108,6 +106,9 @@ function ExperienceEditForm({
       <div className="flex flex-col gap-3 w-full box-border">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex-1 min-w-[150px]">
+            <label className="block label-label-1-semi-bold mb-1">
+              Company <span className="text-red-500">*</span>
+            </label>
             <Controller
               name="companyName"
               control={control}
@@ -116,11 +117,10 @@ function ExperienceEditForm({
                   <input
                     {...field}
                     placeholder="Company"
-                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                      errors.companyName
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-accent-primary'
-                    }`}
+                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.companyName
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-accent-primary'
+                      }`}
                   />
                   {errors.companyName && (
                     <p className="text-red-500 text-xs mt-1">
@@ -133,6 +133,9 @@ function ExperienceEditForm({
           </div>
           <Dot size={16} className="flex-shrink-0" />
           <div className="min-w-20 flex-1 max-w-[200px]">
+            <label className="block label-label-1-semi-bold mb-1">
+              Type <span className="text-red-500">*</span>
+            </label>
             <Controller
               name="type"
               control={control}
@@ -140,11 +143,10 @@ function ExperienceEditForm({
                 <>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger
-                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${
-                        errors.type
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'focus:ring-accent-primary'
-                      }`}
+                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${errors.type
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'focus:ring-accent-primary'
+                        }`}
                     >
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
@@ -168,30 +170,67 @@ function ExperienceEditForm({
           </div>
         </div>
         <div className="w-full">
-          <Controller
-            name="dateRange"
-            control={control}
-            render={({ field }) => (
-              <DateRangePicker
-                value={field.value}
-                onChange={field.onChange}
-                placeholder="Select Employment Period"
-                error={
-                  errors.dateRange?.message ||
-                  errors.dateRange?.from?.message ||
-                  errors.dateRange?.to?.message
-                }
-                label=""
-                isCurrentlyWorking={isCurrentlyWorking}
-                onIsCurrentlyWorkingChange={onIsCurrentlyWorkingChange}
+          <div className="flex items-center gap-2 flex-wrap w-full box-border">
+            <div className="flex-1 min-w-[150px]">
+              <label className="block label-label-1-semi-bold mb-1">
+                Start Date <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="startDate"
+                control={control}
+                render={({ field }) => (
+                  <DateInput
+                    label=""
+                    placeholder="Select start date"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.startDate?.message}
+                  />
+                )}
               />
-            )}
-          />
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <label className="block label-label-1-semi-bold mb-1">End Date</label>
+              <Controller
+                name="endDate"
+                control={control}
+                render={({ field }) => (
+                  <DateInput
+                    label=""
+                    placeholder={isCurrent ? 'Present' : 'Select end date'}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.endDate?.message}
+                    disabled={isCurrent}
+                  />
+                )}
+              />
+            </div>
+          </div>
+          {/* Currently Working Checkbox */}
+          <div className="w-full box-border mt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCurrent}
+                onChange={(e) => {
+                  setIsCurrent(e.target.checked);
+                  // Clear end date when currently working is checked
+                  if (e.target.checked) {
+                    setValue('endDate', null);
+                  }
+                }}
+                className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
+              />
+              <span className="text-tertiary">I currently work here</span>
+            </label>
+          </div>
         </div>
       </div>
 
       {/* Row 3 - Location */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">Location</label>
         <Controller
           name="location"
           control={control}
@@ -200,11 +239,10 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Location"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                  errors.location
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.location
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-accent-primary'
+                  }`}
               />
               {errors.location && (
                 <p className="text-red-500 text-xs mt-1">
@@ -218,6 +256,7 @@ function ExperienceEditForm({
 
       {/* Row 4 - Description */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">Description</label>
         <Controller
           name="description"
           control={control}
@@ -227,11 +266,10 @@ function ExperienceEditForm({
                 {...field}
                 ref={textareaRef}
                 placeholder="Description"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
-                  errors.description
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
-                }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${errors.description
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-accent-primary'
+                  }`}
                 style={{ maxHeight: '200px', resize: 'vertical' }}
               />
               {errors.description && (
@@ -310,16 +348,16 @@ function ExperienceView({
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
             ? new Date(exp.startDate).toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric',
-              })
+              month: 'short',
+              year: 'numeric',
+            })
             : 'Start date'}
           {' - '}
           {exp.endDate
             ? new Date(exp.endDate).toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric',
-              })
+              month: 'short',
+              year: 'numeric',
+            })
             : 'Present'}
         </span>
       </div>
@@ -348,7 +386,6 @@ export default function Experiences({
   const [isAdding, setIsAdding] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(false);
 
   // Lock body scroll when editing or adding
   useEffect(() => {
@@ -383,7 +420,6 @@ export default function Experiences({
   const handleAdd = () => {
     setIsAdding(true);
     setEditingIdx(-1);
-    setIsCurrentlyWorking(false);
     const createEmptyExperience = (): CandidateExperience => ({
       id: Date.now(),
       jobTitle: '',
@@ -405,8 +441,6 @@ export default function Experiences({
     setEditingIdx(idx);
     setEditItem({ ...experiences[idx] });
     setError(null);
-    // Auto-set isCurrentlyWorking if no endDate
-    setIsCurrentlyWorking(!experiences[idx].endDate);
   };
 
   const handleSaveEdit = async (formData: ExperienceFormData) => {
@@ -420,13 +454,11 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
+        startDate: formData.startDate
+          ? formData.startDate.toISOString()
           : '',
-        endDate: isCurrentlyWorking
-          ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+        endDate: formData.endDate
+          ? formData.endDate.toISOString()
           : '',
         description: formData.description,
       });
@@ -451,13 +483,11 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
+        startDate: formData.startDate
+          ? formData.startDate.toISOString()
           : '',
-        endDate: isCurrentlyWorking
-          ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+        endDate: formData.endDate
+          ? formData.endDate.toISOString()
           : '',
         description: formData.description,
       });
@@ -475,7 +505,6 @@ export default function Experiences({
     setEditItem(null);
     setError(null);
     setIsAdding(false);
-    setIsCurrentlyWorking(false);
   };
 
   return (
@@ -502,8 +531,6 @@ export default function Experiences({
             loading={loading}
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
-            isCurrentlyWorking={isCurrentlyWorking}
-            onIsCurrentlyWorkingChange={setIsCurrentlyWorking}
           />
           {error && <div className="text-danger text-sm mt-2">{error}</div>}
         </div>
@@ -522,8 +549,6 @@ export default function Experiences({
                 loading={loading}
                 onSubmit={handleSaveEdit}
                 onCancel={handleCancel}
-                isCurrentlyWorking={isCurrentlyWorking}
-                onIsCurrentlyWorkingChange={setIsCurrentlyWorking}
               />
             ) : (
               <ExperienceView
