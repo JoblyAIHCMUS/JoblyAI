@@ -16,6 +16,7 @@ const mockJobDbRecord = vi.hoisted(() => ({
   categoryId: 1,
   companyId: 1,
   postedById: 'employer123',
+  status: 'OPEN',
   createdAt: new Date(),
   updatedAt: new Date(),
   category: { id: 1, name: 'Engineering' },
@@ -536,7 +537,7 @@ describe('JobsService', () => {
 
       // Assert
       expect(mockPrisma.jobPosting.findMany).toHaveBeenCalledWith({
-        where: { categoryId: 1 },
+        where: { categoryId: 1, status: 'OPEN' },
         include: expect.any(Object),
       });
       expect(result).toHaveLength(1);

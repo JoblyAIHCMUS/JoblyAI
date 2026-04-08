@@ -15,6 +15,7 @@ import type {
   EmploymentType,
   RequirementImportance,
   JobPosting,
+  JobStatus,
 } from '@/types/job';
 
 export interface PaginatedJobsResponse {
@@ -38,6 +39,7 @@ export interface ListJobsQuery {
   salaryMax?: number;
   skills?: string[];
   categories?: number[];
+  status?: JobStatus[];
 }
 
 // Payload types for create/update operations

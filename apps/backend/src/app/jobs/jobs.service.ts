@@ -44,9 +44,17 @@ export class JobsService {
       salaryMax,
       skills,
       categories,
+      status,
     } = query;
 
     const whereClause: Prisma.JobPostingWhereInput = {};
+
+    // Default to OPEN status if not provided (candidates should only see published jobs)
+    if (status && status.length > 0) {
+      whereClause.status = { in: status };
+    } else {
+      whereClause.status = 'OPEN';
+    }
 
     if (q) {
       whereClause.OR = [
@@ -195,6 +203,10 @@ export class JobsService {
       },
     });
     if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+    // Prevent public access to DRAFT and CLOSED jobs - only OPEN jobs are visible
+    if (job.status !== 'OPEN') {
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
     return this.mapToJobResponse(job);
@@ -365,7 +377,11 @@ export class JobsService {
     categoryId: number
   ): Promise<JobPostingInterface[]> {
     const jobs = await this.prisma.jobPosting.findMany({
-      where: { categoryId },
+      where: {
+        categoryId,
+        // Only return OPEN jobs for public category view
+        status: 'OPEN',
+      },
       include: {
         category: true,
         company: true,

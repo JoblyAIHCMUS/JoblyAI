@@ -9,7 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EmploymentType } from '@prisma/client';
+import { EmploymentType, JobStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 
 export class GetJobsQueryDTO {
@@ -111,4 +111,21 @@ export class GetJobsQueryDTO {
   @IsArray()
   @IsInt({ each: true })
   categories?: number[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    // Handle: status[]=OPEN&status[]=CLOSED (already parsed into array)
+    if (Array.isArray(value)) {
+      return value.filter((v) => v); // Remove empty strings
+    }
+    // Handle: status=OPEN (single value)
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsEnum(JobStatus, { each: true })
+  status?: JobStatus[];
 }

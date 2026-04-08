@@ -19,7 +19,7 @@ export function AuthLeftColumn() {
         </div>
         <div>
           <p className="text-2xl font-bold text-white">100K+</p>
-          <p className="text-sm text-white/80">People got hired</p>
+          <p className="text-sm text-white">People got hired</p>
         </div>
       </div>
 
