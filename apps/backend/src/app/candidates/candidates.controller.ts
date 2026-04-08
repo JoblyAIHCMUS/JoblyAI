@@ -19,7 +19,7 @@ import { UpdateSkillDto, CreateSkillDto } from './dto/skill.dto';
 import { UpdateContactDto, CreateContactDto } from './dto/contact.dto';
 import { UpdateSocialDto, CreateSocialDto } from './dto/social.dto';
 import { UpdateEducationDto } from './dto/education.dto';
-import { UpdateExperienceDto } from './dto/experience.dto';
+import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { UpdateResumeDto } from './dto/resume.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
@@ -98,7 +98,7 @@ export class CandidatesController {
   @Roles('candidate')
   async createExperienceDetail(
     @Request() req: AuthRequest,
-    @Body() createDto: Omit<Prisma.ExperienceCreateInput, 'candidate'>
+    @Body() createDto: CreateExperienceDto
   ) {
     const { id: userId } = req.user;
 

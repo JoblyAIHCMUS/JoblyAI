@@ -1,12 +1,19 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { CandidateContactType } from '@prisma/client';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class QueryContactDto {
   @IsNotEmpty()
   id!: number;
 
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsEnum(CandidateContactType)
+  type?: CandidateContactType;
 
   @IsString()
   @IsNotEmpty()
@@ -19,8 +26,8 @@ export class QueryContactDto {
 
 export class CreateContactDto {
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsEnum(CandidateContactType)
+  type?: CandidateContactType;
 
   @IsString()
   @IsNotEmpty()
@@ -36,8 +43,8 @@ export class UpdateContactDto {
   id!: number;
 
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsEnum(CandidateContactType)
+  type?: CandidateContactType;
 
   @IsOptional()
   @IsString()

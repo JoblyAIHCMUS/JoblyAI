@@ -136,6 +136,7 @@ model Skill {
   id           Int              @id @default(autoincrement())
   name         String           @unique
   requirements JobRequirement[]
+  candidateSkills CandidateSkill[]
 }
 
 model JobPosting {
@@ -210,7 +211,7 @@ model Experience {
   startDate   DateTime
   endDate     DateTime? // Nullable: If null, it means "Present" (currently working)
   description String? // Optional description of the work experience
-  type        String? // Optional. FULL_TIME, PART_TIME, INTERNSHIP + ONSITE or REMOTE or HYBRID
+  type        CandidateExperienceType?
 
 
   createdAt DateTime @default(now())
@@ -238,14 +239,17 @@ model CandidateSkill {
   candidateId String
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  title       String
-  level       String?  // novice, beginner, intermediate, advanced, master
+  skillId     Int
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  level       CandidateSkillLevel?
   years       Int?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([candidateId])
+  @@index([skillId])
+  @@unique([candidateId, skillId])
 }
 
 model CandidateContact {
@@ -253,7 +257,7 @@ model CandidateContact {
   candidateId String
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  type        String?  // PHONE, EMAIL, FAX, WEBHOOK, anything stringable really
+  type        CandidateContactType?
   value       String
   isPrimary   Boolean  @default(false)
 
@@ -268,7 +272,7 @@ model CandidateSocial {
   candidateId String
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  platform    String
+  platform    CandidateSocialPlatform
   url         String
   username    String?
 
@@ -416,5 +420,48 @@ model JobView {
 enum Gender {
   MALE
   FEMALE
+  OTHER
+}
+
+enum CandidateExperienceType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+  ONSITE
+  REMOTE
+  HYBRID
+  OTHER
+}
+
+enum CandidateSkillLevel {
+  NOVICE
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  MASTER
+}
+
+enum CandidateContactType {
+  PHONE
+  EMAIL
+  FAX
+  WEBSITE
+  LINKEDIN
+  GITHUB
+  OTHER
+}
+
+enum CandidateSocialPlatform {
+  LINKEDIN
+  GITHUB
+  FACEBOOK
+  TWITTER
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  DRIBBBLE
+  BEHANCE
   OTHER
 }

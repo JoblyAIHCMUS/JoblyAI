@@ -1,12 +1,18 @@
-import { IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { CandidateSocialPlatform } from '@prisma/client';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 export class QuerySocialDto {
   @IsNotEmpty()
   id!: number;
 
-  @IsString()
-  @IsNotEmpty()
-  platform!: string;
+  @IsEnum(CandidateSocialPlatform)
+  platform!: CandidateSocialPlatform;
 
   @IsString()
   @IsNotEmpty()
@@ -18,9 +24,8 @@ export class QuerySocialDto {
 }
 
 export class CreateSocialDto {
-  @IsString()
-  @IsNotEmpty()
-  platform!: string;
+  @IsEnum(CandidateSocialPlatform)
+  platform!: CandidateSocialPlatform;
 
   @IsString()
   @IsNotEmpty()
@@ -37,8 +42,8 @@ export class UpdateSocialDto {
   id!: number;
 
   @IsOptional()
-  @IsString()
-  platform?: string;
+  @IsEnum(CandidateSocialPlatform)
+  platform?: CandidateSocialPlatform;
 
   @IsOptional()
   @IsString()

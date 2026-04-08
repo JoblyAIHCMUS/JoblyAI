@@ -22,7 +22,8 @@ import { CandidateQueryResponseDto } from './dto/candidate.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
 import { UpdateEducationDto } from './dto/education.dto';
-import { UpdateExperienceDto } from './dto/experience.dto';
+import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
+import { CreateSkillDto, UpdateSkillDto } from './dto/skill.dto';
 
 @Injectable()
 export class CandidatesService {
@@ -57,6 +58,42 @@ export class CandidatesService {
     return this.toPrismaDateTime(value, fieldName);
   }
 
+  private normalizeSkillName(skillName: string): string {
+    return skillName.trim().replace(/\s+/g, ' ');
+  }
+
+  private async resolveSkillIdFromInput(input: {
+    skillId?: number;
+    title?: string;
+  }): Promise<number> {
+    if (input.skillId !== undefined) {
+      const skillById = await this.prismaClient.skill.findUnique({
+        where: { id: input.skillId },
+        select: { id: true },
+      });
+
+      if (!skillById) {
+        throw new BadRequestException(`Skill ${input.skillId} does not exist.`);
+      }
+
+      return skillById.id;
+    }
+
+    if (input.title && input.title.trim()) {
+      const normalizedSkillName = this.normalizeSkillName(input.title);
+      const skillByTitle = await this.prismaClient.skill.upsert({
+        where: { name: normalizedSkillName },
+        update: {},
+        create: { name: normalizedSkillName },
+        select: { id: true },
+      });
+
+      return skillByTitle.id;
+    }
+
+    throw new BadRequestException('Either skillId or title is required.');
+  }
+
   async getProfileDetails(userId: string): Promise<CandidateQueryResponseDto> {
     const user = await this.prismaClient.user.findUnique({
       where: { id: userId },
@@ -66,7 +103,11 @@ export class CandidatesService {
         certificates: true,
         resumes: true,
         candidateDescription: true,
-        candidateSkills: true,
+        candidateSkills: {
+          include: {
+            skill: true,
+          },
+        },
         candidateContacts: true,
         candidateSocials: true,
       },
@@ -104,6 +145,7 @@ export class CandidatesService {
         ...exp,
         companyName: exp.companyName ?? '',
         jobTitle: exp.jobTitle ?? '',
+        type: exp.type ?? undefined,
         location: exp.location ?? '',
         description: exp.description ?? '',
         startDate: exp.startDate.toISOString(),
@@ -146,7 +188,8 @@ export class CandidatesService {
         : undefined,
       skills: user.candidateSkills.map((skill) => ({
         id: skill.id,
-        title: skill.title,
+        skillId: skill.skillId,
+        title: skill.skill.name,
         level: skill.level ?? undefined,
         years: skill.years ?? undefined,
       })),
@@ -257,7 +300,7 @@ export class CandidatesService {
   // Experience
   async createExperience(
     userId: string,
-    createDto: Omit<Prisma.ExperienceCreateInput, 'candidate'>
+    createDto: CreateExperienceDto
   ): Promise<Experience> {
     const { startDate, endDate, ...rest } = createDto;
 
@@ -611,21 +654,64 @@ export class CandidatesService {
   // Skill
   async createSkill(
     userId: string,
-    createDto: Omit<Prisma.CandidateSkillCreateInput, 'candidate'>
-  ): Promise<CandidateSkill> {
-    return this.prismaClient.candidateSkill.create({
-      data: {
-        ...createDto,
-        candidate: { connect: { id: userId } },
-      },
+    createDto: CreateSkillDto
+  ): Promise<{
+    id: number;
+    skillId: number;
+    title: string;
+    level?: CandidateSkill['level'];
+    years?: number;
+  }> {
+    const skillId = await this.resolveSkillIdFromInput({
+      skillId: createDto.skillId,
+      title: createDto.title,
     });
+
+    try {
+      const createdSkill = await this.prismaClient.candidateSkill.create({
+        data: {
+          candidate: { connect: { id: userId } },
+          skill: { connect: { id: skillId } },
+          level: createDto.level,
+          years: createDto.years,
+        },
+        include: {
+          skill: true,
+        },
+      });
+
+      return {
+        id: createdSkill.id,
+        skillId: createdSkill.skillId,
+        title: createdSkill.skill.name,
+        level: createdSkill.level ?? undefined,
+        years: createdSkill.years ?? undefined,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException(
+          'This skill is already added for the candidate.'
+        );
+      }
+
+      throw error;
+    }
   }
 
   async updateSkill(
     userId: string,
-    updateDto: Prisma.CandidateSkillUpdateInput & { id: number }
-  ): Promise<CandidateSkill> {
-    const { id, ...data } = updateDto;
+    updateDto: UpdateSkillDto
+  ): Promise<{
+    id: number;
+    skillId: number;
+    title: string;
+    level?: CandidateSkill['level'];
+    years?: number;
+  }> {
+    const { id, title, skillId, level, years } = updateDto;
     const existing = await this.prismaClient.candidateSkill.findFirst({
       where: { id, candidateId: userId },
     });
@@ -634,10 +720,49 @@ export class CandidatesService {
       throw new NotFoundException(`Skill ${id} not found or access denied.`);
     }
 
-    return this.prismaClient.candidateSkill.update({
-      where: { id },
-      data,
-    });
+    const resolvedSkillId =
+      skillId === undefined && title === undefined
+        ? undefined
+        : await this.resolveSkillIdFromInput({ skillId, title });
+
+    try {
+      const updatedSkill = await this.prismaClient.candidateSkill.update({
+        where: { id },
+        data: {
+          ...(resolvedSkillId === undefined
+            ? {}
+            : {
+                skill: {
+                  connect: { id: resolvedSkillId },
+                },
+              }),
+          ...(level === undefined ? {} : { level }),
+          ...(years === undefined ? {} : { years }),
+        },
+        include: {
+          skill: true,
+        },
+      });
+
+      return {
+        id: updatedSkill.id,
+        skillId: updatedSkill.skillId,
+        title: updatedSkill.skill.name,
+        level: updatedSkill.level ?? undefined,
+        years: updatedSkill.years ?? undefined,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException(
+          'This skill is already added for the candidate.'
+        );
+      }
+
+      throw error;
+    }
   }
 
   async deleteSkill(userId: string, skillId: number): Promise<string> {
