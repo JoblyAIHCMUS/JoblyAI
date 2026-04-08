@@ -20,6 +20,7 @@ import { useCreateApplication } from '@/api-hook/application/useCreateApplicatio
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
 import type { CandidateResume } from '@/types/candidate';
+import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 
 export interface JobApplication {
   id: number;
@@ -42,14 +43,6 @@ interface SubmitApplicationModalProps {
   onSuccess?: (message: string) => void;
   onError?: (error: string) => void;
 }
-
-const formatJobType = (type: string): string => {
-  return type
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('-');
-};
 
 export const SubmitApplicationModal = ({
   isOpen,
