@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -80,11 +81,11 @@ export default function JobListingEditPage() {
     error: submitError,
   } = useUpdateJob({
     onSuccess: () => {
-      alert('Job updated successfully!');
+      toast.success('Job updated successfully!');
       router.replace(`/employer/job-listing/${id}`);
     },
     onError: (err) => {
-      alert('Failed to update job');
+      toast.error('Failed to update job. Please try again.');
     },
   });
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
@@ -118,11 +119,12 @@ export default function JobListingEditPage() {
       setCurrency(jobData.currency ? jobData.currency.toLowerCase() : 'none');
       setSalaryMin(jobData.salaryMin ? jobData.salaryMin.toString() : '');
       setSalaryMax(jobData.salaryMax ? jobData.salaryMax.toString() : '');
-      // Backend only provides skill names, map to SkillEntry with default importance
+      // Backend provides requirements with skill details, map to SkillEntry
       setSkills(
-        jobData.skills.map((skillName) => ({
-          name: skillName,
-          importance: 'OPTIONAL' as const,
+        (jobData.requirements || []).map((req) => ({
+          name: req.skillName,
+          importance: req.importance,
+          minYearsExperience: req.minYearsExperience ?? undefined,
         }))
       );
     }

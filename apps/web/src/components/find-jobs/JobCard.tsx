@@ -144,14 +144,14 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
               >
                 {formatJobType(job.type)}
               </span>
-              {job.skills.map((skill) => (
+              {job.requirements.map((requirement) => (
                 <span
-                  key={skill}
+                  key={requirement.skillId}
                   className={`inline-flex items-center rounded-full border px-2 py-1 label-label-2-semi-bold ${getColorForSkill(
-                    skill
+                    requirement.skillName
                   )}`}
                 >
-                  {skill}
+                  {requirement.skillName}
                 </span>
               ))}
             </div>

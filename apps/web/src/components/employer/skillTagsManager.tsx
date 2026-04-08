@@ -51,6 +51,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
     useState<SkillImportance>('REQUIRED');
   const [newMinYears, setNewMinYears] = useState('');
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(-1);
+  const [showDropdown, setShowDropdown] = useState(false);
   const skillInputRef = useRef<HTMLInputElement>(null);
   const { results: searchResults, search } = useSearchSkills();
 
@@ -85,6 +86,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   const handleSelectFromDropdown = (skillName: string) => {
     setNewSkillName(skillName);
     setSelectedDropdownIndex(-1);
+    setShowDropdown(false);
   };
 
   const handleRemove = (skillName: string) => {
@@ -99,11 +101,10 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
         filteredResults[selectedDropdownIndex]
       ) {
         handleSelectFromDropdown(filteredResults[selectedDropdownIndex].name);
-      } else {
-        handleAdd();
       }
     } else if (e.key === 'Escape') {
       setSelectedDropdownIndex(-1);
+      setShowDropdown(false);
       if (newSkillName.length === 0) {
         setIsAdding(false);
         setNewMinYears('');
@@ -123,7 +124,10 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
     setNewSkillName(value);
     setSelectedDropdownIndex(-1);
     if (value.trim()) {
+      setShowDropdown(true);
       search(value);
+    } else {
+      setShowDropdown(false);
     }
   };
 
@@ -151,23 +155,25 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                 autoFocus
                 autoComplete="off"
               />
-              {newSkillName.trim() && filteredResults.length > 0 && (
-                <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {filteredResults.map((skill, index) => (
-                    <div
-                      key={skill.id}
-                      onClick={() => handleSelectFromDropdown(skill.name)}
-                      className={`px-3 py-2 cursor-pointer transition-colors ${
-                        index === selectedDropdownIndex
-                          ? 'bg-primary/20 text-primary body-body-1-medium'
-                          : 'hover:bg-slate-100'
-                      }`}
-                    >
-                      {skill.name}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {newSkillName.trim() &&
+                filteredResults.length > 0 &&
+                showDropdown && (
+                  <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {filteredResults.map((skill, index) => (
+                      <div
+                        key={skill.id}
+                        onClick={() => handleSelectFromDropdown(skill.name)}
+                        className={`px-3 py-2 cursor-pointer transition-colors ${
+                          index === selectedDropdownIndex
+                            ? 'bg-primary/20 text-primary body-body-1-medium'
+                            : 'hover:bg-slate-100'
+                        }`}
+                      >
+                        {skill.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
             <Select
               value={newImportance}
@@ -215,6 +221,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                 setNewSkillName('');
                 setNewMinYears('');
                 setSelectedDropdownIndex(-1);
+                setShowDropdown(false);
               }}
             >
               Cancel

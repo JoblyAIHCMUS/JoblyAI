@@ -1,4 +1,8 @@
-import { EmploymentType, JobStatus } from '@prisma/client';
+import {
+  EmploymentType,
+  JobStatus,
+  RequirementImportance,
+} from '@prisma/client';
 
 export interface CompanyInfo {
   id: number;
@@ -8,6 +12,13 @@ export interface CompanyInfo {
   industry: string | null;
   description: string | null;
   logoUrl: string | null;
+}
+
+export interface JobRequirement {
+  skillId: number;
+  skillName: string;
+  importance: RequirementImportance;
+  minYearsExperience: number | null;
 }
 
 export interface JobPosting {
@@ -20,7 +31,7 @@ export interface JobPosting {
   location: string | null;
   remote: boolean;
   type: EmploymentType;
-  skills: string[];
+  requirements: JobRequirement[];
   salaryMin: number | null;
   salaryMax: number | null;
   currency: string | null;

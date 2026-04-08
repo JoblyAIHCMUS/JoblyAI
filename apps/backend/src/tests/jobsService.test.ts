@@ -86,7 +86,9 @@ describe('JobsService', () => {
 
       // Verify mapToJobResponse worked correctly
       expect(result.employerId).toBe('employer123');
-      expect(result.skills).toEqual(['TypeScript', 'NestJS']);
+      expect(result.requirements).toHaveLength(2);
+      expect(result.requirements[0].skillName).toBe('TypeScript');
+      expect(result.requirements[1].skillName).toBe('NestJS');
       expect(result).not.toHaveProperty('postedById');
     });
 
@@ -152,7 +154,9 @@ describe('JobsService', () => {
 
       // Verify mapping worked
       expect(result.employerId).toBe(userId);
-      expect(result.skills).toEqual(['TypeScript', 'NestJS']);
+      expect(result.requirements).toHaveLength(2);
+      expect(result.requirements[0].skillName).toBe('TypeScript');
+      expect(result.requirements[1].skillName).toBe('NestJS');
       expect(result).not.toHaveProperty('postedById');
     });
 
@@ -190,7 +194,7 @@ describe('JobsService', () => {
       );
 
       // Assert: Verify mapToJobResponse handled the missing/null data
-      expect(result.skills).toEqual([]); // Should default to empty array
+      expect(result.requirements).toEqual([]); // Should default to empty array
       expect(result.salaryMin).toBeNull();
       expect(result.salaryMax).toBeNull();
     });

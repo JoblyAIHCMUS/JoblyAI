@@ -193,282 +193,289 @@ export default function EmployerNewJobPage() {
         Fill in the details to create a new job posting.
       </p>
 
-      <Stepper
-        steps={POST_JOB_STEPS}
-        onComplete={handleSubmit((data) =>
-          handleComplete(data as unknown as JobPostingFormData)
-        )}
-        canProceed={canProceed}
-        loading={
-          creatingJob ||
-          skillsLoading ||
-          categoriesLoading ||
-          employerProfileLoading
-        }
-      >
-        {/* Step 1: Basic Information */}
-        <div className="space-y-8 max-w-2xl mx-auto">
-          {/* Job Title */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label htmlFor="title" className="label-label-1-semibold">
-                Job Title <span className="text-red-500">*</span>
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Be specific - this is the first thing candidates see.
-              </p>
-            </div>
-            <div className="space-y-1">
-              <Input
-                id="title"
-                placeholder="e.g. Software Engineer"
-                className={`h-12 text-base ${
-                  errors.title ? 'border-red-500' : ''
-                }`}
-                {...register('title')}
-              />
-              {errors.title && (
-                <p className="text-sm text-red-500">{errors.title.message}</p>
-              )}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Type of Employment */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div>
-              <Label className="label-label-1-semibold">
-                Type of employment <span className="text-red-500">*</span>
-              </Label>
-              {errors.type && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errors.type.message}
+      <form onSubmit={handleSubmit(handleComplete)}>
+        <Stepper
+          steps={POST_JOB_STEPS}
+          canProceed={canProceed}
+          loading={
+            creatingJob ||
+            skillsLoading ||
+            categoriesLoading ||
+            employerProfileLoading
+          }
+        >
+          {/* Step 1: Basic Information */}
+          <div className="space-y-8 max-w-2xl mx-auto">
+            {/* Job Title */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label htmlFor="title" className="label-label-1-semibold">
+                  Job Title <span className="text-red-500">*</span>
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Be specific - this is the first thing candidates see.
                 </p>
-              )}
-            </div>
-            <RadioGroup
-              value={type}
-              onValueChange={(value) =>
-                setValue('type', value as EmploymentType)
-              }
-              className="flex flex-wrap gap-4"
-            >
-              {EMPLOYMENT_TYPES.map((t) => (
-                <div key={t.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={t.value} id={t.value} />
-                  <Label
-                    htmlFor={t.value}
-                    className="font-normal cursor-pointer"
-                  >
-                    {t.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          <Separator />
-
-          {/* Location */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label htmlFor="location" className="label-label-1-semibold">
-                Location
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Where is the job based?
-              </p>
-            </div>
-            <div className="grid grid-rows-[auto_auto] gap-4">
+              </div>
               <div className="space-y-1">
                 <Input
-                  id="location"
-                  placeholder="e.g. 123 This Street, That Town, The Other Country"
-                  disabled={remote}
+                  id="title"
+                  placeholder="e.g. Software Engineer"
                   className={`h-12 text-base ${
-                    errors.location ? 'border-red-500' : ''
+                    errors.title ? 'border-red-500' : ''
                   }`}
-                  {...register('location')}
+                  {...register('title')}
                 />
-                {errors.location && (
-                  <p className="text-sm text-red-500">
-                    {errors.location.message}
+                {errors.title && (
+                  <p className="text-sm text-red-500">{errors.title.message}</p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Type of Employment */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div>
+                <Label className="label-label-1-semibold">
+                  Type of employment <span className="text-red-500">*</span>
+                </Label>
+                {errors.type && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.type.message}
                   </p>
                 )}
               </div>
-              {/* Remote Work */}
-              <div className="flex items-center gap-3 pt-1">
-                <Switch
-                  id="remote"
-                  className="data-[state=checked]:bg-black"
-                  checked={remote}
-                  onCheckedChange={(checked) => {
-                    setValue('remote', checked);
-                    if (checked) setValue('location', '');
-                  }}
-                />
-                <Label htmlFor="remote" className="font-normal cursor-pointer">
-                  This is a remote position
+              <RadioGroup
+                value={type}
+                onValueChange={(value) =>
+                  setValue('type', value as EmploymentType)
+                }
+                className="flex flex-wrap gap-4"
+              >
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <div key={t.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={t.value} id={t.value} />
+                    <Label
+                      htmlFor={t.value}
+                      className="font-normal cursor-pointer"
+                    >
+                      {t.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <Separator />
+
+            {/* Location */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label htmlFor="location" className="label-label-1-semibold">
+                  Location
                 </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Where is the job based?
+                </p>
+              </div>
+              <div className="grid grid-rows-[auto_auto] gap-4">
+                <div className="space-y-1">
+                  <Input
+                    id="location"
+                    placeholder="e.g. 123 This Street, That Town, The Other Country"
+                    disabled={remote}
+                    className={`h-12 text-base ${
+                      errors.location ? 'border-red-500' : ''
+                    }`}
+                    {...register('location')}
+                  />
+                  {errors.location && (
+                    <p className="text-sm text-red-500">
+                      {errors.location.message}
+                    </p>
+                  )}
+                </div>
+                {/* Remote Work */}
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch
+                    id="remote"
+                    className="data-[state=checked]:bg-black"
+                    checked={remote}
+                    onCheckedChange={(checked) => {
+                      setValue('remote', checked);
+                      if (checked) setValue('location', '');
+                    }}
+                  />
+                  <Label
+                    htmlFor="remote"
+                    className="font-normal cursor-pointer"
+                  >
+                    This is a remote position
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Category */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label className="label-label-1-semibold">
+                  Category <span className="text-red-500">*</span>
+                </Label>
+              </div>
+              <div className="space-y-1">
+                <Select
+                  value={categoryId}
+                  onValueChange={(value: string) =>
+                    setValue('categoryId', value)
+                  }
+                >
+                  <SelectTrigger
+                    className={`h-12 text-base ${
+                      errors.categoryId ? 'border-red-500' : ''
+                    }`}
+                  >
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoryId && (
+                  <p className="text-sm text-red-500">
+                    {errors.categoryId.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Required Skills */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div>
+                <Label className="label-label-1-semibold">
+                  Required Skills
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Skills useful for the job (Optional)
+                </p>
+              </div>
+              <SkillTagsManager
+                skills={skills}
+                onChange={(newSkills) => {
+                  const normalizedSkills = newSkills.map((skill) => ({
+                    ...skill,
+                    minYearsExperience: (skill.minYearsExperience ??
+                      0) as number,
+                  }));
+                  setValue('skills', normalizedSkills);
+                }}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Salary */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label className="label-label-1-semibold">Salary</Label>
+                <p className="text-xs text-slate-500 mt-1">Optional</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Select
+                  value={currency}
+                  onValueChange={(value) =>
+                    setValue(
+                      'currency',
+                      value as
+                        | 'none'
+                        | 'usd'
+                        | 'eur'
+                        | 'gbp'
+                        | 'vnd'
+                        | 'jpy'
+                        | 'cny'
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-[100px] h-12">
+                    <SelectValue placeholder="Currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((curr) => (
+                      <SelectItem key={curr.value} value={curr.value}>
+                        {curr.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {currency !== 'none' && (
+                  <>
+                    <div className="space-y-1 w-[120px]">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        className="h-12 text-base"
+                        min="0"
+                        {...register('salaryMin', { valueAsNumber: true })}
+                      />
+                      {errors.salaryMin && (
+                        <p className="text-xs text-red-500">
+                          {errors.salaryMin.message}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-slate-500">to</span>
+                    <div className="space-y-1 w-[120px]">
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        className="h-12 text-base"
+                        min="0"
+                        {...register('salaryMax', { valueAsNumber: true })}
+                      />
+                      {errors.salaryMax && (
+                        <p className="text-xs text-red-500">
+                          {errors.salaryMax.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Category */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
+          {/* Step 2: Job Description */}
+          <div className="space-y-8 max-w-3xl mx-auto">
+            <div className="space-y-3">
               <Label className="label-label-1-semibold">
-                Category <span className="text-red-500">*</span>
+                Job Description <span className="text-red-500">*</span>
               </Label>
-            </div>
-            <div className="space-y-1">
-              <Select
-                value={categoryId}
-                onValueChange={(value: string) => setValue('categoryId', value)}
-              >
-                <SelectTrigger
-                  className={`h-12 text-base ${
-                    errors.categoryId ? 'border-red-500' : ''
-                  }`}
-                >
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoryId && (
+              <RichTextEditor
+                content={description}
+                onChange={(content) => setValue('description', content)}
+                placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
+                className={`min-h-[360px] ${
+                  errors.description ? 'border-red-500' : ''
+                }`}
+              />
+              {errors.description && (
                 <p className="text-sm text-red-500">
-                  {errors.categoryId.message}
+                  {errors.description.message}
                 </p>
               )}
             </div>
           </div>
-
-          <Separator />
-
-          {/* Required Skills */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div>
-              <Label className="label-label-1-semibold">Required Skills</Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Skills useful for the job (Optional)
-              </p>
-            </div>
-            <SkillTagsManager
-              skills={skills}
-              onChange={(newSkills) => {
-                const normalizedSkills = newSkills.map((skill) => ({
-                  ...skill,
-                  minYearsExperience: (skill.minYearsExperience ?? 0) as number,
-                }));
-                setValue('skills', normalizedSkills);
-              }}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Salary */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label className="label-label-1-semibold">Salary</Label>
-              <p className="text-xs text-slate-500 mt-1">Optional</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Select
-                value={currency}
-                onValueChange={(value) =>
-                  setValue(
-                    'currency',
-                    value as
-                      | 'none'
-                      | 'usd'
-                      | 'eur'
-                      | 'gbp'
-                      | 'vnd'
-                      | 'jpy'
-                      | 'cny'
-                  )
-                }
-              >
-                <SelectTrigger className="w-[100px] h-12">
-                  <SelectValue placeholder="Currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((curr) => (
-                    <SelectItem key={curr.value} value={curr.value}>
-                      {curr.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {currency !== 'none' && (
-                <>
-                  <div className="space-y-1 w-[120px]">
-                    <Input
-                      type="number"
-                      placeholder="Min"
-                      className="h-12 text-base"
-                      min="0"
-                      {...register('salaryMin', { valueAsNumber: true })}
-                    />
-                    {errors.salaryMin && (
-                      <p className="text-xs text-red-500">
-                        {errors.salaryMin.message}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-slate-500">to</span>
-                  <div className="space-y-1 w-[120px]">
-                    <Input
-                      type="number"
-                      placeholder="Max"
-                      className="h-12 text-base"
-                      min="0"
-                      {...register('salaryMax', { valueAsNumber: true })}
-                    />
-                    {errors.salaryMax && (
-                      <p className="text-xs text-red-500">
-                        {errors.salaryMax.message}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Step 2: Job Description */}
-        <div className="space-y-8 max-w-3xl mx-auto">
-          <div className="space-y-3">
-            <Label className="label-label-1-semibold">
-              Job Description <span className="text-red-500">*</span>
-            </Label>
-            <RichTextEditor
-              content={description}
-              onChange={(content) => setValue('description', content)}
-              placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
-              className={`min-h-[360px] ${
-                errors.description ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.description && (
-              <p className="text-sm text-red-500">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
-        </div>
-      </Stepper>
+        </Stepper>
+      </form>
     </div>
   );
 }

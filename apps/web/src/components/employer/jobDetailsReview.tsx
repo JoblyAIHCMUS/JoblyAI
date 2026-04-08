@@ -174,7 +174,7 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
         {/* Skills by Importance */}
         {job.skills.length > 0 && (
           <div>
-            <h3 className="heading-h6-semi-bold mb-3">Required Skills</h3>
+            <h3 className="heading-h6-semi-bold mb-3">Skills</h3>
             <div className="space-y-4">
               {(
                 [
@@ -200,7 +200,8 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
                             className={`bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-0 shadow-none rounded-[5px]`}
                           >
                             {skill.name} (
-                            {skill.minYearsExperience
+                            {skill.minYearsExperience &&
+                            skill.minYearsExperience > 0
                               ? `${skill.minYearsExperience}+ yrs`
                               : 'Any experience'}
                             )

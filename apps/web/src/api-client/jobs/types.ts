@@ -8,6 +8,7 @@ export type {
   JobCategory,
   CompanyInfo,
   JobPosting,
+  JobRequirement,
 } from '@/types/job';
 
 import type {
