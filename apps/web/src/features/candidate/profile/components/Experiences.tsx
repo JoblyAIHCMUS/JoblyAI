@@ -43,7 +43,7 @@ function ExperienceEditForm({
   // When creating: isCurrent = true (not checked by default)
   // When editing: isCurrent = true if no endDate, false if has endDate
   const [isCurrent, setIsCurrent] = useState(
-    isNew ? true : editItem.endDate ? false : true
+    !isNew && !editItem.endDate
   );
 
   const {

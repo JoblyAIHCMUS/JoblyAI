@@ -35,7 +35,7 @@ function EducationEditForm({
   // When creating: isCurrent = true (not checked by default)
   // When editing: isCurrent = true if no endDate, false if has endDate
   const [isCurrent, setIsCurrent] = useState(
-    isNew ? true : editItem.endDate ? false : true
+    !isNew && !editItem.endDate
   );
 
   const {
@@ -44,7 +44,7 @@ function EducationEditForm({
     watch,
     setValue,
     trigger,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, isValid },
   } = useForm<EducationFormData>({
     resolver: zodResolver(createEducationSchema(isCurrent)),
     mode: 'onChange',
@@ -332,7 +332,7 @@ function EducationEditForm({
       <div className="flex gap-2 mt-4">
         <button
           type="submit"
-          disabled={loading || !isDirty}
+          disabled={loading || !isDirty || !isValid}
           className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : 'Save'}
