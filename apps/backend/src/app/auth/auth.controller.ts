@@ -1,4 +1,12 @@
-import { Controller, All, Req, Res, Get, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  All,
+  Req,
+  Res,
+  Get,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
@@ -65,8 +73,10 @@ export class AuthController {
       if (body?.role) {
         const requestedRole = body.role;
         // VALIDATION: Reject invalid roles instead of silently ignoring them
-        if (typeof requestedRole !== 'string' ||
-            !['candidate', 'employer'].includes(requestedRole)) {
+        if (
+          typeof requestedRole !== 'string' ||
+          !['candidate', 'employer'].includes(requestedRole)
+        ) {
           throw new BadRequestException(
             `Invalid role: "${requestedRole}". Allowed roles are: candidate, employer`
           );
@@ -145,16 +155,23 @@ export class AuthController {
     // IMPORTANT: Append to existing Set-Cookie headers, don't replace!
     // NOTE: Google/GitHub OAuth responses will be handled by Better Auth callback
     const isAuthSuccess =
-      (req.method === 'POST' && (req.originalUrl || req.url).includes('/sign-up')) ||
-      (req.method === 'POST' && (req.originalUrl || req.url).includes('/sign-in') && authRes.status === 200) ||
-      (req.method === 'GET' && (req.originalUrl || req.url).includes('/callback') && authRes.status === 200);
+      (req.method === 'POST' &&
+        (req.originalUrl || req.url).includes('/sign-up')) ||
+      (req.method === 'POST' &&
+        (req.originalUrl || req.url).includes('/sign-in') &&
+        authRes.status === 200) ||
+      (req.method === 'GET' &&
+        (req.originalUrl || req.url).includes('/callback') &&
+        authRes.status === 200);
 
     if (isAuthSuccess) {
       try {
         const jsonBody = JSON.parse(body);
         if (jsonBody.user?.role) {
           // CRITICAL: Use append() instead of setHeader() to avoid overwriting Better Auth cookies
-          const roleCookieValue = `user-role=${jsonBody.user.role}; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`;
+          const roleCookieValue = `user-role=${
+            jsonBody.user.role
+          }; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`;
           res.appendHeader('Set-Cookie', roleCookieValue);
           console.log(
             `[AUTH] Set role cookie for user ${jsonBody.user.id}: ${jsonBody.user.role}`
@@ -162,12 +179,17 @@ export class AuthController {
         }
       } catch (error) {
         // If parsing fails, just continue without setting role cookie
-        console.warn('[AUTH] Failed to parse auth response or set role cookie:', error);
+        console.warn(
+          '[AUTH] Failed to parse auth response or set role cookie:',
+          error
+        );
       }
     }
 
     // ✅ CLEAR ROLE COOKIE on logout (sign-out)
-    const isSignOut = (req.originalUrl || req.url).includes('/sign-out') && authRes.status === 200;
+    const isSignOut =
+      (req.originalUrl || req.url).includes('/sign-out') &&
+      authRes.status === 200;
     if (isSignOut) {
       // Clear the role cookie by setting it with max-age=0
       const clearRoleCookie = 'user-role=; Path=/; SameSite=Lax; Max-Age=0';

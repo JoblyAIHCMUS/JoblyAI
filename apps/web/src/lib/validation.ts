@@ -97,60 +97,65 @@ export function formatDegree(degree?: string): string {
 }
 
 export const createEducationSchema = (isCurrent: boolean) => {
-  return z.object({
-    school: z.string().min(1, 'School name is required').trim(),
-    degree: z
-      .enum(DEGREE_OPTIONS as [Degree, ...Degree[]])
-      .optional()
-      .refine((val) => val !== undefined, {
-        message: 'Degree is required',
-      }),
-    fieldOfStudy: z
-      .string()
-      .optional()
-      .or(z.literal(''))
-      .refine(
-        (val) => !val || val.length >= 2,
-        'Field of study must be at least 2 characters'
-      ),
-    startDate: z.date().refine((date) => date <= new Date(), {
-      message: 'Start date cannot be in the future',
-    }),
-    endDate: isCurrent
-      ? z.date().nullable()
-      : z.date().nullable().refine(
-          (date) => date !== null,
-          'End date is required when not currently studying'
+  return z
+    .object({
+      school: z.string().min(1, 'School name is required').trim(),
+      degree: z
+        .enum(DEGREE_OPTIONS as [Degree, ...Degree[]])
+        .optional()
+        .refine((val) => val !== undefined, {
+          message: 'Degree is required',
+        }),
+      fieldOfStudy: z
+        .string()
+        .optional()
+        .or(z.literal(''))
+        .refine(
+          (val) => !val || val.length >= 2,
+          'Field of study must be at least 2 characters'
         ),
-    grade: z
-      .string()
-      .optional()
-      .or(z.literal(''))
-      .refine(
-        (val) => !val || /^([0-4](\.\d{1,2})?|4(\.0{1,2})?)$/.test(val),
-        'Grade must be between 0 and 4 (GPA format)'
-      ),
-    description: z
-      .string()
-      .optional()
-      .or(z.literal(''))
-      .refine(
-        (val) => !val || val.length <= 500,
-        'Description must not exceed 500 characters'
-      ),
-  }).refine(
-    (data) => {
-      // If endDate is provided, it must be >= startDate
-      if (data.endDate && data.startDate) {
-        return data.endDate >= data.startDate;
+      startDate: z.date().refine((date) => date <= new Date(), {
+        message: 'Start date cannot be in the future',
+      }),
+      endDate: isCurrent
+        ? z.date().nullable()
+        : z
+            .date()
+            .nullable()
+            .refine(
+              (date) => date !== null,
+              'End date is required when not currently studying'
+            ),
+      grade: z
+        .string()
+        .optional()
+        .or(z.literal(''))
+        .refine(
+          (val) => !val || /^([0-4](\.\d{1,2})?|4(\.0{1,2})?)$/.test(val),
+          'Grade must be between 0 and 4 (GPA format)'
+        ),
+      description: z
+        .string()
+        .optional()
+        .or(z.literal(''))
+        .refine(
+          (val) => !val || val.length <= 500,
+          'Description must not exceed 500 characters'
+        ),
+    })
+    .refine(
+      (data) => {
+        // If endDate is provided, it must be >= startDate
+        if (data.endDate && data.startDate) {
+          return data.endDate >= data.startDate;
+        }
+        return true;
+      },
+      {
+        message: 'End date cannot be before start date',
+        path: ['endDate'],
       }
-      return true;
-    },
-    {
-      message: 'End date cannot be before start date',
-      path: ['endDate'],
-    }
-  );
+    );
 };
 
 export const EducationSchema = createEducationSchema(false);
@@ -161,53 +166,58 @@ export type EducationFormData = z.infer<typeof EducationSchema>;
  */
 export const createExperienceSchema = (isCurrent: boolean) => {
   const employmentTypes = getEmploymentTypeValues();
-  
-  return z.object({
-    jobTitle: z.string().min(1, 'Job title is required').trim(),
-    companyName: z.string().min(1, 'Company name is required').trim(),
-    type: z
-      .enum(employmentTypes as [EmploymentType, ...EmploymentType[]])
-      .refine((val) => val !== undefined, {
-        message: 'Employment type is required',
-      }),
-    location: z
-      .string()
-      .optional()
-      .or(z.literal(''))
-      .refine(
-        (val) => !val || val.length >= 2,
-        'Location must be at least 2 characters'
-      ),
-    startDate: z.date().refine((date) => date <= new Date(), {
-      message: 'Start date cannot be in the future',
-    }),
-    endDate: isCurrent
-      ? z.date().nullable()
-      : z.date().nullable().refine(
-          (date) => date !== null,
-          'End date is required when not currently working'
+
+  return z
+    .object({
+      jobTitle: z.string().min(1, 'Job title is required').trim(),
+      companyName: z.string().min(1, 'Company name is required').trim(),
+      type: z
+        .enum(employmentTypes as [EmploymentType, ...EmploymentType[]])
+        .refine((val) => val !== undefined, {
+          message: 'Employment type is required',
+        }),
+      location: z
+        .string()
+        .optional()
+        .or(z.literal(''))
+        .refine(
+          (val) => !val || val.length >= 2,
+          'Location must be at least 2 characters'
         ),
-    description: z
-      .string()
-      .optional()
-      .or(z.literal(''))
-      .refine(
-        (val) => !val || val.length <= 500,
-        'Description must not exceed 500 characters'
-      ),
-  }).refine(
-    (data) => {
-      // If endDate is provided, it must be >= startDate
-      if (data.endDate && data.startDate) {
-        return data.endDate >= data.startDate;
+      startDate: z.date().refine((date) => date <= new Date(), {
+        message: 'Start date cannot be in the future',
+      }),
+      endDate: isCurrent
+        ? z.date().nullable()
+        : z
+            .date()
+            .nullable()
+            .refine(
+              (date) => date !== null,
+              'End date is required when not currently working'
+            ),
+      description: z
+        .string()
+        .optional()
+        .or(z.literal(''))
+        .refine(
+          (val) => !val || val.length <= 500,
+          'Description must not exceed 500 characters'
+        ),
+    })
+    .refine(
+      (data) => {
+        // If endDate is provided, it must be >= startDate
+        if (data.endDate && data.startDate) {
+          return data.endDate >= data.startDate;
+        }
+        return true;
+      },
+      {
+        message: 'End date cannot be before start date',
+        path: ['endDate'],
       }
-      return true;
-    },
-    {
-      message: 'End date cannot be before start date',
-      path: ['endDate'],
-    }
-  );
+    );
 };
 
 export const ExperienceSchema = createExperienceSchema(false);

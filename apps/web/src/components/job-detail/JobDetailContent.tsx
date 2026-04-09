@@ -108,11 +108,7 @@ function RichDescriptionContent({ html }: { html: string }) {
  * Renders content that can be either plain text list items or rich HTML.
  * Supports both legacy (string[]) and modern (string/HTML) formats.
  */
-function RichContentSection({
-  content,
-}: {
-  content: string[] | string;
-}) {
+function RichContentSection({ content }: { content: string[] | string }) {
   // If content is a string (HTML), render it as rich content
   if (typeof content === 'string') {
     return <RichDescriptionContent html={content} />;
@@ -161,7 +157,9 @@ export default function JobDetailContent(props: JobDetailContentProps) {
                 : descriptionContent.responsibilities) && (
                 <div className="flex flex-col gap-4">
                   <SectionHeading>Responsibilities</SectionHeading>
-                  <RichContentSection content={descriptionContent.responsibilities} />
+                  <RichContentSection
+                    content={descriptionContent.responsibilities}
+                  />
                 </div>
               )}
 
@@ -183,7 +181,9 @@ export default function JobDetailContent(props: JobDetailContentProps) {
                 : descriptionContent.niceToHaves) && (
                 <div className="flex flex-col gap-4">
                   <SectionHeading>Nice-To-Haves</SectionHeading>
-                  <RichContentSection content={descriptionContent.niceToHaves} />
+                  <RichContentSection
+                    content={descriptionContent.niceToHaves}
+                  />
                 </div>
               )}
           </div>

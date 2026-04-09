@@ -6,7 +6,10 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 function getUserRole(request: NextRequest): string | null {
   const roleFromCookie = request.cookies.get('user-role')?.value;
-  if (roleFromCookie && ['admin', 'employer', 'candidate', 'superAdmin'].includes(roleFromCookie)) {
+  if (
+    roleFromCookie &&
+    ['admin', 'employer', 'candidate', 'superAdmin'].includes(roleFromCookie)
+  ) {
     return roleFromCookie;
   }
   return null;

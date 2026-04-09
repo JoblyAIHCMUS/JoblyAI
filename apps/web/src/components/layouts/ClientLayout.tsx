@@ -65,9 +65,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   // Authenticated users see children with their actual role, wrapped with PageTitleProvider
   return (
     <PageTitleProvider>
-      <RoleContext.Provider value={userRole}>
-        {children}
-      </RoleContext.Provider>
+      <RoleContext.Provider value={userRole}>{children}</RoleContext.Provider>
     </PageTitleProvider>
   );
 }

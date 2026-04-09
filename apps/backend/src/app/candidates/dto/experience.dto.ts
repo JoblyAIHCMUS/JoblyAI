@@ -65,7 +65,7 @@ export class CreateExperienceDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value === '' ? undefined : value)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   endDate?: string;
 
   @IsOptional()
@@ -87,12 +87,12 @@ export class UpdateExperienceDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value === '' ? undefined : value)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   startDate?: string;
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value === '' ? undefined : value)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   endDate?: string;
 
   @IsOptional()

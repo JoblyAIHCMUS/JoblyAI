@@ -24,13 +24,15 @@ export const EMPLOYMENT_TYPE_OPTIONS = Object.entries(EMPLOYMENT_TYPE_MAP).map(
  * Safely converts a string to a valid EmploymentType or undefined
  * @returns EmploymentType if valid, undefined otherwise
  */
-export function parseEmploymentType(value: string | undefined | null): EmploymentType | undefined {
+export function parseEmploymentType(
+  value: string | undefined | null
+): EmploymentType | undefined {
   if (!value) return undefined;
   if (value in EMPLOYMENT_TYPE_MAP) {
     return value as EmploymentType;
   }
   return undefined;
-};
+}
 
 /**
  * Converts enum value to display label

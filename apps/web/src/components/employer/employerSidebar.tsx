@@ -98,7 +98,8 @@ export function EmployerSidebar() {
   const handleLogoutClick = () => {
     logout.mutate(undefined, {
       onError: (error) => {
-        const message = error instanceof Error ? error.message : 'Logout failed';
+        const message =
+          error instanceof Error ? error.message : 'Logout failed';
         toast.error(message);
       },
     });

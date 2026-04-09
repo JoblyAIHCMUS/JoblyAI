@@ -14,8 +14,15 @@ import {
 import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import { createExperienceSchema, type ExperienceFormData } from '@/lib/validation';
-import { EMPLOYMENT_TYPE_OPTIONS, formatEmploymentType, parseEmploymentType } from '@/lib/employment-type-config';
+import {
+  createExperienceSchema,
+  type ExperienceFormData,
+} from '@/lib/validation';
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  formatEmploymentType,
+  parseEmploymentType,
+} from '@/lib/employment-type-config';
 
 interface ExperiencesProps {
   experiences: CandidateExperience[];
@@ -42,9 +49,7 @@ function ExperienceEditForm({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // When creating: isCurrent = true (not checked by default)
   // When editing: isCurrent = true if no endDate, false if has endDate
-  const [isCurrent, setIsCurrent] = useState(
-    !isNew && !editItem.endDate
-  );
+  const [isCurrent, setIsCurrent] = useState(!isNew && !editItem.endDate);
 
   const {
     control,
@@ -100,10 +105,11 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Job Title"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.jobTitle
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.jobTitle
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
               />
               {errors.jobTitle && (
                 <p className="text-red-500 text-xs mt-1">
@@ -130,10 +136,11 @@ function ExperienceEditForm({
                   <input
                     {...field}
                     placeholder="Company"
-                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.companyName
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-accent-primary'
-                      }`}
+                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                      errors.companyName
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:ring-accent-primary'
+                    }`}
                   />
                   {errors.companyName && (
                     <p className="text-red-500 text-xs mt-1">
@@ -156,10 +163,11 @@ function ExperienceEditForm({
                 <>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger
-                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${errors.type
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'focus:ring-accent-primary'
-                        }`}
+                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${
+                        errors.type
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'focus:ring-accent-primary'
+                      }`}
                     >
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
@@ -223,12 +231,16 @@ function ExperienceEditForm({
             <div className="flex items-center gap-2 flex-wrap w-full box-border">
               <div className="flex-1 min-w-[150px]">
                 {errors.startDate && (
-                  <p className="text-red-500 text-xs">{errors.startDate.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.startDate.message}
+                  </p>
                 )}
               </div>
               <div className="flex-1 min-w-[150px]">
                 {errors.endDate && (
-                  <p className="text-red-500 text-xs">{errors.endDate.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.endDate.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -244,7 +256,7 @@ function ExperienceEditForm({
                   // Clear end date when currently working is checked
                   if (e.target.checked) {
                     setValue('endDate', null);
-                  } 
+                  }
                 }}
                 className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
               />
@@ -265,10 +277,11 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Location"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.location
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.location
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
               />
               {errors.location && (
                 <p className="text-red-500 text-xs mt-1">
@@ -282,7 +295,9 @@ function ExperienceEditForm({
 
       {/* Row 4 - Description */}
       <div className="w-full box-border">
-        <label className="block label-label-1-semi-bold mb-1">Description</label>
+        <label className="block label-label-1-semi-bold mb-1">
+          Description
+        </label>
         <Controller
           name="description"
           control={control}
@@ -292,10 +307,11 @@ function ExperienceEditForm({
                 {...field}
                 ref={textareaRef}
                 placeholder="Description"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${errors.description
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
+                  errors.description
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
                 style={{ maxHeight: '200px', resize: 'vertical' }}
               />
               {errors.description && (
@@ -380,16 +396,16 @@ function ExperienceView({
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
             ? new Date(exp.startDate).toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            })
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Start date'}
           {' - '}
           {exp.endDate
             ? new Date(exp.endDate).toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            })
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Present'}
         </span>
       </div>
@@ -486,12 +502,8 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.startDate
-          ? formData.startDate.toISOString()
-          : '',
-        endDate: formData.endDate
-          ? formData.endDate.toISOString()
-          : '',
+        startDate: formData.startDate ? formData.startDate.toISOString() : '',
+        endDate: formData.endDate ? formData.endDate.toISOString() : '',
         description: formData.description,
       });
       setEditingIdx(null);
@@ -515,12 +527,8 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.startDate
-          ? formData.startDate.toISOString()
-          : '',
-        endDate: formData.endDate
-          ? formData.endDate.toISOString()
-          : '',
+        startDate: formData.startDate ? formData.startDate.toISOString() : '',
+        endDate: formData.endDate ? formData.endDate.toISOString() : '',
         description: formData.description,
       });
       setIsAdding(false);

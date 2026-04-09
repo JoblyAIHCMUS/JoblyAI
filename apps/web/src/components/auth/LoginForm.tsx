@@ -38,8 +38,8 @@ export function LoginForm() {
             user.role === 'employer'
               ? '/employer'
               : user.role === 'candidate'
-                ? '/candidate'
-                : '/'; // Default safe route instead of unvalidated query param
+              ? '/candidate'
+              : '/'; // Default safe route instead of unvalidated query param
           router.push(target);
         },
       }

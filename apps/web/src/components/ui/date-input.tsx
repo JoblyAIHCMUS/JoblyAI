@@ -44,7 +44,9 @@ export function DateInput({
   };
 
   // Dynamically set text color based on whether a date is selected
-  const inputClassName = `w-full ${dateValue ? 'text-primary' : 'text-tertiary'} text-base break-words border rounded p-2 focus:outline-none focus:ring-2 placeholder-gray-900 ${inputClassNames} ${
+  const inputClassName = `w-full ${
+    dateValue ? 'text-primary' : 'text-tertiary'
+  } text-base break-words border rounded p-2 focus:outline-none focus:ring-2 placeholder-gray-900 ${inputClassNames} ${
     error
       ? 'border-red-500 focus:ring-red-500'
       : 'border-gray-300 focus:ring-accent-primary'

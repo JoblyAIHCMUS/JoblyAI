@@ -1,4 +1,4 @@
-import { EmploymentType } from "./job";
+import { EmploymentType } from './job';
 
 export type ApplicationStatus =
   | 'applied'

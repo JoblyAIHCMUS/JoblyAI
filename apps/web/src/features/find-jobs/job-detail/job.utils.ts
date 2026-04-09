@@ -1,4 +1,11 @@
-import { formatDate, formatJobType, getCategoryColor, parseDescription, calculateApplicationProgress, formatSalary } from '@/lib/utils';
+import {
+  formatDate,
+  formatJobType,
+  getCategoryColor,
+  parseDescription,
+  calculateApplicationProgress,
+  formatSalary,
+} from '@/lib/utils';
 
 export {
   formatDate,
@@ -8,4 +15,3 @@ export {
   calculateApplicationProgress,
   formatSalary,
 };
-  

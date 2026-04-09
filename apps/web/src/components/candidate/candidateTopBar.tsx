@@ -42,7 +42,10 @@ export function CandidateTopBar() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-8">
-          <Link href="/candidate/profile" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
+          <Link
+            href="/candidate/profile"
+            className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+          >
             {user?.image ? (
               <img
                 src={user.image}

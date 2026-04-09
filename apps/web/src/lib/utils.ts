@@ -250,8 +250,7 @@ export function formatDate(
   if (!date) return 'Unknown';
 
   try {
-    const dateObj =
-      typeof date === 'string' ? new Date(date) : date;
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
 
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
       return 'Unknown';

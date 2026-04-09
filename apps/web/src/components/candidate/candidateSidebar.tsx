@@ -178,7 +178,8 @@ export function CandidateSidebar() {
   const handleLogoutClick = () => {
     handleLogout(undefined, {
       onError: (error) => {
-        const message = error instanceof Error ? error.message : 'Logout failed';
+        const message =
+          error instanceof Error ? error.message : 'Logout failed';
         toast.error(message);
       },
     });

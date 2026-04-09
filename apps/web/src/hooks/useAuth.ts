@@ -90,10 +90,9 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      
       try {
         const response = await authClient.signOut();
-        
+
         // Check for errors
         if (response?.error) {
           throw new Error(response.error.message || 'Logout failed');
@@ -103,7 +102,7 @@ export function useLogout() {
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
           const detailedError = new Error(
             `Network Error: Cannot reach backend ` +
-            'Please ensure the backend server is running and accessible.'
+              'Please ensure the backend server is running and accessible.'
           );
           (detailedError as any).isNetworkError = true;
           throw detailedError;

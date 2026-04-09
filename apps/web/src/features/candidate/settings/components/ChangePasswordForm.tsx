@@ -53,9 +53,7 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <div
-      className="flex flex-col gap-6 w-full max-w-[540px]"
-    >
+    <div className="flex flex-col gap-6 w-full max-w-[540px]">
       <FormField
         label="Old Password"
         type="password"
