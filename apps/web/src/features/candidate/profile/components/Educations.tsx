@@ -286,7 +286,7 @@ function EducationEditForm({
                 min="0"
                 max="4"
                 onChange={(e) => {
-                  let value = e.target.value;
+                  const value = e.target.value;
                   if (/^(?:[0-4](?:\.\d{0,2})?)?$/.test(value)) {
                     field.onChange(value);
                   }
