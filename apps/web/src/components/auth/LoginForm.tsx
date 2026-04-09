@@ -2,12 +2,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { sanitizeRedirectPath } from '@/lib/utils';
 
 const loginSchema = z.object({
   email: z.email('Invalid email address'),
@@ -19,8 +18,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect'));
   const { mutate: login, isPending, error } = useLogin();
   const {
     register,
@@ -35,14 +32,15 @@ export function LoginForm() {
       { email: data.email, password: data.password },
       {
         onSuccess: (user) => {
-          // Check if user is an employer and redirect accordingly
-          if (user.role === 'employer') {
-            router.push('/employer');
-          } else if (user.role === 'candidate') {
-            router.push('/candidate');
-          } else {
-            router.push(redirectTo);
-          }
+          // Role-based redirect with safeguard against open redirects
+          // Use default '/' for unknown roles instead of unvalidated redirectTo
+          const target =
+            user.role === 'employer'
+              ? '/employer'
+              : user.role === 'candidate'
+                ? '/candidate'
+                : '/'; // Default safe route instead of unvalidated query param
+          router.push(target);
         },
       }
     );

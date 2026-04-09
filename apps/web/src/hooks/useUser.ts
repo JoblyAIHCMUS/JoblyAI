@@ -64,7 +64,7 @@ export function useUser(): UseQueryResult<User | null, Error> {
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes - faster refresh for role changes
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,

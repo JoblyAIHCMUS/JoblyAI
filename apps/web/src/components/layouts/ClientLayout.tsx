@@ -1,7 +1,7 @@
 'use client';
 import { useUser } from '@/hooks/useUser';
 import LandingLayout from '@/components/landing/LandingLayout';
-import { useCallback, useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import RoleContext from '@/contexts/role-context';
 import type { AppRole } from '@/contexts/role-context';
@@ -21,21 +21,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return role;
   }, [user]);
 
-  // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = useCallback(() => userRole, [userRole])();
-
-  // Handle root path redirect when user is authenticated
-  // Redirect '/' to role-specific dashboard based on actual user role from API
-  useEffect(() => {
-    if (!isLoading && user && pathname === '/') {
-      const targetPath = user.role === 'employer' ? '/employer' : '/candidate';
-      router.push(targetPath);
-    }
-  }, [user, isLoading, pathname, router]);
-
-  // === CONDITIONAL LOGIC AFTER ALL HOOKS ===
-
-  // Show loading state while fetching user data
+  // === SHOW LOADING WHILE FETCHING USER DATA ===
+  // isLoading prevents hydration mismatches by ensuring consistent render
+  // between server and client during the initial user query
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -44,11 +32,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Guard render for authenticated users on guest-only routes
-  // This blocks rendering before middleware redirect, preventing:
-  // - PageTitleProvider errors
-  // - Wrong layout renders
-  // - UI flicker
+  // ✅ SAFETY NET: Redirect authenticated users away from guest-only routes
+  // Middleware already handles this, but this is a fallback
+  // if middleware redirect somehow failed
+  // NOTE: Not rendering loading state - directly redirecting is correct approach
   const isGuestOnlyRoute =
     pathname === '/find-jobs' ||
     pathname.startsWith('/find-jobs/') ||
@@ -56,17 +43,20 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     pathname.startsWith('/browse-companies/');
 
   if (user && isGuestOnlyRoute) {
-    // Authenticated user on guest route - don't render anything
-    // Middleware will redirect this, keep as safety net
+    // Client-side redirect (safety net for middleware failure)
+    router.push('/');
+    // Return nothing while redirect is processing
     return null;
   }
 
-  // Guest users see landing layout, wrapped with PageTitleProvider for consistency
+  // Auth pages (login/signup) should not show header and footer
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+
   if (!user) {
     return (
       <PageTitleProvider>
         <RoleContext.Provider value="guest">
-          <LandingLayout>{children}</LandingLayout>
+          {isAuthPage ? children : <LandingLayout>{children}</LandingLayout>}
         </RoleContext.Provider>
       </PageTitleProvider>
     );
@@ -75,7 +65,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   // Authenticated users see children with their actual role, wrapped with PageTitleProvider
   return (
     <PageTitleProvider>
-      <RoleContext.Provider value={contextValue}>
+      <RoleContext.Provider value={userRole}>
         {children}
       </RoleContext.Provider>
     </PageTitleProvider>

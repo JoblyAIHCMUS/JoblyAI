@@ -90,18 +90,40 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      await authClient.signOut();
+      const response = await authClient.signOut();
+      
+      // Check for errors
+      if (response?.error) {
+        throw new Error(response.error.message || 'Logout failed');
+      }
     },
     onSuccess: () => {
-      // 1. Update cache immediately to reflect logged out state
-      queryClient.setQueryData(['user'], null);
+      // Clear user-specific cached data
+      queryClient.removeQueries({ queryKey: ['user'] });
 
-      // 2. Remove queries that shouldn't exist without a user
-      // (Optional: safer than .clear() if you have public data)
-      // queryClient.removeQueries({ queryKey: ['dashboard'] });
-
-      // 3. Smooth client-side redirect
+      // Redirect to login (middleware + backend will clear cookies)
       router.push('/login');
+    },
+    onError: (error) => {
+      console.error('Logout error:', error);
+      
+      // CRITICAL: Only clear cache and redirect if it's an auth error (401)
+      // Network/server errors should NOT trigger logout state on frontend
+      const isAuthError =
+        (error instanceof Error && error.message.includes('401')) ||
+        (error instanceof Error && error.message.includes('Unauthorized')) ||
+        (error instanceof Error && error.message.includes('not authenticated'));
+
+      if (isAuthError) {
+        // User is already logged out on backend, clear frontend state
+        queryClient.removeQueries({ queryKey: ['user'] });
+        router.push('/login');
+      } else {
+        // Network/server error - keep user in app and show error
+        // User should retry or manually navigate
+        console.error('Logout failed due to network error - user session may still be active');
+        throw error; // Re-throw so UI can show error message
+      }
     },
   });
 }

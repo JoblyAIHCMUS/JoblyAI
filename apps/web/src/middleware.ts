@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Get user role from cookies/session
- * In production, consider validating the JWT token instead
+ * Get user role from cookies
+ * Backend sets 'user-role' cookie during auth (sign-in/sign-up)
  */
-function getUserRoleFromCookie(request: NextRequest): string | null {
-  // This would be set by your auth library when user logs in
-  // For now, we rely on Client Component to fetch full user data
+function getUserRole(request: NextRequest): string | null {
+  const roleFromCookie = request.cookies.get('user-role')?.value;
+  if (roleFromCookie && ['admin', 'employer', 'candidate', 'superAdmin'].includes(roleFromCookie)) {
+    return roleFromCookie;
+  }
+  return null;
+}
+
+/**
+ * Check if user has valid session
+ */
+function isAuthenticated(request: NextRequest): boolean {
   const sessionCookie = request.cookies.get('better-auth.session_token');
   const secureSessionCookie = request.cookies.get(
     '__Secure-better-auth.session_token'
   );
-
-  return sessionCookie || secureSessionCookie ? 'authenticated' : null;
+  return !!(sessionCookie || secureSessionCookie);
 }
 
 /**
@@ -21,34 +29,46 @@ function getUserRoleFromCookie(request: NextRequest): string | null {
  * This runs BEFORE the page loads on the server, preventing UI flicker entirely.
  *
  * ✅ What it does:
+ * - Redirect "/" to role-specific dashboard when user is authenticated
  * - Blocks unauthenticated access to /candidate/* and /employer/* routes
- * - Redirects public guest routes to role-specific paths when user is authenticated
- * - Never renders wrong UI to users
- *
- * ⚠️  Limitations:
- * - Cannot read detailed role info from cookies (would require JWT verification)
- * - Client Component (ClientLayout) still fetches full user data for RoleContext
- * - Role-specific redirects happen on client after user data is loaded
+ * - Redirects authenticated users away from guest-only routes
+ * - All redirects happen server-side → no hydration mismatch
  */
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const isAuthenticated = getUserRoleFromCookie(request);
+  const authenticated = isAuthenticated(request);
+  const userRole = getUserRole(request);
 
-  // === STEP 1: Protect authentication-required routes ===
+  // === STEP 1: Redirect "/" to role-specific dashboard ===
+  if (pathname === '/' && authenticated && userRole) {
+    const dashboardPath = userRole === 'employer' ? '/employer' : '/candidate';
+    return NextResponse.redirect(new URL(dashboardPath, request.url));
+  }
+
+  // === STEP 1B: Redirect /candidate → /candidate/dashboard ===
+  if (pathname === '/candidate' && authenticated) {
+    return NextResponse.redirect(new URL('/candidate/dashboard', request.url));
+  }
+
+  // === STEP 1C: Redirect /employer → /employer/dashboard ===
+  if (pathname === '/employer' && authenticated) {
+    return NextResponse.redirect(new URL('/employer/dashboard', request.url));
+  }
+
+  // === STEP 2: Protect authentication-required routes ===
   const protectedRoutes = ['/candidate', '/employer'];
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
-  if (isProtectedRoute && !isAuthenticated) {
+  if (isProtectedRoute && !authenticated) {
     // Redirect to login BEFORE page renders (prevents protected UI from showing)
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // === STEP 2: Redirect authenticated users from guest-only routes ===
-  // Only redirect specific guest routes (not '/') - role-aware redirect happens on client
-  // This prevents redirect loops after logout when role is unknown
-  if (isAuthenticated) {
+  // === STEP 3: Redirect authenticated users from guest-only routes ===
+  // Redirect back to "/" (which will then redirect to their dashboard in STEP 1)
+  if (authenticated) {
     const guestOnlyRoutes = ['/find-jobs', '/browse-companies'];
 
     for (const guestPath of guestOnlyRoutes) {
@@ -58,7 +78,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // === STEP 3: Allow all other routes ===
+  // === STEP 4: Allow all other routes ===
   return NextResponse.next();
 }
 
@@ -72,6 +92,8 @@ export const config = {
     '/candidate/:path*',
     // Protect all employer routes
     '/employer/:path*',
+    // Match "/" for role-based redirect
+    '/',
     // Match all routes to allow them through
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
