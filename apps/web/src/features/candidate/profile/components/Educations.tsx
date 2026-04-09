@@ -518,8 +518,8 @@ export default function Educations({
         endDate: formData.isCurrent
           ? ''
           : formData.endDate
-            ? formData.endDate.toISOString()
-            : '',
+          ? formData.endDate.toISOString()
+          : '',
       });
       setEditingIdx(null);
       setEditItem(null);
@@ -543,8 +543,8 @@ export default function Educations({
         endDate: formData.isCurrent
           ? ''
           : formData.endDate
-            ? formData.endDate.toISOString()
-            : '',
+          ? formData.endDate.toISOString()
+          : '',
       });
       setIsAdding(false);
       setEditItem(null);

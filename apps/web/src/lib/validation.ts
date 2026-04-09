@@ -114,11 +114,13 @@ export const createEducationSchema = () => {
           (val) => !val || val.length >= 2,
           'Field of study must be at least 2 characters'
         ),
-      startDate: z.date({
-        error: 'Start date is required',
-      }).refine((date) => date <= new Date(), {
-        message: 'Start date cannot be in the future',
-      }),
+      startDate: z
+        .date({
+          error: 'Start date is required',
+        })
+        .refine((date) => date <= new Date(), {
+          message: 'Start date cannot be in the future',
+        }),
       isCurrent: z.boolean(),
       endDate: z.date().nullable(),
       grade: z
@@ -184,11 +186,13 @@ export const createExperienceSchema = () => {
           (val) => !val || val.length <= 200,
           'Location must be less than 200 characters'
         ),
-      startDate: z.date({
-        error: 'Start date is required',
-      }).refine((date) => date <= new Date(), {
-        message: 'Start date cannot be in the future',
-      }),
+      startDate: z
+        .date({
+          error: 'Start date is required',
+        })
+        .refine((date) => date <= new Date(), {
+          message: 'Start date cannot be in the future',
+        }),
       isCurrent: z.boolean(),
       endDate: z.date().nullable(),
       description: z

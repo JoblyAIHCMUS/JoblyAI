@@ -67,7 +67,7 @@ function ExperienceEditForm({
       location: editItem.location || '',
       startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
       endDate: editItem.endDate ? new Date(editItem.endDate) : null,
-      isCurrent: !isNew && !editItem.endDate, // If editing and no end date, treat as current job 
+      isCurrent: !isNew && !editItem.endDate, // If editing and no end date, treat as current job
       description: editItem.description || '',
     },
   });
@@ -101,10 +101,11 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Job Title"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.jobTitle
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.jobTitle
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
               />
               {errors.jobTitle && (
                 <p className="text-red-500 text-xs mt-1">
@@ -131,10 +132,11 @@ function ExperienceEditForm({
                   <input
                     {...field}
                     placeholder="Company"
-                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.companyName
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-accent-primary'
-                      }`}
+                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                      errors.companyName
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:ring-accent-primary'
+                    }`}
                   />
                   {errors.companyName && (
                     <p className="text-red-500 text-xs mt-1">
@@ -157,10 +159,11 @@ function ExperienceEditForm({
                 <>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger
-                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${errors.type
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'focus:ring-accent-primary'
-                        }`}
+                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${
+                        errors.type
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'focus:ring-accent-primary'
+                      }`}
                     >
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
@@ -281,10 +284,11 @@ function ExperienceEditForm({
               <input
                 {...field}
                 placeholder="Location"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${errors.location
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                  errors.location
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
               />
               {errors.location && (
                 <p className="text-red-500 text-xs mt-1">
@@ -310,10 +314,11 @@ function ExperienceEditForm({
                 {...field}
                 ref={textareaRef}
                 placeholder="Description"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${errors.description
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-accent-primary'
-                  }`}
+                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
+                  errors.description
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
+                }`}
                 style={{ maxHeight: '200px', resize: 'vertical' }}
               />
               {errors.description && (
@@ -398,16 +403,16 @@ function ExperienceView({
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
             ? new Date(exp.startDate).toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            })
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Start date'}
           {' - '}
           {exp.endDate
             ? new Date(exp.endDate).toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            })
+                month: 'short',
+                year: 'numeric',
+              })
             : 'Present'}
         </span>
       </div>
@@ -508,8 +513,8 @@ export default function Experiences({
         endDate: formData.isCurrent
           ? ''
           : formData.endDate
-            ? formData.endDate.toISOString()
-            : '',
+          ? formData.endDate.toISOString()
+          : '',
         description: formData.description,
       });
       setEditingIdx(null);
@@ -537,8 +542,8 @@ export default function Experiences({
         endDate: formData.isCurrent
           ? ''
           : formData.endDate
-            ? formData.endDate.toISOString()
-            : '',
+          ? formData.endDate.toISOString()
+          : '',
         description: formData.description,
       });
       setIsAdding(false);
