@@ -21,12 +21,13 @@ import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
 import type { CandidateResume } from '@/types/candidate';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
+import { Dot } from 'lucide-react';
 
 export interface JobApplication {
   id: number;
   title: string;
   company: string;
-  location: string;
+  location: string | null;
   jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
   logoUrl?: string;
   currentResume?: {
@@ -249,9 +250,13 @@ export const SubmitApplicationModal = ({
             </h2>
             <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
               <span>{job.company}</span>
-              <span className="h-1 w-1 rounded-full bg-slate-400" />
-              <span>{job.location}</span>
-              <span className="h-1 w-1 rounded-full bg-slate-400" />
+              {job.location && (
+                <>
+                  <Dot className="h-1 w-1 text-slate-400" />
+                  <span>{job.location}</span>
+                </>
+              )}
+              <Dot className="h-1 w-1 text-slate-400" />
               <span>{formatJobType(job.jobType)}</span>
             </div>
           </div>
