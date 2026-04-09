@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useSignup } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
@@ -132,9 +133,8 @@ export function SignupForm() {
         <Label htmlFor="password" className="text-sm font-semibold">
           Password
         </Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           placeholder="Enter password"
           {...register('password')}
           className="border-border"
@@ -149,9 +149,8 @@ export function SignupForm() {
         <Label htmlFor="confirmPassword" className="text-sm font-semibold">
           Confirm Password
         </Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
-          type="password"
           placeholder="Re-enter password"
           {...register('confirmPassword')}
           className="border-border"
