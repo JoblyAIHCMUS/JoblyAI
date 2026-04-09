@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import { toast, Toaster } from 'sonner';
+import { Toaster } from 'sonner';
 
 import {
   Sidebar,
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useLogout } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { useUnreadMessagesDot } from '@/hooks/useMessages';
 import { useGetEmployerProfile } from '@/api-hook/employer';
 
@@ -89,9 +90,19 @@ export function EmployerSidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
   const logout = useLogout();
+  const { toast } = useToast();
   const { hasUnreadMessages } = useUnreadMessagesDot();
   const { data: employerProfile, fetchEmployerProfile } =
     useGetEmployerProfile();
+
+  const handleLogoutClick = () => {
+    logout.mutate(undefined, {
+      onError: (error) => {
+        const message = error instanceof Error ? error.message : 'Logout failed';
+        toast.error(message);
+      },
+    });
+  };
 
   // Fetch employer profile on mount
   useEffect(() => {
@@ -259,7 +270,7 @@ export function EmployerSidebar() {
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
-                        onClick={() => logout.mutate()}
+                        onClick={handleLogoutClick}
                         disabled={logout.isPending}
                         tooltip={item.title}
                         className={cn(

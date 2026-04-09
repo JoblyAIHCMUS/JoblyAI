@@ -90,11 +90,25 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await authClient.signOut();
       
-      // Check for errors
-      if (response?.error) {
-        throw new Error(response.error.message || 'Logout failed');
+      try {
+        const response = await authClient.signOut();
+        
+        // Check for errors
+        if (response?.error) {
+          throw new Error(response.error.message || 'Logout failed');
+        }
+      } catch (error) {
+        // Provide detailed error diagnostics
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          const detailedError = new Error(
+            `Network Error: Cannot reach backend ` +
+            'Please ensure the backend server is running and accessible.'
+          );
+          (detailedError as any).isNetworkError = true;
+          throw detailedError;
+        }
+        throw error;
       }
     },
     onSuccess: () => {
@@ -105,25 +119,28 @@ export function useLogout() {
       router.push('/login');
     },
     onError: (error) => {
-      console.error('Logout error:', error);
-      
-      // CRITICAL: Only clear cache and redirect if it's an auth error (401)
-      // Network/server errors should NOT trigger logout state on frontend
+      const isNetworkError = (error as any)?.isNetworkError === true;
       const isAuthError =
         (error instanceof Error && error.message.includes('401')) ||
         (error instanceof Error && error.message.includes('Unauthorized')) ||
         (error instanceof Error && error.message.includes('not authenticated'));
 
-      if (isAuthError) {
+      if (isNetworkError) {
+        // Network error - log for debugging, keep user in app
+        console.error('❌ LOGOUT NETWORK ERROR:', error.message);
+        throw error; // UI can show error toast
+      } else if (isAuthError) {
         // User is already logged out on backend, clear frontend state
+        console.log('✅ User logged out (auth error detected)');
         queryClient.removeQueries({ queryKey: ['user'] });
         router.push('/login');
       } else {
-        // Network/server error - keep user in app and show error
-        // User should retry or manually navigate
-        console.error('Logout failed due to network error - user session may still be active');
+        // Unknown error
+        console.error('❌ Logout failed:', error);
         throw error; // Re-throw so UI can show error message
       }
     },
+    retry: 1, // Retry once on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
