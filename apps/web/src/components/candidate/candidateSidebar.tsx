@@ -29,6 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useUnreadMessagesDot } from '@/hooks/useMessages';
 import { useLogout } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 
 type NavItem = {
   title: string;
@@ -172,6 +173,17 @@ export function CandidateSidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages } = useUnreadMessagesDot();
   const { mutate: handleLogout, isPending: loading } = useLogout();
+  const { toast } = useToast();
+
+  const handleLogoutClick = () => {
+    handleLogout(undefined, {
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : 'Logout failed';
+        toast.error(message);
+      },
+    });
+  };
 
   const logoutItem: NavItem = {
     title: 'Logout',
@@ -227,7 +239,7 @@ export function CandidateSidebar() {
               <CandidateSidebarItem
                 item={logoutItem}
                 active={false}
-                onClick={() => handleLogout()}
+                onClick={handleLogoutClick}
                 disabled={loading}
               />
             </SidebarMenu>

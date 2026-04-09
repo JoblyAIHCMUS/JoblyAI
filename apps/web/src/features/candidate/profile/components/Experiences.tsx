@@ -11,10 +11,18 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import { ExperienceSchema, type ExperienceFormData } from '@/lib/validation';
+import {
+  createExperienceSchema,
+  type ExperienceFormData,
+} from '@/lib/validation';
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  formatEmploymentType,
+  parseEmploymentType,
+} from '@/lib/employment-type-config';
 
 interface ExperiencesProps {
   experiences: CandidateExperience[];
@@ -26,44 +34,46 @@ interface ExperiencesProps {
 interface ExperienceEditFormProps {
   editItem: CandidateExperience;
   loading: boolean;
+  isNew: boolean; // true when creating, false when editing
   onSubmit: (data: ExperienceFormData) => Promise<void>;
   onCancel: () => void;
-  isCurrentlyWorking?: boolean;
-  onIsCurrentlyWorkingChange?: (value: boolean) => void;
 }
 
 function ExperienceEditForm({
   editItem,
   loading,
+  isNew,
   onSubmit,
   onCancel,
-  isCurrentlyWorking = false,
-  onIsCurrentlyWorkingChange,
 }: ExperienceEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // When creating: start unchecked by default.
+  // When editing: infer the initial value from the stored end date.
 
   const {
     control,
     handleSubmit,
     watch,
-    formState: { errors, isDirty },
+    setValue,
+    trigger,
+    formState: { errors, isDirty, isValid },
   } = useForm<ExperienceFormData>({
-    resolver: zodResolver(ExperienceSchema),
+    resolver: zodResolver(createExperienceSchema()),
     mode: 'onChange',
     defaultValues: {
       jobTitle: editItem.jobTitle || '',
       companyName: editItem.companyName || '',
-      type: editItem.type || '',
+      type: parseEmploymentType(editItem.type),
       location: editItem.location || '',
-      dateRange: {
-        from: editItem.startDate ? new Date(editItem.startDate) : undefined,
-        to: editItem.endDate ? new Date(editItem.endDate) : undefined,
-      },
+      startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
+      endDate: editItem.endDate ? new Date(editItem.endDate) : null,
+      isCurrent: !isNew && !editItem.endDate, // If editing and no end date, treat as current job
       description: editItem.description || '',
     },
   });
 
   const descriptionValue = watch('description');
+  const isCurrent = watch('isCurrent');
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -76,10 +86,13 @@ function ExperienceEditForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-3 w-full max-w-full"
+      className="space-y-2 w-full max-w-full"
     >
       {/* Row 1 - Job Title */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">
+          Job Title <span className="text-red-500">*</span>
+        </label>
         <Controller
           name="jobTitle"
           control={control}
@@ -108,6 +121,9 @@ function ExperienceEditForm({
       <div className="flex flex-col gap-3 w-full box-border">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex-1 min-w-[150px]">
+            <label className="block label-label-1-semi-bold mb-1">
+              Company <span className="text-red-500">*</span>
+            </label>
             <Controller
               name="companyName"
               control={control}
@@ -133,6 +149,9 @@ function ExperienceEditForm({
           </div>
           <Dot size={16} className="flex-shrink-0" />
           <div className="min-w-20 flex-1 max-w-[200px]">
+            <label className="block label-label-1-semi-bold mb-1">
+              Type <span className="text-red-500">*</span>
+            </label>
             <Controller
               name="type"
               control={control}
@@ -149,12 +168,11 @@ function ExperienceEditForm({
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Full-time">Full-time</SelectItem>
-                      <SelectItem value="Part-time">Part-time</SelectItem>
-                      <SelectItem value="Internship">Internship</SelectItem>
-                      <SelectItem value="Contract">Contract</SelectItem>
-                      <SelectItem value="Freelance">Freelance</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.type && (
@@ -168,30 +186,96 @@ function ExperienceEditForm({
           </div>
         </div>
         <div className="w-full">
-          <Controller
-            name="dateRange"
-            control={control}
-            render={({ field }) => (
-              <DateRangePicker
-                value={field.value}
-                onChange={field.onChange}
-                placeholder="Select Employment Period"
-                error={
-                  errors.dateRange?.message ||
-                  errors.dateRange?.from?.message ||
-                  errors.dateRange?.to?.message
-                }
-                label=""
-                isCurrentlyWorking={isCurrentlyWorking}
-                onIsCurrentlyWorkingChange={onIsCurrentlyWorkingChange}
+          <div className="flex items-center gap-2 flex-wrap w-full box-border">
+            <div className="flex-1 min-w-[150px]">
+              <label className="block label-label-1-semi-bold mb-1">
+                Start Date <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="startDate"
+                control={control}
+                render={({ field }) => (
+                  <DateInput
+                    label=""
+                    placeholder="Select start date"
+                    value={field.value}
+                    onChange={(date) => {
+                      field.onChange(date);
+                      trigger(['startDate', 'endDate']);
+                    }}
+                  />
+                )}
               />
-            )}
-          />
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <label className="block label-label-1-semi-bold mb-1">
+                End Date {!isCurrent && <span className="text-red-500">*</span>}
+              </label>
+              <Controller
+                name="endDate"
+                control={control}
+                render={({ field }) => (
+                  <DateInput
+                    label=""
+                    placeholder={isCurrent ? 'Present' : 'Select end date'}
+                    value={field.value}
+                    onChange={(date) => {
+                      field.onChange(date);
+                      trigger('endDate');
+                    }}
+                    disabled={isCurrent}
+                  />
+                )}
+              />
+            </div>
+          </div>
+          {errors.startDate || errors.endDate ? (
+            <div className="flex items-center gap-2 flex-wrap w-full box-border">
+              <div className="flex-1 min-w-[150px]">
+                {errors.startDate && (
+                  <p className="text-red-500 text-xs">
+                    {errors.startDate.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex-1 min-w-[150px]">
+                {errors.endDate && (
+                  <p className="text-red-500 text-xs">
+                    {errors.endDate.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
+          {/* Currently Working Checkbox */}
+          <div className="w-full box-border mt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCurrent}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setValue('isCurrent', checked, { shouldValidate: true });
+
+                  if (checked) {
+                    setValue('endDate', null, {
+                      shouldValidate: true,
+                    });
+                  } else {
+                    trigger('endDate');
+                  }
+                }}
+                className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
+              />
+              <span className="text-tertiary">I currently work here</span>
+            </label>
+          </div>
         </div>
       </div>
 
       {/* Row 3 - Location */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">Location</label>
         <Controller
           name="location"
           control={control}
@@ -218,6 +302,9 @@ function ExperienceEditForm({
 
       {/* Row 4 - Description */}
       <div className="w-full box-border">
+        <label className="block label-label-1-semi-bold mb-1">
+          Description
+        </label>
         <Controller
           name="description"
           control={control}
@@ -248,7 +335,7 @@ function ExperienceEditForm({
       <div className="flex gap-2 mt-4">
         <button
           type="submit"
-          disabled={loading || !isDirty}
+          disabled={loading || !isDirty || !isValid}
           className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : 'Save'}
@@ -304,8 +391,14 @@ function ExperienceView({
       {/* Row 2 */}
       <div className="flex items-center gap-2">
         <div className="text-primary break-words">{exp.companyName}</div>
-        <Dot size={16} />
-        <div className="text-secondary break-words">{exp.type}</div>
+        {exp.type && (
+          <>
+            <Dot size={16} className="flex-shrink-0" />
+            <div className="text-primary break-words">
+              {formatEmploymentType(exp.type)}
+            </div>
+          </>
+        )}
         <Dot size={16} />
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
@@ -348,7 +441,6 @@ export default function Experiences({
   const [isAdding, setIsAdding] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(false);
 
   // Lock body scroll when editing or adding
   useEffect(() => {
@@ -383,12 +475,11 @@ export default function Experiences({
   const handleAdd = () => {
     setIsAdding(true);
     setEditingIdx(-1);
-    setIsCurrentlyWorking(false);
     const createEmptyExperience = (): CandidateExperience => ({
       id: Date.now(),
       jobTitle: '',
       companyName: '',
-      type: '',
+      type: undefined,
       startDate: '',
       endDate: '',
       location: '',
@@ -405,8 +496,6 @@ export default function Experiences({
     setEditingIdx(idx);
     setEditItem({ ...experiences[idx] });
     setError(null);
-    // Auto-set isCurrentlyWorking if no endDate
-    setIsCurrentlyWorking(!experiences[idx].endDate);
   };
 
   const handleSaveEdit = async (formData: ExperienceFormData) => {
@@ -420,13 +509,11 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
-          : '',
-        endDate: isCurrentlyWorking
+        startDate: formData.startDate ? formData.startDate.toISOString() : '',
+        endDate: formData.isCurrent
           ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+          : formData.endDate
+          ? formData.endDate.toISOString()
           : '',
         description: formData.description,
       });
@@ -451,13 +538,11 @@ export default function Experiences({
         companyName: formData.companyName,
         type: formData.type,
         location: formData.location,
-        startDate: formData.dateRange?.from
-          ? formData.dateRange.from.toISOString()
-          : '',
-        endDate: isCurrentlyWorking
+        startDate: formData.startDate ? formData.startDate.toISOString() : '',
+        endDate: formData.isCurrent
           ? ''
-          : formData.dateRange?.to
-          ? formData.dateRange.to.toISOString()
+          : formData.endDate
+          ? formData.endDate.toISOString()
           : '',
         description: formData.description,
       });
@@ -475,7 +560,6 @@ export default function Experiences({
     setEditItem(null);
     setError(null);
     setIsAdding(false);
-    setIsCurrentlyWorking(false);
   };
 
   return (
@@ -500,10 +584,9 @@ export default function Experiences({
           <ExperienceEditForm
             editItem={editItem}
             loading={loading}
+            isNew={true}
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
-            isCurrentlyWorking={isCurrentlyWorking}
-            onIsCurrentlyWorkingChange={setIsCurrentlyWorking}
           />
           {error && <div className="text-danger text-sm mt-2">{error}</div>}
         </div>
@@ -520,10 +603,9 @@ export default function Experiences({
               <ExperienceEditForm
                 editItem={editItem}
                 loading={loading}
+                isNew={false}
                 onSubmit={handleSaveEdit}
                 onCancel={handleCancel}
-                isCurrentlyWorking={isCurrentlyWorking}
-                onIsCurrentlyWorkingChange={setIsCurrentlyWorking}
               />
             ) : (
               <ExperienceView

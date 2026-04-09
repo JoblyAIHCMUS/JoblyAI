@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { useRole } from '@/contexts/role-context';
 import { sanitizeRedirectPath } from '@/lib/utils';
+import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
 
 export type JobDetailBreadcrumbItem = {
@@ -141,7 +142,7 @@ export default function JobDetailHeader({
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
                   <span>{address}</span>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
-                  <span>{workType}</span>
+                  <span>{formatJobType(workType)}</span>
                 </div>
               </div>
             </div>

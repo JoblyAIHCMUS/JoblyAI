@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-
 export default function CandidateRootPage() {
-  redirect('/candidate/dashboard');
+  // Middleware redirects /candidate → /candidate/dashboard
+  // This component is a fallback - should never actually render
+  return <div>Redirecting...</div>;
 }

@@ -53,10 +53,7 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form
-      className="flex flex-col gap-6 w-full max-w-[540px]"
-      onSubmit={handleSubmit}
-    >
+    <div className="flex flex-col gap-6 w-full max-w-[540px]">
       <FormField
         label="Old Password"
         type="password"
@@ -89,11 +86,12 @@ export default function ChangePasswordForm() {
       />
       {success && <span className="text-sm text-green-600">{success}</span>}
       <Button
-        type="submit"
+        type="button"
+        onClick={handleSubmit}
         className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']"
       >
         Change Password
       </Button>
-    </form>
+    </div>
   );
 }

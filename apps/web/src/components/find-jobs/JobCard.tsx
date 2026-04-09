@@ -197,7 +197,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
           id: job.id,
           title: job.title,
           company: job.company.name,
-          location: job.location || '',
+          location: job.location,
           jobType: job.type,
           logoUrl: job.company.logoUrl || undefined,
         }}

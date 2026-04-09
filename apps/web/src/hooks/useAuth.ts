@@ -90,18 +90,56 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      await authClient.signOut();
+      try {
+        const response = await authClient.signOut();
+
+        // Check for errors
+        if (response?.error) {
+          throw new Error(response.error.message || 'Logout failed');
+        }
+      } catch (error) {
+        // Provide detailed error diagnostics
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          const detailedError = new Error(
+            `Network Error: Cannot reach backend ` +
+              'Please ensure the backend server is running and accessible.'
+          );
+          (detailedError as any).isNetworkError = true;
+          throw detailedError;
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
-      // 1. Update cache immediately to reflect logged out state
-      queryClient.setQueryData(['user'], null);
+      // Clear user-specific cached data
+      queryClient.removeQueries({ queryKey: ['user'] });
 
-      // 2. Remove queries that shouldn't exist without a user
-      // (Optional: safer than .clear() if you have public data)
-      // queryClient.removeQueries({ queryKey: ['dashboard'] });
-
-      // 3. Smooth client-side redirect
+      // Redirect to login (middleware + backend will clear cookies)
       router.push('/login');
     },
+    onError: (error) => {
+      const isNetworkError = (error as any)?.isNetworkError === true;
+      const isAuthError =
+        (error instanceof Error && error.message.includes('401')) ||
+        (error instanceof Error && error.message.includes('Unauthorized')) ||
+        (error instanceof Error && error.message.includes('not authenticated'));
+
+      if (isNetworkError) {
+        // Network error - log for debugging, keep user in app
+        console.error('❌ LOGOUT NETWORK ERROR:', error.message);
+        throw error; // UI can show error toast
+      } else if (isAuthError) {
+        // User is already logged out on backend, clear frontend state
+        console.log('✅ User logged out (auth error detected)');
+        queryClient.removeQueries({ queryKey: ['user'] });
+        router.push('/login');
+      } else {
+        // Unknown error
+        console.error('❌ Logout failed:', error);
+        throw error; // Re-throw so UI can show error message
+      }
+    },
+    retry: 1, // Retry once on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }

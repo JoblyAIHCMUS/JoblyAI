@@ -136,7 +136,7 @@ export class CandidatesService {
         ...edu,
         grade: edu.grade || '',
         fieldOfStudy: edu.fieldOfStudy || '',
-        degree: edu.degree || '',
+        degree: edu.degree ?? 'OTHER', // luôn trả về enum, không trả chuỗi rỗng
         description: edu.description || '',
         startDate: edu.startDate.toISOString(),
         endDate: edu.endDate?.toISOString(),
