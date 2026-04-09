@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { sanitizeRedirectPath } from '@/lib/utils';
 
@@ -90,9 +91,8 @@ export function LoginForm() {
             Forgot password?
           </a>
         </div>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           placeholder="Enter password"
           {...register('password')}
           className="border-border"
