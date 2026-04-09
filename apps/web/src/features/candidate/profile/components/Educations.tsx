@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DateInput } from '@/components/ui/date-input';
 import { CandidateEducation } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
-import { createEducationSchema, DEGREE_OPTIONS, type EducationFormData } from '@/lib/validation';
+import { createEducationSchema, DEGREE_OPTIONS, formatDegree, type EducationFormData } from '@/lib/validation';
 
 interface EducationsProps {
   educations: CandidateEducation[];
@@ -65,17 +65,6 @@ function EducationEditForm({
   useEffect(() => {
     trigger('endDate');
   }, [isCurrent, trigger]);
-  const DEGREE_LABELS: Record<string, string> = {
-    PHD: 'PhD',
-    BACHELOR: "Bachelor's",
-    MASTER: "Master's",
-    ASSOCIATE: 'Associate',
-    DIPLOMA: 'Diploma',
-    HIGH_SCHOOL: 'High School',
-    OTHER: 'Other',
-  };
-
-  const formatDegree = (d?: string) => (d ? DEGREE_LABELS[d] : '');
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -402,7 +391,7 @@ function EducationView({
       </div>
       {/* Row 2 */}
       <div className="flex items-center gap-2">
-        <div className="text-primary break-words">{edu.degree}</div>
+        <div className="text-primary break-words">{formatDegree(edu.degree)}</div>
         {edu.fieldOfStudy && (
           <>
             <Dot size={16} className="text-primary" />

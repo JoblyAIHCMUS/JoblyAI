@@ -26,18 +26,11 @@ import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
+import { EMPLOYMENT_TYPE_OPTIONS } from '@/lib/employment-type-config';
 
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
-] as const;
-
-const EMPLOYMENT_TYPES = [
-  { value: 'FULL_TIME', label: 'Full-time' },
-  { value: 'PART_TIME', label: 'Part-time' },
-  { value: 'CONTRACT', label: 'Contract' },
-  { value: 'INTERNSHIP', label: 'Internship' },
-  { value: 'FREELANCE', label: 'Freelance' },
 ] as const;
 
 const CURRENCIES = [
@@ -252,7 +245,7 @@ export default function EmployerNewJobPage() {
                 }
                 className="flex flex-wrap gap-4"
               >
-                {EMPLOYMENT_TYPES.map((t) => (
+                {EMPLOYMENT_TYPE_OPTIONS.map((t) => (
                   <div key={t.value} className="flex items-center space-x-2">
                     <RadioGroupItem value={t.value} id={t.value} />
                     <Label

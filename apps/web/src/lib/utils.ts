@@ -225,7 +225,8 @@ export function getCategoryColor(categoryName: string): CategoryPillColor {
 
 /**
  * Determines job type display string from employment type.
- * Converts enum values like FULL_TIME to "Full-Time".
+ * Converts enum values like FULL_TIME to "Full-time".
+ * @deprecated Use formatEmploymentType from @/lib/employment-type-config instead
  */
 export function formatJobType(employmentType: string): string {
   const typeMap: Record<string, string> = {

@@ -11,6 +11,7 @@ import {
   CandidateExperience,
   CandidateResume,
 } from '@/types/candidate';
+import type { EmploymentType } from '@/types/job';
 
 export interface CandidateProfileResponse {
   id: string;
@@ -70,7 +71,7 @@ export interface UpdateEducationPayload extends CreateEducationPayload {
 
 export interface CreateExperiencePayload {
   companyName: string;
-  type?: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
+  type?: EmploymentType; // e.g. 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'
   jobTitle: string;
   location?: string;
   startDate: string;

@@ -15,6 +15,7 @@ import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
 import { createExperienceSchema, type ExperienceFormData } from '@/lib/validation';
+import { EMPLOYMENT_TYPE_OPTIONS, formatEmploymentType, parseEmploymentType } from '@/lib/employment-type-config';
 
 interface ExperiencesProps {
   experiences: CandidateExperience[];
@@ -58,7 +59,7 @@ function ExperienceEditForm({
     defaultValues: {
       jobTitle: editItem.jobTitle || '',
       companyName: editItem.companyName || '',
-      type: editItem.type || '',
+      type: parseEmploymentType(editItem.type),
       location: editItem.location || '',
       startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
       endDate: editItem.endDate ? new Date(editItem.endDate) : null,
@@ -163,12 +164,11 @@ function ExperienceEditForm({
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Full-time">Full-time</SelectItem>
-                      <SelectItem value="Part-time">Part-time</SelectItem>
-                      <SelectItem value="Internship">Internship</SelectItem>
-                      <SelectItem value="Contract">Contract</SelectItem>
-                      <SelectItem value="Freelance">Freelance</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.type && (
@@ -368,8 +368,14 @@ function ExperienceView({
       {/* Row 2 */}
       <div className="flex items-center gap-2">
         <div className="text-primary break-words">{exp.companyName}</div>
-        <Dot size={16} />
-        <div className="text-secondary break-words">{exp.type}</div>
+        {exp.type && (
+          <>
+            <Dot size={16} className="flex-shrink-0" />
+            <div className="text-primary break-words">
+              {formatEmploymentType(exp.type)}
+            </div>
+          </>
+        )}
         <Dot size={16} />
         <span className="body-body-1-regular text-secondary break-words">
           {exp.startDate
@@ -450,7 +456,7 @@ export default function Experiences({
       id: Date.now(),
       jobTitle: '',
       companyName: '',
-      type: '',
+      type: undefined,
       startDate: '',
       endDate: '',
       location: '',

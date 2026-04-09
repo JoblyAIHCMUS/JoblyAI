@@ -1,3 +1,5 @@
+import { EmploymentType } from "./job";
+
 export type ApplicationStatus =
   | 'applied'
   | 'viewed'
@@ -69,7 +71,7 @@ export interface CandidateExperience {
   id: number;
   companyName: string;
   jobTitle: string;
-  type: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
+  type?: EmploymentType; // Optional: undefined when creating new, set after user selection
   location?: string;
   startDate: string;
   endDate?: string;

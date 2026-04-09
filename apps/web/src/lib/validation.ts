@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { EmploymentType } from '@/types/job';
+import { getEmploymentTypeValues } from '@/lib/employment-type-config';
 
 /**
  * Zod schema for personal details form validation
@@ -75,6 +77,25 @@ export const DEGREE_OPTIONS: Degree[] = [
   'OTHER',
 ];
 
+export const DEGREE_MAP: Record<Degree, string> = {
+  PHD: 'PhD',
+  BACHELOR: "Bachelor's",
+  MASTER: "Master's",
+  ASSOCIATE: 'Associate',
+  DIPLOMA: 'Diploma',
+  HIGH_SCHOOL: 'High School',
+  OTHER: 'Other',
+};
+
+/**
+ * Converts degree enum to display label
+ * @example
+ * formatDegree('BACHELOR') // => "Bachelor's"
+ */
+export function formatDegree(degree?: string): string {
+  return degree ? DEGREE_MAP[degree as Degree] ?? degree : '';
+}
+
 export const createEducationSchema = (isCurrent: boolean) => {
   return z.object({
     school: z.string().min(1, 'School name is required').trim(),
@@ -139,10 +160,16 @@ export type EducationFormData = z.infer<typeof EducationSchema>;
  * Zod schema for experience form validation with real-time validation
  */
 export const createExperienceSchema = (isCurrent: boolean) => {
+  const employmentTypes = getEmploymentTypeValues();
+  
   return z.object({
     jobTitle: z.string().min(1, 'Job title is required').trim(),
     companyName: z.string().min(1, 'Company name is required').trim(),
-    type: z.string().min(1, 'Employment type is required'),
+    type: z
+      .enum(employmentTypes as [EmploymentType, ...EmploymentType[]])
+      .refine((val) => val !== undefined, {
+        message: 'Employment type is required',
+      }),
     location: z
       .string()
       .optional()
