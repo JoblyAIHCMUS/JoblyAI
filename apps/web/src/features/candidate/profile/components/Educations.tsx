@@ -37,9 +37,9 @@ function EducationEditForm({
   onCancel,
 }: EducationEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // When creating: isCurrent = true (not checked by default)
-  // When editing: isCurrent = true if no endDate, false if has endDate
-  const [isCurrent, setIsCurrent] = useState(!isNew && !editItem.endDate);
+  // When creating: start unchecked by default.
+  // When editing: infer the initial value from the stored end date.
+  const initialIsCurrent = !isNew && !editItem.endDate;
 
   const {
     control,
@@ -49,7 +49,7 @@ function EducationEditForm({
     trigger,
     formState: { errors, isDirty, isValid },
   } = useForm<EducationFormData>({
-    resolver: zodResolver(createEducationSchema(isCurrent)),
+    resolver: zodResolver(createEducationSchema()),
     mode: 'onChange',
     defaultValues: {
       school: editItem.school || '',
@@ -57,17 +57,14 @@ function EducationEditForm({
       fieldOfStudy: editItem.fieldOfStudy || '',
       startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
       endDate: editItem.endDate ? new Date(editItem.endDate) : null,
+      isCurrent: initialIsCurrent,
       grade: editItem.grade || '',
       description: editItem.description || '',
     },
   });
 
   const descriptionValue = watch('description');
-
-  // Revalidate endDate when isCurrent changes
-  useEffect(() => {
-    trigger('endDate');
-  }, [isCurrent, trigger]);
+  const isCurrent = watch('isCurrent');
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -205,7 +202,10 @@ function EducationEditForm({
                 label=""
                 placeholder="Select start date"
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(date) => {
+                  field.onChange(date);
+                  trigger(['startDate', 'endDate']);
+                }}
               />
             )}
           />
@@ -222,7 +222,10 @@ function EducationEditForm({
                 label=""
                 placeholder={isCurrent ? 'Present' : 'Select end date'}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(date) => {
+                  field.onChange(date);
+                  trigger('endDate');
+                }}
                 disabled={isCurrent}
               />
             )}
@@ -251,10 +254,13 @@ function EducationEditForm({
             type="checkbox"
             checked={isCurrent}
             onChange={(e) => {
-              setIsCurrent(e.target.checked);
-              // Clear end date when currently studying is checked
-              if (e.target.checked) {
-                setValue('endDate', null);
+              const checked = e.target.checked;
+              setValue('isCurrent', checked, { shouldValidate: true });
+
+              if (checked) {
+                setValue('endDate', null, { shouldValidate: true });
+              } else {
+                trigger('endDate');
               }
             }}
             className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
@@ -509,7 +515,11 @@ export default function Educations({
         ...formData,
         degree: formData.degree,
         startDate: formData.startDate ? formData.startDate.toISOString() : '',
-        endDate: formData.endDate ? formData.endDate.toISOString() : '',
+        endDate: formData.isCurrent
+          ? ''
+          : formData.endDate
+            ? formData.endDate.toISOString()
+            : '',
       });
       setEditingIdx(null);
       setEditItem(null);
@@ -530,7 +540,11 @@ export default function Educations({
         ...formData,
         degree: formData.degree,
         startDate: formData.startDate ? formData.startDate.toISOString() : '',
-        endDate: formData.endDate ? formData.endDate.toISOString() : '',
+        endDate: formData.isCurrent
+          ? ''
+          : formData.endDate
+            ? formData.endDate.toISOString()
+            : '',
       });
       setIsAdding(false);
       setEditItem(null);

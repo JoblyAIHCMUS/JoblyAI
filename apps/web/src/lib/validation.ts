@@ -96,7 +96,7 @@ export function formatDegree(degree?: string): string {
   return degree ? DEGREE_MAP[degree as Degree] ?? degree : '';
 }
 
-export const createEducationSchema = (isCurrent: boolean) => {
+export const createEducationSchema = () => {
   return z
     .object({
       school: z.string().min(1, 'School name is required').trim(),
@@ -114,18 +114,13 @@ export const createEducationSchema = (isCurrent: boolean) => {
           (val) => !val || val.length >= 2,
           'Field of study must be at least 2 characters'
         ),
-      startDate: z.date().refine((date) => date <= new Date(), {
+      startDate: z.date({
+        error: 'Start date is required',
+      }).refine((date) => date <= new Date(), {
         message: 'Start date cannot be in the future',
       }),
-      endDate: isCurrent
-        ? z.date().nullable()
-        : z
-            .date()
-            .nullable()
-            .refine(
-              (date) => date !== null,
-              'End date is required when not currently studying'
-            ),
+      isCurrent: z.boolean(),
+      endDate: z.date().nullable(),
       grade: z
         .string()
         .optional()
@@ -143,28 +138,33 @@ export const createEducationSchema = (isCurrent: boolean) => {
           'Description must not exceed 500 characters'
         ),
     })
-    .refine(
-      (data) => {
-        // If endDate is provided, it must be >= startDate
-        if (data.endDate && data.startDate) {
-          return data.endDate >= data.startDate;
-        }
-        return true;
-      },
-      {
-        message: 'End date cannot be before start date',
-        path: ['endDate'],
+    .superRefine((data, ctx) => {
+      if (!data.isCurrent && !data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['endDate'],
+          message: 'End date is required when not currently studying',
+        });
       }
-    );
+
+      const startDate = data.startDate;
+      if (startDate && data.endDate && data.endDate < startDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['endDate'],
+          message: 'End date cannot be before start date',
+        });
+      }
+    });
 };
 
-export const EducationSchema = createEducationSchema(false);
+export const EducationSchema = createEducationSchema();
 export type EducationFormData = z.infer<typeof EducationSchema>;
 
 /**
  * Zod schema for experience form validation with real-time validation
  */
-export const createExperienceSchema = (isCurrent: boolean) => {
+export const createExperienceSchema = () => {
   const employmentTypes = getEmploymentTypeValues();
 
   return z
@@ -181,21 +181,16 @@ export const createExperienceSchema = (isCurrent: boolean) => {
         .optional()
         .or(z.literal(''))
         .refine(
-          (val) => !val || val.length >= 2,
-          'Location must be at least 2 characters'
+          (val) => !val || val.length <= 200,
+          'Location must be less than 200 characters'
         ),
-      startDate: z.date().refine((date) => date <= new Date(), {
+      startDate: z.date({
+        error: 'Start date is required',
+      }).refine((date) => date <= new Date(), {
         message: 'Start date cannot be in the future',
       }),
-      endDate: isCurrent
-        ? z.date().nullable()
-        : z
-            .date()
-            .nullable()
-            .refine(
-              (date) => date !== null,
-              'End date is required when not currently working'
-            ),
+      isCurrent: z.boolean(),
+      endDate: z.date().nullable(),
       description: z
         .string()
         .optional()
@@ -205,22 +200,27 @@ export const createExperienceSchema = (isCurrent: boolean) => {
           'Description must not exceed 500 characters'
         ),
     })
-    .refine(
-      (data) => {
-        // If endDate is provided, it must be >= startDate
-        if (data.endDate && data.startDate) {
-          return data.endDate >= data.startDate;
-        }
-        return true;
-      },
-      {
-        message: 'End date cannot be before start date',
-        path: ['endDate'],
+    .superRefine((data, ctx) => {
+      if (!data.isCurrent && !data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['endDate'],
+          message: 'End date is required when not currently working',
+        });
       }
-    );
+
+      const startDate = data.startDate;
+      if (startDate && data.endDate && data.endDate < startDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['endDate'],
+          message: 'End date cannot be before start date',
+        });
+      }
+    });
 };
 
-export const ExperienceSchema = createExperienceSchema(false);
+export const ExperienceSchema = createExperienceSchema();
 export type ExperienceFormData = z.infer<typeof ExperienceSchema>;
 
 /**
