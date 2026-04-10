@@ -4,13 +4,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Edit, Dot, Plus, Trash2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { DateInput } from '@/components/ui/date-input';
 import { CandidateExperience } from '@/types/candidate';
 import ConfirmDelete from '@/components/ui/confirmDelete';
@@ -21,7 +14,6 @@ import {
 import {
   EMPLOYMENT_TYPE_OPTIONS,
   formatEmploymentType,
-  parseEmploymentType,
 } from '@/lib/employment-type-config';
 
 interface ExperiencesProps {
@@ -63,7 +55,7 @@ function ExperienceEditForm({
     defaultValues: {
       jobTitle: editItem.jobTitle || '',
       companyName: editItem.companyName || '',
-      type: parseEmploymentType(editItem.type),
+      type: editItem.type ?? undefined,
       location: editItem.location || '',
       startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
       endDate: editItem.endDate ? new Date(editItem.endDate) : null,
@@ -157,24 +149,28 @@ function ExperienceEditForm({
               control={control}
               render={({ field }) => (
                 <>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger
-                      className={`text-tertiary break-words focus:outline-none focus:ring-2 w-full ${
-                        errors.type
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'focus:ring-accent-primary'
-                      }`}
-                    >
-                      <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value || undefined)
+                    }
+                    className={`w-full break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                      !field.value ? 'text-gray-400' : 'text-tertiary'
+                    } ${
+                      errors.type
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:ring-accent-primary'
+                    }`}
+                  >
+                    <option value="" disabled hidden>
+                      Select type
+                    </option>
+                    {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                   {errors.type && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors.type.message}
