@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
+import ConfirmDelete from '@/components/ui/confirmDelete';
 import { formatDate } from '@/lib/utils';
 import { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
 import { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
@@ -352,9 +353,9 @@ export const columns: ColumnDef<JobListing>[] = [
               className="text-red-600"
               onClick={() => {
                 const meta = table.options.meta as {
-                  deleteJob?: (id: string) => void;
+                  handleDeleteClick?: (id: string) => void;
                 };
-                meta.deleteJob?.(job.id);
+                meta.handleDeleteClick?.(job.id);
               }}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -378,6 +379,15 @@ export default function JobListingTable({
 }: JobListingTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [displayData, setDisplayData] = useState<JobListing[]>([]);
+  const [deleteConfirmState, setDeleteConfirmState] = useState<{
+    isOpen: boolean;
+    jobId: string | null;
+    isDeleting: boolean;
+  }>({
+    isOpen: false,
+    jobId: null,
+    isDeleting: false,
+  });
   const [employerProfile, setEmployerProfile] = useState<{
     id: string;
     company?: { id: number; name: string } | null;
@@ -551,6 +561,38 @@ export default function JobListingTable({
     ]
   );
 
+  const handleDeleteClick = useCallback((id: string) => {
+    setDeleteConfirmState({
+      isOpen: true,
+      jobId: id,
+      isDeleting: false,
+    });
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteConfirmState.jobId) return;
+
+    setDeleteConfirmState((prev) => ({ ...prev, isDeleting: true }));
+    try {
+      await deleteJob(deleteConfirmState.jobId);
+      setDeleteConfirmState({
+        isOpen: false,
+        jobId: null,
+        isDeleting: false,
+      });
+    } catch (err) {
+      setDeleteConfirmState((prev) => ({ ...prev, isDeleting: false }));
+      console.error('Failed to delete job:', err);
+    }
+  }, [deleteConfirmState.jobId, deleteJob]);
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteConfirmState({
+      isOpen: false,
+      jobId: null,
+      isDeleting: false,
+    });
+  }, []);
   const updateJobStatus = useCallback(
     async (id: string, status: JobStatus) => {
       try {
@@ -630,7 +672,7 @@ export default function JobListingTable({
             columns={columns}
             data={displayData}
             pageSize={pageSize}
-            meta={{ publishJob, closeJob, deleteJob, updateJobStatus }}
+            meta={{ publishJob, closeJob, handleDeleteClick, updateJobStatus }}
           />
 
           {/* Custom pagination controls for server-side pagination */}
@@ -674,6 +716,16 @@ export default function JobListingTable({
             </div>
           )}
         </>
+      )}
+
+      {deleteConfirmState.isOpen && (
+        <ConfirmDelete
+          title="Delete Job Posting"
+          description="Are you sure you want to delete this job posting? This action cannot be undone."
+          onCancel={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          loading={deleteConfirmState.isDeleting}
+        />
       )}
     </div>
   );
