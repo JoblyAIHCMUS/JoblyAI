@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { EmploymentType } from '@/types/job';
-import { getEmploymentTypeValues } from '@/lib/employment-type-config';
+import { EMPLOYMENT_TYPE_OPTIONS } from '@/lib/employment-type-config';
 
 /**
  * Zod schema for personal details form validation
@@ -167,14 +167,17 @@ export type EducationFormData = z.infer<typeof EducationSchema>;
  * Zod schema for experience form validation with real-time validation
  */
 export const createExperienceSchema = () => {
-  const employmentTypes = getEmploymentTypeValues();
+  const employmentTypes = EMPLOYMENT_TYPE_OPTIONS.map(
+    (option) => option.value
+  ) as [EmploymentType, ...EmploymentType[]];
 
   return z
     .object({
       jobTitle: z.string().min(1, 'Job title is required').trim(),
       companyName: z.string().min(1, 'Company name is required').trim(),
       type: z
-        .enum(employmentTypes as [EmploymentType, ...EmploymentType[]])
+        .enum(employmentTypes)
+        .optional()
         .refine((val) => val !== undefined, {
           message: 'Employment type is required',
         }),
