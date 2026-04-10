@@ -42,15 +42,18 @@ export function CandidateTopBar() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-8">
-          <div className="flex items-center gap-4">
+          <Link
+            href="/candidate/profile"
+            className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+          >
             {user?.image ? (
               <img
                 src={user.image}
                 alt={fullName}
-                className="h-12 w-12 rounded-full object-cover"
+                className="h-12 w-12 rounded-full object-cover cursor-pointer"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e9ebfd] font-[family-name:var(--family-primary)] text-sm font-semibold text-[#4640de]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e9ebfd] font-[family-name:var(--family-primary)] text-sm font-semibold text-[#4640de] cursor-pointer">
                 {initials}
               </div>
             )}
@@ -61,7 +64,7 @@ export function CandidateTopBar() {
               </p>
               <p className="truncate text-sm text-[#7c8493]">{email}</p>
             </div>
-          </div>
+          </Link>
 
           <div className="relative" ref={notificationWrapperRef}>
             <button

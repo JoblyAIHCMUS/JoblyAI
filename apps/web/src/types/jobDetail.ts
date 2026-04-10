@@ -1,10 +1,16 @@
 export type CategoryPillColor = 'orange' | 'teal';
 
+/**
+ * @recommendation For production: Store responsibilities, whoYouAre, and niceToHaves as HTML strings
+ * instead of string arrays. This allows for rich formatted content from editors like TipTap.
+ *
+ * Current structure supports both array (legacy) and string (recommended) formats.
+ */
 export interface JobDescriptionContent {
-  overview: string;
-  responsibilities: string[];
-  whoYouAre: string[];
-  niceToHaves: string[];
+  overview: string; // HTML string from rich editor
+  responsibilities: string[] | string; // HTML string or array of strings (legacy)
+  whoYouAre: string[] | string; // HTML string or array of strings (legacy)
+  niceToHaves: string[] | string; // HTML string or array of strings (legacy)
 }
 
 export interface JobSalary {

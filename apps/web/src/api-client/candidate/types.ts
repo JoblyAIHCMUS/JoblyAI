@@ -11,6 +11,7 @@ import {
   CandidateExperience,
   CandidateResume,
 } from '@/types/candidate';
+import type { EmploymentType } from '@/types/job';
 
 export interface CandidateProfileResponse {
   id: string;
@@ -56,7 +57,7 @@ export interface CandidateSkill {
 
 export interface CreateEducationPayload {
   school: string;
-  degree?: string;
+  degree?: Degree;
   fieldOfStudy: string;
   startDate: string;
   endDate?: string;
@@ -70,7 +71,7 @@ export interface UpdateEducationPayload extends CreateEducationPayload {
 
 export interface CreateExperiencePayload {
   companyName: string;
-  type?: string; // e.g. 'Full-Time', 'Part-Time', 'Internship', etc.
+  type?: EmploymentType; // e.g. 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'
   jobTitle: string;
   location?: string;
   startDate: string;
@@ -109,3 +110,4 @@ export interface CreateCertificatePayload {
 export interface UpdateCertificatePayload extends CreateCertificatePayload {
   id: number;
 }
+import type { Degree } from '@/types/candidate';

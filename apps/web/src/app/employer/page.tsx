@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-
 export default function EmployerIndexPage() {
-  redirect('/employer/dashboard');
+  // Middleware redirects /employer → /employer/dashboard
+  // This component is a fallback - should never actually render
+  return <div>Redirecting...</div>;
 }
