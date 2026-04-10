@@ -32,7 +32,9 @@ import { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
 import { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
 import { usePublishJob } from '@/api-hook/jobs/usePublishJob';
 import { useCloseJob } from '@/api-hook/jobs/useCloseJob';
+import { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
 import { JobPosting, EmploymentType } from '@/api-client/jobs/types';
+import type { JobStatus } from '@/types/job';
 import { deleteJobPosting } from '@/api-client/jobs/employer';
 import { getEmployerProfile } from '@/api-client/employer';
 
@@ -258,32 +260,94 @@ export const columns: ColumnDef<JobListing>[] = [
                 Edit Job Posting
               </Link>
             </DropdownMenuItem>
+
+            {/* Status Change Options */}
+            <DropdownMenuSeparator />
+
+            {/* From Draft: Can go to Live or Closed */}
             {job.status === 'Draft' && (
-              <DropdownMenuItem
-                onClick={() => {
-                  const meta = table.options.meta as {
-                    publishJob?: (id: string) => void;
-                  };
-                  meta.publishJob?.(job.id);
-                }}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Publish Job Posting
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'OPEN');
+                  }}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Publish Job Posting
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'CLOSED');
+                  }}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Mark as Closed
+                </DropdownMenuItem>
+              </>
             )}
+
+            {/* From Live: Can go to Draft or Closed */}
             {job.status === 'Live' && (
-              <DropdownMenuItem
-                onClick={() => {
-                  const meta = table.options.meta as {
-                    closeJob?: (id: string) => void;
-                  };
-                  meta.closeJob?.(job.id);
-                }}
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                Close Job Posting
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'DRAFT');
+                  }}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Revert to Draft
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'CLOSED');
+                  }}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Close Job Posting
+                </DropdownMenuItem>
+              </>
             )}
+
+            {/* From Closed: Can go to Draft or Live */}
+            {job.status === 'Closed' && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'DRAFT');
+                  }}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Revert to Draft
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const meta = table.options.meta as {
+                      updateJobStatus?: (id: string, status: JobStatus) => void;
+                    };
+                    meta.updateJobStatus?.(job.id, 'OPEN');
+                  }}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Reopen Job Posting
+                </DropdownMenuItem>
+              </>
+            )}
+
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"
@@ -350,6 +414,7 @@ export default function JobListingTable({
 
   const { publishJob: publishJobAPI } = usePublishJob();
   const { closeJob: closeJobAPI } = useCloseJob();
+  const { updateStatus: updateJobStatusAPI } = useUpdateJobStatus();
 
   // Determine which hook to use based on company registration
   const useCompany = employerProfile?.company?.id;
@@ -528,6 +593,32 @@ export default function JobListingTable({
       isDeleting: false,
     });
   }, []);
+  const updateJobStatus = useCallback(
+    async (id: string, status: JobStatus) => {
+      try {
+        const jobId = parseInt(id, 10);
+        // Call the API to update the job status
+        await updateJobStatusAPI(jobId, status);
+        // Refresh the page after status change
+        if (useCompany && employerProfile?.company?.id) {
+          await fetchCompanyJobs(employerProfile.company.id, currentPage);
+        } else {
+          await fetchEmployerJobs(userId, currentPage);
+        }
+      } catch (err) {
+        console.error('Failed to update job status:', err);
+      }
+    },
+    [
+      useCompany,
+      employerProfile?.company?.id,
+      currentPage,
+      userId,
+      updateJobStatusAPI,
+      fetchCompanyJobs,
+      fetchEmployerJobs,
+    ]
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -581,7 +672,7 @@ export default function JobListingTable({
             columns={columns}
             data={displayData}
             pageSize={pageSize}
-            meta={{ publishJob, closeJob, handleDeleteClick }}
+            meta={{ publishJob, closeJob, handleDeleteClick, updateJobStatus }}
           />
 
           {/* Custom pagination controls for server-side pagination */}
