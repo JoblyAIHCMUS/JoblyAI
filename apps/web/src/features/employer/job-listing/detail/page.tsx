@@ -6,6 +6,12 @@ import Link from 'next/link';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
 import {
   useListEmployerApplications,
@@ -13,9 +19,11 @@ import {
   useRejectApplication,
   useMoveToOfferApplication,
 } from '@/api-hook/application';
+import { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
 import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
-import { type HiringStage } from '@/features/employer/hiringStage';
+import type { HiringStage } from '@/features/employer/hiringStage';
+import type { JobStatus } from '@/types/job';
 import JobApplicantsView from '@/components/employer/jobApplicantsView';
 import JobDetailsReview from '@/components/employer/jobDetailsReview';
 import JobStatsPanel from '@/components/employer/jobStatsPanel';
@@ -33,9 +41,57 @@ export default function JobListingDetailPage() {
   const { shortlistApplication } = useShortlistApplication();
   const { rejectApplication } = useRejectApplication();
   const { moveToOffer } = useMoveToOfferApplication();
+  const { updateStatus: updateJobStatus, loading: statusUpdateLoading } =
+    useUpdateJobStatus();
 
   const [applicants, setApplicants] = useState(
     mapApplicationRecordsToApplicants([])
+  );
+  const [statusUpdating, setStatusUpdating] = useState(false);
+
+  // Get available status transitions based on current status
+  const getAvailableStatusTransitions = useCallback(
+    (currentStatus: string): { status: JobStatus; label: string }[] => {
+      switch (currentStatus) {
+        case 'DRAFT':
+          return [
+            { status: 'OPEN', label: 'Publish' },
+            { status: 'CLOSED', label: 'Mark as Closed' },
+          ];
+        case 'OPEN':
+          return [
+            { status: 'DRAFT', label: 'Revert to Draft' },
+            { status: 'CLOSED', label: 'Close' },
+          ];
+        case 'CLOSED':
+          return [
+            { status: 'DRAFT', label: 'Revert to Draft' },
+            { status: 'OPEN', label: 'Reopen' },
+          ];
+        default:
+          return [];
+      }
+    },
+    []
+  );
+
+  // Handle status change
+  const handleStatusChange = useCallback(
+    async (newStatus: JobStatus) => {
+      if (!id) return;
+      try {
+        setStatusUpdating(true);
+        const jobId = parseInt(id as string, 10);
+        await updateJobStatus(jobId, newStatus);
+        // Refresh job details after status change
+        await fetchJobDetail(jobId);
+      } catch (err) {
+        console.error('Failed to update job status:', err);
+      } finally {
+        setStatusUpdating(false);
+      }
+    },
+    [id, updateJobStatus, fetchJobDetail]
   );
 
   // Fetch job details on mount
@@ -219,6 +275,33 @@ export default function JobListingDetailPage() {
             <Pencil className="h-4 w-4" />
           </Link>
         </Button>
+
+        {/* Status Dropdown */}
+        {backendJob && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={statusUpdating || statusUpdateLoading}
+              >
+                Status: {backendJob.status}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {getAvailableStatusTransitions(backendJob.status).map(
+                (option) => (
+                  <DropdownMenuItem
+                    key={option.status}
+                    onClick={() => handleStatusChange(option.status)}
+                    disabled={statusUpdating || statusUpdateLoading}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                )
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <Tabs defaultValue="applicants" className="mt-8">
