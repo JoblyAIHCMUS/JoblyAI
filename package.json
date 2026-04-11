@@ -119,7 +119,8 @@
       "picomatch": ">=4.0.4",
       "handlebars": ">=4.7.9",
       "path-to-regexp": ">=8.4.0",
-      "drizzle-orm": ">=0.45.2"
+      "drizzle-orm": ">=0.45.2",
+      "next": ">=16.2.3"
     }
   },
   "resolutions": {
