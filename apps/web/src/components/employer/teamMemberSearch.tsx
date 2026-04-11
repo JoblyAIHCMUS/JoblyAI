@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
@@ -17,10 +17,8 @@ import {
   CommandGroup,
   CommandItem,
 } from '@/components/ui/command';
-import {
-  searchEmployers,
-  type TeamMember,
-} from '@/features/employer/new-company/data';
+import { type TeamMember } from '@/features/employer/new-company/data';
+import { useSearchEmployers } from '@/api-hook/employer';
 
 interface TeamMemberSearchProps {
   open: boolean;
@@ -36,12 +34,29 @@ export function TeamMemberSearch({
   excludeEmails = [],
 }: TeamMemberSearchProps) {
   const [query, setQuery] = useState('');
+  const { results: employerResults, loading, search } = useSearchEmployers();
 
-  const results = open
-    ? searchEmployers(query).filter(
-        (user) => !excludeEmails.includes(user.email)
-      )
-    : [];
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    void search(query);
+  }, [open, query, search]);
+
+  const results = useMemo(
+    () =>
+      employerResults
+        .map((member) => ({
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          avatar: member.avatarUrl,
+          role: 'None',
+        }))
+        .filter((user) => !excludeEmails.includes(user.email)),
+    [employerResults, excludeEmails]
+  );
 
   const handleSelect = (member: TeamMember) => {
     onSelect(member);
@@ -70,7 +85,10 @@ export function TeamMemberSearch({
             onValueChange={setQuery}
           />
           <CommandList>
-            {query.trim() !== '' && results.length === 0 && (
+            {query.trim() !== '' && loading && (
+              <CommandEmpty>Searching members...</CommandEmpty>
+            )}
+            {query.trim() !== '' && !loading && results.length === 0 && (
               <CommandEmpty>No members found.</CommandEmpty>
             )}
             {results.length > 0 && (
