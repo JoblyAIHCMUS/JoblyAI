@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -21,13 +21,12 @@ import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
 import {
-  getCurrentUser,
   convertUserToTeamMember,
   type TeamMember,
 } from './data';
 import { useUser } from '@/hooks/useUser';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
-import { useCreateCompany } from '@/api-hook/company';
+import { useAddCompanyEmployee, useCreateCompany } from '@/api-hook/company';
 import { useGetEmployerProfile } from '@/api-hook/employer';
 import {
   companyRegistrationSchema,
@@ -36,6 +35,7 @@ import {
 
 export default function EmployerNewCompanyPage() {
   const { data: currentUser } = useUser();
+  const currentUserEmail = currentUser?.email?.toLowerCase();
   const { fetchEmployerProfile } = useGetEmployerProfile();
 
   const {
@@ -70,16 +70,22 @@ export default function EmployerNewCompanyPage() {
     error: logoUploadError,
   } = useUploadFile();
 
-  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => {
-    // Use actual user data if available, otherwise use mock data
-    const initialUser = currentUser
-      ? convertUserToTeamMember(currentUser)
-      : getCurrentUser();
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
 
-    return initialUser
-      ? [{ ...initialUser, isEditable: true }]
-      : [{ ...getCurrentUser(), isEditable: true }];
-  });
+  // Initialize owner row from authenticated user once user query is available.
+  useEffect(() => {
+    const owner = convertUserToTeamMember(currentUser ?? null);
+    if (!owner) {
+      return;
+    }
+
+    setTeamMembers((prev) => {
+      if (prev.some((member) => member.email === owner.email)) {
+        return prev;
+      }
+      return [{ ...owner, isEditable: true }, ...prev];
+    });
+  }, [currentUser]);
 
   // Company creation hook
   const {
@@ -95,16 +101,13 @@ export default function EmployerNewCompanyPage() {
       } catch (err) {
         console.error('Failed to refetch employer profile:', err);
       }
-      // Redirect to dashboard after a short delay
-      // Using window.location to force sidebar and topbar to remount with fresh data
-      setTimeout(() => {
-        window.location.href = '/employer/dashboard';
-      }, 1500);
     },
     onError: (err) => {
       toast.error('Failed to register company. Please try again.');
     },
   });
+
+  const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
 
   const handleRoleChange = (email: string, newRole: string) => {
     setTeamMembers((prev) =>
@@ -130,7 +133,40 @@ export default function EmployerNewCompanyPage() {
       logoUrl: data.logoUrl || undefined,
     };
     try {
-      await submitCompany(payload);
+      const company = await submitCompany(payload);
+
+      const membersToAdd = teamMembers.filter((member) => {
+        const memberEmail = member.email.toLowerCase();
+        return currentUserEmail ? memberEmail !== currentUserEmail : true;
+      });
+
+      if (membersToAdd.length > 0) {
+        const addResults = await Promise.allSettled(
+          membersToAdd.map((member) =>
+            submitAddEmployee(company.id, {
+              email: member.email,
+              role:
+                member.role && member.role !== 'None'
+                  ? member.role
+                  : undefined,
+            })
+          )
+        );
+
+        const failedAdds = addResults.filter(
+          (result) => result.status === 'rejected'
+        ).length;
+
+        if (failedAdds > 0) {
+          toast.warning(
+            `${failedAdds} team member(s) could not be added. You can retry in Company Profile.`
+          );
+        }
+      }
+
+      setTimeout(() => {
+        window.location.href = '/employer/dashboard';
+      }, 1200);
     } catch {
       // Error handled in onError
     }
@@ -169,6 +205,9 @@ export default function EmployerNewCompanyPage() {
       </p>
       {creatingCompany && (
         <div className="text-blue-600 mb-4">Registering company...</div>
+      )}
+      {addingMembers && (
+        <div className="text-blue-600 mb-4">Adding team members...</div>
       )}
       {Boolean(createError) && (
         <div className="text-red-600 mb-4">

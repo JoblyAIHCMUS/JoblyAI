@@ -47,6 +47,16 @@ export class CompanyController {
     return { exists };
   }
 
+  @Get(':id/employees')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async getCompanyEmployees(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    return this.companyService.getEmployees(companyId, request.user.id);
+  }
+
   @Get(':id')
   async getCompanyById(@Param('id', ParseIntPipe) id: number) {
     return this.companyService.getById(id);

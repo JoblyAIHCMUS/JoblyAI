@@ -36,3 +36,27 @@ export interface PatchCompanyPayload {
   description?: string;
   logoUrl?: string;
 }
+
+export interface AddCompanyEmployeePayload {
+  email: string;
+  role?: string;
+}
+
+export interface CompanyEmployeeMembership {
+  id: number;
+  companyId: number | null;
+  employerId: string;
+  role: string;
+  assignedAt: string;
+}
+
+export interface CompanyEmployee {
+  membershipId: number;
+  employerId: string;
+  role: string;
+  assignedAt: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string | null;
+}

@@ -43,6 +43,61 @@ export class CompanyService {
     return company;
   }
 
+  async getEmployees(
+    companyId: number,
+    requesterUserId: string
+  ): Promise<
+    Array<{
+      membershipId: number;
+      employerId: string;
+      role: string;
+      assignedAt: Date;
+      firstName: string;
+      lastName: string;
+      email: string;
+      avatarUrl: string | null;
+    }>
+  > {
+    await this.assertRequesterIsCompanyAdminEmployer(companyId, requesterUserId);
+
+    const employees = await this.prisma.employer.findMany({
+      where: { companyId },
+      select: {
+        id: true,
+        employerId: true,
+        role: true,
+        assignedAt: true,
+        employer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [{ assignedAt: 'asc' }],
+    });
+
+    return employees.map((member) => {
+      const nameParts = member.employer.name?.trim().split(/\s+/) ?? [];
+      const firstName = member.employer.firstName ?? nameParts[0] ?? '';
+      const lastName = member.employer.lastName ?? nameParts.slice(1).join(' ');
+
+      return {
+        membershipId: member.id,
+        employerId: member.employerId,
+        role: member.role,
+        assignedAt: member.assignedAt,
+        firstName,
+        lastName,
+        email: member.employer.email,
+        avatarUrl: member.employer.avatarUrl,
+      };
+    });
+  }
+
   async checkNameExists(name: string): Promise<boolean> {
     const company = await this.prisma.company.findUnique({
       where: { name },
