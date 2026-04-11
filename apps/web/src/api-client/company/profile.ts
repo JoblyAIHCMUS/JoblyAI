@@ -1,6 +1,9 @@
 import axios from 'axios';
 import type {
+  AddCompanyEmployeePayload,
   Company,
+  CompanyEmployee,
+  CompanyEmployeeMembership,
   CreateCompanyPayload,
   PatchCompanyPayload,
   UpdateCompanyPayload,
@@ -94,6 +97,35 @@ export async function updateCompanyLogo(
     payload,
     {
       headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
+
+export async function addCompanyEmployee(
+  companyId: number,
+  payload: AddCompanyEmployeePayload
+): Promise<CompanyEmployeeMembership> {
+  const response = await axios.post<CompanyEmployeeMembership>(
+    `${API_BASE_URL}/api/company/${companyId}/employees`,
+    payload,
+    {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
+
+export async function getCompanyEmployees(
+  companyId: number
+): Promise<CompanyEmployee[]> {
+  const response = await axios.get<CompanyEmployee[]>(
+    `${API_BASE_URL}/api/company/${companyId}/employees`,
+    {
       withCredentials: true,
     }
   );

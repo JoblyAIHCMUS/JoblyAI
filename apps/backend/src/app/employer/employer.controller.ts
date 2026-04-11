@@ -5,6 +5,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { RoleGuard } from '../auth/role.guard';
 import { User } from '@prisma/client';
 import { UpdateEmployerDto } from './dto/employer.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
+import { SearchEmployersQueryDto } from './dto/employer-search.dto';
 
 export interface AuthRequest extends Request {
   user: User;
@@ -23,6 +25,22 @@ export interface AuthRequest extends Request {
 @Controller('employer')
 export class EmployerController {
   constructor(private readonly employerService: EmployerService) {}
+
+  @Get('/search')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async searchEmployers(
+    @Request() req: AuthRequest,
+    @Query() query: SearchEmployersQueryDto
+  ) {
+    return this.employerService.searchEmployers({
+      requesterId: req.user.id,
+      name: query.name,
+      email: query.email,
+      offset: query.offset,
+      limit: query.limit,
+    });
+  }
 
   @Get('/me')
   @UseGuards(AuthGuard, RoleGuard)

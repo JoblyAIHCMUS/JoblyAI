@@ -22,7 +22,10 @@ import { useUploadToPresignedUrl } from '@/api-hook/s3/useUploadToPresignedUrl';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
-import { getCurrentUser, type TeamMember } from '../../new-company/data';
+import {
+  convertUserToTeamMember,
+  type TeamMember,
+} from '../../new-company/data';
 import {
   NEW_COMPANY_STEPS,
   SCALES,
@@ -32,12 +35,29 @@ import {
 import { useGetEmployerProfile } from '@/api-hook/employer/useGetEmployerProfile';
 import { useGetCompany } from '@/api-hook/company/useGetCompany';
 import { useEffect, useState, useRef } from 'react';
-import { useUpdateCompany } from '@/api-hook/company';
+import {
+  useAddCompanyEmployee,
+  useGetCompanyEmployees,
+  useUpdateCompany,
+} from '@/api-hook/company';
 import { useUpdateCompanyLogo } from '@/api-hook/company/useUpdateCompanyLogo';
 import { type LogoUploaderHandle } from '@/components/employer/logoUploader';
 import { companyUpdateSchema, type CompanyUpdateFormData } from './schema';
+import { useUser } from '@/hooks/useUser';
+import type { CompanyEmployee } from '@/api-client/company';
 
 export default function EmployerCompanyProfileEditPage() {
+  const mapEmployeesToTeamMembers = (employees: CompanyEmployee[]) =>
+    employees.map((member) => ({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      role: member.role,
+      avatar: member.avatarUrl || undefined,
+      isEditable: true,
+    }));
+
+  const { data: currentUser } = useUser();
   const router = useRouter();
   const {
     data: employer,
@@ -53,6 +73,11 @@ export default function EmployerCompanyProfileEditPage() {
     error: errorCompany,
     fetchCompany,
   } = useGetCompany();
+  const {
+    data: companyEmployees,
+    loading: loadingEmployees,
+    fetchCompanyEmployees,
+  } = useGetCompanyEmployees();
 
   const {
     register,
@@ -92,6 +117,7 @@ export default function EmployerCompanyProfileEditPage() {
     null
   );
   const [showLogoConfirmation, setShowLogoConfirmation] = useState(false);
+  const [hasLoadedEmployees, setHasLoadedEmployees] = useState(false);
 
   const {
     updateLogoRecord,
@@ -107,9 +133,8 @@ export default function EmployerCompanyProfileEditPage() {
     },
   });
 
-  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>(() => [
-    { ...getCurrentUser(), isEditable: true },
-  ]);
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
+  const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
   const {
     submitUpdate,
     loading: updatingCompany,
@@ -133,10 +158,26 @@ export default function EmployerCompanyProfileEditPage() {
 
   useEffect(() => {
     if (employer?.company?.id) {
+      setHasLoadedEmployees(false);
       setCompanyId(employer.company.id);
       fetchCompany(employer.company.id);
+      void fetchCompanyEmployees(employer.company.id).finally(() => {
+        setHasLoadedEmployees(true);
+      });
     }
-  }, [employer, fetchCompany]);
+  }, [employer, fetchCompany, fetchCompanyEmployees]);
+
+  useEffect(() => {
+    if (companyEmployees.length > 0) {
+      setTeamMembers(mapEmployeesToTeamMembers(companyEmployees));
+      return;
+    }
+
+    const owner = convertUserToTeamMember(currentUser ?? null);
+    if (owner) {
+      setTeamMembers([{ ...owner, isEditable: true }]);
+    }
+  }, [companyEmployees, currentUser]);
 
   // Initialize form fields when company data is loaded
   useEffect(() => {
@@ -170,11 +211,35 @@ export default function EmployerCompanyProfileEditPage() {
     );
   };
 
-  const handleAddMember = (member: TeamMember) => {
-    setTeamMembers((prev) => {
-      if (prev.some((m) => m.email === member.email)) return prev;
-      return [...prev, { ...member, isEditable: true }];
-    });
+  const handleAddMember = async (member: TeamMember) => {
+    if (!companyId) {
+      return;
+    }
+
+    try {
+      await submitAddEmployee(companyId, {
+        email: member.email,
+        role: member.role && member.role !== 'None' ? member.role : undefined,
+      });
+
+      try {
+        const refreshedEmployees = await fetchCompanyEmployees(companyId);
+        setTeamMembers(mapEmployeesToTeamMembers(refreshedEmployees));
+      } catch {
+        setTeamMembers((prev) => {
+          if (prev.some((m) => m.email === member.email)) {
+            return prev;
+          }
+
+          return [...prev, { ...member, isEditable: true }];
+        });
+        toast.warning('Member was added, but team list refresh failed.');
+      }
+
+      toast.success(`Added ${member.email} to company team`);
+    } catch {
+      toast.error(`Failed to add ${member.email} to company`);
+    }
   };
 
   const handleComplete = async (data: CompanyUpdateFormData) => {
@@ -289,7 +354,10 @@ export default function EmployerCompanyProfileEditPage() {
     }
   };
 
-  if (loadingEmployer || (companyId && loadingCompany)) {
+  if (
+    loadingEmployer ||
+    (companyId && (loadingCompany || (loadingEmployees && !hasLoadedEmployees)))
+  ) {
     return <div className="container mx-auto px-4 py-10">Loading...</div>;
   }
   if (errorEmployer) {
@@ -327,6 +395,9 @@ export default function EmployerCompanyProfileEditPage() {
       </p>
       {updatingCompany && (
         <div className="text-blue-600 mb-4">Updating company...</div>
+      )}
+      {addingMembers && (
+        <div className="text-blue-600 mb-4">Adding team members...</div>
       )}
       {Boolean(updateError) && (
         <div className="text-red-600 mb-4">

@@ -39,3 +39,11 @@ export interface UpdateEmployerProfilePayload {
 }
 
 export type UpdateEmployerProfileResponse = EmployerProfileResponse;
+
+export interface EmployerSearchResult {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl?: string;
+}

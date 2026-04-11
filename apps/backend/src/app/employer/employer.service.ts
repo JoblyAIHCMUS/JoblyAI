@@ -11,6 +11,7 @@ import {
   UpdateEmployerDto,
 } from './dto/employer.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
+import { SearchEmployerItemDto } from './dto/employer-search.dto';
 
 @Injectable()
 export class EmployerService {
@@ -50,6 +51,112 @@ export class EmployerService {
       gender: row.gender ?? undefined,
       avatarUrl: row.avatarUrl ?? undefined,
     };
+  }
+
+  async searchEmployers(params: {
+    requesterId: string;
+    name?: string;
+    email?: string;
+    offset?: number;
+    limit?: number;
+  }): Promise<SearchEmployerItemDto[]> {
+    const normalizedName = params.name?.trim();
+    const normalizedEmail = params.email?.trim();
+
+    if (!normalizedName && !normalizedEmail) {
+      throw new BadRequestException('Either name or email must be provided');
+    }
+
+    const limit = params.limit ?? 5;
+    const offset = params.offset ?? 0;
+
+    const orConditions: Prisma.UserWhereInput[] = [];
+
+    if (normalizedEmail) {
+      orConditions.push({
+        email: {
+          contains: normalizedEmail,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    if (normalizedName) {
+      orConditions.push(
+        {
+          firstName: {
+            contains: normalizedName,
+            mode: 'insensitive',
+          },
+        },
+        {
+          lastName: {
+            contains: normalizedName,
+            mode: 'insensitive',
+          },
+        },
+        {
+          name: {
+            contains: normalizedName,
+            mode: 'insensitive',
+          },
+        }
+      );
+
+      const nameTokens = normalizedName.split(/\s+/).filter(Boolean);
+      if (nameTokens.length > 1) {
+        nameTokens.forEach((token) => {
+          orConditions.push(
+            {
+              firstName: {
+                contains: token,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: token,
+                mode: 'insensitive',
+              },
+            }
+          );
+        });
+      }
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { not: params.requesterId },
+        role: 'employer',
+        banned: { not: true },
+        OR: orConditions,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+      skip: offset,
+      take: limit,
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }, { email: 'asc' }],
+    });
+
+    return users.map((user) => {
+      const nameParts = user.name?.trim().split(/\s+/) ?? [];
+      const firstName = user.firstName ?? nameParts[0] ?? '';
+      const lastName = user.lastName ?? nameParts.slice(1).join(' ');
+
+      return {
+        id: user.id,
+        firstName,
+        lastName,
+        email: user.email,
+        avatarUrl: user.avatarUrl ?? undefined,
+      };
+    });
   }
 
   async getProfileDetails(userId: string): Promise<QueryResponseEmployerDto> {
