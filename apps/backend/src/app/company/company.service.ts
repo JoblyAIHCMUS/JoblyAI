@@ -58,7 +58,10 @@ export class CompanyService {
       avatarUrl: string | null;
     }>
   > {
-    await this.assertRequesterIsCompanyAdminEmployer(companyId, requesterUserId);
+    await this.assertRequesterIsCompanyAdminEmployer(
+      companyId,
+      requesterUserId
+    );
 
     const employees = await this.prisma.employer.findMany({
       where: { companyId },

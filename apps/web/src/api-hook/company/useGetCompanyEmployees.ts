@@ -1,12 +1,17 @@
 import { useCallback, useState } from 'react';
-import { getCompanyEmployees, type CompanyEmployee } from '@/api-client/company';
+import {
+  getCompanyEmployees,
+  type CompanyEmployee,
+} from '@/api-client/company';
 
 interface UseGetCompanyEmployeesOptions {
   onSuccess?: (data: CompanyEmployee[]) => void;
   onError?: (error: unknown) => void;
 }
 
-export function useGetCompanyEmployees(options?: UseGetCompanyEmployeesOptions) {
+export function useGetCompanyEmployees(
+  options?: UseGetCompanyEmployeesOptions
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<CompanyEmployee[]>([]);

@@ -20,10 +20,7 @@ import { useUploadFile } from '@/api-hook/s3/useUploadFile';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
-import {
-  convertUserToTeamMember,
-  type TeamMember,
-} from './data';
+import { convertUserToTeamMember, type TeamMember } from './data';
 import { useUser } from '@/hooks/useUser';
 import { NEW_COMPANY_STEPS, SCALES, INDUSTRIES } from './constants';
 import { useAddCompanyEmployee, useCreateCompany } from '@/api-hook/company';
@@ -146,9 +143,7 @@ export default function EmployerNewCompanyPage() {
             submitAddEmployee(company.id, {
               email: member.email,
               role:
-                member.role && member.role !== 'None'
-                  ? member.role
-                  : undefined,
+                member.role && member.role !== 'None' ? member.role : undefined,
             })
           )
         );

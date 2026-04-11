@@ -22,7 +22,10 @@ import { useUploadToPresignedUrl } from '@/api-hook/s3/useUploadToPresignedUrl';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
-import { convertUserToTeamMember, type TeamMember } from '../../new-company/data';
+import {
+  convertUserToTeamMember,
+  type TeamMember,
+} from '../../new-company/data';
 import {
   NEW_COMPANY_STEPS,
   SCALES,
