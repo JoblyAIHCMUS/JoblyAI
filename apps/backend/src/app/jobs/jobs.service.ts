@@ -405,22 +405,6 @@ export class JobsService {
   }
 
   /**
-   * Track a job view for analytics
-   */
-  async trackJobView(jobId: number): Promise<void> {
-    try {
-      await this.prisma.jobView.create({
-        data: {
-          jobId,
-        },
-      });
-    } catch (error) {
-      // Silently fail if view tracking fails - don't break the main flow
-      console.error(`Failed to track view for job ${jobId}:`, error);
-    }
-  }
-
-  /**
    * Get job view analytics for an employer's jobs
    * Aggregates views by time period for all jobs posted by the employer
    * @param employerId The employer's user ID
