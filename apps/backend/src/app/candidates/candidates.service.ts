@@ -161,23 +161,28 @@ export class CandidatesService {
         url: cert.url ?? undefined,
       })),
       resumes: await Promise.all(
-        user.resumes.map(async (resume) => ({
-          id: resume.id,
-          isDefault: resume.isDefault,
-          fileName: resume.fileName ?? '',
-          fileKey: resume.fileKey ?? '',
-          fileType: resume.fileType ?? 'pdf',
-          fileSize: resume.fileSize ?? undefined,
-          fileUrl: resume.fileKey
-            ? (
-                await this.s3Service.generatePresignedDownloadUrl(
-                  resume.fileKey
-                )
-              ).downloadUrl
-            : '',
-          createdAt: resume.createdAt.toISOString(),
-          updatedAt: resume.updatedAt.toISOString(),
-        }))
+        [...user.resumes]
+          .sort(
+            (first, second) =>
+              second.updatedAt.getTime() - first.updatedAt.getTime()
+          )
+          .map(async (resume) => ({
+            id: resume.id,
+            isDefault: resume.isDefault,
+            fileName: resume.fileName ?? '',
+            fileKey: resume.fileKey ?? '',
+            fileType: resume.fileType ?? 'pdf',
+            fileSize: resume.fileSize ?? undefined,
+            fileUrl: resume.fileKey
+              ? (
+                  await this.s3Service.generatePresignedDownloadUrl(
+                    resume.fileKey
+                  )
+                ).downloadUrl
+              : '',
+            createdAt: resume.createdAt.toISOString(),
+            updatedAt: resume.updatedAt.toISOString(),
+          }))
       ),
       about: user.candidateDescription
         ? {
@@ -395,13 +400,35 @@ export class CandidatesService {
     userId: string,
     createDto: Omit<Prisma.ResumeCreateInput, 'candidate'>
   ): Promise<Resume> {
-    const result = await this.prismaClient.resume.create({
-      data: {
-        ...createDto,
-        candidate: {
-          connect: { id: userId },
+    const result = await this.prismaClient.$transaction(async (tx) => {
+      const existingCount = await tx.resume.count({
+        where: { candidateId: userId },
+      });
+
+      if (existingCount >= 5) {
+        throw new BadRequestException('You can store up to 5 resumes.');
+      }
+
+      const created = await tx.resume.create({
+        data: {
+          ...createDto,
+          candidate: {
+            connect: { id: userId },
+          },
         },
-      },
+      });
+
+      if (createDto.isDefault) {
+        await tx.resume.updateMany({
+          where: {
+            candidateId: userId,
+            id: { not: created.id },
+          },
+          data: { isDefault: false },
+        });
+      }
+
+      return created;
     });
 
     if (!result)
@@ -431,10 +458,22 @@ export class CandidatesService {
       );
     }
 
-    return this.prismaClient.resume.update({
+    const result = await this.prismaClient.resume.update({
       where: { id },
       data,
     });
+
+    if (data.isDefault === true) {
+      await this.prismaClient.resume.updateMany({
+        where: {
+          candidateId: userId,
+          id: { not: id },
+        },
+        data: { isDefault: false },
+      });
+    }
+
+    return result;
   }
 
   async deleteResume(userId: string, resumeId: number): Promise<string> {

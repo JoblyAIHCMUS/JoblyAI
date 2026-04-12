@@ -14,7 +14,6 @@ import Skills from './components/Skills';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
-import { deleteResume } from '@/api-client/candidate';
 import type { CandidateProfileResponse } from '@/api-client/candidate/types';
 import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
 import {
@@ -228,6 +227,14 @@ const CandidateProfilePage = () => {
   const handleCVUpload = async (file: File) => {
     setUploadErrorMsg(null);
     try {
+      const currentResumeCount = profile?.resumes?.length || 0;
+      if (currentResumeCount >= 5) {
+        const errorMsg = 'You can store up to 5 resumes.';
+        setUploadErrorMsg(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+
       const uploadResult = await uploadToS3(file, 'resumes');
       await createResumeRecord({
         fileKey: uploadResult.fileKey,
@@ -237,28 +244,6 @@ const CandidateProfilePage = () => {
         isDefault: true,
       });
       toast.success(`CV "${file.name}" uploaded successfully!`);
-
-      // Delete old CV in background (don't block the upload)
-      if (profile?.resumes && profile.resumes.length > 0) {
-        const oldResume =
-          profile.resumes.find((r) => r.isDefault) || profile.resumes[0];
-        if (oldResume?.id) {
-          try {
-            await deleteResume(oldResume.id);
-            setProfile((prev) => {
-              if (!prev) return null;
-              return {
-                ...prev,
-                resumes:
-                  prev.resumes?.filter((r) => r.id !== oldResume.id) || [],
-              };
-            });
-          } catch (err) {
-            console.error('Failed to delete old CV:', err);
-            // Don't show error toast for background deletion
-          }
-        }
-      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Upload failed';
       setUploadErrorMsg(errorMsg);
