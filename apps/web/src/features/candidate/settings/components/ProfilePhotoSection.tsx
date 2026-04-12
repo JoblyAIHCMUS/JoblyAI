@@ -9,6 +9,11 @@ import { useUploadToPresignedUrl } from '@/api-hook/s3';
 import { useUpdateAvatar } from '@/api-hook/candidate';
 import { useToast } from '@/hooks/useToast';
 import { formatErrorForDisplay } from '@/lib/errors';
+import {
+  UploadFolder,
+  isFileTypeAllowed,
+  getFileTypeErrorMessage,
+} from '@/lib/file-type-constants';
 
 interface ProfilePhotoSectionProps {
   photoUrl?: string;
@@ -43,8 +48,9 @@ export function ProfilePhotoSection({
   const { updateAvatarRecord, loading: loadingUpdate } = useUpdateAvatar();
 
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    // Validate file type against backend ALLOWED_FILE_TYPES for avatars
+    if (!isFileTypeAllowed(file.type, UploadFolder.AVATARS)) {
+      toast.error(getFileTypeErrorMessage(UploadFolder.AVATARS));
       return;
     }
 
@@ -180,7 +186,7 @@ export function ProfilePhotoSection({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.webp"
             onChange={handleFileInputChange}
             disabled={disabled || isLoading}
             className="hidden"
@@ -238,9 +244,7 @@ export function ProfilePhotoSection({
                 </span>
               </div>
               <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
-                {isLoading
-                  ? 'Uploading...'
-                  : 'PNG, JPG or WebP (max. 400 x 400px)'}
+                {isLoading ? 'Uploading...' : 'JPEG, PNG or WebP (max. 400 x 400px)'}
               </div>
             </div>
           </div>
