@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/date-picker';
 import { cn } from '@/lib/utils';
 import { type PersonalDetailsFormData } from '@/lib/validation';
 import { GENDER_OPTIONS } from '../constants';
@@ -27,12 +33,14 @@ const FormField = ({
   required?: boolean;
   children: React.ReactNode;
 }) => (
-  <div className="w-64 inline-flex flex-col items-start gap-2">
+  <div className="flex flex-col items-start gap-2 flex-1 min-w-64 relative z-0">
     <Label className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
       {label}
       {required && <span className="text-red-400 ml-1">*</span>}
     </Label>
-    {children}
+    <div className="w-full">
+      {children}
+    </div>
     {error && (
       <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
         {error}
@@ -45,7 +53,23 @@ export function PersonalDetailsForm() {
   const {
     register,
     formState: { errors, isSubmitting },
+    watch,
+    setValue,
   } = useFormContext<PersonalDetailsFormData>();
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const dateOfBirth = watch('dateOfBirth');
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Format date in local timezone (YYYY-MM-DD) to avoid timezone issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      setValue('dateOfBirth', dateString);
+      setIsDatePickerOpen(false);
+    }
+  };
 
   return (
     <>
@@ -132,18 +156,42 @@ export function PersonalDetailsForm() {
             required
             error={errors.dateOfBirth?.message}
           >
-            <div className="relative w-full">
-              <Input
-                type="date"
-                {...register('dateOfBirth')}
-                disabled={isSubmitting}
-                className={cn(
-                  'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10',
-                  errors.dateOfBirth && 'border-red-400'
-                )}
-              />
-              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-icon-primary pointer-events-none" />
-            </div>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <div className="relative w-full">
+                <Input
+                  type="date"
+                  {...register('dateOfBirth')}
+                  disabled={isSubmitting}
+                  className={cn(
+                    'bg-primary text-primary border-primary font-["Be_Vietnam_Pro"] text-base pr-10 w-full',
+                    errors.dateOfBirth && 'border-red-400'
+                  )}
+                />
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-icon-primary hover:text-primary transition-colors cursor-pointer z-10"
+                    onClick={() => setIsDatePickerOpen(true)}
+                    aria-label="Open date picker"
+                  >
+                    <CalendarIcon className="size-5" />
+                  </button>
+                </PopoverTrigger>
+              </div>
+              <PopoverContent className="w-auto p-0 z-50" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    dateOfBirth ? new Date(dateOfBirth) : undefined
+                  }
+                  onSelect={handleDateSelect}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date('1900-01-01')
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </FormField>
 
           <FormField label="Gender" required error={errors.gender?.message}>
