@@ -236,8 +236,8 @@ export type ExperienceFormData = z.infer<typeof ExperienceSchema>;
 export const SubmitApplicationSchema = z.object({
   jobTitle: z
     .string()
-    .min(1, 'Job title is required')
-    .max(200, 'Job title must be less than 200 characters'),
+    .max(200, 'Job title must be less than 200 characters')
+    .default(''),
   coverLetter: z
     .string()
     .max(1000, 'Cover letter must be less than 1000 characters')

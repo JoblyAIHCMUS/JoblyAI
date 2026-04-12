@@ -12,10 +12,14 @@ import {
 } from '@/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { ResultDialog } from '@/components/ui/ResultDialog';
+import { ApplicationForm } from '@/components/find-jobs/ApplicationForm';
 import {
-  SubmitApplicationSchema,
-  SubmitApplicationFormData,
-} from '@/lib/validation';
+  ResumeSection,
+  type ResumeChoice,
+} from '@/components/find-jobs/ResumeSection';
+import { SubmitApplicationSchema } from '@/lib/validation';
+import type { SubmitApplicationFormData } from '@/lib/validation';
+import { z } from 'zod';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
@@ -27,20 +31,9 @@ import {
 } from '@/api-hook/candidate';
 import type { CandidateResume } from '@/types/candidate';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
-import { Dot, Trash2 } from 'lucide-react';
+import { Dot } from 'lucide-react';
 
 const MAX_RESUMES = 5;
-
-interface ResumeChoice {
-  id: number;
-  fileName: string;
-  fileUrl: string;
-  fileType?: string;
-  fileSize?: number;
-  isDefault?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 interface DeleteResultState {
   open: boolean;
@@ -48,31 +41,6 @@ interface DeleteResultState {
   title: string;
   description: string;
 }
-
-const formatResumeSize = (size?: number) => {
-  if (!size) return '';
-
-  const megabytes = size / (1024 * 1024);
-  if (megabytes >= 1) {
-    return `${megabytes.toFixed(1)} MB`;
-  }
-
-  const kilobytes = size / 1024;
-  return `${Math.max(1, Math.round(kilobytes))} KB`;
-};
-
-const formatResumeDate = (value?: string) => {
-  if (!value) return '';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-};
 
 export interface JobApplication {
   id: number;
@@ -126,7 +94,7 @@ export const SubmitApplicationModal = ({
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm({
+  } = useForm<z.input<typeof SubmitApplicationSchema>, unknown, SubmitApplicationFormData>({
     resolver: zodResolver(SubmitApplicationSchema),
     mode: 'onChange',
     defaultValues: { jobTitle: '', coverLetter: '' },
@@ -225,13 +193,19 @@ export const SubmitApplicationModal = ({
     resumeOptions.find((resume) => resume.id === selectedResumeId) ??
     (job.currentResume?.id === selectedResumeId && job.currentResume.id
       ? {
-        id: job.currentResume.id,
-        fileName: job.currentResume.filename,
-        fileUrl: job.currentResume.url,
-      }
+          id: job.currentResume.id,
+          fileName: job.currentResume.filename,
+          fileUrl: job.currentResume.url,
+        }
       : null);
   const canUploadNewResume =
     !loadingCandidateProfile && resumeOptions.length < MAX_RESUMES;
+  const candidateProfileErrorMessage =
+    candidateProfileError instanceof Error
+      ? candidateProfileError.message
+      : candidateProfileError
+        ? String(candidateProfileError)
+        : null;
 
   // Reset modal state when opened to prevent stale state from previous session
   useEffect(() => {
@@ -473,242 +447,33 @@ export const SubmitApplicationModal = ({
             Submit your application
           </h3>
           <p className="mt-2 break-words text-xs text-slate-600 sm:text-sm">
-            The following is required and will only be shared with {job.company}
+            The following information will only be shared with {job.company}
           </p>
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* Job Title Input */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-950">
-              Current of previous job title
-            </label>
-            <input
-              {...register('jobTitle')}
-              type="text"
-              placeholder="What's your current or previous job title?"
-              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            {errors.jobTitle && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.jobTitle.message}
-              </p>
-            )}
-          </div>
+          <ApplicationForm
+            register={register}
+            errors={errors}
+            charCount={charCount}
+          />
 
-          <div className="border-b border-slate-200" />
-
-          {/* Cover Letter Textarea */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-950">
-              Additional information/Cover letter
-            </label>
-            <textarea
-              {...register('coverLetter')}
-              placeholder="Add a cover letter or anything else you want to share"
-              maxLength={1000}
-              rows={5}
-              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
-              <span>Maximum 1000 characters</span>
-              <span>{charCount} / 1000</span>
-            </div>
-            {errors.coverLetter && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.coverLetter.message}
-              </p>
-            )}
-          </div>
-
-          <div className="border-b border-slate-200" />
-
-          {/* Resume Section */}
-          <div>
-            <div className="mb-5 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-              <label className="text-sm font-semibold text-slate-950">
-                Use your recent resumes
-              </label>
-              {selectedResume ? (
-                <a
-                  href={selectedResume.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-fit text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  View
-                </a>
-              ) : null}
-            </div>
-
-            <div className="space-y-3">
-              {loadingCandidateProfile ? (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  Loading your recent resumes...
-                </div>
-              ) : resumeOptions.length > 0 ? (
-                resumeOptions.map((resume, index) => {
-                  const isSelected = resume.id === selectedResumeId;
-                  return (
-                    <div
-                      key={resume.id}
-                      className={`flex flex-col gap-3 rounded-lg border px-3 py-3 transition-colors sm:flex-row sm:items-center sm:justify-between sm:px-4 ${isSelected
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
-                        }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setSelectedResumeId(resume.id)}
-                        className="min-w-0 flex-1 text-left"
-                      >
-                        <div className="flex min-w-0 flex-wrap items-center gap-2">
-                          <span className="min-w-0 break-words text-sm font-semibold leading-5 text-slate-950">
-                            {resume.fileName}
-                          </span>
-                          {index === 0 && (
-                            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                              Latest
-                            </span>
-                          )}
-                          {resume.isDefault && (
-                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 break-words text-[11px] leading-4 text-slate-500 sm:text-xs">
-                          {[
-                            formatResumeDate(
-                              resume.updatedAt || resume.createdAt
-                            ),
-                            resume.fileType,
-                            formatResumeSize(resume.fileSize),
-                          ]
-                            .filter(Boolean)
-                            .join(' • ')}
-                        </p>
-                      </button>
-
-                      <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2 sm:justify-start">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${isSelected
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600'
-                            }`}
-                        >
-                          {isSelected ? 'Selected' : 'Select'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteResume(resume.id)}
-                          disabled={deletingResume || isUploading}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition-colors hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          aria-label={`Delete ${resume.fileName}`}
-                          title="Delete resume"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : job.currentResume ? (
-                <a
-                  href={job.currentResume.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex max-w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-indigo-600 hover:border-indigo-300 hover:bg-slate-50"
-                >
-                  {job.currentResume.filename}
-                </a>
-              ) : (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  No uploaded resumes yet.
-                </div>
-              )}
-            </div>
-
-            {/* File Upload */}
-            <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <label className="text-sm font-semibold text-slate-950">
-                Attach a new resume
-              </label>
-              <label
-                className={`flex w-full items-center justify-center gap-3 rounded-lg border-2 border-dashed px-4 py-3 text-sm transition-colors sm:w-auto sm:px-6 sm:py-4 ${canUploadNewResume
-                    ? 'cursor-pointer border-indigo-400 bg-indigo-50 hover:border-indigo-500 hover:bg-indigo-100'
-                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
-                  }`}
-              >
-                <svg
-                  className={`h-5 w-5 shrink-0 sm:h-6 sm:w-6 ${canUploadNewResume ? 'text-indigo-600' : 'text-slate-400'
-                    }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                <span className="min-w-0 break-words text-center font-medium text-slate-950">
-                  {uploadedFile
-                    ? uploadedFile.name
-                    : canUploadNewResume
-                      ? 'Attach Resume/CV'
-                      : 'Resume limit reached'}
-                </span>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                  disabled={isUploading || !canUploadNewResume}
-                  aria-label="Upload resume file"
-                />
-              </label>
-            </div>
-
-            <p className="mt-2 text-[11px] leading-4 text-slate-500 sm:text-xs">
-              You can store up to {MAX_RESUMES} resumes.
-            </p>
-
-            {/* Upload Progress Bar */}
-            {isUploading && (
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between gap-3 text-[11px] text-slate-600 sm:text-xs">
-                  <span>Uploading...</span>
-                  <span>{Math.round(uploadProgress)}%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-indigo-600 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                    role="progressbar"
-                    aria-valuenow={Math.round(uploadProgress)}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  />
-                </div>
-              </div>
-            )}
-
-            {selectedResume && (
-              <p className="mt-3 text-[11px] leading-4 text-green-600 sm:text-xs">
-                ✓ Resume ready: {selectedResume.fileName}
-              </p>
-            )}
-
-            {Boolean(candidateProfileError) && (
-              <p className="mt-3 text-[11px] leading-4 text-amber-700 sm:text-xs">
-                Could not load your resume history, so the latest uploaded file
-                will be used.
-              </p>
-            )}
-          </div>
+          <ResumeSection
+            resumes={resumeOptions}
+            selectedResumeId={selectedResumeId}
+            selectedResume={selectedResume}
+            uploadedFile={uploadedFile}
+            onSelect={setSelectedResumeId}
+            onDelete={handleDeleteResume}
+            onUpload={handleFileChange}
+            loading={loadingCandidateProfile}
+            uploading={isUploading}
+            uploadProgress={uploadProgress}
+            deletingResume={deletingResume}
+            candidateProfileError={candidateProfileErrorMessage}
+            canUploadNewResume={canUploadNewResume}
+            maxResumes={MAX_RESUMES}
+          />
 
           <div className="border-b border-slate-200" />
 
