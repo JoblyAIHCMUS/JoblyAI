@@ -29,7 +29,10 @@ export class EmployerService {
     private readonly s3Service: S3Service
   ) {}
 
-  private splitName(name?: string | null): { firstName: string; lastName: string } {
+  private splitName(name?: string | null): {
+    firstName: string;
+    lastName: string;
+  } {
     const trimmed = (name ?? '').trim();
     if (!trimmed) {
       return { firstName: '', lastName: '' };
