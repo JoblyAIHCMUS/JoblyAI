@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/contexts/page-title-context';
+import { useCandidateProfileContext } from '@/api-hook/candidate';
 
 import ProfileHeader from './components/ProfileHeader';
 import AboutMe from './components/AboutMe';
@@ -11,7 +12,6 @@ import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
 // import Portfolios from './components/Portfolios';
-import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
 import type { CandidateProfileResponse } from '@/api-client/candidate/types';
@@ -43,12 +43,7 @@ import { CandidateProfileUI } from './types';
 const CandidateProfilePage = () => {
   const { setTitle } = usePageTitle();
   const { toast } = useToast();
-
-  useEffect(() => {
-    setTitle('Profile');
-  }, [setTitle]);
-
-  const { fetchCandidateProfile, loading, error } = useGetCandidateProfile();
+  const { data: candidateProfile } = useCandidateProfileContext();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
 
@@ -203,23 +198,31 @@ const CandidateProfilePage = () => {
   const handleAddSocial = undefined;
   const handleUpdateSocials = undefined;
 
+  // Initialize profile from context
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const profileData = await fetchCandidateProfile();
-        setProfile(profileData || null);
-      } catch (err) {
-        console.error('Failed to fetch candidate profile', { error: err });
-      }
+    setTitle('Profile');
+  }, [setTitle]);
+
+  useEffect(() => {
+    setProfile(candidateProfile || null);
+  }, [candidateProfile]);
+
+  // Listen for profile updates (from settings or other pages)
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      // Context will refetch and update candidateProfile automatically
+      // which will trigger the useEffect above
     };
 
-    loadProfile();
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    return () =>
+      window.removeEventListener('profile-updated', handleProfileUpdate);
   }, []);
 
-  if (error) {
+  if (!profile) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center text-red-500">
-        Error loading profile.
+      <div className="w-full min-h-screen flex items-center justify-center">
+        Loading...
       </div>
     );
   }
@@ -266,14 +269,6 @@ const CandidateProfilePage = () => {
       profile.resumes.find((r) => r.isDefault) || profile.resumes[0];
     return defaultResume.fileName;
   };
-
-  if (loading || !profile) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
 
   const candidate: CandidateProfileUI = mapDataToCandidate(profile);
 

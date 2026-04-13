@@ -24,18 +24,29 @@ function Calendar({
   const actualCurrentYear = new Date().getFullYear();
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const currentYear = month.getFullYear();
   const currentMonth = month.getMonth();
   // For DOB, allow selecting from 1920 to actual current year
   const startYear = 1920 + yearStartOffset;
-  const endYear = startYear + 19;
   // Display years in ascending order (left to right)
   // Show all 20 years in the range, but filter out future years beyond actual current year
-  const years = Array.from({ length: 20 }, (_, i) => startYear + i).filter(y => y <= actualCurrentYear);
+  const years = Array.from({ length: 20 }, (_, i) => startYear + i).filter(
+    (y) => y <= actualCurrentYear
+  );
 
   const handlePrevYearRange = () => {
     setYearStartOffset(Math.max(0, yearStartOffset - 20));
@@ -56,7 +67,10 @@ function Calendar({
 
   const handleOpenYearPicker = () => {
     // Calculate offset to show the selected year
-    const offset = Math.max(0, Math.min(currentYear - 1920 - 19, actualCurrentYear - 1920));
+    const offset = Math.max(
+      0,
+      Math.min(currentYear - 1920 - 19, actualCurrentYear - 1920)
+    );
     setYearStartOffset(Math.floor(offset / 20) * 20);
     setShowYearPicker(true);
   };
@@ -140,7 +154,8 @@ function Calendar({
               className={cn(
                 buttonVariants({ variant: 'outline' }),
                 'h-8 w-8 p-0',
-                yearStartOffset >= actualCurrentYear - 1920 - 19 && 'opacity-50 cursor-not-allowed'
+                yearStartOffset >= actualCurrentYear - 1920 - 19 &&
+                  'opacity-50 cursor-not-allowed'
               )}
             >
               <ChevronRight className="h-4 w-4" />
@@ -232,8 +247,10 @@ function Calendar({
           `}</style>
 
           <div className="calendar-grid">
-            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-              <div key={day} className="calendar-day-header">{day}</div>
+            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+              <div key={day} className="calendar-day-header">
+                {day}
+              </div>
             ))}
 
             <DayPicker
@@ -252,12 +269,20 @@ function Calendar({
 
             {(() => {
               // Manual day rendering
-              const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-              const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+              const firstDay = new Date(
+                month.getFullYear(),
+                month.getMonth(),
+                1
+              );
+              const lastDay = new Date(
+                month.getFullYear(),
+                month.getMonth() + 1,
+                0
+              );
               const daysInMonth = lastDay.getDate();
               const startingDayOfWeek = firstDay.getDay();
 
-              const days = [];
+              const days: (number | null)[] = [];
               for (let i = 0; i < startingDayOfWeek; i++) {
                 days.push(null);
               }
@@ -270,22 +295,33 @@ function Calendar({
                   {day ? (
                     <button
                       onClick={() => {
-                        const selectedDate = new Date(month.getFullYear(), month.getMonth(), day);
-                        props.onSelect?.(selectedDate);
+                        const selectedDate = new Date(
+                          month.getFullYear(),
+                          month.getMonth(),
+                          day
+                        );
+                        if (
+                          'onSelect' in props &&
+                          typeof props.onSelect === 'function'
+                        ) {
+                          (props.onSelect as (date: Date) => void)?.(
+                            selectedDate
+                          );
+                        }
                       }}
                       className={cn(
                         'w-full h-full rounded flex items-center justify-center',
-                        day === new Date().getDate() && month.getMonth() === new Date().getMonth() && month.getFullYear() === new Date().getFullYear()
+                        day === new Date().getDate() &&
+                          month.getMonth() === new Date().getMonth() &&
+                          month.getFullYear() === new Date().getFullYear()
                           ? 'bg-blue-100 text-blue-900 font-semibold'
-                          : (props.selected instanceof Date && day === props.selected.getDate() && month.getMonth() === props.selected.getMonth() && month.getFullYear() === props.selected.getFullYear())
-                          ? 'bg-blue-600 text-white font-semibold'
                           : 'text-gray-700 hover:bg-gray-100'
                       )}
                     >
                       {day}
                     </button>
                   ) : (
-                    <span className="text-gray-300">{days[idx]}</span>
+                    <span className="text-gray-300"></span>
                   )}
                 </div>
               ));

@@ -13,6 +13,7 @@ import { useApplicationsPageState } from '@/features/candidate/applications/hook
 import { usePageTitle } from '@/contexts/page-title-context';
 import { useWithdrawApplication } from '@/api-hook/application';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
+import { useCandidateProfileContext } from '@/api-hook/candidate';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { useInitializeConversation } from '@/api-hook/messages';
@@ -28,6 +29,7 @@ export default function CandidateApplicationsPage() {
   }, [setTitle]);
 
   const filterDialogId = 'applications-filter-dialog';
+  const { data: candidateProfile } = useCandidateProfileContext();
   const { data: user } = useUser();
   const { initChat } = useInitializeConversation({
     onError: (error) => {
@@ -88,7 +90,7 @@ export default function CandidateApplicationsPage() {
     applySearch,
   });
 
-  const firstName = user?.name?.split(' ')[0] ?? 'Jake';
+  const firstName = candidateProfile?.name?.split(' ')[0] ?? 'Jake';
   const activityStatusText =
     dateRangeLabel === 'Select date range'
       ? 'from all time'

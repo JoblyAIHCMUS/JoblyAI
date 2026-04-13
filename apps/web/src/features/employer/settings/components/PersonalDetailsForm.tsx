@@ -179,9 +179,7 @@ export function PersonalDetailsForm({
               <PopoverContent className="w-auto p-0 z-50" align="start">
                 <Calendar
                   mode="single"
-                  selected={
-                    dateOfBirth ? new Date(dateOfBirth) : undefined
-                  }
+                  selected={dateOfBirth ? new Date(dateOfBirth) : undefined}
                   onSelect={handleDateSelect}
                   disabled={(date) =>
                     date > new Date() || date < new Date('1900-01-01')

@@ -240,7 +240,9 @@ export function ProfilePhotoSection({
                 </span>
               </div>
               <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
-                {isLoading ? 'Uploading...' : 'JPEG, PNG or WebP (max. 400 x 400px)'}
+                {isLoading
+                  ? 'Uploading...'
+                  : 'JPEG, PNG or WebP (max. 400 x 400px)'}
               </div>
             </div>
           </div>

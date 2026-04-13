@@ -1,3 +1,4 @@
+export * from '@/api-hook/candidate/CandidateProfileContext';
 export * from '@/api-hook/candidate/useGetCandidateProfile';
 export * from '@/api-hook/candidate/useCreateEducation';
 export * from '@/api-hook/candidate/useUpdateEducation';

@@ -38,9 +38,7 @@ const FormField = ({
       {label}
       {required && <span className="text-red-400 ml-1">*</span>}
     </Label>
-    <div className="w-full">
-      {children}
-    </div>
+    <div className="w-full">{children}</div>
     {error && (
       <span className="font-['Be_Vietnam_Pro'] text-sm text-red-400">
         {error}
@@ -181,9 +179,7 @@ export function PersonalDetailsForm() {
               <PopoverContent className="w-auto p-0 z-50" align="start">
                 <Calendar
                   mode="single"
-                  selected={
-                    dateOfBirth ? new Date(dateOfBirth) : undefined
-                  }
+                  selected={dateOfBirth ? new Date(dateOfBirth) : undefined}
                   onSelect={handleDateSelect}
                   disabled={(date) =>
                     date > new Date() || date < new Date('1900-01-01')
