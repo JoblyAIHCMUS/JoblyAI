@@ -6,6 +6,11 @@ import {
 } from '@/types/candidate';
 import type { CandidateSkill } from '@/api-client/candidate/types';
 
+export interface PortfolioItem {
+  img: string;
+  name: string;
+}
+
 export interface CandidateProfileUI {
   name: string;
   email: string;
@@ -18,7 +23,7 @@ export interface CandidateProfileUI {
   experiences: Array<CandidateExperience>;
   educations: Array<CandidateEducation>;
   skills: CandidateSkill[];
-  portfolios: Array<any>;
+  portfolios: PortfolioItem[];
   contact: Contact;
   socials: Array<Social>;
 }

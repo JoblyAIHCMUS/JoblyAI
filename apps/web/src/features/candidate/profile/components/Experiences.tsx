@@ -461,7 +461,7 @@ export default function Experiences({
     try {
       await handleDeleteExperience(displayedExperiences[deleteIdx].id);
       setDeleteIdx(null);
-    } catch (err) {
+    } catch {
       // Có thể show toast hoặc error
     } finally {
       setLoadingDelete(false);
@@ -544,7 +544,7 @@ export default function Experiences({
       });
       setIsAdding(false);
       setEditItem(null);
-    } catch (err) {
+    } catch {
       setError('Add experience failed. Please try again.');
     } finally {
       setLoading(false);

@@ -24,6 +24,7 @@ import {
   formatDateToYYYYMMDD,
 } from '@/lib/validation';
 import { formatErrorForDisplay } from '@/lib/errors';
+import type { CandidateProfileResponse } from '@/api-client/candidate/types';
 
 export default function CandidateSettingsPage() {
   const { setTitle } = usePageTitle();
@@ -73,7 +74,7 @@ export default function CandidateSettingsPage() {
 
   // Memoized success callback for fetching profile
   const handleProfileSuccess = useCallback(
-    (data: any) => {
+    (data: CandidateProfileResponse) => {
       const dobString = formatDateToYYYYMMDD(data.dateOfBirth);
 
       if (data.avatarUrl) {

@@ -1,8 +1,9 @@
 'use client';
 import React from 'react';
 import { Edit, Plus } from 'lucide-react';
+import type { PortfolioItem } from '../types';
 
-export default function Portfolios({ portfolios }: { portfolios: any[] }) {
+export default function Portfolios({ portfolios }: { portfolios: PortfolioItem[] }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] px-[var(--space-lg)] py-[var(--space-xl)] flex flex-col gap-[var(--space-lg)]">
       <div className="flex items-center justify-between">

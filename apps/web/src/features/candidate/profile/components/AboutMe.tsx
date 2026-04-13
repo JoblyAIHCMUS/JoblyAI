@@ -37,7 +37,7 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
         bio,
       });
       setEditing(false);
-    } catch (err) {
+    } catch {
       setError('Update failed. Please try again.');
     } finally {
       setLoading(false);
