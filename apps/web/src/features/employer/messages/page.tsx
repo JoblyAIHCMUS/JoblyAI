@@ -21,8 +21,8 @@ export default function EmployerMessagesPage() {
   const [conversationsLoading, setConversationsLoading] = useState(false);
 
   // Refs for debounced conversation refetch
-  const refetchInProgressRef = useRef(false);
   const refetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldRefetchAgainRef = useRef(false);
 
   // Fetch conversations on component mount
   useEffect(() => {
@@ -71,8 +71,12 @@ export default function EmployerMessagesPage() {
   }, [currentUser?.id, fetchChatSummary]);
 
   // Refetch conversations with debounce to avoid excessive API calls
+  // Uses a flag to track if another refetch was requested during the debounce period
   const refetchConversations = useCallback(async () => {
-    if (!currentUser?.id || refetchInProgressRef.current) return;
+    if (!currentUser?.id) return;
+
+    // Mark that a refetch was requested
+    shouldRefetchAgainRef.current = true;
 
     // Clear any pending debounce timer
     if (refetchTimeoutRef.current) {
@@ -81,7 +85,8 @@ export default function EmployerMessagesPage() {
 
     // Set debounce timer (500ms) before making API call
     refetchTimeoutRef.current = setTimeout(async () => {
-      refetchInProgressRef.current = true;
+      shouldRefetchAgainRef.current = false;
+
       try {
         const summaries = await fetchChatSummary(currentUser.id);
         const transformedConversations: Conversation[] = summaries.map(
@@ -123,24 +128,29 @@ export default function EmployerMessagesPage() {
         );
 
         // ✨ SYNC selectedConversation: if it exists in updated list, update it with new unread status
-        if (selectedConversation) {
+        setSelectedConversation((prev) => {
+          if (!prev) return null;
           const updatedSelected = transformedConversations.find(
-            (c) => c.participantId === selectedConversation.participantId
+            (c) => c.participantId === prev.participantId
           );
-          if (updatedSelected && updatedSelected.unread !== selectedConversation.unread) {
+          if (updatedSelected && updatedSelected.unread !== prev.unread) {
             console.log(
-              `[refetch] Syncing selectedConversation unread: ${selectedConversation.unread} → ${updatedSelected.unread}`
+              `[refetch] Syncing selectedConversation unread: ${prev.unread} → ${updatedSelected.unread}`
             );
-            setSelectedConversation(updatedSelected);
+            return updatedSelected;
           }
+          return prev;
+        });
+
+        // ✨ If another refetch was requested during the API call, run it again
+        if (shouldRefetchAgainRef.current) {
+          refetchConversations();
         }
       } catch (error) {
         console.error('Error refetching conversations:', error);
-      } finally {
-        refetchInProgressRef.current = false;
       }
     }, 500); // 500ms debounce
-  }, [currentUser?.id, fetchChatSummary, selectedConversation]);
+  }, [currentUser?.id, fetchChatSummary]);
 
   // Register callback for message read receipts
   useEffect(() => {
