@@ -400,36 +400,61 @@ export class CandidatesService {
     userId: string,
     createDto: Omit<Prisma.ResumeCreateInput, 'candidate'>
   ): Promise<Resume> {
-    const result = await this.prismaClient.$transaction(async (tx) => {
-      const existingCount = await tx.resume.count({
-        where: { candidateId: userId },
-      });
+    const runCreate = async () =>
+      this.prismaClient.$transaction(
+        async (tx) => {
+          const existingCount = await tx.resume.count({
+            where: { candidateId: userId },
+          });
 
-      if (existingCount >= 5) {
-        throw new BadRequestException('You can store up to 5 resumes.');
-      }
+          if (existingCount >= 5) {
+            throw new BadRequestException('You can store up to 5 resumes.');
+          }
 
-      const created = await tx.resume.create({
-        data: {
-          ...createDto,
-          candidate: {
-            connect: { id: userId },
-          },
+          const created = await tx.resume.create({
+            data: {
+              ...createDto,
+              candidate: {
+                connect: { id: userId },
+              },
+            },
+          });
+
+          if (createDto.isDefault) {
+            await tx.resume.updateMany({
+              where: {
+                candidateId: userId,
+                id: { not: created.id },
+              },
+              data: { isDefault: false },
+            });
+          }
+
+          return created;
         },
-      });
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      );
 
-      if (createDto.isDefault) {
-        await tx.resume.updateMany({
-          where: {
-            candidateId: userId,
-            id: { not: created.id },
-          },
-          data: { isDefault: false },
-        });
+    let result: Resume | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        result = await runCreate();
+        break;
+      } catch (error: unknown) {
+        // P2034: "Transaction failed due to a write conflict or a deadlock. Please retry your transaction"
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2034' &&
+          attempt < 2
+        ) {
+          continue;
+        }
+
+        throw error;
       }
-
-      return created;
-    });
+    }
 
     if (!result)
       throw new InternalServerErrorException(
@@ -445,6 +470,13 @@ export class CandidatesService {
   ): Promise<Resume> {
     const { id, ...data } = updateDto;
 
+    const wantsDefault =
+      data.isDefault === true ||
+      (typeof data.isDefault === 'object' &&
+        data.isDefault !== null &&
+        'set' in data.isDefault &&
+        (data.isDefault as { set?: unknown }).set === true);
+
     const existing = await this.prismaClient.resume.findFirst({
       where: {
         id,
@@ -458,22 +490,28 @@ export class CandidatesService {
       );
     }
 
-    const result = await this.prismaClient.resume.update({
+    if (wantsDefault) {
+      const [updated] = await this.prismaClient.$transaction([
+        this.prismaClient.resume.update({
+          where: { id },
+          data,
+        }),
+        this.prismaClient.resume.updateMany({
+          where: {
+            candidateId: userId,
+            id: { not: id },
+          },
+          data: { isDefault: false },
+        }),
+      ]);
+
+      return updated;
+    }
+
+    return this.prismaClient.resume.update({
       where: { id },
       data,
     });
-
-    if (data.isDefault === true) {
-      await this.prismaClient.resume.updateMany({
-        where: {
-          candidateId: userId,
-          id: { not: id },
-        },
-        data: { isDefault: false },
-      });
-    }
-
-    return result;
   }
 
   async deleteResume(userId: string, resumeId: number): Promise<string> {

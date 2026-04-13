@@ -21,7 +21,7 @@ export function ApplicationForm({
     <>
       <div>
         <label className="mb-2 block text-sm font-semibold text-slate-950">
-          Current of previous job title
+          Current or previous job title
         </label>
         <input
           {...register('jobTitle')}

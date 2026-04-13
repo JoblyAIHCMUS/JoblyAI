@@ -40,15 +40,17 @@ export function DeleteConfirmDialog({
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+
     const handleKey = (e: KeyboardEvent) => {
       const active = document.activeElement;
 
       if (
         e.key === 'Enter' &&
-        open &&
         !loading &&
         active?.tagName !== 'INPUT' &&
-        active?.tagName !== 'TEXTAREA'
+        active?.tagName !== 'TEXTAREA' &&
+        active?.tagName !== 'BUTTON'
       ) {
         onConfirm();
       }
@@ -56,7 +58,7 @@ export function DeleteConfirmDialog({
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [open, loading]);
+  }, [open, loading, onConfirm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

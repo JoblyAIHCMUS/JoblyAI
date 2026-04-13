@@ -129,17 +129,15 @@ export const SubmitApplicationModal = ({
         const nextResumes = [
           uploadedResume,
           ...prev.filter((resume) => resume.id !== uploadedResume.id),
-        ]
-          .sort((first, second) => {
-            const firstTime = new Date(
-              first.updatedAt || first.createdAt || 0
-            ).getTime();
-            const secondTime = new Date(
-              second.updatedAt || second.createdAt || 0
-            ).getTime();
-            return secondTime - firstTime;
-          })
-          .slice(0, MAX_RESUMES);
+        ].sort((first, second) => {
+          const firstTime = new Date(
+            first.updatedAt || first.createdAt || 0
+          ).getTime();
+          const secondTime = new Date(
+            second.updatedAt || second.createdAt || 0
+          ).getTime();
+          return secondTime - firstTime;
+        });
 
         return nextResumes;
       });
@@ -239,7 +237,6 @@ export const SubmitApplicationModal = ({
               ).getTime();
               return secondTime - firstTime;
             })
-            .slice(0, MAX_RESUMES)
             .map((resume) => ({
               id: resume.id,
               fileName: resume.fileName,
