@@ -38,10 +38,10 @@ function formatSalaryRange(
   }
 
   return salaryMin
-  ? `From ${formatter.format(salaryMin)}`
-  : salaryMax
-  ? `Up to ${formatter.format(salaryMax)}`
-  : 'Salary not specified';
+    ? `From ${formatter.format(salaryMin)}`
+    : salaryMax
+    ? `Up to ${formatter.format(salaryMax)}`
+    : 'Salary not specified';
 }
 
 type JobCardProps = {

@@ -452,7 +452,7 @@ export const SubmitApplicationModal = ({
                 {formatJobType(job.jobType)}
               </span>
             </div>
-            </div>
+          </div>
         </div>
 
         {/* Form Title */}
