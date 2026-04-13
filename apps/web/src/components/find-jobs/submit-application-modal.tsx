@@ -452,7 +452,7 @@ export const SubmitApplicationModal = ({
                 {formatJobType(job.jobType)}
               </span>
             </div>
-          </div>
+            </div>
         </div>
 
         {/* Form Title */}
@@ -558,9 +558,9 @@ export const SubmitApplicationModal = ({
         <DeleteConfirmDialog
           open={!!resumeDeleteTarget}
           title="Delete resume"
-          description={`Delete \"${
+          description={`Delete "${
             resumeDeleteTarget?.fileName ?? ''
-          }\"? This action cannot be undone.`}
+          }"? This action cannot be undone.`}
           loading={deletingResume}
           onOpenChange={(open) => {
             if (!open) {
