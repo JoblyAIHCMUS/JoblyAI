@@ -17,6 +17,7 @@ interface JobApplicantsViewProps {
   applicants: Applicant[];
   onAdvanceApplicant?: (id: string) => Promise<void>;
   onDeclineApplicant?: (id: string) => Promise<void>;
+  onMessageCandidate?: (applicantId: string) => Promise<void>;
   onMoveApplicant?: (
     id: string,
     stage: HiringStage,
@@ -29,6 +30,7 @@ export default function JobApplicantsView({
   applicants: initialApplicants,
   onAdvanceApplicant,
   onDeclineApplicant,
+  onMessageCandidate,
   onMoveApplicant,
 }: JobApplicantsViewProps) {
   const [data, setData] = useState<Applicant[]>(initialApplicants);
@@ -127,6 +129,7 @@ export default function JobApplicantsView({
           applicants={data}
           advanceApplicant={advanceApplicant}
           declineApplicant={declineApplicant}
+          onMessageCandidate={onMessageCandidate}
         />
       </TabsContent>
 

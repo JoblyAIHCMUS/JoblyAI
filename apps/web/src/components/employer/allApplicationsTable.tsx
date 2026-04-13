@@ -9,6 +9,7 @@ import {
   Eye,
   ChevronRight,
   XCircle,
+  MessageCircle,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -178,6 +179,7 @@ export const columns: ColumnDef<AllApplication>[] = [
       const meta = table.options.meta as {
         advanceApplicant?: (id: string) => Promise<void>;
         declineApplicant?: (id: string) => Promise<void>;
+        onMessageCandidate?: (applicantId: string) => Promise<void>;
         loadingId?: string | null;
       };
       const isLoading = meta?.loadingId === application.id;
@@ -201,6 +203,13 @@ export const columns: ColumnDef<AllApplication>[] = [
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isLoading}
+              onClick={() => meta.onMessageCandidate?.(application.applicantId)}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Message candidate
             </DropdownMenuItem>
             {nextStage && (
               <DropdownMenuItem
@@ -231,6 +240,7 @@ interface AllApplicationsTableProps {
   applications: AllApplication[];
   advanceApplicant: (id: string) => Promise<void> | void;
   declineApplicant: (id: string) => Promise<void> | void;
+  onMessageCandidate?: (applicantId: string) => Promise<void>;
   pageSize?: number;
   currentPage?: number;
   totalPages?: number;
@@ -243,6 +253,7 @@ export default function AllApplicationsTable({
   applications,
   advanceApplicant,
   declineApplicant,
+  onMessageCandidate,
   pageSize = 10,
   currentPage = 1,
   totalPages = 1,
@@ -278,6 +289,23 @@ export default function AllApplicationsTable({
     }
   };
 
+  const handleMessageCandidate = async (applicantId: string) => {
+    setLoadingId(applicantId);
+    try {
+      if (onMessageCandidate) {
+        await onMessageCandidate(applicantId);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to message candidate';
+      toast.error(message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages && onPageChange) {
       onPageChange(page);
@@ -293,6 +321,7 @@ export default function AllApplicationsTable({
         meta={{
           advanceApplicant: handleAdvance,
           declineApplicant: handleDecline,
+          onMessageCandidate: handleMessageCandidate,
           loadingId,
         }}
       />

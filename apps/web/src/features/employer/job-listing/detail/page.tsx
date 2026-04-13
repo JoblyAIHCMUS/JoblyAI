@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +20,9 @@ import {
   useRejectApplication,
   useMoveToOfferApplication,
 } from '@/api-hook/application';
+import { useInitializeConversation } from '@/api-hook/messages';
 import { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
+import { useUser } from '@/hooks/useUser';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
 import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
 import type { HiringStage } from '@/features/employer/hiringStage';
@@ -31,6 +34,8 @@ import JobStatsPanel from '@/components/employer/jobStatsPanel';
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { data: currentUser } = useUser();
+  const { initChat } = useInitializeConversation();
   const { fetchJobDetail, loading, error, data: backendJob } = useJobDetail();
   const {
     fetchApplications,
@@ -213,6 +218,25 @@ export default function JobListingDetailPage() {
     ]
   );
 
+  // Message candidate
+  const handleMessageCandidate = useCallback(
+    async (applicantId: string) => {
+      if (!currentUser?.id) {
+        toast.error('User not found. Please log in again.');
+        return;
+      }
+
+      try {
+        await initChat(currentUser.id, applicantId);
+        router.push(`/employer/messages?candidateId=${applicantId}`);
+      } catch (error) {
+        console.error('Error initiating conversation:', error);
+        toast.error('Failed to start conversation with candidate');
+      }
+    },
+    [currentUser?.id, initChat, router]
+  );
+
   // Map backend data to frontend format
   const job = backendJob
     ? {
@@ -316,6 +340,7 @@ export default function JobListingDetailPage() {
             applicants={job.applicants}
             onAdvanceApplicant={handleAdvanceApplicant}
             onDeclineApplicant={handleDeclineApplicant}
+            onMessageCandidate={handleMessageCandidate}
             onMoveApplicant={handleMoveApplicantToStage}
           />
         </TabsContent>

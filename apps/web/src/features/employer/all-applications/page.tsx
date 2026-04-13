@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import AllApplicationsTable from '@/components/employer/allApplicationsTable';
 import { nextStageMap } from '@/features/employer/hiringStage';
@@ -10,6 +12,8 @@ import { type PaginatedApplicationsResponse } from '@/api-client/application';
 import { mapApplicationStatusToHiringStage } from '@/api-client/application/mappers';
 
 import { useListEmployerApplications } from '@/api-hook/application';
+import { useInitializeConversation } from '@/api-hook/messages';
+import { useUser } from '@/hooks/useUser';
 
 function mapApiResponseToApplications(
   apiData: PaginatedApplicationsResponse['applications']
@@ -37,6 +41,9 @@ function mapApiResponseToApplications(
 }
 
 export default function EmployerAllApplicationsPage() {
+  const router = useRouter();
+  const { data: currentUser } = useUser();
+  const { initChat } = useInitializeConversation();
   const {
     fetchApplications,
     loading,
@@ -114,6 +121,24 @@ export default function EmployerAllApplicationsPage() {
     [totalPages]
   );
 
+  const handleMessageCandidate = useCallback(
+    async (applicantId: string) => {
+      if (!currentUser?.id) {
+        toast.error('User not found. Please log in again.');
+        return;
+      }
+
+      try {
+        await initChat(currentUser.id, applicantId);
+        router.push(`/employer/messages?candidateId=${applicantId}`);
+      } catch (error) {
+        console.error('Error initiating conversation:', error);
+        toast.error('Failed to start conversation with candidate');
+      }
+    },
+    [currentUser?.id, initChat, router]
+  );
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -150,6 +175,7 @@ export default function EmployerAllApplicationsPage() {
             applications={displayData}
             advanceApplicant={advanceApplicant}
             declineApplicant={declineApplicant}
+            onMessageCandidate={handleMessageCandidate}
             pageSize={pageSize}
             currentPage={currentPage}
             totalPages={totalPages}
