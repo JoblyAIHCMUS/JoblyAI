@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "name": "jobly",
+  "defaultBase": "origin/development",
   "npmScope": "jobly",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
