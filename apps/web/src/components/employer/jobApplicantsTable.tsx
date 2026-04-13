@@ -271,9 +271,7 @@ export default function JobApplicantsTable({
       }
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to message candidate';
+        error instanceof Error ? error.message : 'Failed to message candidate';
       toast.error(message);
     } finally {
       setLoadingId(null);
