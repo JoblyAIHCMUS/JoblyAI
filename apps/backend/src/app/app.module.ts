@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,6 +17,7 @@ import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     AuthModule,
     JobsModule,

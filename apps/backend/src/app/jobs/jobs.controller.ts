@@ -11,6 +11,7 @@ import {
   Req,
   Patch,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JobsService } from './jobs.service';
 import { GetJobsQueryDTO } from './dto/getJobsQueryDTO';
 import { CreateJobDTO } from './dto/createJobDTO';
@@ -22,7 +23,10 @@ import { UpdateJobDTO } from './dto/updateJobDTO';
 
 @Controller('jobs')
 export class JobsController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   @Get()
   async getJobs(@Query() query: GetJobsQueryDTO) {
@@ -44,11 +48,26 @@ export class JobsController {
   ) {
     const userId = request.user.id;
 
-    // Default to last 30 days if not specified
-    const end = endDate ? new Date(endDate) : new Date();
-    const start = startDate
-      ? new Date(startDate)
-      : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // Parse dates as local time (YYYY-MM-DD format)
+    // End date should be inclusive (end of day 23:59:59.999)
+    let end: Date;
+    let start: Date;
+
+    if (endDate) {
+      const [year, month, day] = endDate.split('-').map(Number);
+      end = new Date(year, month - 1, day, 23, 59, 59, 999);
+    } else {
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    }
+
+    if (startDate) {
+      const [year, month, day] = startDate.split('-').map(Number);
+      start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    } else {
+      start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+      start.setHours(0, 0, 0, 0);
+    }
 
     return this.jobsService.getJobViewsAnalytics(userId, start, end, groupBy);
   }
@@ -63,11 +82,26 @@ export class JobsController {
   ) {
     const userId = request.user.id;
 
-    // Default to last 30 days if not specified
-    const end = endDate ? new Date(endDate) : new Date();
-    const start = startDate
-      ? new Date(startDate)
-      : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // Parse dates as local time (YYYY-MM-DD format)
+    // End date should be inclusive (end of day 23:59:59.999)
+    let end: Date;
+    let start: Date;
+
+    if (endDate) {
+      const [year, month, day] = endDate.split('-').map(Number);
+      end = new Date(year, month - 1, day, 23, 59, 59, 999);
+    } else {
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    }
+
+    if (startDate) {
+      const [year, month, day] = startDate.split('-').map(Number);
+      start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    } else {
+      start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+      start.setHours(0, 0, 0, 0);
+    }
 
     return this.jobsService.getJobApplicationsAnalytics(
       userId,
@@ -107,10 +141,8 @@ export class JobsController {
   @Get(':id')
   async getJobById(@Param('id', ParseIntPipe) id: number) {
     const job = await this.jobsService.getJobById(id);
-    // Track view asynchronously without blocking the response
-    this.jobsService.trackJobView(id).catch((err) => {
-      console.error(`Failed to track job view:`, err);
-    });
+    // Emit job viewed event for analytics tracking
+    this.eventEmitter.emit('job.viewed', { jobId: id });
     return job;
   }
 
