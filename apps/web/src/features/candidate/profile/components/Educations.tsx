@@ -523,7 +523,7 @@ export default function Educations({
       });
       setEditingIdx(null);
       setEditItem(null);
-    } catch (err) {
+    } catch {
       setError('Update failed. Please try again.');
     } finally {
       setLoading(false);
@@ -548,7 +548,7 @@ export default function Educations({
       });
       setIsAdding(false);
       setEditItem(null);
-    } catch (err) {
+    } catch {
       setError('Add education failed. Please try again.');
     } finally {
       setLoading(false);
@@ -568,7 +568,7 @@ export default function Educations({
     try {
       await handleDeleteEducation(educations[deleteIdx].id);
       setDeleteIdx(null);
-    } catch (err) {
+    } catch {
       // Có thể show toast hoặc error
     } finally {
       setLoadingDelete(false);

@@ -10,18 +10,37 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { ResultDialog } from '@/components/ui/ResultDialog';
+import { ApplicationForm } from '@/components/find-jobs/ApplicationForm';
 import {
-  SubmitApplicationSchema,
-  SubmitApplicationFormData,
-} from '@/lib/validation';
+  ResumeSection,
+  type ResumeChoice,
+} from '@/components/find-jobs/ResumeSection';
+import { SubmitApplicationSchema } from '@/lib/validation';
+import type { SubmitApplicationFormData } from '@/lib/validation';
+import { z } from 'zod';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
 import { useUploadFile } from '@/api-hook/s3';
-import { useCreateResume } from '@/api-hook/candidate';
+import {
+  useCreateResume,
+  useDeleteResume,
+  useGetCandidateProfile,
+} from '@/api-hook/candidate';
 import type { CandidateResume } from '@/types/candidate';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { Dot } from 'lucide-react';
+
+const MAX_RESUMES = 5;
+
+interface DeleteResultState {
+  open: boolean;
+  success: boolean;
+  title: string;
+  description: string;
+}
 
 export interface JobApplication {
   id: number;
@@ -60,9 +79,15 @@ export const SubmitApplicationModal = ({
     string | null
   >(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [localResume, setLocalResume] = useState<
-    { id?: number; filename: string; url: string } | ''
-  >(job.currentResume || '');
+  const [resumeOptions, setResumeOptions] = useState<ResumeChoice[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(
+    job.currentResume?.id ?? null
+  );
+  const [resumeDeleteTarget, setResumeDeleteTarget] =
+    useState<ResumeChoice | null>(null);
+  const [deleteResult, setDeleteResult] = useState<DeleteResultState | null>(
+    null
+  );
 
   const {
     register,
@@ -70,26 +95,68 @@ export const SubmitApplicationModal = ({
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm({
+  } = useForm<
+    z.input<typeof SubmitApplicationSchema>,
+    unknown,
+    SubmitApplicationFormData
+  >({
     resolver: zodResolver(SubmitApplicationSchema),
     mode: 'onChange',
     defaultValues: { jobTitle: '', coverLetter: '' },
   });
 
   const { upload: uploadToS3, loading: uploading } = useUploadFile();
+  const {
+    fetchCandidateProfile,
+    loading: loadingCandidateProfile,
+    error: candidateProfileError,
+  } = useGetCandidateProfile();
 
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
-      setLocalResume({
+      const uploadedResume: ResumeChoice = {
         id: resumeData.id,
-        filename: resumeData.fileName,
-        url: resumeData.fileUrl,
+        fileName: resumeData.fileName,
+        fileUrl: resumeData.fileUrl,
+        fileType: resumeData.fileType,
+        fileSize: resumeData.fileSize,
+        isDefault: resumeData.isDefault,
+        createdAt: resumeData.createdAt,
+        updatedAt: resumeData.updatedAt,
+      };
+
+      setResumeOptions((prev) => {
+        const nextResumes = [
+          uploadedResume,
+          ...prev.filter((resume) => resume.id !== uploadedResume.id),
+        ].sort((first, second) => {
+          const firstTime = new Date(
+            first.updatedAt || first.createdAt || 0
+          ).getTime();
+          const secondTime = new Date(
+            second.updatedAt || second.createdAt || 0
+          ).getTime();
+          return secondTime - firstTime;
+        });
+
+        return nextResumes;
       });
+
+      setSelectedResumeId(uploadedResume.id);
       setUploadedFile(null);
     },
     onError: (err: unknown) => {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to upload resume';
+      setApplicationSubmitError(errorMessage);
+      onError?.(errorMessage);
+    },
+  });
+
+  const { deleteResumeRecord, loading: deletingResume } = useDeleteResume({
+    onError: (err: unknown) => {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to delete resume';
       setApplicationSubmitError(errorMessage);
       onError?.(errorMessage);
     },
@@ -104,7 +171,6 @@ export const SubmitApplicationModal = ({
         reset();
         setUploadedFile(null);
         setApplicationSubmitError(null);
-        setLocalResume('');
         // Close modal after 2 seconds to let user see the success message
         setTimeout(() => {
           onClose();
@@ -126,6 +192,23 @@ export const SubmitApplicationModal = ({
   const charCount = coverLetterValue.length;
   const isUploading = uploading || creatingResume;
   const isSubmitting = applicationLoading;
+  const selectedResume =
+    resumeOptions.find((resume) => resume.id === selectedResumeId) ??
+    (job.currentResume?.id === selectedResumeId && job.currentResume.id
+      ? {
+          id: job.currentResume.id,
+          fileName: job.currentResume.filename,
+          fileUrl: job.currentResume.url,
+        }
+      : null);
+  const canUploadNewResume =
+    !loadingCandidateProfile && resumeOptions.length < MAX_RESUMES;
+  const candidateProfileErrorMessage =
+    candidateProfileError instanceof Error
+      ? candidateProfileError.message
+      : candidateProfileError
+      ? String(candidateProfileError)
+      : null;
 
   // Reset modal state when opened to prevent stale state from previous session
   useEffect(() => {
@@ -135,14 +218,68 @@ export const SubmitApplicationModal = ({
       setApplicationSubmitError(null);
       setApplicationSubmitSuccess(null);
       setUploadProgress(0);
-      // Set localResume from job.currentResume (don't mutate props)
-      setLocalResume(job.currentResume || '');
+      setResumeOptions([]);
+      setSelectedResumeId(job.currentResume?.id ?? null);
+      setResumeDeleteTarget(null);
+      setDeleteResult(null);
+
+      const loadResumes = async () => {
+        try {
+          const profile = await fetchCandidateProfile();
+          const sortedResumes = (profile?.resumes || [])
+            .slice()
+            .sort((first, second) => {
+              const firstTime = new Date(
+                first.updatedAt || first.createdAt || 0
+              ).getTime();
+              const secondTime = new Date(
+                second.updatedAt || second.createdAt || 0
+              ).getTime();
+              return secondTime - firstTime;
+            })
+            .map((resume) => ({
+              id: resume.id,
+              fileName: resume.fileName,
+              fileUrl: resume.fileUrl,
+              fileType: resume.fileType,
+              fileSize: resume.fileSize,
+              isDefault: resume.isDefault,
+              createdAt: resume.createdAt,
+              updatedAt: resume.updatedAt,
+            }));
+
+          setResumeOptions(sortedResumes);
+          setSelectedResumeId((current) => {
+            if (
+              current &&
+              sortedResumes.some((resume) => resume.id === current)
+            ) {
+              return current;
+            }
+
+            return sortedResumes[0]?.id ?? job.currentResume?.id ?? null;
+          });
+        } catch (error) {
+          console.error('Failed to load candidate resumes', error);
+          setResumeOptions([]);
+          setSelectedResumeId(job.currentResume?.id ?? null);
+        }
+      };
+
+      void loadResumes();
     }
-  }, [isOpen, reset, job.currentResume]);
+  }, [isOpen, reset, job.currentResume, fetchCandidateProfile]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!canUploadNewResume) {
+      const errorMsg = 'You can store up to 5 resumes.';
+      setApplicationSubmitError(errorMsg);
+      onError?.(errorMsg);
+      return;
+    }
 
     let progressInterval: NodeJS.Timeout | null = null;
 
@@ -172,7 +309,7 @@ export const SubmitApplicationModal = ({
         isDefault: true,
       });
       setUploadProgress(100);
-      // onSuccess callback will update localResume
+      // onSuccess callback will update the selected resume
     } catch (error) {
       const errorMsg =
         error instanceof Error ? error.message : 'Failed to upload resume';
@@ -188,21 +325,72 @@ export const SubmitApplicationModal = ({
     }
   };
 
+  const handleDeleteResume = async (resumeId: number) => {
+    const resumeToDelete = resumeOptions.find(
+      (resume) => resume.id === resumeId
+    );
+    if (!resumeToDelete) return;
+
+    setResumeDeleteTarget(resumeToDelete);
+  };
+
+  const confirmDeleteResume = async () => {
+    if (!resumeDeleteTarget) return;
+
+    const resumeName = resumeDeleteTarget.fileName;
+    const resumeId = resumeDeleteTarget.id;
+
+    try {
+      setApplicationSubmitError(null);
+      await deleteResumeRecord(resumeId);
+
+      setResumeOptions((prev) => {
+        const remaining = prev.filter((resume) => resume.id !== resumeId);
+
+        if (selectedResumeId === resumeId) {
+          setSelectedResumeId(
+            remaining[0]?.id ?? job.currentResume?.id ?? null
+          );
+        }
+
+        return remaining;
+      });
+      setResumeDeleteTarget(null);
+      setDeleteResult({
+        open: true,
+        success: true,
+        title: 'Resume deleted',
+        description: `"${resumeName}" has been deleted successfully.`,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete resume';
+      setApplicationSubmitError(errorMessage);
+      onError?.(errorMessage);
+      setResumeDeleteTarget(null);
+      setDeleteResult({
+        open: true,
+        success: false,
+        title: 'Delete failed',
+        description: errorMessage,
+      });
+    }
+  };
+
   const handleFormSubmit = async (data: SubmitApplicationFormData) => {
     if (isSubmitting) return;
 
     try {
       setApplicationSubmitError(null);
 
-      // Resume must be uploaded first (happens in handleFileChange)
-      if (!localResume) {
+      // Resume must be selected first (defaults to the latest uploaded one)
+      if (!selectedResume) {
         onError?.('Please upload a resume first');
         return;
       }
 
       // Submit application with already-uploaded resume
-      const resumeId =
-        typeof localResume === 'string' ? undefined : localResume?.id;
+      const resumeId = selectedResume.id;
       if (!resumeId) {
         throw new Error(
           'Resume ID not found. Please try uploading the resume again.'
@@ -223,7 +411,7 @@ export const SubmitApplicationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-0.5rem)] max-w-xl max-h-[calc(100vh-0.5rem)] overflow-y-auto p-3 sm:w-full sm:p-6">
         <DialogHeader>
           <DialogTitle className="sr-only">Submit Application</DialogTitle>
           <DialogDescription className="sr-only">
@@ -232,191 +420,80 @@ export const SubmitApplicationModal = ({
         </DialogHeader>
 
         {/* Job Header */}
-        <div className="mb-6 flex gap-6 border-b border-slate-200 pb-6">
+        <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:mb-6 sm:flex-row sm:gap-6 sm:pb-6">
           {job.logoUrl && (
             <div className="flex-shrink-0">
               <Image
                 src={job.logoUrl}
                 alt={job.company}
-                width={80}
-                height={80}
-                className="rounded-lg object-contain"
+                width={64}
+                height={64}
+                className="h-16 w-16 rounded-lg object-contain sm:h-20 sm:w-20"
               />
             </div>
           )}
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold text-slate-950">
+          <div className="min-w-0 flex-1">
+            <h2 className="break-words text-xl font-semibold text-slate-950 sm:text-2xl">
               {job.title}
             </h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
-              <span>{job.company}</span>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+              <span className="min-w-0 break-words">{job.company}</span>
               {job.location && (
                 <>
                   <Dot className="h-1 w-1 text-slate-400" />
-                  <span>{job.location}</span>
+                  <span className="min-w-0 break-words">{job.location}</span>
                 </>
               )}
               <Dot className="h-1 w-1 text-slate-400" />
-              <span>{formatJobType(job.jobType)}</span>
+              <span className="min-w-0 break-words">
+                {formatJobType(job.jobType)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Form Title */}
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold text-slate-950">
+        <div className="mb-5 sm:mb-6">
+          <h3 className="text-lg font-semibold text-slate-950 sm:text-xl">
             Submit your application
           </h3>
-          <p className="mt-2 text-sm text-slate-600">
-            The following is required and will only be shared with {job.company}
+          <p className="mt-2 break-words text-xs text-slate-600 sm:text-sm">
+            The following information will only be shared with {job.company}
           </p>
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* Job Title Input */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-950">
-              Current of previous job title
-            </label>
-            <input
-              {...register('jobTitle')}
-              type="text"
-              placeholder="What's your current or previous job title?"
-              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            {errors.jobTitle && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.jobTitle.message}
-              </p>
-            )}
-          </div>
+          <ApplicationForm
+            register={register}
+            errors={errors}
+            charCount={charCount}
+          />
 
-          <div className="border-b border-slate-200" />
-
-          {/* Cover Letter Textarea */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-950">
-              Additional information/Cover letter
-            </label>
-            <textarea
-              {...register('coverLetter')}
-              placeholder="Add a cover letter or anything else you want to share"
-              maxLength={1000}
-              rows={5}
-              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
-              <span>Maximum 1000 characters</span>
-              <span>{charCount} / 1000</span>
-            </div>
-            {errors.coverLetter && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.coverLetter.message}
-              </p>
-            )}
-          </div>
-
-          <div className="border-b border-slate-200" />
-
-          {/* Resume Section */}
-          <div>
-            <div className="mb-6 flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-950">
-                Use your latest resume
-              </label>
-              {localResume ? (
-                <a
-                  href={localResume.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  {localResume.filename}
-                </a>
-              ) : job.currentResume ? (
-                <a
-                  href={job.currentResume.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  {job.currentResume.filename}
-                </a>
-              ) : null}
-            </div>
-
-            {/* File Upload */}
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-950">
-                Attach a new resume
-              </label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-indigo-400 bg-indigo-50 px-6 py-4 text-sm transition-colors hover:border-indigo-500 hover:bg-indigo-100">
-                <svg
-                  className="h-6 w-6 text-indigo-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                <span className="font-medium text-slate-950">
-                  {localResume
-                    ? `✓ ${localResume.filename}`
-                    : uploadedFile
-                    ? uploadedFile.name
-                    : 'Attach Resume/CV'}
-                </span>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                  disabled={isUploading}
-                  aria-label="Upload resume file"
-                />
-              </label>
-            </div>
-
-            {/* Upload Progress Bar */}
-            {isUploading && (
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between text-xs text-slate-600">
-                  <span>Uploading...</span>
-                  <span>{Math.round(uploadProgress)}%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-indigo-600 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                    role="progressbar"
-                    aria-valuenow={Math.round(uploadProgress)}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  />
-                </div>
-              </div>
-            )}
-
-            {localResume && (
-              <p className="mt-3 text-xs text-green-600">
-                ✓ Resume ready: {localResume.filename}
-              </p>
-            )}
-          </div>
+          <ResumeSection
+            resumes={resumeOptions}
+            selectedResumeId={selectedResumeId}
+            selectedResume={selectedResume}
+            uploadedFile={uploadedFile}
+            onSelect={setSelectedResumeId}
+            onDelete={handleDeleteResume}
+            onUpload={handleFileChange}
+            loading={loadingCandidateProfile}
+            uploading={isUploading}
+            uploadProgress={uploadProgress}
+            deletingResume={deletingResume}
+            candidateProfileError={candidateProfileErrorMessage}
+            canUploadNewResume={canUploadNewResume}
+            maxResumes={MAX_RESUMES}
+          />
 
           <div className="border-b border-slate-200" />
 
           {/* Backend Pending Fields Note */}
           <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-3">
-            <p className="text-xs font-semibold text-yellow-800">
+            <p className="text-[11px] font-semibold leading-4 text-yellow-800 sm:text-xs">
               ⚠️ Note: 2 additional backend fields pending development
             </p>
-            <p className="mt-1 text-xs text-yellow-700">
+            <p className="mt-1 text-[11px] leading-4 text-yellow-700 sm:text-xs">
               These fields will be added to the application once the backend is
               ready.
             </p>
@@ -424,8 +501,10 @@ export const SubmitApplicationModal = ({
 
           {applicationSubmitSuccess && (
             <div className="rounded-lg border border-green-300 bg-green-50 p-3">
-              <p className="text-xs font-semibold text-green-800">✓ Success</p>
-              <p className="mt-1 text-xs text-green-700">
+              <p className="text-[11px] font-semibold leading-4 text-green-800 sm:text-xs">
+                ✓ Success
+              </p>
+              <p className="mt-1 text-[11px] leading-4 text-green-700 sm:text-xs">
                 {applicationSubmitSuccess}
               </p>
             </div>
@@ -433,8 +512,10 @@ export const SubmitApplicationModal = ({
 
           {applicationSubmitError && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3">
-              <p className="text-xs font-semibold text-red-800">❌ Error</p>
-              <p className="mt-1 text-xs text-red-700">
+              <p className="text-[11px] font-semibold leading-4 text-red-800 sm:text-xs">
+                ❌ Error
+              </p>
+              <p className="mt-1 text-[11px] leading-4 text-red-700 sm:text-xs">
                 {applicationSubmitError}
               </p>
             </div>
@@ -445,11 +526,11 @@ export const SubmitApplicationModal = ({
             type="submit"
             disabled={
               !isValid ||
-              !localResume ||
+              !selectedResume ||
               isSubmitting ||
               !!applicationSubmitSuccess
             }
-            className="w-full rounded-md bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-md bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {applicationSubmitSuccess
               ? 'Application Submitted! ✓'
@@ -459,7 +540,7 @@ export const SubmitApplicationModal = ({
           </button>
 
           {/* Terms and Privacy */}
-          <p className="text-xs text-slate-600">
+          <p className="break-words text-xs text-slate-600">
             By sending the request you can confirm that you accept our{' '}
             <Link href="/terms" className="text-indigo-600 hover:underline">
               Terms of Service
@@ -470,6 +551,39 @@ export const SubmitApplicationModal = ({
             </Link>
           </p>
         </form>
+
+        <DeleteConfirmDialog
+          open={!!resumeDeleteTarget}
+          title="Delete resume"
+          description={`Delete "${
+            resumeDeleteTarget?.fileName ?? ''
+          }"? This action cannot be undone.`}
+          loading={deletingResume}
+          onOpenChange={(open) => {
+            if (!open) {
+              setResumeDeleteTarget(null);
+            }
+          }}
+          onCancel={() => setResumeDeleteTarget(null)}
+          onConfirm={() => void confirmDeleteResume()}
+        />
+
+        <ResultDialog
+          open={deleteResult?.open ?? false}
+          success={deleteResult?.success ?? false}
+          title={deleteResult?.title ?? ''}
+          description={deleteResult?.description ?? ''}
+          onOpenChange={(open) =>
+            setDeleteResult((current) =>
+              current ? { ...current, open } : current
+            )
+          }
+          onConfirm={() =>
+            setDeleteResult((current) =>
+              current ? { ...current, open: false } : current
+            )
+          }
+        />
       </DialogContent>
     </Dialog>
   );
