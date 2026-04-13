@@ -100,6 +100,8 @@ export default function CandidateSettingsPage() {
 
   const handleAvatarUpdated = (newAvatarUrl: string) => {
     setProfilePhoto(newAvatarUrl);
+    // Emit event to notify topbar to refetch profile
+    window.dispatchEvent(new Event('profile-updated'));
   };
 
   const onSubmit = async (formData: PersonalDetailsFormData) => {
@@ -113,6 +115,9 @@ export default function CandidateSettingsPage() {
       });
 
       await fetchCandidateProfile();
+
+      // Emit event to notify topbar to refetch profile
+      window.dispatchEvent(new Event('profile-updated'));
 
       setTimeout(() => {
         router.push('/candidate/profile');

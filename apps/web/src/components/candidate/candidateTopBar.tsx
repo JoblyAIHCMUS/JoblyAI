@@ -2,16 +2,46 @@
 
 import Link from 'next/link';
 import { Bell, Menu } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePageTitle } from '@/contexts/page-title-context';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUser } from '@/hooks/useUser';
 import { getInitials } from '@/lib/utils';
+import { useGetCandidateProfile } from '@/api-hook/candidate';
 
 export function CandidateTopBar() {
   const { title: pageTitle } = usePageTitle();
   const { data: user } = useUser();
+
+  // Fetch candidate profile using API hook
+  const { fetchCandidateProfile, data: candidateProfile } = useGetCandidateProfile();
+  const fetchFunctionRef = useRef(fetchCandidateProfile);
+
+  // Keep ref up to date
+  useEffect(() => {
+    fetchFunctionRef.current = fetchCandidateProfile;
+  }, [fetchCandidateProfile]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Initial fetch
+    fetchFunctionRef.current();
+
+    // Listen for profile update events (e.g., from settings page)
+    const handleProfileUpdate = () => {
+      fetchFunctionRef.current();
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+    };
+  }, [user?.id]);
+
   const {
     visibleNotifications,
     hasMoreNotifications,
@@ -25,9 +55,10 @@ export function CandidateTopBar() {
     formatNotificationTime,
   } = useNotifications();
 
-  const fullName = user?.name ?? 'Jake Gyll';
-  const email = user?.email ?? 'jakegyll@email.com';
+  const fullName = candidateProfile?.name ?? 'Jake Gyll';
+  const email = candidateProfile?.email ?? 'jakegyll@email.com';
   const initials = getInitials(fullName || 'Jake Gyll');
+  const avatarUrl = candidateProfile?.avatarUrl;
 
   return (
     <>
@@ -46,9 +77,9 @@ export function CandidateTopBar() {
             href="/candidate/profile"
             className="flex items-center gap-4 hover:opacity-80 transition-opacity"
           >
-            {user?.image ? (
+            {avatarUrl ? (
               <img
-                src={user.image}
+                src={avatarUrl}
                 alt={fullName}
                 className="h-12 w-12 rounded-full object-cover cursor-pointer"
               />
