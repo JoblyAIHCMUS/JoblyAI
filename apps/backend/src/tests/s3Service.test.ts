@@ -49,6 +49,7 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({
 // Import after mocks are set up
 import { S3Service } from '../app/s3/s3.service';
 import { S3Folder } from '../app/s3/s3.interface';
+import { s3Config } from '../lib/s3';
 
 describe('S3Service - Integration Tests', () => {
   let service: S3Service;
@@ -80,7 +81,9 @@ describe('S3Service - Integration Tests', () => {
       expect(result).toBeDefined();
       expect(result.uploadUrl).toBe(mockSignedUrl);
       expect(result.fileKey).toMatch(/^resumes\/[0-9a-f-]+\.pdf$/);
-      expect(result.fileUrl).toContain('.s3.ap-southeast-1.amazonaws.com');
+      expect(result.fileUrl).toContain(
+        `https://${s3Config.bucketName}.s3.${s3Config.region}.amazonaws.com/`
+      );
       expect(result.fileUrl).toContain(result.fileKey);
       expect(result.expiresIn).toBe(300);
       expect(mockGetSignedUrl).toHaveBeenCalledTimes(1);

@@ -16,10 +16,10 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "lint": "eslint .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:cov": "vitest run --coverage"
+    "test": "pnpm -w vitest run --config apps/backend/vitest.config.ts",
+    "test:watch": "pnpm -w vitest --config apps/backend/vitest.config.ts",
+    "test:ui": "pnpm -w vitest --ui --config apps/backend/vitest.config.ts",
+    "test:cov": "pnpm -w vitest run --coverage --config apps/backend/vitest.config.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -108,8 +108,7 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "pnpm test",
-          "cwd": "apps/backend"
+          "command": "pnpm -w vitest run --config apps/backend/vitest.config.ts"
         }
       }
     }
@@ -151,12 +150,10 @@
     "@types/jest": "^30.0.0",
     "@types/nodemailer": "^7.0.11",
     "@types/pg": "^8.11.0",
-    "@vitest/coverage-v8": "^4.0.17",
     "jest": "^30.2.0",
     "jest-mock-extended": "^4.0.0",
     "prisma": "^6.3.0",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
-    "vitest": "^4.0.17"
+    "ts-node": "^10.9.2"
   }
 }

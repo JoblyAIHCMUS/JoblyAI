@@ -13,12 +13,35 @@ import {
 import { UpdateAvatarDto } from './dto/avatar.dto';
 import { SearchEmployerItemDto } from './dto/employer-search.dto';
 
+type SearchEmployerUser = {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+};
+
 @Injectable()
 export class EmployerService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly s3Service: S3Service
   ) {}
+
+  private splitName(name?: string | null): { firstName: string; lastName: string } {
+    const trimmed = (name ?? '').trim();
+    if (!trimmed) {
+      return { firstName: '', lastName: '' };
+    }
+
+    const [firstName = '', ...lastNameParts] = trimmed.split(/\s+/);
+
+    return {
+      firstName,
+      lastName: lastNameParts.join(' '),
+    };
+  }
 
   private async getPersonalProfileDetails(userId: string): Promise<{
     phoneNumber?: string;
@@ -124,7 +147,7 @@ export class EmployerService {
       }
     }
 
-    const users = await this.prisma.user.findMany({
+    const users = (await this.prisma.user.findMany({
       where: {
         id: { not: params.requesterId },
         role: 'employer',
@@ -142,19 +165,17 @@ export class EmployerService {
       skip: offset,
       take: limit,
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }, { email: 'asc' }],
-    });
+    })) as SearchEmployerUser[];
 
-    return users.map((user) => {
-      const nameParts = user.name?.trim().split(/\s+/) ?? [];
-      const firstName = user.firstName ?? nameParts[0] ?? '';
-      const lastName = user.lastName ?? nameParts.slice(1).join(' ');
+    return users.map((user: SearchEmployerUser) => {
+      const displayName = this.splitName(user.name);
 
       return {
         id: user.id,
-        firstName,
-        lastName,
+        firstName: user.firstName ?? displayName.firstName,
+        lastName: user.lastName ?? displayName.lastName,
         email: user.email,
-        avatarUrl: user.avatarUrl ?? undefined,
+        avatarUrl: user.avatarUrl || undefined,
       };
     });
   }
@@ -220,7 +241,7 @@ export class EmployerService {
     userId: string,
     updateDto: UpdateEmployerDto
   ): Promise<QueryResponseEmployerDto> {
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const userData: Record<string, string> = {};
       if (updateDto.firstName !== undefined) {
         userData.firstName = updateDto.firstName;
