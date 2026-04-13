@@ -58,6 +58,9 @@ jobs:
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
+      # 4a. Ensure Prisma Client is generated (required for tests importing @prisma/client)
+      - run: pnpm --filter @jobly/backend prisma:generate
+
       # 5. Run Checks (Only on affected projects)
       - run: pnpm nx affected -t lint test build
 
