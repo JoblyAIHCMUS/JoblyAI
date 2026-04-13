@@ -83,7 +83,8 @@ export const SubmitApplicationModal = ({
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(
     job.currentResume?.id ?? null
   );
-  const [resumeDeleteTarget, setResumeDeleteTarget] = useState<ResumeChoice | null>(null);
+  const [resumeDeleteTarget, setResumeDeleteTarget] =
+    useState<ResumeChoice | null>(null);
   const [deleteResult, setDeleteResult] = useState<DeleteResultState | null>(
     null
   );
@@ -94,7 +95,11 @@ export const SubmitApplicationModal = ({
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm<z.input<typeof SubmitApplicationSchema>, unknown, SubmitApplicationFormData>({
+  } = useForm<
+    z.input<typeof SubmitApplicationSchema>,
+    unknown,
+    SubmitApplicationFormData
+  >({
     resolver: zodResolver(SubmitApplicationSchema),
     mode: 'onChange',
     defaultValues: { jobTitle: '', coverLetter: '' },
@@ -204,8 +209,8 @@ export const SubmitApplicationModal = ({
     candidateProfileError instanceof Error
       ? candidateProfileError.message
       : candidateProfileError
-        ? String(candidateProfileError)
-        : null;
+      ? String(candidateProfileError)
+      : null;
 
   // Reset modal state when opened to prevent stale state from previous session
   useEffect(() => {
@@ -248,7 +253,10 @@ export const SubmitApplicationModal = ({
 
           setResumeOptions(sortedResumes);
           setSelectedResumeId((current) => {
-            if (current && sortedResumes.some((resume) => resume.id === current)) {
+            if (
+              current &&
+              sortedResumes.some((resume) => resume.id === current)
+            ) {
               return current;
             }
 
@@ -321,7 +329,9 @@ export const SubmitApplicationModal = ({
   };
 
   const handleDeleteResume = async (resumeId: number) => {
-    const resumeToDelete = resumeOptions.find((resume) => resume.id === resumeId);
+    const resumeToDelete = resumeOptions.find(
+      (resume) => resume.id === resumeId
+    );
     if (!resumeToDelete) return;
 
     setResumeDeleteTarget(resumeToDelete);
@@ -341,7 +351,9 @@ export const SubmitApplicationModal = ({
         const remaining = prev.filter((resume) => resume.id !== resumeId);
 
         if (selectedResumeId === resumeId) {
-          setSelectedResumeId(remaining[0]?.id ?? job.currentResume?.id ?? null);
+          setSelectedResumeId(
+            remaining[0]?.id ?? job.currentResume?.id ?? null
+          );
         }
 
         return remaining;
@@ -436,7 +448,9 @@ export const SubmitApplicationModal = ({
                 </>
               )}
               <Dot className="h-1 w-1 text-slate-400" />
-              <span className="min-w-0 break-words">{formatJobType(job.jobType)}</span>
+              <span className="min-w-0 break-words">
+                {formatJobType(job.jobType)}
+              </span>
             </div>
           </div>
         </div>
@@ -490,7 +504,9 @@ export const SubmitApplicationModal = ({
 
           {applicationSubmitSuccess && (
             <div className="rounded-lg border border-green-300 bg-green-50 p-3">
-              <p className="text-[11px] font-semibold leading-4 text-green-800 sm:text-xs">✓ Success</p>
+              <p className="text-[11px] font-semibold leading-4 text-green-800 sm:text-xs">
+                ✓ Success
+              </p>
               <p className="mt-1 text-[11px] leading-4 text-green-700 sm:text-xs">
                 {applicationSubmitSuccess}
               </p>
@@ -499,7 +515,9 @@ export const SubmitApplicationModal = ({
 
           {applicationSubmitError && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3">
-              <p className="text-[11px] font-semibold leading-4 text-red-800 sm:text-xs">❌ Error</p>
+              <p className="text-[11px] font-semibold leading-4 text-red-800 sm:text-xs">
+                ❌ Error
+              </p>
               <p className="mt-1 text-[11px] leading-4 text-red-700 sm:text-xs">
                 {applicationSubmitError}
               </p>
@@ -520,8 +538,8 @@ export const SubmitApplicationModal = ({
             {applicationSubmitSuccess
               ? 'Application Submitted! ✓'
               : isSubmitting
-                ? 'Submitting Application...'
-                : 'Submit Application'}
+              ? 'Submitting Application...'
+              : 'Submit Application'}
           </button>
 
           {/* Terms and Privacy */}
@@ -540,7 +558,9 @@ export const SubmitApplicationModal = ({
         <DeleteConfirmDialog
           open={!!resumeDeleteTarget}
           title="Delete resume"
-          description={`Delete \"${resumeDeleteTarget?.fileName ?? ''}\"? This action cannot be undone.`}
+          description={`Delete \"${
+            resumeDeleteTarget?.fileName ?? ''
+          }\"? This action cannot be undone.`}
           loading={deletingResume}
           onOpenChange={(open) => {
             if (!open) {

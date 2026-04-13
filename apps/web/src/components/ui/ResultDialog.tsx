@@ -45,7 +45,11 @@ export function ResultDialog({
             }`}
           >
             {success ? (
-              <svg className="h-7 w-7 text-emerald-600" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="h-7 w-7 text-emerald-600"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 <path
                   d="M5 13l4 4L19 7"
                   stroke="currentColor"
@@ -55,8 +59,18 @@ export function ResultDialog({
                 />
               </svg>
             ) : (
-              <svg className="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+              <svg
+                className="h-7 w-7 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
                 <path
                   d="M12 8v4m0 4h.01"
                   stroke="currentColor"

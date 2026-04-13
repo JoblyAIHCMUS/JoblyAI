@@ -200,8 +200,8 @@ export function ResumeSection({
             {uploadedFile
               ? uploadedFile.name
               : canUploadNewResume
-                ? 'Attach Resume/CV'
-                : 'Resume limit reached'}
+              ? 'Attach Resume/CV'
+              : 'Resume limit reached'}
           </span>
           <input
             type="file"
