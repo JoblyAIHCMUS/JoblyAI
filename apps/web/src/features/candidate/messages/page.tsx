@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { usePageTitle } from '@/contexts/page-title-context';
@@ -15,7 +15,7 @@ export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
   const { setTitle } = usePageTitle();
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, onNewMessage } = useMessagesSocket();
+  const { sendMessage, onNewMessage, onMessageRead } = useMessagesSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   useEffect(() => {
@@ -27,6 +27,10 @@ export default function CandidateMessagesPage() {
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(false);
+
+  // Refs for debounced conversation refetch
+  const refetchInProgressRef = useRef(false);
+  const refetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch conversations on component mount
   useEffect(() => {
@@ -88,14 +92,94 @@ export default function CandidateMessagesPage() {
     getConversations();
   }, [currentUser?.id, fetchChatSummary, searchParams]);
 
+  // Refetch conversations with debounce to avoid excessive API calls
+  const refetchConversations = useCallback(async () => {
+    if (!currentUser?.id || refetchInProgressRef.current) return;
+
+    // Clear any pending debounce timer
+    if (refetchTimeoutRef.current) {
+      clearTimeout(refetchTimeoutRef.current);
+    }
+
+    // Set debounce timer (500ms) before making API call
+    refetchTimeoutRef.current = setTimeout(async () => {
+      refetchInProgressRef.current = true;
+      try {
+        const summaries = await fetchChatSummary(currentUser.id);
+        const transformedConversations: Conversation[] = summaries.map(
+          (summary: ChatSummary) => ({
+            chatId: summary.chatId,
+            participantId: summary.participantId,
+            name: summary.participantName,
+            role: summary.participantRole,
+            avatar: summary.participantAvatar || 'https://placehold.co/40x40',
+            lastMessage: summary.latestMessage,
+            timestamp: summary.lastMessageAt
+              ? new Date(summary.lastMessageAt).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Now',
+            unread: summary.hasUnread,
+            isActive: false,
+            lastMessageAt: summary.lastMessageAt,
+          })
+        );
+
+        // ✨ Merge with current state to preserve locally-set unread statuses
+        setConversations((prevConversations) =>
+          transformedConversations.map((updated) => {
+            const current = prevConversations.find(
+              (c) => c.participantId === updated.participantId
+            );
+            // If current has unread=true and backend says unread=false, keep the local true
+            // (message may not have synced to backend yet)
+            if (current?.unread && !updated.unread) {
+              console.log(
+                `[refetch] Preserving unread status for ${updated.name || updated.participantId}`
+              );
+              return current;
+            }
+            return updated;
+          })
+        );
+      } catch (error) {
+        console.error('Error refetching conversations:', error);
+      } finally {
+        refetchInProgressRef.current = false;
+      }
+    }, 500); // 500ms debounce
+  }, [currentUser?.id, fetchChatSummary]);
+
+  // Register callback for message read receipts
+  useEffect(() => {
+    onMessageRead((friendId) => {
+      // Clear unread status for this conversation
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.participantId === friendId
+            ? { ...conv, unread: false }
+            : conv
+        )
+      );
+      // Also update selectedConversation if it's the one being marked as read
+      setSelectedConversation((prev) =>
+        prev?.participantId === friendId
+          ? { ...prev, unread: false }
+          : prev
+      );
+    });
+  }, [onMessageRead]);
+
   // Register callback for new messages via WebSocket
   useEffect(() => {
     onNewMessage((message) => {
-      // Only add message if it's from the current conversation
+      // Handle all incoming messages, not just selected conversations
       if (
         selectedConversation &&
         message.senderId === selectedConversation.participantId
       ) {
+        // Message is from selected conversation: add to messages array
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
@@ -116,9 +200,29 @@ export default function CandidateMessagesPage() {
           }),
         };
         setMessages((prev) => [...prev, newMessage]);
+      } else {
+        // Message is from unselected conversation: immediately update unread status and last message
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.participantId === message.senderId
+              ? {
+                  ...conv,
+                  unread: true,
+                  lastMessage: message.content,
+                  lastMessageAt: message.timestamp,
+                  timestamp: new Date(message.timestamp).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                }
+              : conv
+          )
+        );
+        // Then refetch to sync with backend
+        refetchConversations();
       }
     });
-  }, [selectedConversation, currentUser?.id, onNewMessage]);
+  }, [selectedConversation, currentUser?.id, onNewMessage, refetchConversations]);
 
   // Handle sending message
   const handleSendMessage = useCallback(
