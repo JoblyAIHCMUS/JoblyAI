@@ -99,7 +99,6 @@ export default function CandidateSettingsPage() {
 
   const handleAvatarUpdated = (newAvatarUrl: string) => {
     setProfilePhoto(newAvatarUrl);
-    fetchCandidateProfile();
   };
 
   const onSubmit = async (formData: PersonalDetailsFormData) => {

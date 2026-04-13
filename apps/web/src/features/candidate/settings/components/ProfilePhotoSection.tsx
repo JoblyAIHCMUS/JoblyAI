@@ -103,13 +103,13 @@ export function ProfilePhotoSection({
       });
 
       // Step 3: Update user avatar in database
-      await updateAvatarRecord({
+      const updatedAvatar = await updateAvatarRecord({
         fileKey: uploadUrlResponse.fileKey,
         fileUrl: uploadUrlResponse.fileUrl,
       });
 
       // Step 4: Success - update UI and notify parent
-      onAvatarUpdated?.(uploadUrlResponse.fileUrl);
+      onAvatarUpdated?.(updatedAvatar.avatarUrl || uploadUrlResponse.fileUrl);
       toast.success('Profile picture updated successfully');
 
       // Reset state
@@ -155,7 +155,12 @@ export function ProfilePhotoSection({
       <div className="flex justify-start items-start gap-8">
         {/* Avatar Display */}
         <Avatar className="size-32 border-[2.58px] border-primary bg-accent-primary">
-          <AvatarImage src={photoUrl} alt="Profile" className="object-cover" />
+          <AvatarImage
+            key={photoUrl}
+            src={photoUrl}
+            alt="Profile"
+            className="object-cover"
+          />
           <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-lg font-semibold">
             PP
           </AvatarFallback>
