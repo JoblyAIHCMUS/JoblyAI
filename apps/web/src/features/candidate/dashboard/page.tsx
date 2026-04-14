@@ -8,6 +8,7 @@ import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/contexts/page-title-context';
+import { useCandidateProfileContext } from '@/api-hook/candidate';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
@@ -23,6 +24,7 @@ export default function CandidateDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { setTitle } = usePageTitle();
+  const { data: candidateProfile } = useCandidateProfileContext();
 
   useEffect(() => {
     setTitle('Dashboard');
@@ -52,7 +54,10 @@ export default function CandidateDashboardPage() {
     [filteredApplications]
   );
 
-  const firstName = user?.name?.split(' ')[0] ?? 'Jake';
+  const firstName =
+    candidateProfile?.name?.split(' ')[0] ??
+    user?.name?.split(' ')[0] ??
+    'Jake';
   const greeting = getGreeting();
   const dateRangeLabel = formatDateRangeLabel(
     selectedStartDate,

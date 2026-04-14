@@ -175,6 +175,15 @@ export default function EmployerSettingsPage() {
                 <PersonalDetailsForm disabled={loadingProfile || isSaving} />
               </div>
 
+              {/* Save Button */}
+              <Button
+                type="submit"
+                disabled={loadingProfile || isSaving}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 h-auto bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded-[5px] font-label-label-1-semi-bold text-[length:var(--label-label-1-semi-bold-font-size)] text-[var(--text-white,#ffffff)] text-center tracking-[var(--label-label-1-semi-bold-letter-spacing)] leading-[var(--label-label-1-semi-bold-line-height)] whitespace-nowrap"
+              >
+                {isSaving ? 'Saving...' : 'Save Profile'}
+              </Button>
+
               {/* Divider */}
               <hr className="self-stretch border-primary" />
 
@@ -195,15 +204,6 @@ export default function EmployerSettingsPage() {
 
               {/* Divider */}
               <hr className="self-stretch border-primary" />
-
-              {/* Save Button */}
-              <Button
-                type="submit"
-                disabled={loadingProfile || isSaving}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 h-auto bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded-[5px] font-label-label-1-semi-bold text-[length:var(--label-label-1-semi-bold-font-size)] text-[var(--text-white,#ffffff)] text-center tracking-[var(--label-label-1-semi-bold-letter-spacing)] leading-[var(--label-label-1-semi-bold-line-height)] whitespace-nowrap"
-              >
-                {isSaving ? 'Saving...' : 'Save Profile'}
-              </Button>
             </form>
           </FormProvider>
         </TabsContent>

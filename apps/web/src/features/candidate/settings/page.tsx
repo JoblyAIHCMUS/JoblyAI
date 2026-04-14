@@ -24,23 +24,21 @@ import {
   formatDateToYYYYMMDD,
 } from '@/lib/validation';
 import { formatErrorForDisplay } from '@/lib/errors';
-import type { CandidateProfileResponse } from '@/api-client/candidate/types';
+import type { CandidateProfileResponse } from '@/api-client/candidate';
 
 export default function CandidateSettingsPage() {
   const { setTitle } = usePageTitle();
   const { toast } = useToast();
   const router = useRouter();
-
-  useEffect(() => {
-    setTitle('Settings');
-  }, [setTitle]);
-
   const [activeTab, setActiveTab] = useState('my-profile');
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
 
-  // React Hook Form with Zod validation
+  useEffect(() => {
+    setTitle('Settings');
+  }, [setTitle]);
+
   const methods = useForm<PersonalDetailsFormData>({
     resolver: zodResolver(PersonalDetailsSchema),
     mode: 'onChange',
@@ -60,19 +58,6 @@ export default function CandidateSettingsPage() {
     formState: { isSubmitting },
   } = methods;
 
-  // Hook for updating personal details
-  const { updateDetails } = useUpdatePersonalDetails({
-    onSuccess: () => {
-      toast.success('Personal details updated successfully');
-    },
-    onError: (error) => {
-      toast.error(
-        formatErrorForDisplay(error, 'Failed to update personal details')
-      );
-    },
-  });
-
-  // Memoized success callback for fetching profile
   const handleProfileSuccess = useCallback(
     (data: CandidateProfileResponse) => {
       const dobString = formatDateToYYYYMMDD(data.dateOfBirth);
@@ -84,8 +69,8 @@ export default function CandidateSettingsPage() {
       reset({
         firstName: data.firstName || '',
         lastName: data.lastName || '',
-        email: data.email || '',
         phoneNumber: data.phoneNumber || '',
+        email: data.email || '',
         dateOfBirth: dobString,
         gender: data.gender || '',
       });
@@ -93,13 +78,17 @@ export default function CandidateSettingsPage() {
     [reset]
   );
 
-  // Hook to load candidate profile data
-  const { fetchCandidateProfile } = useGetCandidateProfile({
-    onSuccess: handleProfileSuccess,
-  });
+  const { fetchCandidateProfile, loading: loadingProfile } =
+    useGetCandidateProfile({
+      onSuccess: handleProfileSuccess,
+    });
+
+  const { updateDetails, loading: updatingProfile } =
+    useUpdatePersonalDetails();
 
   const handleAvatarUpdated = (newAvatarUrl: string) => {
     setProfilePhoto(newAvatarUrl);
+    fetchCandidateProfile();
   };
 
   const onSubmit = async (formData: PersonalDetailsFormData) => {
@@ -114,13 +103,17 @@ export default function CandidateSettingsPage() {
 
       await fetchCandidateProfile();
 
+      toast.success('Profile updated successfully');
+
       setTimeout(() => {
         router.push('/candidate/profile');
       }, 800);
     } catch {
-      // Error handled by onError callback
+      // Error handled by toast in updateDetails hook
     }
   };
+
+  const isSaving = updatingProfile || isSubmitting;
 
   // Load profile data on component mount (only once)
   useEffect(() => {
@@ -176,6 +169,7 @@ export default function CandidateSettingsPage() {
                 <ProfilePhotoSection
                   photoUrl={profilePhoto}
                   onAvatarUpdated={handleAvatarUpdated}
+                  disabled={loadingProfile || isSaving}
                 />
               </div>
 
@@ -190,10 +184,10 @@ export default function CandidateSettingsPage() {
               {/* Save Button */}
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={loadingProfile || isSaving}
                 className="self-end inline-flex items-center justify-center gap-2 px-6 py-3 h-auto bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded-[5px] font-label-label-1-semi-bold text-[length:var(--label-label-1-semi-bold-font-size)] text-[var(--text-white,#ffffff)] text-center tracking-[var(--label-label-1-semi-bold-letter-spacing)] leading-[var(--label-label-1-semi-bold-line-height)] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Saving...' : 'Save Profile'}
+                {isSaving ? 'Saving...' : 'Save Profile'}
               </Button>
               {/* Divider */}
               <hr className="self-stretch border-primary" />

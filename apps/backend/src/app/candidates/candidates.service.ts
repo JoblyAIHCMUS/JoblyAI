@@ -116,9 +116,16 @@ export class CandidatesService {
     if (!user) {
       throw new NotFoundException(`Candidate with ID ${userId} not found`);
     }
+
+    // Compute name from firstName + lastName, fallback to user.name
+    const computedName =
+      [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
+      user.name ||
+      '';
+
     return {
       id: user.id || '',
-      name: user.name || '',
+      name: computedName,
       email: user.email,
       firstName: user.firstName ?? '',
       lastName: user.lastName ?? '',

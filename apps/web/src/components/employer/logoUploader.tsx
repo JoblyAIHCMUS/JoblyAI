@@ -6,7 +6,8 @@ import { forwardRef, useImperativeHandle } from 'react';
 import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 import { deleteS3File } from '@/api-client/s3/file';
 
-const ACCEPT = '.svg,.png,.jpg,.jpeg,.webp';
+// Match backend ALLOWED_FILE_TYPES for LOGOS: ['image/jpeg', 'image/png', 'image/svg+xml']
+const ACCEPT = '.svg,.png,.jpg,.jpeg';
 const MAX_SIZE = 1 * 1024 * 1024; // 1 MB
 
 interface LogoUploaderProps {

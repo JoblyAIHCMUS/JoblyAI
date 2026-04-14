@@ -17,7 +17,16 @@ export const PersonalDetailsSchema = z.object({
       'Phone number must contain only digits or start with + followed by digits'
     ),
   email: z.string().optional(), // Email is read-only, not editable
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dateOfBirth: z
+    .string()
+    .min(1, 'Date of birth is required')
+    .refine((val) => {
+      if (!val) return true;
+      const dob = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+      return dob <= today;
+    }, 'Date of birth cannot be in the future'),
   gender: z.string().min(1, 'Gender is required'),
 });
 

@@ -1,8 +1,6 @@
-import { useState, useCallback } from 'react';
-import {
-  getCandidateProfile,
-  type CandidateProfileResponse,
-} from '@/api-client/candidate';
+import { useCallback } from 'react';
+import { useCandidateProfileContext } from './CandidateProfileContext';
+import type { CandidateProfileResponse } from '@/api-client/candidate';
 
 interface UseGetCandidateProfileOptions {
   onSuccess?: (data: CandidateProfileResponse) => void;
@@ -12,28 +10,17 @@ interface UseGetCandidateProfileOptions {
 export function useGetCandidateProfile(
   options?: UseGetCandidateProfileOptions
 ) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown>(null as unknown);
-  const [data, setData] = useState<CandidateProfileResponse | null>(null);
+  const context = useCandidateProfileContext();
 
-  const fetchCandidateProfile =
-    useCallback(async (): Promise<CandidateProfileResponse | null> => {
-      setLoading(true);
-      setError(null);
+  const fetchCandidateProfile = useCallback(
+    () => context.fetchCandidateProfile(options),
+    [context, options]
+  );
 
-      try {
-        const result = await getCandidateProfile();
-        setData(result);
-        options?.onSuccess?.(result);
-        return result;
-      } catch (err: unknown) {
-        setError(err);
-        options?.onError?.(err);
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    }, [options?.onSuccess, options?.onError]);
-
-  return { fetchCandidateProfile, loading, error, data };
+  return {
+    fetchCandidateProfile,
+    loading: context.loading,
+    error: context.error,
+    data: context.data,
+  };
 }
