@@ -496,14 +496,7 @@ importers:
         version: 3.22.3(@floating-ui/dom@1.7.6)(@tiptap/core@3.22.3(@tiptap/pm@3.22.3))(@tiptap/pm@3.22.3)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tiptap/starter-kit':
         specifier: ^3.20.0
-<<<<<<< HEAD
         version: 3.22.3
-=======
-        version: 3.22.2
->>>>>>> 56f7ace (Enable rich taxt editor to automatically format parsed markdown)
-      '@types/markdown-it':
-        specifier: ^14.1.2
-        version: 14.1.2
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -19653,13 +19646,7 @@ snapshots:
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-<<<<<<< HEAD
       vite: 7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)
-=======
-      vite: 7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)
-    optional: true
->>>>>>> 56f7ace (Enable rich taxt editor to automatically format parsed markdown)
-
   '@vitest/pretty-format@4.1.4':
     dependencies:
       tinyrainbow: 3.1.0
@@ -19687,11 +19674,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-<<<<<<< HEAD
-      vitest: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
-=======
-      vitest: 4.1.2(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/ui@4.1.2)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.4.2)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
->>>>>>> 56f7ace (Enable rich taxt editor to automatically format parsed markdown)
+      vitest: 4.1.2(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/ui@4.1.2)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
 
   '@vitest/utils@4.1.4':
     dependencies:
