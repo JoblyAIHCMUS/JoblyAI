@@ -18145,9 +18145,7 @@ snapshots:
       metro-runtime: 0.82.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.74.89': {}
 
@@ -27556,6 +27554,7 @@ snapshots:
       sass-embedded: 1.99.0
       terser: 5.46.1
       yaml: 2.8.3
+    optional: true
 
   vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.4.2)(less@4.5.1)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)):
     dependencies:
@@ -27618,6 +27617,7 @@ snapshots:
       jsdom: 22.1.0
     transitivePeerDependencies:
       - msw
+    optional: true
 
   vlq@1.0.1: {}
 
