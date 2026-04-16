@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { CandidateSkill } from '@/api-client/candidate/types';
+import { formatErrorForDisplay } from '@/lib/errors';
 
 interface SkillsProps {
   skills: CandidateSkill[];
-  handleAddSkill?: (skill: string) => void;
+  handleAddSkill?: (skill: string) => Promise<void> | void;
   handleDeleteSkill?: (skillId: number) => void;
 }
 
@@ -17,23 +18,39 @@ export default function Skills({
 }: Readonly<SkillsProps>) {
   const [isAdding, setIsAdding] = useState(false);
   const [newSkill, setNewSkill] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleAddClick = () => {
     setIsAdding(true);
     setNewSkill('');
+    setSaveError(null);
   };
 
-  const handleSave = () => {
-    if (handleAddSkill && newSkill.trim()) {
-      handleAddSkill(newSkill.trim());
+  const handleSave = async () => {
+    const trimmedSkill = newSkill.trim();
+    if (!handleAddSkill || !trimmedSkill) {
+      return;
+    }
+
+    setSaveError(null);
+    setIsSaving(true);
+
+    try {
+      await handleAddSkill(trimmedSkill);
       setIsAdding(false);
       setNewSkill('');
+    } catch (error) {
+      setSaveError(formatErrorForDisplay(error, 'Failed to add skill'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
     setIsAdding(false);
     setNewSkill('');
+    setSaveError(null);
   };
 
   return (
@@ -59,23 +76,29 @@ export default function Skills({
             className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
-            placeholder="Nhập kỹ năng mới"
+            placeholder="Enter a new skill"
             autoFocus
           />
+          {saveError && <p className="text-sm text-danger">{saveError}</p>}
           <div className="flex gap-2 mt-2">
             <button
               className="px-4 py-2 rounded bg-accent-solid text-white"
               onClick={handleSave}
+              disabled={isSaving}
             >
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
-            <button className="px-4 py-2 rounded border" onClick={handleCancel}>
+            <button
+              className="px-4 py-2 rounded border"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
               Cancel
             </button>
           </div>
         </div>
       )}
-      <div className="flex flex-wrap gap-3  px-4">
+      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-3 px-4">
         {skills.map((skill) => (
           <span
             key={skill.id}
@@ -86,7 +109,7 @@ export default function Skills({
               <button
                 className="ml-1 text-danger hover:underline"
                 onClick={() => handleDeleteSkill(skill.id)}
-                aria-label={`Xoá ${skill.title}`}
+                aria-label={`Delete ${skill.title}`}
                 type="button"
               >
                 ×
