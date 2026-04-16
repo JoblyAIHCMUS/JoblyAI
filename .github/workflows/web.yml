@@ -39,7 +39,7 @@ jobs:
       # 1. Setup PNPM (Version 11 required) Update from 9 to 11 to accomodate changes from PNPM(read PNPM retire audit endpoints)
       - uses: pnpm/action-setup@v2
         with:
-          version: 11
+          version: next-11
       # 2. Setup Node (Version 22 required)
       - uses: actions/setup-node@v4
         with:
