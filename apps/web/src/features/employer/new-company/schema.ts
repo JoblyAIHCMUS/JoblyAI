@@ -22,6 +22,22 @@ const isHtmlContentEmpty = (html: string): boolean => {
   return text === '';
 };
 
+// Helper function to validate website URL has proper domain format
+const isValidWebsiteDomain = (url: string | undefined): boolean => {
+  if (!url) return true; // Optional field
+  try {
+    // Add https:// if no protocol is provided
+    const urlToValidate = /^https?:\/\//.test(url) ? url : `https://${url}`;
+    const urlObj = new URL(urlToValidate);
+    // Check that the hostname contains at least one dot (for TLD)
+    // Accept localhost for testing but require proper domain for others
+    const hostname = urlObj.hostname;
+    return hostname === 'localhost' || hostname.includes('.');
+  } catch {
+    return false;
+  }
+};
+
 export const companyRegistrationSchema = z
   .object({
     companyName: z
@@ -40,19 +56,10 @@ export const companyRegistrationSchema = z
     website: z
       .string()
       .optional()
-      .refine((url) => {
-        if (!url) return true; // Optional field
-        try {
-          // Add https:// if no protocol is provided
-          const urlToValidate = /^https?:\/\//.test(url)
-            ? url
-            : `https://${url}`;
-          new URL(urlToValidate);
-          return true;
-        } catch {
-          return false;
-        }
-      }, 'Please enter a valid website URL (e.g., example.com, www.example.com, or https://www.example.com)'),
+      .refine(
+        (url) => isValidWebsiteDomain(url),
+        'Please enter a valid website URL with a proper domain (e.g., example.com, www.example.com, or https://www.example.com)'
+      ),
     scale: z
       .enum([
         '1-50',

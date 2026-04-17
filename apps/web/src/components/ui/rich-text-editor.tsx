@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
+import { type EditorView } from '@tiptap/pm/view';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
+import MarkdownIt from 'markdown-it';
 import { Toggle } from '@/components/ui/toggle';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -35,6 +37,55 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   editable?: boolean;
+}
+
+// Markdown parser instance
+const md = new MarkdownIt({
+  html: true,
+  breaks: true,
+  linkify: true,
+});
+
+// Configure markdown-it to only support editor-compatible features
+md.disable(['table', 'image', 'link']);
+
+// Convert markdown to HTML (only supported formats)
+function markdownToHtml(markdown: string): string {
+  try {
+    // Only allow H2 and H3 headings, strip H1
+    const sanitized = markdown.replace(/^#\s+/gm, '## ');
+    return md.render(sanitized);
+  } catch (error) {
+    console.error('Markdown parsing error:', error);
+    return markdown;
+  }
+}
+
+// Detect if text contains supported markdown syntax
+function looksLikeMarkdown(text: string): boolean {
+  // Only check for patterns supported by the editor:
+  // - Bold: **text** or __text__
+  // - Italic: *text* or _text_
+  // - Strikethrough: ~~text~~
+  // - Inline code: `text`
+  // - Headings: ## or ###
+  // - Lists: -, *, +, or 1.
+  // - Blockquotes: >
+  // - Horizontal rules: ---, ***, ___
+  const supportedPatterns = [
+    /\*\*[^*]+\*\*/m, // Bold with **
+    /__[^_]+__/m, // Bold with __
+    /~~[^~]+~~/m, // Strikethrough
+    /`[^`]+`/m, // Inline code
+    /^##\s/m, // H2 heading
+    /^###\s/m, // H3 heading
+    /^\s*[-*+]\s/m, // Bullet list
+    /^\s*\d+\.\s/m, // Numbered list
+    /^\s*>/m, // Blockquote
+    /^(-{3}|\*{3}|_{3})$/m, // Horizontal rule
+  ];
+
+  return supportedPatterns.some((pattern) => pattern.test(text));
 }
 
 interface ToolbarButtonProps {
@@ -223,7 +274,7 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const isInternalUpdate = useRef(false);
 
-  const editor = useEditor({
+  const editor: Editor | null = useEditor({
     extensions: [
       StarterKit.configure({
         heading: {
@@ -248,6 +299,24 @@ export function RichTextEditor({
           '[&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0',
           '[&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:italic'
         ),
+      },
+      handlePaste: (view: EditorView, event: ClipboardEvent): boolean => {
+        const text = event.clipboardData?.getData('text/plain');
+        const html = event.clipboardData?.getData('text/html');
+
+        // If there's HTML, let Tiptap handle it normally
+        if (html) {
+          return false;
+        }
+
+        // Check if pasted text looks like markdown
+        if (text && looksLikeMarkdown(text)) {
+          event.preventDefault();
+          const htmlContent = markdownToHtml(text);
+          return editor?.commands.insertContent(htmlContent) ?? false;
+        }
+
+        return false;
       },
     },
     onUpdate: ({ editor }) => {

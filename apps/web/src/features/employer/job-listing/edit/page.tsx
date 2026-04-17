@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   SkillTagsManager,
-  type SkillEntry,
   type SkillImportance,
 } from '@/components/employer/skillTagsManager';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -27,6 +28,7 @@ import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
 import { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillIds } from '@/api-hook/skills/useSkillIds';
+import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 
 const EDIT_JOB_STEPS = [
@@ -52,6 +54,12 @@ const CURRENCIES = [
   { value: 'cny', label: 'CNY' },
 ] as const;
 
+// Helper to check if HTML content has actual text (not just empty tags like <p></p>)
+const isHtmlContentEmpty = (html: string): boolean => {
+  const text = html.replace(/<[^>]*>/g, '').trim();
+  return text === '';
+};
+
 // Helper to convert SkillImportance to RequirementImportance
 const convertToRequirementImportance = (
   importance: SkillImportance
@@ -62,73 +70,95 @@ const convertToRequirementImportance = (
   return importance as RequirementImportance;
 };
 
-const isHtmlContentEmpty = (html: string): boolean => {
-  const text = html.replace(/<[^>]*>/g, '').trim();
-  return text === '';
-};
-
 export default function JobListingEditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const jobId = parseInt(id, 10);
 
-  // API hooks for fetching and updating
+  // API hooks
   const { fetchJobDetail, data: jobData, loading: jobLoading } = useJobDetail();
   const { categories, loading: categoriesLoading } = useCategories();
-  const {
-    submitUpdate,
-    loading: submitLoading,
-    error: submitError,
-  } = useUpdateJob({
+  const { submitUpdate, loading: submitLoading } = useUpdateJob({
     onSuccess: () => {
       toast.success('Job updated successfully!');
       router.replace(`/employer/job-listing/${id}`);
     },
-    onError: (err) => {
+    onError: () => {
       toast.error('Failed to update job. Please try again.');
     },
   });
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
 
-  // Form state
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<string>('');
-  const [remote, setRemote] = useState(false);
-  const [location, setLocation] = useState('');
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [currency, setCurrency] = useState<string>('none');
-  const [salaryMin, setSalaryMin] = useState('');
-  const [salaryMax, setSalaryMax] = useState('');
-  const [skills, setSkills] = useState<SkillEntry[]>([]);
+  // Form setup
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<JobPostingFormData>({
+    resolver: zodResolver(jobPostingSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      title: '',
+      description: '',
+      type: 'FULL_TIME' as const,
+      remote: false,
+      location: '',
+      categoryId: '',
+      currency: 'none' as const,
+      salaryMin: undefined,
+      salaryMax: undefined,
+      skills: [],
+    },
+  });
+
+  // Watch fields
+  const remote = watch('remote');
+  const currency = watch('currency');
+  const description = watch('description');
+  const skills = watch('skills');
+  const type = watch('type');
+  const categoryId = watch('categoryId');
 
   // Fetch job data on mount
   useEffect(() => {
     fetchJobDetail(jobId);
   }, [jobId, fetchJobDetail]);
 
-  // Populate form state when job data is loaded
+  // Populate form when job data loads
   useEffect(() => {
     if (jobData) {
-      setTitle(jobData.title);
-      setDescription(jobData.description);
-      setType(jobData.type);
-      setRemote(jobData.remote);
-      setLocation(jobData.location || '');
-      setCategoryId(jobData.category.id.toString());
-      setCurrency(jobData.currency ? jobData.currency.toLowerCase() : 'none');
-      setSalaryMin(jobData.salaryMin ? jobData.salaryMin.toString() : '');
-      setSalaryMax(jobData.salaryMax ? jobData.salaryMax.toString() : '');
-      // Backend provides requirements with skill details, map to SkillEntry
-      setSkills(
+      setValue('title', jobData.title);
+      setValue('description', jobData.description);
+      setValue('type', jobData.type as EmploymentType);
+      setValue('remote', jobData.remote);
+      setValue('location', jobData.location || '');
+      setValue('categoryId', jobData.category.id.toString());
+      setValue(
+        'currency',
+        (jobData.currency ? jobData.currency.toLowerCase() : 'none') as
+          | 'none'
+          | 'usd'
+          | 'eur'
+          | 'gbp'
+          | 'vnd'
+          | 'jpy'
+          | 'cny'
+      );
+      setValue('salaryMin', jobData.salaryMin ?? undefined);
+      setValue('salaryMax', jobData.salaryMax ?? undefined);
+      setValue(
+        'skills',
         (jobData.requirements || []).map((req) => ({
           name: req.skillName,
-          importance: req.importance,
+          importance: req.importance as SkillImportance,
           minYearsExperience: req.minYearsExperience ?? undefined,
         }))
       );
     }
-  }, [jobData]);
+  }, [jobData, setValue]);
 
   if (jobLoading) {
     return (
@@ -146,53 +176,64 @@ export default function JobListingEditPage() {
     );
   }
 
+  // Validation for each step
   const canProceed = (stepIndex: number): boolean => {
+    const currentValues = getValues();
     switch (stepIndex) {
-      case 0:
-        return title.trim() !== '' && type !== '' && categoryId !== '';
-      case 1:
-        return !isHtmlContentEmpty(description);
+      case 0: // Basic Information
+        return (
+          !!currentValues.title &&
+          currentValues.title.trim().length >= 2 &&
+          !!currentValues.type &&
+          !!currentValues.categoryId &&
+          !errors.title &&
+          !errors.type &&
+          !errors.categoryId
+        );
+      case 1: // Job Description
+        return !errors.description && !isHtmlContentEmpty(description);
       default:
         return true;
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (data: JobPostingFormData) => {
     try {
-      // 1. Resolve skill IDs (create if needed)
+      // Resolve skill IDs (create if needed)
       let requirements = undefined;
-      if (skills.length > 0) {
-        const skillObjs = await getOrCreateSkills(skills.map((s) => s.name));
-        // Map skill names to IDs
-        requirements = skills.map((s) => {
+      if (data.skills && data.skills.length > 0) {
+        const skillObjs = await getOrCreateSkills(
+          data.skills.map((s) => s.name)
+        );
+        requirements = data.skills.map((s) => {
           const skillObj = skillObjs.find(
             (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
           );
           return {
             skillId: skillObj ? skillObj.id : 0,
             importance: convertToRequirementImportance(s.importance),
-            minYearsExperience: s.minYearsExperience,
+            minYearsExperience: s.minYearsExperience || 0,
           };
         });
       }
 
-      // Build the update payload
+      // Build payload
       const payload = {
-        title,
-        description,
-        type: type as EmploymentType,
-        remote,
-        location: remote ? undefined : location,
-        categoryId: Number(categoryId),
-        currency: currency === 'none' ? undefined : currency.toUpperCase(),
-        salaryMin: salaryMin ? Number(salaryMin) : undefined,
-        salaryMax: salaryMax ? Number(salaryMax) : undefined,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        remote: data.remote,
+        location: data.remote ? undefined : data.location,
+        categoryId: Number(data.categoryId),
+        currency:
+          data.currency === 'none' ? undefined : data.currency.toUpperCase(),
+        salaryMin: data.salaryMin,
+        salaryMax: data.salaryMax,
         requirements,
       };
 
       await submitUpdate(jobId, payload);
     } catch (err) {
-      // Error handled in hook
       console.error('Failed to update job:', err);
     }
   };
@@ -209,214 +250,297 @@ export default function JobListingEditPage() {
         Update the details for <strong>{jobData.title}</strong>.
       </p>
 
-      {submitError ? (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-700">
-            {submitError instanceof Error
-              ? (submitError.message as React.ReactNode)
-              : typeof submitError === 'string'
-              ? (submitError as React.ReactNode)
-              : 'Failed to update job'}
-          </p>
-        </div>
-      ) : null}
-
-      <Stepper
-        steps={EDIT_JOB_STEPS}
-        onComplete={handleComplete}
-        canProceed={canProceed}
-        loading={submitLoading || skillsLoading}
-      >
-        {/* Step 1: Basic Information */}
-        <div className="space-y-8 max-w-2xl mx-auto">
-          {/* Job Title */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label htmlFor="title" className="label-label-1-semibold">
-                Job Title <span className="text-red-500">*</span>
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Be specific - this is the first thing candidates see.
-              </p>
+      <form onSubmit={handleSubmit(handleComplete)}>
+        <Stepper
+          steps={EDIT_JOB_STEPS}
+          canProceed={canProceed}
+          loading={submitLoading || skillsLoading || categoriesLoading}
+        >
+          {/* Step 1: Basic Information */}
+          <div className="space-y-8 max-w-2xl mx-auto">
+            {/* Job Title */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label htmlFor="title" className="label-label-1-semibold">
+                  Job Title <span className="text-red-500">*</span>
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Be specific - this is the first thing candidates see.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Input
+                  id="title"
+                  placeholder="e.g. Software Engineer"
+                  className={`h-12 text-base ${
+                    errors.title ? 'border-red-500' : ''
+                  }`}
+                  {...register('title')}
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-500">{errors.title.message}</p>
+                )}
+              </div>
             </div>
-            <Input
-              id="title"
-              placeholder="e.g. Software Engineer"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-12 text-base"
-            />
-          </div>
 
-          <Separator />
+            <Separator />
 
-          {/* Type of Employment */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div>
-              <Label className="label-label-1-semibold">
-                Type of employment <span className="text-red-500">*</span>
-              </Label>
+            {/* Type of Employment */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div>
+                <Label className="label-label-1-semibold">
+                  Type of employment <span className="text-red-500">*</span>
+                </Label>
+                {errors.type && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.type.message}
+                  </p>
+                )}
+              </div>
+              <RadioGroup
+                value={type}
+                onValueChange={(value) =>
+                  setValue('type', value as EmploymentType)
+                }
+                className="flex flex-wrap gap-4"
+              >
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <div key={t.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={t.value} id={t.value} />
+                    <Label
+                      htmlFor={t.value}
+                      className="font-normal cursor-pointer"
+                    >
+                      {t.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
-            <RadioGroup
-              value={type}
-              onValueChange={setType}
-              className="flex flex-wrap gap-4"
-            >
-              {EMPLOYMENT_TYPES.map((t) => (
-                <div key={t.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={t.value} id={t.value} />
+
+            <Separator />
+
+            {/* Location */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label htmlFor="location" className="label-label-1-semibold">
+                  Location
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Where is the job based?
+                </p>
+              </div>
+              <div className="grid grid-rows-[auto_auto] gap-4">
+                <div className="space-y-1">
+                  <Input
+                    id="location"
+                    placeholder="e.g. 123 This Street, That Town, The Other Country"
+                    disabled={remote}
+                    className={`h-12 text-base ${
+                      errors.location ? 'border-red-500' : ''
+                    }`}
+                    {...register('location')}
+                  />
+                  {errors.location && (
+                    <p className="text-sm text-red-500">
+                      {errors.location.message}
+                    </p>
+                  )}
+                </div>
+                {/* Remote Work */}
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch
+                    id="remote"
+                    className="data-[state=checked]:bg-black"
+                    checked={remote}
+                    onCheckedChange={(checked) => {
+                      setValue('remote', checked);
+                      if (checked) setValue('location', '');
+                    }}
+                  />
                   <Label
-                    htmlFor={t.value}
+                    htmlFor="remote"
                     className="font-normal cursor-pointer"
                   >
-                    {t.label}
+                    This is a remote position
                   </Label>
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          <Separator />
-
-          {/* Location */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label htmlFor="location" className="label-label-1-semibold">
-                Location
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Where is the job based?
-              </p>
+              </div>
             </div>
-            <div className="grid grid-rows-[auto_auto] gap-4">
-              <Input
-                id="location"
-                placeholder="e.g. 123 This Street, That Town, The Other Country"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                disabled={remote}
-                className="h-12 text-base"
-              />
-              {/* Remote Work */}
-              <div className="flex items-center gap-3 pt-1">
-                <Switch
-                  id="remote"
-                  checked={remote}
-                  onCheckedChange={(checked) => {
-                    setRemote(checked);
-                    if (checked) setLocation('');
-                  }}
-                />
-                <Label htmlFor="remote" className="font-normal cursor-pointer">
-                  This is a remote position
+
+            <Separator />
+
+            {/* Category */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label className="label-label-1-semibold">
+                  Category <span className="text-red-500">*</span>
                 </Label>
+              </div>
+              <div className="space-y-1">
+                <Select
+                  value={categoryId}
+                  onValueChange={(value: string) =>
+                    setValue('categoryId', value)
+                  }
+                >
+                  <SelectTrigger
+                    className={`h-12 text-base ${
+                      errors.categoryId ? 'border-red-500' : ''
+                    }`}
+                  >
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoriesLoading ? (
+                      <div className="p-2 text-sm text-slate-500">
+                        Loading categories...
+                      </div>
+                    ) : (
+                      categories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.categoryId && (
+                  <p className="text-sm text-red-500">
+                    {errors.categoryId.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Required Skills */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div>
+                <Label className="label-label-1-semibold">
+                  Required Skills
+                </Label>
+                <p className="text-xs text-slate-500 mt-1">
+                  Skills useful for the job (Optional)
+                </p>
+              </div>
+              <SkillTagsManager
+                skills={skills}
+                onChange={(newSkills) => {
+                  const normalizedSkills = newSkills.map((skill) => ({
+                    ...skill,
+                    minYearsExperience: (skill.minYearsExperience ??
+                      0) as number,
+                  }));
+                  setValue('skills', normalizedSkills);
+                }}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Salary */}
+            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
+              <div className="pt-3">
+                <Label className="label-label-1-semibold">Salary</Label>
+                <p className="text-xs text-slate-500 mt-1">Optional</p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={currency}
+                    onValueChange={(value) =>
+                      setValue(
+                        'currency',
+                        value as
+                          | 'none'
+                          | 'usd'
+                          | 'eur'
+                          | 'gbp'
+                          | 'vnd'
+                          | 'jpy'
+                          | 'cny'
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-[100px] h-12">
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {currency !== 'none' && (
+                    <>
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        className={`h-12 text-base w-[120px] ${
+                          errors.salaryMin ? 'border-red-500' : ''
+                        }`}
+                        min="0"
+                        {...register('salaryMin', { valueAsNumber: true })}
+                      />
+                      <span className="text-slate-500">to</span>
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        className={`h-12 text-base w-[120px] ${
+                          errors.salaryMax ? 'border-red-500' : ''
+                        }`}
+                        min="0"
+                        {...register('salaryMax', { valueAsNumber: true })}
+                      />
+                    </>
+                  )}
+                </div>
+                {currency !== 'none' &&
+                  (errors.salaryMin || errors.salaryMax) && (
+                    <div className="space-y-1">
+                      {errors.salaryMin && (
+                        <p className="text-xs text-red-500">
+                          {errors.salaryMin.message}
+                        </p>
+                      )}
+                      {errors.salaryMax && (
+                        <p className="text-xs text-red-500">
+                          {errors.salaryMax.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Category */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
+          {/* Step 2: Job Description */}
+          <div className="space-y-8 max-w-3xl mx-auto">
+            <div className="space-y-3">
               <Label className="label-label-1-semibold">
-                Category <span className="text-red-500">*</span>
+                Job Description <span className="text-red-500">*</span>
               </Label>
-            </div>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger className="h-12 text-base">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoriesLoading ? (
-                  <div className="p-2 text-sm text-slate-500">
-                    Loading categories...
-                  </div>
-                ) : (
-                  categories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          {/* Required Skills */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div>
-              <Label className="label-label-1-semibold">Required Skills</Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Skills useful for the job (Optional)
-              </p>
-            </div>
-            <SkillTagsManager skills={skills} onChange={setSkills} />
-          </div>
-
-          <Separator />
-
-          {/* Salary */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
-              <Label className="label-label-1-semibold">Salary</Label>
-              <p className="text-xs text-slate-500 mt-1">Optional</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="w-[100px] h-12">
-                  <SelectValue placeholder="Currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {currency !== 'none' && (
-                <>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={salaryMin}
-                    onChange={(e) => setSalaryMin(e.target.value)}
-                    className="h-12 text-base w-[120px]"
-                    min="0"
-                  />
-                  <span className="text-slate-500">to</span>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={salaryMax}
-                    onChange={(e) => setSalaryMax(e.target.value)}
-                    className="h-12 text-base w-[120px]"
-                    min="0"
-                  />
-                </>
+              <RichTextEditor
+                content={description}
+                onChange={(content) => setValue('description', content)}
+                placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
+                className={`min-h-[360px] ${
+                  errors.description ? 'border-red-500' : ''
+                }`}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Step 2: Job Description */}
-        <div className="space-y-8 max-w-3xl mx-auto">
-          <div className="space-y-3">
-            <Label className="label-label-1-semibold">
-              Job Description <span className="text-red-500">*</span>
-            </Label>
-            <RichTextEditor
-              content={description}
-              onChange={setDescription}
-              placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
-              className="min-h-[360px]"
-            />
-          </div>
-        </div>
-      </Stepper>
+        </Stepper>
+      </form>
     </div>
   );
 }
