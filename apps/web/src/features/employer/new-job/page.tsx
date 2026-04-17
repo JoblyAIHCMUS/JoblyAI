@@ -381,67 +381,74 @@ export default function EmployerNewJobPage() {
                 <Label className="label-label-1-semibold">Salary</Label>
                 <p className="text-xs text-slate-500 mt-1">Optional</p>
               </div>
-              <div className="flex items-center gap-3">
-                <Select
-                  value={currency}
-                  onValueChange={(value) =>
-                    setValue(
-                      'currency',
-                      value as
-                        | 'none'
-                        | 'usd'
-                        | 'eur'
-                        | 'gbp'
-                        | 'vnd'
-                        | 'jpy'
-                        | 'cny'
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-[100px] h-12">
-                    <SelectValue placeholder="Currency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((curr) => (
-                      <SelectItem key={curr.value} value={curr.value}>
-                        {curr.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {currency !== 'none' && (
-                  <>
-                    <div className="space-y-1 w-[120px]">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={currency}
+                    onValueChange={(value) =>
+                      setValue(
+                        'currency',
+                        value as
+                          | 'none'
+                          | 'usd'
+                          | 'eur'
+                          | 'gbp'
+                          | 'vnd'
+                          | 'jpy'
+                          | 'cny'
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-[100px] h-12">
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((curr) => (
+                        <SelectItem key={curr.value} value={curr.value}>
+                          {curr.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {currency !== 'none' && (
+                    <>
                       <Input
                         type="number"
                         placeholder="Min"
-                        className="h-12 text-base"
+                        className={`h-12 text-base w-[120px] ${
+                          errors.salaryMin ? 'border-red-500' : ''
+                        }`}
                         min="0"
                         {...register('salaryMin', { valueAsNumber: true })}
                       />
+                      <span className="text-slate-500">to</span>
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        className={`h-12 text-base w-[120px] ${
+                          errors.salaryMax ? 'border-red-500' : ''
+                        }`}
+                        min="0"
+                        {...register('salaryMax', { valueAsNumber: true })}
+                      />
+                    </>
+                  )}
+                </div>
+                {currency !== 'none' &&
+                  (errors.salaryMin || errors.salaryMax) && (
+                    <div className="space-y-1">
                       {errors.salaryMin && (
                         <p className="text-xs text-red-500">
                           {errors.salaryMin.message}
                         </p>
                       )}
-                    </div>
-                    <span className="text-slate-500">to</span>
-                    <div className="space-y-1 w-[120px]">
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        className="h-12 text-base"
-                        min="0"
-                        {...register('salaryMax', { valueAsNumber: true })}
-                      />
                       {errors.salaryMax && (
                         <p className="text-xs text-red-500">
                           {errors.salaryMax.message}
                         </p>
                       )}
                     </div>
-                  </>
-                )}
+                  )}
               </div>
             </div>
           </div>
