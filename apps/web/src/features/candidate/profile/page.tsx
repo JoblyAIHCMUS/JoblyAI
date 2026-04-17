@@ -39,6 +39,7 @@ import {
   CandidateResume,
 } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
+import { formatErrorForDisplay } from '@/lib/errors';
 
 const CandidateProfilePage = () => {
   const { setTitle } = usePageTitle();
@@ -173,11 +174,29 @@ const CandidateProfilePage = () => {
   // hàm xử lý add skill
   const { createSkillRecord } = useCreateSkill();
   const handleAddSkill = async (skill: string) => {
-    const createdSkill = await createSkillRecord(skill);
-    setProfile((prev) => {
-      if (!prev) return prev;
-      return { ...prev, skills: [...(prev.skills || []), createdSkill] };
-    });
+    const normalizedSkill = skill.trim().toLowerCase();
+    const alreadyExists = profile?.skills?.some(
+      (existingSkill) =>
+        existingSkill.title.trim().toLowerCase() === normalizedSkill
+    );
+
+    if (alreadyExists) {
+      const duplicateSkillMessage = 'This skill is already in your profile.';
+      toast.error(duplicateSkillMessage);
+      throw new Error(duplicateSkillMessage);
+    }
+
+    try {
+      const createdSkill = await createSkillRecord(skill);
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return { ...prev, skills: [...(prev.skills || []), createdSkill] };
+      });
+    } catch (error) {
+      const errorMessage = formatErrorForDisplay(error, 'Failed to add skill');
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
   };
 
   // Hàm xử lý delete skill

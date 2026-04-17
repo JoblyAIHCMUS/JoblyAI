@@ -62,10 +62,67 @@ export class CandidatesService {
     return skillName.trim().replace(/\s+/g, ' ');
   }
 
+  private async findSkillIdByNameInsensitive(
+    normalizedSkillName: string
+  ): Promise<number | null> {
+    const existingSkill = await this.prismaClient.skill.findFirst({
+      where: {
+        name: {
+          equals: normalizedSkillName,
+          mode: 'insensitive',
+        },
+      },
+      select: { id: true },
+    });
+
+    return existingSkill?.id ?? null;
+  }
+
+  private async findOrCreateSkillIdByTitle(title: string): Promise<number> {
+    const normalizedSkillName = this.normalizeSkillName(title);
+    const existingSkillId = await this.findSkillIdByNameInsensitive(
+      normalizedSkillName
+    );
+
+    if (existingSkillId !== null) {
+      return existingSkillId;
+    }
+
+    try {
+      const createdSkill = await this.prismaClient.skill.create({
+        data: { name: normalizedSkillName },
+        select: { id: true },
+      });
+
+      return createdSkill.id;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const resolvedSkillId = await this.findSkillIdByNameInsensitive(
+          normalizedSkillName
+        );
+
+        if (resolvedSkillId !== null) {
+          return resolvedSkillId;
+        }
+      }
+
+      throw error;
+    }
+  }
+
   private async resolveSkillIdFromInput(input: {
     skillId?: number;
     title?: string;
   }): Promise<number> {
+    if (input.skillId !== undefined && input.title !== undefined) {
+      throw new BadRequestException(
+        'Provide either skillId or title, not both.'
+      );
+    }
+
     if (input.skillId !== undefined) {
       const skillById = await this.prismaClient.skill.findUnique({
         where: { id: input.skillId },
@@ -80,15 +137,7 @@ export class CandidatesService {
     }
 
     if (input.title && input.title.trim()) {
-      const normalizedSkillName = this.normalizeSkillName(input.title);
-      const skillByTitle = await this.prismaClient.skill.upsert({
-        where: { name: normalizedSkillName },
-        update: {},
-        create: { name: normalizedSkillName },
-        select: { id: true },
-      });
-
-      return skillByTitle.id;
+      return this.findOrCreateSkillIdByTitle(input.title);
     }
 
     throw new BadRequestException('Either skillId or title is required.');

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 
 export interface SkillResponse {
@@ -11,6 +11,23 @@ export interface SkillResponse {
 export class SkillsService {
   constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
 
+  private normalizeSkillName(skillName: string): string {
+    return skillName.trim().replace(/\s+/g, ' ');
+  }
+
+  private async findSkillByNameInsensitive(
+    normalizedSkillName: string
+  ): Promise<SkillResponse | null> {
+    return this.prisma.skill.findFirst({
+      where: {
+        name: {
+          equals: normalizedSkillName,
+          mode: 'insensitive',
+        },
+      },
+    });
+  }
+
   /**
    * Find skills by their names (case-insensitive)
    */
@@ -21,7 +38,7 @@ export class SkillsService {
 
     // Normalize names: trim and lowercase for comparison
     const normalizedNames = names
-      .map((n) => n.trim().toLowerCase())
+      .map((n) => this.normalizeSkillName(n).toLowerCase())
       .filter((n) => n.length > 0);
 
     // Remove duplicates
@@ -44,30 +61,37 @@ export class SkillsService {
    * Create a new skill
    */
   async createSkill(name: string): Promise<SkillResponse> {
-    const trimmedName = name.trim();
+    const normalizedName = this.normalizeSkillName(name);
 
     // Check if skill already exists (case-insensitive)
-    const existing = await this.prisma.skill.findFirst({
-      where: {
-        name: {
-          equals: trimmedName,
-          mode: 'insensitive',
-        },
-      },
-    });
+    const existing = await this.findSkillByNameInsensitive(normalizedName);
 
     if (existing) {
       return existing;
     }
 
-    // Create new skill
-    const skill = await this.prisma.skill.create({
-      data: {
-        name: trimmedName,
-      },
-    });
+    try {
+      // Create new skill only when missing
+      const skill = await this.prisma.skill.create({
+        data: {
+          name: normalizedName,
+        },
+      });
 
-    return skill;
+      return skill;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const resolved = await this.findSkillByNameInsensitive(normalizedName);
+        if (resolved) {
+          return resolved;
+        }
+      }
+
+      throw error;
+    }
   }
 
   /**
@@ -81,7 +105,7 @@ export class SkillsService {
     // Normalize and deduplicate names
     const normalizedToOriginal = new Map<string, string>();
     for (const rawName of names) {
-      const trimmed = rawName.trim();
+      const trimmed = this.normalizeSkillName(rawName);
       const normalized = trimmed.toLowerCase();
       if (normalized.length > 0 && !normalizedToOriginal.has(normalized)) {
         normalizedToOriginal.set(normalized, trimmed);
