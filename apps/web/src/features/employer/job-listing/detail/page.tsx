@@ -31,7 +31,12 @@ import JobStatsPanel from '@/components/employer/jobStatsPanel';
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { fetchEmployerJobDetail, loading, error, data: backendJob } = useEmployerJobDetail();
+  const {
+    fetchEmployerJobDetail,
+    loading,
+    error,
+    data: backendJob,
+  } = useEmployerJobDetail();
   const {
     fetchApplications,
     loading: applicationsLoading,
