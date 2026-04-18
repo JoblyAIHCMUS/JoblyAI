@@ -212,6 +212,49 @@ export class JobsService {
     return this.mapToJobResponse(job);
   }
 
+  async getJobByIdForEmployer(
+    id: number,
+    employerId: string,
+    userRole: string
+  ): Promise<JobPostingInterface> {
+    const job = await this.prisma.jobPosting.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        company: true,
+        requirements: {
+          include: {
+            skill: true,
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+
+    // Authorization check: verify employer owns the company that posted this job
+    if (userRole !== 'admin') {
+      const employer = await this.prisma.employer.findUnique({
+        where: { employerId },
+        include: { company: true },
+      });
+
+      if (!employer) {
+        throw new ForbiddenException('Employer profile not found');
+      }
+
+      if (job.companyId !== employer.company?.id) {
+        throw new ForbiddenException(
+          'You do not have permission to view this job'
+        );
+      }
+    }
+
+    return this.mapToJobResponse(job);
+  }
+
   async deleteJobById(
     id: number,
     userId: string,
