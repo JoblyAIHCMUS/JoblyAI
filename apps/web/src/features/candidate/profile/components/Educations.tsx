@@ -29,6 +29,53 @@ interface EducationEditFormProps {
   onCancel: () => void;
 }
 
+function normalizeGpaInput(rawValue: string): string | null {
+  const sanitized = rawValue.replace(/,/g, '.').replace(/[^\d.]/g, '');
+
+  if (!sanitized) return '';
+
+  let nextValue = '';
+
+  if (!sanitized.includes('.')) {
+    const digits = sanitized.slice(0, 3);
+    if (digits.length === 1) {
+      nextValue = digits;
+    } else {
+      nextValue = `${digits[0]}.${digits.slice(1, 3)}`;
+    }
+  } else {
+    const [integerRaw = '', ...decimalParts] = sanitized.split('.');
+    const integerPart = integerRaw.slice(0, 1) || '0';
+    const decimalPart = decimalParts.join('').slice(0, 2);
+    const keepsTrailingDot =
+      sanitized.endsWith('.') && decimalPart.length === 0;
+
+    nextValue = keepsTrailingDot
+      ? `${integerPart}.`
+      : `${integerPart}.${decimalPart}`;
+  }
+
+  const gpaPattern = /^(?:[0-3](?:\.\d{0,2})?|4(?:\.0{0,2})?)$/;
+  return gpaPattern.test(nextValue) ? nextValue : null;
+}
+
+function formatGpaForSubmit(value?: string): string {
+  if (!value) return '';
+
+  const normalizedValue = normalizeGpaInput(value);
+  if (!normalizedValue) return '';
+
+  const valueToParse = normalizedValue.endsWith('.')
+    ? normalizedValue.slice(0, -1)
+    : normalizedValue;
+  if (!valueToParse) return '';
+
+  const num = parseFloat(valueToParse);
+  if (isNaN(num) || num < 0 || num > 4) return '';
+
+  return num.toFixed(2);
+}
+
 function EducationEditForm({
   editItem,
   loading,
@@ -76,7 +123,12 @@ function EducationEditForm({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(async (data) => {
+        await onSubmit({
+          ...data,
+          grade: formatGpaForSubmit(data.grade),
+        });
+      })}
       className="space-y-2 w-full max-w-full"
     >
       {/* Row 1 - School */}
@@ -281,22 +333,30 @@ function EducationEditForm({
                 {...field}
                 placeholder="GPA (0.00 – 4.00)"
                 inputMode="decimal"
-                type="number"
+                type="text"
                 step="0.01"
                 min="0"
                 max="4"
                 onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^(?:[0-4](?:\.\d{0,2})?)?$/.test(value)) {
-                    field.onChange(value);
+                  const normalizedValue = normalizeGpaInput(e.target.value);
+                  if (normalizedValue !== null) {
+                    field.onChange(normalizedValue);
                   }
                 }}
                 onBlur={(e) => {
-                  const value = e.target.value;
-                  if (!value) return;
+                  const normalizedValue = normalizeGpaInput(e.target.value);
+                  if (!normalizedValue) {
+                    field.onChange('');
+                    return;
+                  }
 
-                  const num = parseFloat(value);
-                  if (!isNaN(num)) {
+                  const valueToParse = normalizedValue.endsWith('.')
+                    ? normalizedValue.slice(0, -1)
+                    : normalizedValue;
+                  if (!valueToParse) return;
+
+                  const num = parseFloat(valueToParse);
+                  if (!isNaN(num) && num >= 0 && num <= 4) {
                     field.onChange(num.toFixed(2));
                   }
                 }}
