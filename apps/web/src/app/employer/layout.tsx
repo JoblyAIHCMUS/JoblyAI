@@ -77,7 +77,7 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
           <EmployerSidebar />
           <main className="w-full flex flex-col h-screen overflow-hidden">
             <EmployerTopBar />
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto hidden-scrollbar">
               {/* Trigger allows collapsing/expanding on mobile or desktop if configured */}
               <SidebarTrigger className="p-4 md:hidden" />
               {children}

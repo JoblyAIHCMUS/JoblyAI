@@ -113,3 +113,18 @@ export async function listEmployerJobsByCompany(
   );
   return response.data;
 }
+
+/**
+ * Get a single job by ID for an authenticated employer
+ * Returns all job statuses (DRAFT, OPEN, CLOSED) if employer owns the job
+ * Requires authentication and ownership (employer/admin) or admin role
+ */
+export async function getEmployerJobById(id: number): Promise<JobPosting> {
+  const response = await axios.get<JobPosting>(
+    `${API_BASE_URL}/api/jobs/employer/${id}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}

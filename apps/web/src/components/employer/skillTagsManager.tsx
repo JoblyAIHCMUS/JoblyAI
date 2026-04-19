@@ -165,7 +165,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                         onClick={() => handleSelectFromDropdown(skill.name)}
                         className={`px-3 py-2 cursor-pointer transition-colors ${
                           index === selectedDropdownIndex
-                            ? 'bg-primary/20 text-primary body-body-1-medium'
+                            ? 'bg-slate-200 text-slate-900 body-body-1-medium'
                             : 'hover:bg-slate-100'
                         }`}
                       >

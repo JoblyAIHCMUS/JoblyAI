@@ -146,6 +146,25 @@ export class JobsController {
     return job;
   }
 
+  @Get('employer/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer', 'admin')
+  async getJobByIdForEmployer(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const userId = request.user.id;
+    const userRole = request.user.role;
+    const job = await this.jobsService.getJobByIdForEmployer(
+      id,
+      userId,
+      userRole
+    );
+    // Emit job viewed event for analytics tracking (authenticated access)
+    this.eventEmitter.emit('job.viewed.authenticated', { jobId: id });
+    return job;
+  }
+
   @Delete(':id')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer', 'admin')
