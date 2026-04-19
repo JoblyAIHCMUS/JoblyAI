@@ -91,7 +91,12 @@ export default function CandidateMessagesPage() {
   // Register callback for new messages via WebSocket
   useEffect(() => {
     onNewMessage((message) => {
-      // Only add message if it's from the current conversation
+      const formattedTime = new Date(message.timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      // 1. Update the chat window IF the message is for the current conversation
       if (
         selectedConversation &&
         message.senderId === selectedConversation.participantId
@@ -99,24 +104,38 @@ export default function CandidateMessagesPage() {
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender:
-            message.senderId === currentUser?.id
-              ? 'You'
-              : selectedConversation.name || 'User',
-          senderAvatar:
-            message.senderId === currentUser?.id
-              ? 'https://placehold.co/40x40'
-              : selectedConversation.avatar || 'https://placehold.co/40x40',
-          isSent: message.senderId === currentUser?.id,
+          sender: selectedConversation.name || 'User',
+          senderAvatar: selectedConversation.avatar || 'https://placehold.co/40x40',
+          isSent: false,
           content: message.content,
           timestamp: message.timestamp,
-          timestamp24: new Date(message.timestamp).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
+          timestamp24: formattedTime,
         };
         setMessages((prev) => [...prev, newMessage]);
       }
+
+      // 2. Update the sidebar for EVERY incoming message
+      setConversations((prev) => {
+        const updatedConversations = prev.map((conv) => {
+          if (conv.participantId === message.senderId) {
+            return {
+              ...conv,
+              lastMessage: message.content,
+              timestamp: formattedTime,
+              // Mark as unread if they aren't currently looking at this chat
+              unread: selectedConversation?.participantId !== message.senderId,
+            };
+          }
+          return conv;
+        });
+
+        // Move the conversation with the new message to the top
+        return updatedConversations.sort((a, b) => {
+          if (a.participantId === message.senderId) return -1;
+          if (b.participantId === message.senderId) return 1;
+          return 0;
+        });
+      });
     });
   }, [selectedConversation, currentUser?.id, onNewMessage]);
 
@@ -128,6 +147,11 @@ export default function CandidateMessagesPage() {
       // Send via WebSocket
       sendMessage(selectedConversation.participantId, content);
 
+      const timestamp24 = new Date().toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
       // Optimistic update: add message to UI immediately
       const optimisticMessage: Message = {
         messageId: `temp-${Date.now()}`,
@@ -137,12 +161,24 @@ export default function CandidateMessagesPage() {
         isSent: true,
         content,
         timestamp: new Date(),
-        timestamp24: new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        timestamp24,
       };
+      
+      // Update Chat Window
       setMessages((prev) => [...prev, optimisticMessage]);
+
+      // Update Sidebar (conversations state)
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.participantId === selectedConversation.participantId
+            ? {
+                ...conv,
+                lastMessage: content,
+                timestamp: timestamp24,
+              }
+            : conv
+        )
+      );
     },
     [selectedConversation, currentUser, sendMessage]
   );
