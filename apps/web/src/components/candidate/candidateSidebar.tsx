@@ -249,6 +249,8 @@ export function CandidateSidebar() {
               src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/applicant/Pattern.png"
               alt=""
               fill
+              loading="eager"
+              sizes="(max-width: 768px) 0px, 192px"
               className="object-contain object-right-bottom opacity-95"
             />
           </div>
