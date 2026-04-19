@@ -9,6 +9,7 @@ import {
   Eye,
   ChevronRight,
   XCircle,
+  MessageCircle,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
+import { useMessageCandidate } from '@/hooks/useMessageCandidate';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
 import {
@@ -164,6 +166,7 @@ export const columns: ColumnDef<Applicant>[] = [
       const meta = table.options.meta as {
         advanceApplicant?: (id: string) => Promise<void>;
         declineApplicant?: (id: string) => Promise<void>;
+        messageCandidate?: (id: string) => Promise<void>;
         loadingId?: string | null;
       };
       const isLoading = meta?.loadingId === applicant.id;
@@ -187,6 +190,13 @@ export const columns: ColumnDef<Applicant>[] = [
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isLoading}
+              onClick={() => meta.messageCandidate?.(applicant.applicantId)}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Message Candidate
             </DropdownMenuItem>
             {nextStage && (
               <DropdownMenuItem
@@ -225,6 +235,7 @@ export default function JobApplicantsTable({
   declineApplicant,
 }: JobApplicantsTableProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const { handleMessageCandidate: messageCandidate } = useMessageCandidate();
 
   const handleAdvance = async (id: string) => {
     setLoadingId(id);
@@ -252,6 +263,16 @@ export default function JobApplicantsTable({
     }
   };
 
+  const handleMessageCandidateClick = async (applicantId: string) => {
+    setLoadingId(applicantId);
+    try {
+      // applicantId is passed to the hook to identify which candidate to message
+      await messageCandidate(applicantId);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   return (
     <DataTable
       columns={columns}
@@ -259,6 +280,7 @@ export default function JobApplicantsTable({
       meta={{
         advanceApplicant: handleAdvance,
         declineApplicant: handleDecline,
+        messageCandidate: handleMessageCandidateClick,
         loadingId,
       }}
     />
