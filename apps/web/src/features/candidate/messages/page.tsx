@@ -91,10 +91,13 @@ export default function CandidateMessagesPage() {
   // Register callback for new messages via WebSocket
   useEffect(() => {
     onNewMessage((message) => {
-      const formattedTime = new Date(message.timestamp).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const formattedTime = new Date(message.timestamp).toLocaleTimeString(
+        'en-US',
+        {
+          hour: '2-digit',
+          minute: '2-digit',
+        }
+      );
 
       // 1. Update the chat window IF the message is for the current conversation
       if (
@@ -105,7 +108,8 @@ export default function CandidateMessagesPage() {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
           sender: selectedConversation.name || 'User',
-          senderAvatar: selectedConversation.avatar || 'https://placehold.co/40x40',
+          senderAvatar:
+            selectedConversation.avatar || 'https://placehold.co/40x40',
           isSent: false,
           content: message.content,
           timestamp: message.timestamp,
@@ -163,7 +167,7 @@ export default function CandidateMessagesPage() {
         timestamp: new Date(),
         timestamp24,
       };
-      
+
       // Update Chat Window
       setMessages((prev) => [...prev, optimisticMessage]);
 
