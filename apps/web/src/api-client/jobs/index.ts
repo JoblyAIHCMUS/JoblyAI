@@ -28,6 +28,7 @@ export {
   deleteJobPosting,
   listEmployerJobs,
   listEmployerJobsByCompany,
+  getEmployerJobById,
   getCategories,
 } from '@/api-client/jobs/employer';
 

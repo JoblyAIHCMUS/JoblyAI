@@ -207,6 +207,12 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
@@ -245,6 +251,15 @@
     display: none;
     width: 0;
     height: 0;
+  }
+
+  /* Hide scrollbar but keep scrolling functional */
+  .hidden-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .hidden-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
   }
 }
 

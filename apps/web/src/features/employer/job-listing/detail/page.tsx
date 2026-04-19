@@ -12,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
 import {
   useListEmployerApplications,
   useShortlistApplication,
@@ -20,6 +19,7 @@ import {
   useMoveToOfferApplication,
 } from '@/api-hook/application';
 import { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
+import { useEmployerJobDetail } from '@/api-hook/jobs/useEmployerJobDetail';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
 import { mapApplicationRecordsToApplicants } from '@/api-client/application/mappers';
 import type { HiringStage } from '@/features/employer/hiringStage';
@@ -31,7 +31,12 @@ import JobStatsPanel from '@/components/employer/jobStatsPanel';
 export default function JobListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { fetchJobDetail, loading, error, data: backendJob } = useJobDetail();
+  const {
+    fetchEmployerJobDetail,
+    loading,
+    error,
+    data: backendJob,
+  } = useEmployerJobDetail();
   const {
     fetchApplications,
     loading: applicationsLoading,
@@ -84,14 +89,14 @@ export default function JobListingDetailPage() {
         const jobId = parseInt(id as string, 10);
         await updateJobStatus(jobId, newStatus);
         // Refresh job details after status change
-        await fetchJobDetail(jobId);
+        await fetchEmployerJobDetail(jobId);
       } catch (err) {
         console.error('Failed to update job status:', err);
       } finally {
         setStatusUpdating(false);
       }
     },
-    [id, updateJobStatus, fetchJobDetail]
+    [id, updateJobStatus, fetchEmployerJobDetail]
   );
 
   // Fetch job details on mount
@@ -99,7 +104,7 @@ export default function JobListingDetailPage() {
     if (id) {
       const jobId = parseInt(id, 10);
       if (!isNaN(jobId)) {
-        fetchJobDetail(jobId).catch((err) => {
+        fetchEmployerJobDetail(jobId).catch((err) => {
           console.error('Failed to fetch job details:', err);
         });
         // Fetch applications for this job
@@ -108,7 +113,7 @@ export default function JobListingDetailPage() {
         });
       }
     }
-  }, [id, fetchJobDetail, fetchApplications]);
+  }, [id, fetchEmployerJobDetail, fetchApplications]);
 
   // Update applicants when data changes
   useEffect(() => {
