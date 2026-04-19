@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { usePageTitle } from '@/contexts/page-title-context';
@@ -27,6 +27,14 @@ export default function CandidateMessagesPage() {
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(false);
+
+  // Ref to track the currently active chat for WebSocket listener (prevents stale closures)
+  const activeChatIdRef = useRef<string | null>(null);
+
+  // Keep the ref perfectly synced with the state
+  useEffect(() => {
+    activeChatIdRef.current = selectedConversation?.participantId || null;
+  }, [selectedConversation]);
 
   // Fetch conversations on component mount
   useEffect(() => {
@@ -88,6 +96,22 @@ export default function CandidateMessagesPage() {
     getConversations();
   }, [currentUser?.id, fetchChatSummary, searchParams]);
 
+  // Handle clicking a conversation in the sidebar
+  const handleSelectConversation = useCallback((conversation: Conversation) => {
+    setSelectedConversation(conversation);
+
+    // Optimistically remove the unread dot immediately
+    if (conversation.unread) {
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.participantId === conversation.participantId
+            ? { ...conv, unread: false }
+            : conv
+        )
+      );
+    }
+  }, []);
+
   // Register callback for new messages via WebSocket
   useEffect(() => {
     onNewMessage((message) => {
@@ -99,17 +123,16 @@ export default function CandidateMessagesPage() {
         }
       );
 
-      // 1. Update the chat window IF the message is for the current conversation
-      if (
-        selectedConversation &&
-        message.senderId === selectedConversation.participantId
-      ) {
+      // Check against the ref, not the state (prevents stale closures)
+      const isActiveChat = activeChatIdRef.current === message.senderId;
+
+      // 1. Update the chat window IF it is the active chat
+      if (isActiveChat) {
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: selectedConversation.name || 'User',
-          senderAvatar:
-            selectedConversation.avatar || 'https://placehold.co/40x40',
+          sender: 'User',
+          senderAvatar: 'https://placehold.co/40x40',
           isSent: false,
           content: message.content,
           timestamp: message.timestamp,
@@ -126,8 +149,8 @@ export default function CandidateMessagesPage() {
               ...conv,
               lastMessage: message.content,
               timestamp: formattedTime,
-              // Mark as unread if they aren't currently looking at this chat
-              unread: selectedConversation?.participantId !== message.senderId,
+              // Only mark as unread if this is NOT the currently active chat
+              unread: !isActiveChat,
             };
           }
           return conv;
@@ -141,7 +164,7 @@ export default function CandidateMessagesPage() {
         });
       });
     });
-  }, [selectedConversation, currentUser?.id, onNewMessage]);
+  }, [currentUser?.id, onNewMessage]);
 
   // Handle sending message
   const handleSendMessage = useCallback(
@@ -206,7 +229,7 @@ export default function CandidateMessagesPage() {
       <ConversationSidebar
         conversations={conversations}
         selectedConversation={selectedConversation}
-        onSelectConversation={setSelectedConversation}
+        onSelectConversation={handleSelectConversation}
         isLoading={conversationsLoading}
       />
       {selectedConversation ? (
