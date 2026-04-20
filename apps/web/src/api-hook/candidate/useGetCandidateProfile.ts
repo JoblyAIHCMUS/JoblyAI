@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useCandidateProfileContext } from './CandidateProfileContext';
 import type { CandidateProfileResponse } from '@/api-client/candidate';
 
@@ -14,7 +14,7 @@ export function useGetCandidateProfile(
 
   const fetchCandidateProfile = useCallback(
     () => context.fetchCandidateProfile(options),
-    [context, options]
+    []
   );
 
   return {

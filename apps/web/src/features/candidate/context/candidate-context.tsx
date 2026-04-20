@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useRef,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { toDateInputValue } from '@/lib/candidateDate';
@@ -95,20 +96,29 @@ export function CandidateProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('profile-updated', handleProfileUpdate);
   }, []);
 
+  const value = useMemo<CandidateContextType>(
+    () => ({
+      candidates: MOCK_CANDIDATES,
+      selectedCandidate,
+      setSelectedCandidate,
+      selectedStartDate,
+      selectedEndDate,
+      setSelectedStartDate,
+      setSelectedEndDate,
+      candidateProfile,
+      isLoadingProfile,
+    }),
+    [
+      selectedCandidate,
+      selectedStartDate,
+      selectedEndDate,
+      candidateProfile,
+      isLoadingProfile,
+    ]
+  );
+
   return (
-    <CandidateContext.Provider
-      value={{
-        candidates: MOCK_CANDIDATES,
-        selectedCandidate,
-        setSelectedCandidate,
-        selectedStartDate,
-        selectedEndDate,
-        setSelectedStartDate,
-        setSelectedEndDate,
-        candidateProfile,
-        isLoadingProfile,
-      }}
-    >
+    <CandidateContext.Provider value={value}>
       {children}
     </CandidateContext.Provider>
   );
