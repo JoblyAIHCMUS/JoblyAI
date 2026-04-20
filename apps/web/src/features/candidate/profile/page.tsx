@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/contexts/page-title-context';
 import { useCandidateProfileContext } from '@/api-hook/candidate';
 
 import ProfileHeader from './components/ProfileHeader';
 import AboutMe from './components/AboutMe';
-import CV from './components/CV';
+import CV, { type CVRef } from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
@@ -47,6 +47,7 @@ const CandidateProfilePage = () => {
   const { data: candidateProfile } = useCandidateProfileContext();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
+  const cvRef = useRef<CVRef>(null);
 
   // S3 upload hooks
   const {
@@ -56,7 +57,7 @@ const CandidateProfilePage = () => {
   } = useUploadFile();
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
-      // CV component will handle generating presigned URL
+      // Update profile state with new resume
       setProfile((prev) => {
         if (!prev) return null;
         return {
@@ -64,6 +65,8 @@ const CandidateProfilePage = () => {
           resumes: [...(prev.resumes || []), resumeData],
         };
       });
+      // Immediately refresh the CV display with new resume's fileKey
+      cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
     },
     onError: (err: unknown) => {
@@ -312,6 +315,7 @@ const CandidateProfilePage = () => {
           handleUpdateAbout={handleUpdateAbout}
         />
         <CV
+          ref={cvRef}
           cvFileKey={getCVFileKey()}
           cvFileName={getCVFileName()}
           onCVChange={handleCVUpload}

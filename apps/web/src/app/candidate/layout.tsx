@@ -19,7 +19,7 @@ function CandidateLayoutContent({ children }: { children: ReactNode }) {
   // Auto-fetch profile on mount (only once)
   useEffect(() => {
     fetchCandidateProfile();
-  }, [fetchCandidateProfile]);
+  }, []);
 
   return (
     <SidebarProvider>

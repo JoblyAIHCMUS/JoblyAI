@@ -14,7 +14,7 @@ export function useGetCandidateProfile(
 
   const fetchCandidateProfile = useCallback(
     () => context.fetchCandidateProfile(options),
-    [context, options]
+    []
   );
 
   return {

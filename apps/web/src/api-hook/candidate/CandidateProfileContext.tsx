@@ -53,6 +53,8 @@ export function CandidateProfileProvider({
     []
   );
 
+  // Create value without memoization to prevent cascading re-renders
+  // Only fetchCandidateProfile is stable; data/loading/error changes trigger fetch, not context recreation
   const value: CandidateProfileContextType = {
     data,
     loading,
