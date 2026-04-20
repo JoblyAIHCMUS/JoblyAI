@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useGetChatSummary } from '@/api-hook/messages';
-import { useMessagesSocket } from '@/hooks/useMessagesSocket';
+import { useSocket } from '@/contexts/socket-provider';
 
 interface UseUnreadMessagesDotReturn {
   hasUnreadMessages: boolean;
@@ -25,7 +25,7 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
     error,
     data: chatSummaries,
   } = useGetChatSummary();
-  const { onNewMessage, onMessageRead } = useMessagesSocket();
+  const { onNewMessage, onMessageRead } = useSocket();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   // Compute unread status from chat summaries
@@ -55,15 +55,20 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
 
   // Subscribe to real-time new messages
   useEffect(() => {
-    onNewMessage(() => {
+    const off = onNewMessage(() => {
       // When a new message arrives, immediately set unread indicator
+      // eslint-disable-next-line no-console
+      console.debug('[useUnreadMessagesDot] onNewMessage fired, setting hasUnreadMessages=true');
       setHasUnreadMessages(true);
     });
+    return () => {
+      off?.();
+    };
   }, [onNewMessage]);
 
   // Subscribe to message read receipts
   useEffect(() => {
-    onMessageRead(() => {
+    const off = onMessageRead(() => {
       // When we receive a read receipt, refetch to get updated unread status
       // This handles the case where the user might have marked everything as read
       if (user?.id) {
@@ -72,6 +77,9 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
         });
       }
     });
+    return () => {
+      off?.();
+    };
   }, [onMessageRead, user?.id, fetchChatSummary]);
 
   // Manual refetch function

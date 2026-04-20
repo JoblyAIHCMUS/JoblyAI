@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/hooks/useUser';
-import { useMessagesSocket } from '@/hooks/useMessagesSocket';
+import { useSocket } from '@/contexts/socket-provider';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
 import { Conversation, Message } from './types';
@@ -11,7 +11,7 @@ import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, markAsRead, onNewMessage } = useMessagesSocket();
+  const { sendMessage, markAsRead, onNewMessage } = useSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -68,6 +68,14 @@ export default function EmployerMessagesPage() {
             markAsRead(newSelection.participantId).catch(() => {
               // Silently fail if mark_read cannot be sent
             });
+            // ✅ Optimistically update conversations state to clear the unread dot
+            setConversations((prevConversations) =>
+              prevConversations.map((conv) =>
+                conv.participantId === newSelection.participantId
+                  ? { ...conv, unread: false }
+                  : conv
+              )
+            );
           }
           return newSelection;
         });
@@ -99,7 +107,7 @@ export default function EmployerMessagesPage() {
 
   // Register callback for new messages via WebSocket
   useEffect(() => {
-    onNewMessage((message) => {
+    const off = onNewMessage((message) => {
       const formattedTime = new Date(message.timestamp).toLocaleTimeString(
         'en-US',
         {
@@ -108,7 +116,7 @@ export default function EmployerMessagesPage() {
         }
       );
 
-      // Check against the ref, not the state (prevents stale closures)
+      // Check if this message is from the active chat
       const isActiveChat = activeChatIdRef.current === message.senderId;
 
       // 1. Update the chat window IF it is the active chat
@@ -126,9 +134,13 @@ export default function EmployerMessagesPage() {
         setMessages((prev) => [...prev, newMessage]);
 
         // Emit mark_read for messages in the active chat to clear sidebar unread dot
-        markAsRead(message.senderId).catch(() => {
-          // Silently fail if mark_read cannot be sent
-        });
+        // ✅ Only emit if page is visible (to avoid marking read while user is away)
+        const isPageVisible = document.visibilityState === 'visible';
+        if (isPageVisible) {
+          markAsRead(message.senderId).catch(() => {
+            // Silently fail if mark_read cannot be sent
+          });
+        }
       }
 
       // 2. Update the sidebar for EVERY incoming message
@@ -154,6 +166,9 @@ export default function EmployerMessagesPage() {
         });
       });
     });
+    return () => {
+      off?.();
+    };
   }, [currentUser?.id, onNewMessage]);
 
   // Handle sending message

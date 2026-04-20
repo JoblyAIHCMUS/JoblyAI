@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Conversation } from './types';
-import { useMessagesSocket } from '@/hooks/useMessagesSocket';
+import { useSocket } from '@/contexts/socket-provider';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
@@ -22,7 +22,7 @@ export function ConversationSidebar({
   isLoading = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { socket } = useMessagesSocket();
+  const { socket } = useSocket();
 
   const filteredConversations = conversations.filter(
     (conv) =>

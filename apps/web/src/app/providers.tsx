@@ -5,6 +5,7 @@ import { SessionProvider } from '@/components/auth/SessionProvider';
 import { MantineProvider } from '@mantine/core';
 import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
+import { SocketProvider } from '@/contexts/socket-provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,10 +22,12 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
       <SessionProvider>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster position="bottom-right" />
-        </QueryClientProvider>
+        <SocketProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <Toaster position="bottom-right" />
+          </QueryClientProvider>
+        </SocketProvider>
       </SessionProvider>
     </MantineProvider>
   );
