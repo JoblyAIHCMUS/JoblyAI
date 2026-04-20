@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useCandidateProfileContext } from './CandidateProfileContext';
 import type { CandidateProfileResponse } from '@/api-client/candidate';
 
