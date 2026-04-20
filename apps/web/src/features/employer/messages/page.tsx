@@ -11,7 +11,7 @@ import { useGetChatSummary } from '@/api-hook/messages';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, onNewMessage } = useMessagesSocket();
+  const { sendMessage, markAsRead, onNewMessage } = useMessagesSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -61,9 +61,16 @@ export default function EmployerMessagesPage() {
         setConversations(transformedConversations);
 
         // Select first conversation by default if available and none is selected
-        setSelectedConversation(
-          (prev) => prev || transformedConversations[0] || null
-        );
+        setSelectedConversation((prev) => {
+          const newSelection = prev || transformedConversations[0] || null;
+          // Emit mark_read only if we auto-selected (no prev) and conversation is unread
+          if (!prev && newSelection?.unread) {
+            markAsRead(newSelection.participantId).catch(() => {
+              // Silently fail if mark_read cannot be sent
+            });
+          }
+          return newSelection;
+        });
       } catch (error) {
         console.error('Error fetching conversations:', error);
       } finally {
@@ -117,6 +124,11 @@ export default function EmployerMessagesPage() {
           timestamp24: formattedTime,
         };
         setMessages((prev) => [...prev, newMessage]);
+
+        // Emit mark_read for messages in the active chat to clear sidebar unread dot
+        markAsRead(message.senderId).catch(() => {
+          // Silently fail if mark_read cannot be sent
+        });
       }
 
       // 2. Update the sidebar for EVERY incoming message

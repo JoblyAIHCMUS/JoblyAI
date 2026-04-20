@@ -15,7 +15,7 @@ export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
   const { setTitle } = usePageTitle();
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, onNewMessage } = useMessagesSocket();
+  const { sendMessage, markAsRead, onNewMessage } = useMessagesSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   useEffect(() => {
@@ -76,15 +76,35 @@ export default function CandidateMessagesPage() {
           );
           if (recruiterConversation) {
             setSelectedConversation(recruiterConversation);
+            // Emit mark_read if conversation is unread
+            if (recruiterConversation.unread) {
+              markAsRead(recruiterConversation.participantId).catch(() => {
+                // Silently fail if mark_read cannot be sent
+              });
+            }
           } else {
             // If recruiter conversation not found, select first by default
-            setSelectedConversation(transformedConversations[0] || null);
+            const firstConv = transformedConversations[0] || null;
+            setSelectedConversation(firstConv);
+            // Emit mark_read if conversation is unread
+            if (firstConv?.unread) {
+              markAsRead(firstConv.participantId).catch(() => {
+                // Silently fail if mark_read cannot be sent
+              });
+            }
           }
         } else {
           // Select first conversation by default if available and none is selected
-          setSelectedConversation(
-            (prev) => prev || transformedConversations[0] || null
-          );
+          setSelectedConversation((prev) => {
+            const newSelection = prev || transformedConversations[0] || null;
+            // Emit mark_read only if we auto-selected (no prev) and conversation is unread
+            if (!prev && newSelection?.unread) {
+              markAsRead(newSelection.participantId).catch(() => {
+                // Silently fail if mark_read cannot be sent
+              });
+            }
+            return newSelection;
+          });
         }
       } catch (error) {
         console.error('Error fetching conversations:', error);
@@ -139,6 +159,11 @@ export default function CandidateMessagesPage() {
           timestamp24: formattedTime,
         };
         setMessages((prev) => [...prev, newMessage]);
+
+        // Emit mark_read for messages in the active chat to clear sidebar unread dot
+        markAsRead(message.senderId).catch(() => {
+          // Silently fail if mark_read cannot be sent
+        });
       }
 
       // 2. Update the sidebar for EVERY incoming message
