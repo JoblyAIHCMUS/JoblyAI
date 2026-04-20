@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  ReactNode,
-  useRef,
-  useEffect,
-} from 'react';
+import { createContext, useContext, ReactNode, useRef, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { SocketChatMessage } from '@/api-client/messages';
@@ -37,8 +31,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     // Register our refs with the socket callbacks
     socketReturn.onNewMessage((message) => {
       // Debug: number of registered subscribers
-       
-      console.debug('[SocketProvider] new_message received, subscribers=', messageCallbacksRef.current.size, message);
+
+      console.debug(
+        '[SocketProvider] new_message received, subscribers=',
+        messageCallbacksRef.current.size,
+        message
+      );
       messageCallbacksRef.current.forEach((cb) => {
         try {
           cb(message);
@@ -81,9 +79,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 }
 

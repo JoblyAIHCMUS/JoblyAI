@@ -58,7 +58,9 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
     const off = onNewMessage(() => {
       // When a new message arrives, immediately set unread indicator
       // eslint-disable-next-line no-console
-      console.debug('[useUnreadMessagesDot] onNewMessage fired, setting hasUnreadMessages=true');
+      console.debug(
+        '[useUnreadMessagesDot] onNewMessage fired, setting hasUnreadMessages=true'
+      );
       setHasUnreadMessages(true);
     });
     return () => {
