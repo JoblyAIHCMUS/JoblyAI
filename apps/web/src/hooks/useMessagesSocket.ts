@@ -27,6 +27,7 @@ export interface UseMessagesSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
   sendMessage: (recipientId: string, text: string) => void;
+  markAsRead: (recipientId: string) => Promise<void>;
   onNewMessage: (callback: (message: SocketChatMessage) => void) => void;
   onMessageRead: (callback: (friendId: string) => void) => void;
 }
@@ -209,10 +210,44 @@ export function useMessagesSocket(): UseMessagesSocketReturn {
     readCallbackRef.current = callback;
   }, []);
 
+  // Mark a conversation as read by emitting mark_read event
+  const markAsRead = useCallback((recipientId: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!socketRef.current?.connected) {
+        logDebug.warn('WebSocket not connected, cannot mark as read', {
+          recipientId,
+          connected: socketRef.current?.connected,
+        });
+        resolve();
+        return;
+      }
+
+      logDebug.info('Marking conversation as read', { recipientId });
+      socketRef.current.emit(
+        'mark_read',
+        { friendId: recipientId },
+        (response: unknown) => {
+          if (response) {
+            logDebug.success('Conversation marked as read', {
+              recipientId,
+              response,
+            });
+          } else {
+            logDebug.warn('Mark as read sent but no acknowledgment received', {
+              recipientId,
+            });
+          }
+          resolve();
+        }
+      );
+    });
+  }, []);
+
   return {
     socket: socketRef.current,
     isConnected,
     sendMessage,
+    markAsRead,
     onNewMessage,
     onMessageRead,
   };
