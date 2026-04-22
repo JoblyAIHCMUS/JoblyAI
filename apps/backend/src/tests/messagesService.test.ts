@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { types } from 'cassandra-driver';
 import { MessagesService } from '../app/messages/messages.service';
 
 // ============ Mock Data ============
@@ -22,13 +23,10 @@ const getChatId = (userA: string, userB: string): string => {
 
 const mockChatId = getChatId(mockUser1.id, mockUser2.id);
 
-// Helper to create mock TimeUuid objects with getTimestamp method
+// Helper to create actual TimeUuid objects so instanceof checks pass
 const createMockTimeUuid = (timestamp?: number) => {
   const ts = timestamp ?? Date.now();
-  return {
-    getTimestamp: vi.fn(() => ts),
-    toString: vi.fn(() => `time-uuid-${ts}`),
-  };
+  return types.TimeUuid.fromDate(new Date(ts));
 };
 
 const createMockMessageId = () => createMockTimeUuid();

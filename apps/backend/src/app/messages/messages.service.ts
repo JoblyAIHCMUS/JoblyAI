@@ -157,15 +157,14 @@ export class MessagesService {
       } else if (latestMessage && lastReadTime) {
         // Try to get timestamp from message_id, handle both TimeUuid objects and plain values
         const messageTimestamp =
-          typeof latestMessage.message_id.getTimestamp === 'function'
-            ? latestMessage.message_id.getTimestamp()
-            : new Date(latestMessage.message_id).getTime?.() ||
-              latestMessage.message_id.getTime?.();
+          latestMessage.message_id instanceof types.TimeUuid
+            ? latestMessage.message_id.getDate().getTime()
+            : new Date(latestMessage.message_id).getTime();
 
         const lastReadTimestamp =
-          typeof lastReadTime.getTimestamp === 'function'
-            ? lastReadTime.getTimestamp()
-            : lastReadTime.getTime?.() || new Date(lastReadTime).getTime();
+          lastReadTime instanceof types.TimeUuid
+            ? lastReadTime.getDate().getTime()
+            : new Date(lastReadTime).getTime();
 
         hasUnread = messageTimestamp > lastReadTimestamp;
       }
