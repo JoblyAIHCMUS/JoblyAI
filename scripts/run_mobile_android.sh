@@ -4,4 +4,5 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+adb reverse tcp:8081 tcp:8081 || true
 pnpm nx run @jobly/mobile:run-android
