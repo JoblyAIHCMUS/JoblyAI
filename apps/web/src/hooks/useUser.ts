@@ -15,6 +15,7 @@ export interface User {
   emailVerified: boolean;
   name: string;
   image?: string | null;
+  avatarUrl?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
   /** User role - 'candidate' for job seekers, 'employer' for companies, 'admin' for system admins */

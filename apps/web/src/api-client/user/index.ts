@@ -1,7 +1,19 @@
 import axios from 'axios';
-import { UpdateUserDTO, UpdateUserResponse } from '@/api-client/user/types';
+import { User, UpdateUserDTO, UpdateUserResponse } from '@/api-client/user/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+/**
+ * Fetch the current authenticated user's profile
+ *
+ * @returns Promise with user profile data
+ */
+export async function getCurrentUserProfile(): Promise<User> {
+  const response = await axios.get<User>(`${API_BASE_URL}/api/user/me`, {
+    withCredentials: true,
+  });
+  return response.data;
+}
 
 /**
  * Update the current authenticated user's personal details

@@ -18,6 +18,20 @@ export interface UpdateUserResponse {
   avatarUrl?: string;
 }
 
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+  role?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Injectable()
 export class UserService {
   constructor(@InjectPrisma() private readonly prismaClient: PrismaClient) {}
@@ -48,6 +62,47 @@ export class UserService {
       dateOfBirth: this.formatDateOfBirth(user.dateOfBirth),
       gender: user.gender || undefined,
       avatarUrl: user.avatarUrl || undefined,
+    };
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfileResponse> {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
+    const user = await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatarUrl: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name || undefined,
+      avatarUrl: user.avatarUrl || undefined,
+      role: user.role || undefined,
+      firstName: user.firstName || undefined,
+      lastName: user.lastName || undefined,
+      phoneNumber: user.phoneNumber || undefined,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 

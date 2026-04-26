@@ -51,10 +51,14 @@ export function getSenderAvatar(
   currentUserId: string,
   conversationAvatar: string | undefined | null
 ): string {
-  return (
-    msgAvatar ||
-    (senderId === currentUserId
-      ? 'https://placehold.co/40x40'
-      : conversationAvatar || 'https://placehold.co/40x40')
-  );
+  // If we have a specific avatar for this message, use it
+  if (msgAvatar) return msgAvatar;
+
+  // Fallback based on who sent the message
+  if (senderId === currentUserId) {
+    return 'https://placehold.co/40x40'; // Fallback for current user
+  }
+
+  // Fallback for the participant
+  return conversationAvatar || 'https://placehold.co/40x40';
 }

@@ -11,6 +11,7 @@ import { Conversation, Message } from '@/features/employer/messages/types';
 import { getSenderAvatar } from '@/features/employer/messages/utils';
 import { ChatSummary } from '@/api-client/messages';
 import { useGetChatSummary } from '@/api-hook/messages';
+import { getCurrentUserProfile } from '@/api-client/user';
 
 export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
@@ -28,6 +29,25 @@ export default function CandidateMessagesPage() {
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | undefined>(
+    undefined
+  );
+
+  // Fetch full user profile once on mount to get the correct avatar
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const profile = await getCurrentUserProfile();
+        setUserAvatarUrl((profile.avatarUrl || profile.image) ?? undefined);
+      } catch (error) {
+        console.error('Failed to fetch user profile for avatar:', error);
+        // Fallback to current user data
+        setUserAvatarUrl((currentUser.avatarUrl || currentUser.image) ?? undefined);
+      }
+    };
+    fetchProfile();
+  }, [currentUser]);
 
   // Ref to track the currently active chat for WebSocket listener (prevents stale closures)
   const activeChatIdRef = useRef<string | null>(null);
@@ -249,7 +269,7 @@ export default function CandidateMessagesPage() {
         senderId: currentUser.id,
         sender: currentUser.name || 'You',
         senderAvatar: getSenderAvatar(
-          currentUser.image,
+          userAvatarUrl,
           currentUser.id,
           currentUser.id,
           selectedConversation.avatar
@@ -276,7 +296,7 @@ export default function CandidateMessagesPage() {
         )
       );
     },
-    [selectedConversation, currentUser, sendMessage]
+    [selectedConversation, currentUser, sendMessage, userAvatarUrl]
   );
 
   // Handle loading messages when conversation changes
