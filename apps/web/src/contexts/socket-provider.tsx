@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useRef, useEffect, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useRef,
+  useEffect,
+  useState,
+} from 'react';
 import { Socket } from 'socket.io-client';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { SocketChatMessage } from '@/api-client/messages';

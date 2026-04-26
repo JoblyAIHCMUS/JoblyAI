@@ -17,7 +17,8 @@ export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
   const { setTitle } = usePageTitle();
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } = useSocket();
+  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } =
+    useSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   useEffect(() => {
@@ -53,7 +54,9 @@ export default function CandidateMessagesPage() {
       } catch (error) {
         console.error('Failed to fetch user profile for avatar:', error);
         // Fallback to current user data
-        setUserAvatarUrl((currentUser.avatarUrl || currentUser.image) ?? undefined);
+        setUserAvatarUrl(
+          (currentUser.avatarUrl || currentUser.image) ?? undefined
+        );
       }
     };
     fetchProfile();

@@ -13,7 +13,8 @@ import { getCurrentUserProfile } from '@/api-client/user';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } = useSocket();
+  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } =
+    useSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -45,7 +46,9 @@ export default function EmployerMessagesPage() {
       } catch (error) {
         console.error('Failed to fetch user profile for avatar:', error);
         // Fallback to current user data
-        setUserAvatarUrl((currentUser.avatarUrl || currentUser.image) ?? undefined);
+        setUserAvatarUrl(
+          (currentUser.avatarUrl || currentUser.image) ?? undefined
+        );
       }
     };
     fetchProfile();
