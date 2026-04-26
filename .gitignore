@@ -137,4 +137,5 @@ vite.config.*.timestamp*
 **/.env
 
 # Prisma
-apps/backend/src/app/generated/prisma
+apps/backend/src/app/generated/prisma\
+.worktrees/\

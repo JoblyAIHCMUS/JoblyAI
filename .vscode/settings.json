@@ -1,4 +1,13 @@
 {
   "java.compile.nullAnalysis.mode": "automatic",
-  "prisma.pinToPrisma6": true
+  "prisma.pinToPrisma6": true,
+  "java.diagnostics.ignoredResources": ["node_modules"],
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.metadata/**",
+    "**/archetype-resources/**",
+    "**/META-INF/maven/**",
+    "**/android/build/**"
+  ],
+  "java.project.resourceFilters": ["node_modules", ".git", "**/android/build"]
 }
