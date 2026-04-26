@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -129,7 +130,10 @@ export default function JobListingDetailPage() {
         const appId = parseInt(applicantId, 10);
         // Find current applicant to determine next action
         const applicant = applicants.find((a) => a.id === applicantId);
-        if (!applicant) return;
+        if (!applicant) {
+          toast.error('Applicant not found');
+          return;
+        }
 
         if (applicant.hiringStage === 'Applied') {
           // Move from Applied to Interview
@@ -144,8 +148,12 @@ export default function JobListingDetailPage() {
         if (!isNaN(jobId)) {
           await fetchApplications({ jobId });
         }
+        toast.success('Applicant advanced successfully');
       } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to advance applicant';
         console.error('Failed to advance applicant:', err);
+        toast.error(message);
       }
     },
     [applicants, id, shortlistApplication, moveToOffer, fetchApplications]
@@ -166,8 +174,12 @@ export default function JobListingDetailPage() {
         if (!isNaN(jobId)) {
           await fetchApplications({ jobId });
         }
+        toast.success('Applicant declined successfully');
       } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to decline applicant';
         console.error('Failed to decline applicant:', err);
+        toast.error(message);
       }
     },
     [id, rejectApplication, fetchApplications]
@@ -179,7 +191,10 @@ export default function JobListingDetailPage() {
       try {
         const appId = parseInt(applicantId, 10);
         const applicant = applicants.find((a) => a.id === applicantId);
-        if (!applicant) return;
+        if (!applicant) {
+          toast.error('Applicant not found');
+          return;
+        }
 
         // Only handle stage transitions that require backend calls
         const currentStage = applicant.hiringStage;
@@ -204,8 +219,14 @@ export default function JobListingDetailPage() {
         if (!isNaN(jobId)) {
           await fetchApplications({ jobId });
         }
+        toast.success('Applicant status updated successfully');
       } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'Failed to update applicant status';
         console.error('Failed to move applicant to stage:', err);
+        toast.error(message);
       }
     },
     [

@@ -2,14 +2,19 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import AllApplicationsTable from '@/components/employer/allApplicationsTable';
-import { nextStageMap } from '@/features/employer/hiringStage';
 import { type AllApplication } from '@/features/employer/all-applications/data';
 import { type PaginatedApplicationsResponse } from '@/api-client/application';
 import { mapApplicationStatusToHiringStage } from '@/api-client/application/mappers';
 
-import { useListEmployerApplications } from '@/api-hook/application';
+import {
+  useListEmployerApplications,
+  useShortlistApplication,
+  useRejectApplication,
+  useMoveToOfferApplication,
+} from '@/api-hook/application';
 
 function mapApiResponseToApplications(
   apiData: PaginatedApplicationsResponse['applications']
@@ -47,6 +52,10 @@ export default function EmployerAllApplicationsPage() {
     total,
   } = useListEmployerApplications({ initialPageSize: 10 });
 
+  const { shortlistApplication } = useShortlistApplication();
+  const { rejectApplication } = useRejectApplication();
+  const { moveToOffer } = useMoveToOfferApplication();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [displayData, setDisplayData] = useState<AllApplication[]>([]);
 
@@ -69,40 +78,60 @@ export default function EmployerAllApplicationsPage() {
 
   const advanceApplicant = useCallback(
     async (id: string) => {
-      setDisplayData((prev) =>
-        prev.map((application) => {
-          if (application.id !== id) return application;
-          const next = nextStageMap[application.hiringStage];
-          return next ? { ...application, hiringStage: next } : application;
-        })
-      );
-      // Refresh the current page after advancing
       try {
+        const appId = parseInt(id, 10);
+        const applicant = displayData.find((a) => a.id === id);
+        if (!applicant) {
+          toast.error('Applicant not found');
+          return;
+        }
+
+        // Call appropriate API based on current hiring stage
+        if (applicant.hiringStage === 'Applied') {
+          await shortlistApplication(appId);
+        } else if (applicant.hiringStage === 'Interview') {
+          await moveToOffer(appId);
+        }
+
+        // Refresh the current page after advancing
         await fetchApplications(undefined, currentPage);
+        toast.success('Applicant advanced successfully');
       } catch (err) {
-        console.error('Failed to refresh applications after advancing:', err);
+        const message =
+          err instanceof Error ? err.message : 'Failed to advance applicant';
+        console.error('Failed to advance applicant:', err);
+        toast.error(message);
       }
     },
-    [fetchApplications, currentPage]
+    [
+      displayData,
+      currentPage,
+      fetchApplications,
+      shortlistApplication,
+      moveToOffer,
+    ]
   );
 
   const declineApplicant = useCallback(
     async (id: string) => {
-      setDisplayData((prev) =>
-        prev.map((application) =>
-          application.id === id
-            ? { ...application, hiringStage: 'Rejected' as const }
-            : application
-        )
-      );
-      // Refresh the current page after declining
       try {
+        const appId = parseInt(id, 10);
+        await rejectApplication(appId, {
+          feedback:
+            'Thank you for applying. We have decided to move forward with other candidates at this time.',
+        });
+
+        // Refresh the current page after declining
         await fetchApplications(undefined, currentPage);
+        toast.success('Applicant declined successfully');
       } catch (err) {
-        console.error('Failed to refresh applications after declining:', err);
+        const message =
+          err instanceof Error ? err.message : 'Failed to decline applicant';
+        console.error('Failed to decline applicant:', err);
+        toast.error(message);
       }
     },
-    [fetchApplications, currentPage]
+    [currentPage, fetchApplications, rejectApplication]
   );
 
   const handlePageChange = useCallback(
