@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Conversation, Message } from './types';
 import { MessageBubble } from './MessageBubble';
 import { useChatHistory } from '@/api-hook/messages';
-import { isNewDate, getDateLabel } from './utils';
+import { isNewDate, getDateLabel, getSenderAvatar } from './utils';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -55,11 +55,12 @@ export function ChatWindow({
             (msg.senderId === currentUserId
               ? 'You'
               : conversation.name || 'User'),
-          senderAvatar:
-            msg.senderAvatar ||
-            (msg.senderId === currentUserId
-              ? 'https://placehold.co/40x40'
-              : conversation.avatar || 'https://placehold.co/40x40'),
+          senderAvatar: getSenderAvatar(
+            msg.senderAvatar,
+            msg.senderId,
+            currentUserId,
+            conversation.avatar
+          ),
           isSent: msg.senderId === currentUserId,
           content: msg.content,
           timestamp: msg.timestamp,
