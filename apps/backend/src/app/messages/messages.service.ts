@@ -239,6 +239,17 @@ export class MessagesService {
       prepare: true,
     });
 
+    const userMap = new Map();
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: [senderId, recipientId] } },
+        select: { id: true, name: true, avatarUrl: true },
+      });
+      users.forEach((u) => userMap.set(u.id, u));
+    } catch (e) {
+      console.error('Error fetching users for chat history:', e);
+    }
+
     return {
       messages: result.rows.map((row) => {
         // Use the built-in .getDate() method instead of manual bit-shifting
@@ -247,9 +258,13 @@ export class MessagesService {
             ? row.message_id.getDate()
             : new Date();
 
+        const user = userMap.get(row.sender_id);
+
         return {
           messageId: row.message_id.toString(),
           senderId: row.sender_id,
+          senderName: user?.name || null,
+          senderAvatar: user?.avatarUrl || null,
           content: row.content,
           timestamp,
         };
