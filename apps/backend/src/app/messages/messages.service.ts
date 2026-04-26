@@ -143,7 +143,7 @@ export class MessagesService {
 
       // Check if there's a latestMessage in ScyllaDB to determine unread status
       const msgRes = await this.scylla.execute(
-        'SELECT message_id FROM messages WHERE chat_id = ? LIMIT 1',
+        'SELECT message_id, sender_id FROM messages WHERE chat_id = ? LIMIT 1',
         [chatId],
         { prepare: true }
       );
@@ -152,7 +152,10 @@ export class MessagesService {
 
       // Handle message_id which may or may not be a TimeUuid with getTimestamp method
       let hasUnread = false;
-      if (latestMessage && !lastReadTime) {
+      if (latestMessage && latestMessage.sender_id === userId) {
+        // If the latest message was sent by the current user, it's NOT unread
+        hasUnread = false;
+      } else if (latestMessage && !lastReadTime) {
         hasUnread = true;
       } else if (latestMessage && lastReadTime) {
         // Try to get timestamp from message_id, handle both TimeUuid objects and plain values

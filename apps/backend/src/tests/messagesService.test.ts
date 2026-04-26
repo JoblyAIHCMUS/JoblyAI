@@ -296,7 +296,10 @@ describe('MessagesService', () => {
       mockScylla.execute
         .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) }) // 1st call: SELECT last_read
         .mockResolvedValueOnce({
-          first: () => ({ message_id: messageTimeUuid }),
+          first: () => ({
+            message_id: messageTimeUuid,
+            sender_id: mockUser2.id, // Message from the OTHER user
+          }),
         }); // 2nd call: SELECT message_id
 
       // Act
@@ -305,6 +308,43 @@ describe('MessagesService', () => {
       // Assert
       // Message timestamp (newer) > Read timestamp (older) = true (unread)
       expect(result[0].hasUnread).toBe(true);
+    });
+
+    it('should NOT mark chat as unread when latest message is from current user', async () => {
+      // Arrange
+      const userId = mockUser1.id;
+      const lastMessageDate = new Date();
+      const conversation = {
+        scyllaChatId: mockChatId,
+        participantId: mockUser2.id,
+        lastMessageAt: lastMessageDate,
+        lastMessage: 'My own message',
+        participant: { ...mockUser2, role: null },
+      };
+
+      mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
+
+      const now = Date.now();
+      const olderReadTimestamp = now - 5000;
+      const newerMessageTimestamp = now;
+
+      const messageTimeUuid = createMockTimeUuid(newerMessageTimestamp);
+      const readTimeUuid = createMockTimeUuid(olderReadTimestamp);
+
+      mockScylla.execute
+        .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) })
+        .mockResolvedValueOnce({
+          first: () => ({
+            message_id: messageTimeUuid,
+            sender_id: userId, // Message from ME
+          }),
+        });
+
+      // Act
+      const result = await service.getChatListSummary(userId);
+
+      // Assert
+      expect(result[0].hasUnread).toBe(false);
     });
 
     it('should handle empty conversation list', async () => {
