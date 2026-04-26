@@ -44,18 +44,22 @@ export function ChatWindow({
     const fetchHistory = async () => {
       try {
         const history = await fetchChatHistory(conversation.participantId, 50);
+        console.log('🔍 Chat history API response:', history);
+
         // Transform backend messages to frontend format
         const transformedMessages = history.map((msg) => ({
           messageId: msg.messageId,
           senderId: msg.senderId,
           sender:
-            msg.senderId === currentUserId
+            msg.senderName ||
+            (msg.senderId === currentUserId
               ? 'You'
-              : conversation.name || 'User',
+              : conversation.name || 'User'),
           senderAvatar:
-            msg.senderId === currentUserId
+            msg.senderAvatar ||
+            (msg.senderId === currentUserId
               ? 'https://placehold.co/40x40'
-              : conversation.avatar || 'https://placehold.co/40x40',
+              : conversation.avatar || 'https://placehold.co/40x40'),
           isSent: msg.senderId === currentUserId,
           content: msg.content,
           timestamp: msg.timestamp,
@@ -64,6 +68,7 @@ export function ChatWindow({
             minute: '2-digit',
           }),
         }));
+        console.log('📝 Transformed messages:', transformedMessages);
 
         // Ensure messages are in ascending order (oldest first)
         const sortedMessages = transformedMessages.sort(
@@ -87,9 +92,10 @@ export function ChatWindow({
               : undefined,
           };
         });
+        console.log('✅ Final sorted messages:', messagesWithSeparators);
 
-        // Reverse for display (newest at bottom)
-        onLoadMessages(messagesWithSeparators.reverse());
+        // Send messages to parent in ascending order (oldest first)
+        onLoadMessages(messagesWithSeparators);
       } catch (error) {
         console.error('Error loading message history:', error);
       }

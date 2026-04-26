@@ -268,7 +268,7 @@ export default function CandidateMessagesPage() {
 
   // Handle loading messages when conversation changes
   const handleLoadMessages = useCallback((newMessages: Message[]) => {
-    setMessages([...newMessages].reverse());
+    setMessages([...newMessages]);
   }, []);
 
   // Show loading state
