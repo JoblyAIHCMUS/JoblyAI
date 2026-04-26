@@ -52,6 +52,9 @@ const mockPrisma = vi.hoisted(() => ({
     create: vi.fn(),
     upsert: vi.fn(),
   },
+  user: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 describe('MessagesService', () => {
@@ -540,6 +543,8 @@ describe('MessagesService', () => {
         rows: mockMessages,
       });
 
+      mockPrisma.user.findMany.mockResolvedValue([mockUser1, mockUser2]);
+
       // Act
       const result = await service.getChatHistory(senderId, recipientId);
 
@@ -550,10 +555,17 @@ describe('MessagesService', () => {
         { prepare: true }
       );
 
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [senderId, recipientId] } },
+        select: { id: true, name: true, avatarUrl: true },
+      });
+
       expect(result.messages).toHaveLength(2);
       expect(result.messages[0]).toEqual({
         messageId: messageId1.toString(),
         senderId: senderId,
+        senderName: mockUser1.name,
+        senderAvatar: mockUser1.avatarUrl,
         content: 'First message',
         timestamp: expect.any(Date), // getDate() returns a Date object
       });
@@ -620,6 +632,8 @@ describe('MessagesService', () => {
       // Assert
       expect(result.messages[0]).toHaveProperty('messageId');
       expect(result.messages[0]).toHaveProperty('senderId');
+      expect(result.messages[0]).toHaveProperty('senderName');
+      expect(result.messages[0]).toHaveProperty('senderAvatar');
       expect(result.messages[0]).toHaveProperty('content');
       expect(result.messages[0]).toHaveProperty('timestamp');
     });
