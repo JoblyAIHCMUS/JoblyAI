@@ -25,7 +25,7 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
     error,
     data: chatSummaries,
   } = useGetChatSummary();
-  const { onNewMessage, onMessageRead } = useSocket();
+  const { onNewMessage, onMessageRead, activeChatId } = useSocket();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   // Compute unread status from chat summaries
@@ -55,7 +55,15 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
 
   // Subscribe to real-time new messages
   useEffect(() => {
-    const off = onNewMessage(() => {
+    const off = onNewMessage((message) => {
+      // Ignore messages from the currently active chat
+      if (activeChatId === message.senderId) {
+        console.debug(
+          `[useUnreadMessagesDot] Ignoring new message from active chat: ${message.senderId}`
+        );
+        return;
+      }
+
       // When a new message arrives, immediately set unread indicator
       // eslint-disable-next-line no-console
       console.debug(
@@ -66,7 +74,7 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
     return () => {
       off?.();
     };
-  }, [onNewMessage]);
+  }, [onNewMessage, activeChatId]);
 
   // Subscribe to message read receipts
   useEffect(() => {

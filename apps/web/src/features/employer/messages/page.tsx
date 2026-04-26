@@ -13,7 +13,7 @@ import { getCurrentUserProfile } from '@/api-client/user';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, markAsRead, onNewMessage } = useSocket();
+  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } = useSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -24,6 +24,16 @@ export default function EmployerMessagesPage() {
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | undefined>(
     undefined
   );
+
+  // Sync activeChatId with global SocketContext
+  useEffect(() => {
+    const participantId = selectedConversation?.participantId || null;
+    setActiveChatId(participantId);
+
+    return () => {
+      setActiveChatId(null);
+    };
+  }, [selectedConversation?.participantId, setActiveChatId]);
 
   // Fetch full user profile once on mount to get the correct avatar
   useEffect(() => {

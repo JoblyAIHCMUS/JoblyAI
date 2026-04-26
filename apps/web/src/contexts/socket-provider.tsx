@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useRef, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useRef, useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
 import { SocketChatMessage } from '@/api-client/messages';
@@ -8,6 +8,8 @@ import { SocketChatMessage } from '@/api-client/messages';
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  activeChatId: string | null;
+  setActiveChatId: (id: string | null) => void;
   sendMessage: (recipientId: string, text: string) => void;
   markAsRead: (recipientId: string) => Promise<void>;
   onNewMessage: (callback: (message: SocketChatMessage) => void) => () => void;
@@ -22,6 +24,7 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
  */
 export function SocketProvider({ children }: { children: ReactNode }) {
   const socketReturn = useMessagesSocket();
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   // Support multiple subscribers
   const messageCallbacksRef = useRef(new Set<(m: SocketChatMessage) => void>());
   const readCallbacksRef = useRef(new Set<(id: string) => void>());
@@ -62,6 +65,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const value: SocketContextType = {
     socket: socketReturn.socket,
     isConnected: socketReturn.isConnected,
+    activeChatId,
+    setActiveChatId,
     sendMessage: socketReturn.sendMessage,
     markAsRead: socketReturn.markAsRead,
     onNewMessage: (callback) => {
