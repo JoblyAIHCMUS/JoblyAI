@@ -8,9 +8,5 @@
     "**/META-INF/maven/**",
     "**/android/build/**"
   ],
-  "java.project.resourceFilters": [
-    "node_modules",
-    ".git",
-    "**/android/build"
-  ]
+  "java.project.resourceFilters": ["node_modules", ".git", "**/android/build"]
 }
