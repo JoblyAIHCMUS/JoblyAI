@@ -41,3 +41,20 @@ export function getDateLabel(date: Date): string {
     day: 'numeric',
   });
 }
+
+/**
+ * Standardizes the sender avatar logic across the application.
+ */
+export function getSenderAvatar(
+  msgAvatar: string | undefined | null,
+  senderId: string,
+  currentUserId: string,
+  conversationAvatar: string | undefined | null
+): string {
+  return (
+    msgAvatar ||
+    (senderId === currentUserId
+      ? 'https://placehold.co/40x40'
+      : conversationAvatar || 'https://placehold.co/40x40')
+  );
+}
