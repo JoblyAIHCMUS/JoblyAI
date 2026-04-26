@@ -8,6 +8,7 @@ import { useSocket } from '@/contexts/socket-provider';
 import { ConversationSidebar } from '@/features/employer/messages/ConversationSidebar';
 import { ChatWindow } from '@/features/employer/messages/ChatWindow';
 import { Conversation, Message } from '@/features/employer/messages/types';
+import { getSenderAvatar } from '@/features/employer/messages/utils';
 import { ChatSummary } from '@/api-client/messages';
 import { useGetChatSummary } from '@/api-hook/messages';
 
@@ -30,10 +31,12 @@ export default function CandidateMessagesPage() {
 
   // Ref to track the currently active chat for WebSocket listener (prevents stale closures)
   const activeChatIdRef = useRef<string | null>(null);
+  const activeConversationRef = useRef<Conversation | null>(null);
 
   // Keep the ref perfectly synced with the state
   useEffect(() => {
     activeChatIdRef.current = selectedConversation?.participantId || null;
+    activeConversationRef.current = selectedConversation || null;
   }, [selectedConversation]);
 
   // Fetch conversations on component mount
@@ -175,8 +178,13 @@ export default function CandidateMessagesPage() {
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: 'User',
-          senderAvatar: 'https://placehold.co/40x40',
+          sender: activeConversationRef.current?.name || 'User',
+          senderAvatar: getSenderAvatar(
+            undefined,
+            message.senderId,
+            currentUser?.id || '',
+            activeConversationRef.current?.avatar
+          ),
           isSent: false,
           content: message.content,
           timestamp: message.timestamp,
@@ -240,7 +248,12 @@ export default function CandidateMessagesPage() {
         messageId: `temp-${Date.now()}`,
         senderId: currentUser.id,
         sender: currentUser.name || 'You',
-        senderAvatar: currentUser.image || 'https://placehold.co/40x40',
+        senderAvatar: getSenderAvatar(
+          currentUser.image,
+          currentUser.id,
+          currentUser.id,
+          selectedConversation.avatar
+        ),
         isSent: true,
         content,
         timestamp: new Date(),
