@@ -13,6 +13,8 @@ export interface ChatSummary {
 export interface ChatMessage {
   messageId: string;
   senderId: string;
+  senderAvatar?: string | null;
+  senderName?: string | null;
   content: string;
   timestamp: Date;
 }

@@ -20,6 +20,8 @@ export interface ChatHistoryResponse {
   messages: {
     messageId: string;
     senderId: string;
+    senderAvatar?: string | null;
+    senderName?: string | null;
     content: string;
     timestamp: Date;
   }[];

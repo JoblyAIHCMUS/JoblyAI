@@ -52,6 +52,9 @@ const mockPrisma = vi.hoisted(() => ({
     create: vi.fn(),
     upsert: vi.fn(),
   },
+  user: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 describe('MessagesService', () => {
@@ -296,7 +299,10 @@ describe('MessagesService', () => {
       mockScylla.execute
         .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) }) // 1st call: SELECT last_read
         .mockResolvedValueOnce({
-          first: () => ({ message_id: messageTimeUuid }),
+          first: () => ({
+            message_id: messageTimeUuid,
+            sender_id: mockUser2.id, // Message from the OTHER user
+          }),
         }); // 2nd call: SELECT message_id
 
       // Act
@@ -305,6 +311,43 @@ describe('MessagesService', () => {
       // Assert
       // Message timestamp (newer) > Read timestamp (older) = true (unread)
       expect(result[0].hasUnread).toBe(true);
+    });
+
+    it('should NOT mark chat as unread when latest message is from current user', async () => {
+      // Arrange
+      const userId = mockUser1.id;
+      const lastMessageDate = new Date();
+      const conversation = {
+        scyllaChatId: mockChatId,
+        participantId: mockUser2.id,
+        lastMessageAt: lastMessageDate,
+        lastMessage: 'My own message',
+        participant: { ...mockUser2, role: null },
+      };
+
+      mockPrisma.conversation.findMany.mockResolvedValue([conversation]);
+
+      const now = Date.now();
+      const olderReadTimestamp = now - 5000;
+      const newerMessageTimestamp = now;
+
+      const messageTimeUuid = createMockTimeUuid(newerMessageTimestamp);
+      const readTimeUuid = createMockTimeUuid(olderReadTimestamp);
+
+      mockScylla.execute
+        .mockResolvedValueOnce({ first: () => ({ last_read: readTimeUuid }) })
+        .mockResolvedValueOnce({
+          first: () => ({
+            message_id: messageTimeUuid,
+            sender_id: userId, // Message from ME
+          }),
+        });
+
+      // Act
+      const result = await service.getChatListSummary(userId);
+
+      // Assert
+      expect(result[0].hasUnread).toBe(false);
     });
 
     it('should handle empty conversation list', async () => {
@@ -500,6 +543,8 @@ describe('MessagesService', () => {
         rows: mockMessages,
       });
 
+      mockPrisma.user.findMany.mockResolvedValue([mockUser1, mockUser2]);
+
       // Act
       const result = await service.getChatHistory(senderId, recipientId);
 
@@ -510,10 +555,17 @@ describe('MessagesService', () => {
         { prepare: true }
       );
 
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [senderId, recipientId] } },
+        select: { id: true, name: true, avatarUrl: true },
+      });
+
       expect(result.messages).toHaveLength(2);
       expect(result.messages[0]).toEqual({
         messageId: messageId1.toString(),
         senderId: senderId,
+        senderName: mockUser1.name,
+        senderAvatar: mockUser1.avatarUrl,
         content: 'First message',
         timestamp: expect.any(Date), // getDate() returns a Date object
       });
@@ -580,6 +632,8 @@ describe('MessagesService', () => {
       // Assert
       expect(result.messages[0]).toHaveProperty('messageId');
       expect(result.messages[0]).toHaveProperty('senderId');
+      expect(result.messages[0]).toHaveProperty('senderName');
+      expect(result.messages[0]).toHaveProperty('senderAvatar');
       expect(result.messages[0]).toHaveProperty('content');
       expect(result.messages[0]).toHaveProperty('timestamp');
     });

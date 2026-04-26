@@ -30,20 +30,22 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         )}
 
         <div
-          className={`flex flex-col gap-1 max-w-xs lg:max-w-md ${
+          className={`flex flex-col gap-1 max-w-[75%] lg:max-w-md ${
             message.isSent ? 'items-end' : 'items-start'
           }`}
         >
-          <p
-            className={`rounded-lg px-4 py-2 text-sm ${
+          <div
+            className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm whitespace-pre-wrap ${
               message.isSent
-                ? 'bg-indigo-50 text-slate-900 rounded-br-none'
-                : 'bg-slate-100 text-slate-900 rounded-bl-none'
+                ? 'bg-indigo-600 text-white rounded-tr-none'
+                : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none'
             }`}
           >
             {message.content}
-          </p>
-          <span className="text-xs text-slate-500">{message.timestamp24}</span>
+          </div>
+          <span className="text-[10px] text-slate-500 font-medium px-1">
+            {message.timestamp24}
+          </span>
         </div>
 
         {message.isSent && (

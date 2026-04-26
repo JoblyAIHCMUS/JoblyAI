@@ -6,12 +6,15 @@ import { useSocket } from '@/contexts/socket-provider';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
 import { Conversation, Message } from './types';
+import { getSenderAvatar } from './utils';
 import { ChatSummary } from '@/api-client/messages';
 import { useGetChatSummary } from '@/api-hook/messages';
+import { getCurrentUserProfile } from '@/api-client/user';
 
 export default function EmployerMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
-  const { sendMessage, markAsRead, onNewMessage } = useSocket();
+  const { sendMessage, markAsRead, onNewMessage, setActiveChatId } =
+    useSocket();
   const { fetchChatSummary } = useGetChatSummary();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -19,13 +22,46 @@ export default function EmployerMessagesPage() {
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | undefined>(
+    undefined
+  );
+
+  // Sync activeChatId with global SocketContext
+  useEffect(() => {
+    const participantId = selectedConversation?.participantId || null;
+    setActiveChatId(participantId);
+
+    return () => {
+      setActiveChatId(null);
+    };
+  }, [selectedConversation?.participantId, setActiveChatId]);
+
+  // Fetch full user profile once on mount to get the correct avatar
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const profile = await getCurrentUserProfile();
+        setUserAvatarUrl((profile.avatarUrl || profile.image) ?? undefined);
+      } catch (error) {
+        console.error('Failed to fetch user profile for avatar:', error);
+        // Fallback to current user data
+        setUserAvatarUrl(
+          (currentUser.avatarUrl || currentUser.image) ?? undefined
+        );
+      }
+    };
+    fetchProfile();
+  }, [currentUser]);
 
   // Ref to track the currently active chat for WebSocket listener (prevents stale closures)
   const activeChatIdRef = useRef<string | null>(null);
+  const activeConversationRef = useRef<Conversation | null>(null);
 
   // Keep the ref perfectly synced with the state
   useEffect(() => {
     activeChatIdRef.current = selectedConversation?.participantId || null;
+    activeConversationRef.current = selectedConversation || null;
   }, [selectedConversation]);
 
   // Fetch conversations on component mount
@@ -124,8 +160,13 @@ export default function EmployerMessagesPage() {
         const newMessage: Message = {
           messageId: `socket-${Date.now()}`,
           senderId: message.senderId,
-          sender: 'User',
-          senderAvatar: 'https://placehold.co/40x40',
+          sender: activeConversationRef.current?.name || 'User',
+          senderAvatar: getSenderAvatar(
+            undefined,
+            message.senderId,
+            currentUser?.id || '',
+            activeConversationRef.current?.avatar
+          ),
           isSent: false,
           content: message.content,
           timestamp: message.timestamp,
@@ -189,7 +230,12 @@ export default function EmployerMessagesPage() {
         messageId: `temp-${Date.now()}`,
         senderId: currentUser.id,
         sender: currentUser.name || 'You',
-        senderAvatar: currentUser.image || 'https://placehold.co/40x40',
+        senderAvatar: getSenderAvatar(
+          userAvatarUrl,
+          currentUser.id,
+          currentUser.id,
+          selectedConversation.avatar
+        ),
         isSent: true,
         content,
         timestamp: new Date(),
@@ -212,12 +258,12 @@ export default function EmployerMessagesPage() {
         )
       );
     },
-    [selectedConversation, currentUser, sendMessage]
+    [selectedConversation, currentUser, sendMessage, userAvatarUrl]
   );
 
   // Handle loading messages when conversation changes
   const handleLoadMessages = useCallback((newMessages: Message[]) => {
-    setMessages([...newMessages].reverse());
+    setMessages([...newMessages]);
   }, []);
 
   // Show loading state
