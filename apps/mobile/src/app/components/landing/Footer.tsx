@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Facebook, Instagram, Linkedin, Twitter, Dribbble } from 'lucide-react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -13,19 +13,19 @@ const Footer = () => {
       
       <View style={styles.socials}>
         <TouchableOpacity style={styles.socialIcon}>
-          <Facebook size={18} color="#FFFFFF" />
+          <Icon name="facebook" size={18} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialIcon}>
-          <Instagram size={18} color="#FFFFFF" />
+          <Icon name="instagram" size={18} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialIcon}>
-          <Dribbble size={18} color="#FFFFFF" />
+          <Icon name="share-variant" size={18} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialIcon}>
-          <Linkedin size={18} color="#FFFFFF" />
+          <Icon name="linkedin" size={18} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialIcon}>
-          <Twitter size={18} color="#FFFFFF" />
+          <Icon name="twitter" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
