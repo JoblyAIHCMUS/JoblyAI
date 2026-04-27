@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Menu } from 'lucide-react-native';
 
@@ -12,10 +7,7 @@ const Header = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[
-      styles.container,
-      { paddingTop: insets.top }
-    ]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <TouchableOpacity style={styles.menuButton}>
         <Menu size={24} color="#0F172A" />
       </TouchableOpacity>
