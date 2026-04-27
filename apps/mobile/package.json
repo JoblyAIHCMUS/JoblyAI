@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@react-native/metro-config": "*",
+    "lucide-react-native": "^1.11.0",
+    "metro-config": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-svg": "*",
-    "metro-config": "*"
+    "react-native-svg": "*"
   }
 }
