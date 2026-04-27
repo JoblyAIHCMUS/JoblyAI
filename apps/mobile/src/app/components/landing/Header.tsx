@@ -1,31 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Menu } from 'lucide-react-native';
-import Sidebar from './Sidebar';
 
-const Header = () => {
+interface HeaderProps {
+  onOpenMenu: () => void;
+}
+
+const Header = ({ onOpenMenu }: HeaderProps) => {
   const insets = useSafeAreaInsets();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <TouchableOpacity
         style={styles.menuButton}
-        onPress={() => setIsMenuOpen(true)}
+        onPress={onOpenMenu}
       >
         <Menu size={24} color="#0F172A" />
       </TouchableOpacity>
+      
       <View style={styles.logoContainer}>
         <View style={styles.logoIcon}>
-          {/* Circular logo icon placeholder */}
           <View style={styles.innerCircle} />
         </View>
         <Text style={styles.logoText}>JoblyAI</Text>
       </View>
+      
       <View style={styles.placeholder} />
-
-      <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </View>
   );
 };
