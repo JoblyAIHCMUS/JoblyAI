@@ -12,20 +12,17 @@ const Header = ({ onOpenMenu }: HeaderProps) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={onOpenMenu}
-      >
+      <TouchableOpacity style={styles.menuButton} onPress={onOpenMenu}>
         <Menu size={24} color="#0F172A" />
       </TouchableOpacity>
-      
+
       <View style={styles.logoContainer}>
         <View style={styles.logoIcon}>
           <View style={styles.innerCircle} />
         </View>
         <Text style={styles.logoText}>JoblyAI</Text>
       </View>
-      
+
       <View style={styles.placeholder} />
     </View>
   );

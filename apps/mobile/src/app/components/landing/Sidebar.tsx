@@ -22,11 +22,11 @@ const SIDEBAR_WIDTH = SCREEN_WIDTH; // Sidebar takes up 100% of the screen
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const insets = useSafeAreaInsets();
-  
+
   // Animation values
   const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  
+
   // Track visibility to unmount component when closed, preventing blocked touches
   const [isVisible, setIsVisible] = useState(isOpen);
 
@@ -82,10 +82,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
       {/* Sliding Sidebar */}
       <Animated.View
-        style={[
-          styles.sidebar,
-          { transform: [{ translateX: slideAnim }] },
-        ]}
+        style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={[styles.header, { paddingTop: insets.top }]}>
