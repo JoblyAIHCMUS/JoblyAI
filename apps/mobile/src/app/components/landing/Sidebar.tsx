@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 60,
+    height: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
