@@ -10,8 +10,8 @@ const Header = () => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <TouchableOpacity 
-        style={styles.menuButton} 
+      <TouchableOpacity
+        style={styles.menuButton}
         onPress={() => setIsMenuOpen(true)}
       >
         <Menu size={24} color="#0F172A" />
@@ -25,10 +25,7 @@ const Header = () => {
       </View>
       <View style={styles.placeholder} />
 
-      <Sidebar 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)} 
-      />
+      <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </View>
   );
 };
