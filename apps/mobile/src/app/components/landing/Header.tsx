@@ -4,18 +4,18 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
-  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Menu } from 'lucide-react-native';
 
 const Header = () => {
-  // Get status bar height for notched devices
-  const statusBarHeight =
-    Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: statusBarHeight }]}>
+    <View style={[
+      styles.container,
+      { paddingTop: insets.top }
+    ]}>
       <TouchableOpacity style={styles.menuButton}>
         <Menu size={24} color="#0F172A" />
       </TouchableOpacity>
@@ -33,13 +33,12 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 60,
+    height: 60 + 40,
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },

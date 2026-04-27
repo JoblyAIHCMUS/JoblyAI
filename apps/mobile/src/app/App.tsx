@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Header from './components/landing/Header';
 import HeroSection from './components/landing/HeroSection';
 import CompaniesSection from './components/landing/CompaniesSection';
@@ -10,22 +11,24 @@ import Footer from './components/landing/Footer';
 
 export const App = () => {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <Header />
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[]}
-      >
-        <HeroSection />
-        <CompaniesSection />
-        <CategoriesSection />
-        <FeaturedJobsSection />
-        <LatestJobsSection />
-        <Footer />
-      </ScrollView>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <Header />
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[]}
+        >
+          <HeroSection />
+          <CompaniesSection />
+          <CategoriesSection />
+          <FeaturedJobsSection />
+          <LatestJobsSection />
+          <Footer />
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 
