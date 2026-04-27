@@ -20,7 +20,6 @@ import {
   KanbanColorCircle,
   KanbanBoardColumnIconButton,
   type KanbanBoardCircleColor,
-  type KanbanBoardDropDirection,
 } from '@/components/ui/kanban';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
@@ -98,19 +97,6 @@ export default function JobApplicantsKanban({
     }
   };
 
-  const handleDropOnListItem =
-    (stage: HiringStage, targetCardId: string) =>
-    async (data: string, dropDirection: KanbanBoardDropDirection) => {
-      const parsed = JSON.parse(data) as { id: string };
-      const position = dropDirection === 'top' ? 'before' : 'after';
-      setLoadingId(parsed.id);
-      try {
-        await onStageChange(parsed.id, stage, targetCardId, position);
-      } finally {
-        setLoadingId(null);
-      }
-    };
-
   return (
     <KanbanBoardProvider>
       <KanbanBoard>
@@ -142,10 +128,6 @@ export default function JobApplicantsKanban({
                 <KanbanBoardColumnListItem
                   key={applicant.id}
                   cardId={applicant.id}
-                  onDropOverListItem={handleDropOnListItem(
-                    col.stage,
-                    applicant.id
-                  )}
                 >
                   <KanbanBoardCard
                     data={{ id: applicant.id }}

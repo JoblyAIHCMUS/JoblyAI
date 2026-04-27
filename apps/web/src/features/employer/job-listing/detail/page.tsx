@@ -186,8 +186,15 @@ export default function JobListingDetailPage() {
   );
 
   // Handle Kanban stage changes
+  // Note: Reordering within the same stage (targetId, position) is not supported.
+  // Only actual stage transitions (Applied→Interview, Interview→Offer, →Rejected) trigger backend updates.
   const handleMoveApplicantToStage = useCallback(
-    async (applicantId: string, newStage: HiringStage) => {
+    async (
+      applicantId: string,
+      newStage: HiringStage,
+      targetId?: string,
+      position?: 'before' | 'after'
+    ) => {
       try {
         const appId = parseInt(applicantId, 10);
         const applicant = applicants.find((a) => a.id === applicantId);
