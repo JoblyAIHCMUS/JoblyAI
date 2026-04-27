@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -129,7 +130,10 @@ export default function JobListingDetailPage() {
         const appId = parseInt(applicantId, 10);
         // Find current applicant to determine next action
         const applicant = applicants.find((a) => a.id === applicantId);
-        if (!applicant) return;
+        if (!applicant) {
+          toast.error('Applicant not found');
+          return;
+        }
 
         if (applicant.hiringStage === 'Applied') {
           // Move from Applied to Interview
@@ -144,8 +148,12 @@ export default function JobListingDetailPage() {
         if (!isNaN(jobId)) {
           await fetchApplications({ jobId });
         }
+        toast.success('Applicant advanced successfully');
       } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to advance applicant';
         console.error('Failed to advance applicant:', err);
+        toast.error(message);
       }
     },
     [applicants, id, shortlistApplication, moveToOffer, fetchApplications]
@@ -166,46 +174,79 @@ export default function JobListingDetailPage() {
         if (!isNaN(jobId)) {
           await fetchApplications({ jobId });
         }
+        toast.success('Applicant declined successfully');
       } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to decline applicant';
         console.error('Failed to decline applicant:', err);
+        toast.error(message);
       }
     },
     [id, rejectApplication, fetchApplications]
   );
 
   // Handle Kanban stage changes
+  // Note: Reordering within the same stage (targetId, position) is not supported.
+  // Only actual stage transitions (Applied→Interview, Interview→Offer, →Rejected) trigger backend updates.
   const handleMoveApplicantToStage = useCallback(
-    async (applicantId: string, newStage: HiringStage) => {
+    async (
+      applicantId: string,
+      newStage: HiringStage,
+      targetId?: string,
+      position?: 'before' | 'after'
+    ) => {
       try {
         const appId = parseInt(applicantId, 10);
         const applicant = applicants.find((a) => a.id === applicantId);
-        if (!applicant) return;
+        if (!applicant) {
+          toast.error('Applicant not found');
+          return;
+        }
 
-        // Only handle stage transitions that require backend calls
         const currentStage = applicant.hiringStage;
 
+        // Early return if no stage change
+        if (currentStage === newStage) {
+          return;
+        }
+
+        // Track whether a backend action was taken
+        let stageChangeApplied = false;
+
+        // Only handle stage transitions that require backend calls
         if (newStage === 'Rejected') {
           // Move to Rejected
           await rejectApplication(appId, {
             feedback:
               'Thank you for applying. We have decided to move forward with other candidates at this time.',
           });
+          stageChangeApplied = true;
         } else if (currentStage === 'Applied' && newStage === 'Interview') {
           // Move from Applied to Interview
           await shortlistApplication(appId);
+          stageChangeApplied = true;
         } else if (currentStage === 'Interview' && newStage === 'Offer') {
           // Move from Interview to Offer
           await moveToOffer(appId);
+          stageChangeApplied = true;
         }
-        // For other moves or reordering within the same stage, just update local state
 
-        // Refresh applications
-        const jobId = parseInt(id as string, 10);
-        if (!isNaN(jobId)) {
-          await fetchApplications({ jobId });
+        // Only refresh and show success if an actual stage change was applied
+        if (stageChangeApplied) {
+          // Refresh applications
+          const jobId = parseInt(id as string, 10);
+          if (!isNaN(jobId)) {
+            await fetchApplications({ jobId });
+          }
+          toast.success('Applicant status updated successfully');
         }
       } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'Failed to update applicant status';
         console.error('Failed to move applicant to stage:', err);
+        toast.error(message);
       }
     },
     [
