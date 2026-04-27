@@ -58,7 +58,7 @@ const FeaturedJobsSection = () => {
                 <Text style={styles.fullTimeText}>Full Time</Text>
               </View>
             </View>
-            
+
             <Text style={styles.jobTitle}>{job.title}</Text>
             <Text style={styles.companyInfo}>
               {job.company} • {job.location}
@@ -66,7 +66,7 @@ const FeaturedJobsSection = () => {
             <Text style={styles.description} numberOfLines={2}>
               Revolut is looking for Email Marketing to help team ma ...
             </Text>
-            
+
             <View style={styles.tagsContainer}>
               {job.tags.map((tag, tagIndex) => (
                 <View
@@ -79,7 +79,9 @@ const FeaturedJobsSection = () => {
                   <Text
                     style={[
                       styles.tagText,
-                      tag === 'Design' ? styles.designTagText : styles.marketingTagText,
+                      tag === 'Design'
+                        ? styles.designTagText
+                        : styles.marketingTagText,
                     ]}
                   >
                     {tag}

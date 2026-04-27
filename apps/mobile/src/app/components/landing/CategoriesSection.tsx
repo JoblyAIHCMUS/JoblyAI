@@ -38,18 +38,22 @@ const CategoriesSection = () => {
             key={index}
             style={[styles.card, cat.active && styles.activeCard]}
           >
-            <View style={[styles.iconContainer, cat.active && styles.activeIconContainer]}>
-              <cat.icon
-                size={24}
-                color={cat.active ? '#FFFFFF' : '#4F46E5'}
-              />
+            <View
+              style={[
+                styles.iconContainer,
+                cat.active && styles.activeIconContainer,
+              ]}
+            >
+              <cat.icon size={24} color={cat.active ? '#FFFFFF' : '#4F46E5'} />
             </View>
             <View style={styles.cardContent}>
               <Text style={[styles.cardTitle, cat.active && styles.activeText]}>
                 {cat.name}
               </Text>
               <View style={styles.jobCountContainer}>
-                <Text style={[styles.jobCount, cat.active && styles.activeSubtext]}>
+                <Text
+                  style={[styles.jobCount, cat.active && styles.activeSubtext]}
+                >
                   {cat.jobs} jobs available
                 </Text>
                 <ArrowRight

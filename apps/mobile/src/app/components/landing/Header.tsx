@@ -1,11 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { Menu } from 'lucide-react-native';
 
 const Header = () => {
   // Get status bar height for notched devices
-  const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
-  
+  const statusBarHeight =
+    Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
+
   return (
     <View style={[styles.container, { paddingTop: statusBarHeight }]}>
       <TouchableOpacity style={styles.menuButton}>

@@ -18,19 +18,14 @@ const HeroSection = () => {
     <View style={styles.container}>
       {/* Background Pattern */}
       <View style={styles.patternContainer}>
-        <PatternSVG 
-           width={width} 
-           height={width * 0.7} 
-           style={styles.pattern} 
-        />
+        <PatternSVG width={width} height={width * 0.7} style={styles.pattern} />
       </View>
 
       <View style={styles.content}>
         <Text style={styles.title}>
-          Discover more than{' '}
-          <Text style={styles.highlight}>5000+ Jobs</Text>
+          Discover more than <Text style={styles.highlight}>5000+ Jobs</Text>
         </Text>
-        
+
         <View style={styles.groupContainer}>
           <GroupSVG width={width * 0.8} height={20} />
         </View>

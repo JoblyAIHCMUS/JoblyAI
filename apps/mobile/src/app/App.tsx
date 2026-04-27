@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-} from 'react-native';
+import { SafeAreaView, ScrollView, StatusBar, StyleSheet } from 'react-native';
 import Header from './components/landing/Header';
 import HeroSection from './components/landing/HeroSection';
 import CompaniesSection from './components/landing/CompaniesSection';

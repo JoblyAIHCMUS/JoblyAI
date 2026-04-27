@@ -74,13 +74,17 @@ const LatestJobsSection = () => {
                     key={tagIndex}
                     style={[
                       styles.tag,
-                      tag === 'Marketing' ? styles.marketingTag : styles.designTag,
+                      tag === 'Marketing'
+                        ? styles.marketingTag
+                        : styles.designTag,
                     ]}
                   >
                     <Text
                       style={[
                         styles.tagText,
-                        tag === 'Marketing' ? styles.marketingTagText : styles.designTagText,
+                        tag === 'Marketing'
+                          ? styles.marketingTagText
+                          : styles.designTagText,
                       ]}
                     >
                       {tag}

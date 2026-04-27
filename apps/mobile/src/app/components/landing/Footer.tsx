@@ -10,7 +10,7 @@ const Footer = () => {
       <Text style={styles.copyright}>
         {currentYear} @ JoblyAI. No rights reserved.
       </Text>
-      
+
       <View style={styles.socials}>
         <TouchableOpacity style={styles.socialIcon}>
           <Icon name="facebook" size={18} color="#FFFFFF" />
