@@ -1,43 +1,66 @@
 'use client';
 import React from 'react';
+import type { CandidateEducation } from '@/types/candidate';
+import { formatDateRange } from '@/lib/formatters';
 
-export default function Educations({ educations }: { educations: any[] }) {
+export default function Educations({
+  educations,
+}: {
+  educations?: CandidateEducation[];
+}) {
+  if (!educations || educations.length === 0) {
+    return (
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[var(--space-base)] sm:py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full min-w-0">
+        <div className="heading-h6-semi-bold text-[var(--text-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
+          Educations
+        </div>
+        <div className="text-[var(--text-tertiary)] px-[var(--space-xs2)] sm:px-[var(--space-base)]">
+          No education information provided
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[var(--space-base)] sm:py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full min-w-0">
       <div className="heading-h6-semi-bold text-[var(--text-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
         Educations
       </div>
-      {educations.map((edu, idx) => (
+      {educations.slice(0, 2).map((edu) => (
         <div
-          key={idx}
-          className="flex flex-col md:flex-row gap-[var(--space-xs)] md:gap-[var(--space-lg)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[calc(var(--space-xs)*3)] sm:py-[var(--space-base)] min-w-0"
+          key={edu.id}
+          className="flex flex-col gap-[var(--space-xs)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[var(--space-base)] border-b border-[var(--border-tertiary)] last:border-b-0"
         >
-          <img
-            src={edu.logo}
-            alt={edu.school}
-            className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-[var(--radius-xl)] object-cover mx-auto md:mx-0 shrink-0"
-          />
-          <div className="flex flex-col gap-[var(--space-xs)] flex-1 min-w-0">
-            <div className="heading-h6-semi-bold text-[var(--text-primary)]">
-              {edu.school}
-            </div>
+          <div className="heading-h6-semi-bold text-[var(--text-primary)]">
+            {edu.school}
+          </div>
+          {edu.degree && (
             <div className="body-body-1-regular text-[var(--text-secondary)]">
               {edu.degree}
             </div>
-            <div className="body-body-1-regular text-[var(--text-secondary)]">
-              {edu.time}
-            </div>
-            <div className="body-body-1-regular text-[var(--text-primary)] break-words">
-              {edu.desc}
-            </div>
+          )}
+          <div className="body-body-1-regular text-[var(--text-secondary)]">
+            {formatDateRange(edu.startDate, edu.endDate)}
           </div>
+          {edu.fieldOfStudy && (
+            <div className="body-body-1-regular text-[var(--text-secondary)]">
+              {edu.fieldOfStudy}
+            </div>
+          )}
+          {edu.description && (
+            <div className="body-body-1-regular text-[var(--text-primary)] break-words">
+              {edu.description}
+            </div>
+          )}
         </div>
       ))}
-      <div className="flex justify-end px-[var(--space-xs2)] sm:px-[var(--space-base)]">
-        <span className="text-[var(--text-accent-primary)] label-label-1-semi-bold cursor-pointer">
-          Show 2 more educations
-        </span>
-      </div>
+      {educations.length > 2 && (
+        <div className="flex justify-end px-[var(--space-xs2)] sm:px-[var(--space-base)]">
+          <span className="text-[var(--text-accent-primary)] label-label-1-semi-bold cursor-pointer">
+            Show {educations.length - 2} more educations
+          </span>
+        </div>
+      )}
     </div>
   );
 }

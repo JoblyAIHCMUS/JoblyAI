@@ -15,6 +15,19 @@ export async function getCandidateProfile(): Promise<CandidateProfileResponse> {
   return response.data;
 }
 
+export async function getCandidateProfileById(
+  candidateId: string
+): Promise<CandidateProfileResponse> {
+  const response = await axios.get<CandidateProfileResponse>(
+    `${API_BASE_URL}/api/candidate/${candidateId}`,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
+
 export async function updateCandidateProfile(
   updateDto: Partial<CandidateEducation>
 ): Promise<CandidateEducation> {

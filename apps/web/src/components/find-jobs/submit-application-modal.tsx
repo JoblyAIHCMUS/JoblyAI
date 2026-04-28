@@ -281,7 +281,7 @@ export const SubmitApplicationModal = ({
       return;
     }
 
-    let progressInterval: NodeJS.Timeout | null = null;
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
 
     try {
       setApplicationSubmitError(null);

@@ -48,7 +48,7 @@ export default function EmployerDashboardPage() {
   const { fetchAnalytics: fetchAppsAnalytics } = useJobApplicationsAnalytics();
 
   // Polling intervals ref
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /**
    * Fetch counts: applications and messages

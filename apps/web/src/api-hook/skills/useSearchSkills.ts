@@ -5,7 +5,7 @@ export function useSearchSkills() {
   const [results, setResults] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = useCallback(async (query: string) => {
     // Clear previous timer

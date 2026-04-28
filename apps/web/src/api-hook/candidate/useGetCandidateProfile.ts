@@ -12,9 +12,12 @@ export function useGetCandidateProfile(
 ) {
   const context = useCandidateProfileContext();
 
+  // Only depend on context.fetchCandidateProfile which is stable
+  // Options are just callbacks, not real dependencies
   const fetchCandidateProfile = useCallback(
-    () => context.fetchCandidateProfile(options),
-    []
+    (candidateId?: string) =>
+      context.fetchCandidateProfile(options, candidateId),
+    [context.fetchCandidateProfile, options]
   );
 
   return {
