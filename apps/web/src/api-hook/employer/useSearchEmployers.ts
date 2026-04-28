@@ -8,7 +8,7 @@ export function useSearchEmployers() {
   const [results, setResults] = useState<EmployerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = useCallback(
     async (
