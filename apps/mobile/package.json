@@ -15,10 +15,16 @@
     "jest-expo": "*",
     "metro-config": "*",
     "metro-resolver": "*",
+    "nativewind": "^4.2.3",
     "react": "*",
     "react-native": "*",
+    "react-native-reanimated": "^4.3.0",
+    "react-native-safe-area-context": "^5.7.0",
     "react-native-svg": "*",
     "react-native-svg-transformer": "*",
     "react-native-web": "*"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
   }
 }
