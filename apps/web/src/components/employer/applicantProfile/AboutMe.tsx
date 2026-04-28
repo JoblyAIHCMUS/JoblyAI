@@ -26,12 +26,12 @@ export default function AboutMe({ about }: { about?: AboutData }) {
         About Me
       </div>
       {about.title && (
-        <div className="body-body-1-medium text-[var(--text-primary)] break-words">
+        <div className="body-body-1-medium text-[var(--text-primary)] break-words px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
           {about.title}
         </div>
       )}
       {about.bio && (
-        <div className="body-body-1-regular text-[var(--text-primary)] break-words">
+        <div className="body-body-1-regular text-[var(--text-primary)] break-words px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
           {about.bio}
         </div>
       )}
