@@ -193,6 +193,7 @@ model Education {
   endDate      DateTime? // Nullable: If null, it means "Present" (currently studying)
   grade        String? // e.g., "3.8 GPA" or "Distinction"
   description  String? // Optional description of the education experience
+  sourceCvIds  Int[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -212,6 +213,7 @@ model Experience {
   endDate     DateTime? // Nullable: If null, it means "Present" (currently working)
   description String? // Optional description of the work experience
   type        CandidateExperienceType?
+  sourceCvIds Int[]
 
 
   createdAt DateTime @default(now())
@@ -227,6 +229,7 @@ model CandidateDescription {
 
   title       String?
   bio         String?  @db.Text
+  rawDescriptions Json?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -243,6 +246,7 @@ model CandidateSkill {
   skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
   level       CandidateSkillLevel?
   years       Int?
+  sourceCvIds Int[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -260,6 +264,7 @@ model CandidateContact {
   type        CandidateContactType?
   value       String
   isPrimary   Boolean  @default(false)
+  sourceCvIds Int[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -275,6 +280,7 @@ model CandidateSocial {
   platform    CandidateSocialPlatform
   url         String
   username    String?
+  sourceCvIds Int[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -293,6 +299,7 @@ model Certificate {
   expiryDate   DateTime? // Nullable: If null, it means "No Expiry"
   credentialId String? // Optional credential ID or license number
   url          String? // Optional URL to the certification details
+  sourceCvIds  Int[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -367,6 +374,8 @@ model Resume {
   
   parsedText      String?       @db.Text
   aiScore         Float?
+  aiFeedback      Json?
+  isSyncedToProfile Boolean     @default(true)
   isDefault       Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
