@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import ApplicantResumeViewer from './applicantResumeViewer';
@@ -19,6 +19,7 @@ import { type ApplicantDetail } from '@/features/employer/all-applications/detai
 import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
 import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
 import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
+import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 
 export default function ApplicantDetails({
   applicant,
@@ -31,6 +32,29 @@ export default function ApplicantDetails({
 }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
+
+  // Fetch candidate profile with stable error handler
+  const {
+    fetchCandidateProfile,
+    data: candidateProfile,
+    loading: profileLoading,
+    error: profileError,
+  } = useGetCandidateProfile({
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to load candidate profile';
+      toast.error(message);
+    },
+  });
+
+  // Fetch profile when applicantId changes - simplest dependency chain
+  useEffect(() => {
+    if (applicant.applicantId) {
+      fetchCandidateProfile(applicant.applicantId);
+    }
+  }, [applicant.applicantId, fetchCandidateProfile]);
 
   const { shortlistApplication } = useShortlistApplication({
     onSuccess: () => {
@@ -70,7 +94,7 @@ export default function ApplicantDetails({
     },
   });
 
-  const handleAdvanceStage = async () => {
+  const handleAdvanceStage = useCallback(async () => {
     setLoadingId(applicant.id);
     try {
       const applicationId = parseInt(applicant.id);
@@ -84,9 +108,9 @@ export default function ApplicantDetails({
     } finally {
       setLoadingId(null);
     }
-  };
+  }, [applicant.id, hiringStage, shortlistApplication, moveToOffer]);
 
-  const handleDecline = async () => {
+  const handleDecline = useCallback(async () => {
     setLoadingId(applicant.id);
     try {
       const applicationId = parseInt(applicant.id);
@@ -96,7 +120,7 @@ export default function ApplicantDetails({
     } finally {
       setLoadingId(null);
     }
-  };
+  }, [applicant.id, rejectApplication]);
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
@@ -110,7 +134,20 @@ export default function ApplicantDetails({
 
           <TabsContent value="profile" className="mt-6">
             {/* Applicant Profile Section */}
-            <ApplicantProfile />
+            {profileLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-[var(--text-secondary)]">
+                  Loading profile...
+                </div>
+              </div>
+            ) : profileError ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-[var(--text-tertiary)]">
+                  Unable to load profile. Showing basic information.
+                </div>
+              </div>
+            ) : null}
+            <ApplicantProfile profile={candidateProfile || undefined} />
           </TabsContent>
 
           <TabsContent value="resume" className="mt-6">

@@ -1084,4 +1084,28 @@ export class CandidatesService {
 
     return updatedUser;
   }
+
+  async getCandidateProfileForEmployer(
+    employerId: string,
+    candidateId: string
+  ): Promise<CandidateQueryResponseDto> {
+    // Verify employer has access to an application from this candidate
+    const hasAccess = await this.prismaClient.application.findFirst({
+      where: {
+        candidateId,
+        job: {
+          postedById: employerId,
+        },
+      },
+    });
+
+    if (!hasAccess) {
+      throw new NotFoundException(
+        `Access denied. You don't have permission to view this candidate's profile.`
+      );
+    }
+
+    // Return the candidate's profile
+    return this.getProfileDetails(candidateId);
+  }
 }

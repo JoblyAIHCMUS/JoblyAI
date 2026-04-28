@@ -42,6 +42,21 @@ export class CandidatesController {
     return this.candidatesService.getProfileDetails(user.id);
   }
 
+  // Get candidate profile by ID for employers viewing applications
+  @Get('/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async getCandidateProfileById(
+    @Param('id') candidateId: string,
+    @Request() req: AuthRequest
+  ) {
+    const employerId = req.user.id;
+    return this.candidatesService.getCandidateProfileForEmployer(
+      employerId,
+      candidateId
+    );
+  }
+
   @Patch('/me/education')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('candidate')
