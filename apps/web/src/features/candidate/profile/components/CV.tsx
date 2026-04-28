@@ -9,16 +9,28 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { Download, AlertCircle } from 'lucide-react';
+import { Download, AlertCircle, Trash2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
+import type { CandidateResume } from '@/types/candidate';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface CVProps {
-  cvFileKey?: string; // S3 file key for the resume
-  cvFileName?: string;
+  resumes: CandidateResume[];
+  selectedResumeId?: number | null;
   onCVChange: (file: File) => Promise<void>;
+  onSelectResume?: (resumeId: number) => Promise<void> | void;
+  onDeleteResume?: (resumeId: number) => Promise<void>;
+  maxResumes?: number;
   disabled?: boolean;
   isUploading?: boolean;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
   uploadError?: string | null;
 }
 
@@ -29,11 +41,16 @@ export interface CVRef {
 const CV = forwardRef<CVRef, CVProps>(
   (
     {
-      cvFileKey,
-      cvFileName = 'Resume.pdf',
+      resumes,
+      selectedResumeId,
       onCVChange,
+      onSelectResume,
+      onDeleteResume,
+      maxResumes = 5,
       disabled = false,
       isUploading = false,
+      isUpdating = false,
+      isDeleting = false,
       uploadError = null,
     }: CVProps,
     ref
@@ -42,12 +59,47 @@ const CV = forwardRef<CVRef, CVProps>(
     const [dragActive, setDragActive] = useState(false);
     const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
     const [urlLoading, setUrlLoading] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [previewResumeId, setPreviewResumeId] = useState<number | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [confirmDefaultOpen, setConfirmDefaultOpen] = useState(false);
+    const [pendingResumeId, setPendingResumeId] = useState<number | null>(null);
+    const [uploadOpen, setUploadOpen] = useState(false);
 
     const { createDownloadUrl } = useCreateDownloadUrl();
+    const isBusy = isUploading || isUpdating || isDeleting;
+    const resumeCount = resumes?.length || 0;
+    const isAtMax = resumeCount >= maxResumes;
+    const sortedResumes = [...resumes].sort(
+      (a, b) => Number(!!b.isDefault) - Number(!!a.isDefault)
+    );
+    const defaultResume =
+      resumes.find((resume) => resume.id === selectedResumeId) ||
+      resumes.find((resume) => resume.isDefault) ||
+      resumes[0];
+    const previewResume =
+      resumes.find((resume) => resume.id === previewResumeId) || defaultResume;
+
+    useEffect(() => {
+      if (!resumes.length) {
+        setPreviewResumeId(null);
+        setIsPreviewOpen(false);
+        return;
+      }
+      if (
+        previewResumeId &&
+        resumes.some((resume) => resume.id === previewResumeId)
+      ) {
+        return;
+      }
+      const nextPreviewId = defaultResume?.id || resumes[0].id;
+      setPreviewResumeId(nextPreviewId);
+    }, [resumes, defaultResume?.id, previewResumeId]);
 
     const generateUrl = useCallback(
       async (fileKey?: string) => {
-        const keyToUse = fileKey || cvFileKey;
+        const keyToUse = fileKey || previewResume?.fileKey;
         if (!keyToUse) {
           setPresignedUrl(null);
           return;
@@ -64,7 +116,7 @@ const CV = forwardRef<CVRef, CVProps>(
           setUrlLoading(false);
         }
       },
-      [cvFileKey, createDownloadUrl]
+      [createDownloadUrl, previewResume?.fileKey]
     );
 
     // Expose refresh function to parent component
@@ -77,14 +129,20 @@ const CV = forwardRef<CVRef, CVProps>(
     );
 
     useEffect(() => {
+      if (!isPreviewOpen) {
+        setPresignedUrl(null);
+        return;
+      }
       generateUrl();
-    }, [generateUrl]);
+    }, [generateUrl, isPreviewOpen]);
 
     const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file && file.type === 'application/pdf') {
         try {
+          setActionError(null);
           await onCVChange(file);
+          setUploadOpen(false);
         } catch (error) {
           console.error('Failed to upload resume:', error);
         }
@@ -107,7 +165,9 @@ const CV = forwardRef<CVRef, CVProps>(
       const file = e.dataTransfer.files?.[0];
       if (file && file.type === 'application/pdf') {
         try {
+          setActionError(null);
           await onCVChange(file);
+          setUploadOpen(false);
         } catch (error) {
           console.error('Failed to upload resume:', error);
         }
@@ -118,150 +178,366 @@ const CV = forwardRef<CVRef, CVProps>(
       if (presignedUrl) {
         const link = document.createElement('a');
         link.href = presignedUrl;
-        link.download = cvFileName;
+        link.download = previewResume?.fileName || 'Resume.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
     };
 
+    const handleDeleteResume = async (resumeId: number) => {
+      if (isBusy) return;
+      const resumeToDelete = resumes.find((resume) => resume.id === resumeId);
+      if (!resumeToDelete) return;
+
+      try {
+        setActionError(null);
+        await onDeleteResume?.(resumeToDelete.id);
+      } catch (error) {
+        console.error('Failed to delete resume:', error);
+        setActionError('Failed to delete CV. Please try again.');
+      }
+    };
+
+    const handleOpenPreview = (resumeId: number) => {
+      setPreviewResumeId(resumeId);
+      setIsPreviewOpen(true);
+    };
+
+    const handleOpenDeleteConfirm = (resumeId: number) => {
+      if (isBusy) return;
+      setPendingResumeId(resumeId);
+      setConfirmDeleteOpen(true);
+    };
+
+    const handleOpenDefaultConfirm = (resumeId: number) => {
+      if (isBusy) return;
+      setPendingResumeId(resumeId);
+      setConfirmDefaultOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+      if (pendingResumeId == null) return;
+      await handleDeleteResume(pendingResumeId);
+      setConfirmDeleteOpen(false);
+      setPendingResumeId(null);
+    };
+
+    const handleConfirmDefault = async () => {
+      if (pendingResumeId == null) return;
+      await handleSetDefault(pendingResumeId);
+      setConfirmDefaultOpen(false);
+      setPendingResumeId(null);
+    };
+
+    const handleSetDefault = async (resumeId: number) => {
+      if (isBusy) return;
+      try {
+        setActionError(null);
+        await onSelectResume?.(resumeId);
+      } catch (error) {
+        console.error('Failed to set default resume:', error);
+        setActionError('Failed to set default CV. Please try again.');
+      }
+    };
+
     return (
-      <div className="rounded-[10px] border border-[#CBD5E1] bg-white p-6 flex flex-col gap-4">
+      <div className="rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] p-6 flex flex-col gap-4">
         {/* Header */}
-        <div className="text-xl font-semibold text-[#0F172A] font-['Lexend_Deca']">
-          CV/Resume
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col">
+            <div className="text-xl font-semibold text-primary font-['Lexend_Deca']">
+              CV/Resume
+            </div>
+            {isAtMax && (
+              <span className="mt-1 text-sm font-medium text-accent-primary font-['Be_Vietnam_Pro']">
+                You have reached the maximum of {maxResumes} CVs.
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setUploadOpen(true)}
+            disabled={disabled || isBusy || isAtMax}
+            className="px-4 py-2 rounded-md bg-[color:var(--bg-accent-solid)] text-white text-sm font-semibold hover:bg-[color:var(--bg-accent-solid-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Upload CV
+          </button>
         </div>
 
-        {/* When CV exists - Show Viewer */}
-        {cvFileKey && (
+        {resumes.length > 0 && (
           <div className="flex flex-col gap-3">
-            <div className="text-sm text-[#64748B] font-normal font-['Be_Vietnam_Pro']">
-              Your Current CV
-            </div>
-            {/* PDF Embed Viewer */}
-            <div
-              className="w-full rounded-lg border border-[#E2E8F0] overflow-hidden"
-              style={{ height: '400px' }}
-            >
-              {urlLoading ? (
-                <div className="w-full h-full flex items-center justify-center bg-[#F8FAFC]">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4338CA]"></div>
-                </div>
-              ) : presignedUrl ? (
-                <embed
-                  src={presignedUrl}
-                  type="application/pdf"
-                  width="100%"
-                  height="100%"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[#F8FAFC]">
-                  <p className="text-[#64748B]">Failed to load PDF</p>
-                </div>
-              )}
+            <div className="text-sm text-secondary font-normal font-['Be_Vietnam_Pro']">
+              Stored CVs ({resumeCount}/{maxResumes})
             </div>
 
-            {/* Download Button */}
-            <button
-              onClick={handleDownload}
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] hover:bg-[#E2E8F0] transition-colors"
-            >
-              <Download size={18} className="text-[#475569]" />
-              <span className="text-base font-semibold text-[#0F172A] font-['Be_Vietnam_Pro']">
-                Download Current CV
-              </span>
-            </button>
+            <div className="flex flex-col gap-2">
+              {sortedResumes.map((resume) => (
+                <div
+                  key={resume.id}
+                  className={cn(
+                    'rounded-lg border bg-[color:var(--bg-primary)] transition-colors',
+                    resume.isDefault
+                      ? 'border-[color:var(--border-accent-primary)] bg-[color:var(--bg-accent-primary)]'
+                      : 'border-[color:var(--border-primary)]'
+                  )}
+                >
+                  <div className="w-full flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPreview(resume.id)}
+                      className="flex flex-col text-left"
+                      aria-label={`Preview ${resume.fileName}`}
+                    >
+                      <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
+                        {resume.fileName}
+                      </span>
+                      {resume.isDefault && (
+                        <span className="text-xs font-medium text-accent-primary font-['Be_Vietnam_Pro']">
+                          Default
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDefaultConfirm(resume.id)}
+                        disabled={resume.isDefault || isBusy}
+                        className={cn(
+                          'h-9 w-9 flex items-center justify-center rounded-md border transition-colors',
+                          resume.isDefault
+                            ? 'border-[color:var(--border-primary)] text-[color:var(--text-disabled)] cursor-not-allowed'
+                            : 'border-[color:var(--border-primary)] text-accent-primary hover:bg-[color:var(--bg-tertiary)]'
+                        )}
+                        aria-label="Set as default CV"
+                        title="Set as default"
+                      >
+                        <Star size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDeleteConfirm(resume.id)}
+                        disabled={isBusy}
+                        className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
+                        aria-label="Delete CV"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Upload Area - Always Show */}
-        <div className="flex flex-col gap-3">
-          {cvFileKey && (
-            <div className="text-sm text-[#64748B] font-normal font-['Be_Vietnam_Pro']">
-              Upload a new CV to replace the current one
+        <Dialog open={confirmDefaultOpen} onOpenChange={setConfirmDefaultOpen}>
+          <DialogContent className="max-w-sm">
+            <div className="flex flex-col gap-3">
+              <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
+                Set Default CV
+              </DialogTitle>
+              <DialogDescription className="text-sm text-secondary">
+                This CV will be used as your default resume for applications.
+              </DialogDescription>
+              <div className="mt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-md border border-[color:var(--border-primary)] text-primary hover:bg-[color:var(--bg-tertiary)]"
+                  onClick={() => setConfirmDefaultOpen(false)}
+                  disabled={isBusy}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-md bg-[color:var(--bg-accent-solid)] text-white hover:bg-[color:var(--bg-accent-solid-hover)]"
+                  onClick={handleConfirmDefault}
+                  disabled={isBusy}
+                >
+                  Set default
+                </button>
+              </div>
             </div>
-          )}
+          </DialogContent>
+        </Dialog>
 
-          {/* Upload Area */}
-          <div
-            onClick={() => !isUploading && fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={cn(
-              'cursor-pointer px-10 py-6 rounded-[10px] border-2 border-dashed transition-all',
-              dragActive
-                ? 'border-[#4338CA] bg-[#F0F4FF] opacity-100'
-                : 'border-[#E2E8F0] bg-[#F8FAFC]',
-              (disabled || isUploading) && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileSelect}
-              disabled={disabled || isUploading}
-              className="hidden"
-            />
+        <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+          <DialogContent className="max-w-sm">
+            <div className="flex flex-col gap-3">
+              <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
+                Delete CV
+              </DialogTitle>
+              <DialogDescription className="text-sm text-secondary">
+                Are you sure you want to delete this CV? This action cannot be
+                undone.
+              </DialogDescription>
+              <div className="mt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-md border border-[color:var(--border-primary)] text-primary hover:bg-[color:var(--bg-tertiary)]"
+                  onClick={() => setConfirmDeleteOpen(false)}
+                  disabled={isBusy}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+                  onClick={handleConfirmDelete}
+                  disabled={isBusy}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
-            {/* Icon and Text */}
-            <div className="flex flex-col justify-start items-center gap-2.5">
-              {isUploading ? (
-                <div className="size-8 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4338CA]"></div>
-                </div>
-              ) : (
-                <div className="size-8 relative overflow-hidden">
-                  <svg
-                    className="size-8 text-[#94A3B8]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3v-6"
-                    />
-                  </svg>
-                </div>
-              )}
-
-              {/* Text */}
-              <div className="flex flex-col justify-start items-center gap-1">
-                {isUploading ? (
-                  <div className="text-base font-normal text-[#4338CA] font-['Be_Vietnam_Pro']">
-                    Uploading...
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="w-[95vw] max-w-6xl h-[90vh] p-0 overflow-hidden bg-[color:var(--bg-primary)] border border-[color:var(--border-primary)]">
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border-primary)] px-6 py-4 pr-12">
+                <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
+                  {previewResume?.fileName || 'CV Preview'}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Preview the selected CV document.
+                </DialogDescription>
+                <button
+                  onClick={handleDownload}
+                  disabled={!presignedUrl || isBusy}
+                  className="flex items-center justify-center h-10 w-10 rounded-lg border border-[color:var(--border-primary)] bg-[color:var(--bg-tertiary)] hover:bg-[color:var(--bg-secondary)] transition-colors"
+                  aria-label="Download CV"
+                  title="Download"
+                >
+                  <Download size={18} className="text-primary" />
+                </button>
+              </div>
+              <div className="flex-1 bg-[color:var(--bg-secondary)]">
+                {urlLoading ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--text-accent-primary)]"></div>
                   </div>
+                ) : presignedUrl ? (
+                  <embed
+                    src={presignedUrl}
+                    type="application/pdf"
+                    width="100%"
+                    height="100%"
+                  />
                 ) : (
-                  <>
-                    <div className="flex justify-center text-center gap-1">
-                      <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-[#64748B]">
-                        Click to upload
-                      </span>
-                      <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-[#0F172A]">
-                        {' '}
-                        or drag and drop
-                      </span>
-                    </div>
-                    <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-[#94A3B8]">
-                      PDF only (max. 5 MB)
-                    </div>
-                  </>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className="text-secondary">Failed to load PDF</p>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+          <DialogContent className="max-w-xl">
+            <div className="flex flex-col gap-3">
+              <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
+                Upload CV
+              </DialogTitle>
+              <DialogDescription className="text-sm text-secondary">
+                Drag and drop your PDF file or click to select one.
+              </DialogDescription>
+              {isAtMax && (
+                <div className="text-sm font-medium text-accent-primary font-['Be_Vietnam_Pro']">
+                  You already have {maxResumes} CVs. Delete one to upload a new
+                  CV.
+                </div>
+              )}
+              <div
+                onClick={() =>
+                  !isBusy && !isAtMax && fileInputRef.current?.click()
+                }
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={cn(
+                  'cursor-pointer px-10 py-6 rounded-[10px] border-2 border-dashed transition-all',
+                  dragActive
+                    ? 'border-[color:var(--border-accent-primary)] bg-[color:var(--bg-accent-primary)] opacity-100'
+                    : 'border-[color:var(--border-primary)] bg-[color:var(--bg-secondary)]',
+                  (disabled || isBusy || isAtMax) &&
+                    'opacity-50 cursor-not-allowed'
+                )}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileSelect}
+                  disabled={disabled || isBusy || isAtMax}
+                  className="hidden"
+                />
+                <div className="flex flex-col justify-start items-center gap-2.5">
+                  {isBusy ? (
+                    <div className="size-8 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--text-accent-primary)]"></div>
+                    </div>
+                  ) : (
+                    <div className="size-8 relative overflow-hidden">
+                      <svg
+                        className="size-8 text-[color:var(--text-secondary)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3v-6"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col justify-start items-center gap-1">
+                    {isBusy ? (
+                      <div className="text-base font-normal text-accent-primary font-['Be_Vietnam_Pro']">
+                        Processing...
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-center text-center gap-1">
+                          <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-secondary">
+                            Click to upload
+                          </span>
+                          <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-primary">
+                            {' '}
+                            or drag and drop
+                          </span>
+                        </div>
+                        <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
+                          PDF only (max. 5 MB)
+                        </div>
+                        {isAtMax && (
+                          <div className="font-['Be_Vietnam_Pro'] text-sm font-medium text-danger">
+                            You have reached the maximum of {maxResumes} CVs.
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Error Message */}
-        {uploadError && (
+        {(uploadError || actionError) && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
             <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
             <span className="text-sm font-medium text-red-700">
-              {uploadError}
+              {uploadError || actionError}
             </span>
           </div>
         )}

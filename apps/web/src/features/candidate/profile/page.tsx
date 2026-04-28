@@ -14,6 +14,8 @@ import Skills from './components/Skills';
 // import Portfolios from './components/Portfolios';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
+import { useUpdateResume } from '@/api-hook/candidate/useUpdateResume';
+import { useDeleteResume } from '@/api-hook/candidate/useDeleteResume';
 import type { CandidateProfileResponse } from '@/api-client/candidate/types';
 import { useUpdateCandidateAbout } from '@/api-hook/candidate/useUpdateCandidateAbout';
 import {
@@ -47,6 +49,7 @@ const CandidateProfilePage = () => {
   const { data: candidateProfile } = useCandidateProfileContext();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
 
   // S3 upload hooks
@@ -60,11 +63,18 @@ const CandidateProfilePage = () => {
       // Update profile state with new resume
       setProfile((prev) => {
         if (!prev) return null;
+        const nextResumes = [...(prev.resumes || []), resumeData].map(
+          (resume) =>
+            resume.id === resumeData.id
+              ? { ...resumeData, isDefault: true }
+              : { ...resume, isDefault: false }
+        );
         return {
           ...prev,
-          resumes: [...(prev.resumes || []), resumeData],
+          resumes: nextResumes,
         };
       });
+      setSelectedResumeId(resumeData.id);
       // Immediately refresh the CV display with new resume's fileKey
       cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
@@ -75,6 +85,9 @@ const CandidateProfilePage = () => {
       setUploadErrorMsg(errorMsg);
     },
   });
+
+  const { updateResumeRecord, loading: updatingResume } = useUpdateResume();
+  const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
 
   const { updateAbout, createAbout } = useUpdateCandidateAbout();
   const handleUpdateAbout = async (aboutData: { id: number; bio?: string }) => {
@@ -229,6 +242,14 @@ const CandidateProfilePage = () => {
     setProfile(candidateProfile || null);
   }, [candidateProfile]);
 
+  useEffect(() => {
+    const defaultResumeId =
+      profile?.resumes?.find((resume) => resume.isDefault)?.id ||
+      profile?.resumes?.[0]?.id ||
+      null;
+    setSelectedResumeId(defaultResumeId);
+  }, [profile?.resumes]);
+
   // Listen for profile updates (from settings or other pages)
   useEffect(() => {
     const handleProfileUpdate = () => {
@@ -240,14 +261,6 @@ const CandidateProfilePage = () => {
     return () =>
       window.removeEventListener('profile-updated', handleProfileUpdate);
   }, []);
-
-  if (!profile) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
 
   const handleCVUpload = async (file: File) => {
     setUploadErrorMsg(null);
@@ -277,20 +290,83 @@ const CandidateProfilePage = () => {
     }
   };
 
-  // Get the current CV file key and name
-  const getCVFileKey = () => {
-    if (!profile?.resumes || !profile.resumes.length) return undefined;
-    const defaultResume =
-      profile.resumes.find((r) => r.isDefault) || profile.resumes[0];
-    return defaultResume.fileKey;
+  const handleSelectResume = async (resumeId: number) => {
+    setSelectedResumeId(resumeId);
+    const selectedResume = profile?.resumes?.find(
+      (resume) => resume.id === resumeId
+    );
+    if (!selectedResume || selectedResume.isDefault) return;
+
+    try {
+      const updated = await updateResumeRecord({
+        id: resumeId,
+        isDefault: true,
+      });
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const nextResumes = (prev.resumes || []).map((resume) =>
+          resume.id === updated.id ? updated : { ...resume, isDefault: false }
+        );
+        return { ...prev, resumes: nextResumes };
+      });
+    } catch (error) {
+      const errorMessage = formatErrorForDisplay(
+        error,
+        'Failed to update default CV'
+      );
+      toast.error(errorMessage);
+    }
   };
 
-  const getCVFileName = () => {
-    if (!profile?.resumes || !profile.resumes.length) return 'Resume.pdf';
-    const defaultResume =
-      profile.resumes.find((r) => r.isDefault) || profile.resumes[0];
-    return defaultResume.fileName;
+  const handleDeleteResume = async (resumeId: number) => {
+    if (!profile?.resumes?.length) return;
+    const resumeToDelete = profile.resumes.find(
+      (resume) => resume.id === resumeId
+    );
+    if (!resumeToDelete) return;
+
+    await deleteResumeRecord(resumeId);
+    let nextResumes = profile.resumes.filter(
+      (resume) => resume.id !== resumeId
+    );
+
+    if (resumeToDelete.isDefault && nextResumes.length) {
+      try {
+        const updatedDefault = await updateResumeRecord({
+          id: nextResumes[0].id,
+          isDefault: true,
+        });
+        nextResumes = nextResumes.map((resume) =>
+          resume.id === updatedDefault.id
+            ? updatedDefault
+            : { ...resume, isDefault: false }
+        );
+      } catch (error) {
+        const errorMessage = formatErrorForDisplay(
+          error,
+          'Failed to update default CV'
+        );
+        toast.error(errorMessage);
+      }
+    }
+
+    const nextSelectedId =
+      nextResumes.find((resume) => resume.isDefault)?.id ||
+      nextResumes[0]?.id ||
+      null;
+
+    setProfile((prev) => (prev ? { ...prev, resumes: nextResumes } : prev));
+    setSelectedResumeId(nextSelectedId);
+    toast.success('CV deleted successfully.');
   };
+
+  if (!profile) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   const candidate: CandidateProfileUI = mapDataToCandidate(profile);
 
@@ -316,10 +392,15 @@ const CandidateProfilePage = () => {
         />
         <CV
           ref={cvRef}
-          cvFileKey={getCVFileKey()}
-          cvFileName={getCVFileName()}
+          resumes={profile.resumes || []}
+          selectedResumeId={selectedResumeId}
           onCVChange={handleCVUpload}
+          onSelectResume={handleSelectResume}
+          onDeleteResume={handleDeleteResume}
+          maxResumes={5}
           isUploading={uploading || creatingResume}
+          isUpdating={updatingResume}
+          isDeleting={deletingResume}
           uploadError={
             uploadErrorMsg ||
             (uploadError
