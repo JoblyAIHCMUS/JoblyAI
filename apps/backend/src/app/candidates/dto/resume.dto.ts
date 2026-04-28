@@ -5,6 +5,7 @@ import {
   IsString,
   IsNumber,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class QueryResumeDto {
   @IsString()
@@ -51,7 +52,8 @@ export class CreateResumeDto {
 }
 
 export class UpdateResumeDto {
-  @IsString()
+  @Type(() => Number)
+  @IsNumber()
   id!: number;
 
   @IsString()
