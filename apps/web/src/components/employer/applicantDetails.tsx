@@ -33,23 +33,26 @@ export default function ApplicantDetails({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
 
-  // Fetch candidate profile with stable error handler
+  // Callback for profile errors - memoized to prevent dependency changes
+  const handleProfileError = useCallback((error: unknown) => {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to load candidate profile';
+    toast.error(message);
+  }, []);
+
+  // Fetch candidate profile
   const {
     fetchCandidateProfile,
     data: candidateProfile,
     loading: profileLoading,
     error: profileError,
   } = useGetCandidateProfile({
-    onError: (error: unknown) => {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to load candidate profile';
-      toast.error(message);
-    },
+    onError: handleProfileError,
   });
 
-  // Fetch profile when applicantId changes - simplest dependency chain
+  // Fetch profile only when applicantId changes
   useEffect(() => {
     if (applicant.applicantId) {
       fetchCandidateProfile(applicant.applicantId);

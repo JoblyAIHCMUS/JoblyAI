@@ -1,6 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   getCandidateProfile,
   getCandidateProfileById,
@@ -32,6 +39,8 @@ export function CandidateProfileProvider({
   const [data, setData] = useState<CandidateProfileResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const lastFetchedIdRef = useRef<string | null>(null);
+  const isRequestInFlightRef = useRef(false);
 
   const fetchCandidateProfile = useCallback(
     async (
@@ -41,11 +50,16 @@ export function CandidateProfileProvider({
       },
       candidateId?: string
     ): Promise<CandidateProfileResponse | null> => {
-      // Don't call if already loading to prevent duplicate requests
-      if (loading) {
+      // Prevent duplicate requests for the same ID
+      if (
+        isRequestInFlightRef.current ||
+        (candidateId && lastFetchedIdRef.current === candidateId)
+      ) {
         return null;
       }
 
+      isRequestInFlightRef.current = true;
+      lastFetchedIdRef.current = candidateId || null;
       setLoading(true);
       setError(null);
 
@@ -61,20 +75,23 @@ export function CandidateProfileProvider({
         options?.onError?.(err);
         return null;
       } finally {
+        isRequestInFlightRef.current = false;
         setLoading(false);
       }
     },
-    [loading]
+    []
   );
 
-  // Create value without memoization to prevent cascading re-renders
-  // Only fetchCandidateProfile is stable; data/loading/error changes trigger fetch, not context recreation
-  const value: CandidateProfileContextType = {
-    data,
-    loading,
-    error,
-    fetchCandidateProfile,
-  };
+  // Memoize context value to prevent unnecessary provider updates
+  const value = useMemo<CandidateProfileContextType>(
+    () => ({
+      data,
+      loading,
+      error,
+      fetchCandidateProfile,
+    }),
+    [data, loading, error, fetchCandidateProfile]
+  );
 
   return (
     <CandidateProfileContext.Provider value={value}>
