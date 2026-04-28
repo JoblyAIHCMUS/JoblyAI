@@ -9,8 +9,8 @@ interface AboutData {
 export default function AboutMe({ about }: { about?: AboutData }) {
   if (!about || (!about.title && !about.bio)) {
     return (
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-xs2)] w-full min-w-0">
-        <div className="heading-h6-semi-bold text-[var(--text-primary)] break-words">
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[var(--space-base)] sm:py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full min-w-0">
+        <div className="heading-h6-semi-bold text-[var(--text-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
           About Me
         </div>
         <div className="body-body-1-regular text-[var(--text-tertiary)]">
@@ -21,8 +21,8 @@ export default function AboutMe({ about }: { about?: AboutData }) {
   }
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] py-[var(--space-md)] flex flex-col gap-[var(--space-xs2)] w-full min-w-0">
-      <div className="heading-h6-semi-bold text-[var(--text-primary)] break-words">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-secondary)] bg-[var(--bg-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] py-[var(--space-base)] sm:py-[var(--space-lg)] flex flex-col gap-[var(--space-base)] w-full min-w-0">
+      <div className="heading-h6-semi-bold text-[var(--text-primary)] px-[var(--space-xs2)] sm:px-[var(--space-base)] mb-[var(--space-xs)]">
         About Me
       </div>
       {about.title && (
