@@ -14,11 +14,10 @@ import {
   hiringStageProgress,
   hiringStageColor,
 } from '@/features/employer/all-applications/detail/data';
-import { type Category } from '@/features/employer/job-listing/detail/data';
 import { hiringStageStyles } from '@/features/employer/hiringStage';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
 
-const categoryLabels: Record<Category, string> = {
+const categoryLabels: Record<string, string> = {
   design: 'Design',
   marketing: 'Marketing',
   business: 'Business',
@@ -27,7 +26,18 @@ const categoryLabels: Record<Category, string> = {
   finance: 'Finance',
   'human-resources': 'Human Resources',
   operations: 'Operations',
-  other: 'Other',
+};
+
+// Helper to get category label, with fallback to title-cased slug
+const getCategoryLabel = (slug: string): string => {
+  if (categoryLabels[slug]) {
+    return categoryLabels[slug];
+  }
+  // Fallback: convert slug to title case (e.g., "product-management" -> "Product Management")
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 const employmentTypeLabels: Record<EmploymentType, string> = {
@@ -75,7 +85,7 @@ export default function ApplicantOverview({
             <Separator />
             <p className="label-label-2-semi-bold">{applicant.appliedRole}</p>
             <p className="label-label-2-regular text-muted-foreground">
-              {categoryLabels[applicant.jobCategory]} &bull;{' '}
+              {getCategoryLabel(applicant.jobCategory)} &bull;{' '}
               {employmentTypeLabels[applicant.employmentType]}
             </p>
           </div>

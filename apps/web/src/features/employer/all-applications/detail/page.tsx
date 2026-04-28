@@ -8,22 +8,12 @@ import ApplicantDetails from '@/components/employer/applicantDetails';
 import { CandidateProfileProvider } from '@/api-hook/candidate/CandidateProfileContext';
 import { type HiringStage } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from './data';
-import { type Category } from '@/features/employer/job-listing/detail/data';
 import { listEmployerApplications } from '@/api-client/application/employer';
 import { toast } from 'sonner';
 
-function mapCategorySlug(slug: string): Category {
-  const validCategories: Record<string, Category> = {
-    design: 'design',
-    marketing: 'marketing',
-    business: 'business',
-    technology: 'technology',
-    sales: 'sales',
-    finance: 'finance',
-    'human-resources': 'human-resources',
-    operations: 'operations',
-  };
-  return validCategories[slug] || 'other';
+// Simply use the category slug directly - supports all categories, not just hardcoded ones
+function getCategorySlug(slug: string): string {
+  return slug;
 }
 
 function mapApplicationStatusToHiringStage(status: string): HiringStage {
@@ -93,7 +83,7 @@ function ApplicantDetailPageContent() {
           title: application.job.title,
           jobListingId: application.jobId.toString(),
           appliedRole: application.job.title,
-          jobCategory: mapCategorySlug(application.job.category.slug),
+          jobCategory: getCategorySlug(application.job.category.slug),
           employmentType: employmentType,
           appliedDate: new Date(application.createdAt)
             .toISOString()

@@ -5,16 +5,7 @@ import {
 import { type SkillEntry } from '@/components/employer/skillTagsManager';
 import { type HiringStage } from '@/features/employer/hiringStage';
 
-export type Category =
-  | 'design'
-  | 'marketing'
-  | 'business'
-  | 'technology'
-  | 'sales'
-  | 'finance'
-  | 'human-resources'
-  | 'operations'
-  | 'other';
+export type Category = string;
 
 export type SalaryCurrency =
   | 'none'

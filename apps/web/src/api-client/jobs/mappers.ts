@@ -41,25 +41,12 @@ function mapSalaryCurrency(currency: string | null): SalaryCurrency {
 
 /**
  * Map backend category slug to frontend Category type
+ * Now accepts any category slug (no longer limited to hardcoded list)
  */
 function mapCategorySlug(slug?: string): Category {
-  // Map known slugs to frontend category values
-  const categoryMap: Record<string, Category> = {
-    design: 'design',
-    marketing: 'marketing',
-    business: 'business',
-    technology: 'technology',
-    sales: 'sales',
-    finance: 'finance',
-    'human-resources': 'human-resources',
-    operations: 'operations',
-    other: 'other',
-  };
-
-  if (slug && slug in categoryMap) {
-    return categoryMap[slug];
-  }
-  return 'other';
+  // Simply return the slug directly - this allows any category from the backend
+  // If slug is missing, default to empty string
+  return slug || '';
 }
 
 /**
