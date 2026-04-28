@@ -154,7 +154,7 @@ export default function ApplicantDetails({
           </TabsContent>
 
           <TabsContent value="resume" className="mt-6">
-            <ApplicantResumeViewer url={applicant.resume} />
+            <ApplicantResumeViewer fileKey={applicant.resume} />
           </TabsContent>
 
           <TabsContent value="cover-letter" className="mt-6">
