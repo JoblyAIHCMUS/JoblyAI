@@ -11,9 +11,6 @@
     },
     {
       "path": "./apps/backend"
-    },
-    {
-      "path": "./apps/mobile"
     }
   ]
 }
