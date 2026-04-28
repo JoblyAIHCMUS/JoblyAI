@@ -1,3 +1,5 @@
+import "../global.css";
+
 import React, { useRef, useState } from 'react';
 import {
   StyleSheet,
