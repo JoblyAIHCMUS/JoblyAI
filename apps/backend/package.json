@@ -116,6 +116,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.985.0",
     "@aws-sdk/s3-request-presigner": "^3.985.0",
+    "@google/genai": "^1.50.1",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/event-emitter": "^3.0.1",
@@ -127,12 +129,14 @@
     "@prisma/client": "^6.3.0",
     "@types/qs": "^6.15.0",
     "better-auth": "^1.4.18",
+    "bullmq": "^5.76.3",
     "cassandra-driver": "^4.8.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "ioredis": "^5.9.2",
     "nodemailer": "^8.0.2",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.11.0",
     "qs": "^6.15.0",
     "reflect-metadata": "^0.1.13",
@@ -140,7 +144,8 @@
     "socket.io": "^4.8.3",
     "swagger-ui-express": "^5.0.1",
     "tslib": "^2.3.0",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@better-auth/cli": "^1.4.18",
@@ -149,6 +154,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/jest": "^30.0.0",
     "@types/nodemailer": "^7.0.11",
+    "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.11.0",
     "jest": "^30.2.0",
     "jest-mock-extended": "^4.0.0",
