@@ -9,10 +9,11 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { Download, AlertCircle, Trash2, Star } from 'lucide-react';
+import { Download, AlertCircle, Trash2, Star, Wand2, Code2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
 import type { CandidateResume } from '@/types/candidate';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,8 @@ interface CVProps {
   isUploading?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
+  processingAiResumeId?: number | null;
+  deletingResumeId?: number | null;
   uploadError?: string | null;
 }
 
@@ -51,6 +54,8 @@ const CV = forwardRef<CVRef, CVProps>(
       isUploading = false,
       isUpdating = false,
       isDeleting = false,
+      processingAiResumeId = null,
+      deletingResumeId = null,
       uploadError = null,
     }: CVProps,
     ref
@@ -68,7 +73,7 @@ const CV = forwardRef<CVRef, CVProps>(
     const [uploadOpen, setUploadOpen] = useState(false);
 
     const { createDownloadUrl } = useCreateDownloadUrl();
-    const isBusy = isUploading || isUpdating || isDeleting;
+    const isBusy = isUploading || isUpdating || isDeleting || !!processingAiResumeId || !!deletingResumeId;
     const resumeCount = resumes?.length || 0;
     const isAtMax = resumeCount >= maxResumes;
     const sortedResumes = [...resumes].sort(
@@ -286,12 +291,26 @@ const CV = forwardRef<CVRef, CVProps>(
                     <button
                       type="button"
                       onClick={() => handleOpenPreview(resume.id)}
-                      className="flex flex-col text-left"
+                      className="flex flex-col text-left gap-1"
                       aria-label={`Preview ${resume.fileName}`}
                     >
-                      <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
-                        {resume.fileName}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
+                          {resume.fileName}
+                        </span>
+                        {resume.isSyncedToProfile === false && (
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5 cursor-pointer" 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              window.dispatchEvent(new CustomEvent('OPEN_CV_SYNC_MODAL', { detail: { resumeId: resume.id } }));
+                            }}
+                          >
+                            ✨ Not Synced
+                          </Badge>
+                        )}
+                      </div>
                       {resume.isDefault && (
                         <span className="text-xs font-medium text-accent-primary font-['Be_Vietnam_Pro']">
                           Default
@@ -299,6 +318,64 @@ const CV = forwardRef<CVRef, CVProps>(
                       )}
                     </button>
                     <div className="flex flex-wrap items-center gap-2">
+                      {/* Extract Data Button (Parse) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (resume.parsedText && resume.isSyncedToProfile === false) {
+                            window.dispatchEvent(new CustomEvent('OPEN_CV_SYNC_MODAL', { detail: { resumeId: resume.id } }));
+                          } else {
+                            window.dispatchEvent(new CustomEvent('TRIGGER_AI_PARSE', { detail: { resumeId: resume.id } }));
+                          }
+                        }}
+                        disabled={isBusy || processingAiResumeId === resume.id}
+                        className={cn(
+                          "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
+                          resume.parsedText && resume.isSyncedToProfile === false
+                            ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                        )}
+                        aria-label="Extract Data"
+                        title={resume.parsedText && resume.isSyncedToProfile === false ? "Review Extracted Data" : "Extract Data with AI"}
+                      >
+                        {processingAiResumeId === resume.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                        ) : (
+                          <Code2 size={14} />
+                        )}
+                        {resume.parsedText && resume.isSyncedToProfile === false ? "Review Data" : "Extract Data"}
+                      </button>
+
+                      {/* Score Resume Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (resume.aiScore !== undefined && resume.aiScore !== null) {
+                            window.dispatchEvent(new CustomEvent('OPEN_AI_FEEDBACK_MODAL', { detail: { resumeId: resume.id } }));
+                          } else {
+                            window.dispatchEvent(new CustomEvent('TRIGGER_AI_SCORE', { detail: { resumeId: resume.id } }));
+                          }
+                        }}
+                        disabled={isBusy || processingAiResumeId === resume.id}
+                        className={cn(
+                          "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
+                          resume.aiScore !== undefined && resume.aiScore !== null
+                            ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                            : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                        )}
+                        aria-label="Score Resume"
+                        title={resume.aiScore !== undefined && resume.aiScore !== null ? "View AI Score" : "Score with AI"}
+                      >
+                        {processingAiResumeId === resume.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                        ) : (
+                          <Wand2 size={14} />
+                        )}
+                        {resume.aiScore !== undefined && resume.aiScore !== null ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%` : "Score Resume"}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleOpenDefaultConfirm(resume.id)}
@@ -317,12 +394,16 @@ const CV = forwardRef<CVRef, CVProps>(
                       <button
                         type="button"
                         onClick={() => handleOpenDeleteConfirm(resume.id)}
-                        disabled={isBusy}
+                        disabled={isBusy || deletingResumeId === resume.id}
                         className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        <Trash2 size={16} className="text-red-600" />
+                        {deletingResumeId === resume.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
+                        ) : (
+                          <Trash2 size={16} className="text-red-600" />
+                        )}
                       </button>
                     </div>
                   </div>

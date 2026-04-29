@@ -96,6 +96,10 @@ export interface CandidateResume {
   fileUrl: string;
   fileType: string;
   fileSize: number;
+  aiScore?: number | null;
+  aiFeedback?: any | null;
+  isSyncedToProfile?: boolean | null;
+  parsedText?: string | null;
   createdAt: string;
   updatedAt: string;
 }

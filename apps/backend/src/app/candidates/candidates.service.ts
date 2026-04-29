@@ -24,12 +24,14 @@ import { UpdateAvatarDto } from './dto/avatar.dto';
 import { UpdateEducationDto } from './dto/education.dto';
 import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { CreateSkillDto, UpdateSkillDto } from './dto/skill.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CandidatesService {
   constructor(
     @InjectPrisma() private readonly prismaClient: PrismaClient,
-    private readonly s3Service: S3Service
+    private readonly s3Service: S3Service,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   private toPrismaDateTime(value: string | Date, fieldName: string): Date {
@@ -236,6 +238,10 @@ export class CandidatesService {
                   )
                 ).downloadUrl
               : '',
+            aiScore: resume.aiScore,
+            aiFeedback: resume.aiFeedback,
+            parsedText: resume.parsedText,
+            isSyncedToProfile: resume.isSyncedToProfile,
             createdAt: resume.createdAt.toISOString(),
             updatedAt: resume.updatedAt.toISOString(),
           }))
@@ -516,6 +522,11 @@ export class CandidatesService {
       throw new InternalServerErrorException(
         `Failed to create resume record for candidate with ID ${userId}.`
       );
+
+    this.eventEmitter.emit('resume.created', {
+      resumeId: result.id,
+      candidateId: userId,
+    });
 
     return result;
   }

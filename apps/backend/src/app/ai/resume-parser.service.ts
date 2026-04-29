@@ -106,7 +106,7 @@ export class ResumeParserService {
          - Social Platform: MUST be one of [LINKEDIN, GITHUB, FACEBOOK, TWITTER, INSTAGRAM, YOUTUBE, TIKTOK, DRIBBBLE, BEHANCE, OTHER].
 
       4. MISSING DATA HANDLING:
-         - If 'companyName' is missing: Look for project names or use 'Independent/Freelance/Personal Project'. Do NOT use 'unknown'.
+         - If 'companyName' is missing: Look for project names or use 'Independent/Freelance/Personal Project' base on the characteristic of the description. Do NOT use 'unknown'.
          - If 'jobTitle' is missing: Infer from description.
          - If 'location' is missing: Use 'Unknown'
 

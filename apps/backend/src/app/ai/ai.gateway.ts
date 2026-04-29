@@ -13,8 +13,13 @@ export class AiGateway {
   server!: Server;
   private readonly logger = new Logger(AiGateway.name);
 
+  handleConnection(client: any) {
+    this.logger.log(`Client connected to AI Gateway: ${client.id}`);
+  }
+
   notifyUser(userId: string, event: string, payload: any) {
-    this.logger.log(`Emitting ${event} to user ${userId}`);
-    this.server.emit(`${event}_${userId}`, payload);
+    const eventName = `${event}_${userId}`;
+    this.logger.log(`Emitting event: ${eventName}`);
+    this.server.emit(eventName, payload);
   }
 }
