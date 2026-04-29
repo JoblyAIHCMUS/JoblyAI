@@ -3,6 +3,10 @@ import { BullModule } from '@nestjs/bullmq';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
 import { ScoringProcessor } from './processors/scoring.processor';
+import { AiProviderService } from './ai-provider.service';
+import { ResumeParserService } from './resume-parser.service';
+import { ResumeScoringService } from './resume-scoring.service';
+import { AiController } from './ai.controller';
 
 @Module({
   imports: [
@@ -11,12 +15,15 @@ import { ScoringProcessor } from './processors/scoring.processor';
       { name: 'resume-scoring' },
     ),
   ],
+  controllers: [AiController],
   providers: [
     AiGateway,
     ResumeProcessor,
     ScoringProcessor,
-    // Services will be added here in Stage 2 & 3
+    AiProviderService,
+    ResumeParserService,
+    ResumeScoringService,
   ],
-  exports: [AiGateway],
+  exports: [AiGateway, AiProviderService, ResumeParserService, ResumeScoringService],
 })
 export class AiModule {}
