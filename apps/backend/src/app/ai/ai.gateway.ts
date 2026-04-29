@@ -10,7 +10,7 @@ import { Injectable, Logger } from '@nestjs/common';
 })
 export class AiGateway {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
   private readonly logger = new Logger(AiGateway.name);
 
   notifyUser(userId: string, event: string, payload: any) {
