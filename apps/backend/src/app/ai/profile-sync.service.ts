@@ -1,12 +1,10 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ParsedResume } from './resume-parser.service';
 import { AiProviderService } from './ai-provider.service';
 
 @Injectable()
 export class ProfileSyncService {
-  private readonly logger = new Logger(ProfileSyncService.name);
-
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     private readonly aiProvider: AiProviderService,
@@ -27,8 +25,8 @@ export class ProfileSyncService {
   /**
    * Recalculates the aggregated values for a skill based on all linked resumes
    */
-  private async recalculateSkillAggregate(resumeIds: number[], skillName: string) {
-    const resumes = await this.prisma.resume.findMany({
+  private async recalculateSkillAggregate(tx: any, resumeIds: number[], skillName: string) {
+    const resumes = await tx.resume.findMany({
       where: { id: { in: resumeIds } },
       select: { parsedText: true }
     });
@@ -50,15 +48,17 @@ export class ProfileSyncService {
   }
 
   async commitMerge(candidateId: string, resumeId: number, data: ParsedResume) {
+    // PRE-CALCULATE BIO OUTSIDE TRANSACTION (AI is slow)
+    const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+    const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
+    rawDescriptions[resumeId.toString()] = data.bio;
+    const finalBio = await this.regenerateBio(rawDescriptions);
+
     return this.prisma.$transaction(async (tx) => {
       // Store raw JSON for future recalculations
       await tx.resume.update({ where: { id: resumeId }, data: { parsedText: JSON.stringify(data) } });
 
       // 1. Bio & Title
-      const currentDesc = await tx.candidateDescription.findUnique({ where: { candidateId } });
-      const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
-      rawDescriptions[resumeId.toString()] = data.bio;
-      const finalBio = await this.regenerateBio(rawDescriptions);
       await tx.candidateDescription.upsert({
         where: { candidateId },
         create: { candidateId, title: data.title, bio: finalBio, rawDescriptions },
@@ -73,7 +73,7 @@ export class ProfileSyncService {
         const sourceCvIds = existing ? [...new Set([...existing.sourceCvIds, resumeId])] : [resumeId];
         
         // Recalculate based on all sources including the new one
-        const { years, level } = await this.recalculateSkillAggregate(sourceCvIds, s.name);
+        const { years, level } = await this.recalculateSkillAggregate(tx, sourceCvIds, s.name);
 
         await tx.candidateSkill.upsert({
           where: { candidateId_skillId: { candidateId, skillId: skill.id } },
@@ -136,6 +136,17 @@ export class ProfileSyncService {
   }
 
   async handleResumeDeletion(candidateId: string, resumeId: number) {
+    // PRE-CALCULATE BIO CLEANUP OUTSIDE TRANSACTION (AI is slow)
+    const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+    let finalBio: string | null = null;
+    let updatedRawDescriptions: Record<string, string> | null = null;
+
+    if (desc?.rawDescriptions) {
+      updatedRawDescriptions = { ...(desc.rawDescriptions as Record<string, string>) };
+      delete updatedRawDescriptions[resumeId.toString()];
+      finalBio = await this.regenerateBio(updatedRawDescriptions);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const models = ['candidateSkill', 'experience', 'education', 'candidateContact', 'candidateSocial', 'certificate'];
       for (const model of models) {
@@ -148,31 +159,32 @@ export class ProfileSyncService {
             // RECALCULATION
             let updateData: any = { sourceCvIds: remainingIds };
             if (model === 'candidateSkill') {
-              const skill = await this.prisma.skill.findUnique({ where: { id: record.skillId } });
-              const { years, level } = await this.recalculateSkillAggregate(remainingIds, skill?.name || '');
+              const skill = await tx.skill.findUnique({ where: { id: record.skillId } });
+              const { years, level } = await this.recalculateSkillAggregate(tx, remainingIds, skill?.name || '');
               updateData = { ...updateData, years, level };
             } else if (model === 'experience' || model === 'education') {
-              const bestData = await this.getBestRecordFromSources(model, remainingIds, record);
+              const bestData = await this.getBestRecordFromSources(tx, model, remainingIds, record);
               updateData = { ...updateData, ...bestData };
             }
             await (tx as any)[model].update({ where: { id: record.id }, data: updateData });
           }
         }
       }
-      // Bio Cleanup
-      const desc = await tx.candidateDescription.findUnique({ where: { candidateId } });
-      if (desc?.rawDescriptions) {
-        const rawObj = desc.rawDescriptions as Record<string, string>;
-        delete rawObj[resumeId.toString()];
-        const finalBio = await this.regenerateBio(rawObj);
-        await tx.candidateDescription.update({ where: { candidateId }, data: { rawDescriptions: rawObj, bio: finalBio } });
+
+      // Bio Cleanup (using pre-calculated data)
+      if (updatedRawDescriptions !== null) {
+        await tx.candidateDescription.update({
+          where: { candidateId },
+          data: { rawDescriptions: updatedRawDescriptions, bio: finalBio }
+        });
       }
+
       return { success: true };
     });
   }
 
-  private async getBestRecordFromSources(model: string, remainingResumeIds: number[], currentRecord: any): Promise<any> {
-    const resumes = await this.prisma.resume.findMany({ where: { id: { in: remainingResumeIds } }, select: { parsedText: true } });
+  private async getBestRecordFromSources(tx: any, model: string, remainingResumeIds: number[], currentRecord: any): Promise<any> {
+    const resumes = await tx.resume.findMany({ where: { id: { in: remainingResumeIds } }, select: { parsedText: true } });
     const sourceDataList = resumes.map(r => JSON.parse(r.parsedText || '{}') as ParsedResume);
     const field = model === 'experience' ? 'experience' : 'education';
     const keyField = model === 'experience' ? 'companyName' : 'school';
