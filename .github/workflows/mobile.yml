@@ -126,9 +126,13 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -f node_modules/react-native/sdks/hermesc/linux64-bin/hermesc
       # 3a. Ensure Hermes CLI can execute on Linux runners
       - name: Install Hermes Linux runtime libs
-        run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1
+        run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1 libstdc++6
       - name: Ensure Hermes compiler is executable
         run: chmod +x node_modules/react-native/sdks/hermesc/linux64-bin/hermesc
       # 4. Set up Java for Android builds
@@ -166,6 +170,10 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
       # 4. Install CocoaPods dependencies
       - name: Install CocoaPods dependencies
         working-directory: apps/mobile
