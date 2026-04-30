@@ -99,9 +99,6 @@ jobs:
   # JOB 3: CD (Android APK release artifact)
   build-android:
     needs: [validate-mobile, smoke-mobile]
-    if: >-
-      ${{ (github.event_name == 'push' && github.ref_name == 'android') ||
-           (github.event_name == 'pull_request' && github.base_ref == 'android') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,9 +135,6 @@ jobs:
   # JOB 4: CD (iOS IPA release artifact)
   build-ios:
     needs: [validate-mobile, smoke-mobile]
-    if: >-
-      ${{ (github.event_name == 'push' && github.ref_name == 'ios') ||
-           (github.event_name == 'pull_request' && github.base_ref == 'ios') }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
