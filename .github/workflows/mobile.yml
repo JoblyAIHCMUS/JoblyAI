@@ -116,6 +116,11 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+      # 3a. Ensure Hermes CLI can execute on Linux runners
+      - name: Install Hermes Linux runtime libs
+        run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1
+      - name: Ensure Hermes compiler is executable
+        run: chmod +x node_modules/react-native/sdks/hermesc/linux64-bin/hermesc
       # 4. Set up Java for Android builds
       - uses: actions/setup-java@v4
         with:
@@ -164,16 +169,21 @@ jobs:
       # 5. Build the iOS app bundle
       - name: Build iOS app bundle
         working-directory: apps/mobile/ios
-        run: >-
-          xcodebuild
-          -workspace Mobile.xcworkspace
-          -scheme Mobile
-          -configuration Release
-          -sdk iphoneos
-          -derivedDataPath build
-          CODE_SIGNING_ALLOWED=NO
-          CODE_SIGNING_REQUIRED=NO
-          build
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace Mobile.xcworkspace \
+            -scheme Mobile \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build
       # 6. Package an IPA artifact
       - name: Package IPA artifact
         working-directory: apps/mobile/ios
