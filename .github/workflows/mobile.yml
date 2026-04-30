@@ -1,0 +1,192 @@
+name: Mobile Android/iOS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - android
+      - ios
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+  pull_request:
+    branches:
+      - android
+      - ios
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  # JOB 1: CI Checks (Formatting, audit, lint)
+  validate-mobile:
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 3a. Run format check
+      - run: pnpm nx format:check --base=origin/main --head=HEAD
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=high
+      # 4. Run mobile lint
+      - run: pnpm nx run @jobly/mobile:lint
+
+  # JOB 2: Smoke Test (Metro bundler)
+  smoke-mobile:
+    needs: validate-mobile
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Start Metro bundler
+      - name: Start Metro bundler
+        run: nohup pnpm nx start @jobly/mobile > /tmp/metro.log 2>&1 &
+      # 5. Smoke check Metro
+      - name: Smoke check Metro
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8081/status | grep -q "packager-status:running"; then
+              echo "Metro healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Metro did not become healthy"
+          cat /tmp/metro.log
+          exit 1
+
+  # JOB 3: CD (Android APK release artifact)
+  build-android:
+    needs: [validate-mobile, smoke-mobile]
+    if: >-
+      ${{ (github.event_name == 'push' && github.ref_name == 'android') ||
+           (github.event_name == 'pull_request' && github.base_ref == 'android') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Set up Java for Android builds
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      # 5. Build the Android release APK
+      - name: Build Android release APK
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease
+      # 6. Upload Android artifact
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-android-release
+          path: apps/mobile/android/app/build/outputs/apk/release/*.apk
+
+  # JOB 4: CD (iOS IPA release artifact)
+  build-ios:
+    needs: [validate-mobile, smoke-mobile]
+    if: >-
+      ${{ (github.event_name == 'push' && github.ref_name == 'ios') ||
+           (github.event_name == 'pull_request' && github.base_ref == 'ios') }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      # 4. Install CocoaPods dependencies
+      - name: Install CocoaPods dependencies
+        working-directory: apps/mobile
+        run: bundle install
+      - name: Install iOS pods
+        working-directory: apps/mobile/ios
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/apps/mobile/Gemfile
+        run: bundle exec pod install
+      # 5. Build the iOS app bundle
+      - name: Build iOS app bundle
+        working-directory: apps/mobile/ios
+        run: >-
+          xcodebuild
+          -workspace Mobile.xcworkspace
+          -scheme Mobile
+          -configuration Release
+          -sdk iphoneos
+          -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_REQUIRED=NO
+          build
+      # 6. Package an IPA artifact
+      - name: Package IPA artifact
+        working-directory: apps/mobile/ios
+        run: |
+          set -euo pipefail
+          rm -rf build/ipa
+          mkdir -p build/ipa/Payload
+          cp -R build/Build/Products/Release-iphoneos/Mobile.app build/ipa/Payload/
+          (cd build/ipa && zip -qr Mobile.ipa Payload)
+      # 7. Upload iOS artifact
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-ios-release
+          path: apps/mobile/ios/build/ipa/Mobile.ipa
