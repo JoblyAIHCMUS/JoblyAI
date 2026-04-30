@@ -126,13 +126,18 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+      - name: Link workspace node_modules
+        run: |
+          if [ ! -e apps/mobile/node_modules ]; then
+            ln -s "$GITHUB_WORKSPACE/node_modules" apps/mobile/node_modules
+          fi
       - name: Verify React Native node modules
         run: |
           test -d node_modules/react-native
           test -f node_modules/react-native/sdks/hermesc/linux64-bin/hermesc
       # 3a. Ensure Hermes CLI can execute on Linux runners
       - name: Install Hermes Linux runtime libs
-        run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1 libstdc++6 libncurses5 libtinfo5
+        run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1 libstdc++6 libncurses5 libtinfo5 libunwind8
 
       - name: Ensure Hermes compiler is executable
         run: |
@@ -140,6 +145,13 @@ jobs:
           REAL_HERMES_PATH=$(readlink -f node_modules/react-native/sdks/hermesc/linux64-bin/hermesc)
           echo "Real Hermes path is: $REAL_HERMES_PATH"
           chmod +x "$REAL_HERMES_PATH"
+      - name: Hermes diagnostics
+        run: |
+          set -euo pipefail
+          HERMES_PATH=$(readlink -f node_modules/react-native/sdks/hermesc/linux64-bin/hermesc)
+          ls -l "$HERMES_PATH"
+          file "$HERMES_PATH"
+          ldd "$HERMES_PATH" || true
       # 4. Set up Java for Android builds
       - uses: actions/setup-java@v4
         with:
@@ -175,6 +187,11 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
+      - name: Link workspace node_modules
+        run: |
+          if [ ! -e apps/mobile/node_modules ]; then
+            ln -s "$GITHUB_WORKSPACE/node_modules" apps/mobile/node_modules
+          fi
       - name: Verify React Native node modules
         run: |
           test -d node_modules/react-native
