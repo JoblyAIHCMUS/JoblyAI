@@ -3,8 +3,8 @@ name: Mobile Android/iOS CI/CD Pipeline
 on:
   push:
     branches:
-      - android
-      - ios
+      - '**/android/**'
+      - '**/ios/**'
       - '**/mobile/**'
       - '**/infrastructure/**'
     paths:
@@ -12,8 +12,8 @@ on:
       - 'libs/**'
   pull_request:
     branches:
-      - android
-      - ios
+      - '**/android/**'
+      - '**/ios/**'
       - '**/mobile/**'
       - '**/infrastructure/**'
     paths:
@@ -23,6 +23,7 @@ on:
 permissions:
   actions: read
   contents: read
+  packages: write
 
 jobs:
   # JOB 1: CI Checks (Formatting, audit, lint)
