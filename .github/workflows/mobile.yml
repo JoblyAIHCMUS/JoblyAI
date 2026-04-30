@@ -110,7 +110,7 @@ jobs:
   # JOB 3: CD (Android APK release artifact)
   build-android:
     needs: [validate-mobile, smoke-mobile]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
