@@ -151,7 +151,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
+      # 4a Ensure absolutely no Gradle state survives
+      - name: Hard clear Gradle Cache
+        run: rm -rf ~/.gradle/caches
       # 5. Build the Android release APK
       - name: Build Android release APK
         working-directory: apps/mobile/android
