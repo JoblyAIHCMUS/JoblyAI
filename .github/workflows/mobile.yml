@@ -126,11 +126,6 @@ jobs:
           cache: 'pnpm'
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
-      - name: Link workspace node_modules
-        run: |
-          if [ ! -e apps/mobile/node_modules ]; then
-            ln -s "$GITHUB_WORKSPACE/node_modules" apps/mobile/node_modules
-          fi
       - name: Verify React Native node modules
         run: |
           test -d node_modules/react-native
