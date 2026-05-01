@@ -138,7 +138,6 @@ jobs:
       # 3a. Ensure Hermes CLI can execute on Linux runners
       - name: Install Hermes Linux runtime libs
         run: sudo apt-get update && sudo apt-get install -y libc++1 libc++abi1 libstdc++6 libncurses5 libtinfo5 libunwind8
-
       - name: Ensure Hermes compiler is executable
         run: |
           # Resolve the actual physical path through PNPM's symlinks
@@ -160,7 +159,11 @@ jobs:
           cache: gradle
       # 5. Build the Android release APK
       - name: Build Android release APK
-        run: pnpm nx run @jobly/mobile:build-android --skip-nx-cache -- --no-build-cache
+        working-directory: apps/mobile/android
+        run: |
+          set -euo pipefail
+          ./gradlew clean
+          ./gradlew assembleRelease --no-build-cache
       # 6. Upload Android artifact
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
