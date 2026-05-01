@@ -1,0 +1,108 @@
+name: Mobile Android/iOS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**/android/**'
+      - '**/ios/**'
+      - '**/mobile/**'
+      - '**/infrastructure/**'
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+      - '.github/workflows/mobile.yml'
+  pull_request:
+    branches:
+      - '**/android/**'
+      - '**/ios/**'
+      - '**/mobile/**'
+      - '**/infrastructure/**'
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+      - '.github/workflows/mobile.yml'
+
+permissions:
+  actions: read
+  contents: read
+  packages: write
+
+jobs:
+  # JOB 1: CI Checks (Formatting, audit, lint)
+  validate-mobile:
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 3a. Run format check
+      - run: pnpm nx format:check --base=origin/main --head=HEAD
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=high
+      # 4. Run mobile lint
+      - run: pnpm nx run @jobly/mobile:lint
+
+  # JOB 2: Smoke Test (Metro bundler)
+  smoke-mobile:
+    needs: validate-mobile
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 4. Start Metro bundler
+      - name: Start Metro bundler
+        run: nohup pnpm nx start @jobly/mobile > /tmp/metro.log 2>&1 &
+      # 5. Smoke check Metro
+      - name: Smoke check Metro
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8081/status | grep -q "packager-status:running"; then
+              echo "Metro healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Metro did not become healthy"
+          cat /tmp/metro.log
+          exit 1
