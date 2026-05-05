@@ -2,6 +2,7 @@ import { PrismaClient, Gender } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
+import { Skill } from './data/Skill';
 
 
 const prisma = new PrismaClient();
@@ -58,26 +59,7 @@ async function main() {
   // Create skills
   console.log('Creating skills...');
   const skills = await prisma.skill.createMany({
-    data: [
-      { name: 'JavaScript' },
-      { name: 'TypeScript' },
-      { name: 'React' },
-      { name: 'Node.js' },
-      { name: 'PostgreSQL' },
-      { name: 'Docker' },
-      { name: 'Kubernetes' },
-      { name: 'AWS' },
-      { name: 'Python' },
-      { name: 'Machine Learning' },
-      { name: 'TensorFlow' },
-      { name: 'Figma' },
-      { name: 'UI/UX Design' },
-      { name: 'Project Management' },
-      { name: 'Git' },
-      { name: 'REST APIs' },
-      { name: 'GraphQL' },
-      { name: 'Agile' },
-    ],
+        data: Skill.map((s) => ({ name: s.name })),
   });
   console.log(`Created ${skills.count} skills`);
 
