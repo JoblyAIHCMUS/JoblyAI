@@ -56,7 +56,7 @@ const createMockApplication = (overrides = {}) => ({
       sizeRange: null,
       industry: null,
       description: null,
-      logoUrl: null,
+      logoUrl: 'https://storage.example.com/company-logo.png',
     },
     salaryMin: 80000,
     salaryMax: 120000,
@@ -152,6 +152,9 @@ describe('ApplicationsService', () => {
 
       expect(result.status).toBe('APPLIED');
       expect(result.job.title).toBe('Software Engineer');
+      expect(result.job.companyLogoUrl).toBe(
+        'https://storage.example.com/company-logo.png'
+      );
       expect(mockPrisma.application.create).toHaveBeenCalled();
     });
 
