@@ -1,4 +1,13 @@
 {
-  "name": "Mobile",
-  "displayName": "Mobile"
+  "expo": {
+    "name": "JoblyAI",
+    "slug": "jobly-mobile",
+    "version": "1.0.0",
+    "ios": {
+      "bundleIdentifier": "com.jobly.mobile"
+    },
+    "android": {
+      "package": "com.jobly.mobile"
+    }
+  }
 }
