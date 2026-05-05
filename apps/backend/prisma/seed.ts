@@ -1,4 +1,10 @@
-import { PrismaClient, Gender, EmploymentType, JobStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  Gender,
+  EmploymentType,
+  JobStatus,
+  RequirementImportance,
+} from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
@@ -162,141 +168,33 @@ async function main() {
     return id;
   };
 
-  const jobRequirementsData = [
-    // Senior Full Stack Engineer requirements
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('TypeScript'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 5,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('React'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('Node.js'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('PostgreSQL'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('Docker'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // Data Scientist requirements
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('Python'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('Machine Learning'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('TensorFlow'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 1,
-    },
-    // DevOps Engineer requirements
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('Docker'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('Kubernetes'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('AWS'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // UI/UX Designer requirements
-    {
-      jobPostingId: jobPostings[3].id,
-      skillId: getSkillId('Figma'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[3].id,
-      skillId: getSkillId('UI/UX Design'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    // Product Manager requirements
-    {
-      jobPostingId: jobPostings[4].id,
-      skillId: getSkillId('Project Management'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[4].id,
-      skillId: getSkillId('Agile'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // Junior React Developer requirements
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('React'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 0,
-    },
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('JavaScript'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 1,
-    },
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('Git'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 1,
-    },
-    // Backend Engineer (Python) requirements
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('Python'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('REST APIs'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('PostgreSQL'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-  ];
+  const jobRequirementsData = jobPosting.flatMap((job, jobIndex) =>
+    job.jobRequirements.map((requirement) => ({
+      jobPostingId: createdJobPostings[jobIndex].id,
+      skillId: getSkillId(requirement.skillName.name),
+      importance: requirement.importance as RequirementImportance,
+      minYearsExperience: requirement.minYears,
+    }))
+  );
+
+  const groups = new Map();
+
+  jobRequirementsData.forEach((item) => {
+  const key = `${item.jobPostingId}-${item.skillId}`;
+
+  if (!groups.has(key)) {
+    groups.set(key, []);
+  }
+
+  groups.get(key).push(item);
+});
+
+for (const [key, list] of groups) {
+  if (list.length > 1) {
+    console.log("🔴 DUPLICATE GROUP:", key);
+    console.log(list);
+  }
+}
 
   const jobRequirements = await prisma.jobRequirement.createMany({
     data: jobRequirementsData,
