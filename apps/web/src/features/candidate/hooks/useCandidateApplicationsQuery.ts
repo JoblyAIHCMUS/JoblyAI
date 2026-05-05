@@ -248,7 +248,6 @@ export function useCandidateApplicationsQuery() {
     totalPages
   );
 
-
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);

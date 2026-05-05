@@ -127,9 +127,7 @@ export default function Skills({
     if (event.key === 'Enter') {
       event.preventDefault();
       const selectedSuggestion =
-        highlightedIndex >= 0
-          ? suggestions[highlightedIndex]
-          : suggestions[0];
+        highlightedIndex >= 0 ? suggestions[highlightedIndex] : suggestions[0];
 
       if (selectedSuggestion) {
         handleSelectSuggestion(selectedSuggestion.name);

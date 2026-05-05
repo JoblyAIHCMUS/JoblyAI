@@ -421,7 +421,7 @@ export const SubmitApplicationModal = ({
 
         {/* Job Header */}
         <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:mb-6 sm:flex-row sm:gap-6 sm:pb-6">
-            {job.logoUrl ? (
+          {job.logoUrl ? (
             <div className="flex-shrink-0">
               <Image
                 src={job.logoUrl}

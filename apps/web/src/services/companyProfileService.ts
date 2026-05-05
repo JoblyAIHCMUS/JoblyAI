@@ -90,9 +90,16 @@ export const companyProfileService = {
       (entry) => entry.id === id
     );
 
-    const name = company.name ?? categoryCompany?.name ?? recommendedCompany?.name ?? 'Company';
+    const name =
+      company.name ??
+      categoryCompany?.name ??
+      recommendedCompany?.name ??
+      'Company';
     const logoUrl =
-      company.logoUrl ?? categoryCompany?.logoUrl ?? recommendedCompany?.logo.imageUrl ?? '';
+      company.logoUrl ??
+      categoryCompany?.logoUrl ??
+      recommendedCompany?.logo.imageUrl ??
+      '';
     const categoryName = categoryCompany?.categoryId
       ? categoryNameMap.get(categoryCompany.categoryId) ?? 'Technology'
       : company.industry ?? recommendedCompany?.tag.label ?? 'Technology';

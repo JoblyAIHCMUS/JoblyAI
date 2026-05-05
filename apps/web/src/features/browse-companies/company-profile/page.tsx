@@ -13,8 +13,12 @@ export default function BrowseCompaniesCompanyProfilePage({
 }: {
   companySlug: string;
 }) {
-  const { fetchCompanyBySlug, loading, error, data: company } =
-    useGetCompanyBySlug();
+  const {
+    fetchCompanyBySlug,
+    loading,
+    error,
+    data: company,
+  } = useGetCompanyBySlug();
 
   useEffect(() => {
     void fetchCompanyBySlug(companySlug);

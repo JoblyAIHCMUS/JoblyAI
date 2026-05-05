@@ -223,7 +223,7 @@ async function main() {
 
   for (const [key, list] of groups) {
     if (list.length > 1) {
-      console.log("🔴 DUPLICATE GROUP:", key);
+      console.log('🔴 DUPLICATE GROUP:', key);
       console.log(list);
     }
   }

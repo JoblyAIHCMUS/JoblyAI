@@ -6,9 +6,7 @@ interface UseGetCompanyBySlugOptions {
   onError?: (error: unknown) => void;
 }
 
-export function useGetCompanyBySlug(
-  options?: UseGetCompanyBySlugOptions
-) {
+export function useGetCompanyBySlug(options?: UseGetCompanyBySlugOptions) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<Company | null>(null);
