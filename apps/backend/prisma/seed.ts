@@ -1,6 +1,8 @@
 import { PrismaClient, Gender } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
+import { jobCategories } from './data/JobCategory';
+
 
 const prisma = new PrismaClient();
 
@@ -49,16 +51,7 @@ async function main() {
   // Create job categories
   console.log('Creating job categories...');
   const categories = await prisma.jobCategory.createMany({
-    data: [
-      { name: 'Software Development', slug: 'software-development' },
-      { name: 'Data Science', slug: 'data-science' },
-      { name: 'DevOps', slug: 'devops' },
-      { name: 'Design', slug: 'design' },
-      { name: 'Product Management', slug: 'product-management' },
-      { name: 'Sales', slug: 'sales' },
-      { name: 'Marketing', slug: 'marketing' },
-      { name: 'Customer Support', slug: 'customer-support' },
-    ],
+    data: jobCategories,
   });
   console.log(`Created ${categories.count} job categories`);
 
