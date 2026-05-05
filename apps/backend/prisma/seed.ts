@@ -15,6 +15,34 @@ import { jobPosting } from './data/JobPosting';
 
 const prisma = new PrismaClient();
 
+function toSlug(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function createUniqueSlugFactory() {
+  const usedSlugs = new Set<string>();
+
+  return (name: string): string => {
+    const baseSlug = toSlug(name) || 'company';
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (usedSlugs.has(candidate)) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedSlugs.add(candidate);
+    return candidate;
+  };
+}
+
 // Better-auth password hashing config
 const SCRYPT_CONFIG = {
   N: 16384,
@@ -117,10 +145,14 @@ async function main() {
 
   // Create companies
   console.log('Creating companies...');
+  const nextCompanySlug = createUniqueSlugFactory();
   const createdCompanies = await Promise.all(
     company.map((company) =>
       prisma.company.create({
-        data: company,
+        data: {
+          ...company,
+          slug: nextCompanySlug(company.name),
+        },
       })
     )
   );
@@ -391,6 +423,7 @@ async function main() {
   const nomad = await prisma.company.create({
     data: {
       name: 'Nomad',
+      slug: nextCompanySlug('Nomad'),
       websiteUrl: 'https://www.nomad.com',
       sizeRange: '1-50',
       industry: 'Technology',
