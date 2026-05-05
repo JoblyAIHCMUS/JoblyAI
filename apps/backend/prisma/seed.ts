@@ -4,6 +4,7 @@ import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
 import { Skill } from './data/Skill';
 import { users } from './data/User';
+import { company } from './data/Company';
 
 const prisma = new PrismaClient();
 
@@ -109,69 +110,16 @@ async function main() {
 
   // Create companies
   console.log('Creating companies...');
-  const companies = await Promise.all([
-    prisma.company.create({
-      data: {
-        name: 'Tech Corp',
-        websiteUrl: 'https://techcorp.com',
-        sizeRange: '1000-5000',
-        industry: 'Software Development',
-        description: 'Leading technology innovation company',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'DataFlow Inc',
-        websiteUrl: 'https://dataflow.com',
-        sizeRange: '500-1000',
-        industry: 'Data Science',
-        description: 'Data science and analytics solutions',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'CloudStack',
-        websiteUrl: 'https://cloudstack.io',
-        sizeRange: '200-500',
-        industry: 'Cloud Infrastructure',
-        description: 'Cloud infrastructure and DevOps services',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'Design Studios',
-        websiteUrl: 'https://designstudios.com',
-        sizeRange: '50-200',
-        industry: 'Design',
-        description: 'Creative design and UX solutions',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'Innovation Labs',
-        websiteUrl: 'https://innovationlabs.com',
-        sizeRange: '100-500',
-        industry: 'Product Development',
-        description: 'Product innovation and development',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'StartUp Hub',
-        websiteUrl: 'https://startuphub.com',
-        sizeRange: '20-100',
-        industry: 'Startup Incubation',
-        description: 'Startup incubation and mentorship',
-        logoUrl: '',
-      },
-    }),
-  ]);
-  console.log(`Created ${companies.length} companies`);
+  const createdCompanies = await Promise.all(
+    company.map((company) =>
+      prisma.company.create({
+        data: company,
+      })
+    )
+  );
+  console.log(`Created ${createdCompanies.length} companies`);
+
+  const companies = await prisma.company.findMany();
 
   // Create job postings
   console.log('Creating job postings...');
