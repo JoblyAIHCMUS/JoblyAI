@@ -247,17 +247,6 @@ export function useCandidateApplicationsQuery() {
     totalPages
   );
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    applicationFilter,
-    advancedFilters.company,
-    advancedFilters.jobType,
-    advancedFilters.location,
-    searchKeyword,
-    selectedStartDate,
-    selectedEndDate,
-  ]);
 
   useEffect(() => {
     if (currentPage > totalPages) {

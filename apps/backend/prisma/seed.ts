@@ -180,21 +180,21 @@ async function main() {
   const groups = new Map();
 
   jobRequirementsData.forEach((item) => {
-  const key = `${item.jobPostingId}-${item.skillId}`;
+    const key = `${item.jobPostingId}-${item.skillId}`;
 
-  if (!groups.has(key)) {
-    groups.set(key, []);
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+
+    groups.get(key).push(item);
+  });
+
+  for (const [key, list] of groups) {
+    if (list.length > 1) {
+      console.log("🔴 DUPLICATE GROUP:", key);
+      console.log(list);
+    }
   }
-
-  groups.get(key).push(item);
-});
-
-for (const [key, list] of groups) {
-  if (list.length > 1) {
-    console.log("🔴 DUPLICATE GROUP:", key);
-    console.log(list);
-  }
-}
 
   const jobRequirements = await prisma.jobRequirement.createMany({
     data: jobRequirementsData,

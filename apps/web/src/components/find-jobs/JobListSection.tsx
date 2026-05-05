@@ -107,6 +107,14 @@ export default function JobListSection({
     <section className="bg-white py-10 lg:py-[72px]">
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[234px_1fr] lg:gap-10 lg:px-8">
         <aside className="hidden flex-col gap-3 lg:flex">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover: transition-colors"
+          >
+            Reset Filters
+          </button>
+          <SalaryFilter onSalaryChange={onSalaryChange} />
           {filterGroups.map((group: FilterGroupData) => (
             <FilterGroup
               key={group.title}
@@ -118,14 +126,6 @@ export default function JobListSection({
               onToggleExpand={handleToggleExpand}
             />
           ))}
-          <SalaryFilter onSalaryChange={onSalaryChange} />
-          <button
-            type="button"
-            onClick={handleReset}
-            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover: transition-colors"
-          >
-            Reset Filters
-          </button>
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -291,6 +291,14 @@ export default function JobListSection({
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
+                <SalaryFilter onSalaryChange={onSalaryChange} />
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  Reset Filters
+                </button>
                 {filterGroups.map((group: FilterGroupData) => (
                   <FilterGroup
                     key={`mobile-${group.title}`}
@@ -307,13 +315,6 @@ export default function JobListSection({
 
             <div className="border-t border-slate-200 p-4">
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="h-11 flex-1 rounded-[6px] border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  Reset
-                </button>
                 {/* <button
                   type="button"
                   onClick={() => {

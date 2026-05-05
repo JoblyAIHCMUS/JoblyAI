@@ -37,4 +37,4 @@ export const FILTER_GROUPS: FilterGroupData[] = [
 ];
 
 export const SALARY_MAX_CAP = 200_000;
-export const PAGE_SIZE = 5;
+export const PAGE_SIZE = 15;
