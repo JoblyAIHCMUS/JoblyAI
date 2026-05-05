@@ -1,10 +1,11 @@
-import { PrismaClient, Gender } from '@prisma/client';
+import { PrismaClient, Gender, EmploymentType, JobStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
 import { Skill } from './data/Skill';
 import { users } from './data/User';
 import { company } from './data/Company';
+import { jobPosting } from './data/JobPosting';
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,7 @@ async function main() {
   // Create skills
   console.log('Creating skills...');
   const skills = await prisma.skill.createMany({
-        data: Skill.map((s) => ({ name: s.name })),
+    data: Skill.map((s) => ({ name: s.name })),
   });
   console.log(`Created ${skills.count} skills`);
 
@@ -78,7 +79,7 @@ async function main() {
     avatarUrl: u.avatarUrl,
     phoneNumber: u.phoneNumber,
     dateOfBirth: new Date(u.dateOfBirth),
-    gender: u.gender as Gender, 
+    gender: u.gender as Gender,
   }));
   // Create each user with their account
   for (const userData of usersData) {
@@ -123,207 +124,30 @@ async function main() {
 
   // Create job postings
   console.log('Creating job postings...');
-  const jobPostings = await Promise.all([
-    prisma.jobPosting.create({
-      data: {
-        title: 'Senior Full Stack Engineer',
-        description:
-          'We are looking for an experienced full stack engineer to join our team. You will work on both frontend and backend systems.',
-        location: 'San Francisco, CA',
-        salaryMin: 120000,
-        salaryMax: 180000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Data Scientist',
-        description:
-          'Join our data science team to build machine learning models that impact millions of users.',
-        location: 'New York, NY',
-        salaryMin: 110000,
-        salaryMax: 160000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'FULL_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[1].id,
-        companyId: companies[1].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'DevOps Engineer',
-        description:
-          'Help us scale our infrastructure and improve our deployment pipeline.',
-        location: 'Remote',
-        salaryMin: 100000,
-        salaryMax: 150000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[2].id,
-        companyId: companies[2].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'UI/UX Designer',
-        description:
-          'Design beautiful and intuitive user interfaces for our web and mobile applications.',
-        location: 'Los Angeles, CA',
-        salaryMin: 80000,
-        salaryMax: 120000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[3].id,
-        companyId: companies[3].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Product Manager',
-        description:
-          'Lead product strategy and roadmap for our flagship product.',
-        location: 'Boston, MA',
-        salaryMin: 130000,
-        salaryMax: 170000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'FULL_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[4].id,
-        companyId: companies[4].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Junior React Developer',
-        description:
-          'Great opportunity for early-career developers to grow with our team.',
-        location: 'Remote',
-        salaryMin: 60000,
-        salaryMax: 85000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[5].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Backend Engineer (Python)',
-        description: 'Build and maintain our Python-based backend services.',
-        location: 'Seattle, WA',
-        salaryMin: 105000,
-        salaryMax: 155000,
-        currency: 'USD',
-        status: 'DRAFT',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Part-Time Content Writer',
-        description: 'Write technical blog posts and documentation.',
-        location: 'Remote',
-        salaryMin: 25000,
-        salaryMax: 45000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'PART_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[5].id,
-        companyId: companies[4].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Part-Time Graphic Designer',
-        description: 'Design marketing materials and social media content.',
-        location: 'Remote',
-        salaryMin: 30000,
-        salaryMax: 50000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'PART_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[3].id,
-        companyId: companies[3].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Internship - Frontend Development',
-        description: 'Learn front-end development with our experienced team.',
-        location: 'New York, NY',
-        salaryMin: 15000,
-        salaryMax: 25000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'INTERNSHIP',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Contract - Mobile App Developer',
-        description: 'Develop a mobile app for 3-6 months contract.',
-        location: 'Remote',
-        salaryMin: 70000,
-        salaryMax: 100000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'CONTRACT',
-        postedById: employers[1].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[1].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Freelance - WordPress Developer',
-        description: 'Build and maintain WordPress websites.',
-        location: 'Remote',
-        salaryMin: 40000,
-        salaryMax: 70000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FREELANCE',
-        postedById: employers[2].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[5].id,
-      },
-    }),
-  ]);
-  console.log(`Created ${jobPostings.length} job postings`);
+  const createdJobPostings = await Promise.all(
+    jobPosting.map((job, index) =>
+      prisma.jobPosting.create({
+        data: {
+          title: job.title,
+          description: job.description,
+          location: job.location,
+          remote: job.remote,
+          type: job.type as EmploymentType,
+          status: job.status as JobStatus,
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+
+          // IMPORTANT: add relations here
+          postedById: employers[index % employers.length].id,
+          companyId: companies[index % companies.length].id,
+          categoryId: allCategories[index % allCategories.length].id,
+        },
+      })
+    )
+  );
+  console.log(`Created ${createdJobPostings.length} job postings`);
+
+  const jobPostings = await prisma.jobPosting.findMany();
 
   // Create job requirements
   console.log('Creating job requirements...');
