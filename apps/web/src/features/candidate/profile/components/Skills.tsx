@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { CandidateSkill } from '@/api-client/candidate/types';
+import { useSearchSkills } from '@/api-hook/skills';
 import { formatErrorForDisplay } from '@/lib/errors';
 
 interface SkillsProps {
@@ -18,12 +19,46 @@ export default function Skills({
 }: Readonly<SkillsProps>) {
   const [isAdding, setIsAdding] = useState(false);
   const [newSkill, setNewSkill] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { results, loading, search } = useSearchSkills();
+
+  const suggestions = useMemo(
+    () =>
+      results.filter(
+        (skill) =>
+          !skills.some(
+            (existingSkill) =>
+              existingSkill.title.trim().toLowerCase() ===
+              skill.name.trim().toLowerCase()
+          )
+      ),
+    [results, skills]
+  );
+
+  useEffect(() => {
+    if (!isAdding) {
+      return;
+    }
+
+    const trimmedSkill = newSkill.trim();
+    if (!trimmedSkill) {
+      setIsDropdownOpen(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    void search(trimmedSkill);
+  }, [isAdding, newSkill, search]);
 
   const handleAddClick = () => {
     setIsAdding(true);
     setNewSkill('');
+    setIsDropdownOpen(false);
+    setHighlightedIndex(-1);
     setSaveError(null);
   };
 
@@ -40,6 +75,8 @@ export default function Skills({
       await handleAddSkill(trimmedSkill);
       setIsAdding(false);
       setNewSkill('');
+      setIsDropdownOpen(false);
+      setHighlightedIndex(-1);
     } catch (error) {
       setSaveError(formatErrorForDisplay(error, 'Failed to add skill'));
     } finally {
@@ -50,7 +87,70 @@ export default function Skills({
   const handleCancel = () => {
     setIsAdding(false);
     setNewSkill('');
+    setIsDropdownOpen(false);
+    setHighlightedIndex(-1);
     setSaveError(null);
+  };
+
+  const handleSelectSuggestion = (skillName: string) => {
+    setNewSkill(skillName);
+    setIsDropdownOpen(false);
+    setHighlightedIndex(-1);
+    inputRef.current?.focus();
+  };
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isDropdownOpen || suggestions.length === 0) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        void handleSave();
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightedIndex((current) =>
+        current < suggestions.length - 1 ? current + 1 : 0
+      );
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedIndex((current) =>
+        current > 0 ? current - 1 : suggestions.length - 1
+      );
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const selectedSuggestion =
+        highlightedIndex >= 0
+          ? suggestions[highlightedIndex]
+          : suggestions[0];
+
+      if (selectedSuggestion) {
+        handleSelectSuggestion(selectedSuggestion.name);
+        return;
+      }
+
+      void handleSave();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      setIsDropdownOpen(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  const handleInputChange = (value: string) => {
+    setNewSkill(value);
+    setSaveError(null);
+    setHighlightedIndex(-1);
+    setIsDropdownOpen(value.trim().length > 0);
   };
 
   return (
@@ -72,13 +172,59 @@ export default function Skills({
       </div>
       {isAdding && (
         <div className="flex flex-col px-4 gap-2 mt-2">
-          <input
-            className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-accent-primary"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            placeholder="Enter a new skill"
-            autoFocus
-          />
+          <div className="relative">
+            <input
+              ref={inputRef}
+              className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-accent-primary w-full"
+              value={newSkill}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onFocus={() => {
+                if (newSkill.trim()) {
+                  setIsDropdownOpen(true);
+                }
+              }}
+              onBlur={() => {
+                window.setTimeout(() => setIsDropdownOpen(false), 150);
+              }}
+              onKeyDown={handleInputKeyDown}
+              placeholder="Enter a new skill"
+              autoFocus
+              autoComplete="off"
+            />
+            {isDropdownOpen && newSkill.trim().length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                {loading && (
+                  <div className="px-3 py-2 text-sm text-slate-500">
+                    Searching skills...
+                  </div>
+                )}
+                {!loading && suggestions.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-slate-500">
+                    No matching skills found.
+                  </div>
+                )}
+                {!loading &&
+                  suggestions.map((skill, index) => (
+                    <button
+                      key={skill.id}
+                      type="button"
+                      className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                        index === highlightedIndex
+                          ? 'bg-slate-100 text-slate-900'
+                          : 'hover:bg-slate-50'
+                      }`}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        handleSelectSuggestion(skill.name);
+                      }}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                    >
+                      {skill.name}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
           {saveError && <p className="text-sm text-danger">{saveError}</p>}
           <div className="flex gap-2 mt-2">
             <button
