@@ -58,6 +58,7 @@ export class ResumeParserService {
       });
       
       const pdf = await loadingTask.promise;
+      this.logger.log(`PDF loaded. Number of pages: ${pdf.numPages}`);
       let fullText = '';
 
       for (let i = 1; i <= pdf.numPages; i++) {
@@ -69,7 +70,14 @@ export class ResumeParserService {
         fullText += pageText + '\n';
       }
 
-      return fullText;
+      const cleanText = fullText.trim();
+      this.logger.log(`PDF extraction complete. Text length: ${cleanText.length}`);
+      
+      if (cleanText.length < 50) {
+        this.logger.warn('Extracted text is very short. PDF might be scanned/image-based or empty.');
+      }
+
+      return cleanText;
     } catch (error: any) {
       this.logger.error(`Error parsing PDF with pdfjs-dist: ${error.message}`);
       throw new Error('Failed to extract text from PDF');
@@ -127,6 +135,12 @@ export class ResumeParserService {
       }
     `;
 
-    return this.aiProvider.generateStructuredData<ParsedResume>(prompt);
+    this.logger.log(`Calling Gemini API for resume extraction. Prompt length: ${prompt.length}`);
+    const result = await this.aiProvider.generateStructuredData<ParsedResume>(prompt);
+    
+    // Log a summary of extracted data
+    this.logger.log(`Extraction complete for resume. Found: ${result?.skills?.length || 0} skills, ${result?.experience?.length || 0} experiences, ${result?.education?.length || 0} educations.`);
+    
+    return result;
   }
 }

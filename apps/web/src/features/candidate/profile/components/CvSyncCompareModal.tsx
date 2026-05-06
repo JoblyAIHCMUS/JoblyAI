@@ -203,11 +203,11 @@ export function CvSyncCompareModal({
               <Section 
                 icon={<Code2 size={16} />} 
                 title="Skills"
-                current={currentData?.candidateSkills}
+                current={currentData?.skills}
                 newItems={newData?.skills}
                 renderItem={(s: any, i: number) => (
                   <div key={i} className="flex items-center justify-between p-2 px-3 border rounded-lg bg-white shadow-sm">
-                    <span className="text-xs font-semibold">{s.skill.name}</span>
+                    <span className="text-xs font-semibold">{s.title}</span>
                     <Badge variant="secondary" className="text-[9px] h-4">{s.level} • {s.years}y</Badge>
                   </div>
                 )}
@@ -246,7 +246,7 @@ export function CvSyncCompareModal({
                   <section>
                     {renderSectionHeader(<Phone size={16} />, "Contact Info")}
                     <div className="flex flex-wrap gap-2">
-                      {currentData?.candidateContacts?.map((c: any, i: number) => (
+                      {currentData?.contacts?.map((c: any, i: number) => (
                         <Badge key={i} variant="outline" className="text-[10px] py-1 border-slate-200 bg-white">
                           <span className="text-slate-400 mr-1">{c.type}:</span> {c.value}
                         </Badge>
@@ -256,7 +256,7 @@ export function CvSyncCompareModal({
                   <section>
                     {renderSectionHeader(<Share2 size={16} />, "Social Links")}
                     <div className="flex flex-wrap gap-2">
-                      {currentData?.candidateSocials?.map((s: any, i: number) => (
+                      {currentData?.socials?.map((s: any, i: number) => (
                         <Badge key={i} variant="outline" className="text-[10px] py-1 border-slate-200 bg-white">
                           <span className="text-slate-400 mr-1">{s.platform}:</span> {s.url}
                         </Badge>

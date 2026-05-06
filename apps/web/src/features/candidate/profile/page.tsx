@@ -56,35 +56,45 @@ const CandidateProfilePage = () => {
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
-  const [processingAiResumeId, setProcessingAiResumeId] = useState<number | null>(null);
+  const [processingTasks, setProcessingTasks] = useState<Record<number, { parsing: boolean; scoring: boolean }>>({});
+  const [isSyncing, setIsSyncing] = useState(false);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
+
+  // Derive processingAiResumeId for backward compatibility with CV component
+  // It returns the first resume ID that has any ongoing task
+  const processingAiResumeId = Object.entries(processingTasks).find(
+    ([_, tasks]) => tasks.parsing || tasks.scoring
+  )?.[0];
 
   useAiSocket(candidateProfile?.id);
 
   // Warning when leaving page during AI processing
   useEffect(() => {
+    const hasAnyTask = Object.values(processingTasks).some(t => t.parsing || t.scoring);
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (processingAiResumeId) {
+      if (hasAnyTask || isSyncing) {
         e.preventDefault();
-        e.returnValue = 'AI processing is in progress. Leaving now will stop the feature. Are you sure?';
+        e.returnValue = 'Operation in progress. Leaving now will stop the feature. Are you sure?';
         return e.returnValue;
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [processingAiResumeId]);
+  }, [processingTasks, isSyncing]);
 
   useEffect(() => {
     const handleOpenSyncModal = (e: Event) => {
       const customEvent = e as CustomEvent;
+      console.log('[CandidateProfilePage] Opening sync modal for resume:', customEvent.detail.resumeId);
       setActiveResumeId(customEvent.detail.resumeId);
       setSyncModalOpen(true);
     };
 
     const handleOpenFeedbackModal = (e: Event) => {
       const customEvent = e as CustomEvent;
+      console.log('[CandidateProfilePage] Opening feedback modal for resume:', customEvent.detail.resumeId);
       setActiveResumeId(customEvent.detail.resumeId);
       setFeedbackModalOpen(true);
     };
@@ -93,7 +103,12 @@ const CandidateProfilePage = () => {
       const customEvent = e as CustomEvent;
       const resumeId = customEvent.detail.resumeId;
       
-      setProcessingAiResumeId(resumeId);
+      console.log('[CandidateProfilePage] Triggering AI parse for resume:', resumeId);
+      setProcessingTasks(prev => ({ 
+        ...prev, 
+        [resumeId]: { ...(prev[resumeId] || { scoring: false }), parsing: true } 
+      }));
+      
       toast.info('AI is extracting data from your resume...', {
         id: 'ai-processing',
         description: 'This usually takes 10-20 seconds. We will notify you when it is done.',
@@ -103,7 +118,11 @@ const CandidateProfilePage = () => {
       try {
         await triggerAiParse(resumeId);
       } catch (error) {
-        setProcessingAiResumeId(null);
+        console.error('[CandidateProfilePage] Failed to trigger AI parse:', error);
+        setProcessingTasks(prev => ({ 
+          ...prev, 
+          [resumeId]: { ...(prev[resumeId] || { scoring: false }), parsing: false } 
+        }));
         toast.dismiss('ai-processing');
         toast.error('Failed to start data extraction');
       }
@@ -113,7 +132,12 @@ const CandidateProfilePage = () => {
       const customEvent = e as CustomEvent;
       const resumeId = customEvent.detail.resumeId;
       
-      setProcessingAiResumeId(resumeId);
+      console.log('[CandidateProfilePage] Triggering AI score for resume:', resumeId);
+      setProcessingTasks(prev => ({ 
+        ...prev, 
+        [resumeId]: { ...(prev[resumeId] || { parsing: false }), scoring: true } 
+      }));
+      
       toast.info('AI is scoring your resume...', {
         id: 'ai-processing',
         description: 'This usually takes 10-15 seconds.',
@@ -123,15 +147,34 @@ const CandidateProfilePage = () => {
       try {
         await triggerAiScore(resumeId);
       } catch (error) {
-        setProcessingAiResumeId(null);
+        console.error('[CandidateProfilePage] Failed to trigger AI score:', error);
+        setProcessingTasks(prev => ({ 
+          ...prev, 
+          [resumeId]: { ...(prev[resumeId] || { parsing: false }), scoring: false } 
+        }));
         toast.dismiss('ai-processing');
         toast.error('Failed to start AI scoring');
       }
     };
 
-    const handleAiFinished = () => {
-      setProcessingAiResumeId(null);
-      toast.dismiss('ai-processing');
+    const handleAiFinished = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { resumeId } = customEvent.detail;
+      const type = e.type;
+      
+      console.log(`[CandidateProfilePage] AI processing finished: ${type} for resume ${resumeId}`);
+      
+      setProcessingTasks(prev => {
+        const current = prev[resumeId] || { parsing: false, scoring: false };
+        const next = { ...current };
+        if (type === 'ai-parsed-success') next.parsing = false;
+        if (type === 'ai-scored-success') next.scoring = false;
+        
+        // If all tasks for this resume are done, we can optionally clear the toast
+        // but we'll let useAiSocket handle the toast notification
+        return { ...prev, [resumeId]: next };
+      });
+
       // Trigger a refresh of the profile data to show results
       fetchCandidateProfile();
     };
@@ -161,15 +204,21 @@ const CandidateProfilePage = () => {
     const resume = profile.resumes?.find(r => r.id === activeResumeId);
     if (!resume || !resume.parsedText) return;
 
+    setIsSyncing(true);
     try {
+      console.log('[CandidateProfilePage] Committing resume merge for:', activeResumeId);
       const parsedData = typeof resume.parsedText === 'string' ? JSON.parse(resume.parsedText) : resume.parsedText;
       await commitResumeMerge(activeResumeId, parsedData);
       toast.success('Profile synced with resume data!');
       setSyncModalOpen(false);
       // Trigger a refresh of the profile data
+      fetchCandidateProfile();
       window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (error) {
+      console.error('[CandidateProfilePage] Failed to sync profile:', error);
       toast.error('Failed to sync profile');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -181,6 +230,13 @@ const CandidateProfilePage = () => {
   } = useUploadFile();
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
+      console.log('[CandidateProfilePage] Resume record created:', resumeData.id);
+      // Set both parsing and scoring to true because backend will start both
+      setProcessingTasks(prev => ({ 
+        ...prev, 
+        [resumeData.id]: { parsing: true, scoring: true } 
+      }));
+      
       // Ensure the newly created resume has empty AI fields to start with
       const newResume = {
         ...resumeData,
@@ -208,6 +264,7 @@ const CandidateProfilePage = () => {
       const errorMsg =
         err instanceof Error ? err.message : 'Failed to save resume';
       setUploadErrorMsg(errorMsg);
+      toast.dismiss('ai-processing');
     },
   });
 
@@ -536,9 +593,9 @@ const CandidateProfilePage = () => {
           onDeleteResume={handleDeleteResume}
           maxResumes={5}
           isUploading={uploading || creatingResume}
-          isUpdating={updatingResume}
+          isUpdating={updatingResume || isSyncing}
           isDeleting={deletingResume}
-          processingAiResumeId={processingAiResumeId}
+          processingTasks={processingTasks}
           deletingResumeId={deletingResumeId}
           uploadError={
             uploadErrorMsg ||

@@ -52,7 +52,7 @@ export class ResumeScoringService {
 
       RETURN FORMAT (JSON):
       {
-        "score": 0.0 to 1.0, 
+        "score": number, // A floating point number between 0.0 and 1.0 (e.g., 0.85)
         "strengths": ["specific strategic wins found"],
         "weaknesses": ["missing metrics, generic language, or lack of role clarity"],
         "suggestions": ["actionable strategic advice to move the needle"],

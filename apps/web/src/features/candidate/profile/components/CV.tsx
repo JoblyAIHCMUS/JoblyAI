@@ -32,7 +32,7 @@ interface CVProps {
   isUploading?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
-  processingAiResumeId?: number | null;
+  processingTasks?: Record<number, { parsing: boolean; scoring: boolean }>;
   deletingResumeId?: number | null;
   uploadError?: string | null;
 }
@@ -54,7 +54,7 @@ const CV = forwardRef<CVRef, CVProps>(
       isUploading = false,
       isUpdating = false,
       isDeleting = false,
-      processingAiResumeId = null,
+      processingTasks = {},
       deletingResumeId = null,
       uploadError = null,
     }: CVProps,
@@ -73,7 +73,11 @@ const CV = forwardRef<CVRef, CVProps>(
     const [uploadOpen, setUploadOpen] = useState(false);
 
     const { createDownloadUrl } = useCreateDownloadUrl();
-    const isBusy = isUploading || isUpdating || isDeleting || !!processingAiResumeId || !!deletingResumeId;
+    
+    // Any AI task in progress makes the whole CV section "busy" for general actions (like upload)
+    const isAnyAiProcessing = Object.values(processingTasks).some(t => t.parsing || t.scoring);
+    const isBusy = isUploading || isUpdating || isDeleting || isAnyAiProcessing || !!deletingResumeId;
+    
     const resumeCount = resumes?.length || 0;
     const isAtMax = resumeCount >= maxResumes;
     const sortedResumes = [...resumes].sort(
@@ -329,7 +333,7 @@ const CV = forwardRef<CVRef, CVProps>(
                             window.dispatchEvent(new CustomEvent('TRIGGER_AI_PARSE', { detail: { resumeId: resume.id } }));
                           }
                         }}
-                        disabled={isBusy || processingAiResumeId === resume.id}
+                        disabled={isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
                         className={cn(
                           "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
                           resume.parsedText && resume.isSyncedToProfile === false
@@ -339,7 +343,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         aria-label="Extract Data"
                         title={resume.parsedText && resume.isSyncedToProfile === false ? "Review Extracted Data" : "Extract Data with AI"}
                       >
-                        {processingAiResumeId === resume.id ? (
+                        {processingTasks[resume.id]?.parsing ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Code2 size={14} />
@@ -358,7 +362,7 @@ const CV = forwardRef<CVRef, CVProps>(
                             window.dispatchEvent(new CustomEvent('TRIGGER_AI_SCORE', { detail: { resumeId: resume.id } }));
                           }
                         }}
-                        disabled={isBusy || processingAiResumeId === resume.id}
+                        disabled={isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
                         className={cn(
                           "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
                           resume.aiScore !== undefined && resume.aiScore !== null
@@ -368,7 +372,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         aria-label="Score Resume"
                         title={resume.aiScore !== undefined && resume.aiScore !== null ? "View AI Score" : "Score with AI"}
                       >
-                        {processingAiResumeId === resume.id ? (
+                        {processingTasks[resume.id]?.scoring ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Wand2 size={14} />

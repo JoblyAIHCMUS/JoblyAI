@@ -37,7 +37,8 @@ export class ProfileSyncService {
     for (const res of resumes) {
       if (!res.parsedText) continue;
       const data = JSON.parse(res.parsedText) as ParsedResume;
-      const skillMatch = data.skills.find(s => this.normalize(s.name) === this.normalize(skillName));
+      const skills = data.skills || [];
+      const skillMatch = skills.find(s => this.normalize(s.name) === this.normalize(skillName));
       if (skillMatch) {
         totalYears += (skillMatch.years || 0);
         highestLevel = this.compareSkillLevels(skillMatch.level as any, highestLevel as any);
@@ -48,25 +49,38 @@ export class ProfileSyncService {
   }
 
   async commitMerge(candidateId: string, resumeId: number, data: ParsedResume) {
+    this.logger.log(`Committing merge for candidate ${candidateId} and resume ${resumeId}. Data keys: ${Object.keys(data || {}).join(', ')}`);
+    
+    // Ensure arrays exist even if AI omitted them
+    const skills = data.skills || [];
+    const experience = data.experience || [];
+    const education = data.education || [];
+
     // PRE-CALCULATE BIO OUTSIDE TRANSACTION (AI is slow)
     const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
     const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
-    rawDescriptions[resumeId.toString()] = data.bio;
+    rawDescriptions[resumeId.toString()] = data.bio || '';
     const finalBio = await this.regenerateBio(rawDescriptions);
 
     return this.prisma.$transaction(async (tx) => {
       // Store raw JSON for future recalculations
-      await tx.resume.update({ where: { id: resumeId }, data: { parsedText: JSON.stringify(data) } });
+      await tx.resume.update({ 
+        where: { id: resumeId }, 
+        data: { 
+          parsedText: JSON.stringify(data), 
+          isSyncedToProfile: true 
+        } 
+      });
 
       // 1. Bio & Title
       await tx.candidateDescription.upsert({
         where: { candidateId },
-        create: { candidateId, title: data.title, bio: finalBio, rawDescriptions },
-        update: { title: data.title, bio: finalBio, rawDescriptions },
+        create: { candidateId, title: data.title || '', bio: finalBio, rawDescriptions },
+        update: { title: data.title || '', bio: finalBio, rawDescriptions },
       });
 
       // 2. Skills with ADDITIVE Years
-      for (const s of data.skills) {
+      for (const s of skills) {
         const skill = await tx.skill.upsert({ where: { name: this.normalize(s.name) }, create: { name: this.normalize(s.name) }, update: {} });
         const existing = await tx.candidateSkill.findUnique({ where: { candidateId_skillId: { candidateId, skillId: skill.id } } });
         
@@ -83,7 +97,7 @@ export class ProfileSyncService {
       }
 
       // 3. Experience & 4. Education (Keep current logic, de-duplication is fine there)
-      for (const e of data.experience) {
+      for (const e of experience) {
         const existing = await tx.experience.findFirst({
           where: { candidateId, companyName: { equals: e.companyName, mode: 'insensitive' }, jobTitle: { equals: e.jobTitle, mode: 'insensitive' } }
         });
@@ -91,12 +105,12 @@ export class ProfileSyncService {
           await tx.experience.update({ where: { id: existing.id }, data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } });
         } else {
           await tx.experience.create({
-            data: { candidateId, companyName: e.companyName, jobTitle: e.jobTitle, location: e.location, startDate: new Date(e.startDate), endDate: e.endDate ? new Date(e.endDate) : null, description: e.description, type: e.type as any, sourceCvIds: [resumeId] }
+            data: { candidateId, companyName: e.companyName, jobTitle: e.jobTitle, location: e.location || 'Unknown', startDate: new Date(e.startDate), endDate: e.endDate ? new Date(e.endDate) : null, description: e.description || '', type: (e.type || 'OTHER') as any, sourceCvIds: [resumeId] }
           });
         }
       }
 
-      for (const edu of data.education) {
+      for (const edu of education) {
         const existing = await tx.education.findFirst({
           where: { candidateId, school: { equals: edu.school, mode: 'insensitive' }, degree: edu.degree as any }
         });
@@ -104,7 +118,7 @@ export class ProfileSyncService {
           await tx.education.update({ where: { id: existing.id }, data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } });
         } else {
           await tx.education.create({
-            data: { candidateId, school: edu.school, degree: edu.degree as any, fieldOfStudy: edu.fieldOfStudy, startDate: new Date(edu.startDate), endDate: edu.endDate ? new Date(edu.endDate) : null, grade: edu.grade, description: edu.description, sourceCvIds: [resumeId] }
+            data: { candidateId, school: edu.school, degree: edu.degree as any, fieldOfStudy: edu.fieldOfStudy, startDate: new Date(edu.startDate), endDate: edu.endDate ? new Date(edu.endDate) : null, grade: edu.grade, description: edu.description || '', sourceCvIds: [resumeId] }
           });
         }
       }
@@ -185,11 +199,11 @@ export class ProfileSyncService {
 
   private async getBestRecordFromSources(tx: any, model: string, remainingResumeIds: number[], currentRecord: any): Promise<any> {
     const resumes = await tx.resume.findMany({ where: { id: { in: remainingResumeIds } }, select: { parsedText: true } });
-    const sourceDataList = resumes.map(r => JSON.parse(r.parsedText || '{}') as ParsedResume);
+    const sourceDataList = resumes.map((r: { parsedText: string | null }) => JSON.parse(r.parsedText || '{}') as ParsedResume);
     const field = model === 'experience' ? 'experience' : 'education';
     const keyField = model === 'experience' ? 'companyName' : 'school';
-    const matches = sourceDataList.flatMap(d => (d as any)[field]).filter(m => this.normalize(m[keyField]) === this.normalize(currentRecord[keyField]));
-    return matches.reduce((best, curr) => (curr.description?.length > (best.description?.length || 0) ? curr : best), matches[0] || {});
+    const matches = sourceDataList.flatMap((d: ParsedResume) => (d as any)[field]).filter((m: any) => this.normalize(m[keyField]) === this.normalize(currentRecord[keyField]));
+    return matches.reduce((best: any, curr: any) => (curr.description?.length > (best.description?.length || 0) ? curr : best), matches[0] || {});
   }
 
   private compareSkillLevels(a: string, b: string): string {
