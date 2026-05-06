@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/ui/jobly-logo';
 import {
   Building2,
   FileText,
@@ -77,15 +78,6 @@ const secondaryNav: NavItem[] = [
     icon: HelpCircle,
   },
 ];
-
-function BrandMark() {
-  return (
-    <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#4640de]">
-      <div className="absolute inset-[5px] rounded-full border-[3px] border-white border-r-transparent border-t-transparent rotate-45" />
-      <div className="absolute left-[9px] top-[7px] h-2.5 w-2.5 rounded-full bg-white" />
-    </div>
-  );
-}
 
 function CandidateSidebarItem({
   item,
@@ -201,7 +193,7 @@ export function CandidateSidebar() {
     >
       <SidebarHeader className="border-b border-transparent px-4 pb-0 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <Link href="/candidate/dashboard" className="flex items-center gap-2.5">
-          <BrandMark />
+          <Logo size="md" />
           <span className="font-[family-name:var(--family-primary)] text-[24px] font-semibold tracking-[-0.15px] text-[#25324b] group-data-[collapsible=icon]:hidden">
             JoblyAI
           </span>
