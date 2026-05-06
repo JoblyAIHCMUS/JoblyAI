@@ -50,6 +50,7 @@ export default function FindJobsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSort, setSelectedSort] = useState<SortOption>('MOST_RELEVANT');
   const salaryFilterRef = useRef<{ reset: () => void } | null>(null);
+  const lastFetchedQuerySignatureRef = useRef('');
 
   // Fetch skills based on search term - independent of pagination
   const { skills: filteredSkills, fetchSkills } = useSkillsFilter();
@@ -177,7 +178,21 @@ export default function FindJobsPage() {
   };
 
   useEffect(() => {
-    let ignore = false;
+    const querySignature = JSON.stringify({
+      searchTerm,
+      location,
+      salaryMinFilter,
+      salaryMaxFilter,
+      debouncedCheckedMap,
+      selectedSort,
+    });
+
+    if (currentPage > 1 && lastFetchedQuerySignatureRef.current !== querySignature) {
+      setCurrentPage(1);
+      return;
+    }
+
+    const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
@@ -207,15 +222,33 @@ export default function FindJobsPage() {
           salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
           salaryMax: salaryMaxFilter,
           skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+        }, {
+          signal: abortController.signal,
         });
 
-        if (result && !ignore) {
-          setJobs(result.jobs);
+        if (result) {
+          const nextTotalPages = Math.max(result.totalPages || 1, 1);
+
           setTotal(result.total);
-          setTotalPages(result.totalPages);
+          setTotalPages(nextTotalPages);
+
+          if (currentPage > nextTotalPages) {
+            setCurrentPage(nextTotalPages);
+            return;
+          }
+
+          setJobs(result.jobs);
+          lastFetchedQuerySignatureRef.current = querySignature;
         }
       } catch (error) {
-        if (!ignore) {
+        const isAbortError =
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (typeof error === 'object' &&
+            error !== null &&
+            'name' in error &&
+            (error as { name?: string }).name === 'CanceledError');
+
+        if (!isAbortError) {
           console.error('[FindJobsPage] failed to fetch jobs:', error);
         }
       }
@@ -224,7 +257,7 @@ export default function FindJobsPage() {
     fetchData();
 
     return () => {
-      ignore = true;
+      abortController.abort();
     };
   }, [
     currentPage,
