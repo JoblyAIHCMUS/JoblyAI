@@ -43,6 +43,7 @@ Submit a new job application.
     "title": "Senior Software Engineer",
     "description": "Join our team...",
     "companyName": "TechCorp",
+    "companyLogoUrl": "https://storage.example.com/company-logo.png",
     "location": "San Francisco, CA",
     "salaryMin": 120000,
     "salaryMax": 180000,

@@ -50,6 +50,7 @@ export default function FindJobsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSort, setSelectedSort] = useState<SortOption>('MOST_RELEVANT');
   const salaryFilterRef = useRef<{ reset: () => void } | null>(null);
+  const lastFetchedQuerySignatureRef = useRef('');
 
   // Fetch skills based on search term - independent of pagination
   const { skills: filteredSkills, fetchSkills } = useSkillsFilter();
@@ -157,7 +158,6 @@ export default function FindJobsPage() {
   const handleSalaryChange = (min: number, max: number) => {
     setSalaryMinFilter(min);
     setSalaryMaxFilter(max);
-    setCurrentPage(1);
   };
 
   const handleReset = () => {
@@ -177,66 +177,84 @@ export default function FindJobsPage() {
     salaryFilterRef.current?.reset();
   };
 
-  // Reset pagination when filters change
   useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    debouncedCheckedMap,
-    location,
-    searchTerm,
-    salaryMinFilter,
-    salaryMaxFilter,
-  ]);
-
-  const query = useMemo(() => {
-    const employmentSelection = debouncedCheckedMap['Type of Employment'] ?? [];
-    const selectedEmploymentTypes = employmentSelection
-      .map((label) => getEmploymentTypeFromLabel(label))
-      .filter((type): type is EmploymentType => type !== undefined);
-    const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
-    const selectedCategoryIds =
-      debouncedCheckedMap['Categories']
-        ?.map((id) => Number(id))
-        .filter((id: number) => !!id) ?? [];
-    return {
-      page: currentPage,
-      pageSize: PAGE_SIZE,
-      sort: selectedSort,
-      q: searchTerm,
+    const querySignature = JSON.stringify({
+      searchTerm,
       location,
-      type:
-        selectedEmploymentTypes.length > 0
-          ? selectedEmploymentTypes
-          : undefined,
-      categories:
-        selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-      salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
-      salaryMax: salaryMaxFilter,
-      skills: selectedSkills.length > 0 ? selectedSkills : undefined,
-    };
-  }, [
-    currentPage,
-    debouncedCheckedMap,
-    selectedSort,
-    searchTerm,
-    location,
-    salaryMinFilter,
-    salaryMaxFilter,
-  ]);
+      salaryMinFilter,
+      salaryMaxFilter,
+      debouncedCheckedMap,
+      selectedSort,
+    });
 
-  useEffect(() => {
+    if (
+      currentPage > 1 &&
+      lastFetchedQuerySignatureRef.current !== querySignature
+    ) {
+      setCurrentPage(1);
+      return;
+    }
+
     const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
-        const result = await fetchJobs(query);
-        if (result && !abortController.signal.aborted) {
-          setJobs(result.jobs);
+        const employmentSelection =
+          debouncedCheckedMap['Type of Employment'] ?? [];
+        const selectedEmploymentTypes = employmentSelection
+          .map((label) => getEmploymentTypeFromLabel(label))
+          .filter((type): type is EmploymentType => type !== undefined);
+        const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
+        const selectedCategoryIds =
+          debouncedCheckedMap['Categories']
+            ?.map((id) => Number(id))
+            .filter((id: number) => !!id) ?? [];
+
+        const result = await fetchJobs(
+          {
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            sort: selectedSort,
+            q: searchTerm,
+            location,
+            type:
+              selectedEmploymentTypes.length > 0
+                ? selectedEmploymentTypes
+                : undefined,
+            categories:
+              selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+            salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
+            salaryMax: salaryMaxFilter,
+            skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+          },
+          {
+            signal: abortController.signal,
+          }
+        );
+
+        if (result) {
+          const nextTotalPages = Math.max(result.totalPages || 1, 1);
+
           setTotal(result.total);
-          setTotalPages(result.totalPages);
+          setTotalPages(nextTotalPages);
+
+          if (currentPage > nextTotalPages) {
+            setCurrentPage(nextTotalPages);
+            return;
+          }
+
+          setJobs(result.jobs);
+          lastFetchedQuerySignatureRef.current = querySignature;
         }
       } catch (error) {
-        if (!abortController.signal.aborted) {
+        const isAbortError =
+          (error instanceof DOMException && error.name === 'AbortError') ||
+          (typeof error === 'object' &&
+            error !== null &&
+            'name' in error &&
+            (error as { name?: string }).name === 'CanceledError');
+
+        if (!isAbortError) {
           console.error('[FindJobsPage] failed to fetch jobs:', error);
         }
       }
@@ -247,7 +265,16 @@ export default function FindJobsPage() {
     return () => {
       abortController.abort();
     };
-  }, [query, fetchJobs]);
+  }, [
+    currentPage,
+    selectedSort,
+    searchTerm,
+    location,
+    salaryMinFilter,
+    salaryMaxFilter,
+    debouncedCheckedMap,
+    fetchJobs,
+  ]);
 
   return (
     <>

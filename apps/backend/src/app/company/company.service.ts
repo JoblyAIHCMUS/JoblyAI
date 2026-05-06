@@ -43,6 +43,18 @@ export class CompanyService {
     return company;
   }
 
+  async getBySlug(slug: string): Promise<Company> {
+    const company = await this.prisma.company.findFirst({
+      where: { slug: this.toSlug(slug) },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with slug '${slug}' not found`);
+    }
+
+    return company;
+  }
+
   async getEmployees(
     companyId: number,
     requesterUserId: string
@@ -126,7 +138,13 @@ export class CompanyService {
       // Create company and employer in a transaction
       const company = await this.prisma.$transaction(async (tx) => {
         // Create the company
-        const newCompany = await tx.company.create({ data: dto });
+        const slug = await this.generateUniqueSlug(dto.name);
+        const newCompany = await tx.company.create({
+          data: {
+            ...dto,
+            slug,
+          },
+        });
 
         // Create employer record for creator
         const employerRecord = await tx.employer.create({
@@ -171,7 +189,15 @@ export class CompanyService {
     await this.ensureCompanyAccess(id, user);
 
     try {
-      return await this.prisma.company.update({ where: { id }, data: dto });
+      const data =
+        dto.name !== undefined
+          ? {
+              ...dto,
+              slug: await this.generateUniqueSlug(dto.name, id),
+            }
+          : dto;
+
+      return await this.prisma.company.update({ where: { id }, data });
     } catch (error) {
       this.mapPrismaError(error, dto.name);
     }
@@ -415,6 +441,40 @@ export class CompanyService {
     if (!existing) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
+  }
+
+  private toSlug(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private async generateUniqueSlug(
+    name: string,
+    excludeCompanyId?: number
+  ): Promise<string> {
+    const baseSlug = this.toSlug(name) || 'company';
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.prisma.company.findFirst({
+        where: {
+          slug: candidate,
+          ...(excludeCompanyId ? { NOT: { id: excludeCompanyId } } : {}),
+        },
+        select: { id: true },
+      })
+    ) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
 
   private async assertRequesterIsCompanyAdminEmployer(

@@ -47,6 +47,11 @@ export class CompanyController {
     return { exists };
   }
 
+  @Get('slug/:slug')
+  async getCompanyBySlug(@Param('slug') slug: string) {
+    return this.companyService.getBySlug(slug);
+  }
+
   @Get(':id/employees')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

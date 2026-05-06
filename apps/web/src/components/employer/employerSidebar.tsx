@@ -31,7 +31,6 @@ import {
   Users,
   Briefcase,
   Settings,
-  HelpCircle,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -72,11 +71,6 @@ const navSecondary = [
     title: 'Settings',
     url: '/employer/settings',
     icon: Settings,
-  },
-  {
-    title: 'Help Center',
-    url: '/employer/help',
-    icon: HelpCircle,
   },
   {
     title: 'Logout',

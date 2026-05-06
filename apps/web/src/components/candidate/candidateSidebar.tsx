@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Building2,
   FileText,
-  HelpCircle,
   House,
   LogOut,
   MessageSquareText,
@@ -70,11 +69,6 @@ const secondaryNav: NavItem[] = [
     title: 'Settings',
     href: '/candidate/settings',
     icon: Settings,
-  },
-  {
-    title: 'Help Center',
-    href: '/candidate/help',
-    icon: HelpCircle,
   },
 ];
 

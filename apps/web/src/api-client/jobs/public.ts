@@ -12,12 +12,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
  * Public endpoint - no authentication required
  */
 export async function listJobs(
-  query?: ListJobsQuery
+  query?: ListJobsQuery,
+  options?: { signal?: AbortSignal }
 ): Promise<PaginatedJobsResponse> {
   const response = await axios.get<PaginatedJobsResponse>(
     `${API_BASE_URL}/api/jobs`,
     {
       params: query,
+      signal: options?.signal,
       withCredentials: true,
     }
   );

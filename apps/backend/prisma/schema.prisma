@@ -303,6 +303,7 @@ model Certificate {
 model Company {
   id           Int        @id @default(autoincrement())
   name         String     @unique
+  slug         String     @unique
   websiteUrl   String?
   sizeRange    String?
   industry     String?
