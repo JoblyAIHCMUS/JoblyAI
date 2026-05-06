@@ -6,15 +6,26 @@ ALTER TABLE "Company"
 ADD COLUMN "slug" TEXT;
 
 -- Backfill existing rows with unique slugs derived from company names
-WITH normalized AS (
+WITH base AS (
+  SELECT
+    id,
+    trim(
+      regexp_replace(
+        regexp_replace(lower(unaccent(name)), '[^a-z0-9]+', '-', 'g'),
+        '(^-+|-+$)', '',
+        'g'
+      )
+    ) AS raw_slug
+  FROM "Company"
+),
+normalized AS (
   SELECT
     id,
     CASE
-      WHEN trim(regexp_replace(regexp_replace(lower(unaccent(name)), '[^a-z0-9]+', '-', 'g'), '(^-+|-+$)', '', 'g')) = ''
-        THEN 'company'
-      ELSE trim(regexp_replace(regexp_replace(lower(unaccent(name)), '[^a-z0-9]+', '-', 'g'), '(^-+|-+$)', '', 'g'))
+      WHEN raw_slug = '' THEN 'company'
+      ELSE raw_slug
     END AS base_slug
-  FROM "Company"
+  FROM base
 ),
 ranked AS (
   SELECT
