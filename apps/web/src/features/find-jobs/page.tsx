@@ -187,7 +187,10 @@ export default function FindJobsPage() {
       selectedSort,
     });
 
-    if (currentPage > 1 && lastFetchedQuerySignatureRef.current !== querySignature) {
+    if (
+      currentPage > 1 &&
+      lastFetchedQuerySignatureRef.current !== querySignature
+    ) {
       setCurrentPage(1);
       return;
     }
@@ -207,24 +210,27 @@ export default function FindJobsPage() {
             ?.map((id) => Number(id))
             .filter((id: number) => !!id) ?? [];
 
-        const result = await fetchJobs({
-          page: currentPage,
-          pageSize: PAGE_SIZE,
-          sort: selectedSort,
-          q: searchTerm,
-          location,
-          type:
-            selectedEmploymentTypes.length > 0
-              ? selectedEmploymentTypes
-              : undefined,
-          categories:
-            selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-          salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
-          salaryMax: salaryMaxFilter,
-          skills: selectedSkills.length > 0 ? selectedSkills : undefined,
-        }, {
-          signal: abortController.signal,
-        });
+        const result = await fetchJobs(
+          {
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            sort: selectedSort,
+            q: searchTerm,
+            location,
+            type:
+              selectedEmploymentTypes.length > 0
+                ? selectedEmploymentTypes
+                : undefined,
+            categories:
+              selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+            salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
+            salaryMax: salaryMaxFilter,
+            skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+          },
+          {
+            signal: abortController.signal,
+          }
+        );
 
         if (result) {
           const nextTotalPages = Math.max(result.totalPages || 1, 1);

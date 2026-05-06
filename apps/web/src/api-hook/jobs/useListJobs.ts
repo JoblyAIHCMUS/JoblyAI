@@ -20,7 +20,10 @@ export function useListJobs(options?: UseListJobsOptions) {
   const [data, setData] = useState<PaginatedJobsResponse | null>(null);
 
   const fetchJobs = useCallback(
-    async (query?: ListJobsQuery, requestOptions?: { signal?: AbortSignal }) => {
+    async (
+      query?: ListJobsQuery,
+      requestOptions?: { signal?: AbortSignal }
+    ) => {
       setLoading(true);
       setError(null);
       try {
