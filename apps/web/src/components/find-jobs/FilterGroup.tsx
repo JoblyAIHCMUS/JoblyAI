@@ -100,7 +100,7 @@ export default function FilterGroup({
           }
           className="mt-1 self-start text-sm font-semibold text-indigo-600 hover:text-indigo-700"
         >
-          Xem thêm
+          Show more
         </button>
       ) : null}
       {footer}
