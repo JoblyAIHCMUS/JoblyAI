@@ -110,7 +110,7 @@ export default function JobListSection({
           <button
             type="button"
             onClick={handleReset}
-            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover: transition-colors"
+            className="w-full mt-3 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 label-label-2-Regular hover:bg-slate-50 hover:transition-colors"
           >
             Reset Filters
           </button>
