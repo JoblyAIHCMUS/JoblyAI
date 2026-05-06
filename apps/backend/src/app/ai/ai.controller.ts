@@ -100,14 +100,19 @@ export class AiController {
   @UseGuards(AuthGuard)
   async triggerScore(@Body() body: { resumeId: number }, @Req() req: any) {
     const userId = req.user.id;
-    this.logger.log(`Manually triggering score for resume ${body.resumeId} by user ${userId}`);
+    this.logger.log(`[HTTP] Manually triggering score for resume ${body.resumeId} by user ${userId}`);
     
-    await this.scoringQueue.add('score', {
-      resumeId: body.resumeId,
-      candidateId: userId,
-    });
-
-    return { success: true, message: 'Score triggered' };
+    try {
+      await this.scoringQueue.add('score', {
+        resumeId: body.resumeId,
+        candidateId: userId,
+      });
+      this.logger.log(`[BullMQ] Successfully added score job for resume ${body.resumeId}`);
+      return { success: true, message: 'Score triggered' };
+    } catch (error: any) {
+      this.logger.error(`[BullMQ] Failed to add score job: ${error.message}`);
+      throw error;
+    }
   }
 }
 

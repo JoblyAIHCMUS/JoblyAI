@@ -15,17 +15,23 @@ export const useAiSocket = (userId: string | undefined) => {
     console.log('[useAiSocket] Effect triggered', { 
       socketExists: !!socket, 
       isConnected, 
-      userId 
+      userId,
+      socketId: socket?.id
     });
 
     if (!socket || !isConnected || !userId) {
+      console.log('[useAiSocket] ⏳ Waiting for requirements...', { 
+        hasSocket: !!socket, 
+        isConnected, 
+        hasUserId: !!userId 
+      });
       return;
     }
 
     const parseEvent = `RESUME_PARSED_${userId}`;
     const scoreEvent = `RESUME_SCORED_${userId}`;
 
-    console.log(`[useAiSocket] ✅ Registering listeners:`, { parseEvent, scoreEvent });
+    console.log(`[useAiSocket] ✅ Registering listeners for user ${userId}:`, { parseEvent, scoreEvent });
 
     const handleParsed = (data: { resumeId: number }) => {
       console.log(`[useAiSocket] 🎯 EVENT RECEIVED: ${parseEvent}`, data);

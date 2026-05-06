@@ -43,17 +43,33 @@ export class ScoringProcessor extends WorkerHost {
       const text = await this.parserService.extractTextFromPdf(buffer);
 
       // 4. Score with Gemini
+      this.logger.log(`Calling scoring service for resume ${resumeId}...`);
       const scoringResult = await this.scoringService.evaluateResume(text);
-      this.logger.log(`Successfully scored resume ${resumeId}. Score: ${scoringResult?.score}`);
+      
+      if (!scoringResult) {
+        throw new Error(`AI returned no scoring result for resume ${resumeId}`);
+      }
 
-      // 5. Update database - Pass object directly to Json field
+      this.logger.log(`Successfully scored resume ${resumeId}. Raw Score: ${scoringResult?.score}`);
+
+      // 5. Update database - Ensure score is a float
+      const finalScore = typeof scoringResult.score === 'string' 
+        ? parseFloat(scoringResult.score) 
+        : scoringResult.score;
+
+      if (isNaN(finalScore)) {
+        this.logger.warn(`AI returned an invalid score: ${scoringResult.score}. Defaulting to 0.`);
+      }
+
       await this.prisma.resume.update({
         where: { id: resumeId },
         data: {
-          aiScore: scoringResult.score,
+          aiScore: isNaN(finalScore) ? 0 : finalScore,
           aiFeedback: scoringResult as any,
         },
       });
+
+      this.logger.log(`Updated database for resume ${resumeId} with score ${finalScore}`);
 
       // Emit notification
       this.aiGateway.notifyUser(candidateId, 'RESUME_SCORED', { resumeId });

@@ -35,8 +35,20 @@ export class AiProviderService {
 
       try {
         return JSON.parse(text) as T;
-      } catch (parseError) {
-        this.logger.error(`Failed to parse Gemini response as JSON: ${text}`);
+      } catch (parseError: any) {
+        this.logger.error(`Failed to parse Gemini response as JSON. Error: ${parseError.message}. Content: ${text}`);
+        
+        // Try to fix common Gemini JSON issues (like markdown blocks)
+        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```([\s\S]*?)```/);
+        if (jsonMatch && jsonMatch[1]) {
+          try {
+            this.logger.log('Attempting to parse extracted JSON block...');
+            return JSON.parse(jsonMatch[1].trim()) as T;
+          } catch (retryError) {
+            this.logger.error('Failed to parse extracted JSON block.');
+          }
+        }
+        
         throw new Error('Invalid JSON response from AI');
       }
     } catch (error: any) {
