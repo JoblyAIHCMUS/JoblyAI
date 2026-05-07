@@ -123,6 +123,17 @@
     "quality-gate": {
       "executor": "nx:noop",
       "dependsOn": ["lint", "test", "build"]
+    },
+    "start": {
+      "options": {
+        "port": 8081,
+        "offline": true
+      },
+      "configurations": {
+        "clear": {
+          "clear": true
+        }
+      }
     }
   },
   "generators": {
