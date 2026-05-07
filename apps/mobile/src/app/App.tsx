@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import "../global.css";
+import '../global.css';
 import { useRef, useState } from 'react';
 import {
   StyleSheet,
@@ -699,4 +699,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
