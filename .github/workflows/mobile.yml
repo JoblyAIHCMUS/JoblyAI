@@ -3,25 +3,25 @@ name: Mobile Android/iOS CI/CD Pipeline
 on:
   push:
     branches:
-      - '**/android/**'
-      - '**/ios/**'
-      - '**/mobile/**'
-      - '**/infrastructure/**'
+      - '*android*'
+      - '*ios*'
+      - '*mobile*'
+      - '*infrastructure*'
     paths:
       - 'apps/mobile/**'
       - 'libs/**'
       - '.github/workflows/mobile.yml'
   pull_request:
     branches:
-      - '**/android/**'
-      - '**/ios/**'
-      - '**/mobile/**'
-      - '**/infrastructure/**'
+      - '*android*'
+      - '*ios*'
+      - '*mobile*'
+      - '*infrastructure*'
     paths:
       - 'apps/mobile/**'
       - 'libs/**'
       - '.github/workflows/mobile.yml'
-
+      
 permissions:
   actions: read
   contents: read
