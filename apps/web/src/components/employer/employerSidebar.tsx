@@ -31,11 +31,11 @@ import {
   Users,
   Briefcase,
   Settings,
-  HelpCircle,
   LogOut,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { Logo } from '@/components/ui/jobly-logo';
 
 // Navigation items structure
 const navMain = [
@@ -72,11 +72,6 @@ const navSecondary = [
     title: 'Settings',
     url: '/employer/settings',
     icon: Settings,
-  },
-  {
-    title: 'Help Center',
-    url: '/employer/help',
-    icon: HelpCircle,
   },
   {
     title: 'Logout',
@@ -142,10 +137,7 @@ export function EmployerSidebar() {
 
       <SidebarHeader className="border-b border-transparent px-4 pb-0 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <Link href="/" className="flex items-center gap-2.5">
-          {/* Logo / Brand */}
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600">
-            <span className="heading-h5-semi-bold text-white">J</span>
-          </div>
+          <Logo size="md" />
           <span className="font-[family-name:var(--family-primary)] text-[24px] font-semibold tracking-[-0.15px] text-[#25324b] group-data-[collapsible=icon]:hidden">
             JoblyAI
           </span>

@@ -30,6 +30,17 @@ export async function getCompanyById(id: number): Promise<Company> {
   return response.data;
 }
 
+export async function getCompanyBySlug(slug: string): Promise<Company> {
+  const response = await axios.get<Company>(
+    `${API_BASE_URL}/api/company/slug/${slug}`,
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+
+  return response.data;
+}
+
 export async function createCompany(
   payload: CreateCompanyPayload
 ): Promise<Company> {

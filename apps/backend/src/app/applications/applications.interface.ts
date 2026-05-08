@@ -15,6 +15,7 @@ export interface Application {
     title: string;
     description: string;
     companyName: string | null;
+    companyLogoUrl: string | null;
     location: string | null;
     salaryMin: number | null;
     salaryMax: number | null;

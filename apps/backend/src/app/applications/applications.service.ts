@@ -682,6 +682,7 @@ export class ApplicationsService {
         title: application.job.title,
         description: application.job.description,
         companyName: application.job.company.name,
+        companyLogoUrl: application.job.company.logoUrl,
         location: application.job.location,
         salaryMin: application.job.salaryMin
           ? Number(application.job.salaryMin)

@@ -1,8 +1,47 @@
-import { PrismaClient, Gender } from '@prisma/client';
+import {
+  PrismaClient,
+  Gender,
+  EmploymentType,
+  JobStatus,
+  RequirementImportance,
+} from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
+import { jobCategories } from './data/JobCategory';
+import { Skill } from './data/Skill';
+import { users } from './data/User';
+import { company } from './data/Company';
+import { jobPosting } from './data/JobPosting';
 
 const prisma = new PrismaClient();
+
+function toSlug(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function createUniqueSlugFactory() {
+  const usedSlugs = new Set<string>();
+
+  return (name: string): string => {
+    const baseSlug = toSlug(name) || 'company';
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (usedSlugs.has(candidate)) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedSlugs.add(candidate);
+    return candidate;
+  };
+}
 
 // Better-auth password hashing config
 const SCRYPT_CONFIG = {
@@ -49,42 +88,14 @@ async function main() {
   // Create job categories
   console.log('Creating job categories...');
   const categories = await prisma.jobCategory.createMany({
-    data: [
-      { name: 'Software Development', slug: 'software-development' },
-      { name: 'Data Science', slug: 'data-science' },
-      { name: 'DevOps', slug: 'devops' },
-      { name: 'Design', slug: 'design' },
-      { name: 'Product Management', slug: 'product-management' },
-      { name: 'Sales', slug: 'sales' },
-      { name: 'Marketing', slug: 'marketing' },
-      { name: 'Customer Support', slug: 'customer-support' },
-    ],
+    data: jobCategories,
   });
   console.log(`Created ${categories.count} job categories`);
 
   // Create skills
   console.log('Creating skills...');
   const skills = await prisma.skill.createMany({
-    data: [
-      { name: 'JavaScript' },
-      { name: 'TypeScript' },
-      { name: 'React' },
-      { name: 'Node.js' },
-      { name: 'PostgreSQL' },
-      { name: 'Docker' },
-      { name: 'Kubernetes' },
-      { name: 'AWS' },
-      { name: 'Python' },
-      { name: 'Machine Learning' },
-      { name: 'TensorFlow' },
-      { name: 'Figma' },
-      { name: 'UI/UX Design' },
-      { name: 'Project Management' },
-      { name: 'Git' },
-      { name: 'REST APIs' },
-      { name: 'GraphQL' },
-      { name: 'Agile' },
-    ],
+    data: Skill.map((s) => ({ name: s.name })),
   });
   console.log(`Created ${skills.count} skills`);
 
@@ -92,92 +103,18 @@ async function main() {
   console.log('Creating users and accounts...');
   const hashedPassword = await hashPassword('TestPass123!');
 
-  const usersData: Array<{
-    name: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    emailVerified: boolean;
-    role: string;
-    avatarUrl: string;
-    phoneNumber: string;
-    dateOfBirth: Date;
-    gender: Gender;
-  }> = [
-    {
-      name: 'Alice Johnson',
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      email: 'alice@example.com',
-      emailVerified: true,
-      role: 'candidate',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
-      phoneNumber: '+1-555-0101',
-      dateOfBirth: new Date('1990-05-15'),
-      gender: Gender.FEMALE,
-    },
-    {
-      name: 'Bob Smith',
-      firstName: 'Bob',
-      lastName: 'Smith',
-      email: 'bob@example.com',
-      emailVerified: true,
-      role: 'candidate',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
-      phoneNumber: '+1-555-0102',
-      dateOfBirth: new Date('1988-08-22'),
-      gender: Gender.MALE,
-    },
-    {
-      name: 'Carol White',
-      firstName: 'Carol',
-      lastName: 'White',
-      email: 'carol@example.com',
-      emailVerified: true,
-      role: 'employer',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carol',
-      phoneNumber: '+1-555-0103',
-      dateOfBirth: new Date('1985-03-10'),
-      gender: Gender.FEMALE,
-    },
-    {
-      name: 'David Brown',
-      firstName: 'David',
-      lastName: 'Brown',
-      email: 'david@example.com',
-      emailVerified: true,
-      role: 'employer',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-      phoneNumber: '+1-555-0104',
-      dateOfBirth: new Date('1987-11-30'),
-      gender: Gender.MALE,
-    },
-    {
-      name: 'Eve Davis',
-      firstName: 'Eve',
-      lastName: 'Davis',
-      email: 'eve@example.com',
-      emailVerified: false,
-      role: 'candidate',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eve',
-      phoneNumber: '+1-555-0105',
-      dateOfBirth: new Date('1992-07-18'),
-      gender: Gender.FEMALE,
-    },
-    {
-      name: 'Frank Miller',
-      firstName: 'Frank',
-      lastName: 'Miller',
-      email: 'frank@example.com',
-      emailVerified: true,
-      role: 'employer',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Frank',
-      phoneNumber: '+1-555-0106',
-      dateOfBirth: new Date('1986-01-25'),
-      gender: Gender.MALE,
-    },
-  ];
-
+  const usersData = users.map((u) => ({
+    name: u.name,
+    email: u.email,
+    emailVerified: u.emailVerified,
+    role: u.role,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    avatarUrl: u.avatarUrl,
+    phoneNumber: u.phoneNumber,
+    dateOfBirth: new Date(u.dateOfBirth),
+    gender: u.gender as Gender,
+  }));
   // Create each user with their account
   for (const userData of usersData) {
     const user = await prisma.user.create({
@@ -208,273 +145,47 @@ async function main() {
 
   // Create companies
   console.log('Creating companies...');
-  const companies = await Promise.all([
-    prisma.company.create({
-      data: {
-        name: 'Tech Corp',
-        websiteUrl: 'https://techcorp.com',
-        sizeRange: '1000-5000',
-        industry: 'Software Development',
-        description: 'Leading technology innovation company',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'DataFlow Inc',
-        websiteUrl: 'https://dataflow.com',
-        sizeRange: '500-1000',
-        industry: 'Data Science',
-        description: 'Data science and analytics solutions',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'CloudStack',
-        websiteUrl: 'https://cloudstack.io',
-        sizeRange: '200-500',
-        industry: 'Cloud Infrastructure',
-        description: 'Cloud infrastructure and DevOps services',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'Design Studios',
-        websiteUrl: 'https://designstudios.com',
-        sizeRange: '50-200',
-        industry: 'Design',
-        description: 'Creative design and UX solutions',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'Innovation Labs',
-        websiteUrl: 'https://innovationlabs.com',
-        sizeRange: '100-500',
-        industry: 'Product Development',
-        description: 'Product innovation and development',
-        logoUrl: '',
-      },
-    }),
-    prisma.company.create({
-      data: {
-        name: 'StartUp Hub',
-        websiteUrl: 'https://startuphub.com',
-        sizeRange: '20-100',
-        industry: 'Startup Incubation',
-        description: 'Startup incubation and mentorship',
-        logoUrl: '',
-      },
-    }),
-  ]);
-  console.log(`Created ${companies.length} companies`);
+  const nextCompanySlug = createUniqueSlugFactory();
+  const createdCompanies = await Promise.all(
+    company.map((company) =>
+      prisma.company.create({
+        data: {
+          ...company,
+          slug: nextCompanySlug(company.name),
+        },
+      })
+    )
+  );
+  console.log(`Created ${createdCompanies.length} companies`);
+
+  const companies = await prisma.company.findMany();
 
   // Create job postings
   console.log('Creating job postings...');
-  const jobPostings = await Promise.all([
-    prisma.jobPosting.create({
-      data: {
-        title: 'Senior Full Stack Engineer',
-        description:
-          'We are looking for an experienced full stack engineer to join our team. You will work on both frontend and backend systems.',
-        location: 'San Francisco, CA',
-        salaryMin: 120000,
-        salaryMax: 180000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Data Scientist',
-        description:
-          'Join our data science team to build machine learning models that impact millions of users.',
-        location: 'New York, NY',
-        salaryMin: 110000,
-        salaryMax: 160000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'FULL_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[1].id,
-        companyId: companies[1].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'DevOps Engineer',
-        description:
-          'Help us scale our infrastructure and improve our deployment pipeline.',
-        location: 'Remote',
-        salaryMin: 100000,
-        salaryMax: 150000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[2].id,
-        companyId: companies[2].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'UI/UX Designer',
-        description:
-          'Design beautiful and intuitive user interfaces for our web and mobile applications.',
-        location: 'Los Angeles, CA',
-        salaryMin: 80000,
-        salaryMax: 120000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[3].id,
-        companyId: companies[3].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Product Manager',
-        description:
-          'Lead product strategy and roadmap for our flagship product.',
-        location: 'Boston, MA',
-        salaryMin: 130000,
-        salaryMax: 170000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'FULL_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[4].id,
-        companyId: companies[4].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Junior React Developer',
-        description:
-          'Great opportunity for early-career developers to grow with our team.',
-        location: 'Remote',
-        salaryMin: 60000,
-        salaryMax: 85000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[5].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Backend Engineer (Python)',
-        description: 'Build and maintain our Python-based backend services.',
-        location: 'Seattle, WA',
-        salaryMin: 105000,
-        salaryMax: 155000,
-        currency: 'USD',
-        status: 'DRAFT',
-        remote: true,
-        type: 'FULL_TIME',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Part-Time Content Writer',
-        description: 'Write technical blog posts and documentation.',
-        location: 'Remote',
-        salaryMin: 25000,
-        salaryMax: 45000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'PART_TIME',
-        postedById: employers[1].id,
-        categoryId: allCategories[5].id,
-        companyId: companies[4].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Part-Time Graphic Designer',
-        description: 'Design marketing materials and social media content.',
-        location: 'Remote',
-        salaryMin: 30000,
-        salaryMax: 50000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'PART_TIME',
-        postedById: employers[2].id,
-        categoryId: allCategories[3].id,
-        companyId: companies[3].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Internship - Frontend Development',
-        description: 'Learn front-end development with our experienced team.',
-        location: 'New York, NY',
-        salaryMin: 15000,
-        salaryMax: 25000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: false,
-        type: 'INTERNSHIP',
-        postedById: employers[0].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[0].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Contract - Mobile App Developer',
-        description: 'Develop a mobile app for 3-6 months contract.',
-        location: 'Remote',
-        salaryMin: 70000,
-        salaryMax: 100000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'CONTRACT',
-        postedById: employers[1].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[1].id,
-      },
-    }),
-    prisma.jobPosting.create({
-      data: {
-        title: 'Freelance - WordPress Developer',
-        description: 'Build and maintain WordPress websites.',
-        location: 'Remote',
-        salaryMin: 40000,
-        salaryMax: 70000,
-        currency: 'USD',
-        status: 'OPEN',
-        remote: true,
-        type: 'FREELANCE',
-        postedById: employers[2].id,
-        categoryId: allCategories[0].id,
-        companyId: companies[5].id,
-      },
-    }),
-  ]);
-  console.log(`Created ${jobPostings.length} job postings`);
+  const createdJobPostings = await Promise.all(
+    jobPosting.map((job, index) =>
+      prisma.jobPosting.create({
+        data: {
+          title: job.title,
+          description: job.description,
+          location: job.location,
+          remote: job.remote,
+          type: job.type as EmploymentType,
+          status: job.status as JobStatus,
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+
+          // IMPORTANT: add relations here
+          postedById: employers[index % employers.length].id,
+          companyId: companies[index % companies.length].id,
+          categoryId: allCategories[index % allCategories.length].id,
+        },
+      })
+    )
+  );
+  console.log(`Created ${createdJobPostings.length} job postings`);
+
+  const jobPostings = await prisma.jobPosting.findMany();
 
   // Create job requirements
   console.log('Creating job requirements...');
@@ -489,141 +200,33 @@ async function main() {
     return id;
   };
 
-  const jobRequirementsData = [
-    // Senior Full Stack Engineer requirements
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('TypeScript'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 5,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('React'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('Node.js'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('PostgreSQL'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[0].id,
-      skillId: getSkillId('Docker'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // Data Scientist requirements
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('Python'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('Machine Learning'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[1].id,
-      skillId: getSkillId('TensorFlow'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 1,
-    },
-    // DevOps Engineer requirements
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('Docker'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('Kubernetes'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[2].id,
-      skillId: getSkillId('AWS'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // UI/UX Designer requirements
-    {
-      jobPostingId: jobPostings[3].id,
-      skillId: getSkillId('Figma'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[3].id,
-      skillId: getSkillId('UI/UX Design'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    // Product Manager requirements
-    {
-      jobPostingId: jobPostings[4].id,
-      skillId: getSkillId('Project Management'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 4,
-    },
-    {
-      jobPostingId: jobPostings[4].id,
-      skillId: getSkillId('Agile'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-    // Junior React Developer requirements
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('React'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 0,
-    },
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('JavaScript'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 1,
-    },
-    {
-      jobPostingId: jobPostings[5].id,
-      skillId: getSkillId('Git'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 1,
-    },
-    // Backend Engineer (Python) requirements
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('Python'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 3,
-    },
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('REST APIs'),
-      importance: 'REQUIRED' as const,
-      minYearsExperience: 2,
-    },
-    {
-      jobPostingId: jobPostings[6].id,
-      skillId: getSkillId('PostgreSQL'),
-      importance: 'PREFERRED' as const,
-      minYearsExperience: 2,
-    },
-  ];
+  const jobRequirementsData = jobPosting.flatMap((job, jobIndex) =>
+    job.jobRequirements.map((requirement) => ({
+      jobPostingId: createdJobPostings[jobIndex].id,
+      skillId: getSkillId(requirement.skillName.name),
+      importance: requirement.importance as RequirementImportance,
+      minYearsExperience: requirement.minYears,
+    }))
+  );
+
+  const groups = new Map();
+
+  jobRequirementsData.forEach((item) => {
+    const key = `${item.jobPostingId}-${item.skillId}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+
+    groups.get(key).push(item);
+  });
+
+  for (const [key, list] of groups) {
+    if (list.length > 1) {
+      console.log('🔴 DUPLICATE GROUP:', key);
+      console.log(list);
+    }
+  }
 
   const jobRequirements = await prisma.jobRequirement.createMany({
     data: jobRequirementsData,
@@ -820,6 +423,7 @@ async function main() {
   const nomad = await prisma.company.create({
     data: {
       name: 'Nomad',
+      slug: nextCompanySlug('Nomad'),
       websiteUrl: 'https://www.nomad.com',
       sizeRange: '1-50',
       industry: 'Technology',

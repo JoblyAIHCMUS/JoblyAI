@@ -2,6 +2,7 @@ import { COMPANY_CATEGORIES } from '@/mocks/companyCategories';
 import { COMPANIES_BY_CATEGORY_MOCK } from '@/mocks/companies';
 import { COMPANY_PROFILE_OVERRIDES } from '@/mocks/companyProfiles';
 import { RECOMMENDED_COMPANIES_MOCK } from '@/mocks/recommendedCompanies';
+import type { Company } from '@/api-client/company';
 import type { CompanyProfile, CompanyTeamMember } from '@/types/companyProfile';
 import type { SimilarJob } from '@/types/similarJob';
 
@@ -80,28 +81,33 @@ function buildOpenJobs(companyName: string, totalJobs: number): SimilarJob[] {
 }
 
 export const companyProfileService = {
-  getCompanyProfile(id: string): CompanyProfile | null {
+  getCompanyProfile(company: Company): CompanyProfile {
+    const id = company.slug;
     const categoryCompany = COMPANIES_BY_CATEGORY_MOCK.companies.find(
-      (company) => company.id === id
+      (entry) => entry.id === id
     );
     const recommendedCompany = RECOMMENDED_COMPANIES_MOCK.find(
-      (company) => company.id === id
+      (entry) => entry.id === id
     );
 
-    if (!categoryCompany && !recommendedCompany) {
-      return null;
-    }
-
-    const name = categoryCompany?.name ?? recommendedCompany?.name ?? 'Company';
+    const name =
+      company.name ??
+      categoryCompany?.name ??
+      recommendedCompany?.name ??
+      'Company';
     const logoUrl =
-      categoryCompany?.logoUrl ?? recommendedCompany?.logo.imageUrl ?? '';
+      company.logoUrl ??
+      categoryCompany?.logoUrl ??
+      recommendedCompany?.logo.imageUrl ??
+      '';
     const categoryName = categoryCompany?.categoryId
       ? categoryNameMap.get(categoryCompany.categoryId) ?? 'Technology'
-      : recommendedCompany?.tag.label ?? 'Technology';
+      : company.industry ?? recommendedCompany?.tag.label ?? 'Technology';
     const openJobsCount =
       categoryCompany?.openJobs ?? recommendedCompany?.jobs ?? 4;
     const override = COMPANY_PROFILE_OVERRIDES[id];
     const website =
+      company.websiteUrl ??
       override?.website ??
       `https://${name.toLowerCase().replace(/\s+/g, '')}.com`;
 
@@ -112,6 +118,7 @@ export const companyProfileService = {
       website,
       openJobsCount,
       description:
+        company.description ??
         override?.description ??
         recommendedCompany?.description ??
         `${name} is building products for modern teams and scaling across multiple markets with an emphasis on craft, speed, and reliable execution.`,

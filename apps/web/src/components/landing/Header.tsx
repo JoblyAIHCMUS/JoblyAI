@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/ui/jobly-logo';
 
 function isPathActive(pathname: string, basePath: string): boolean {
   return pathname === basePath || pathname.startsWith(`${basePath}/`);
@@ -30,9 +31,7 @@ export default function Header() {
           <div className="lg:hidden fixed top-0 left-0 bottom-0 w-[80vw] max-w-sm bg-white z-[70] p-4 md:p-6 flex flex-col gap-6 md:gap-8 overflow-y-auto">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 bg-indigo-700 rounded-full relative flex items-center justify-center flex-shrink-0">
-                  <Search className="w-5 h-5 text-white rotate-90" />
-                </div>
+                <Logo size="md" />
                 <span className="text-slate-900 text-lg md:text-xl font-semibold truncate">
                   JoblyAI
                 </span>
@@ -109,9 +108,7 @@ export default function Header() {
             <Menu className="w-4 h-4 text-slate-900" />
           </button>
           <div className="flex items-center gap-1 min-w-0 flex-shrink-0">
-            <div className="w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">
-              <Search className="w-3 h-3 text-white rotate-90" />
-            </div>
+            <Logo size="sm" />
             <span className="text-slate-900 text-xs sm:text-sm font-semibold truncate">
               JoblyAI
             </span>
@@ -122,9 +119,7 @@ export default function Header() {
         <div className="hidden lg:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4 justify-between items-center">
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-              </div>
+              <Logo size="md" />
               <span className="text-2xl font-bold text-slate-900">JoblyAI</span>
             </div>
             <nav className="flex items-center gap-8">
