@@ -11,6 +11,7 @@ import CV, { type CVRef } from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
+import Certificates from './components/Certificates';
 // import Portfolios from './components/Portfolios';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
@@ -25,6 +26,15 @@ import {
   useUpdateEducation,
   useCreateEducation,
   useDeleteEducation,
+  useCreateCertificate,
+  useUpdateCertificate,
+  useDeleteCertificate,
+  useCreateSocial,
+  useUpdateSocial,
+  useDeleteSocial,
+  useCreateContact,
+  useUpdateContact,
+  useDeleteContact,
 } from '@/api-hook/candidate';
 import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
 import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
@@ -33,12 +43,21 @@ import {
   mapUIToApiUpdateExperience,
   mapUIToApiUpdateEducation,
   mapUIToApiCreateEducation,
+  mapUIToApiCreateCertificate,
+  mapUIToApiUpdateCertificate,
+  mapUIToApiCreateSocial,
+  mapUIToApiUpdateSocial,
+  mapUIToApiCreateContact,
+  mapUIToApiUpdateContact,
   mapDataToCandidate,
 } from './mapper';
 import {
   CandidateEducation,
   CandidateExperience,
   CandidateResume,
+  CandidateCertificate,
+  CandidateSocial,
+  CandidateContact,
 } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 import { formatErrorForDisplay } from '@/lib/errors';
@@ -64,7 +83,6 @@ const CandidateProfilePage = () => {
   const cvRef = useRef<CVRef>(null);
 
   // Derive processingAiResumeId for backward compatibility with CV component
-  // It returns the first resume ID that has any ongoing task
   const processingAiResumeId = Object.entries(processingTasks).find(
     ([_, tasks]) => tasks.parsing || tasks.scoring
   )?.[0];
@@ -171,13 +189,9 @@ const CandidateProfilePage = () => {
         const next = { ...current };
         if (type === 'ai-parsed-success') next.parsing = false;
         if (type === 'ai-scored-success') next.scoring = false;
-        
-        // If all tasks for this resume are done, we can optionally clear the toast
-        // but we'll let useAiSocket handle the toast notification
         return { ...prev, [resumeId]: next };
       });
 
-      // Trigger a refresh of the profile data to show results
       fetchCandidateProfile();
     };
 
@@ -185,8 +199,6 @@ const CandidateProfilePage = () => {
     window.addEventListener('OPEN_AI_FEEDBACK_MODAL', handleOpenFeedbackModal);
     window.addEventListener('TRIGGER_AI_PARSE', handleTriggerAiParse);
     window.addEventListener('TRIGGER_AI_SCORE', handleTriggerAiScore);
-    
-    // Listen for socket success events to stop loading state
     window.addEventListener('ai-parsed-success', handleAiFinished);
     window.addEventListener('ai-scored-success', handleAiFinished);
 
@@ -213,8 +225,11 @@ const CandidateProfilePage = () => {
       await commitResumeMerge(activeResumeId, parsedData);
       toast.success('Profile synced with resume data!');
       setSyncModalOpen(false);
-      // Trigger a refresh of the profile data
-      fetchCandidateProfile();
+      
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
       window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (error) {
       console.error('[CandidateProfilePage] Failed to sync profile:', error);
@@ -234,37 +249,20 @@ const CandidateProfilePage = () => {
     setDeletingResumeId(resumeId);
     try {
       await deleteResumeRecord(resumeId);
-      let nextResumes = (profile.resumes || []).filter(
-        (resume) => resume.id !== resumeId
-      );
-
-      if (resumeToDelete.isDefault && nextResumes.length) {
-        try {
-          const updatedDefault = await updateResumeRecord({
-            id: nextResumes[0].id,
-            isDefault: true,
-          });
-          nextResumes = nextResumes.map((resume) =>
-            resume.id === updatedDefault.id
-              ? updatedDefault
-              : { ...resume, isDefault: false }
-          );
-        } catch (error) {
-          console.error('Failed to update default CV:', error);
-        }
-      }
-
-      const nextSelectedId =
-        nextResumes.find((resume) => resume.isDefault)?.id ||
-        nextResumes[0]?.id ||
-        null;
-
-      setProfile((prev) => (prev ? { ...prev, resumes: nextResumes } : prev));
-      setSelectedResumeId(nextSelectedId);
-      toast.success('CV deleted successfully.');
+      
       setDeleteImpactModalOpen(false);
-      // Refresh profile data to reflect bio regeneration and collection removals
-      fetchCandidateProfile();
+      toast.success('CV deleted successfully.');
+
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+        
+        const nextSelectedId =
+          updatedProfile.resumes?.find((resume) => resume.isDefault)?.id ||
+          updatedProfile.resumes?.[0]?.id ||
+          null;
+        setSelectedResumeId(nextSelectedId);
+      }
     } catch (error) {
       console.error('Failed to delete CV:', error);
       toast.error('Failed to delete CV');
@@ -274,7 +272,6 @@ const CandidateProfilePage = () => {
     }
   };
 
-  // S3 upload hooks
   const {
     upload: uploadToS3,
     loading: uploading,
@@ -283,13 +280,11 @@ const CandidateProfilePage = () => {
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
       console.log('[CandidateProfilePage] Resume record created:', resumeData.id);
-      // Set both parsing and scoring to true because backend will start both
       setProcessingTasks(prev => ({ 
         ...prev, 
         [resumeData.id]: { parsing: true, scoring: true } 
       }));
       
-      // Ensure the newly created resume has empty AI fields to start with
       const newResume = {
         ...resumeData,
         parsedText: null,
@@ -308,7 +303,6 @@ const CandidateProfilePage = () => {
         };
       });
       setSelectedResumeId(resumeData.id);
-      // Immediately refresh the CV display with new resume's fileKey
       cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
     },
@@ -325,18 +319,15 @@ const CandidateProfilePage = () => {
 
   const { updateAbout, createAbout } = useUpdateCandidateAbout();
   const handleUpdateAbout = async (aboutData: { id: number; bio?: string }) => {
-    // If id is 0, create new about, otherwise update existing
     if (aboutData.id === 0) {
       const result = await createAbout({ bio: aboutData.bio });
       setProfile((prev) => (prev ? { ...prev, about: result } : prev));
     } else {
       await updateAbout(aboutData);
-      // Update profile state with new about data
       setProfile((prev) => (prev ? { ...prev, about: aboutData } : prev));
     }
   };
 
-  // Hàm xử lý cập nhật experience
   const { updateExperienceRecord } = useUpdateExperience();
   const handleUpdateExperience = async (experiences: CandidateExperience) => {
     const apiExperience = mapUIToApiUpdateExperience(experiences);
@@ -350,7 +341,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý thêm experience
   const { createExperienceRecord } = useCreateExperience();
   const handleAddExperience = async (experience: CandidateExperience) => {
     const apiExperience = mapUIToApiCreateExperience(experience);
@@ -365,7 +355,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý delete experience
   const { deleteExperienceRecord } = useDeleteExperience();
   const handleDeleteExperience = async (id: number) => {
     await deleteExperienceRecord(id);
@@ -378,7 +367,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý cập nhật education
   const { updateEducationRecord } = useUpdateEducation();
   const handleUpdateEducation = async (education: CandidateEducation) => {
     const apiEducation = mapUIToApiUpdateEducation(education);
@@ -393,11 +381,9 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý thêm education
   const { createEducationRecord } = useCreateEducation();
   const handleAddEducation = async (education: CandidateEducation) => {
     const apiEducation = mapUIToApiCreateEducation(education);
-
     const newEducation = await createEducationRecord(apiEducation);
     setProfile((prev) => {
       if (!prev) return prev;
@@ -408,7 +394,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // hàm xử lý delete education
   const { deleteEducationRecord } = useDeleteEducation();
   const handleDeleteEducation = async (id: number) => {
     await deleteEducationRecord(id);
@@ -421,7 +406,135 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // hàm xử lý add skill
+  const { updateCertificateRecord } = useUpdateCertificate();
+  const handleUpdateCertificate = async (cert: CandidateCertificate) => {
+    const apiPayload = mapUIToApiUpdateCertificate(cert);
+    await updateCertificateRecord(apiPayload);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updated = prev.certificates?.map((c) =>
+        c.id === cert.id ? cert : c
+      );
+      return { ...prev, certificates: updated };
+    });
+  };
+
+  const { createCertificateRecord } = useCreateCertificate();
+  const handleAddCertificate = async (cert: CandidateCertificate) => {
+    const apiPayload = mapUIToApiCreateCertificate(cert);
+    const created = await createCertificateRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        certificates: [...(prev.certificates || []), created],
+      };
+    });
+  };
+
+  const { deleteCertificateRecord } = useDeleteCertificate();
+  const handleDeleteCertificate = async (id: number) => {
+    await deleteCertificateRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        certificates: prev.certificates?.filter((c) => c.id !== id),
+      };
+    });
+  };
+
+  // Social link handlers
+  const { createSocialRecord } = useCreateSocial();
+  const handleAddSocial = async (social: CandidateSocial) => {
+    const apiPayload = mapUIToApiCreateSocial(social);
+    const created = await createSocialRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        socials: [...(prev.socials || []), created],
+      };
+    });
+  };
+
+  const { updateSocialRecord } = useUpdateSocial();
+  const handleUpdateSocials = async (socials: CandidateSocial[]) => {
+    try {
+      for (const s of socials) {
+        if (s.id) {
+          await updateSocialRecord(mapUIToApiUpdateSocial(s));
+        }
+      }
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+      toast.success('Social links updated');
+    } catch (error) {
+      toast.error('Failed to update social links');
+    }
+  };
+
+  const { deleteSocialRecord } = useDeleteSocial();
+  const handleDeleteSocial = async (id: number) => {
+    await deleteSocialRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        socials: prev.socials?.filter((s) => s.id !== id),
+      };
+    });
+  };
+
+  // Contact link handlers
+  const { createContactRecord } = useCreateContact();
+  const handleAddContact = async (contact: CandidateContact) => {
+    const apiPayload = mapUIToApiCreateContact(contact);
+    const created = await createContactRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        contacts: [...(prev.contacts || []), created],
+      };
+    });
+  };
+
+  const { updateContactRecord } = useUpdateContact();
+  const handleUpdateContacts = async (contacts: CandidateContact[]) => {
+    try {
+      for (const c of contacts) {
+        if (c.id) {
+          await updateContactRecord(mapUIToApiUpdateContact(c));
+        }
+      }
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+      toast.success('Contact info updated');
+    } catch (error) {
+      toast.error('Failed to update contact info');
+    }
+  };
+
+  const { deleteContactRecord } = useDeleteContact();
+  const handleDeleteContact = async (id: number) => {
+    await deleteContactRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        contacts: prev.contacts?.filter((c) => c.id !== id),
+      };
+    });
+  };
+
   const { createSkillRecord } = useCreateSkill();
   const handleAddSkill = async (skill: string) => {
     const normalizedSkill = skill.trim().toLowerCase();
@@ -449,7 +562,6 @@ const CandidateProfilePage = () => {
     }
   };
 
-  // Hàm xử lý delete skill
   const { deleteSkillRecord } = useDeleteSkill();
   const handleDeleteSkill = async (skillId: number) => {
     await deleteSkillRecord(skillId);
@@ -462,12 +574,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Contact and Social handlers are not implemented yet
-  // Disable related edit UI until endpoints exist
-  const handleAddSocial = undefined;
-  const handleUpdateSocials = undefined;
-
-  // Initialize profile from context
   useEffect(() => {
     setTitle('Profile');
   }, [setTitle]);
@@ -484,12 +590,10 @@ const CandidateProfilePage = () => {
     setSelectedResumeId(defaultResumeId);
   }, [profile?.resumes]);
 
-  // Listen for profile updates (from settings or other pages)
   useEffect(() => {
     const handleProfileUpdate = () => {
       fetchCandidateProfile();
     };
-
     window.addEventListener('profile-updated', handleProfileUpdate);
     return () =>
       window.removeEventListener('profile-updated', handleProfileUpdate);
@@ -507,12 +611,10 @@ const CandidateProfilePage = () => {
       }
 
       const uploadResult = await uploadToS3(file, 'resumes');
-      
-      // Trigger a loading toast for AI processing
       toast.info('AI is analyzing your resume...', {
         id: 'ai-processing',
         description: 'This usually takes 10-20 seconds. We will notify you when it is done.',
-        duration: Infinity, // Keep until dismissed by socket event or manual action
+        duration: Infinity,
       });
 
       await createResumeRecord({
@@ -579,16 +681,18 @@ const CandidateProfilePage = () => {
       className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)] overflow-x-hidden"
       style={{ boxSizing: 'border-box' }}
     >
-      {/* ProfileHeader with SideBar */}
       <div className="w-full">
         <ProfileHeader
           candidate={candidate}
           handleAddSocial={handleAddSocial}
           handleUpdateSocials={handleUpdateSocials}
+          handleDeleteSocial={handleDeleteSocial}
+          handleAddContact={handleAddContact}
+          handleUpdateContacts={handleUpdateContacts}
+          handleDeleteContact={handleDeleteContact}
         />
       </div>
 
-      {/* Bottom Section: AboutMe, CV, Experiences, Educations, Skills - Full Width */}
       <div className="w-full flex flex-col gap-[var(--space-xl)]">
         <AboutMe
           about={profile?.about || { id: 0, bio: '' }}
@@ -615,9 +719,6 @@ const CandidateProfilePage = () => {
                 : String(uploadError)
               : null)
           }
-          experiences={profile.experiences}
-          educations={profile.educations}
-          skills={profile.skills}
         />
         <Experiences
           experiences={candidate.experiences}
@@ -631,12 +732,17 @@ const CandidateProfilePage = () => {
           handleUpdateEducation={handleUpdateEducation}
           handleDeleteEducation={handleDeleteEducation}
         />
+        <Certificates
+          certificates={candidate.certificates}
+          handleAddCertificate={handleAddCertificate}
+          handleUpdateCertificate={handleUpdateCertificate}
+          handleDeleteCertificate={handleDeleteCertificate}
+        />
         <Skills
           skills={candidate.skills}
           handleAddSkill={handleAddSkill}
           handleDeleteSkill={handleDeleteSkill}
         />
-        {/* <Portfolios portfolios={candidate.portfolios} />/ */}
       </div>
 
       <CvSyncCompareModal
@@ -657,12 +763,12 @@ const CandidateProfilePage = () => {
         resumeName={activeResumeId ? profile?.resumes?.find(r => r.id === activeResumeId)?.fileName || 'Selected CV' : ''}
         resumeId={activeResumeId || 0}
         currentData={profile}
-        experiences={candidate.experiences}
-        educations={candidate.educations}
-        skills={candidate.skills}
-        certificates={candidate.certificates}
-        contacts={candidate.contacts}
-        socials={candidate.socials}
+        experiences={candidate.experiences || []}
+        educations={candidate.educations || []}
+        skills={candidate.skills || []}
+        certificates={candidate.certificates || []}
+        contacts={candidate.contacts || []}
+        socials={candidate.socials || []}
       />
       <AiFeedbackModal
         isOpen={feedbackModalOpen}

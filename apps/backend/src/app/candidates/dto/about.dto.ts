@@ -1,17 +1,13 @@
-import { Expose } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class QueryAboutDto {
-  @Expose()
   @IsString()
   id!: number;
 
-  @Expose()
   @IsOptional()
   @IsString()
   title?: string;
 
-  @Expose()
   @IsOptional()
   @IsString()
   bio?: string;

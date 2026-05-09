@@ -6,48 +6,38 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Expose, Transform } from 'class-transformer';
-
+import { Transform } from 'class-transformer';
 import { Degree } from '@prisma/client';
 
 export class QueryEducationDto {
-  @Expose()
   @IsNumber()
   id!: number;
 
-  @Expose()
   @IsString()
   @IsNotEmpty()
   school!: string;
 
-  @Expose()
   degree!: Degree;
 
-  @Expose()
   @IsString()
   @IsNotEmpty()
   fieldOfStudy!: string;
 
-  @Expose()
   @IsDateString()
   startDate!: string;
 
-  @Expose()
   @IsOptional()
   @IsDateString()
   endDate?: string;
 
-  @Expose()
   @IsOptional()
   @IsString()
   grade?: string;
 
-  @Expose()
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Expose()
   @IsOptional()
   @IsInt({ each: true })
   sourceCvIds?: number[];
@@ -69,7 +59,7 @@ export class CreateEducationDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
   endDate?: string;
 
   @IsOptional()
@@ -97,12 +87,12 @@ export class UpdateEducationDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
   startDate?: string;
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
   endDate?: string;
 
   @IsOptional()

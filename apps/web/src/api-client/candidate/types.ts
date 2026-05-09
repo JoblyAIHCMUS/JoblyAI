@@ -127,4 +127,24 @@ export interface CreateCertificatePayload {
 export interface UpdateCertificatePayload extends CreateCertificatePayload {
   id: number;
 }
+
+export interface CreateSocialPayload {
+  platform: string;
+  url: string;
+  username?: string;
+}
+
+export interface UpdateSocialPayload extends CreateSocialPayload {
+  id: number;
+}
+
+export interface CreateContactPayload {
+  type?: string;
+  value: string;
+  isPrimary?: boolean;
+}
+
+export interface UpdateContactPayload extends CreateContactPayload {
+  id: number;
+}
 import type { Degree } from '@/types/candidate';

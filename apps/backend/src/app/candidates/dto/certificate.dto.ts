@@ -7,32 +7,25 @@ import {
   IsString,
   IsUrl,
 } from 'class-validator';
-import { Expose, Transform } from 'class-transformer';
+import { Transform } from 'class-transformer';
 
 export class QueryCertificateDto {
-  @Expose()
   @IsNumber()
   id!: number;
 
-  @Expose()
   @IsString()
   @IsNotEmpty()
   name!: string;
 
-  @Expose()
   @IsString()
   @IsNotEmpty()
   issuer!: string;
 
-  @Expose()
   @IsDateString()
   issueDate!: string;
 
-  @Expose()
-  @IsOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
   expiryDate?: string; // Optional: Some certs don't expire
 
   @IsOptional()
@@ -43,12 +36,10 @@ export class QueryCertificateDto {
   @IsUrl()
   url?: string; // Link to the digital badge or verification page
 
-  @Expose()
   @IsOptional()
   @IsInt({ each: true })
   sourceCvIds?: number[];
-  }
-
+}
   export class CreateCertificateDto {
   @IsString()
   @IsNotEmpty()
