@@ -57,10 +57,6 @@ jobs:
       - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
       - run: pnpm audit --audit-level=high
-      # 3c. Install EAS CLI globally for potential use in CD step (e.g. for building Expo app or running eas commands)
-      - name: Install EAS CLI
-        run: npm install --global eas-cli
-
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
@@ -68,7 +64,7 @@ jobs:
       - run: pnpm --filter @jobly/backend prisma:generate
 
       # 5. Run Checks (Only on affected projects)
-      - run: pnpm nx affected -t lint test build
+      - run: pnpm nx run-many -t lint test build -p @jobly/backend
 
       # 6. Enforce coverage quality gate for backend
       - name: Check if backend is affected
