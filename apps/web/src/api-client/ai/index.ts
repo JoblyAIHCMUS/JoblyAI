@@ -29,3 +29,10 @@ export const commitResumeMerge = async (resumeId: number, data: any) => {
   });
   return response.data;
 };
+
+export const previewDeleteImpact = async (resumeId: number) => {
+  const response = await axios.post(`${API_BASE_URL}/api/ai/preview-delete-impact`, { resumeId }, {
+    withCredentials: true,
+  });
+  return response.data;
+};

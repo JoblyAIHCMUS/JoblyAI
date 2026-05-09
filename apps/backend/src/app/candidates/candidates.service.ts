@@ -198,6 +198,7 @@ export class CandidatesService {
         description: edu.description || '',
         startDate: edu.startDate.toISOString(),
         endDate: edu.endDate?.toISOString(),
+        sourceCvIds: edu.sourceCvIds,
       })),
       experiences: user.experiences.map((exp) => ({
         ...exp,
@@ -208,6 +209,7 @@ export class CandidatesService {
         description: exp.description ?? '',
         startDate: exp.startDate.toISOString(),
         endDate: exp.endDate?.toISOString(),
+        sourceCvIds: exp.sourceCvIds,
       })),
       certificates: user.certificates.map((cert) => ({
         id: cert.id,
@@ -217,6 +219,7 @@ export class CandidatesService {
         expiryDate: cert.expiryDate?.toISOString() ?? undefined,
         credentialId: cert.credentialId ?? undefined,
         url: cert.url ?? undefined,
+        sourceCvIds: cert.sourceCvIds,
       })),
       resumes: await Promise.all(
         [...user.resumes]
@@ -259,18 +262,21 @@ export class CandidatesService {
         title: skill.skill.name,
         level: skill.level ?? undefined,
         years: skill.years ?? undefined,
+        sourceCvIds: skill.sourceCvIds,
       })),
       contacts: user.candidateContacts.map((contact) => ({
         id: contact.id,
         type: contact.type ?? undefined,
         value: contact.value,
         isPrimary: contact.isPrimary ?? false,
+        sourceCvIds: contact.sourceCvIds,
       })),
       socials: user.candidateSocials.map((social) => ({
         id: social.id,
         platform: social.platform,
         url: social.url,
         username: social.username ?? undefined,
+        sourceCvIds: social.sourceCvIds,
       })),
     };
   }
@@ -621,6 +627,12 @@ export class CandidatesService {
       },
     });
 
+    // Emit event for cleanup (e.g. AI-sync data removal)
+    this.eventEmitter.emit('resume.deleted', {
+      resumeId,
+      candidateId: userId,
+    });
+
     return `Deleted resume with ID ${resumeId} and file from S3`;
   }
 
@@ -629,7 +641,7 @@ export class CandidatesService {
     userId: string,
     updateDto: UpdateCertificateDto
   ): Promise<Certificate> {
-    const { id, issueDate, expirationDate, ...rest } = updateDto;
+    const { id, issueDate, expiryDate, ...rest } = updateDto;
 
     const existing = await this.prismaClient.certificate.findFirst({
       where: {
@@ -649,12 +661,12 @@ export class CandidatesService {
       ...(issueDate === undefined
         ? {}
         : { issueDate: this.toPrismaDateTime(issueDate, 'issueDate') }),
-      ...(expirationDate === undefined
+      ...(expiryDate === undefined
         ? {}
         : {
             expiryDate: this.toPrismaNullableDateTime(
-              expirationDate,
-              'expirationDate'
+              expiryDate,
+              'expiryDate'
             ),
           }),
     };

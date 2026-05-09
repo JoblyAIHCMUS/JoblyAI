@@ -43,9 +43,25 @@ export interface CandidateProfileResponse {
   openForOpportunities?: boolean;
   skills?: CandidateSkill[];
   portfolios?: { img: string; name: string }[];
-  contact?: { email: string; phone?: string };
-  socials?: { type: string; url: string }[];
+  contacts?: CandidateContact[];
+  socials?: CandidateSocial[];
   banner?: string;
+}
+
+export interface CandidateContact {
+  id: number;
+  type?: string;
+  value: string;
+  isPrimary: boolean;
+  sourceCvIds?: number[];
+}
+
+export interface CandidateSocial {
+  id: number;
+  platform: string;
+  url: string;
+  username?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateSkill {
@@ -53,6 +69,7 @@ export interface CandidateSkill {
   title: string;
   level?: string;
   years?: number;
+  sourceCvIds?: number[];
 }
 
 export interface CreateEducationPayload {

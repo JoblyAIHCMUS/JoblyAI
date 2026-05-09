@@ -78,11 +78,13 @@ export function mapDataToCandidate(
     experiences: data.experiences || [],
     educations: data.educations || [],
     skills: data.skills || [],
+    certificates: data.certificates || [],
     portfolios: data.portfolios || [],
     contact: {
       email: data.email || '',
       phone: data.phoneNumber || '',
     },
+    contacts: data.contacts || [],
     socials: data.socials || [],
   };
 }

@@ -65,6 +65,7 @@ export interface CandidateEducation {
   endDate?: string;
   grade?: string;
   description?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateExperience {
@@ -76,6 +77,7 @@ export interface CandidateExperience {
   startDate: string;
   endDate?: string;
   description?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateCertificate {
@@ -86,6 +88,7 @@ export interface CandidateCertificate {
   expiryDate?: string;
   credentialId?: string;
   url?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateResume {

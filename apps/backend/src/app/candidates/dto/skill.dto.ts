@@ -1,4 +1,5 @@
 import { CandidateSkillLevel } from '@prisma/client';
+import { Expose } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
@@ -9,23 +10,33 @@ import {
 } from 'class-validator';
 
 export class QuerySkillDto {
+  @Expose()
   @IsInt()
   id!: number;
 
+  @Expose()
   @IsInt()
   skillId!: number;
 
+  @Expose()
   @IsString()
   @IsNotEmpty()
   title!: string;
 
+  @Expose()
   @IsOptional()
   @IsEnum(CandidateSkillLevel)
   level?: CandidateSkillLevel;
 
+  @Expose()
   @IsOptional()
   @IsInt()
   years?: number;
+
+  @Expose()
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateSkillDto {

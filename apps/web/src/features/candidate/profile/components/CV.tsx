@@ -67,7 +67,6 @@ const CV = forwardRef<CVRef, CVProps>(
     const [actionError, setActionError] = useState<string | null>(null);
     const [previewResumeId, setPreviewResumeId] = useState<number | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [confirmDefaultOpen, setConfirmDefaultOpen] = useState(false);
     const [pendingResumeId, setPendingResumeId] = useState<number | null>(null);
     const [uploadOpen, setUploadOpen] = useState(false);
@@ -194,42 +193,15 @@ const CV = forwardRef<CVRef, CVProps>(
       }
     };
 
-    const handleDeleteResume = async (resumeId: number) => {
-      if (isBusy) return;
-      const resumeToDelete = resumes.find((resume) => resume.id === resumeId);
-      if (!resumeToDelete) return;
-
-      try {
-        setActionError(null);
-        await onDeleteResume?.(resumeToDelete.id);
-      } catch (error) {
-        console.error('Failed to delete resume:', error);
-        setActionError('Failed to delete CV. Please try again.');
-      }
-    };
-
     const handleOpenPreview = (resumeId: number) => {
       setPreviewResumeId(resumeId);
       setIsPreviewOpen(true);
-    };
-
-    const handleOpenDeleteConfirm = (resumeId: number) => {
-      if (isBusy) return;
-      setPendingResumeId(resumeId);
-      setConfirmDeleteOpen(true);
     };
 
     const handleOpenDefaultConfirm = (resumeId: number) => {
       if (isBusy) return;
       setPendingResumeId(resumeId);
       setConfirmDefaultOpen(true);
-    };
-
-    const handleConfirmDelete = async () => {
-      if (pendingResumeId == null) return;
-      await handleDeleteResume(pendingResumeId);
-      setConfirmDeleteOpen(false);
-      setPendingResumeId(null);
     };
 
     const handleConfirmDefault = async () => {
@@ -397,7 +369,7 @@ const CV = forwardRef<CVRef, CVProps>(
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleOpenDeleteConfirm(resume.id)}
+                        onClick={() => onDeleteResume?.(resume.id)}
                         disabled={isBusy || deletingResumeId === resume.id}
                         className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
                         aria-label="Delete CV"
@@ -442,38 +414,6 @@ const CV = forwardRef<CVRef, CVProps>(
                   disabled={isBusy}
                 >
                   Set default
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-          <DialogContent className="max-w-sm">
-            <div className="flex flex-col gap-3">
-              <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
-                Delete CV
-              </DialogTitle>
-              <DialogDescription className="text-sm text-secondary">
-                Are you sure you want to delete this CV? This action cannot be
-                undone.
-              </DialogDescription>
-              <div className="mt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md border border-[color:var(--border-primary)] text-primary hover:bg-[color:var(--bg-tertiary)]"
-                  onClick={() => setConfirmDeleteOpen(false)}
-                  disabled={isBusy}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
-                  onClick={handleConfirmDelete}
-                  disabled={isBusy}
-                >
-                  Delete
                 </button>
               </div>
             </div>
