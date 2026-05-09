@@ -1,0 +1,163 @@
+name: Mobile Expo CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '*android*'
+      - '*ios*'
+      - '*mobile*'
+      - '*infrastructure*'
+      - 'development'
+      - 'main'
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+      - '.github/workflows/mobile.yml'
+  pull_request:
+    branches:
+      - '*android*'
+      - '*ios*'
+      - '*mobile*'
+      - '*infrastructure*'
+      - 'development'
+      - 'main'
+    paths:
+      - 'apps/mobile/**'
+      - 'libs/**'
+      - '.github/workflows/mobile.yml'
+
+permissions:
+  actions: read
+  contents: read
+  packages: write
+
+jobs:
+  # JOB 1: CI Checks (Formatting, audit, lint)
+  validate-mobile:
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 3a. Run format check
+      - run: pnpm nx format:check --base=origin/main --head=HEAD
+      # 3b. Package audit
+      - run: pnpm audit --audit-level=high
+      # 4. Run mobile lint
+      - run: pnpm nx run @jobly/mobile:lint
+
+  # JOB 2: Smoke Test (Expo export)
+  smoke-mobile:
+    needs: validate-mobile
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 4. Smoke check Expo bundle output
+      - name: Smoke check Expo export
+        run: pnpm nx run @jobly/mobile:export
+
+  # JOB 3: Build Android (Expo EAS)
+  build-android:
+    needs: validate-mobile
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 4. Build Android with the production EAS profile
+      - name: Build Android app
+        run: pnpm nx build @jobly/mobile --platform=android --profile=production --interactive=false
+
+  # JOB 4: Build iOS (Expo EAS)
+  build-ios:
+    needs: validate-mobile
+    if: >-
+      ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip CI]')) &&
+           (github.event_name != 'pull_request' ||
+             (!contains(github.event.pull_request.title, '[skip CI]') &&
+              !contains(github.event.pull_request.body, '[skip CI]'))) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 1. Setup PNPM
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      # 2. Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      # 3. Install Dependencies
+      - run: pnpm install --frozen-lockfile
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+      # 4. Build iOS with the preview EAS profile
+      - name: Build iOS app
+        run: pnpm nx build @jobly/mobile --platform=ios --profile=preview --interactive=false
