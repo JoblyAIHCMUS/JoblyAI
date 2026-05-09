@@ -98,7 +98,7 @@ jobs:
       - name: Smoke check Expo export
         run: pnpm nx run @jobly/mobile:export
 
-  # JOB 3: Build Android (Expo EAS)
+  # JOB 3: Build Android (Expo prebuild)
   build-android:
     needs: validate-mobile
     if: >-
@@ -126,16 +126,11 @@ jobs:
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
-      # 4. Install EAS CLI
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-      # 5. Build Android with the production EAS profile
-      - name: Build Android app
-        run: pnpm nx build @jobly/mobile --platform=android --profile=production --interactive=false
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # 4. Generate Android native code
+      - name: Prebuild Android
+        run: pnpm nx run @jobly/mobile:prebuild --platform=android
 
-  # JOB 4: Build iOS (Expo EAS)
+  # JOB 4: Build iOS (Expo prebuild)
   build-ios:
     needs: validate-mobile
     if: >-
@@ -163,11 +158,6 @@ jobs:
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
-      # 4. Install EAS CLI
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-      # 5. Build iOS with the preview EAS profile
-      - name: Build iOS app
-        run: pnpm nx build @jobly/mobile --platform=ios --profile=preview --interactive=false
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # 4. Generate iOS native code
+      - name: Prebuild iOS
+        run: pnpm nx run @jobly/mobile:prebuild --platform=ios
