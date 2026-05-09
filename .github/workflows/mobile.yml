@@ -126,9 +126,14 @@ jobs:
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
-      # 4. Build Android with the production EAS profile
+      # 4. Install EAS CLI
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+      # 5. Build Android with the production EAS profile
       - name: Build Android app
         run: pnpm nx build @jobly/mobile --platform=android --profile=production --interactive=false
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
   # JOB 4: Build iOS (Expo EAS)
   build-ios:
@@ -158,6 +163,11 @@ jobs:
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
-      # 4. Build iOS with the preview EAS profile
+      # 4. Install EAS CLI
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+      # 5. Build iOS with the preview EAS profile
       - name: Build iOS app
         run: pnpm nx build @jobly/mobile --platform=ios --profile=preview --interactive=false
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
