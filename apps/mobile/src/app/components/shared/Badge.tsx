@@ -2,7 +2,19 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 
-export const Badge = ({ label, color = COLORS.badgeGreen, textColor = COLORS.badgeGreenText, outline = false }) => (
+export interface BadgeProps {
+  label: string;
+  color?: string;
+  textColor?: string;
+  outline?: boolean;
+}
+
+export const Badge: React.FC<BadgeProps> = ({ 
+  label, 
+  color = COLORS.badgeGreen, 
+  textColor = COLORS.badgeGreenText, 
+  outline = false 
+}) => (
   <View style={[
     styles.badge, 
     { 
