@@ -41,4 +41,32 @@ export const LATEST_JOBS = [
     type: 'Full-Time',
     tags: ['Design'],
   },
+  {
+    title: 'Interactive Developer',
+    company: 'Terraform',
+    location: 'Hamburg, Germany',
+    type: 'Full-Time',
+    tags: ['Developer'],
+  },
+  {
+    title: 'HR Manager',
+    company: 'Packer',
+    location: 'Lucern, Switzerland',
+    type: 'Full-Time',
+    tags: ['Marketing', 'Management'],
+  },
+  {
+    title: 'Social Media Assistant',
+    company: 'Netlify',
+    location: 'Paris, France',
+    type: 'Full-Time',
+    tags: ['Marketing'],
+  },
+  {
+    title: 'Brand Designer',
+    company: 'Maze',
+    location: 'San Fransisco, USA',
+    type: 'Full-Time',
+    tags: ['Marketing', 'Design'],
+  },
 ];

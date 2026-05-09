@@ -22,15 +22,33 @@ export const LatestJobCard = ({ title, company, location, type, tags }: LatestJo
             {company} • {location}
           </Text>
           <View style={styles.tagsContainer}>
-            <Badge label={type} outline textColor={COLORS.primary} />
-            {tags.map((tag, index) => (
-              <Badge 
-                key={index} 
-                label={tag} 
-                color={tag === 'Marketing' ? '#EBF9F1' : '#F8F8FD'} 
-                textColor={tag === 'Marketing' ? '#56CDAD' : COLORS.badgeBlue}
-              />
-            ))}
+            <Badge 
+              label={type} 
+              color="#EBF9F1" 
+              textColor="#56CDAD"
+              outline
+            />
+            <View style={styles.separator} />
+            {tags.map((tag, index) => {
+              const getTagStyles = (t: string) => {
+                const lowerTag = t.toLowerCase();
+                if (lowerTag === 'marketing') return { textColor: '#FFB836', color: 'transparent' };
+                if (lowerTag === 'design') return { textColor: '#4640DE', color: 'transparent' };
+                if (lowerTag === 'developer') return { textColor: '#26A4FF', color: 'transparent' };
+                if (lowerTag === 'management') return { textColor: '#B197FC', color: 'transparent' };
+                return { textColor: COLORS.textLight, color: 'transparent' };
+              };
+              const { textColor, color } = getTagStyles(tag);
+              return (
+                <Badge 
+                  key={index} 
+                  label={tag} 
+                  color={color} 
+                  textColor={textColor}
+                  outline
+                />
+              );
+            })}
           </View>
         </View>
       </View>
@@ -76,5 +94,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING.xs,
+    alignItems: 'center',
+  },
+  separator: {
+    width: 1,
+    height: 24,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 4,
   },
 });

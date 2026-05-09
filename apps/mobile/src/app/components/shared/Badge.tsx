@@ -3,7 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 
 export const Badge = ({ label, color = COLORS.badgeGreen, textColor = COLORS.badgeGreenText, outline = false }) => (
-  <View style={[styles.badge, { backgroundColor: outline ? 'transparent' : color, borderColor: textColor, borderWidth: outline ? 1 : 0 }]}>
+  <View style={[
+    styles.badge, 
+    { 
+      backgroundColor: color === 'transparent' ? 'transparent' : color, 
+      borderColor: outline ? (color === 'transparent' ? textColor : color) : 'transparent', 
+      borderWidth: outline ? 1 : 0 
+    }
+  ]}>
     <Text style={[styles.text, { color: textColor }]}>{label}</Text>
   </View>
 );

@@ -16,6 +16,8 @@ export const COLORS = {
   tagOrangeText: '#FFB836',
   tagGreenBg: '#EBF9F1',
   tagGreenText: '#56CDAD',
+  footerBg: '#0F172A',
+  footerText: '#64748B',
 };
 
 export const SPACING = {

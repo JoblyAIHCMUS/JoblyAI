@@ -56,14 +56,14 @@ const Footer = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0B0E14', // Darker background to match the image
+    backgroundColor: COLORS.footerBg,
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   copyrightText: {
-    color: COLORS.textLight,
+    color: COLORS.footerText,
     fontSize: 14,
     marginBottom: SPACING.lg,
     textAlign: 'center',
