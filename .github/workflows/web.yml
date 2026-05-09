@@ -54,6 +54,9 @@ jobs:
       - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
       - run: pnpm audit --audit-level=high
+      # 3c. Install EAS CLI globally for potential use in CD step (e.g. for building Expo app or running eas commands)
+      - name: Install EAS CLI
+        run: npm install --global eas-cli
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
