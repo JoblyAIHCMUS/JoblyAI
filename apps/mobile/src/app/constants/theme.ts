@@ -11,6 +11,7 @@ export const COLORS = {
   badgeGreenText: '#56CDAD',
   badgeOrange: '#FFB836',
   badgeBlue: '#26A4FF',
+  brandDark: '#0F172A',
 };
 
 export const SPACING = {
