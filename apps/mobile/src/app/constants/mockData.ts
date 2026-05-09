@@ -1,12 +1,12 @@
 export const CATEGORIES = [
   { name: 'Design', jobs: 235, icon: 'Paintbrush' },
   { name: 'Sales', jobs: 756, icon: 'BarChart3' },
-  { name: 'Marketing', jobs: 140, icon: 'Megaphone', active: true },
+  { name: 'Marketing', jobs: 140, icon: 'Megaphone' },
   { name: 'Finance', jobs: 325, icon: 'Wallet' },
   { name: 'Technology', jobs: 436, icon: 'Monitor' },
-  { name: 'Engineering', jobs: 542, icon: 'Code' },
-  { name: 'Business', jobs: 211, icon: 'Briefcase' },
-  { name: 'Human Resource', jobs: 346, icon: 'Users' },
+  { name: 'Engineering', jobs: 436, icon: 'Code' },
+  { name: 'Business', jobs: 436, icon: 'Briefcase' },
+  { name: 'Human Resources', jobs: 436, icon: 'Users' },
 ];
 
 export const FEATURED_JOBS = [

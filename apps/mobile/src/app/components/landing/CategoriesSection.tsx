@@ -19,10 +19,6 @@ export const CategoriesSection = () => {
         <Text style={styles.title}>
           Explore by <Text style={styles.highlight}>category</Text>
         </Text>
-        <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-          <Text style={styles.showAllText}>Show all jobs</Text>
-          <ArrowRightIcon />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.grid}>
@@ -30,6 +26,11 @@ export const CategoriesSection = () => {
           <CategoryCard key={category.name} category={category} />
         ))}
       </View>
+
+      <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
+        <Text style={styles.showAllText}>Show all jobs</Text>
+        <ArrowRightIcon />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -38,16 +39,13 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '800',
     color: COLORS.text,
   },
@@ -57,11 +55,13 @@ const styles = StyleSheet.create({
   showAll: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: SPACING.xs,
+    marginTop: SPACING.sm,
   },
   showAllText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.primary,
   },
   grid: {
