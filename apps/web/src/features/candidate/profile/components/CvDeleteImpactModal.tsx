@@ -24,12 +24,12 @@ interface CvDeleteImpactModalProps {
   resumeName: string;
   resumeId: number;
   currentData: any;
-  experiences: any[];
-  educations: any[];
-  skills: any[];
-  certificates: any[];
-  contacts: any[];
-  socials: any[];
+  experiences?: any[];
+  educations?: any[];
+  skills?: any[];
+  certificates?: any[];
+  contacts?: any[];
+  socials?: any[];
 }
 
 export function CvDeleteImpactModal({
@@ -40,12 +40,12 @@ export function CvDeleteImpactModal({
   resumeName,
   resumeId,
   currentData,
-  experiences,
-  educations,
-  skills,
-  certificates,
-  contacts,
-  socials,
+  experiences = [],
+  educations = [],
+  skills = [],
+  certificates = [],
+  contacts = [],
+  socials = [],
 }: CvDeleteImpactModalProps) {
   
   const [previewBio, setPreviewBio] = useState<string | null>(null);
@@ -73,8 +73,8 @@ export function CvDeleteImpactModal({
 
   const getAffectedItems = () => {
     const filterFn = (item: any) => {
-      const sourceIds = Array.isArray(item.sourceCvIds) ? item.sourceCvIds : [];
-      return sourceIds.length === 1 && sourceIds.includes(resumeId);
+      const sourceIds = Array.isArray(item.sourceCvIds) ? item.sourceCvIds.map(String) : [];
+      return sourceIds.length === 1 && sourceIds.includes(String(resumeId));
     };
     
     const affectedSkills = (skills || []).filter(filterFn);
@@ -171,7 +171,11 @@ export function CvDeleteImpactModal({
                   <div className="w-1/2">
                     {renderSectionHeader(<User size={16} />, "Current Bio", "text-slate-700 border-slate-200")}
                     <div className="p-4 bg-slate-50 border rounded-xl shadow-sm opacity-60">
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium italic">"{currentData?.about?.bio || "No biography provided."}"</p>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium italic">
+                        "{Array.isArray(currentData?.about) 
+                           ? (currentData.about[0] || "No biography provided.") 
+                           : (currentData?.about?.bio || "No biography provided.")}"
+                      </p>
                     </div>
                   </div>
                   <div className="w-1/2">
@@ -184,7 +188,7 @@ export function CvDeleteImpactModal({
                         </div>
                       ) : previewBio ? (
                         <div className="animate-in fade-in slide-in-from-bottom-1 duration-500">
-                           <Badge className="mb-2 bg-blue-100 text-blue-700 hover:bg-blue-100 text-[9px] border-blue-200">AI Preview</Badge>
+                           <Badge className="mb-2 bg-blue-100 text-blue-700 hover:bg-blue-100 text-[9px] border-blue-200 uppercase tracking-tighter font-bold">AI Preview</Badge>
                            <p className="text-xs text-blue-900 leading-relaxed font-semibold">"{previewBio}"</p>
                         </div>
                       ) : (
@@ -282,35 +286,35 @@ export function CvDeleteImpactModal({
                 <div className="w-1/2">
                    {renderSectionHeader(<Mail size={16} />, "Contacts", "text-slate-700 border-slate-200")}
                    <div className="space-y-2">
-                     {contacts.length > 0 ? contacts.map((c: any, i: number) => {
-                       const isAff = c.sourceCvIds?.length === 1 && c.sourceCvIds.includes(resumeId);
+                     {(contacts || []).length > 0 ? (contacts || []).map((c: any, i: number) => {
+                       const isAff = Array.isArray(c.sourceCvIds) && c.sourceCvIds.length === 1 && c.sourceCvIds.includes(resumeId);
                        return (
                         <div key={i} className={cn("flex items-center justify-between p-3 border rounded-xl bg-white shadow-sm", isAff ? "border-red-200 opacity-100 ring-1 ring-red-50" : "border-slate-200 opacity-60")}>
                            <div className="flex items-center gap-2">
                               {c.type === 'EMAIL' ? <Mail size={12} className="text-slate-400" /> : <Phone size={12} className="text-slate-400" />}
                               <span className={cn("text-[11px] font-bold", isAff ? "text-red-900" : "text-slate-700")}>{c.value}</span>
                            </div>
-                           {isAff && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[9px] border-red-200 font-bold">REMOVE</Badge>}
+                           {isAff && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[9px] border-red-200 font-bold uppercase tracking-tighter">Remove</Badge>}
                         </div>
                        );
-                     }) : <p className="text-[10px] text-slate-400 italic">No contacts.</p>}
+                     }) : <p className="text-[10px] text-slate-400 italic">No contacts found.</p>}
                    </div>
                 </div>
                 <div className="w-1/2">
                    {renderSectionHeader(<Globe size={16} />, "Social Links", "text-slate-700 border-slate-200")}
                    <div className="space-y-2">
-                     {socials.length > 0 ? socials.map((s: any, i: number) => {
-                       const isAff = s.sourceCvIds?.length === 1 && s.sourceCvIds.includes(resumeId);
+                     {(socials || []).length > 0 ? (socials || []).map((s: any, i: number) => {
+                       const isAff = Array.isArray(s.sourceCvIds) && s.sourceCvIds.length === 1 && s.sourceCvIds.includes(resumeId);
                        return (
                         <div key={i} className={cn("flex items-center justify-between p-3 border rounded-xl bg-white shadow-sm", isAff ? "border-red-200 opacity-100 ring-1 ring-red-50" : "border-slate-200 opacity-60")}>
                            <div className="flex items-center gap-2">
                               <Share2 size={12} className="text-slate-400" />
                               <span className={cn("text-[11px] font-bold truncate max-w-[150px]", isAff ? "text-red-900" : "text-slate-700")}>{s.url}</span>
                            </div>
-                           {isAff && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[9px] border-red-200 font-bold">REMOVE</Badge>}
+                           {isAff && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[9px] border-red-200 font-bold uppercase tracking-tighter">Remove</Badge>}
                         </div>
                        );
-                     }) : <p className="text-[10px] text-slate-400 italic">No social links.</p>}
+                     }) : <p className="text-[10px] text-slate-400 italic">No social links found.</p>}
                    </div>
                 </div>
               </div>

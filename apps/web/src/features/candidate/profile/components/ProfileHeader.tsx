@@ -2,30 +2,38 @@ import React from 'react';
 import { Flag, Mail, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SideBar from './sideBar';
-import type { Social } from '@/types/candidate';
+import type { CandidateSocial, CandidateContact } from '@/types/candidate';
 
 interface Candidate {
   name: string;
   title: string;
-  // location: string;
   avatar: string;
   banner: string;
   openForOpportunities: boolean;
   email?: string;
   phone?: string;
-  socials: Social[];
+  socials: CandidateSocial[];
+  contacts: CandidateContact[];
 }
 
 interface ProfileHeaderProps {
   candidate: Candidate;
-  handleAddSocial?: (social: Social) => void;
-  handleUpdateSocials?: (social: Social[]) => void;
+  handleAddSocial?: (social: CandidateSocial) => Promise<void> | void;
+  handleUpdateSocials?: (socials: CandidateSocial[]) => Promise<void> | void;
+  handleDeleteSocial?: (id: number) => Promise<void> | void;
+  handleAddContact?: (contact: CandidateContact) => Promise<void> | void;
+  handleUpdateContacts?: (contacts: CandidateContact[]) => Promise<void> | void;
+  handleDeleteContact?: (id: number) => Promise<void> | void;
 }
 
 export default function ProfileHeader({
   candidate,
   handleAddSocial,
   handleUpdateSocials,
+  handleDeleteSocial,
+  handleAddContact,
+  handleUpdateContacts,
+  handleDeleteContact,
 }: ProfileHeaderProps) {
   const router = useRouter();
 
@@ -55,10 +63,6 @@ export default function ProfileHeader({
               <div className="heading-h6-regular text-secondary break-words">
                 {candidate.title}
               </div>
-              {/* <div className="flex items-center gap-[var(--space-xs)] text-[color:var(--slate-500)] text-base font-normal">
-              <MapPin size={20} />
-              {candidate.location}
-            </div> */}
               <div className="flex items-center gap-3 mt-2">
                 {candidate.email && (
                   <div className="flex items-center gap-2">
@@ -101,13 +105,18 @@ export default function ProfileHeader({
           </div>
         </div>
       </div>
-      {/* Right side: 2/5 - SideBar (Social Links) */}
+      {/* Right side: 2/5 - SideBar (Contacts & Social Links) */}
       <div className="flex-[2] rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] overflow-hidden">
         <div className="h-full p-[var(--space-md)]">
           <SideBar
             socials={candidate.socials || []}
             handleAddSocial={handleAddSocial}
             handleUpdateSocials={handleUpdateSocials}
+            handleDeleteSocial={handleDeleteSocial}
+            contacts={candidate.contacts || []}
+            handleAddContact={handleAddContact}
+            handleUpdateContacts={handleUpdateContacts}
+            handleDeleteContact={handleDeleteContact}
           />
         </div>
       </div>

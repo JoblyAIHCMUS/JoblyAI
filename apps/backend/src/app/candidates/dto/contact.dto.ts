@@ -1,5 +1,4 @@
 import { CandidateContactType } from '@prisma/client';
-import { Expose } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -10,26 +9,21 @@ import {
 } from 'class-validator';
 
 export class QueryContactDto {
-  @Expose()
   @IsNotEmpty()
   id!: number;
 
-  @Expose()
   @IsOptional()
   @IsEnum(CandidateContactType)
   type?: CandidateContactType;
 
-  @Expose()
   @IsString()
   @IsNotEmpty()
   value!: string;
 
-  @Expose()
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;
 
-  @Expose()
   @IsOptional()
   @IsInt({ each: true })
   sourceCvIds?: number[];
