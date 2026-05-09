@@ -19,10 +19,6 @@ export const FeaturedJobsSection = () => {
         <Text style={styles.title}>
           Featured <Text style={styles.highlight}>jobs</Text>
         </Text>
-        <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-          <Text style={styles.showAllText}>Show all jobs</Text>
-          <ArrowRightIcon />
-        </TouchableOpacity>
       </View>
       <ScrollView 
         horizontal 
@@ -33,6 +29,10 @@ export const FeaturedJobsSection = () => {
           <FeaturedJobCard key={index} {...job} />
         ))}
       </ScrollView>
+      <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
+        <Text style={styles.showAllText}>Show all jobs</Text>
+        <ArrowRightIcon />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -61,6 +61,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
   },
   showAllText: {
     fontSize: 16,
