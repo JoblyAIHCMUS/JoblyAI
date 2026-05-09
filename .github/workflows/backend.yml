@@ -9,6 +9,7 @@ on:
     paths:
       - 'apps/backend/**'
       - 'libs/**'
+      - '.github/workflows/backend.yml'
   pull_request:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
     paths:
       - 'apps/backend/**'
       - 'libs/**'
+      - '.github/workflows/backend.yml'
 
 permissions:
   actions: read
