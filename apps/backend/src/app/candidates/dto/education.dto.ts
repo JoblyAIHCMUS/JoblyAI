@@ -6,38 +6,51 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 import { Degree } from '@prisma/client';
 
 export class QueryEducationDto {
+  @Expose()
   @IsNumber()
   id!: number;
 
+  @Expose()
   @IsString()
   @IsNotEmpty()
   school!: string;
 
+  @Expose()
   degree!: Degree;
 
+  @Expose()
   @IsString()
   @IsNotEmpty()
   fieldOfStudy!: string;
 
+  @Expose()
   @IsDateString()
   startDate!: string;
 
+  @Expose()
   @IsOptional()
   @IsDateString()
   endDate?: string;
 
+  @Expose()
   @IsOptional()
   @IsString()
   grade?: string;
 
+  @Expose()
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateEducationDto {

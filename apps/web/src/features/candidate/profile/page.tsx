@@ -44,6 +44,7 @@ import { CandidateProfileUI } from './types';
 import { formatErrorForDisplay } from '@/lib/errors';
 import { useAiSocket } from '@/hooks/useAiSocket';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
+import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
 import { AiFeedbackModal } from './components/AiFeedbackModal';
 import { triggerAiAnalysis, commitResumeMerge, triggerAiParse, triggerAiScore } from '@/api-client/ai';
 
@@ -54,6 +55,7 @@ const CandidateProfilePage = () => {
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
   const [processingTasks, setProcessingTasks] = useState<Record<number, { parsing: boolean; scoring: boolean }>>({});
@@ -219,6 +221,56 @@ const CandidateProfilePage = () => {
       toast.error('Failed to sync profile');
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleConfirmDeleteResume = async () => {
+    if (!activeResumeId || !profile) return;
+    
+    const resumeId = activeResumeId;
+    const resumeToDelete = profile.resumes?.find(r => r.id === resumeId);
+    if (!resumeToDelete) return;
+
+    setDeletingResumeId(resumeId);
+    try {
+      await deleteResumeRecord(resumeId);
+      let nextResumes = (profile.resumes || []).filter(
+        (resume) => resume.id !== resumeId
+      );
+
+      if (resumeToDelete.isDefault && nextResumes.length) {
+        try {
+          const updatedDefault = await updateResumeRecord({
+            id: nextResumes[0].id,
+            isDefault: true,
+          });
+          nextResumes = nextResumes.map((resume) =>
+            resume.id === updatedDefault.id
+              ? updatedDefault
+              : { ...resume, isDefault: false }
+          );
+        } catch (error) {
+          console.error('Failed to update default CV:', error);
+        }
+      }
+
+      const nextSelectedId =
+        nextResumes.find((resume) => resume.isDefault)?.id ||
+        nextResumes[0]?.id ||
+        null;
+
+      setProfile((prev) => (prev ? { ...prev, resumes: nextResumes } : prev));
+      setSelectedResumeId(nextSelectedId);
+      toast.success('CV deleted successfully.');
+      setDeleteImpactModalOpen(false);
+      // Refresh profile data to reflect bio regeneration and collection removals
+      fetchCandidateProfile();
+    } catch (error) {
+      console.error('Failed to delete CV:', error);
+      toast.error('Failed to delete CV');
+    } finally {
+      setDeletingResumeId(null);
+      setActiveResumeId(null);
     }
   };
 
@@ -507,51 +559,9 @@ const CandidateProfilePage = () => {
     }
   };
 
-  const handleDeleteResume = async (resumeId: number) => {
-    if (!profile?.resumes?.length) return;
-    const resumeToDelete = profile.resumes.find(
-      (resume) => resume.id === resumeId
-    );
-    if (!resumeToDelete) return;
-
-    setDeletingResumeId(resumeId);
-    try {
-      await deleteResumeRecord(resumeId);
-      let nextResumes = profile.resumes.filter(
-        (resume) => resume.id !== resumeId
-      );
-
-      if (resumeToDelete.isDefault && nextResumes.length) {
-        try {
-          const updatedDefault = await updateResumeRecord({
-            id: nextResumes[0].id,
-            isDefault: true,
-          });
-          nextResumes = nextResumes.map((resume) =>
-            resume.id === updatedDefault.id
-              ? updatedDefault
-              : { ...resume, isDefault: false }
-          );
-        } catch (error) {
-          const errorMessage = formatErrorForDisplay(
-            error,
-            'Failed to update default CV'
-          );
-          toast.error(errorMessage);
-        }
-      }
-
-      const nextSelectedId =
-        nextResumes.find((resume) => resume.isDefault)?.id ||
-        nextResumes[0]?.id ||
-        null;
-
-      setProfile((prev) => (prev ? { ...prev, resumes: nextResumes } : prev));
-      setSelectedResumeId(nextSelectedId);
-      toast.success('CV deleted successfully.');
-    } finally {
-      setDeletingResumeId(null);
-    }
+  const handleOpenDeleteModal = async (resumeId: number) => {
+    setActiveResumeId(resumeId);
+    setDeleteImpactModalOpen(true);
   };
 
   if (!profile) {
@@ -590,7 +600,7 @@ const CandidateProfilePage = () => {
           selectedResumeId={selectedResumeId}
           onCVChange={handleCVUpload}
           onSelectResume={handleSelectResume}
-          onDeleteResume={handleDeleteResume}
+          onDeleteResume={handleOpenDeleteModal}
           maxResumes={5}
           isUploading={uploading || creatingResume}
           isUpdating={updatingResume || isSyncing}
@@ -605,6 +615,9 @@ const CandidateProfilePage = () => {
                 : String(uploadError)
               : null)
           }
+          experiences={profile.experiences}
+          educations={profile.educations}
+          skills={profile.skills}
         />
         <Experiences
           experiences={candidate.experiences}
@@ -635,6 +648,21 @@ const CandidateProfilePage = () => {
           try { return res?.parsedText ? (typeof res.parsedText === 'string' ? JSON.parse(res.parsedText) : res.parsedText) : null; } catch(e) { return null; }
         })() : null}
         onSync={handleSyncResume}
+      />
+      <CvDeleteImpactModal
+        isOpen={deleteImpactModalOpen}
+        onClose={() => setDeleteImpactModalOpen(false)}
+        onConfirm={handleConfirmDeleteResume}
+        isLoading={!!deletingResumeId}
+        resumeName={activeResumeId ? profile?.resumes?.find(r => r.id === activeResumeId)?.fileName || 'Selected CV' : ''}
+        resumeId={activeResumeId || 0}
+        currentData={profile}
+        experiences={candidate.experiences}
+        educations={candidate.educations}
+        skills={candidate.skills}
+        certificates={candidate.certificates}
+        contacts={candidate.contacts}
+        socials={candidate.socials}
       />
       <AiFeedbackModal
         isOpen={feedbackModalOpen}

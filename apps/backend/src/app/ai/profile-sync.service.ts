@@ -1,10 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ParsedResume } from './resume-parser.service';
 import { AiProviderService } from './ai-provider.service';
 
 @Injectable()
 export class ProfileSyncService {
+  private readonly logger = new Logger(ProfileSyncService.name);
+
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     private readonly aiProvider: AiProviderService,
@@ -14,7 +16,7 @@ export class ProfileSyncService {
     return str ? str.trim().toLowerCase() : '';
   }
 
-  private async regenerateBio(rawDescriptions: Record<string, string>): Promise<string> {
+  async regenerateBio(rawDescriptions: Record<string, string>): Promise<string> {
     const sources = Object.values(rawDescriptions).filter(Boolean);
     if (sources.length === 0) return '';
     if (sources.length === 1) return sources[0];
@@ -149,6 +151,14 @@ export class ProfileSyncService {
     }
   }
 
+  async getBioRegenerationPreview(candidateId: string, resumeId: number): Promise<string | null> {
+    const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+    if (!desc?.rawDescriptions) return null;
+    const updatedRawDescriptions = { ...(desc.rawDescriptions as Record<string, string>) };
+    delete updatedRawDescriptions[resumeId.toString()];
+    return this.regenerateBio(updatedRawDescriptions);
+  }
+
   async handleResumeDeletion(candidateId: string, resumeId: number) {
     // PRE-CALCULATE BIO CLEANUP OUTSIDE TRANSACTION (AI is slow)
     const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
@@ -200,10 +210,23 @@ export class ProfileSyncService {
   private async getBestRecordFromSources(tx: any, model: string, remainingResumeIds: number[], currentRecord: any): Promise<any> {
     const resumes = await tx.resume.findMany({ where: { id: { in: remainingResumeIds } }, select: { parsedText: true } });
     const sourceDataList = resumes.map((r: { parsedText: string | null }) => JSON.parse(r.parsedText || '{}') as ParsedResume);
-    const field = model === 'experience' ? 'experience' : 'education';
-    const keyField = model === 'experience' ? 'companyName' : 'school';
-    const matches = sourceDataList.flatMap((d: ParsedResume) => (d as any)[field]).filter((m: any) => this.normalize(m[keyField]) === this.normalize(currentRecord[keyField]));
-    return matches.reduce((best: any, curr: any) => (curr.description?.length > (best.description?.length || 0) ? curr : best), matches[0] || {});
+    const field = model === 'experience' ? 'experience' : model === 'education' ? 'education' : 'certificates';
+    const keyField = model === 'experience' ? 'companyName' : model === 'education' ? 'school' : 'name';
+    
+    const matches = sourceDataList.flatMap((d: any) => d[field] || []).filter((m: any) => this.normalize(m[keyField]) === this.normalize(currentRecord[keyField]));
+    
+    const bestMatch = matches.reduce((best: any, curr: any) => (curr.description?.length > (best.description?.length || 0) ? curr : best), matches[0] || {});
+    
+    if (!bestMatch) return {};
+
+    // CONVERT DATE STRINGS TO DATE OBJECTS FOR PRISMA
+    const result = { ...bestMatch };
+    if (result.startDate) result.startDate = new Date(result.startDate);
+    if (result.endDate) result.endDate = new Date(result.endDate);
+    if (result.issueDate) result.issueDate = new Date(result.issueDate);
+    if (result.expiryDate) result.expiryDate = new Date(result.expiryDate);
+    
+    return result;
   }
 
   private compareSkillLevels(a: string, b: string): string {

@@ -1,6 +1,8 @@
 import { CandidateSocialPlatform } from '@prisma/client';
+import { Expose } from 'class-transformer';
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -8,19 +10,28 @@ import {
 } from 'class-validator';
 
 export class QuerySocialDto {
+  @Expose()
   @IsNotEmpty()
   id!: number;
 
+  @Expose()
   @IsEnum(CandidateSocialPlatform)
   platform!: CandidateSocialPlatform;
 
+  @Expose()
   @IsString()
   @IsNotEmpty()
   url!: string;
 
+  @Expose()
   @IsOptional()
   @IsString()
   username?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateSocialDto {
