@@ -12,6 +12,17 @@ export interface FeaturedJobProps {
 }
 
 export const FeaturedJobCard = ({ title, company, location, tags, description }: FeaturedJobProps) => {
+  const getTagColors = (tag: string) => {
+    switch (tag) {
+      case 'Marketing':
+        return { color: COLORS.tagOrangeBg, textColor: COLORS.tagOrangeText };
+      case 'Design':
+        return { color: COLORS.tagGreenBg, textColor: COLORS.tagGreenText };
+      default:
+        return { color: '#F8F8FD', textColor: COLORS.badgeBlue };
+    }
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -28,14 +39,17 @@ export const FeaturedJobCard = ({ title, company, location, tags, description }:
         </Text>
       </View>
       <View style={styles.tagsContainer}>
-        {tags.map((tag, index) => (
-          <Badge 
-            key={index} 
-            label={tag} 
-            color={tag === 'Marketing' ? '#EBF9F1' : '#F8F8FD'} 
-            textColor={tag === 'Marketing' ? '#56CDAD' : COLORS.badgeBlue}
-          />
-        ))}
+        {tags.map((tag, index) => {
+          const { color, textColor } = getTagColors(tag);
+          return (
+            <Badge 
+              key={index} 
+              label={tag} 
+              color={color} 
+              textColor={textColor}
+            />
+          );
+        })}
       </View>
     </View>
   );
@@ -45,7 +59,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
     padding: SPACING.md,
-    borderRadius: 16,
+    borderRadius: 12,
     width: 280,
     marginRight: SPACING.md,
     borderWidth: 1,
