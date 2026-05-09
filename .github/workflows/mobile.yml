@@ -128,7 +128,8 @@ jobs:
           test -d node_modules/react-native-safe-area-context
       # 4. Generate Android native code
       - name: Prebuild Android
-        run: pnpm nx run @jobly/mobile:prebuild --platform=android
+        run: pnpm exec expo prebuild --platform android --no-install
+        working-directory: apps/mobile
 
   # JOB 4: Build iOS (Expo prebuild)
   build-ios:
@@ -138,7 +139,7 @@ jobs:
            (github.event_name != 'pull_request' ||
              (!contains(github.event.pull_request.title, '[skip CI]') &&
               !contains(github.event.pull_request.body, '[skip CI]'))) }}
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -152,12 +153,23 @@ jobs:
         with:
           node-version: 22
           cache: 'pnpm'
-      # 3. Install Dependencies
+      # 3. Install Ruby (for CocoaPods)
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+          bundler-cache: true
+      # 4. Install CocoaPods
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod --version
+      # 5. Install Dependencies
       - run: pnpm install --frozen-lockfile
       - name: Verify React Native node modules
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
-      # 4. Generate iOS native code
+      # 6. Generate iOS native code
       - name: Prebuild iOS
-        run: pnpm nx run @jobly/mobile:prebuild --platform=ios
+        run: pnpm exec expo prebuild --platform ios
+        working-directory: apps/mobile
