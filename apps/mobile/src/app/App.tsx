@@ -11,10 +11,16 @@ import {
   Linking,
 } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
+import { TestPage } from './test';
 
 export const App = () => {
   const [whatsNextYCoord, setWhatsNextYCoord] = useState<number>(0);
+  const [showTestPage, setShowTestPage] = useState(false);
   const scrollViewRef = useRef<null | ScrollView>(null);
+
+  if (showTestPage) {
+    return <TestPage onBack={() => setShowTestPage(false)} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -35,6 +41,14 @@ export const App = () => {
           >
             Welcome Mobile 👋
           </Text>
+          <TouchableOpacity
+            style={[styles.whatsNextButton, { marginTop: 16 }]}
+            onPress={() => setShowTestPage(true)}
+          >
+            <Text style={[styles.textMd, styles.textCenter]}>
+              Go to Test Page
+            </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.section}>
           <View style={styles.hero}>

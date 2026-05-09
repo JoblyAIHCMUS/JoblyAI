@@ -10,5 +10,5 @@
     "**/android/build/**"
   ],
   "java.project.resourceFilters": ["node_modules", ".git", "**/android/build"],
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "automatic"
 }
