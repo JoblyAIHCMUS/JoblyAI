@@ -3,24 +3,27 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "react-native start",
-    "run-android": "node ../../node_modules/react-native/cli.js run-android",
-    "run-ios": "node ../../node_modules/react-native/cli.js run-ios",
-    "build-android": "cd android && ./gradlew assembleRelease",
-    "build-ios": "cd ios && xcodebuild -workspace Mobile.xcworkspace -scheme Mobile -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= build",
-    "lint": "eslint ."
+    "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/mobile",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
-    "@react-native/metro-config": "*",
-    "lucide-react-native": "^1.11.0",
+    "@testing-library/react-native": "*",
+    "expo": "*",
+    "expo-splash-screen": "*",
+    "expo-status-bar": "*",
+    "expo-system-ui": "*",
+    "jest-expo": "*",
     "metro-config": "*",
-    "react": "*",
+    "metro-resolver": "*",
+    "nativewind": "^4.2.3",
     "react-native": "*",
-    "react-native-safe-area-context": "^5.7.0",
+    "react-native-reanimated": "^4.1.7",
+    "react-native-safe-area-context": "^5.6.2",
     "react-native-svg": "*",
-    "react-native-vector-icons": "^10.3.0"
-  },
-  "devDependencies": {
-    "@types/react-native-vector-icons": "^6.4.18"
+    "react-native-svg-transformer": "*",
+    "react-native-web": "*",
+    "tailwindcss": "^4.2.4",
+    "react": "19.1.0"
   }
 }

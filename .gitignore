@@ -139,3 +139,18 @@ vite.config.*.timestamp*
 # Prisma
 apps/backend/src/app/generated/prisma\
 .worktrees/\
+
+# Expo
+node_modules/
+.expo/
+.yarn/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+cache/
