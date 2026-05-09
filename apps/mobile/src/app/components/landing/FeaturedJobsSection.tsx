@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '800',
     color: COLORS.text,
   },
@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   showAllText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.primary,
   },
   scrollContent: {
