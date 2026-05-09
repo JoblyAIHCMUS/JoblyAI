@@ -1,6 +1,10 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { COLORS } from './constants/theme';
 import Header from './components/landing/Header';
 import HeroSection from './components/landing/HeroSection';
@@ -10,23 +14,34 @@ import FeaturedJobsSection from './components/landing/FeaturedJobsSection';
 import LatestJobsSection from './components/landing/LatestJobsSection';
 import Footer from './components/landing/Footer';
 
+const AppContent = () => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={styles.container}>
+      <StatusBar style="dark" />
+      <Header />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <HeroSection />
+        <CompaniesSection />
+        <CategoriesSection />
+        <FeaturedJobsSection />
+        <LatestJobsSection />
+        <Footer />
+        {/* Spacer for bottom safe area */}
+        <View style={{ height: insets.bottom, backgroundColor: '#0B0E14' }} />
+      </ScrollView>
+    </View>
+  );
+};
+
 export const App = () => {
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
-        <Header />
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          <HeroSection />
-          <CompaniesSection />
-          <CategoriesSection />
-          <FeaturedJobsSection />
-          <LatestJobsSection />
-          <Footer />
-        </ScrollView>
-      </View>
+      <AppContent />
     </SafeAreaProvider>
   );
 };

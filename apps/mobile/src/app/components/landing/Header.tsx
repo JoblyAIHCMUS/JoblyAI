@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import Logo from '../../../assets/images/jobly-logo.svg';
 import { COLORS, SPACING } from '../../constants/theme';
 
 const Header = () => {
@@ -9,28 +10,21 @@ const Header = () => {
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
         {/* Menu Icon Left */}
-        <TouchableOpacity style={styles.menuButton}>
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+        <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
             <Path
-              d="M3 12h18M3 6h18M3 18h18"
+              d="M4 10H20M4 16H14"
               stroke={COLORS.text}
-              strokeWidth={2}
+              strokeWidth={2.5}
               strokeLinecap="round"
-              strokeLinejoin="round"
             />
           </Svg>
         </TouchableOpacity>
 
-        {/* Logo and Brand Right */}
+        {/* Logo and Brand */}
         <View style={styles.brandContainer}>
           <View style={styles.logoContainer}>
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Circle cx="12" cy="12" r="12" fill={COLORS.primary} />
-              <Path
-                d="M10 8h4v6a2 2 0 01-2 2h0a2 2 0 01-2-2V8z"
-                fill={COLORS.white}
-              />
-            </Svg>
+            <Logo width={34} height={34} />
           </View>
           <Text style={styles.brandText}>JoblyAI</Text>
         </View>
@@ -41,38 +35,43 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F8F9FE', // Matches the light blue-ish background in the image
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   container: {
-    height: 60,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
   },
   menuButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#E6E8F0',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: SPACING.md,
   },
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
   logoContainer: {
-    marginRight: SPACING.sm,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
   brandText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#121419',
+    letterSpacing: -0.5,
   },
 });
 
