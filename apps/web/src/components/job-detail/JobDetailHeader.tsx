@@ -35,6 +35,7 @@ interface JobDetailHeaderProps {
   workType: string;
   jobId: number;
   jobType?: EmploymentType;
+  hasApplied?: boolean;
 }
 
 export default function JobDetailHeader({
@@ -45,13 +46,16 @@ export default function JobDetailHeader({
   workType,
   jobId,
   jobType = 'FULL_TIME',
+  hasApplied = false,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: user } = useUser();
   const role = useRole();
+  const isApplied = Boolean(hasApplied);
 
   const handleApply = () => {
+    if (isApplied) return;
     if (!user) {
       const basePath =
         role === 'candidate'
@@ -166,9 +170,14 @@ export default function JobDetailHeader({
             <div className="w-px h-10 bg-slate-200 hidden sm:block" />
             <button
               onClick={handleApply}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto"
+              disabled={isApplied}
+              className={`${
+                isApplied
+                  ? 'bg-slate-100 text-slate-500 cursor-not-allowed opacity-60'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
             >
-              Apply
+              {isApplied ? 'Applied' : 'Apply'}
             </button>
           </div>
         </div>

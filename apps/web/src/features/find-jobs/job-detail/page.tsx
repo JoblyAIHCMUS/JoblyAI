@@ -10,6 +10,8 @@ import JobDetailContent from '@/components/job-detail/JobDetailContent';
 import JobCompanySection from '@/components/job-detail/JobCompanySection';
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
+import { useListCandidateApplications } from '@/api-hook/application';
+import { useUser } from '@/hooks/useUser';
 import { mapJobPostingToDetailContent } from '@/features/find-jobs/job-detail/job.mapper';
 import type { JobPosting } from '@/api-client/jobs';
 import type { JobDetailContentProps } from '@/types/jobDetail';
@@ -37,12 +39,15 @@ export default function JobDetailPage() {
     role === 'candidate' ? '/candidate/find-jobs' : '/find-jobs';
 
   const { fetchJobDetail } = useJobDetail();
+  const { fetchApplications } = useListCandidateApplications();
+  const { data: user } = useUser();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [jobDetailProps, setJobDetailProps] =
     useState<JobDetailContentProps | null>(null);
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     setTitle('Job Description');
@@ -95,6 +100,23 @@ export default function JobDetailPage() {
         // TODO: capacity should come from a dedicated job posting endpoint
         const detailProps = mapJobPostingToDetailContent(jobData, totalApplied);
         setJobDetailProps(detailProps);
+
+        // If user is signed in and candidate, check if they've applied to this job
+        try {
+          if (user) {
+            const apps = await fetchApplications({ page: 1, pageSize: 100 });
+            const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+            const applied = (apps.applications || []).some(
+              (a) => a.jobId === jobData.id && activeStatuses.includes(a.status)
+            );
+            setHasApplied(applied);
+          } else {
+            setHasApplied(false);
+          }
+        } catch (err) {
+          // Ignore errors (e.g., unauthenticated) and assume not applied
+          setHasApplied(false);
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to load job details';
@@ -149,6 +171,7 @@ export default function JobDetailPage() {
         address={pageData.address}
         workType={pageData.workType}
         jobId={pageData.jobId}
+        hasApplied={hasApplied}
       />
       <JobDetailContent {...jobDetailProps} />
       <JobCompanySection

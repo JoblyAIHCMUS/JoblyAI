@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -8,6 +8,8 @@ import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { useRole } from '@/contexts/role-context';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { useListCandidateApplications } from '@/api-hook/application';
+import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
   return type
@@ -70,6 +72,9 @@ function getColorForSkill(skill: string): string {
 
 export default function JobCard({ job, viewMode }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const { fetchApplications } = useListCandidateApplications();
+  const { data: user } = useUser();
   const role = useRole();
   const router = useRouter();
   const jobHref =
@@ -78,12 +83,13 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
       : `/find-jobs/${job.id}`;
 
   // Gate apply button by role - only candidates can apply
-  const canApply = role === 'candidate';
+  const canApplyRole = role === 'candidate';
+  const canApply = canApplyRole && !hasApplied;
 
   const handleApply = () => {
-    if (canApply) {
-      // Candidate: open modal
-      setIsModalOpen(true);
+    if (canApplyRole) {
+      // Candidate: open modal if not already applied
+      if (!hasApplied) setIsModalOpen(true);
     } else {
       // Non-candidates (guest, employer, admin): redirect to login
       router.push(`/login?redirect=${encodeURIComponent(jobHref)}`);
@@ -95,12 +101,35 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
     : 'bg-slate-300 text-slate-500 cursor-not-allowed';
 
   const handleApplicationSuccess = (message: string) => {
+    setHasApplied(true);
     toast.success(message);
   };
 
   const handleApplicationError = (error: string) => {
     toast.error(error);
   };
+
+  useEffect(() => {
+    let mounted = true;
+    const checkApplied = async () => {
+      if (!user) return;
+      try {
+        const res = await fetchApplications({ page: 1, pageSize: 100 });
+        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+        const applied = (res.applications || []).some(
+          (a) => a.jobId === job.id && activeStatuses.includes(a.status)
+        );
+        if (mounted) setHasApplied(applied);
+      } catch (err) {
+        // ignore errors (likely unauthenticated)
+      }
+    };
+
+    checkApplied();
+    return () => {
+      mounted = false;
+    };
+  }, [user, fetchApplications, job.id]);
 
   return (
     <>
@@ -170,10 +199,14 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
             disabled={!canApply}
             className={`h-11 w-full rounded-[6px] text-sm font-semibold transition-colors lg:w-[168px] ${applyButtonClass}`}
             title={
-              !canApply ? 'Only candidates can apply' : 'Apply for this job'
+              !canApplyRole
+                ? 'Only candidates can apply'
+                : hasApplied
+                ? 'You have already applied'
+                : 'Apply for this job'
             }
           >
-            {!canApply ? 'Sign in to Apply' : 'Apply'}
+            {!canApplyRole ? 'Sign in to Apply' : hasApplied ? 'Applied' : 'Apply'}
           </button>
           <div className="w-full lg:w-[168px]">
             <p className="mb-1 text-xs font-semibold text-slate-500">Salary</p>
