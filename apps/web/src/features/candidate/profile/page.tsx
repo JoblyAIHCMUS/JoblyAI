@@ -223,13 +223,15 @@ const CandidateProfilePage = () => {
       console.log('[CandidateProfilePage] Committing resume merge for:', activeResumeId);
       const parsedData = typeof resume.parsedText === 'string' ? JSON.parse(resume.parsedText) : resume.parsedText;
       await commitResumeMerge(activeResumeId, parsedData);
+      
+      // CRITICAL: Force refresh data BEFORE closing modal
+      const updatedProfile = await fetchCandidateProfile({ forceRefresh: true });
+      if (updatedProfile) {
+        setProfile({ ...updatedProfile });
+      }
+      
       toast.success('Profile synced with resume data!');
       setSyncModalOpen(false);
-      
-      const updatedProfile = await fetchCandidateProfile();
-      if (updatedProfile) {
-        setProfile(updatedProfile);
-      }
       window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (error) {
       console.error('[CandidateProfilePage] Failed to sync profile:', error);
@@ -239,7 +241,7 @@ const CandidateProfilePage = () => {
     }
   };
 
-  const handleConfirmDeleteResume = async () => {
+  const handleConfirmDeleteResume = async (keepData = false) => {
     if (!activeResumeId || !profile) return;
     
     const resumeId = activeResumeId;
@@ -248,14 +250,14 @@ const CandidateProfilePage = () => {
 
     setDeletingResumeId(resumeId);
     try {
-      await deleteResumeRecord(resumeId);
+      console.log('[CandidateProfilePage] Deleting resume:', resumeId, 'keepData:', keepData);
+      await deleteResumeRecord(resumeId, keepData);
       
-      setDeleteImpactModalOpen(false);
-      toast.success('CV deleted successfully.');
-
-      const updatedProfile = await fetchCandidateProfile();
+      // CRITICAL: Force refresh data while modal is still open (showing loading state)
+      // This ensures the backend cleanup (async until now) is reflected in the new profile
+      const updatedProfile = await fetchCandidateProfile({ forceRefresh: true });
       if (updatedProfile) {
-        setProfile(updatedProfile);
+        setProfile({ ...updatedProfile });
         
         const nextSelectedId =
           updatedProfile.resumes?.find((resume) => resume.isDefault)?.id ||
@@ -263,6 +265,9 @@ const CandidateProfilePage = () => {
           null;
         setSelectedResumeId(nextSelectedId);
       }
+
+      toast.success('CV deleted successfully.');
+      setDeleteImpactModalOpen(false);
     } catch (error) {
       console.error('Failed to delete CV:', error);
       toast.error('Failed to delete CV');
@@ -754,6 +759,7 @@ const CandidateProfilePage = () => {
           try { return res?.parsedText ? (typeof res.parsedText === 'string' ? JSON.parse(res.parsedText) : res.parsedText) : null; } catch(e) { return null; }
         })() : null}
         onSync={handleSyncResume}
+        isLoading={isSyncing}
       />
       <CvDeleteImpactModal
         isOpen={deleteImpactModalOpen}

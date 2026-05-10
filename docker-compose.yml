@@ -1,8 +1,8 @@
 services:
   # --- INFRASTRUCTURE ---
   postgres:
-    # Pinned to Postgres 17 (current stable major).
-    image: postgres:17-alpine
+    # Use pgvector official image for vector similarity search
+    image: pgvector/pgvector:pg17
     container_name: postgres_jobly
     environment:
       POSTGRES_USER: jobly

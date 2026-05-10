@@ -84,7 +84,7 @@ export class ResumeParserService {
     }
   }
 
-  async parseResumeText(text: string): Promise<ParsedResume> {
+  async parseResumeText(text: string): Promise<{ data: ParsedResume; embedding: number[] }> {
     const prompt = `
       You are a Senior Technical Recruiter and Expert Resume Parser. Your task is to extract high-fidelity structured data from the provided resume text.
 
@@ -137,10 +137,22 @@ export class ResumeParserService {
 
     this.logger.log(`Calling Gemini API for resume extraction. Prompt length: ${prompt.length}`);
     const result = await this.aiProvider.generateStructuredData<ParsedResume>(prompt);
+
+    // 3. Generate Embedding for the whole resume (RAG Readiness)
+    let resumeEmbedding: number[] = [];
+    try {
+      this.logger.log('Generating full-resume embedding...');
+      resumeEmbedding = await this.aiProvider.generateEmbedding(text);
+    } catch (error: any) {
+      this.logger.error(`Failed to generate resume embedding: ${error.message}`);
+    }
     
     // Log a summary of extracted data
     this.logger.log(`Extraction complete for resume. Found: ${result?.skills?.length || 0} skills, ${result?.experience?.length || 0} experiences, ${result?.education?.length || 0} educations.`);
     
-    return result;
+    return {
+      data: result,
+      embedding: resumeEmbedding
+    };
   }
 }

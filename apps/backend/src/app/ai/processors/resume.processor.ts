@@ -40,11 +40,11 @@ export class ResumeProcessor extends WorkerHost {
       // 3. Extract text
       const text = await this.parserService.extractTextFromPdf(buffer);
 
-      // 4. Parse with Gemini
-      const parsedData = await this.parserService.parseResumeText(text);
-      this.logger.log(`Successfully parsed resume ${resumeId}. Data found: ${!!parsedData}`);
+      // 4. Parse with Gemini (Extract data + Generate whole-document embedding)
+      const { data, embedding } = await this.parserService.parseResumeText(text);
+      this.logger.log(`Successfully parsed resume ${resumeId}. Data found: ${!!data}`);
 
-      if (!parsedData) {
+      if (!data) {
         throw new Error(`AI failed to parse resume ${resumeId}`);
       }
 
@@ -53,10 +53,27 @@ export class ResumeProcessor extends WorkerHost {
       await this.prisma.resume.update({
         where: { id: resumeId },
         data: {
-          parsedText: JSON.stringify(parsedData),
+          parsedText: JSON.stringify(data),
           isSyncedToProfile: false,
         },
       });
+
+      // 6. Update embedding using Raw SQL to bypass Prisma Engine validation
+      // This is the most stable way to handle Unsupported types like vector
+      if (embedding && embedding.length > 0) {
+        try {
+          const vectorStr = `[${embedding.join(',')}]`;
+          await this.prisma.$executeRawUnsafe(
+            `UPDATE resume SET embedding = $1::vector WHERE id = $2`,
+            vectorStr,
+            resumeId
+          );
+          this.logger.log(`Successfully saved whole-resume embedding for ID: ${resumeId}`);
+        } catch (vectorError: any) {
+          this.logger.error(`Failed to save resume vector via Raw SQL: ${vectorError.message}`);
+          // Don't throw here, the main data is already saved
+        }
+      }
 
       // Emit notification
       this.aiGateway.notifyUser(candidateId, 'RESUME_PARSED', { resumeId });

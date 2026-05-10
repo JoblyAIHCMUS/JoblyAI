@@ -19,7 +19,7 @@ import { previewDeleteImpact } from '@/api-client/ai';
 interface CvDeleteImpactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: (keepData?: boolean) => Promise<void>;
   isLoading?: boolean;
   resumeName: string;
   resumeId: number;
@@ -50,9 +50,13 @@ export function CvDeleteImpactModal({
   
   const [previewBio, setPreviewBio] = useState<string | null>(null);
   const [isPreviewBioLoading, setIsPreviewBioLoading] = useState(false);
+  
+  // A CV is the "last one" if the resumes array has exactly 1 item
+  const isLastCv = currentData?.resumes?.length === 1;
 
   useEffect(() => {
-    if (isOpen && resumeId) {
+    // Only fetch preview if NOT the last CV (if it's the last, the new bio will just be empty)
+    if (isOpen && resumeId && !isLastCv) {
       const fetchPreview = async () => {
         setIsPreviewBioLoading(true);
         try {
@@ -68,8 +72,9 @@ export function CvDeleteImpactModal({
       fetchPreview();
     } else {
       setPreviewBio(null);
+      setIsPreviewBioLoading(false);
     }
-  }, [isOpen, resumeId]);
+  }, [isOpen, resumeId, isLastCv]);
 
   const getAffectedItems = () => {
     const filterFn = (item: any) => {
@@ -179,8 +184,11 @@ export function CvDeleteImpactModal({
                     </div>
                   </div>
                   <div className="w-1/2">
-                    {renderSectionHeader(<ArrowRight size={16} />, "New AI-Generated Bio", "text-blue-700 border-blue-200")}
-                    <div className="p-4 bg-blue-50/30 border border-blue-200 rounded-xl shadow-sm ring-1 ring-blue-50/50 relative min-h-[100px]">
+                    {renderSectionHeader(<ArrowRight size={16} />, isLastCv ? "Final Outcome" : "New AI-Generated Bio", isLastCv ? "text-red-700 border-red-200" : "text-blue-700 border-blue-200")}
+                    <div className={cn(
+                      "p-4 border rounded-xl shadow-sm ring-1 relative min-h-[100px]",
+                      isLastCv ? "bg-red-50/30 border-red-200 ring-red-50/50" : "bg-blue-50/30 border-blue-200 ring-blue-50/50"
+                    )}>
                       {isPreviewBioLoading ? (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mb-2" />
@@ -193,8 +201,12 @@ export function CvDeleteImpactModal({
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                          <AlertTriangle size={20} className="text-slate-400 mb-2" />
-                          <p className="text-[11px] text-slate-500 italic">No remaining source data to generate a new bio. This field will be cleared.</p>
+                          <AlertTriangle size={20} className={cn("mb-2", isLastCv ? "text-red-500" : "text-slate-400")} />
+                          <p className={cn("text-[11px] italic font-bold", isLastCv ? "text-red-700" : "text-slate-500")}>
+                            {isLastCv 
+                              ? "THIS IS YOUR LAST CV. Deleting it will clear your entire profile bio as there is no remaining evidence." 
+                              : "No remaining source data to generate a new bio. This field will be cleared."}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -341,20 +353,36 @@ export function CvDeleteImpactModal({
             </p>
             <div className="flex gap-4">
               <Button variant="ghost" onClick={onClose} disabled={isLoading} className="text-slate-500 hover:bg-slate-200 px-6 font-bold transition-all">
-                Keep CV
+                Cancel
               </Button>
+              
               <Button 
-                onClick={onConfirm} 
-                disabled={isLoading} 
-                className="bg-red-600 hover:bg-red-700 text-white px-10 font-bold shadow-xl shadow-red-200 transition-all active:scale-95 border-none h-11"
+                variant="outline"
+                onClick={() => onConfirm(true)} 
+                disabled={isLoading || isPreviewBioLoading} 
+                className="border-slate-300 text-slate-700 px-6 font-bold transition-all active:scale-95 h-11"
+              >
+                {isLoading ? 'Processing...' : 'Keep Profile Data'}
+              </Button>
+
+              <Button 
+                onClick={() => onConfirm(false)} 
+                disabled={isLoading || isPreviewBioLoading} 
+                className="bg-red-600 hover:bg-red-700 text-white px-10 font-bold shadow-xl shadow-red-200 transition-all active:scale-95 border-none h-11 disabled:bg-slate-300 disabled:shadow-none"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Executing Purge...
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> 
+                    AI is cleaning up...
+                  </span>
+                ) : isPreviewBioLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    Preparing Preview...
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    <Trash2 size={20} /> Confirm Deletion
+                    <Trash2 size={20} /> {isLastCv ? 'Confirm Total Reset' : 'Confirm & Purge Data'}
                   </span>
                 )}
               </Button>

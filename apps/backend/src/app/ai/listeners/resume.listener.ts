@@ -32,11 +32,11 @@ export class ResumeListener {
   }
 
   @OnEvent('resume.deleted')
-  async handleResumeDeleted(payload: { resumeId: number; candidateId: string }) {
+  async handleResumeDeleted(payload: { resumeId: number; candidateId: string; shouldKeepData?: boolean }) {
     this.logger.log(`Resume deleted event received for ID: ${payload.resumeId}. Cleaning up profile data...`);
     
     try {
-      await this.profileSyncService.handleResumeDeletion(payload.candidateId, payload.resumeId);
+      await this.profileSyncService.handleResumeDeletion(payload.candidateId, payload.resumeId, payload.shouldKeepData);
       this.logger.log(`Successfully cleaned up profile data for deleted resume ${payload.resumeId}`);
     } catch (error: any) {
       this.logger.error(`Failed to cleanup profile data for deleted resume ${payload.resumeId}: ${error.message}`);
