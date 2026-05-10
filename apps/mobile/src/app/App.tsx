@@ -1,9 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS } from './constants/theme';
 import Header from './components/landing/Header';
@@ -13,14 +10,15 @@ import CategoriesSection from './components/landing/CategoriesSection';
 import FeaturedJobsSection from './components/landing/FeaturedJobsSection';
 import LatestJobsSection from './components/landing/LatestJobsSection';
 import Footer from './components/landing/Footer';
+import Sidebar from './components/landing/Sidebar';
 
 const AppContent = () => {
-  const insets = useSafeAreaInsets();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <Header />
+      <Header onMenuPress={() => setIsSidebarOpen(true)} />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -32,6 +30,10 @@ const AppContent = () => {
         <LatestJobsSection />
         <Footer />
       </ScrollView>
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
     </View>
   );
 };
