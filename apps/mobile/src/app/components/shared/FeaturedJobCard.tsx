@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { Badge } from './Badge';
 
@@ -9,9 +9,17 @@ export interface FeaturedJobProps {
   location: string;
   tags: string[];
   description: string;
+  logoUrl?: string;
 }
 
-export const FeaturedJobCard = ({ title, company, location, tags, description }: FeaturedJobProps) => {
+export const FeaturedJobCard = ({ 
+  title, 
+  company, 
+  location, 
+  tags, 
+  description,
+  logoUrl
+}: FeaturedJobProps) => {
   const getTagColors = (tag: string) => {
     switch (tag) {
       case 'Marketing':
@@ -26,30 +34,42 @@ export const FeaturedJobCard = ({ title, company, location, tags, description }:
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.logoPlaceholder} />
+        <View style={styles.logoContainer}>
+          {logoUrl ? (
+            <Image 
+              source={{ uri: logoUrl }} 
+              style={styles.logo} 
+              resizeMode="contain" 
+            />
+          ) : (
+            <View style={styles.logoPlaceholder} />
+          )}
+        </View>
         <Badge label="Full Time" outline textColor={COLORS.badgeGreenText} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.companyLocation}>
+        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <Text style={styles.companyLocation} numberOfLines={1}>
           {company} • {location}
         </Text>
         <Text style={styles.description} numberOfLines={2}>
           {description}
         </Text>
       </View>
-      <View style={styles.tagsContainer}>
-        {tags.map((tag, index) => {
-          const { color, textColor } = getTagColors(tag);
-          return (
-            <Badge 
-              key={index} 
-              label={tag} 
-              color={color} 
-              textColor={textColor}
-            />
-          );
-        })}
+      <View style={styles.footer}>
+        <View style={styles.tagsContainer}>
+          {tags.map((tag, index) => {
+            const { color, textColor } = getTagColors(tag);
+            return (
+              <Badge 
+                key={index} 
+                label={tag} 
+                color={color} 
+                textColor={textColor}
+              />
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -71,14 +91,23 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: SPACING.md,
   },
-  logoPlaceholder: {
+  logoContainer: {
     width: 48,
     height: 48,
-    backgroundColor: COLORS.background,
     borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: COLORS.background,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+  },
+  logoPlaceholder: {
+    flex: 1,
   },
   content: {
     marginBottom: SPACING.md,
+    height: 100, // Fixed height to keep cards uniform
   },
   title: {
     fontSize: 18,
@@ -96,9 +125,23 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     lineHeight: 20,
   },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 'auto',
+  },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING.xs,
+    flex: 1,
+  },
+  salary: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginLeft: SPACING.xs,
   },
 });
+

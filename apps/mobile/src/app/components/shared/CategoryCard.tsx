@@ -7,6 +7,7 @@ export interface Category {
   name: string;
   jobs: number;
   icon: string;
+  active?: boolean;
 }
 
 interface CategoryCardProps {
@@ -15,27 +16,30 @@ interface CategoryCardProps {
 }
 
 export const CategoryCard = ({ category, onPress }: CategoryCardProps) => {
-  const { name, jobs, icon } = category;
+  const { name, jobs, icon, active } = category;
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        active ? styles.cardActive : styles.cardInactive
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <View style={styles.leftContainer}>
-        <CategoryIcon name={icon} />
+        <CategoryIcon name={icon} active={active} />
       </View>
       
       <View style={styles.middleContainer}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.jobs}>
+        <Text style={[styles.name, active && styles.textActive]}>{name}</Text>
+        <Text style={[styles.jobs, active && styles.textActiveLight]}>
           {jobs} {jobs === 1 ? 'job' : 'jobs'} available
         </Text>
       </View>
 
       <View style={styles.rightContainer}>
-        <ArrowRightIcon />
+        <ArrowRightIcon active={active} />
       </View>
     </TouchableOpacity>
   );
@@ -43,7 +47,6 @@ export const CategoryCard = ({ category, onPress }: CategoryCardProps) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
     padding: SPACING.md,
     borderRadius: 8,
     width: '100%',
@@ -51,7 +54,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
+  },
+  cardInactive: {
+    backgroundColor: COLORS.white,
     borderColor: COLORS.border,
+  },
+  cardActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   leftContainer: {
     marginRight: SPACING.md,
@@ -69,7 +79,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textLight,
   },
+  textActive: {
+    color: COLORS.white,
+  },
+  textActiveLight: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
   rightContainer: {
     marginLeft: SPACING.md,
   },
 });
+

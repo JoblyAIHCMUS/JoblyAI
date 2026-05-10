@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { Badge } from './Badge';
 
@@ -9,13 +9,18 @@ export interface LatestJobProps {
   location: string;
   type: string;
   tags: string[];
+  logoUrl?: string;
 }
 
-export const LatestJobCard = ({ title, company, location, type, tags }: LatestJobProps) => {
+export const LatestJobCard = ({ title, company, location, type, tags, logoUrl }: LatestJobProps) => {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <View style={styles.logoPlaceholder} />
+        {logoUrl ? (
+          <Image source={{ uri: logoUrl }} style={styles.logo} resizeMode="contain" />
+        ) : (
+          <View style={styles.logoPlaceholder} />
+        )}
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.companyLocation}>
@@ -68,6 +73,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+  },
+  logo: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: SPACING.md,
   },
   logoPlaceholder: {
     width: 48,

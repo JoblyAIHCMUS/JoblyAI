@@ -31,8 +31,6 @@ const AppContent = () => {
         <FeaturedJobsSection />
         <LatestJobsSection />
         <Footer />
-        {/* Spacer for bottom safe area */}
-        <View style={{ height: insets.bottom, backgroundColor: '#0B0E14' }} />
       </ScrollView>
     </View>
   );

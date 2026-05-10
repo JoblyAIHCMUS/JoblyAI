@@ -16,7 +16,10 @@ export const CategoriesSection = () => {
 
       <View style={styles.grid}>
         {CATEGORIES.map((category) => (
-          <CategoryCard key={category.name} category={category} />
+          <CategoryCard
+            key={category.name}
+            category={category}
+          />
         ))}
       </View>
 
@@ -63,3 +66,4 @@ const styles = StyleSheet.create({
 });
 
 export default CategoriesSection;
+

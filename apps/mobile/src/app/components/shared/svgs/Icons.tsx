@@ -7,8 +7,12 @@ const { width } = Dimensions.get('window');
 
 // ============= Category Icons =============
 
-export const PaintbrushIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+interface CategoryIconProps {
+  active?: boolean;
+}
+
+export const PaintbrushIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M12 19l7-7 3 3-7 7-3-3z" />
     <Path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
     <Path d="M2 2l7.586 7.586" />
@@ -16,54 +20,54 @@ export const PaintbrushIcon = () => (
   </Svg>
 );
 
-export const BarChartIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const BarChartIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M18 20V10" />
     <Path d="M12 20V4" />
     <Path d="M6 20v-6" />
   </Svg>
 );
 
-export const MegaphoneIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const MegaphoneIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M3 11l18-5v12L3 14v-3z" />
     <Path d="M11.6 16.8a3 3 0 11-5.8-1.6" />
   </Svg>
 );
 
-export const WalletIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const WalletIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M21 12V7H5a2 2 0 010-4h14v4" />
     <Path d="M3 5v14a2 2 0 002 2h16v-5" />
     <Path d="M18 12a2 2 0 000 4h4v-4Z" />
   </Svg>
 );
 
-export const MonitorIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const MonitorIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Rect width="20" height="14" x="2" y="3" rx="2" />
     <Path d="M8 21h8" />
     <Path d="M12 17v4" />
   </Svg>
 );
 
-export const CodeIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const CodeIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M16 18l6-6-6-6" />
     <Path d="M8 6l-6 6 6 6" />
     <Path d="M14.5 4l-5 16" />
   </Svg>
 );
 
-export const BriefcaseIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const BriefcaseIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Rect width="20" height="14" x="2" y="7" rx="2" />
     <Path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
   </Svg>
 );
 
-export const UsersIcon = () => (
-  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const UsersIcon = ({ active }: CategoryIconProps) => (
+  <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
     <Circle cx="9" cy="7" r="4" />
     <Path d="M22 21v-2a4 4 0 00-3-3.87" />
@@ -73,8 +77,8 @@ export const UsersIcon = () => (
 
 // ============= Arrow Icons =============
 
-export const ArrowRightIcon = ({ color = COLORS.text }: { color?: string } = {}) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+export const ArrowRightIcon = ({ color = COLORS.text, active }: { color?: string, active?: boolean } = {}) => (
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.white : color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <Path d="M5 12h14" />
     <Path d="m12 5 7 7-7 7" />
   </Svg>
@@ -285,8 +289,8 @@ export const TalkitLogo = () => (
 
 // ============= Category Icon Wrapper =============
 
-export const CategoryIcon = ({ name }: { name: string }) => {
-  const iconMap: { [key: string]: React.FC } = {
+export const CategoryIcon = ({ name, active }: { name: string, active?: boolean }) => {
+  const iconMap: { [key: string]: React.FC<CategoryIconProps> } = {
     'Paintbrush': PaintbrushIcon,
     'BarChart3': BarChartIcon,
     'Megaphone': MegaphoneIcon,
@@ -298,5 +302,5 @@ export const CategoryIcon = ({ name }: { name: string }) => {
   };
 
   const IconComponent = iconMap[name];
-  return IconComponent ? <IconComponent /> : null;
+  return IconComponent ? <IconComponent active={active} /> : null;
 };
