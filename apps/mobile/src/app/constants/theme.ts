@@ -18,6 +18,7 @@ export const COLORS = {
   tagGreenText: '#56CDAD',
   footerBg: '#0F172A',
   footerText: '#64748B',
+  error: '#EF4444',
 };
 
 export const SPACING = {
