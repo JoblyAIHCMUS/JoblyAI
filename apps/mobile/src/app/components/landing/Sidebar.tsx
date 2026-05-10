@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  Dimensions, 
-  PanResponder 
+  PanResponder,
+  useWindowDimensions
 } from 'react-native';
 import Animated, { 
   useSharedValue, 
@@ -20,28 +20,40 @@ import Logo from '../../../assets/images/jobly-logo.svg';
 import { COLORS, SPACING } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
 
-const { width } = Dimensions.get('window');
-
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const translateX = useSharedValue(-width);
+  const { width } = useWindowDimensions();
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const translateX = useSharedValue(isOpen ? 0 : -width);
 
   useEffect(() => {
-    translateX.value = withSpring(isOpen ? 0 : -width, {
-      damping: 20,
-      stiffness: 90,
-    });
-  }, [isOpen]);
+    if (isOpen) {
+      setIsVisible(true);
+      translateX.value = withSpring(0, {
+        damping: 20,
+        stiffness: 90,
+      });
+    } else {
+      translateX.value = withSpring(-width, {
+        damping: 20,
+        stiffness: 90,
+      }, (finished) => {
+        if (finished) {
+          runOnJS(setIsVisible)(false);
+        }
+      });
+    }
+  }, [isOpen, width, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  const panResponder = React.useRef(
+  const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
         // Only trigger if swiping left and already open (or close to open)
@@ -54,8 +66,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx < -width / 3 || gestureState.vx < -0.5) {
-          translateX.value = withTiming(-width, {}, () => {
-            runOnJS(onClose)();
+          translateX.value = withTiming(-width, {}, (finished) => {
+            if (finished) {
+              runOnJS(onClose)();
+            }
           });
         } else {
           translateX.value = withSpring(0);
@@ -64,8 +78,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     })
   ).current;
 
-  // We keep it mounted if it's open or animating
-  if (!isOpen && translateX.value === -width) return null;
+  if (!isVisible) return null;
 
   return (
     <Animated.View 
@@ -103,9 +116,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={() => {}} />
+            <AppButton title="Sign Up" onPress={() => { /* no-op */ }} />
             <View style={{ height: SPACING.md }} />
-            <AppButton title="Login" variant="outline" onPress={() => {}} />
+            <AppButton title="Login" variant="outline" onPress={() => { /* no-op */ }} />
           </View>
         </View>
       </SafeAreaView>
