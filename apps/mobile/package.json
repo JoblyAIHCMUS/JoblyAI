@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@testing-library/react-native": "*",
+    "axios": "1.15.2",
     "expo": "*",
     "expo-splash-screen": "*",
     "expo-status-bar": "*",
