@@ -10,8 +10,6 @@ import {
   SquigglyLines,
 } from '../shared/svgs/Icons';
 
-const { width } = Dimensions.get('window');
-
 const handleNoop = (): void => {
   // No-op for handlers to satisfy ESLint
 };

@@ -160,9 +160,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={() => {}} />
+            <AppButton title="Sign Up" onPress={() => undefined} />
             <View style={{ height: SPACING.md }} />
-            <AppButton title="Login" variant="outline" onPress={() => {}} />
+            <AppButton title="Login" variant="outline" onPress={() => undefined} />
           </View>
         </View>
       </SafeAreaView>

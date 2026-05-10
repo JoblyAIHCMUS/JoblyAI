@@ -23,7 +23,7 @@ export function useListJobs(initialQuery?: ListJobsQuery) {
       if (
         err instanceof Error &&
         (err.name === 'CanceledError' ||
-          (err as any).code === 'ERR_CANCELED' ||
+          (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
           err.name === 'AbortError')
       )
         return;
