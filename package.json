@@ -5,7 +5,8 @@
   "scripts": {
     "start": "nx run-many --target=serve --all",
     "android": "emulator @Pixel_9_Pro_XL & pnpm nx run mobile:run-android",
-    "lint": "nx affected -t lint test"
+    "lint": "nx affected -t lint test",
+    "ios": "expo run:ios"
   },
   "private": true,
   "devDependencies": {
@@ -109,6 +110,7 @@
       "react-dom": "19.1.0",
       "@types/react": "19.1.0",
       "@types/react-dom": "19.1.0",
+      "@babel/plugin-transform-modules-systemjs": ">=7.29.4",
       "axios": "1.15.2",
       "fast-xml-parser": ">=5.3.6",
       "fast-xml-builder": ">=1.1.7",
