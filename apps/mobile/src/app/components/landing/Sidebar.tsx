@@ -10,9 +10,9 @@ import {
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
-  withSpring, 
   withTiming,
-  runOnJS
+  runOnJS,
+  Easing
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -28,19 +28,25 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
-  const translateX = useSharedValue(isOpen ? 0 : -width);
+  const translateX = useSharedValue(-width);
+
+  // Keep width ref updated for the PanResponder closure
+  const widthRef = useRef(width);
+  useEffect(() => {
+    widthRef.current = width;
+  }, [width]);
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      translateX.value = withSpring(0, {
-        damping: 20,
-        stiffness: 90,
+      translateX.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.quad),
       });
     } else {
-      translateX.value = withSpring(-width, {
-        damping: 20,
-        stiffness: 90,
+      translateX.value = withTiming(-width, {
+        duration: 250,
+        easing: Easing.in(Easing.quad),
       }, (finished) => {
         if (finished) {
           runOnJS(setIsVisible)(false);
@@ -56,23 +62,34 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only trigger if swiping left and already open (or close to open)
-        return Math.abs(gestureState.dx) > 20 && gestureState.dx < 0;
+        // Only trigger if swiping left and sidebar is active
+        return Math.abs(gestureState.dx) > 10 && gestureState.dx < 0;
       },
       onPanResponderMove: (_, gestureState) => {
+        // Follow the finger but don't allow sliding right past 0
         if (gestureState.dx < 0) {
           translateX.value = gestureState.dx;
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -width / 3 || gestureState.vx < -0.5) {
-          translateX.value = withTiming(-width, {}, (finished) => {
+        const currentWidth = widthRef.current;
+        
+        // If swiped more than 1/3 way or high velocity swipe
+        if (gestureState.dx < -currentWidth / 3 || gestureState.vx < -0.5) {
+          translateX.value = withTiming(-currentWidth, { 
+            duration: 200,
+            easing: Easing.out(Easing.quad) 
+          }, (finished) => {
             if (finished) {
               runOnJS(onClose)();
             }
           });
         } else {
-          translateX.value = withSpring(0);
+          // Snap back to fully open without bouncing
+          translateX.value = withTiming(0, { 
+            duration: 200,
+            easing: Easing.out(Easing.quad) 
+          });
         }
       },
     })
@@ -89,11 +106,18 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Path d="M18 6L6 18M6 6L18 18" stroke={COLORS.text} strokeWidth={2} strokeLinecap="round" />
+              <Path 
+                d="M18 6L6 18M6 6L18 18" 
+                stroke={COLORS.text} 
+                strokeWidth={2} 
+                strokeLinecap="round" 
+              />
             </Svg>
           </TouchableOpacity>
           <View style={styles.brandContainer}>
-            <Logo width={30} height={30} />
+            <View style={styles.logoContainer}>
+              <Logo width={34} height={34} />
+            </View>
             <Text style={styles.brandText}>JoblyAI</Text>
           </View>
         </View>
@@ -102,23 +126,35 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <TouchableOpacity style={styles.navItem}>
             <Text style={styles.navText}>Browse Jobs</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M9 18L15 12L9 6" stroke={COLORS.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path 
+                d="M9 18L15 12L9 6" 
+                stroke={COLORS.primary} 
+                strokeWidth={2} 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+              />
             </Svg>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navItem}>
             <Text style={styles.navText}>Browse Companies</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M9 18L15 12L9 6" stroke={COLORS.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path 
+                d="M9 18L15 12L9 6" 
+                stroke={COLORS.primary} 
+                strokeWidth={2} 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+              />
             </Svg>
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={() => { /* no-op */ }} />
+            <AppButton title="Sign Up" onPress={() => {}} />
             <View style={{ height: SPACING.md }} />
-            <AppButton title="Login" variant="outline" onPress={() => { /* no-op */ }} />
+            <AppButton title="Login" variant="outline" onPress={() => {}} />
           </View>
         </View>
       </SafeAreaView>
@@ -135,30 +171,51 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: COLORS.white,
     zIndex: 1000,
+    // Add shadow for better visual separation during slide
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   safeArea: {
     flex: 1,
   },
   header: {
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   closeButton: {
-    padding: SPACING.sm,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E6E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: SPACING.md,
   },
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+  },
+  logoContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
   brandText: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '800',
-    color: COLORS.text,
+    color: '#121419',
+    letterSpacing: -0.5,
   },
   content: {
     padding: SPACING.lg,
