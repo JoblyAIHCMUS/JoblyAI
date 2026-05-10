@@ -46,7 +46,8 @@ export class AiController {
 
     const text = await this.parserService.extractTextFromPdf(file.buffer);
     const result = await this.parserService.parseResumeText(text);
-    return result;
+    // Return only the structured data part for the test endpoint
+    return result.data;
   }
 
   @Post('test-score')

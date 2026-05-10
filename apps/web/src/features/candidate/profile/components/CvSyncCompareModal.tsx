@@ -116,11 +116,19 @@ export function CvSyncCompareModal({
                     <div className="p-4 bg-white border rounded-xl shadow-sm space-y-3">
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Title</span>
-                        <p className="text-sm font-medium">{currentData?.about?.title || "No title set"}</p>
+                        <p className="text-sm font-medium">
+                          {Array.isArray(currentData?.about) 
+                            ? (currentData.title || "No title set") // In mapped UI, title is at top level
+                            : (currentData?.about?.title || "No title set")}
+                        </p>
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Biography</span>
-                        <p className="text-xs text-slate-600 leading-relaxed">{currentData?.about?.bio || "No biography added yet."}</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {Array.isArray(currentData?.about)
+                            ? (currentData.about[0] || "No biography added yet.")
+                            : (currentData?.about?.bio || "No biography added yet.")}
+                        </p>
                       </div>
                     </div>
                   </div>

@@ -353,24 +353,35 @@ export class ProfileSyncService {
     let finalBio: string = '';
     let finalTitle: string = '';
     let updatedRawDescriptions: Record<string, string> = {};
+    let shouldClearEntirely = false;
 
     if (!shouldKeepData) {
       const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
       const currentRaw = (desc?.rawDescriptions as Record<string, string>) || {};
       
+      this.logger.log(`[handleResumeDeletion] Current raw sources: ${Object.keys(currentRaw).join(', ')}`);
+      
       updatedRawDescriptions = { ...currentRaw };
+      const existedInSources = !!updatedRawDescriptions[resumeId.toString()];
       delete updatedRawDescriptions[resumeId.toString()];
       
       const remainingSourcesCount = Object.keys(updatedRawDescriptions).length;
       
       if (remainingSourcesCount === 0) {
-        this.logger.log(`[handleResumeDeletion] No source descriptions remain. Clearing bio and title.`);
+        this.logger.log(`[handleResumeDeletion] No source descriptions remain. Flagging for total reset.`);
+        shouldClearEntirely = true;
         finalBio = '';
         finalTitle = '';
-      } else {
+      } else if (existedInSources) {
         this.logger.log(`[handleResumeDeletion] ${remainingSourcesCount} sources remain. Regenerating bio.`);
         finalBio = await this.regenerateBio(updatedRawDescriptions);
         finalTitle = desc?.title || '';
+      } else {
+        // Not in sources, check if any resumes remain at all
+        const remainingResumesCount = await this.prisma.resume.count({ where: { candidateId } });
+        if (remainingResumesCount === 0) {
+          shouldClearEntirely = true;
+        }
       }
     }
 
@@ -402,22 +413,34 @@ export class ProfileSyncService {
         }
       }
 
+      // Bio & Title Cleanup (only if PURGING)
       if (!shouldKeepData) {
-        this.logger.log(`[handleResumeDeletion] Purging CandidateDescription. New count of sources: ${Object.keys(updatedRawDescriptions).length}`);
-        await tx.candidateDescription.upsert({
-          where: { candidateId },
-          create: { 
-            candidateId,
-            rawDescriptions: updatedRawDescriptions,
-            bio: finalBio,
-            title: finalTitle
-          },
-          update: { 
-            rawDescriptions: updatedRawDescriptions, 
-            bio: finalBio, 
-            title: finalTitle
-          }
-        });
+        if (shouldClearEntirely) {
+          this.logger.log(`[handleResumeDeletion] Performing TOTAL RESET via Raw SQL for candidate ${candidateId}`);
+          // Definitive clear including vector embedding
+          await tx.$executeRawUnsafe(
+            `UPDATE "CandidateDescription" 
+             SET bio = '', title = '', embedding = NULL, "rawDescriptions" = '{}'::jsonb 
+             WHERE "candidateId" = $1`,
+            candidateId
+          );
+        } else if (Object.keys(updatedRawDescriptions).length > 0) {
+          this.logger.log(`[handleResumeDeletion] Updating CandidateDescription with ${Object.keys(updatedRawDescriptions).length} sources.`);
+          await tx.candidateDescription.upsert({
+            where: { candidateId },
+            create: { 
+              candidateId,
+              rawDescriptions: updatedRawDescriptions,
+              bio: finalBio,
+              title: finalTitle
+            },
+            update: { 
+              rawDescriptions: updatedRawDescriptions, 
+              bio: finalBio, 
+              title: finalTitle
+            }
+          });
+        }
       }
 
       this.logger.log(`[handleResumeDeletion] Finished successfully for resume ${resumeId}`);
