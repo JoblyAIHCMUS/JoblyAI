@@ -5,12 +5,20 @@ import Svg, { Path } from 'react-native-svg';
 import Logo from '../../../assets/images/jobly-logo.svg';
 import { COLORS, SPACING } from '../../constants/theme';
 
-const Header = () => {
+interface HeaderProps {
+  onMenuPress?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
         {/* Menu Icon Left */}
-        <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
+        <TouchableOpacity 
+          style={styles.menuButton} 
+          activeOpacity={0.7}
+          onPress={onMenuPress}
+        >
           <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
             <Path
               d="M4 10H20M4 16H14"
