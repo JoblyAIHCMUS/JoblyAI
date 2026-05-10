@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "name": "jobly",
+  "defaultBase": "origin/development",
   "npmScope": "jobly",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
@@ -78,20 +79,6 @@
       }
     },
     {
-      "plugin": "@nx/react-native/plugin",
-      "options": {
-        "startTargetName": "start",
-        "upgradeTargetName": "update",
-        "bundleTargetName": "bundle",
-        "podInstallTargetName": "pod-install",
-        "runIosTargetName": "run-ios",
-        "runAndroidTargetName": "run-android",
-        "buildIosTargetName": "build-ios",
-        "buildAndroidTargetName": "build-android",
-        "syncDepsTargetName": "sync-deps"
-      }
-    },
-    {
       "plugin": "@nx/vite/plugin",
       "options": {
         "buildTargetName": "build",
@@ -104,9 +91,24 @@
         "buildDepsTargetName": "build-deps",
         "watchDepsTargetName": "watch-deps"
       }
+    },
+    {
+      "plugin": "@nx/expo/plugin",
+      "options": {
+        "startTargetName": "start",
+        "buildTargetName": "build",
+        "prebuildTargetName": "prebuild",
+        "serveTargetName": "serve",
+        "installTargetName": "install",
+        "exportTargetName": "export",
+        "submitTargetName": "submit",
+        "runIosTargetName": "run-ios",
+        "runAndroidTargetName": "run-android",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
     }
   ],
-  "nxCloudId": "6967bf6beb27a405a4180392",
   "targetDefaults": {
     "test": {
       "dependsOn": ["^build"]
@@ -115,6 +117,21 @@
       "options": {
         "env": {
           "PORT": "5173"
+        }
+      }
+    },
+    "quality-gate": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint", "test", "build"]
+    },
+    "start": {
+      "options": {
+        "port": 8081,
+        "offline": true
+      },
+      "configurations": {
+        "clear": {
+          "clear": true
         }
       }
     }
@@ -126,5 +143,6 @@
         "linter": "eslint"
       }
     }
-  }
+  },
+  "analytics": false
 }

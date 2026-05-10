@@ -7,6 +7,8 @@ out-tsc
 
 # dependencies
 node_modules
+.pnpm-store
+.npm
 
 # IDEs and editors
 /.idea
@@ -122,3 +124,36 @@ yarn-error.log
 
 
 vite.config.*.timestamp*
+
+# Environment variables
+**/.env.local
+**/.env.*.local
+**/env.local
+**/env.*.local
+**/.env.test
+**/env.test
+**/.env.production
+**/env.production
+**/.env
+
+# Prisma
+apps/backend/src/app/generated/prisma\
+.worktrees/\
+
+# Expo
+node_modules/
+.expo/
+.yarn/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+cache/
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json

@@ -1,23 +1,91 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule } from '@nestjs/swagger';
-import { readFileSync } from 'fs';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app/app.module';
+import cookieParser from 'cookie-parser';
+import { AllExceptionsFilter } from './app/common/filter/http-exceptions.filter';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
-import { AppModule } from './app/app.module';
+import qs from 'qs';
+
+function loadOpenApiFromYaml(): OpenAPIObject | null {
+  const candidatePaths = [
+    join(__dirname, 'assets', 'openapi.yaml'),
+    join(process.cwd(), 'apps', 'backend', 'src', 'assets', 'openapi.yaml'),
+  ];
+
+  const openApiPath = candidatePaths.find((candidate) => existsSync(candidate));
+  if (!openApiPath) {
+    return null;
+  }
+
+  const openApiContent = readFileSync(openApiPath, 'utf8');
+  return parse(openApiContent) as OpenAPIObject;
+}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useLogger(['log', 'error', 'warn', 'debug', 'verbose']);
+  app.set('trust proxy', 1);
+
+  // Configure Express query parser to handle array syntax: type[]=FULL_TIME&type[]=PART_TIME
+  app.set('query parser', (str: string) => {
+    return qs.parse(str, {
+      comma: false,
+      arrayLimit: 50,
+      depth: 10,
+      delimiter: '&',
+    });
+  });
+
+  app.enableCors({
+    origin: [
+      process.env.WEB_URL || 'http://localhost:5173',
+      process.env.APP_URL || 'http://localhost:3000',
+    ],
+    credentials: true,
+  });
+
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: false,
+    })
+  );
+  app.use(cookieParser());
   const globalPrefix = 'api';
-  const swaggerPath = join(__dirname, 'assets', 'openapi.yaml');
-  const swaggerDoc = parse(readFileSync(swaggerPath, 'utf8'));
-  SwaggerModule.setup('api/docs', app, swaggerDoc); // Serve static OpenAPI YAML
+  const config = new DocumentBuilder()
+    .setTitle('JoblyAI API')
+    .setDescription('The JoblyAI backend API description')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  let document: OpenAPIObject;
+  try {
+    const yamlDocument = loadOpenApiFromYaml();
+    document = yamlDocument ?? SwaggerModule.createDocument(app, config);
+    if (yamlDocument) {
+      Logger.log('📄 Swagger is loaded from assets/openapi.yaml');
+    }
+  } catch (error) {
+    Logger.warn(
+      `Could not parse assets/openapi.yaml. Falling back to generated Swagger. ${String(
+        error
+      )}`
+    );
+    document = SwaggerModule.createDocument(app, config);
+  }
+
+  SwaggerModule.setup('api/docs', app, document);
   app.setGlobalPrefix(globalPrefix);
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
   Logger.log(
