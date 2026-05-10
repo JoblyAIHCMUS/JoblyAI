@@ -27,7 +27,7 @@ export const FeaturedJobCard = ({ title, company, location, tags, description }:
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.logoPlaceholder} />
-        <Badge label="Full Time" outline textColor={COLORS.primary} />
+        <Badge label="Full Time" outline textColor={COLORS.badgeGreenText} />
       </View>
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
