@@ -41,7 +41,10 @@ export class ResumeProcessor extends WorkerHost {
       const text = await this.parserService.extractTextFromPdf(buffer);
 
       // 4. Parse with Gemini (Extract data + Generate whole-document embedding)
-      const { data, embedding } = await this.parserService.parseResumeText(text);
+      const result = await this.parserService.parseResumeText(text);
+      const data = result.data;
+      const embedding = result.embedding;
+      
       this.logger.log(`Successfully parsed resume ${resumeId}. Data found: ${!!data}`);
 
       if (!data) {

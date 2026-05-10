@@ -753,7 +753,7 @@ const CandidateProfilePage = () => {
       <CvSyncCompareModal
         isOpen={syncModalOpen}
         onClose={() => setSyncModalOpen(false)}
-        currentData={profile}
+        currentData={candidate}
         newData={activeResumeId ? (() => {
           const res = profile?.resumes?.find(r => r.id === activeResumeId);
           try { return res?.parsedText ? (typeof res.parsedText === 'string' ? JSON.parse(res.parsedText) : res.parsedText) : null; } catch(e) { return null; }
