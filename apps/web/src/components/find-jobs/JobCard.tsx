@@ -181,14 +181,6 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
               {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
             </p>
           </div>
-          <div className="w-full lg:w-[168px]">
-            <p className="mb-1 text-xs font-semibold text-slate-500">
-              5 applied of 10 capacity
-            </p>
-            <div className="h-2 w-full rounded-full bg-slate-200">
-              <div className="h-2 w-1/2 rounded-full bg-emerald-500" />
-            </div>
-          </div>
         </div>
       </article>
 
