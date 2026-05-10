@@ -122,11 +122,6 @@ export function ResumeSection({
                         Latest
                       </span>
                     )}
-                    {resume.isDefault && (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-                        Default
-                      </span>
-                    )}
                   </div>
                   <p className="mt-1 break-words text-[11px] leading-4 text-slate-500 sm:text-xs">
                     {[
