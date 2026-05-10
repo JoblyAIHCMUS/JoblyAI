@@ -1,16 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { COLORS, SPACING } from '../../constants/theme';
 import { FEATURED_JOBS } from '../../constants/mockData';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
-
-const ArrowRightIcon = () => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M5 12h14" />
-    <Path d="m12 5 7 7-7 7" />
-  </Svg>
-);
+import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 
 export const FeaturedJobsSection = () => {
   return (
@@ -31,7 +24,7 @@ export const FeaturedJobsSection = () => {
       </ScrollView>
       <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
         <Text style={styles.showAllText}>Show all jobs</Text>
-        <ArrowRightIcon />
+        <ArrowRightIconPrimary />
       </TouchableOpacity>
     </View>
   );
