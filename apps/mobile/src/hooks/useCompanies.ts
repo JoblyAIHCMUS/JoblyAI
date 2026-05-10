@@ -14,8 +14,16 @@ export function useCompanies() {
       const data = await getCompanies({ signal });
       setCompanies(data);
     } catch (err) {
-      if (err instanceof Error && (err.name === 'CanceledError' || (err as any).code === 'ERR_CANCELED' || err.name === 'AbortError')) return;
-      setError(err instanceof Error ? err : new Error('Failed to fetch companies'));
+      if (
+        err instanceof Error &&
+        (err.name === 'CanceledError' ||
+          (err as any).code === 'ERR_CANCELED' ||
+          err.name === 'AbortError')
+      )
+        return;
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch companies')
+      );
     } finally {
       setLoading(false);
     }

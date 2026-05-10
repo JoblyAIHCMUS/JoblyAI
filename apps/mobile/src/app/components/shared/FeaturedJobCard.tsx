@@ -12,13 +12,13 @@ export interface FeaturedJobProps {
   logoUrl?: string;
 }
 
-export const FeaturedJobCard = ({ 
-  title, 
-  company, 
-  location, 
-  tags, 
+export const FeaturedJobCard = ({
+  title,
+  company,
+  location,
+  tags,
   description,
-  logoUrl
+  logoUrl,
 }: FeaturedJobProps) => {
   const getTagColors = (tag: string) => {
     switch (tag) {
@@ -36,10 +36,10 @@ export const FeaturedJobCard = ({
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           {logoUrl ? (
-            <Image 
-              source={{ uri: logoUrl }} 
-              style={styles.logo} 
-              resizeMode="contain" 
+            <Image
+              source={{ uri: logoUrl }}
+              style={styles.logo}
+              resizeMode="contain"
             />
           ) : (
             <View style={styles.logoPlaceholder} />
@@ -48,7 +48,9 @@ export const FeaturedJobCard = ({
         <Badge label="Full Time" outline textColor={COLORS.badgeGreenText} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
         <Text style={styles.companyLocation} numberOfLines={1}>
           {company} • {location}
         </Text>
@@ -61,10 +63,10 @@ export const FeaturedJobCard = ({
           {tags.map((tag, index) => {
             const { color, textColor } = getTagColors(tag);
             return (
-              <Badge 
-                key={index} 
-                label={tag} 
-                color={color} 
+              <Badge
+                key={index}
+                label={tag}
+                color={color}
                 textColor={textColor}
               />
             );
@@ -144,4 +146,3 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.xs,
   },
 });
-

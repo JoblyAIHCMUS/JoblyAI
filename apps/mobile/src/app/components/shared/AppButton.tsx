@@ -8,12 +8,26 @@ interface AppButtonProps {
   variant?: 'primary' | 'outline';
 }
 
-export const AppButton = ({ title, onPress, variant = 'primary' }: AppButtonProps) => (
-  <TouchableOpacity 
-    style={[styles.button, variant === 'outline' ? styles.outline : styles.primary]} 
+export const AppButton = ({
+  title,
+  onPress,
+  variant = 'primary',
+}: AppButtonProps) => (
+  <TouchableOpacity
+    style={[
+      styles.button,
+      variant === 'outline' ? styles.outline : styles.primary,
+    ]}
     onPress={onPress}
   >
-    <Text style={[styles.text, variant === 'outline' ? styles.textOutline : styles.textPrimary]}>{title}</Text>
+    <Text
+      style={[
+        styles.text,
+        variant === 'outline' ? styles.textOutline : styles.textPrimary,
+      ]}
+    >
+      {title}
+    </Text>
   </TouchableOpacity>
 );
 
@@ -25,7 +39,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: { backgroundColor: COLORS.primary },
-  outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.primary },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
   text: { fontWeight: '700', fontSize: 16 },
   textPrimary: { color: COLORS.white },
   textOutline: { color: COLORS.primary },

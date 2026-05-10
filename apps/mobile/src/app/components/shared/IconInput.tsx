@@ -9,13 +9,18 @@ interface IconInputProps {
   onChangeText: (text: string) => void;
 }
 
-export const IconInput = ({ icon, placeholder, value, onChangeText }: IconInputProps) => (
+export const IconInput = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+}: IconInputProps) => (
   <View style={styles.container}>
     <View style={styles.iconContainer}>{icon}</View>
-    <TextInput 
-      style={styles.input} 
-      placeholder={placeholder} 
-      value={value} 
+    <TextInput
+      style={styles.input}
+      placeholder={placeholder}
+      value={value}
       onChangeText={onChangeText}
       placeholderTextColor={COLORS.textLight}
     />

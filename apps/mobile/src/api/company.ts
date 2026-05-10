@@ -4,7 +4,7 @@ import { ApiOptions } from './jobs';
 
 export async function getCompanies(options?: ApiOptions): Promise<Company[]> {
   const response = await apiClient.get<Company[]>('/company', {
-    signal: options?.signal
+    signal: options?.signal,
   });
   return response.data;
 }

@@ -3,7 +3,12 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { IconInput } from '../shared/IconInput';
 import { AppButton } from '../shared/AppButton';
-import { SearchIcon, PinIcon, ChevronIcon, SquigglyLines } from '../shared/svgs/Icons';
+import {
+  SearchIcon,
+  PinIcon,
+  ChevronIcon,
+  SquigglyLines,
+} from '../shared/svgs/Icons';
 
 const { width } = Dimensions.get('window');
 
@@ -26,7 +31,8 @@ const HeroSection: React.FC = () => {
         </View>
 
         <Text style={styles.subheading}>
-          Great platform for the job seeker that searching for new career heights and passionate about startups.
+          Great platform for the job seeker that searching for new career
+          heights and passionate about startups.
         </Text>
 
         <View style={styles.searchCard}>
@@ -47,15 +53,15 @@ const HeroSection: React.FC = () => {
               <ChevronIcon />
             </View>
           </View>
-          <AppButton
-            title="Search my job"
-            onPress={handleNoop}
-          />
+          <AppButton title="Search my job" onPress={handleNoop} />
         </View>
 
         <View style={styles.popularTagsContainer}>
           <Text style={styles.popularText}>
-            Popular : <Text style={styles.tagsText}>UI Designer, UX Researcher, Android, Admin</Text>
+            Popular :{' '}
+            <Text style={styles.tagsText}>
+              UI Designer, UX Researcher, Android, Admin
+            </Text>
           </Text>
         </View>
       </View>

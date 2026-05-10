@@ -20,17 +20,14 @@ export const CategoryCard = ({ category, onPress }: CategoryCardProps) => {
 
   return (
     <TouchableOpacity
-      style={[
-        styles.card,
-        active ? styles.cardActive : styles.cardInactive
-      ]}
+      style={[styles.card, active ? styles.cardActive : styles.cardInactive]}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <View style={styles.leftContainer}>
         <CategoryIcon name={icon} active={active} />
       </View>
-      
+
       <View style={styles.middleContainer}>
         <Text style={[styles.name, active && styles.textActive]}>{name}</Text>
         <Text style={[styles.jobs, active && styles.textActiveLight]}>
@@ -89,4 +86,3 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
   },
 });
-

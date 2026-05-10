@@ -1,7 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
-import { FacebookIcon, InstagramIcon, GlobeIcon, LinkedInIcon, TwitterIcon } from '../shared/svgs/Icons';
+import {
+  FacebookIcon,
+  InstagramIcon,
+  GlobeIcon,
+  LinkedInIcon,
+  TwitterIcon,
+} from '../shared/svgs/Icons';
 
 const SocialIcon = ({ children }: { children: React.ReactNode }) => (
   <TouchableOpacity style={styles.socialIconWrapper}>
@@ -12,8 +18,10 @@ const SocialIcon = ({ children }: { children: React.ReactNode }) => (
 const Footer = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.copyrightText}>2026 @ JoblyAI. No rights reserved.</Text>
-      
+      <Text style={styles.copyrightText}>
+        2026 @ JoblyAI. No rights reserved.
+      </Text>
+
       <View style={styles.socialContainer}>
         <SocialIcon>
           <FacebookIcon />

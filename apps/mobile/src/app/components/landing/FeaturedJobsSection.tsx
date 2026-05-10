@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
@@ -23,26 +30,29 @@ export const FeaturedJobsSection = () => {
       ) : error ? (
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>Failed to load featured jobs</Text>
-          <TouchableOpacity onPress={() => fetchJobs()} style={styles.retryButton}>
+          <TouchableOpacity
+            onPress={() => fetchJobs()}
+            style={styles.retryButton}
+          >
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
             {data?.jobs.map((job) => (
-              <FeaturedJobCard 
-                key={job.id} 
+              <FeaturedJobCard
+                key={job.id}
                 title={job.title}
                 company={job.company.name}
                 location={job.location || (job.remote ? 'Remote' : 'On-site')}
                 description={job.description}
                 logoUrl={job.company.logoUrl || undefined}
-                tags={job.requirements.slice(0, 2).map(r => r.skillName)}
+                tags={job.requirements.slice(0, 2).map((r) => r.skillName)}
               />
             ))}
           </ScrollView>
@@ -114,4 +124,3 @@ const styles = StyleSheet.create({
 });
 
 export default FeaturedJobsSection;
-

@@ -1,7 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
-import { VodafoneLogo, IntelLogo, TeslaLogo, AmdLogo, TalkitLogo } from '../shared/svgs/Icons';
+import {
+  VodafoneLogo,
+  IntelLogo,
+  TeslaLogo,
+  AmdLogo,
+  TalkitLogo,
+} from '../shared/svgs/Icons';
 
 const { width } = Dimensions.get('window');
 

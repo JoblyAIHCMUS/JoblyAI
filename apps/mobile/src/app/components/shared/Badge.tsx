@@ -9,20 +9,26 @@ export interface BadgeProps {
   outline?: boolean;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ 
-  label, 
-  color = COLORS.badgeGreen, 
-  textColor = COLORS.badgeGreenText, 
-  outline = false 
+export const Badge: React.FC<BadgeProps> = ({
+  label,
+  color = COLORS.badgeGreen,
+  textColor = COLORS.badgeGreenText,
+  outline = false,
 }) => (
-  <View style={[
-    styles.badge, 
-    { 
-      backgroundColor: color === 'transparent' ? 'transparent' : color, 
-      borderColor: outline ? (color === 'transparent' ? textColor : color) : 'transparent', 
-      borderWidth: outline ? 1 : 0 
-    }
-  ]}>
+  <View
+    style={[
+      styles.badge,
+      {
+        backgroundColor: color === 'transparent' ? 'transparent' : color,
+        borderColor: outline
+          ? color === 'transparent'
+            ? textColor
+            : color
+          : 'transparent',
+        borderWidth: outline ? 1 : 0,
+      },
+    ]}
+  >
     <Text style={[styles.text, { color: textColor }]}>{label}</Text>
   </View>
 );

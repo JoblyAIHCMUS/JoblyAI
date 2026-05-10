@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   PanResponder,
-  useWindowDimensions
+  useWindowDimensions,
 } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
   withTiming,
   runOnJS,
-  Easing
+  Easing,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -44,14 +44,18 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         easing: Easing.out(Easing.quad),
       });
     } else {
-      translateX.value = withTiming(-width, {
-        duration: 250,
-        easing: Easing.in(Easing.quad),
-      }, (finished) => {
-        if (finished) {
-          runOnJS(setIsVisible)(false);
+      translateX.value = withTiming(
+        -width,
+        {
+          duration: 250,
+          easing: Easing.in(Easing.quad),
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(setIsVisible)(false);
+          }
         }
-      });
+      );
     }
   }, [isOpen, width, translateX]);
 
@@ -73,22 +77,26 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       },
       onPanResponderRelease: (_, gestureState) => {
         const currentWidth = widthRef.current;
-        
+
         // If swiped more than 1/3 way or high velocity swipe
         if (gestureState.dx < -currentWidth / 3 || gestureState.vx < -0.5) {
-          translateX.value = withTiming(-currentWidth, { 
-            duration: 200,
-            easing: Easing.out(Easing.quad) 
-          }, (finished) => {
-            if (finished) {
-              runOnJS(onClose)();
+          translateX.value = withTiming(
+            -currentWidth,
+            {
+              duration: 200,
+              easing: Easing.out(Easing.quad),
+            },
+            (finished) => {
+              if (finished) {
+                runOnJS(onClose)();
+              }
             }
-          });
+          );
         } else {
           // Snap back to fully open without bouncing
-          translateX.value = withTiming(0, { 
+          translateX.value = withTiming(0, {
             duration: 200,
-            easing: Easing.out(Easing.quad) 
+            easing: Easing.out(Easing.quad),
           });
         }
       },
@@ -98,19 +106,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   if (!isVisible) return null;
 
   return (
-    <Animated.View 
-      style={[styles.container, animatedStyle]} 
+    <Animated.View
+      style={[styles.container, animatedStyle]}
       {...panResponder.panHandlers}
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Path 
-                d="M18 6L6 18M6 6L18 18" 
-                stroke={COLORS.text} 
-                strokeWidth={2} 
-                strokeLinecap="round" 
+              <Path
+                d="M18 6L6 18M6 6L18 18"
+                stroke={COLORS.text}
+                strokeWidth={2}
+                strokeLinecap="round"
               />
             </Svg>
           </TouchableOpacity>
@@ -126,12 +134,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <TouchableOpacity style={styles.navItem}>
             <Text style={styles.navText}>Browse Jobs</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path 
-                d="M9 18L15 12L9 6" 
-                stroke={COLORS.primary} 
-                strokeWidth={2} 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+              <Path
+                d="M9 18L15 12L9 6"
+                stroke={COLORS.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </Svg>
           </TouchableOpacity>
@@ -139,12 +147,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <TouchableOpacity style={styles.navItem}>
             <Text style={styles.navText}>Browse Companies</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path 
-                d="M9 18L15 12L9 6" 
-                stroke={COLORS.primary} 
-                strokeWidth={2} 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+              <Path
+                d="M9 18L15 12L9 6"
+                stroke={COLORS.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </Svg>
           </TouchableOpacity>

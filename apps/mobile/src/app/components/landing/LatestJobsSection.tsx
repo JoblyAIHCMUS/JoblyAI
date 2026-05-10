@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { LatestJobCard } from '../shared/LatestJobCard';
 import { useListJobs } from '../../../hooks/useListJobs';
@@ -25,11 +31,18 @@ export const LatestJobsSection = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={styles.loader}
+        />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load jobs</Text>
-          <TouchableOpacity onPress={() => fetchJobs()} style={styles.retryButton}>
+          <TouchableOpacity
+            onPress={() => fetchJobs()}
+            style={styles.retryButton}
+          >
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -45,7 +58,9 @@ export const LatestJobsSection = () => {
               type={formatType(job.type)}
               tags={[
                 job.category.name,
-                ...(job.requirements?.[0]?.skillName ? [job.requirements[0].skillName] : []),
+                ...(job.requirements?.[0]?.skillName
+                  ? [job.requirements[0].skillName]
+                  : []),
               ]}
             />
           ))}

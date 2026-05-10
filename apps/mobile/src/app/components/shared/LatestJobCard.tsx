@@ -12,12 +12,23 @@ export interface LatestJobProps {
   logoUrl?: string;
 }
 
-export const LatestJobCard = ({ title, company, location, type, tags, logoUrl }: LatestJobProps) => {
+export const LatestJobCard = ({
+  title,
+  company,
+  location,
+  type,
+  tags,
+  logoUrl,
+}: LatestJobProps) => {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
         {logoUrl ? (
-          <Image source={{ uri: logoUrl }} style={styles.logo} resizeMode="contain" />
+          <Image
+            source={{ uri: logoUrl }}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         ) : (
           <View style={styles.logoPlaceholder} />
         )}
@@ -27,28 +38,27 @@ export const LatestJobCard = ({ title, company, location, type, tags, logoUrl }:
             {company} • {location}
           </Text>
           <View style={styles.tagsContainer}>
-            <Badge 
-              label={type} 
-              color="#EBF9F1" 
-              textColor="#56CDAD"
-              outline
-            />
+            <Badge label={type} color="#EBF9F1" textColor="#56CDAD" outline />
             <View style={styles.separator} />
             {tags.map((tag, index) => {
               const getTagStyles = (t: string) => {
                 const lowerTag = t.toLowerCase();
-                if (lowerTag === 'marketing') return { textColor: '#FFB836', color: 'transparent' };
-                if (lowerTag === 'design') return { textColor: '#4640DE', color: 'transparent' };
-                if (lowerTag === 'developer') return { textColor: '#26A4FF', color: 'transparent' };
-                if (lowerTag === 'management') return { textColor: '#B197FC', color: 'transparent' };
+                if (lowerTag === 'marketing')
+                  return { textColor: '#FFB836', color: 'transparent' };
+                if (lowerTag === 'design')
+                  return { textColor: '#4640DE', color: 'transparent' };
+                if (lowerTag === 'developer')
+                  return { textColor: '#26A4FF', color: 'transparent' };
+                if (lowerTag === 'management')
+                  return { textColor: '#B197FC', color: 'transparent' };
                 return { textColor: COLORS.textLight, color: 'transparent' };
               };
               const { textColor, color } = getTagStyles(tag);
               return (
-                <Badge 
-                  key={index} 
-                  label={tag} 
-                  color={color} 
+                <Badge
+                  key={index}
+                  label={tag}
+                  color={color}
                   textColor={textColor}
                   outline
                 />

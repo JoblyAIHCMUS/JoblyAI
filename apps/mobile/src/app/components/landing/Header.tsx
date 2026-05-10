@@ -14,8 +14,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
         {/* Menu Icon Left */}
-        <TouchableOpacity 
-          style={styles.menuButton} 
+        <TouchableOpacity
+          style={styles.menuButton}
           activeOpacity={0.7}
           onPress={onMenuPress}
         >
