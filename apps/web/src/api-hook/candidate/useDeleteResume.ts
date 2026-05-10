@@ -11,12 +11,12 @@ export function useDeleteResume(options?: UseDeleteResumeOptions) {
   const [error, setError] = useState<unknown>(null as unknown);
   const [data, setData] = useState<string | null>(null);
 
-  const deleteResumeRecord = async (resumeId: number) => {
+  const deleteResumeRecord = async (resumeId: number, keepData = false) => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await deleteResume(resumeId);
+      const result = await deleteResume(resumeId, keepData);
       setData(result);
       options?.onSuccess?.(result);
       return result;

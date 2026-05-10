@@ -69,5 +69,31 @@ export class AiProviderService {
       throw error;
     }
   }
+
+  async generateEmbedding(text: string): Promise<number[]> {
+    try {
+      // Use the flagship Gemini Embedding 2 model
+      const result = await this.client.models.embedContent({
+        model: 'gemini-embedding-2',
+        contents: [{ 
+          parts: [{ text }], 
+          role: 'user' 
+        }],
+        // Standard task types for best quality
+        config: {
+          taskType: 'RETRIEVAL_DOCUMENT'
+        }
+      });
+
+      if (!result.embeddings || result.embeddings.length === 0) {
+        return [];
+      }
+
+      return result.embeddings[0].values || [];
+    } catch (error: any) {
+      this.logger.error(`Gemini Embedding 2 error: ${error.message}`);
+      return [];
+    }
+  }
 }
 

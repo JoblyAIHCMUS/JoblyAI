@@ -1,75 +1,63 @@
 generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 model User {
-  id             String        @id @default(cuid())
-  name           String?
-  email          String        @unique
-  emailVerified  Boolean       @default(false)
-  
-  // S3 Avatar Storage - PUBLIC access (bucket policy allows public GetObject)
-  // Store direct S3 URL since avatars are publicly readable
-  avatarUrl      String?       // S3 public URL (e.g., "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/avatars/uuid.jpg")
-  
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   banExpires    DateTime?
   banReason     String?
-  banned        Boolean?      @default(false)
-  role          String?       @default("candidate")
+  banned        Boolean?  @default(false)
+  role          String?   @default("candidate")
   firstName     String?
   lastName      String?
   phoneNumber   String?
   dateOfBirth   DateTime?
   gender        Gender?
-  employer      Employer?
-  postedJobs    JobPosting[]
-  accounts      Account[]
-  sessions      Session[]
-  education     Education[]
-  experiences   Experience[]
-  certificates  Certificate[]
-  resumes       Resume[]
+
+  employer             Employer?
+  postedJobs           JobPosting[]
+  accounts             Account[]
+  sessions             Session[]
+  education            Education[]
+  experiences          Experience[]
+  certificates         Certificate[]
+  resumes              Resume[]
   candidateDescription CandidateDescription?
   candidateSkills      CandidateSkill[]
   candidateContacts    CandidateContact[]
   candidateSocials     CandidateSocial[]
-  conversations  Conversation[] @relation("UserConversations")
-  participating  Conversation[] @relation("ParticipantInConversations")
-  applications  Application[]
+  conversations        Conversation[]        @relation("UserConversations")
+  participating        Conversation[]        @relation("ParticipantInConversations")
+  applications         Application[]
 
   @@map("user")
 }
 
 model Conversation {
-  id             Int      @id @default(autoincrement())
-  
-  // Who owns this sidebar entry
-  ownerId        String
-  owner          User     @relation("UserConversations", fields: [ownerId], references: [id], onDelete: Cascade)
+  id            Int      @id @default(autoincrement())
+  ownerId       String
+  owner         User     @relation("UserConversations", fields: [ownerId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   User     @relation("ParticipantInConversations", fields: [participantId], references: [id], onDelete: Cascade)
+  lastMessage   String?
+  lastMessageAt DateTime @default(now())
+  scyllaChatId  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // Who they are talking to
-  participantId  String
-  participant    User     @relation("ParticipantInConversations", fields: [participantId], references: [id], onDelete: Cascade)
-
-  // Preview data for the UI
-  lastMessage    String?
-  lastMessageAt  DateTime @default(now())
-  
-  // The link to the ScyllaDB partition
-  scyllaChatId   String
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Unique constraint to prevent duplicate conversations between the same two users
   @@unique([ownerId, participantId])
   @@index([ownerId, lastMessageAt(sort: Desc)])
   @@map("conversation")
@@ -133,9 +121,9 @@ model JobCategory {
 }
 
 model Skill {
-  id           Int              @id @default(autoincrement())
-  name         String           @unique
-  requirements JobRequirement[]
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  requirements    JobRequirement[]
   candidateSkills CandidateSkill[]
 }
 
@@ -150,8 +138,8 @@ model JobPosting {
   status      JobStatus      @default(DRAFT)
   remote      Boolean        @default(false)
   type        EmploymentType @default(FULL_TIME)
+  embedding   Unsupported("vector(3072)")?
 
-  // Relations
   postedById String
   postedBy   User   @relation(fields: [postedById], references: [id])
 
@@ -186,14 +174,15 @@ model Education {
   candidateId String
   candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  school       String // University or School name
-  degree       Degree? 
-  fieldOfStudy String? // e.g., "Computer Science"
+  school       String
+  degree       Degree?
+  fieldOfStudy String?
   startDate    DateTime
-  endDate      DateTime? // Nullable: If null, it means "Present" (currently studying)
-  grade        String? // e.g., "3.8 GPA" or "Distinction"
-  description  String? // Optional description of the education experience
+  endDate      DateTime?
+  grade        String?
+  description  String?
   sourceCvIds  Int[]
+  embedding    Unsupported("vector(3072)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,11 +199,11 @@ model Experience {
   jobTitle    String
   location    String?
   startDate   DateTime
-  endDate     DateTime? // Nullable: If null, it means "Present" (currently working)
-  description String? // Optional description of the work experience
+  endDate     DateTime?
+  description String?
   type        CandidateExperienceType?
   sourceCvIds Int[]
-
+  embedding   Unsupported("vector(3072)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -227,12 +216,13 @@ model CandidateDescription {
   candidateId String   @unique
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  title       String?
-  bio         String?  @db.Text
+  title           String?
+  bio             String?                     @db.Text
   rawDescriptions Json?
+  embedding       Unsupported("vector(3072)")?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([candidateId])
 }
@@ -243,13 +233,14 @@ model CandidateSkill {
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   skillId     Int
-  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skill       Skill                @relation(fields: [skillId], references: [id], onDelete: Cascade)
   level       CandidateSkillLevel?
   years       Int?
   sourceCvIds Int[]
+  embedding   Unsupported("vector(3072)")?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([candidateId])
   @@index([skillId])
@@ -257,33 +248,33 @@ model CandidateSkill {
 }
 
 model CandidateContact {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   candidateId String
-  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   type        CandidateContactType?
   value       String
-  isPrimary   Boolean  @default(false)
+  isPrimary   Boolean               @default(false)
   sourceCvIds Int[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([candidateId])
 }
 
 model CandidateSocial {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   candidateId String
-  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   platform    CandidateSocialPlatform
   url         String
   username    String?
   sourceCvIds Int[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([candidateId])
 }
@@ -296,10 +287,11 @@ model Certificate {
   name         String
   issuer       String
   issueDate    DateTime
-  expiryDate   DateTime? // Nullable: If null, it means "No Expiry"
-  credentialId String? // Optional credential ID or license number
-  url          String? // Optional URL to the certification details
+  expiryDate   DateTime?
+  credentialId String?
+  url          String?
   sourceCvIds  Int[]
+  embedding    Unsupported("vector(3072)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -308,21 +300,18 @@ model Certificate {
 }
 
 model Company {
-  id           Int        @id @default(autoincrement())
-  name         String     @unique
-  websiteUrl   String?
-  sizeRange    String?
-  industry     String?
-  description  String?
-  
-  // S3 Logo Storage - PUBLIC access (bucket policy allows public GetObject)
-  // Store direct S3 URL since logos are publicly readable
-  logoUrl      String?    // S3 public URL (e.g., "https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/logos/uuid.png")
-  adminId      Int?       @unique
-  admin        Employer?  @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  employers    Employer[] @relation("CompanyEmployers")
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  websiteUrl  String?
+  sizeRange   String?
+  industry    String?
+  description String?
+  logoUrl     String?
+  adminId     Int?       @unique
+  admin       Employer?  @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employers   Employer[] @relation("CompanyEmployers")
   jobPostings JobPosting[]
 }
 
@@ -359,45 +348,42 @@ enum EmploymentType {
   INTERNSHIP
   FREELANCE
 }
+
 model Resume {
-  id              Int           @id @default(autoincrement())
-  candidateId     String
-  candidate       User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  
-  // S3 File Storage - PRIVATE access (bucket policy blocks public GetObject for resumes/)
-  // Store ONLY fileKey - generate presigned download URLs dynamically for secure access
-  fileKey         String?       // S3 object key (e.g., "resumes/uuid.pdf") - use for deletion & presigned download URLs
-  fileName        String        // Original file name (e.g., "resume.pdf")
-  fileType        String        // MIME type (e.g., "application/pdf")
-  fileSize        Int           // Size of the file in bytes
-  
-  parsedText      String?       @db.Text
-  aiScore         Float?
-  aiFeedback      Json?
-  isSyncedToProfile Boolean     @default(true)
-  isDefault       Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  applications    Application[]
+  id                Int           @id @default(autoincrement())
+  candidateId       String
+  candidate         User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  fileKey           String?
+  fileName          String
+  fileType          String
+  fileSize          Int
+  parsedText        String?       @db.Text
+  aiScore           Float?
+  aiFeedback        Json?
+  isSyncedToProfile Boolean       @default(true)
+  isDefault         Boolean       @default(false)
+  embedding         Unsupported("vector(3072)")?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  applications      Application[]
 
   @@index([candidateId])
   @@map("resume")
 }
 
-// Application model (as per ERD)
 model Application {
-  id               Int               @id @default(autoincrement())
-  jobId            Int
-  job              JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  candidateId      String
-  candidate        User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  resumeId         Int
-  resume           Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  matchPercentage  Float?
-  aiFeedback       Json?
-  status           ApplicationStatus @default(APPLIED)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id              Int               @id @default(autoincrement())
+  jobId           Int
+  job             JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId        Int
+  resume          Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  matchPercentage Float?
+  aiFeedback      Json?
+  status          ApplicationStatus @default(APPLIED)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@index([jobId])
   @@index([candidateId])
@@ -413,14 +399,12 @@ enum ApplicationStatus {
   WITHDRAWN
 }
 
-// Job view tracking for analytics and dashboard statistics
 model JobView {
-  id        Int       @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   jobId     Int
   job       JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  viewedAt  DateTime  @default(now())
+  viewedAt  DateTime   @default(now())
 
-  // Index for efficient aggregation queries by date
   @@index([jobId, viewedAt])
   @@index([viewedAt])
   @@map("job_view")

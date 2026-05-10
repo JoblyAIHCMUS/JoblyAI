@@ -588,7 +588,7 @@ export class CandidatesService {
     });
   }
 
-  async deleteResume(userId: string, resumeId: number): Promise<string> {
+  async deleteResume(userId: string, resumeId: number, shouldKeepData = false): Promise<string> {
     // First, get the resume to get the fileKey for S3 deletion
     const resume = await this.prismaClient.resume.findFirst({
       where: {
@@ -606,7 +606,6 @@ export class CandidatesService {
     // Delete from S3 if fileKey exists
     if (resume.fileKey) {
       try {
-        // Defensive: ensure fileKey is a string (Prisma might return it as-is from DB)
         const fileKeyToDelete = String(resume.fileKey).trim();
         if (fileKeyToDelete) {
           await this.s3Service.deleteFile(fileKeyToDelete);
@@ -616,7 +615,6 @@ export class CandidatesService {
           `Failed to delete S3 file, continuing with DB deletion:`,
           error
         );
-        // Continue with DB deletion even if S3 deletion fails
       }
     }
 
@@ -629,12 +627,14 @@ export class CandidatesService {
     });
 
     // Emit event for cleanup (e.g. AI-sync data removal)
-    this.eventEmitter.emit('resume.deleted', {
+    // CRITICAL: Use emitAsync and await to ensure profile data is updated BEFORE returning success to frontend
+    await this.eventEmitter.emitAsync('resume.deleted', {
       resumeId,
       candidateId: userId,
+      shouldKeepData,
     });
 
-    return `Deleted resume with ID ${resumeId} and file from S3`;
+    return 'Resume deleted';
   }
 
   // Certificate
@@ -760,6 +760,7 @@ export class CandidatesService {
     return this.prismaClient.candidateDescription.create({
       data: {
         ...createDto,
+        rawDescriptions: {}, // Manual creation clears AI cache
         candidate: { connect: { id: userId } },
       },
     });
@@ -783,7 +784,10 @@ export class CandidatesService {
 
     return this.prismaClient.candidateDescription.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
+      },
     });
   }
 

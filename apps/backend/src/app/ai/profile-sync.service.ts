@@ -51,46 +51,53 @@ export class ProfileSyncService {
   }
 
   async commitMerge(candidateId: string, resumeId: number, data: ParsedResume) {
-    this.logger.log(`Committing merge for candidate ${candidateId} and resume ${resumeId}. Data keys: ${Object.keys(data || {}).join(', ')}`);
+    this.logger.log(`Committing merge (Vector Mode) for candidate ${candidateId} and resume ${resumeId}`);
     
-    // Ensure arrays exist even if AI omitted them
     const skills = data.skills || [];
     const experience = data.experience || [];
     const education = data.education || [];
+    const certificates = data.certificates || [];
 
-    // PRE-CALCULATE BIO OUTSIDE TRANSACTION (AI is slow)
+    // 1. Pre-calculate Bio & Title
     const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
     const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
     rawDescriptions[resumeId.toString()] = data.bio || '';
     const finalBio = await this.regenerateBio(rawDescriptions);
+    const bioEmbedding = await this.aiProvider.generateEmbedding(finalBio);
 
     return this.prisma.$transaction(async (tx) => {
-      // Store raw JSON for future recalculations
-      await tx.resume.update({ 
-        where: { id: resumeId }, 
-        data: { 
-          parsedText: JSON.stringify(data), 
-          isSyncedToProfile: true 
-        } 
-      });
-
-      // 1. Bio & Title
+      // 1.1 Update description record (Regular fields)
       await tx.candidateDescription.upsert({
         where: { candidateId },
-        create: { candidateId, title: data.title || '', bio: finalBio, rawDescriptions },
-        update: { title: data.title || '', bio: finalBio, rawDescriptions },
+        create: { 
+          candidateId, 
+          title: data.title || '', 
+          bio: finalBio, 
+          rawDescriptions,
+        },
+        update: { 
+          title: data.title || '', 
+          bio: finalBio, 
+          rawDescriptions,
+        },
       });
 
-      // 2. Skills with ADDITIVE Years
+      // Update Bio embedding via Raw SQL for maximum stability
+      if (bioEmbedding && bioEmbedding.length > 0) {
+        const vStr = `[${bioEmbedding.join(',')}]`;
+        await tx.$executeRawUnsafe(
+          `UPDATE "CandidateDescription" SET embedding = $1::vector WHERE "candidateId" = $2`,
+          vStr, candidateId
+        );
+      }
+
+      // 2. Skills
       for (const s of skills) {
         const skill = await tx.skill.upsert({ where: { name: this.normalize(s.name) }, create: { name: this.normalize(s.name) }, update: {} });
         const existing = await tx.candidateSkill.findUnique({ where: { candidateId_skillId: { candidateId, skillId: skill.id } } });
-        
         const sourceCvIds = existing ? [...new Set([...existing.sourceCvIds, resumeId])] : [resumeId];
-        
-        // Recalculate based on all sources including the new one
         const { years, level } = await this.recalculateSkillAggregate(tx, sourceCvIds, s.name);
-
+        
         await tx.candidateSkill.upsert({
           where: { candidateId_skillId: { candidateId, skillId: skill.id } },
           create: { candidateId, skillId: skill.id, level: level as any, years, sourceCvIds },
@@ -98,55 +105,236 @@ export class ProfileSyncService {
         });
       }
 
-      // 3. Experience & 4. Education (Keep current logic, de-duplication is fine there)
+      // 3. Experience (Semantic Matching)
       for (const e of experience) {
-        const existing = await tx.experience.findFirst({
-          where: { candidateId, companyName: { equals: e.companyName, mode: 'insensitive' }, jobTitle: { equals: e.jobTitle, mode: 'insensitive' } }
-        });
-        if (existing) {
-          await tx.experience.update({ where: { id: existing.id }, data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } });
+        const content = `${e.companyName} | ${e.jobTitle} | ${e.description}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+        
+        let existingId: number | null = null;
+        if (embedding && embedding.length > 0) {
+          try {
+            const vectorStr = `[${embedding.join(',')}]`;
+            const similar: any[] = await tx.$queryRawUnsafe(`
+              SELECT id, (embedding <=> $1::vector) as distance
+              FROM "Experience"
+              WHERE "candidateId" = $2
+              ORDER BY distance ASC
+              LIMIT 1
+            `, vectorStr, candidateId);
+
+            if (similar.length > 0 && similar[0].distance < 0.15) {
+              existingId = similar[0].id;
+            }
+          } catch (dbError: any) {
+            this.logger.error(`Error searching Experience vectors: ${dbError.message}`);
+          }
+        }
+
+        if (existingId) {
+          const existing = await tx.experience.findUnique({ where: { id: existingId } });
+          if (existing) {
+            await tx.experience.update({ 
+              where: { id: existingId }, 
+              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+            });
+            
+            if (embedding && embedding.length > 0) {
+              await tx.$executeRawUnsafe(
+                `UPDATE "Experience" SET embedding = $1::vector WHERE id = $2`,
+                `[${embedding.join(',')}]`, existingId
+              );
+            }
+          }
         } else {
-          await tx.experience.create({
-            data: { candidateId, companyName: e.companyName, jobTitle: e.jobTitle, location: e.location || 'Unknown', startDate: new Date(e.startDate), endDate: e.endDate ? new Date(e.endDate) : null, description: e.description || '', type: (e.type || 'OTHER') as any, sourceCvIds: [resumeId] }
+          const created = await tx.experience.create({
+            data: { 
+              candidateId, 
+              companyName: e.companyName, 
+              jobTitle: e.jobTitle, 
+              location: e.location || '', 
+              startDate: new Date(e.startDate), 
+              endDate: e.endDate ? new Date(e.endDate) : null, 
+              description: e.description || '', 
+              type: (e.type || 'OTHER') as any, 
+              sourceCvIds: [resumeId],
+            }
           });
+
+          if (embedding && embedding.length > 0) {
+            await tx.$executeRawUnsafe(
+              `UPDATE "Experience" SET embedding = $1::vector WHERE id = $2`,
+              `[${embedding.join(',')}]`, created.id
+            );
+          }
         }
       }
 
+      // 4. Education (Semantic Matching)
       for (const edu of education) {
-        const existing = await tx.education.findFirst({
-          where: { candidateId, school: { equals: edu.school, mode: 'insensitive' }, degree: edu.degree as any }
-        });
-        if (existing) {
-          await tx.education.update({ where: { id: existing.id }, data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } });
+        const content = `${edu.school} | ${edu.degree} | ${edu.fieldOfStudy}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+
+        let existingId: number | null = null;
+        if (embedding && embedding.length > 0) {
+          try {
+            const vectorStr = `[${embedding.join(',')}]`;
+            const similar: any[] = await tx.$queryRawUnsafe(`
+              SELECT id, (embedding <=> $1::vector) as distance
+              FROM "Education"
+              WHERE "candidateId" = $2
+              ORDER BY distance ASC
+              LIMIT 1
+            `, vectorStr, candidateId);
+
+            if (similar.length > 0 && similar[0].distance < 0.1) {
+              existingId = similar[0].id;
+            }
+          } catch (dbError: any) {
+            this.logger.error(`Error searching Education vectors: ${dbError.message}`);
+          }
+        }
+
+        if (existingId) {
+          const existing = await tx.education.findUnique({ where: { id: existingId } });
+          if (existing) {
+            await tx.education.update({ 
+              where: { id: existingId }, 
+              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+            });
+
+            if (embedding && embedding.length > 0) {
+              await tx.$executeRawUnsafe(
+                `UPDATE "Education" SET embedding = $1::vector WHERE id = $2`,
+                `[${embedding.join(',')}]`, existingId
+              );
+            }
+          }
         } else {
-          await tx.education.create({
-            data: { candidateId, school: edu.school, degree: edu.degree as any, fieldOfStudy: edu.fieldOfStudy, startDate: new Date(edu.startDate), endDate: edu.endDate ? new Date(edu.endDate) : null, grade: edu.grade, description: edu.description || '', sourceCvIds: [resumeId] }
+          const created = await tx.education.create({
+            data: { 
+              candidateId, 
+              school: edu.school, 
+              degree: edu.degree as any, 
+              fieldOfStudy: edu.fieldOfStudy || '', 
+              startDate: new Date(edu.startDate), 
+              endDate: edu.endDate ? new Date(edu.endDate) : null, 
+              grade: edu.grade || '', 
+              description: edu.description || '', 
+              sourceCvIds: [resumeId],
+            }
           });
+
+          if (embedding && embedding.length > 0) {
+            await tx.$executeRawUnsafe(
+              `UPDATE "Education" SET embedding = $1::vector WHERE id = $2`,
+              `[${embedding.join(',')}]`, created.id
+            );
+          }
         }
       }
 
-      // 5. Collections
-      await this.syncCollection(tx, 'candidateContact', data.contacts, candidateId, resumeId, (item) => ({ value: item.value, type: item.type }));
-      await this.syncCollection(tx, 'candidateSocial', data.socials, candidateId, resumeId, (item) => ({ url: item.url, platform: item.platform }));
-      await this.syncCollection(tx, 'certificate', data.certificates, candidateId, resumeId, (item) => ({ name: item.name, issuer: item.issuer }));
+      // 5. Certificates (Semantic Matching)
+      for (const cert of certificates) {
+        const content = `${cert.name} | ${cert.issuer}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+
+        let existingId: number | null = null;
+        if (embedding && embedding.length > 0) {
+          try {
+            const vectorStr = `[${embedding.join(',')}]`;
+            const similar: any[] = await tx.$queryRawUnsafe(`
+              SELECT id, (embedding <=> $1::vector) as distance
+              FROM "Certificate"
+              WHERE "candidateId" = $2
+              ORDER BY distance ASC
+              LIMIT 1
+            `, vectorStr, candidateId);
+
+            if (similar.length > 0 && similar[0].distance < 0.1) {
+              existingId = similar[0].id;
+            }
+          } catch (dbError: any) {
+            this.logger.error(`Error searching Certificate vectors: ${dbError.message}`);
+          }
+        }
+
+        if (existingId) {
+          const existing = await tx.certificate.findUnique({ where: { id: existingId } });
+          if (existing) {
+            await tx.certificate.update({ 
+              where: { id: existingId }, 
+              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+            });
+
+            if (embedding && embedding.length > 0) {
+              await tx.$executeRawUnsafe(
+                `UPDATE "Certificate" SET embedding = $1::vector WHERE id = $2`,
+                `[${embedding.join(',')}]`, existingId
+              );
+            }
+          }
+        } else {
+          const created = await tx.certificate.create({
+            data: {
+              ...cert,
+              candidateId,
+              sourceCvIds: [resumeId],
+              issueDate: new Date(cert.issueDate),
+              expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
+            }
+          });
+
+          if (embedding && embedding.length > 0) {
+            await tx.$executeRawUnsafe(
+              `UPDATE "Certificate" SET embedding = $1::vector WHERE id = $2`,
+              `[${embedding.join(',')}]`, created.id
+            );
+          }
+        }
+      }
+
+      // 6. Contacts & Socials (Deterministic matching)
+      await this.syncCollection(tx, 'candidateContact', data.contacts, candidateId, resumeId, (item) => ({ 
+        value: { equals: item.value.trim(), mode: 'insensitive' }, 
+        type: item.type 
+      }));
+      await this.syncCollection(tx, 'candidateSocial', data.socials, candidateId, resumeId, (item) => ({ 
+        url: { equals: item.url.trim(), mode: 'insensitive' }, 
+        platform: item.platform 
+      }));
 
       await tx.resume.update({ where: { id: resumeId }, data: { isSyncedToProfile: true } });
       return { success: true };
     });
   }
 
-  private async syncCollection(tx: any, model: string, items: any[], candidateId: string, resumeId: number, getMatchCriteria: (item: any) => any) {
+  private async syncCollection(tx: any, model: string, items: any[], candidateId: string, resumeId: number, getWhereCriteria: (item: any) => any) {
     if (!items) return;
     for (const item of items) {
-      const criteria = getMatchCriteria(item);
-      const existing = await tx[model].findFirst({ where: { candidateId, ...criteria } });
+      const where = getWhereCriteria(item);
+      const existing = await tx[model].findFirst({ where: { candidateId, ...where } });
+      
       if (existing) {
-        await tx[model].update({ where: { id: existing.id }, data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } });
+        await tx[model].update({ 
+          where: { id: existing.id }, 
+          data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+        });
       } else {
-        await tx[model].create({ data: { ...item, candidateId, sourceCvIds: [resumeId], 
-          ...(item.issueDate ? { issueDate: new Date(item.issueDate) } : {}),
-          ...(item.expiryDate ? { expiryDate: new Date(item.expiryDate) } : {})
-        } });
+        const createData = { 
+          ...item, 
+          candidateId, 
+          sourceCvIds: [resumeId] 
+        };
+        
+        if (createData.value) createData.value = createData.value.trim();
+        if (createData.url) createData.url = createData.url.trim();
+        if (createData.name) createData.name = createData.name.trim();
+        if (createData.issuer) createData.issuer = createData.issuer.trim();
+
+        if (item.issueDate) createData.issueDate = new Date(item.issueDate);
+        if (item.expiryDate) createData.expiryDate = new Date(item.expiryDate);
+
+        await tx[model].create({ data: createData });
       }
     }
   }
@@ -159,16 +347,31 @@ export class ProfileSyncService {
     return this.regenerateBio(updatedRawDescriptions);
   }
 
-  async handleResumeDeletion(candidateId: string, resumeId: number) {
-    // PRE-CALCULATE BIO CLEANUP OUTSIDE TRANSACTION (AI is slow)
-    const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
-    let finalBio: string | null = null;
-    let updatedRawDescriptions: Record<string, string> | null = null;
+  async handleResumeDeletion(candidateId: string, resumeId: number, shouldKeepData = false) {
+    this.logger.log(`[handleResumeDeletion] Start: resumeId=${resumeId}, candidateId=${candidateId}, keepData=${shouldKeepData}`);
+    
+    let finalBio: string = '';
+    let finalTitle: string = '';
+    let updatedRawDescriptions: Record<string, string> = {};
 
-    if (desc?.rawDescriptions) {
-      updatedRawDescriptions = { ...(desc.rawDescriptions as Record<string, string>) };
+    if (!shouldKeepData) {
+      const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+      const currentRaw = (desc?.rawDescriptions as Record<string, string>) || {};
+      
+      updatedRawDescriptions = { ...currentRaw };
       delete updatedRawDescriptions[resumeId.toString()];
-      finalBio = await this.regenerateBio(updatedRawDescriptions);
+      
+      const remainingSourcesCount = Object.keys(updatedRawDescriptions).length;
+      
+      if (remainingSourcesCount === 0) {
+        this.logger.log(`[handleResumeDeletion] No source descriptions remain. Clearing bio and title.`);
+        finalBio = '';
+        finalTitle = '';
+      } else {
+        this.logger.log(`[handleResumeDeletion] ${remainingSourcesCount} sources remain. Regenerating bio.`);
+        finalBio = await this.regenerateBio(updatedRawDescriptions);
+        finalTitle = desc?.title || '';
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -177,32 +380,47 @@ export class ProfileSyncService {
         const records = await (tx as any)[model].findMany({ where: { candidateId, sourceCvIds: { has: resumeId } } });
         for (const record of records) {
           const remainingIds = record.sourceCvIds.filter((id: number) => id !== resumeId);
-          if (remainingIds.length === 0) {
-            await (tx as any)[model].delete({ where: { id: record.id } });
+          
+          if (shouldKeepData) {
+            await (tx as any)[model].update({ where: { id: record.id }, data: { sourceCvIds: remainingIds } });
           } else {
-            // RECALCULATION
-            let updateData: any = { sourceCvIds: remainingIds };
-            if (model === 'candidateSkill') {
-              const skill = await tx.skill.findUnique({ where: { id: record.skillId } });
-              const { years, level } = await this.recalculateSkillAggregate(tx, remainingIds, skill?.name || '');
-              updateData = { ...updateData, years, level };
-            } else if (model === 'experience' || model === 'education') {
-              const bestData = await this.getBestRecordFromSources(tx, model, remainingIds, record);
-              updateData = { ...updateData, ...bestData };
+            if (remainingIds.length === 0) {
+              await (tx as any)[model].delete({ where: { id: record.id } });
+            } else {
+              let updateData: any = { sourceCvIds: remainingIds };
+              if (model === 'candidateSkill') {
+                const skill = await tx.skill.findUnique({ where: { id: record.skillId } });
+                const { years, level } = await this.recalculateSkillAggregate(tx, remainingIds, skill?.name || '');
+                updateData = { ...updateData, years, level };
+              } else if (model === 'experience' || model === 'education') {
+                const bestData = await this.getBestRecordFromSources(tx, model, remainingIds, record);
+                updateData = { ...updateData, ...bestData };
+              }
+              await (tx as any)[model].update({ where: { id: record.id }, data: updateData });
             }
-            await (tx as any)[model].update({ where: { id: record.id }, data: updateData });
           }
         }
       }
 
-      // Bio Cleanup (using pre-calculated data)
-      if (updatedRawDescriptions !== null) {
-        await tx.candidateDescription.update({
+      if (!shouldKeepData) {
+        this.logger.log(`[handleResumeDeletion] Purging CandidateDescription. New count of sources: ${Object.keys(updatedRawDescriptions).length}`);
+        await tx.candidateDescription.upsert({
           where: { candidateId },
-          data: { rawDescriptions: updatedRawDescriptions, bio: finalBio }
+          create: { 
+            candidateId,
+            rawDescriptions: updatedRawDescriptions,
+            bio: finalBio,
+            title: finalTitle
+          },
+          update: { 
+            rawDescriptions: updatedRawDescriptions, 
+            bio: finalBio, 
+            title: finalTitle
+          }
         });
       }
 
+      this.logger.log(`[handleResumeDeletion] Finished successfully for resume ${resumeId}`);
       return { success: true };
     });
   }
@@ -219,7 +437,6 @@ export class ProfileSyncService {
     
     if (!bestMatch) return {};
 
-    // CONVERT DATE STRINGS TO DATE OBJECTS FOR PRISMA
     const result = { ...bestMatch };
     if (result.startDate) result.startDate = new Date(result.startDate);
     if (result.endDate) result.endDate = new Date(result.endDate);

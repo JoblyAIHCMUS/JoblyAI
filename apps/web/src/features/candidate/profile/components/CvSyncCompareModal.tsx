@@ -319,7 +319,12 @@ export function CvSyncCompareModal({
                 Cancel
               </Button>
               <Button onClick={onSync} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white px-8 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
-                {isLoading ? 'Syncing...' : (
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> 
+                    Syncing profile...
+                  </span>
+                ) : (
                   <span className="flex items-center gap-2">
                     <Check size={18} strokeWidth={3} /> Approve & Sync Data
                   </span>
