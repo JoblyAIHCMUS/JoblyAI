@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { COLORS, SPACING } from '../../constants/theme';
 
-export const IconInput = ({ icon, placeholder, value, onChangeText }) => (
+interface IconInputProps {
+  icon: ReactNode;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}
+
+export const IconInput = ({ icon, placeholder, value, onChangeText }: IconInputProps) => (
   <View style={styles.container}>
     <View style={styles.iconContainer}>{icon}</View>
     <TextInput 

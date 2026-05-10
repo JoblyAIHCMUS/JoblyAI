@@ -2,7 +2,13 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 
-export const AppButton = ({ title, onPress, variant = 'primary' }) => (
+interface AppButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'outline';
+}
+
+export const AppButton = ({ title, onPress, variant = 'primary' }: AppButtonProps) => (
   <TouchableOpacity 
     style={[styles.button, variant === 'outline' ? styles.outline : styles.primary]} 
     onPress={onPress}
