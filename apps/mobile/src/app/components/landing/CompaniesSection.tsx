@@ -6,7 +6,7 @@ import { useTopCompanies } from '../../../hooks';
 const { width } = Dimensions.get('window');
 
 export const CompaniesSection = () => {
-  const { companies, loading, error } = useTopCompanies(5);
+  const { companies, loading, error } = useTopCompanies(6);
 
   if (loading || error || companies.length === 0) {
     return null; // or a loading skeleton
