@@ -53,3 +53,7 @@ export interface JobCategory {
   name: string;
   slug: string;
 }
+
+export interface PopularJobCategory extends JobCategory {
+  jobCount: number;
+}
