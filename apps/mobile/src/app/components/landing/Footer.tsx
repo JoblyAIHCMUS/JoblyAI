@@ -4,7 +4,6 @@ import { COLORS, SPACING } from '../../constants/theme';
 import {
   FacebookIcon,
   InstagramIcon,
-  GlobeIcon,
   LinkedInIcon,
   TwitterIcon,
 } from '../shared/svgs/Icons';
@@ -29,10 +28,6 @@ const Footer = () => {
 
         <SocialIcon>
           <InstagramIcon />
-        </SocialIcon>
-
-        <SocialIcon>
-          <GlobeIcon />
         </SocialIcon>
 
         <SocialIcon>
