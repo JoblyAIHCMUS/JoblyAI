@@ -306,7 +306,7 @@ export default function AllApplicationsTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
       <DataTable
         columns={columns}
         data={applications}
@@ -321,17 +321,18 @@ export default function AllApplicationsTable({
 
       {/* Custom pagination controls for server-side pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between py-4">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 py-4 sm:py-6">
+          <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
             Showing {(currentPage - 1) * pageSize + 1} to{' '}
             {Math.min(currentPage * pageSize, total)} of {total} results
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2 order-1 sm:order-2 flex-wrap justify-start sm:justify-end">
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1 || loading}
+              className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
             >
               Previous
             </Button>
@@ -344,6 +345,7 @@ export default function AllApplicationsTable({
                   size="sm"
                   onClick={() => handlePageChange(page)}
                   disabled={loading}
+                  className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                 >
                   {page}
                 </Button>
@@ -353,6 +355,7 @@ export default function AllApplicationsTable({
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || loading}
+              className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
             >
               Next
             </Button>
