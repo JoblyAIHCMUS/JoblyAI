@@ -101,14 +101,14 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
     }, []);
 
     return (
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
         {/* Preview */}
         <div className="relative shrink-0">
           <div
             className="flex items-center justify-center overflow-hidden rounded-[var(--radius-xl)]"
             style={{
-              width: 124,
-              height: 124,
+              width: 100,
+              height: 100,
               backgroundColor: 'var(--indigo-50)',
             }}
           >
@@ -120,7 +120,7 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
               />
             ) : (
               <ImageIcon
-                className="size-8"
+                className="size-6 sm:size-8"
                 style={{ color: 'var(--icon-tertiary)' }}
               />
             )}
@@ -173,20 +173,20 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
               }
             }
           }}
-          className="flex-1"
+          className="flex-1 min-w-0"
         >
           <FileUploadDropzone
-            className="cursor-pointer flex-col items-center justify-center gap-1 px-6 bg-[var(--bg-primary)] hover:bg-[var(--bg-accent-primary)]"
+            className="cursor-pointer flex-col items-center justify-center gap-1 px-3 sm:px-6 py-4 sm:py-6 bg-[var(--bg-primary)] hover:bg-[var(--bg-accent-primary)]"
             style={{
               borderColor: 'var(--border-accent-primary)',
             }}
           >
             <ImageIcon
-              className="size-6 mb-1"
+              className="size-5 sm:size-6 mb-1"
               style={{ color: 'var(--icon-accent-primary)' }}
             />
             <p
-              className="body-body-2-medium"
+              className="body-body-2-medium text-xs sm:text-sm"
               style={{ color: 'var(--text-primary)' }}
             >
               <span
@@ -198,7 +198,7 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
               or drag and drop
             </p>
             <p
-              className="body-body-3-regular"
+              className="body-body-3-regular text-xs"
               style={{ color: 'var(--text-tertiary)' }}
             >
               SVG, PNG, JPG or WEBP (max. 10 MB)
