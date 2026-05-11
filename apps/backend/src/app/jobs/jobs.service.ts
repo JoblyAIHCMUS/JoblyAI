@@ -451,7 +451,7 @@ export class JobsService {
   async getPopularCategories(limit: number): Promise<PopularJobCategory[]> {
     const categories = await this.prisma.jobCategory.findMany({
       include: {
-        _count:{
+        _count: {
           select: {
             jobs: {
               where: {
@@ -463,12 +463,15 @@ export class JobsService {
       },
     });
 
-    return categories.map((cat) => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      jobCount: cat._count.jobs,
-    })).sort((a, b) => b.jobCount - a.jobCount).slice(0, limit);
+    return categories
+      .map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        jobCount: cat._count.jobs,
+      }))
+      .sort((a, b) => b.jobCount - a.jobCount)
+      .slice(0, limit);
   }
 
   /**

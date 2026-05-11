@@ -18,12 +18,15 @@ export function useTopCompanies(limit = 5) {
         if (
           err instanceof Error &&
           (err.name === 'CanceledError' ||
-            (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
+            (err as unknown as Record<string, unknown>).code ===
+              'ERR_CANCELED' ||
             err.name === 'AbortError')
         )
           return;
         setError(
-          err instanceof Error ? err : new Error('Failed to fetch top companies')
+          err instanceof Error
+            ? err
+            : new Error('Failed to fetch top companies')
         );
       } finally {
         setLoading(false);

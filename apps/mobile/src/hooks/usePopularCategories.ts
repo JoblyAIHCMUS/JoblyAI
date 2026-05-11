@@ -18,12 +18,15 @@ export function usePopularCategories(limit: number) {
         if (
           err instanceof Error &&
           (err.name === 'CanceledError' ||
-            (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
+            (err as unknown as Record<string, unknown>).code ===
+              'ERR_CANCELED' ||
             err.name === 'AbortError')
         )
           return;
         setError(
-          err instanceof Error ? err : new Error('Failed to fetch popular categories')
+          err instanceof Error
+            ? err
+            : new Error('Failed to fetch popular categories')
         );
       } finally {
         setLoading(false);

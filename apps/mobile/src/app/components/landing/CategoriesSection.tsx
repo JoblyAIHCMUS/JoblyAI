@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 import { CategoryCard } from '../shared/CategoryCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
@@ -9,12 +15,25 @@ import { usePopularCategories } from '../../../hooks/usePopularCategories';
 const getCategoryIcon = (name: string): string => {
   const normalized = name.toLowerCase();
   if (normalized.includes('design')) return 'Paintbrush';
-  if (normalized.includes('sale') || normalized.includes('chart')) return 'BarChart3';
+  if (normalized.includes('sale') || normalized.includes('chart'))
+    return 'BarChart3';
   if (normalized.includes('marketing')) return 'Megaphone';
-  if (normalized.includes('finance') || normalized.includes('money')) return 'Wallet';
-  if (normalized.includes('tech') || normalized.includes('it')) return 'Monitor';
-  if (normalized.includes('engineer') || normalized.includes('code') || normalized.includes('develop')) return 'Code';
-  if (normalized.includes('human') || normalized.includes('hr') || normalized.includes('people')) return 'Users';
+  if (normalized.includes('finance') || normalized.includes('money'))
+    return 'Wallet';
+  if (normalized.includes('tech') || normalized.includes('it'))
+    return 'Monitor';
+  if (
+    normalized.includes('engineer') ||
+    normalized.includes('code') ||
+    normalized.includes('develop')
+  )
+    return 'Code';
+  if (
+    normalized.includes('human') ||
+    normalized.includes('hr') ||
+    normalized.includes('people')
+  )
+    return 'Users';
   return 'Briefcase'; // Fallback
 };
 
@@ -30,9 +49,15 @@ export const CategoriesSection = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: SPACING.xl }} />
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={{ marginTop: SPACING.xl }}
+        />
       ) : error ? (
-        <Text style={{ color: COLORS.error, marginTop: SPACING.md }}>Failed to load categories.</Text>
+        <Text style={{ color: COLORS.error, marginTop: SPACING.md }}>
+          Failed to load categories.
+        </Text>
       ) : (
         <View style={styles.grid}>
           {categories.map((category) => (

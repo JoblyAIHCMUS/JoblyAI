@@ -35,10 +35,13 @@ export async function getPopularCategories(
   limit?: number,
   options?: ApiOptions
 ): Promise<PopularJobCategory[]> {
-  const response = await apiClient.get<PopularJobCategory[]>('/jobs/categories/popular', {
-    params: { limit },
-    signal: options?.signal,
-  });
+  const response = await apiClient.get<PopularJobCategory[]>(
+    '/jobs/categories/popular',
+    {
+      params: { limit },
+      signal: options?.signal,
+    }
+  );
   return response.data;
 }
 
