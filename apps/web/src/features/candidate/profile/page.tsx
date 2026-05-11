@@ -212,7 +212,7 @@ const CandidateProfilePage = () => {
     };
   }, [fetchCandidateProfile]);
 
-  const handleSyncResume = async () => {
+  const handleSyncResume = async (modifiedDraftData?: any) => {
     if (!activeResumeId || !profile) return;
     
     const resume = profile.resumes?.find(r => r.id === activeResumeId);
@@ -221,8 +221,11 @@ const CandidateProfilePage = () => {
     setIsSyncing(true);
     try {
       console.log('[CandidateProfilePage] Committing resume merge for:', activeResumeId);
-      const parsedData = typeof resume.parsedText === 'string' ? JSON.parse(resume.parsedText) : resume.parsedText;
-      await commitResumeMerge(activeResumeId, parsedData);
+      
+      // Use modifiedDraftData if provided, otherwise fallback to original parsedText
+      const dataToSync = modifiedDraftData || (typeof resume.parsedText === 'string' ? JSON.parse(resume.parsedText) : resume.parsedText);
+      
+      await commitResumeMerge(activeResumeId, dataToSync);
       
       // CRITICAL: Force refresh data BEFORE closing modal
       const updatedProfile = await fetchCandidateProfile({ forceRefresh: true });
