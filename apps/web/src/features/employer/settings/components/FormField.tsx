@@ -40,12 +40,12 @@ export function FormField({
   return (
     <div
       className={cn(
-        'inline-flex flex-col items-start gap-2',
+        'inline-flex flex-col items-start gap-2 w-full',
         widthClasses[width]
       )}
     >
       <Label
-        className="text-base font-semibold leading-5"
+        className="text-xs sm:text-sm md:text-base font-semibold leading-5"
         style={{
           fontFamily: 'var(--family-primary)',
           color: 'var(--text-primary)',
@@ -70,10 +70,10 @@ export function FormField({
             color: 'var(--text-primary)',
             borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
             fontFamily: 'var(--family-secondary)',
-            fontSize: '1rem',
+            fontSize: '0.875rem',
           }}
           className={cn(
-            'placeholder:text-secondary',
+            'placeholder:text-secondary text-xs sm:text-sm md:text-base',
             error && 'border-red-400',
             icon && 'pr-10'
           )}
@@ -93,7 +93,7 @@ export function FormField({
             color: 'var(--destructive)',
             fontFamily: 'var(--family-secondary)',
           }}
-          className="text-sm"
+          className="text-xs sm:text-sm"
         >
           {error}
         </span>

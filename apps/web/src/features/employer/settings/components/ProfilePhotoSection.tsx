@@ -149,21 +149,21 @@ export function ProfilePhotoSection({
 
   return (
     <>
-      <div className="inline-flex flex-col justify-start items-start gap-1">
-        <div className="font-['Lexend_Deca'] text-base font-semibold leading-5 text-primary">
+      <div className="inline-flex flex-col justify-start items-start gap-1 w-full">
+        <div className="font-['Lexend_Deca'] text-sm sm:text-base font-semibold leading-5 text-primary">
           Profile Photo
         </div>
-        <div className="w-64 font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
+        <div className="font-['Be_Vietnam_Pro'] text-xs sm:text-sm font-normal leading-5 sm:leading-6 text-tertiary w-full">
           This image will be shown publicly as your profile picture, it will
           help recruiters recognize you!
         </div>
       </div>
 
-      <div className="flex justify-start items-start gap-8">
+      <div className="flex flex-col sm:flex-row justify-start items-start gap-4 sm:gap-6 md:gap-8 w-full">
         {/* Avatar Display */}
-        <Avatar className="size-32 border-[2.58px] border-primary bg-accent-primary">
+        <Avatar className="size-24 sm:size-28 md:size-32 border-2 sm:border-[2.58px] border-primary bg-accent-primary flex-shrink-0">
           <AvatarImage src={photoUrl} alt="Profile" className="object-cover" />
-          <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-lg font-semibold">
+          <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-base sm:text-lg font-semibold">
             PP
           </AvatarFallback>
         </Avatar>
@@ -175,7 +175,7 @@ export function ProfilePhotoSection({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            'cursor-pointer px-10 py-6 rounded-[10px] border-2 border-dashed border-accent-primary bg-accent-primary inline-flex flex-col justify-start items-start gap-2.5 transition-opacity',
+            'cursor-pointer px-4 sm:px-6 md:px-10 py-4 sm:py-5 md:py-6 rounded-[10px] border-2 border-dashed border-accent-primary bg-accent-primary inline-flex flex-col justify-start items-start gap-2.5 transition-opacity w-full sm:flex-1',
             (disabled || isLoading) && 'opacity-50 cursor-not-allowed'
           )}
         >
@@ -189,11 +189,11 @@ export function ProfilePhotoSection({
           />
 
           {/* Icon */}
-          <div className="flex flex-col justify-start items-center gap-2">
-            <div className="size-8 relative overflow-hidden">
+          <div className="flex flex-col justify-start items-center gap-2 w-full">
+            <div className="size-6 sm:size-7 md:size-8 relative overflow-hidden">
               {isLoading ? (
                 <svg
-                  className="animate-spin size-8 text-icon-accent-primary"
+                  className="animate-spin size-full text-icon-accent-primary"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -213,7 +213,7 @@ export function ProfilePhotoSection({
                 </svg>
               ) : (
                 <svg
-                  className="size-8 text-icon-accent-primary"
+                  className="size-full text-icon-accent-primary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -229,17 +229,16 @@ export function ProfilePhotoSection({
             </div>
 
             {/* Text */}
-            <div className="flex flex-col justify-start items-center gap-1">
-              <div className="flex justify-center text-center gap-1">
-                <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-accent-primary">
+            <div className="flex flex-col justify-start items-center gap-1 w-full">
+              <div className="flex justify-center text-center gap-1 flex-wrap">
+                <span className="font-['Be_Vietnam_Pro'] text-xs sm:text-sm font-normal leading-5 sm:leading-6 text-accent-primary">
                   Click to replace
                 </span>
-                <span className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-primary">
-                  {' '}
+                <span className="font-['Be_Vietnam_Pro'] text-xs sm:text-sm font-normal leading-5 sm:leading-6 text-primary">
                   or drag and drop
                 </span>
               </div>
-              <div className="font-['Be_Vietnam_Pro'] text-base font-normal leading-6 text-tertiary">
+              <div className="font-['Be_Vietnam_Pro'] text-xs sm:text-sm font-normal leading-5 sm:leading-6 text-tertiary text-center">
                 {isLoading
                   ? 'Uploading...'
                   : 'JPEG, PNG or WebP (max. 400 x 400px)'}
