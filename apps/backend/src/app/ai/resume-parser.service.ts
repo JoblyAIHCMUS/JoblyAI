@@ -4,7 +4,13 @@ import { AiProviderService } from './ai-provider.service';
 export interface ParsedResume {
   title: string;
   bio: string;
-  skills: { name: string; years?: number; level?: string }[];
+  skills: { 
+    name: string; 
+    years?: number; 
+    level?: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
+  }[];
   education: {
     school: string;
     degree?: string;
@@ -13,6 +19,8 @@ export interface ParsedResume {
     endDate?: string;
     grade?: string;
     description?: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
   }[];
   experience: {
     companyName: string;
@@ -22,6 +30,8 @@ export interface ParsedResume {
     endDate?: string;
     description?: string;
     type?: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
   }[];
   contacts: {
     type: string;
@@ -36,6 +46,8 @@ export interface ParsedResume {
     issuer: string;
     issueDate: string;
     expiryDate?: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
   }[];
 }
 
