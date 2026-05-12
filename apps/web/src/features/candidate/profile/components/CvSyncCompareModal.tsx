@@ -219,15 +219,15 @@ export function CvSyncCompareModal({
     <div className="flex flex-wrap gap-4 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
       <div className="flex items-center gap-2">
         <div className="w-1 h-4 bg-slate-300 rounded-full" />
-        <span className="text-xs font-medium text-slate-500">Hiện có (Profile)</span>
+        <span className="text-xs font-medium text-slate-500">Existing (Profile)</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="w-1 h-4 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)]" />
-        <span className="text-xs font-medium text-amber-700">Trùng khớp (Cập nhật)</span>
+        <span className="text-xs font-medium text-amber-700">Matched (Update)</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="w-1 h-4 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
-        <span className="text-xs font-medium text-indigo-700">Thông tin mới / AI Hợp nhất</span>
+        <span className="text-xs font-medium text-indigo-700">New / AI Merged</span>
       </div>
     </div>
   );
@@ -435,9 +435,9 @@ export function CvSyncCompareModal({
               {/* Summary and Legend */}
               <div className="mb-10">
                 <div className="flex items-baseline gap-2 mb-4">
-                  <h2 className="text-lg font-bold text-slate-800">Tóm tắt thay đổi</h2>
+                  <h2 className="text-lg font-bold text-slate-800">Summary Changes</h2>
                   <span className="text-sm text-slate-500">
-                    Tìm thấy <span className="font-bold text-indigo-600">{counts.newCount}</span> thông tin mới và <span className="font-bold text-amber-600">{counts.matchCount}</span> thông tin trùng khớp.
+                    Found <span className="font-bold text-indigo-600">{counts.newCount}</span> new items and <span className="font-bold text-amber-600">{counts.matchCount}</span> matched items.
                   </span>
                 </div>
                 <Legend />
