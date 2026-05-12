@@ -36,10 +36,14 @@ export interface ParsedResume {
   contacts: {
     type: string;
     value: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
   }[];
   socials: {
     platform: string;
     url: string;
+    isDuplicate?: boolean;
+    matchedId?: number | null;
   }[];
   certificates: {
     name: string;

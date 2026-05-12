@@ -382,6 +382,8 @@ export class ProfileSyncService {
         experiences: true,
         education: true,
         certificates: true,
+        candidateContacts: true,
+        candidateSocials: true,
         candidateSkills: { include: { skill: true } }
       }
     });
@@ -507,6 +509,30 @@ export class ProfileSyncService {
           s.isDuplicate = false;
           s.matchedId = null;
         }
+      }
+    }
+
+    // 5. Contacts (Deterministic match)
+    if (Array.isArray(enriched.contacts)) {
+      for (const c of enriched.contacts) {
+        const existing = profile.candidateContacts.find(old => 
+          this.normalize(old.value) === this.normalize(c.value) &&
+          old.type === c.type
+        );
+        c.isDuplicate = !!existing;
+        c.matchedId = existing?.id || null;
+      }
+    }
+
+    // 6. Socials (Deterministic match)
+    if (Array.isArray(enriched.socials)) {
+      for (const s of enriched.socials) {
+        const existing = profile.candidateSocials.find(old => 
+          this.normalize(old.url) === this.normalize(s.url) &&
+          old.platform === s.platform
+        );
+        s.isDuplicate = !!existing;
+        s.matchedId = existing?.id || null;
       }
     }
 
