@@ -381,13 +381,13 @@ export function CvSyncCompareModal({
                       </div>
 
                       {status === 'EXISTING' && (
-                        <Badge variant="outline" className="absolute -right-1 -top-2 bg-white text-slate-400 text-[8px] h-4 border-slate-200 shadow-sm uppercase font-bold">Hiện có</Badge>
+                        <Badge variant="outline" className="absolute -right-1 -top-2 bg-white text-slate-400 text-[8px] h-4 border-slate-200 shadow-sm uppercase font-bold">Existing</Badge>
                       )}
                       {status === 'MATCHED' && (
-                        <Badge className="absolute -right-1 -top-2 bg-amber-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">Trùng khớp</Badge>
+                        <Badge className="absolute -right-1 -top-2 bg-amber-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">Matched</Badge>
                       )}
                       {status === 'NEW' && (
-                        <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">Mới</Badge>
+                        <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">New</Badge>
                       )}
                     </div>
                   );
@@ -493,7 +493,7 @@ export function CvSyncCompareModal({
                           </Button>
                         </div>
                       </div>
-                      <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">AI Hợp nhất</Badge>
+                      <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">AI Merged</Badge>
                     </div>
                   </div>
                 </div>
@@ -639,99 +639,55 @@ export function CvSyncCompareModal({
                 )}
               />
 
-              {/* Contacts & Socials */}
-              <div className="flex gap-6 pb-4">
-                <div className="w-1/2 space-y-6">
-                  <section className="opacity-50 pointer-events-none">
-                    {renderSectionHeader(<Phone size={16} />, "Contact Info")}
-                    <div className="flex flex-wrap gap-2">
-                      {currentData?.contacts?.map((c: any, i: number) => (
-                        <Badge key={i} variant="outline" className="text-[10px] py-1 border-slate-200 bg-white">
-                          <span className="text-slate-400 mr-1">{c.type}:</span> {c.value}
-                        </Badge>
-                      )) || <p className="text-xs text-slate-400 italic">No contacts.</p>}
-                    </div>
-                  </section>
-                  <section className="opacity-50 pointer-events-none">
-                    {renderSectionHeader(<Share2 size={16} />, "Social Links")}
-                    <div className="flex flex-wrap gap-2">
-                      {currentData?.socials?.map((s: any, i: number) => (
-                        <Badge key={i} variant="outline" className="text-[10px] py-1 border-slate-200 bg-white">
-                          <span className="text-slate-400 mr-1">{s.platform}:</span> {s.url}
-                        </Badge>
-                      )) || <p className="text-xs text-slate-400 italic">No socials.</p>}
-                    </div>
-                  </section>
-                </div>
-                <div className="w-1/2 space-y-6">
-                  <section>
-                    <div className="flex items-center justify-between mb-3 border-b border-indigo-200 pb-1">
-                      <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-700">
-                        <Phone size={16} /> Merged Contacts Preview
-                      </h3>
-                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-indigo-200 text-indigo-600 py-0" 
-                        onClick={() => handleAddDraft('contacts', { type: 'PHONE', value: '' })}>
-                        <Plus size={10} /> Add
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {/* Existing dimmed */}
-                      {currentData?.contacts?.map((c: any, i: number) => (
-                        <Badge key={`curr-c-${i}`} variant="outline" className="opacity-40 text-[10px] py-1 border-slate-200 bg-white">
-                          <span className="text-slate-400 mr-1">{c.type}:</span> {c.value}
-                          <span className="ml-1 text-[8px] uppercase font-bold text-slate-300">(Hiện có)</span>
-                        </Badge>
-                      ))}
-                      {/* Draft highlighted */}
-                      {draftData?.contacts?.map((c: any, i: number) => (
-                        <div key={`draft-c-${i}`} className="group relative">
-                          <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-indigo-200 text-[10px] py-1 pr-12">
-                            <span className="text-indigo-400 mr-1 uppercase font-bold">{c.type}:</span> {c.value}
-                            <span className="ml-1 text-[8px] uppercase font-bold text-indigo-500">(Mới)</span>
-                          </Badge>
-                          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setEditingItem({ section: 'contacts', index: i, data: c })} className="text-indigo-600 p-0.5 hover:bg-indigo-200 rounded"><Edit2 size={10} /></button>
-                            <button onClick={() => handleDeleteDraft('contacts', i)} className="text-red-600 p-0.5 hover:bg-red-200 rounded"><Trash2 size={10} /></button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                  <section>
-                    <div className="flex items-center justify-between mb-3 border-b border-indigo-200 pb-1">
-                      <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-700">
-                        <Share2 size={16} /> Merged Socials Preview
-                      </h3>
-                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-indigo-200 text-indigo-600 py-0"
-                        onClick={() => handleAddDraft('socials', { platform: 'LINKEDIN', url: '' })}>
-                        <Plus size={10} /> Add
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {/* Existing dimmed */}
-                      {currentData?.socials?.map((s: any, i: number) => (
-                        <Badge key={`curr-s-${i}`} variant="outline" className="opacity-40 text-[10px] py-1 border-slate-200 bg-white">
-                          <span className="text-slate-400 mr-1">{s.platform}:</span> {s.url}
-                          <span className="ml-1 text-[8px] uppercase font-bold text-slate-300">(Hiện có)</span>
-                        </Badge>
-                      ))}
-                      {/* Draft highlighted */}
-                      {draftData?.socials?.map((s: any, i: number) => (
-                        <div key={`draft-s-${i}`} className="group relative">
-                          <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-indigo-200 text-[10px] py-1 pr-12">
-                            <span className="text-indigo-400 mr-1 uppercase font-bold">{s.platform}:</span> {s.url}
-                            <span className="ml-1 text-[8px] uppercase font-bold text-indigo-500">(Mới)</span>
-                          </Badge>
-                          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setEditingItem({ section: 'socials', index: i, data: s })} className="text-indigo-600 p-0.5 hover:bg-indigo-200 rounded"><Edit2 size={10} /></button>
-                            <button onClick={() => handleDeleteDraft('socials', i)} className="text-red-600 p-0.5 hover:bg-red-200 rounded"><Trash2 size={10} /></button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              </div>
+              {/* Contacts */}
+              <MergedSection 
+                icon={<Phone size={16} />} 
+                title="Contact Info"
+                current={currentData?.contacts}
+                draft={draftData?.contacts}
+                onAdd={() => handleAddDraft('contacts', { type: 'PHONE', value: '' })}
+                onEdit={(i: number) => setEditingItem({ section: 'contacts', index: i, data: draftData.contacts[i] })}
+                onDelete={(i: number) => handleDeleteDraft('contacts', i)}
+                renderItem={(c: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      status === 'MATCHED' ? "text-amber-900 font-bold" : status === 'NEW' ? "text-indigo-900 font-bold" : "text-slate-700"
+                    )}>{c.type}: {c.value}</span>
+                  </div>
+                )}
+              />
+
+              {/* Socials */}
+              <MergedSection 
+                icon={<Share2 size={16} />} 
+                title="Social Links"
+                current={currentData?.socials}
+                draft={draftData?.socials}
+                onAdd={() => handleAddDraft('socials', { platform: 'LINKEDIN', url: '' })}
+                onEdit={(i: number) => setEditingItem({ section: 'socials', index: i, data: draftData.socials[i] })}
+                onDelete={(i: number) => handleDeleteDraft('socials', i)}
+                renderItem={(s: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      status === 'MATCHED' ? "text-amber-900 font-bold" : status === 'NEW' ? "text-indigo-900 font-bold" : "text-slate-700"
+                    )}>{s.platform}: {s.url}</span>
+                  </div>
+                )}
+              />
 
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
                 <Info size={18} className="text-amber-500 shrink-0 mt-0.5" />
