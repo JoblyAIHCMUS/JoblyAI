@@ -358,49 +358,63 @@ export default function EmployerCompanyProfileEditPage() {
     loadingEmployer ||
     (companyId && (loadingCompany || (loadingEmployees && !hasLoadedEmployees)))
   ) {
-    return <div className="container mx-auto px-4 py-10">Loading...</div>;
+    return (
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        Loading...
+      </div>
+    );
   }
   if (errorEmployer) {
     return (
-      <div className="container mx-auto px-4 py-10 text-red-600">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
         Failed to load employer profile.
       </div>
     );
   }
   if (companyId && errorCompany) {
     return (
-      <div className="container mx-auto px-4 py-10 text-red-600">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
         Failed to load company profile.
       </div>
     );
   }
   if (!company) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         No company profile found.
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => router.back()} aria-label="Go back">
-          <ArrowLeft className="h-7 w-7" />
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 md:mb-6">
+        <button
+          onClick={() => router.back()}
+          aria-label="Go back"
+          className="p-0.5"
+        >
+          <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7" />
         </button>
-        <h1 className="text-3xl font-bold">Edit Company Profile</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+          Edit Company Profile
+        </h1>
       </div>
-      <p className="body-body-1-regular text-slate-600 mb-10">
+      <p className="body-body-1-regular text-slate-600 mb-6 sm:mb-8 md:mb-10 text-sm sm:text-base">
         Company details can be updated at any time.
       </p>
       {updatingCompany && (
-        <div className="text-blue-600 mb-4">Updating company...</div>
+        <div className="text-blue-600 mb-4 text-xs sm:text-sm">
+          Updating company...
+        </div>
       )}
       {addingMembers && (
-        <div className="text-blue-600 mb-4">Adding team members...</div>
+        <div className="text-blue-600 mb-4 text-xs sm:text-sm">
+          Adding team members...
+        </div>
       )}
       {Boolean(updateError) && (
-        <div className="text-red-600 mb-4">
+        <div className="text-red-600 mb-4 text-xs sm:text-sm">
           Failed to update company.{' '}
           {typeof updateError === 'string' ? updateError : ''}
         </div>
@@ -414,8 +428,8 @@ export default function EmployerCompanyProfileEditPage() {
         {/* Step 1: Basic Information */}
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Company logo */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
+          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+            <div className="pt-0 md:pt-3">
               <Label htmlFor="company-logo" className="label-label-1-semibold">
                 Company logo
               </Label>
@@ -477,15 +491,15 @@ export default function EmployerCompanyProfileEditPage() {
           <Separator />
 
           {/* Company Details */}
-          <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-            <div className="pt-3">
+          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+            <div className="pt-0 md:pt-3">
               <Label className="label-label-1-semibold">Company Details</Label>
               <p className="text-xs text-slate-500 mt-1">
                 Introduce your company core info quickly to users by fill up
                 company details
               </p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Company Name */}
               <div className="space-y-2">
                 <Label
@@ -497,18 +511,20 @@ export default function EmployerCompanyProfileEditPage() {
                 <Input
                   id="company-name"
                   placeholder="e.g. Google LLC"
-                  className={`h-12 text-base ${
+                  className={`h-10 sm:h-12 text-sm sm:text-base ${
                     errors.companyName ? 'border-red-500' : ''
                   }`}
                   {...register('companyName')}
                 />
                 {errors.companyName && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs sm:text-sm text-red-500">
                     {errors.companyName.message}
                   </p>
                 )}
                 {isValidating && (
-                  <p className="text-sm text-blue-500">Validating...</p>
+                  <p className="text-xs sm:text-sm text-blue-500">
+                    Validating...
+                  </p>
                 )}
               </div>
 
@@ -520,20 +536,20 @@ export default function EmployerCompanyProfileEditPage() {
                 <Input
                   id="website"
                   placeholder="https://www.example.com"
-                  className={`h-12 text-base ${
+                  className={`h-10 sm:h-12 text-sm sm:text-base ${
                     errors.website ? 'border-red-500' : ''
                   }`}
                   {...register('website')}
                 />
                 {errors.website && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs sm:text-sm text-red-500">
                     {errors.website.message}
                   </p>
                 )}
               </div>
 
               {/* Scale & Industry */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div className="space-y-2">
                   <Label className="label-label-1-semibold">
                     Scale <span className="text-red-500">*</span>
@@ -555,7 +571,7 @@ export default function EmployerCompanyProfileEditPage() {
                     }
                   >
                     <SelectTrigger
-                      className={`h-12 text-base ${
+                      className={`h-10 sm:h-12 text-sm sm:text-base ${
                         errors.scale ? 'border-red-500' : ''
                       }`}
                     >
@@ -570,7 +586,7 @@ export default function EmployerCompanyProfileEditPage() {
                     </SelectContent>
                   </Select>
                   {errors.scale && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-xs sm:text-sm text-red-500">
                       {errors.scale.message}
                     </p>
                   )}
@@ -585,7 +601,7 @@ export default function EmployerCompanyProfileEditPage() {
                     onValueChange={(value) => setValue('industry', value)}
                   >
                     <SelectTrigger
-                      className={`h-12 text-base ${
+                      className={`h-10 sm:h-12 text-sm sm:text-base ${
                         errors.industry ? 'border-red-500' : ''
                       }`}
                     >
@@ -600,7 +616,7 @@ export default function EmployerCompanyProfileEditPage() {
                     </SelectContent>
                   </Select>
                   {errors.industry && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-xs sm:text-sm text-red-500">
                       {errors.industry.message}
                     </p>
                   )}
@@ -611,7 +627,7 @@ export default function EmployerCompanyProfileEditPage() {
         </div>
 
         {/* Step 2: About Company */}
-        <div className="space-y-8 max-w-3xl mx-auto">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-3xl mx-auto">
           <div className="space-y-3">
             <Label className="label-label-1-semibold">About Company</Label>
             <RichTextEditor
@@ -620,12 +636,12 @@ export default function EmployerCompanyProfileEditPage() {
                 setValue('companyDescription', content);
               }}
               placeholder="Describe your company, its mission, values, and what makes it unique..."
-              className={`min-h-[360px] ${
+              className={`min-h-[240px] sm:min-h-[320px] md:min-h-[360px] ${
                 errors.companyDescription ? 'border-red-500' : ''
               }`}
             />
             {errors.companyDescription && (
-              <p className="text-sm text-red-500">
+              <p className="text-xs sm:text-sm text-red-500">
                 {errors.companyDescription.message}
               </p>
             )}
@@ -633,7 +649,7 @@ export default function EmployerCompanyProfileEditPage() {
         </div>
 
         {/* Step 3: Team */}
-        <div className="space-y-8 max-w-3xl mx-auto">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-3xl mx-auto">
           <TeamManager
             members={teamMembers}
             onRoleChange={handleRoleChange}
