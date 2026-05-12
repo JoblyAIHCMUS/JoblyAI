@@ -29,41 +29,47 @@ export default function EmployerCompanyProfilePage() {
   }, [employer, fetchCompany]);
 
   if (loadingEmployer || (companyId && loadingCompany)) {
-    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+    return (
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        Loading...
+      </div>
+    );
   }
   if (errorEmployer) {
     return (
-      <div className="container mx-auto px-4 py-8 text-red-600">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
         Failed to load employer profile.
       </div>
     );
   }
   if (companyId && errorCompany) {
     return (
-      <div className="container mx-auto px-4 py-8 text-red-600">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
         Failed to load company profile.
       </div>
     );
   }
   if (!company) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         No company profile found.
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <CompanyProfileBasicInfo
-        name={company.name}
-        logoUrl={company.logoUrl || undefined}
-        websiteUrl={company.websiteUrl || ''}
-        scale={company.sizeRange || ''}
-        industry={company.industry || ''}
-      />
-      <Separator className="my-8" />
-      <CompanyProfileAbout description={company.description || ''} />
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <div className="space-y-4 sm:space-y-6 md:space-y-8">
+        <CompanyProfileBasicInfo
+          name={company.name}
+          logoUrl={company.logoUrl || undefined}
+          websiteUrl={company.websiteUrl || ''}
+          scale={company.sizeRange || ''}
+          industry={company.industry || ''}
+        />
+        <Separator className="my-0" />
+        <CompanyProfileAbout description={company.description || ''} />
+      </div>
     </div>
   );
 }

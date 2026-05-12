@@ -50,7 +50,7 @@ const DashboardBigButton = React.forwardRef<
         ref={ref}
         href={href}
         className={cn(
-          'group flex items-center justify-between shadow rounded-xl px-6 py-5 transition-colors',
+          'group flex items-center justify-between gap-2 sm:gap-4 shadow rounded-xl px-4 sm:px-5 md:px-6 py-4 sm:py-5 transition-colors',
           bgColor,
           hoverBgColor ?? `hover:${bgColor}/90`,
           textColor,
@@ -59,15 +59,15 @@ const DashboardBigButton = React.forwardRef<
           className
         )}
       >
-        <div className="flex items-center gap-3">
-          <span className="heading-h2-bold leading-none">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <span className="text-3xl sm:text-4xl md:text-5xl heading-h2-bold leading-none">
             {isLoading ? '...' : displayCount}
           </span>
-          <span className="body-body-1-medium leading-tight sm:heading-h6-medium">
+          <span className="text-xs sm:text-sm md:text-base body-body-1-medium leading-tight sm:heading-h6-medium line-clamp-2">
             {displayLabel}
           </span>
         </div>
-        <ChevronRight className="h-6 w-6 shrink-0 opacity-80 transition-opacity group-hover:opacity-100" />
+        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 opacity-80 transition-opacity group-hover:opacity-100" />
       </Link>
     );
   }

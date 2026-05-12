@@ -7,7 +7,14 @@ export default [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     // Override or add rules here
-    rules: {},
+    rules: {
+      'react/style-prop-object': [
+        'error',
+        {
+          allow: ['StatusBar'],
+        },
+      ],
+    },
   },
   {
     ignores: ['.expo', 'web-build', 'cache', 'dist', '**/out-tsc'],

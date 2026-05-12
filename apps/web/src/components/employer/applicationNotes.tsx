@@ -83,13 +83,14 @@ export default function ApplicationNotes() {
   }, [isAdding]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="heading-h6-semi-bold">Notes</span>
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+        <span className="heading-h6-semi-bold text-sm sm:text-base">Notes</span>
         {isAdding ? (
           <Button
             variant="outline"
             size="sm"
+            className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
             onClick={() => {
               setIsAdding(false);
               setNewNote('');
@@ -98,53 +99,62 @@ export default function ApplicationNotes() {
             Cancel
           </Button>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => setIsAdding(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
+            onClick={() => setIsAdding(true)}
+          >
             + Add Notes
           </Button>
         )}
       </div>
       {notes.map((note) => (
-        <Card key={note.id} className="shadow-none">
-          <CardContent className="flex gap-3 py-4">
-            <Avatar>
+        <Card key={note.id} className="shadow-none border-[#E2E8F0]">
+          <CardContent className="flex gap-2 sm:gap-3 py-3 sm:py-4 px-3 sm:px-4">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
               {note.avatar ? (
                 <AvatarImage src={note.avatar} alt={note.name} />
               ) : (
                 <AvatarFallback>{note.name[0]}</AvatarFallback>
               )}
             </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 w-full justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="label-label-2-medium">{note.name}</span>
-                  <span className="caption-caption-1-medium text-muted-foreground">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start sm:items-center gap-1 sm:gap-2 w-full justify-between flex-col sm:flex-row">
+                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                  <span className="label-label-2-medium text-xs sm:text-sm truncate">
+                    {note.name}
+                  </span>
+                  <span className="caption-caption-1-medium text-muted-foreground text-xs whitespace-nowrap">
                     {note.timestamp}
                   </span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-red-500 hover:bg-red-50"
+                  className="text-red-500 hover:bg-red-50 h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0"
                   aria-label="Delete note"
                   onClick={() => handleDeleteNote(note.id)}
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-3 h-3 sm:w-5 sm:h-5" />
                 </Button>
               </div>
-              <div className="mt-1 label-label-2-regular">{note.content}</div>
+              <div className="mt-1 label-label-2-regular text-xs sm:text-sm break-words">
+                {note.content}
+              </div>
             </div>
           </CardContent>
         </Card>
       ))}
       {isAdding && (
         <Card className="border-none shadow-none">
-          <CardContent className="flex items-center gap-3 py-4">
-            <Avatar>
+          <CardContent className="flex items-center gap-2 sm:gap-3 py-3 sm:py-4 px-3 sm:px-4">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
               <AvatarImage src={employer.avatar} alt={employer.name} />
               <AvatarFallback>{employer.name[0]}</AvatarFallback>
             </Avatar>
             <Input
-              className="flex-1"
+              className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
               placeholder="Write a note..."
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
@@ -157,7 +167,12 @@ export default function ApplicationNotes() {
               }}
               ref={inputRef}
             />
-            <Button variant="default" size="sm" onClick={handleAddNote}>
+            <Button
+              variant="default"
+              size="sm"
+              className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+              onClick={handleAddNote}
+            >
               Done
             </Button>
           </CardContent>

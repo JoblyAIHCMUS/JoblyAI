@@ -154,3 +154,6 @@ npm-debug.*
 *.orig.*
 web-build/
 cache/
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json

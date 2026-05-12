@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@testing-library/react-native": "*",
+    "axios": "1.15.2",
     "expo": "*",
     "expo-splash-screen": "*",
     "expo-status-bar": "*",
@@ -17,13 +18,19 @@
     "metro-config": "*",
     "metro-resolver": "*",
     "nativewind": "^4.2.3",
-    "react-native": "*",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "react-native-reanimated": "^4.1.7",
     "react-native-safe-area-context": "^5.6.2",
-    "react-native-svg": "*",
+    "react-native-svg": "15.12.1",
     "react-native-svg-transformer": "*",
     "react-native-web": "*",
-    "tailwindcss": "^4.2.4",
-    "react": "19.1.0"
+    "react-native-worklets-core": "^1.6.3",
+    "tailwindcss": "^3.4.17"
+  },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "../../node_modules"
+    }
   }
 }

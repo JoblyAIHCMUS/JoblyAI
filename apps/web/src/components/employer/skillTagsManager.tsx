@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -138,11 +136,11 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
   })).filter((group) => group.items.length > 0);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {isAdding ? (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative w-[200px]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-wrap">
+            <div className="relative min-w-0 sm:min-w-[200px]">
               <Input
                 ref={skillInputRef}
                 type="text"
@@ -151,19 +149,19 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                 value={newSkillName}
                 onChange={(e) => handleSkillInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="h-10 w-full"
+                className="h-9 sm:h-10 w-full text-xs sm:text-sm"
                 autoFocus
                 autoComplete="off"
               />
               {newSkillName.trim() &&
                 filteredResults.length > 0 &&
                 showDropdown && (
-                  <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                  <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-10 max-h-40 sm:max-h-48 overflow-y-auto">
                     {filteredResults.map((skill, index) => (
                       <div
                         key={skill.id}
                         onClick={() => handleSelectFromDropdown(skill.name)}
-                        className={`px-3 py-2 cursor-pointer transition-colors ${
+                        className={`px-2 sm:px-3 py-1.5 sm:py-2 cursor-pointer transition-colors text-xs sm:text-sm ${
                           index === selectedDropdownIndex
                             ? 'bg-slate-200 text-slate-900 body-body-1-medium'
                             : 'hover:bg-slate-100'
@@ -180,7 +178,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
               onValueChange={(v) => setNewImportance(v as SkillImportance)}
             >
               <SelectTrigger
-                className="h-10 w-[130px]"
+                className="h-9 sm:h-10 w-full sm:w-[120px] md:w-[130px] text-xs sm:text-sm"
                 aria-label="Skill importance"
               >
                 <SelectValue />
@@ -200,22 +198,20 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
               value={newMinYears}
               onChange={(e) => setNewMinYears(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-10 w-[100px]"
+              className="h-9 sm:h-10 w-full sm:w-[90px] md:w-[100px] text-xs sm:text-sm"
               min="0"
             />
-            <Button
+            <button
               type="button"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              size="sm"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm font-medium flex-shrink-0 disabled:opacity-50"
               onClick={handleAdd}
               disabled={!newSkillName.trim()}
             >
               Add
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              size="sm"
-              variant="ghost"
+              className="px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm font-medium flex-shrink-0 rounded border border-slate-200 hover:bg-slate-50"
               onClick={() => {
                 setIsAdding(false);
                 setNewSkillName('');
@@ -225,49 +221,48 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
               }}
             >
               Cancel
-            </Button>
+            </button>
           </div>
         </div>
       ) : (
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
+          className="text-primary border border-primary hover:bg-primary/5 rounded px-3 h-9 text-xs sm:text-sm font-medium"
           onClick={() => setIsAdding(true)}
-          className="text-primary border-primary hover:bg-primary/5"
         >
           + Add Skills
-        </Button>
+        </button>
       )}
 
       {groupedSkills.map((group) => (
-        <div key={group.level} className="space-y-1.5">
-          <p className="caption-caption-1-medium text-slate-500">
+        <div key={group.level} className="space-y-1.5 sm:space-y-2">
+          <p className="caption-caption-1-medium text-slate-500 text-xs sm:text-sm">
             {group.label}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {group.items.map((skill) => (
-              <Badge
+              <div
                 key={skill.name}
-                variant="secondary"
-                className="pl-3 pr-1 py-1.5 text-sm bg-zinc-500/20 text-primary border-0 hover:bg-zinc-600/25"
+                className="inline-flex items-center gap-1.5 pl-2 sm:pl-3 pr-1 py-1 sm:py-1.5 text-xs sm:text-sm bg-zinc-500/20 text-primary rounded border-0 hover:bg-zinc-600/25"
               >
-                {skill.name}
-                {skill.minYearsExperience != null && (
-                  <span className="ml-1 opacity-70">
-                    ({skill.minYearsExperience}y+)
-                  </span>
-                )}
+                <span>
+                  {skill.name}
+                  {skill.minYearsExperience != null && (
+                    <span className="ml-1 opacity-70">
+                      ({skill.minYearsExperience}y+)
+                    </span>
+                  )}
+                </span>
                 <button
                   type="button"
                   onClick={() => handleRemove(skill.name)}
-                  className="ml-2 hover:bg-primary/20 rounded p-0.5"
+                  className="ml-0.5 hover:bg-primary/20 rounded p-0.5"
                   aria-label={`Remove ${skill.name}`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -279,7 +274,7 @@ export function SkillTagsManager({ skills, onChange }: SkillTagsManagerProps) {
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
-              </Badge>
+              </div>
             ))}
           </div>
         </div>

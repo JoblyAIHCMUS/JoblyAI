@@ -180,9 +180,11 @@ export default function EmployerNewJobPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="heading-h4-semi-bold mb-6">Post a New Job</h1>
-      <p className="body-body-1-regular text-slate-600 mb-10">
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <h1 className="heading-h4-semi-bold mb-2 sm:mb-3 md:mb-6 text-2xl sm:text-3xl md:text-4xl">
+        Post a New Job
+      </h1>
+      <p className="body-body-1-regular text-slate-600 mb-6 sm:mb-8 md:mb-10 text-sm sm:text-base">
         Fill in the details to create a new job posting.
       </p>
 

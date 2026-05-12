@@ -1,0 +1,30 @@
+export const COLORS = {
+  primary: '#4640DE',
+  secondary: '#26A4FF',
+  text: '#202430',
+  textLight: '#7C8493',
+  textMuted: '#475569',
+  background: '#EEF2FF',
+  white: '#FFFFFF',
+  border: '#D6DDEB',
+  badgeGreen: '#EBF9F1',
+  badgeGreenText: '#56CDAD',
+  badgeOrange: '#FFB836',
+  badgeBlue: '#26A4FF',
+  brandDark: '#0F172A',
+  tagOrangeBg: '#FFF0D8',
+  tagOrangeText: '#FFB836',
+  tagGreenBg: '#EBF9F1',
+  tagGreenText: '#56CDAD',
+  footerBg: '#0F172A',
+  footerText: '#64748B',
+  error: '#EF4444',
+};
+
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};

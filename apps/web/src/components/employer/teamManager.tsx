@@ -26,27 +26,30 @@ export function TeamManager({
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-      <div className="pt-3">
-        <Label className="label-label-1-semibold">Team Members</Label>
+    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+      <div className="pt-0 md:pt-3">
+        <Label className="label-label-1-semibold text-sm sm:text-base">
+          Team Members
+        </Label>
         <p className="text-xs text-slate-500 mt-1">
           Manage team members of your company
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-start">
           <Button
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 sm:gap-2 px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm"
             type="button"
             onClick={() => setSearchOpen(true)}
           >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Add Members
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Add Members</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {members.map((member) => (
             <TeamMemberCard
               key={member.email}

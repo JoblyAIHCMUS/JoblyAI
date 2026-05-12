@@ -7,6 +7,7 @@ import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
   PaginatedJobsResponse,
+  PopularJobCategory,
 } from './jobs.interface';
 import { GetJobsQueryDTO } from './dto/getJobsQueryDTO';
 import { InjectPrisma } from '../decorators/inject.decorator';
@@ -445,6 +446,32 @@ export class JobsService {
       orderBy: { name: 'asc' },
     });
     return categories;
+  }
+
+  async getPopularCategories(limit: number): Promise<PopularJobCategory[]> {
+    const categories = await this.prisma.jobCategory.findMany({
+      include: {
+        _count: {
+          select: {
+            jobs: {
+              where: {
+                status: 'OPEN',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return categories
+      .map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        jobCount: cat._count.jobs,
+      }))
+      .sort((a, b) => b.jobCount - a.jobCount)
+      .slice(0, limit);
   }
 
   /**
