@@ -96,28 +96,32 @@ function SummaryCard({
 
   return (
     <Card className="flex-1 shadow-none">
-      <CardContent className="flex flex-col gap-1 p-4">
-        <div className="flex items-center justify-between">
-          <span className="label-label-2-medium text-muted-foreground">
+      <CardContent className="flex flex-col gap-1 p-3 sm:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
             {title}
           </span>
-          <div className={cn('rounded-full p-1.5', iconBg)}>
-            <Icon className="h-4 w-4 text-white" />
+          <div
+            className={cn('rounded-full p-1 sm:p-1.5 flex-shrink-0', iconBg)}
+          >
+            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
           </div>
         </div>
-        <span className="heading-h2-bold">{total.toLocaleString()}</span>
-        <div className="flex items-center gap-1 text-xs">
-          <span className="text-muted-foreground">{periodLabel}</span>
+        <span className="text-2xl sm:text-3xl heading-h2-bold">
+          {total.toLocaleString()}
+        </span>
+        <div className="flex items-center gap-0.5 sm:gap-1 text-xs">
+          <span className="text-muted-foreground truncate">{periodLabel}</span>
           <span
             className={cn(
-              'inline-flex items-center gap-0.5 font-medium',
+              'inline-flex items-center gap-0.5 font-medium flex-shrink-0',
               isPositive ? 'text-emerald-500' : 'text-red-500'
             )}
           >
             {isPositive ? (
-              <TrendingUp className="h-3 w-3" />
+              <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             ) : (
-              <TrendingDown className="h-3 w-3" />
+              <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             )}
             {Math.abs(diff).toFixed(1)}%
           </span>
@@ -176,73 +180,80 @@ export function DashboardStatsPanel({
 
   return (
     <Card className={cn('w-full', className, error && 'border-red-300')}>
-      <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <CardTitle className="heading-h6-semi-bold">Job statistics</CardTitle>
+      <CardHeader className="flex flex-col gap-3 sm:gap-4 space-y-0 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <CardTitle className="text-base sm:text-lg md:text-xl heading-h6-semi-bold">
+            Job statistics
+          </CardTitle>
           {error ? (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-xs sm:text-sm text-red-600 mt-1">{error}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Showing job statistics for {currentDataSet.periodLabel}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           {/* Refresh button */}
           {onRefresh && (
             <button
               onClick={handleRefresh}
               disabled={isRefreshing || isLoading}
               className={cn(
-                'inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-sm font-medium transition-colors',
+                'inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg border px-2.5 sm:px-3 py-1.5 sm:py-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap',
                 isRefreshing || isLoading
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-gray-50'
               )}
             >
               <RefreshCw
-                className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
+                className={cn(
+                  'h-3.5 w-3.5 sm:h-4 sm:w-4',
+                  isRefreshing && 'animate-spin'
+                )}
               />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           )}
 
           {/* Time mode selector */}
-          <div className="inline-flex rounded-lg border p-1">
+          <div className="inline-flex rounded-lg border p-0.5 sm:p-1">
             {(['week', 'month', 'year'] as TimeMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setTimeMode(mode)}
                 disabled={isLoading}
                 className={cn(
-                  'rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors',
+                  'rounded-md px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-medium capitalize transition-colors',
                   timeMode === mode
                     ? 'bg-indigo-600 text-white'
                     : 'text-muted-foreground hover:text-foreground',
                   isLoading && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {mode}
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
               </button>
             ))}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
         {isLoading ? (
-          <div className="flex items-center justify-center h-[280px] text-muted-foreground">
+          <div className="flex items-center justify-center h-[240px] sm:h-[280px] text-muted-foreground text-xs sm:text-base">
             Loading statistics...
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-[280px] rounded-lg border border-red-200 bg-red-50">
-            <div className="text-center">
-              <p className="text-red-800 font-medium">{error}</p>
+          <div className="flex items-center justify-center h-[240px] sm:h-[280px] rounded-lg border border-red-200 bg-red-50">
+            <div className="text-center px-4">
+              <p className="text-red-800 font-medium text-xs sm:text-base">
+                {error}
+              </p>
               {onRefresh && (
                 <button
                   onClick={handleRefresh}
-                  className="mt-2 inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-700 underline"
+                  className="mt-2 inline-flex items-center gap-2 text-xs sm:text-sm text-red-600 hover:text-red-700 underline"
                 >
                   Try again
                 </button>
@@ -256,24 +267,26 @@ export function DashboardStatsPanel({
               value={dataTab}
               onValueChange={(v) => setDataTab(v as DataTab)}
             >
-              <TabsList className="bg-transparent p-0 h-auto gap-4 border-b rounded-none w-full justify-start">
+              <TabsList className="bg-transparent p-0 h-auto gap-2 sm:gap-4 border-b rounded-none w-full justify-start overflow-x-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                  className="rounded-none border-b-2 border-transparent px-0 sm:px-2 pb-2 shadow-none text-xs sm:text-sm whitespace-nowrap data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="jobViews"
-                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                  className="rounded-none border-b-2 border-transparent px-0 sm:px-2 pb-2 shadow-none text-xs sm:text-sm whitespace-nowrap data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
                 >
-                  Job Views
+                  <span className="hidden sm:inline">Job Views</span>
+                  <span className="sm:hidden">Views</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="jobApplications"
-                  className="rounded-none border-b-2 border-transparent px-0 pb-2 shadow-none data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
+                  className="rounded-none border-b-2 border-transparent px-0 sm:px-2 pb-2 shadow-none text-xs sm:text-sm whitespace-nowrap data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
                 >
-                  Job Applications
+                  <span className="hidden sm:inline">Job Applications</span>
+                  <span className="sm:hidden">Apps</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -281,11 +294,11 @@ export function DashboardStatsPanel({
               {(['overview', 'jobViews', 'jobApplications'] as DataTab[]).map(
                 (tab) => (
                   <TabsContent key={tab} value={tab}>
-                    <div className="flex flex-col gap-4 lg:flex-row">
+                    <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row">
                       {/* Chart */}
                       <ChartContainer
                         config={chartConfig}
-                        className="aspect-auto h-[280px] flex-1 min-w-0"
+                        className="aspect-auto h-[200px] sm:h-[240px] lg:h-[280px] flex-1 min-w-0 overflow-x-auto"
                       >
                         <BarChart data={currentDataSet.data}>
                           <CartesianGrid vertical={false} />
@@ -328,7 +341,7 @@ export function DashboardStatsPanel({
                       </ChartContainer>
 
                       {/* Summary cards */}
-                      <div className="flex flex-row gap-4 lg:w-[220px] lg:flex-col">
+                      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row lg:w-full lg:flex-col lg:max-w-[220px]">
                         <SummaryCard
                           title="Job Views"
                           total={currentDataSet.summary.totalJobViews}

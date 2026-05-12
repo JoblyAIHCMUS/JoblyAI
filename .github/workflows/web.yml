@@ -9,6 +9,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'libs/**'
+      - '.github/workflows/web.yml'
   pull_request:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'libs/**'
+      - '.github/workflows/web.yml'
 
 permissions:
   actions: read
@@ -60,7 +62,7 @@ jobs:
       # 5. Verify web target runs before deploy steps
       - run: pnpm nx run @jobly/web:build
       # 5. Run Checks (Only on affected projects)
-      - run: pnpm nx affected -t lint test build
+      - run: pnpm nx run-many -t lint test build -p @jobly/web
 
     # JOB 2: Smoke Test (Build + Serve + HTTP Check)
   smoke-web:

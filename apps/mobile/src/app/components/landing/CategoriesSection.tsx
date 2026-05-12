@@ -1,75 +1,82 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
-  Paintbrush,
-  BarChart3,
-  Megaphone,
-  Wallet,
-  Monitor,
-  Code,
-  Briefcase,
-  Users,
-  ArrowRight,
-} from 'lucide-react-native';
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+import { COLORS, SPACING } from '../../constants/theme';
+import { CategoryCard } from '../shared/CategoryCard';
+import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
+import { usePopularCategories } from '../../../hooks/usePopularCategories';
 
-const categories = [
-  { name: 'Design', jobs: 235, icon: Paintbrush },
-  { name: 'Sales', jobs: 756, icon: BarChart3 },
-  { name: 'Marketing', jobs: 140, icon: Megaphone, active: true },
-  { name: 'Finance', jobs: 325, icon: Wallet },
-  { name: 'Technology', jobs: 436, icon: Monitor },
-  { name: 'Engineering', jobs: 542, icon: Code },
-  { name: 'Business', jobs: 211, icon: Briefcase },
-  { name: 'Human Resource', jobs: 346, icon: Users },
-];
+// Helper to map category names to local icons
+const getCategoryIcon = (name: string): string => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes('design')) return 'Paintbrush';
+  if (normalized.includes('sale') || normalized.includes('chart'))
+    return 'BarChart3';
+  if (normalized.includes('marketing')) return 'Megaphone';
+  if (normalized.includes('finance') || normalized.includes('money'))
+    return 'Wallet';
+  if (normalized.includes('tech') || normalized.includes('it'))
+    return 'Monitor';
+  if (
+    normalized.includes('engineer') ||
+    normalized.includes('code') ||
+    normalized.includes('develop')
+  )
+    return 'Code';
+  if (
+    normalized.includes('human') ||
+    normalized.includes('hr') ||
+    normalized.includes('people')
+  )
+    return 'Users';
+  return 'Briefcase'; // Fallback
+};
 
-const CategoriesSection = () => {
+export const CategoriesSection = () => {
+  const { categories, loading, error } = usePopularCategories(8);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.heading}>
+        <Text style={styles.title}>
           Explore by <Text style={styles.highlight}>category</Text>
         </Text>
       </View>
 
-      <View style={styles.list}>
-        {categories.map((cat, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.card, cat.active && styles.activeCard]}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                cat.active && styles.activeIconContainer,
-              ]}
-            >
-              <cat.icon size={24} color={cat.active ? '#FFFFFF' : '#4F46E5'} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, cat.active && styles.activeText]}>
-                {cat.name}
-              </Text>
-              <View style={styles.jobCountContainer}>
-                <Text
-                  style={[styles.jobCount, cat.active && styles.activeSubtext]}
-                >
-                  {cat.jobs} jobs available
-                </Text>
-                <ArrowRight
-                  size={20}
-                  color={cat.active ? '#FFFFFF' : '#4F46E5'}
-                  style={styles.arrow}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={{ marginTop: SPACING.xl }}
+        />
+      ) : error ? (
+        <Text style={{ color: COLORS.error, marginTop: SPACING.md }}>
+          Failed to load categories.
+        </Text>
+      ) : (
+        <View style={styles.grid}>
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.id.toString()}
+              category={{
+                name: category.name,
+                jobs: category.jobCount,
+                icon: getCategoryIcon(category.name),
+                active: false,
+              }}
+            />
+          ))}
+        </View>
+      )}
 
-      <TouchableOpacity style={styles.showAllButton}>
+      <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
         <Text style={styles.showAllText}>Show all jobs</Text>
-        <ArrowRight size={20} color="#4F46E5" style={styles.showAllArrow} />
+        <ArrowRightIconPrimary />
       </TouchableOpacity>
     </View>
   );
@@ -77,89 +84,35 @@ const CategoriesSection = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.background,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
-  heading: {
+  title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0F172A',
+    fontWeight: '800',
+    color: COLORS.text,
   },
   highlight: {
-    color: '#4F46E5',
+    color: COLORS.primary,
   },
-  list: {
-    gap: 16,
-  },
-  card: {
+  showAll: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
-  },
-  activeCard: {
-    backgroundColor: '#4F46E5',
-    borderColor: '#4F46E5',
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  activeIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0F172A',
-    marginBottom: 4,
-  },
-  jobCountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  jobCount: {
-    fontSize: 16,
-    color: '#64748B',
-  },
-  activeText: {
-    color: '#FFFFFF',
-  },
-  activeSubtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  arrow: {
-    marginLeft: 8,
-  },
-  showAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 24,
+    justifyContent: 'flex-start',
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
   },
   showAllText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4F46E5',
-    marginRight: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
-  showAllArrow: {
-    marginTop: 2,
+  grid: {
+    marginTop: SPACING.md,
   },
 });
 

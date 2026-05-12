@@ -1,30 +1,39 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import VodafoneLogo from '../../../assets/landing/vodafone-logo.svg';
-import IntelLogo from '../../../assets/landing/intel-logo.svg';
-import TeslaLogo from '../../../assets/landing/tesla-logo.svg';
-import AMDLogo from '../../../assets/landing/amd-logo.svg';
-import TalkItLogo from '../../../assets/landing/talkit-logo.svg';
+import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { COLORS, SPACING } from '../../constants/theme';
+import { useTopCompanies } from '../../../hooks';
 
-const CompaniesSection = () => {
+const { width } = Dimensions.get('window');
+
+export const CompaniesSection = () => {
+  const { companies, loading, error } = useTopCompanies(6);
+
+  if (loading || error || companies.length === 0) {
+    return null; // or a loading skeleton
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Companies we helped grow</Text>
-      <View style={styles.logoGrid}>
-        <View style={styles.logoItem}>
-          <VodafoneLogo width={120} height={30} />
-        </View>
-        <View style={styles.logoItem}>
-          <IntelLogo width={70} height={25} />
-        </View>
-        <View style={styles.logoItem}>
-          <TalkItLogo width={90} height={25} />
-        </View>
-        <View style={styles.logoItem}>
-          <AMDLogo width={100} height={25} />
-        </View>
-        <View style={styles.logoItem}>
-          <TeslaLogo width={140} height={20} />
+      <View style={styles.grid}>
+        <View style={styles.row}>
+          {companies.map((company) => (
+            <View key={company.id} style={styles.logoItem}>
+              {company.logoUrl ? (
+                <Image
+                  source={{ uri: company.logoUrl }}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <View style={styles.fallbackLogo}>
+                  <Text style={styles.fallbackText}>
+                    {company.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
         </View>
       </View>
     </View>
@@ -33,29 +42,49 @@ const CompaniesSection = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.white,
   },
   heading: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginBottom: 24,
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.brandDark,
+    marginBottom: SPACING.lg,
   },
-  logoGrid: {
+  grid: {
+    rowGap: SPACING.lg,
+  },
+  row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: SPACING.md,
   },
   logoItem: {
-    width: '48%',
+    width: (width - SPACING.lg * 2 - SPACING.md * 2) / 3,
     height: 60,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    opacity: 0.6,
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  fallbackLogo: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fallbackText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.brandDark,
   },
 });
 

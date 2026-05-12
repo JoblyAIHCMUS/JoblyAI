@@ -1,232 +1,257 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  Animated,
-  Dimensions,
-  TouchableWithoutFeedback,
+  PanResponder,
+  useWindowDimensions,
 } from 'react-native';
-import { X, ArrowRight } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  Easing,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import Logo from '../../../assets/images/jobly-logo.svg';
+import { COLORS, SPACING } from '../../constants/theme';
+import { AppButton } from '../shared/AppButton';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SIDEBAR_WIDTH = SCREEN_WIDTH; // Sidebar takes up 100% of the screen
-
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const insets = useSafeAreaInsets();
-
-  // Animation values
-  const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  // Track visibility to unmount component when closed, preventing blocked touches
+  const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
+  const translateX = useSharedValue(-width);
+
+  // Keep width ref updated for the PanResponder closure
+  const widthRef = useRef(width);
+  useEffect(() => {
+    widthRef.current = width;
+  }, [width]);
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0.5, // Max backdrop opacity
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: -SIDEBAR_WIDTH,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setIsVisible(false); // Hide completely after animation finishes
+      translateX.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.quad),
       });
+    } else {
+      translateX.value = withTiming(
+        -width,
+        {
+          duration: 250,
+          easing: Easing.in(Easing.quad),
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(setIsVisible)(false);
+          }
+        }
+      );
     }
-  }, [isOpen, slideAnim, fadeAnim]);
+  }, [isOpen, width, translateX]);
 
-  const NavItem = ({ label }: { label: string }) => (
-    <TouchableOpacity style={styles.navItem} onPress={onClose}>
-      <Text style={styles.navLabel}>{label}</Text>
-      <ArrowRight size={20} color="#4F46E5" />
-    </TouchableOpacity>
-  );
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
-  // Do not render anything if the sidebar is completely closed
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only trigger if swiping left and sidebar is active
+        return Math.abs(gestureState.dx) > 10 && gestureState.dx < 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Follow the finger but don't allow sliding right past 0
+        if (gestureState.dx < 0) {
+          translateX.value = gestureState.dx;
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const currentWidth = widthRef.current;
+
+        // If swiped more than 1/3 way or high velocity swipe
+        if (gestureState.dx < -currentWidth / 3 || gestureState.vx < -0.5) {
+          translateX.value = withTiming(
+            -currentWidth,
+            {
+              duration: 200,
+              easing: Easing.out(Easing.quad),
+            },
+            (finished) => {
+              if (finished) {
+                runOnJS(onClose)();
+              }
+            }
+          );
+        } else {
+          // Snap back to fully open without bouncing
+          translateX.value = withTiming(0, {
+            duration: 200,
+            easing: Easing.out(Easing.quad),
+          });
+        }
+      },
+    })
+  ).current;
+
   if (!isVisible) return null;
 
   return (
-    <View style={styles.overlayContainer}>
-      {/* Darkened Backdrop */}
-      <TouchableWithoutFeedback onPress={onClose}>
-        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
-      </TouchableWithoutFeedback>
-
-      {/* Sliding Sidebar */}
-      <Animated.View
-        style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={[styles.header, { paddingTop: insets.top }]}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={24} color="#0F172A" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.content}>
-            <View style={styles.navSection}>
-              <NavItem label="Browse Jobs" />
-              <NavItem label="Browse Companies" />
+    <Animated.View
+      style={[styles.container, animatedStyle]}
+      {...panResponder.panHandlers}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M18 6L6 18M6 6L18 18"
+                stroke={COLORS.text}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+          <View style={styles.brandContainer}>
+            <View style={styles.logoContainer}>
+              <Logo width={34} height={34} />
             </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.actionSection}>
-              <TouchableOpacity style={styles.signUpButton} onPress={onClose}>
-                <Text style={styles.signUpText}>Sign Up</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.loginButton} onPress={onClose}>
-                <Text style={styles.loginText}>Login</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.brandText}>JoblyAI</Text>
           </View>
-        </SafeAreaView>
-      </Animated.View>
-    </View>
+        </View>
+
+        <View style={styles.content}>
+          <TouchableOpacity style={styles.navItem}>
+            <Text style={styles.navText}>Browse Jobs</Text>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M9 18L15 12L9 6"
+                stroke={COLORS.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.navItem}>
+            <Text style={styles.navText}>Browse Companies</Text>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M9 18L15 12L9 6"
+                stroke={COLORS.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <View style={styles.footer}>
+            <AppButton title="Sign Up" onPress={() => undefined} />
+            <View style={{ height: SPACING.md }} />
+            <AppButton
+              title="Login"
+              variant="outline"
+              onPress={() => undefined}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 999, // Ensure it sits on top of everything
-    elevation: 999, // For Android
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
-  },
-  sidebar: {
+  container: {
     position: 'absolute',
     top: 0,
-    bottom: 0,
     left: 0,
-    width: SIDEBAR_WIDTH,
-    backgroundColor: '#FFFFFF',
+    width: '100%',
+    height: '100%',
+    backgroundColor: COLORS.white,
+    zIndex: 1000,
+    // Add shadow for better visual separation during slide
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
     elevation: 5,
   },
   safeArea: {
     flex: 1,
   },
   header: {
-    height: 100,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   closeButton: {
-    padding: 4,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E6E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
   },
-  logoContainer: {
+  brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
-  logoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#4F46E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
+  logoContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
-  innerCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#FFFFFF',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0F172A',
-  },
-  placeholder: {
-    width: 32,
+  brandText: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#121419',
+    letterSpacing: -0.5,
   },
   content: {
+    padding: SPACING.lg,
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  navSection: {
-    gap: 24,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: SPACING.lg,
   },
-  navLabel: {
+  navText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#4F46E5',
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 32,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginVertical: SPACING.lg,
   },
-  actionSection: {
-    gap: 16,
-  },
-  signUpButton: {
-    backgroundColor: '#4F46E5',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  signUpText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  loginButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  loginText: {
-    color: '#4F46E5',
-    fontSize: 16,
-    fontWeight: 'bold',
+  footer: {
+    marginTop: 'auto',
+    paddingBottom: SPACING.xl,
   },
 });
 

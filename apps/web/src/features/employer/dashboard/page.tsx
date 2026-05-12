@@ -136,14 +136,14 @@ export default function EmployerDashboardPage() {
   }, [user?.id, fetchCounts, fetchAnalyticsData]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="heading-h4-semi-bold mb-6">
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <h1 className="text-xl sm:text-2xl md:text-3xl heading-h4-semi-bold mb-4 sm:mb-6">
         {greeting}
         {firstName ? `, ${firstName}` : ', user'}
       </h1>
 
       {/* Top cards with counts */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <DashboardBigButton
           count={candidateCount}
           label="New candidates to review"
@@ -171,13 +171,13 @@ export default function EmployerDashboardPage() {
           weekData={statsData}
           monthData={statsData}
           yearData={statsData}
-          className="mt-6"
+          className="mt-4 sm:mt-6 md:mt-8"
           isLoading={loadingStats}
           onRefresh={fetchAnalyticsData}
           error={errorStats || undefined}
         />
       ) : loadingStats ? (
-        <div className="mt-6 p-8 bg-gray-50 rounded-lg text-center text-gray-500">
+        <div className="mt-4 sm:mt-6 md:mt-8 p-6 sm:p-8 bg-gray-50 rounded-lg text-center text-gray-500 text-sm sm:text-base">
           Loading statistics...
         </div>
       ) : null}

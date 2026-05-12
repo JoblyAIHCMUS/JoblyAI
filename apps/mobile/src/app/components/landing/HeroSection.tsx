@@ -1,170 +1,133 @@
 import React from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { COLORS, SPACING } from '../../constants/theme';
+import { IconInput } from '../shared/IconInput';
+import { AppButton } from '../shared/AppButton';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
-import { Search, MapPin, ChevronDown } from 'lucide-react-native';
-import PatternSVG from '../../../assets/landing/Pattern.svg';
-import GroupSVG from '../../../assets/landing/Group.svg';
+  SearchIcon,
+  PinIcon,
+  ChevronIcon,
+  SquigglyLines,
+} from '../shared/svgs/Icons';
 
-const { width } = Dimensions.get('window');
+const handleNoop = (): void => {
+  // No-op for handlers to satisfy ESLint
+};
 
-const HeroSection = () => {
+const HeroSection: React.FC = () => {
   return (
-    <View style={styles.container}>
-      {/* Background Pattern */}
-      <View style={styles.patternContainer}>
-        <PatternSVG width={width} height={width * 0.7} style={styles.pattern} />
-      </View>
-
+    <View style={styles.heroContainer}>
       <View style={styles.content}>
-        <Text style={styles.title}>
-          Discover more than <Text style={styles.highlight}>5000+ Jobs</Text>
-        </Text>
-
-        <View style={styles.groupContainer}>
-          <GroupSVG width={width * 0.8} height={20} />
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>
+            Discover more than{' '}
+            <Text style={styles.highlightText}>5000+ Jobs</Text>
+          </Text>
+          <View style={styles.squigglyContainer}>
+            <SquigglyLines />
+          </View>
         </View>
 
-        <Text style={styles.subtitle}>
+        <Text style={styles.subheading}>
           Great platform for the job seeker that searching for new career
           heights and passionate about startups.
         </Text>
 
-        {/* Search Card */}
         <View style={styles.searchCard}>
-          <View style={styles.inputWrapper}>
-            <Search size={24} color="#0F172A" />
-            <TextInput
-              style={styles.input}
-              placeholder="Job title or keyword"
-              placeholderTextColor="#94A3B8"
+          <IconInput
+            icon={<SearchIcon />}
+            placeholder="Job title or keyword"
+            value=""
+            onChangeText={handleNoop}
+          />
+          <View style={styles.locationInputContainer}>
+            <IconInput
+              icon={<PinIcon />}
+              placeholder="Florence, Italy"
+              value=""
+              onChangeText={handleNoop}
             />
-          </View>
-
-          <View style={[styles.inputWrapper, styles.borderTop]}>
-            <MapPin size={24} color="#0F172A" />
-            <View style={styles.locationContainer}>
-              <Text style={styles.locationText}>Florence, Italy</Text>
-              <ChevronDown size={20} color="#0F172A" />
+            <View style={styles.chevronContainer}>
+              <ChevronIcon />
             </View>
           </View>
-
-          <TouchableOpacity style={styles.searchButton}>
-            <Text style={styles.searchButtonText}>Search my job</Text>
-          </TouchableOpacity>
+          <AppButton title="Search my job" onPress={handleNoop} />
         </View>
 
-        <Text style={styles.popularText}>
-          <Text style={styles.popularLabel}>Popular : </Text>
-          UI Designer, UX Researcher, Android, Admin
-        </Text>
+        <View style={styles.popularTagsContainer}>
+          <Text style={styles.popularText}>
+            Popular :{' '}
+            <Text style={styles.tagsText}>
+              UI Designer, UX Researcher, Android, Admin
+            </Text>
+          </Text>
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#F8FAFC', // Slate-50 equivalent
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  patternContainer: {
-    position: 'absolute',
-    bottom: -50,
-    right: -50,
-    opacity: 0.5,
-  },
-  pattern: {
-    transform: [{ rotate: '0deg' }],
+  heroContainer: {
+    backgroundColor: COLORS.background,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
   },
   content: {
-    zIndex: 1,
+    marginTop: SPACING.md,
+  },
+  titleContainer: {
+    marginBottom: SPACING.md,
+    position: 'relative',
   },
   title: {
     fontSize: 40,
-    fontWeight: 'bold',
-    color: '#0F172A',
+    fontWeight: '800',
+    color: COLORS.text,
     lineHeight: 48,
-    marginBottom: 10,
   },
-  highlight: {
-    color: '#4F46E5', // Indigo-600
+  highlightText: {
+    color: COLORS.primary,
   },
-  groupContainer: {
-    marginBottom: 24,
+  squigglyContainer: {
+    marginTop: SPACING.xs,
   },
-  subtitle: {
-    fontSize: 18,
-    color: '#475569',
-    lineHeight: 28,
-    marginBottom: 32,
-    opacity: 0.8,
+  subheading: {
+    fontSize: 20,
+    fontWeight: 500,
+    color: COLORS.textMuted,
+    lineHeight: 24,
+    marginBottom: SPACING.xl,
   },
   searchCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
+    padding: SPACING.lg,
     borderRadius: 12,
-    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
+  locationInputContainer: {
+    position: 'relative',
   },
-  borderTop: {
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+  chevronContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 12,
   },
-  input: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#0F172A',
-  },
-  locationContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginLeft: 12,
-  },
-  locationText: {
-    fontSize: 16,
-    color: '#0F172A',
-  },
-  searchButton: {
-    backgroundColor: '#4F46E5',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  popularTagsContainer: {
+    marginTop: SPACING.sm,
   },
   popularText: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-  },
-  popularLabel: {
+    fontSize: 15,
+    color: COLORS.textMuted,
     fontWeight: '600',
+  },
+  tagsText: {
+    fontWeight: '400',
   },
 });
 

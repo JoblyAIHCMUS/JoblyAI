@@ -1,211 +1,116 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ArrowRight } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
+import { COLORS, SPACING } from '../../constants/theme';
+import { LatestJobCard } from '../shared/LatestJobCard';
+import { useListJobs } from '../../../hooks/useListJobs';
 
-const latestJobs = [
-  {
-    title: 'Social Media Assistant',
-    company: 'Nomad',
-    location: 'Paris, France',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-  {
-    title: 'Brand Designer',
-    company: 'Dropbox',
-    location: 'San Fransisco, USA',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-  {
-    title: 'Interactive Developer',
-    company: 'Terraform',
-    location: 'Hamburg, Germany',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-  {
-    title: 'HR Manager',
-    company: 'Packer',
-    location: 'Lucern, Switzerland',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-  {
-    title: 'Social Media Assistant',
-    company: 'Netlify',
-    location: 'Paris, France',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-  {
-    title: 'Brand Designer',
-    company: 'Maze',
-    location: 'San Fransisco, USA',
-    type: 'Full-Time',
-    tags: ['Marketing', 'Design'],
-  },
-];
+export const LatestJobsSection = () => {
+  const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 6 });
 
-const LatestJobsSection = () => {
+  // Helper to format employment type (e.g., FULL_TIME -> Full-Time)
+  const formatType = (type: string) => {
+    return type
+      .toLowerCase()
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('-');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.heading}>
+        <Text style={styles.title}>
           Latest <Text style={styles.highlight}>jobs open</Text>
         </Text>
       </View>
 
-      <View style={styles.list}>
-        {latestJobs.map((job, index) => (
-          <TouchableOpacity key={index} style={styles.card}>
-            <View style={styles.logoPlaceholder} />
-            <View style={styles.cardContent}>
-              <Text style={styles.jobTitle}>{job.title}</Text>
-              <Text style={styles.companyInfo}>
-                {job.company} • {job.location}
-              </Text>
-              <View style={styles.tagsContainer}>
-                <View style={styles.typeTag}>
-                  <Text style={styles.typeTagText}>{job.type}</Text>
-                </View>
-                {job.tags.map((tag, tagIndex) => (
-                  <View
-                    key={tagIndex}
-                    style={[
-                      styles.tag,
-                      tag === 'Marketing'
-                        ? styles.marketingTag
-                        : styles.designTag,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.tagText,
-                        tag === 'Marketing'
-                          ? styles.marketingTagText
-                          : styles.designTagText,
-                      ]}
-                    >
-                      {tag}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={styles.loader}
+        />
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Failed to load jobs</Text>
+          <TouchableOpacity
+            onPress={() => fetchJobs()}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity style={styles.showAllButton}>
-        <Text style={styles.showAllText}>Show all jobs</Text>
-        <ArrowRight size={20} color="#4F46E5" />
-      </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {data?.jobs.map((job) => (
+            <LatestJobCard
+              key={job.id}
+              title={job.title}
+              company={job.company.name}
+              logoUrl={job.company.logoUrl || undefined}
+              location={job.location || (job.remote ? 'Remote' : 'On-site')}
+              type={formatType(job.type)}
+              tags={[
+                job.category.name,
+                ...(job.requirements?.[0]?.skillName
+                  ? [job.requirements[0].skillName]
+                  : []),
+              ]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    backgroundColor: '#F8FAFC', // Slate-50
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.background,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
-  heading: {
+  title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#0F172A',
+    fontWeight: '800',
+    color: COLORS.text,
   },
   highlight: {
-    color: '#4F46E5',
+    color: COLORS.primary,
   },
   list: {
-    gap: 16,
+    marginTop: SPACING.md,
   },
-  card: {
-    flexDirection: 'row',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
+  loader: {
+    marginVertical: SPACING.xl,
   },
-  logoPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-    marginRight: 16,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0F172A',
-    marginBottom: 2,
-  },
-  companyInfo: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 8,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  typeTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: '#F0FDFA', // Teal-50
-    borderRadius: 100,
-  },
-  typeTagText: {
-    color: '#0D9488', // Teal-600
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-    borderWidth: 1,
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  marketingTag: {
-    borderColor: '#FB923C', // Orange-400
-    backgroundColor: 'transparent',
-  },
-  marketingTagText: {
-    color: '#EA580C', // Orange-600
-  },
-  designTag: {
-    borderColor: '#6366F1', // Indigo-500
-    backgroundColor: 'transparent',
-  },
-  designTagText: {
-    color: '#4F46E5', // Indigo-600
-  },
-  showAllButton: {
-    flexDirection: 'row',
+  errorContainer: {
+    padding: SPACING.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
-    gap: 8,
   },
-  showAllText: {
-    fontSize: 16,
+  errorText: {
+    color: '#FF4444',
+    marginBottom: SPACING.md,
+  },
+  retryButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: 'white',
     fontWeight: '600',
-    color: '#4F46E5',
   },
 });
 

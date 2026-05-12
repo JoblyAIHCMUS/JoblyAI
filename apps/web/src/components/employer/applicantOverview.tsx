@@ -59,9 +59,9 @@ export default function ApplicantOverview({
   const progressColor = hiringStageColor[applicant.hiringStage];
 
   return (
-    <Card className="w-full">
-      <CardHeader className="items-center text-center pb-4">
-        <Avatar className="h-20 w-20 mb-3">
+    <Card className="w-full sticky top-20 md:top-[88px] lg:top-20">
+      <CardHeader className="items-center text-center pb-3 sm:pb-4 px-3 sm:px-4 pt-4 sm:pt-6">
+        <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mb-2 sm:mb-3 flex-shrink-0">
           <AvatarImage src={applicant.image} alt={applicant.name} />
           <AvatarFallback>
             {applicant.name
@@ -70,21 +70,25 @@ export default function ApplicantOverview({
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <h2 className="heading-h5-semi-bold">{applicant.name}</h2>
-        <p className="label-label-2-regular text-muted-foreground">
+        <h2 className="heading-h6-semi-bold sm:heading-h5-semi-bold line-clamp-2">
+          {applicant.name}
+        </h2>
+        <p className="label-label-2-regular text-muted-foreground text-xs sm:text-sm line-clamp-1">
           {applicant.title}
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-4 sm:space-y-5 px-3 sm:px-4 pb-4 sm:pb-6">
         <Link href={`/employer/job-listing/${applicant.jobListingId}`}>
-          <div className="rounded-lg bg-indigo-50 p-4 space-y-1 hover:bg-indigo-100 transition-colors">
-            <p className="label-label-2-medium text-muted-foreground">
+          <div className="rounded-lg bg-indigo-50 p-3 sm:p-4 space-y-1 hover:bg-indigo-100 transition-colors">
+            <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
               Applied Role
             </p>
-            <Separator />
-            <p className="label-label-2-semi-bold">{applicant.appliedRole}</p>
-            <p className="label-label-2-regular text-muted-foreground">
+            <Separator className="my-1.5" />
+            <p className="label-label-2-semi-bold text-xs sm:text-sm line-clamp-2">
+              {applicant.appliedRole}
+            </p>
+            <p className="label-label-2-regular text-muted-foreground text-xs sm:text-sm line-clamp-1">
               {getCategoryLabel(applicant.jobCategory)} &bull;{' '}
               {employmentTypeLabels[applicant.employmentType]}
             </p>
@@ -92,59 +96,67 @@ export default function ApplicantOverview({
         </Link>
 
         <div className="space-y-1">
-          <p className="label-label-2-medium text-muted-foreground">
+          <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
             Applied Date
           </p>
-          <p className="label-label-2-regular">
+          <p className="label-label-2-regular text-xs sm:text-sm">
             {formatDate(applicant.appliedDate)}
           </p>
         </div>
 
         <div className="space-y-1">
-          <p className="label-label-2-medium text-muted-foreground">Score</p>
-          <p className="label-label-2-semi-bold">
+          <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
+            Score
+          </p>
+          <p className="label-label-2-semi-bold text-xs sm:text-sm">
             {applicant.score.toFixed(1)}
           </p>
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="label-label-2-medium text-muted-foreground">
+          <div className="flex items-center justify-between gap-2">
+            <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
               Hiring Stage
             </p>
             <Badge
               variant="outline"
-              className={hiringStageStyles[applicant.hiringStage]}
+              className={`${
+                hiringStageStyles[applicant.hiringStage]
+              } text-xs sm:text-sm py-1 px-2`}
             >
               {applicant.hiringStage}
             </Badge>
           </div>
           <Progress
             value={progress}
-            className="h-2 [&>div]:transition-all"
+            className="h-1.5 sm:h-2 [&>div]:transition-all"
             indicatorClassName={progressColor}
           />
         </div>
 
-        <Separator />
+        <Separator className="my-3 sm:my-4" />
 
         <div className="space-y-2">
-          <p className="label-label-2-medium text-muted-foreground">Contact</p>
+          <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
+            Contact
+          </p>
           <div className="grid grid-cols-1 gap-2">
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{applicant.email}</p>
+            <div className="flex items-center gap-2 min-w-0">
+              <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-xs sm:text-sm truncate">{applicant.email}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{applicant.phone}</p>
-            </div>
+            {applicant.phone && (
+              <div className="flex items-center gap-2 min-w-0">
+                <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <p className="text-xs sm:text-sm truncate">{applicant.phone}</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <Button className="w-full" asChild>
+        <Button className="w-full text-xs sm:text-sm h-9 sm:h-10" asChild>
           <Link href="/employer/messages">
-            <Mail className="mr-2 h-4 w-4" />
+            <Mail className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
             Message
           </Link>
         </Button>

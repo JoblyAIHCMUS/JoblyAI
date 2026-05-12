@@ -1,73 +1,85 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Menu } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import Logo from '../../../assets/images/jobly-logo.svg';
+import { COLORS, SPACING } from '../../constants/theme';
 
 interface HeaderProps {
-  onOpenMenu: () => void;
+  onMenuPress?: () => void;
 }
 
-const Header = ({ onOpenMenu }: HeaderProps) => {
-  const insets = useSafeAreaInsets();
-
+const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <TouchableOpacity style={styles.menuButton} onPress={onOpenMenu}>
-        <Menu size={24} color="#0F172A" />
-      </TouchableOpacity>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Menu Icon Left */}
+        <TouchableOpacity
+          style={styles.menuButton}
+          activeOpacity={0.7}
+          onPress={onMenuPress}
+        >
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M4 10H20M4 16H14"
+              stroke={COLORS.text}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+            />
+          </Svg>
+        </TouchableOpacity>
 
-      <View style={styles.logoContainer}>
-        <View style={styles.logoIcon}>
-          <View style={styles.innerCircle} />
+        {/* Logo and Brand */}
+        <View style={styles.brandContainer}>
+          <View style={styles.logoContainer}>
+            <Logo width={34} height={34} />
+          </View>
+          <Text style={styles.brandText}>JoblyAI</Text>
         </View>
-        <Text style={styles.logoText}>JoblyAI</Text>
       </View>
-
-      <View style={styles.placeholder} />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: '#F8F9FE', // Matches the light blue-ish background in the image
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
   container: {
-    height: 60 + 40,
-    backgroundColor: '#FFFFFF',
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingHorizontal: SPACING.md,
   },
   menuButton: {
-    padding: 4,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E6E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
   },
-  logoContainer: {
+  brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
-  logoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#4F46E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
+  logoContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
-  innerCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#FFFFFF',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0F172A',
-  },
-  placeholder: {
-    width: 32, // To balance the menu button
+  brandText: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#121419',
+    letterSpacing: -0.5,
   },
 });
 

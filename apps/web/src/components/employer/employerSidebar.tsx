@@ -117,15 +117,15 @@ export function EmployerSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="relative border-r border-[color:var(--border-primary)]"
+      className="relative border-r border-[color:var(--border-primary)] hidden lg:flex"
     >
       {/* Pre-render Toaster for notifications */}
       <Toaster />
 
-      {/* Collapse/Expand Toggle Button */}
+      {/* Collapse/Expand Toggle Button - Hidden on mobile/tablet, show on desktop */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-1/2 z-50 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-[color:var(--border-primary)] bg-white shadow-sm transition-colors hover:bg-gray-100"
+        className="absolute -right-3 top-1/2 z-50 hidden lg:flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-[color:var(--border-primary)] bg-white shadow-sm transition-colors hover:bg-gray-100"
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? (
@@ -135,10 +135,10 @@ export function EmployerSidebar() {
         )}
       </button>
 
-      <SidebarHeader className="border-b border-transparent px-4 pb-0 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
-        <Link href="/" className="flex items-center gap-2.5">
+      <SidebarHeader className="border-b border-transparent px-3 sm:px-4 pb-0 pt-6 sm:pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5">
           <Logo size="md" />
-          <span className="font-[family-name:var(--family-primary)] text-[24px] font-semibold tracking-[-0.15px] text-[#25324b] group-data-[collapsible=icon]:hidden">
+          <span className="font-[family-name:var(--family-primary)] text-xl sm:text-2xl font-semibold tracking-[-0.15px] text-[#25324b] group-data-[collapsible=icon]:hidden">
             JoblyAI
           </span>
         </Link>
@@ -175,7 +175,7 @@ export function EmployerSidebar() {
                       isActive={isActive}
                       tooltip={isDisabled ? undefined : item.title}
                       className={cn(
-                        'h-12 rounded-none px-0 hover:bg-transparent',
+                        'h-10 sm:h-12 rounded-none px-0 hover:bg-transparent',
                         'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                         isActive && 'bg-transparent',
                         isDisabled && 'opacity-50 cursor-not-allowed'
@@ -194,7 +194,7 @@ export function EmployerSidebar() {
                           />
                           <span
                             className={cn(
-                              'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-[#7c8493] transition-colors',
+                              'ml-2 sm:ml-3 flex h-10 sm:h-12 flex-1 items-center gap-3 sm:gap-4 rounded-md px-3 sm:px-4 text-sm sm:text-base font-normal text-[#7c8493] transition-colors',
                               'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                               isActive && 'bg-[#e9ebfd] text-[#4640de]'
                             )}
@@ -224,7 +224,7 @@ export function EmployerSidebar() {
                           />
                           <span
                             className={cn(
-                              'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-[#7c8493] transition-colors',
+                              'ml-2 sm:ml-3 flex h-10 sm:h-12 flex-1 items-center gap-3 sm:gap-4 rounded-md px-3 sm:px-4 text-sm sm:text-base font-normal text-[#7c8493] transition-colors',
                               'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                               isActive && 'bg-[#e9ebfd] text-[#4640de]'
                             )}
@@ -267,7 +267,7 @@ export function EmployerSidebar() {
                         disabled={logout.isPending}
                         tooltip={item.title}
                         className={cn(
-                          'h-12 rounded-none px-0 hover:bg-transparent',
+                          'h-10 sm:h-12 rounded-none px-0 hover:bg-transparent',
                           'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                           'bg-transparent'
                         )}
@@ -275,7 +275,7 @@ export function EmployerSidebar() {
                         <span className="h-8 w-1 rounded-r-md bg-transparent transition-colors group-data-[collapsible=icon]:hidden" />
                         <span
                           className={cn(
-                            'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-[#ff6550] transition-colors',
+                            'ml-2 sm:ml-3 flex h-10 sm:h-12 flex-1 items-center gap-3 sm:gap-4 rounded-md px-3 sm:px-4 text-sm sm:text-base font-normal text-[#ff6550] transition-colors',
                             'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0'
                           )}
                         >
@@ -299,7 +299,7 @@ export function EmployerSidebar() {
                       isActive={isActive}
                       tooltip={item.title}
                       className={cn(
-                        'h-12 rounded-none px-0 hover:bg-transparent',
+                        'h-10 sm:h-12 rounded-none px-0 hover:bg-transparent',
                         'group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                         isActive && 'bg-transparent'
                       )}
@@ -316,7 +316,7 @@ export function EmployerSidebar() {
                         />
                         <span
                           className={cn(
-                            'ml-3 flex h-12 flex-1 items-center gap-4 rounded-md px-4 text-[16px] font-normal text-[#7c8493] transition-colors',
+                            'ml-2 sm:ml-3 flex h-10 sm:h-12 flex-1 items-center gap-3 sm:gap-4 rounded-md px-3 sm:px-4 text-sm sm:text-base font-normal text-[#7c8493] transition-colors',
                             'group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
                             isActive && 'bg-[#e9ebfd] text-[#4640de]'
                           )}
@@ -339,9 +339,9 @@ export function EmployerSidebar() {
         </div>
       </SidebarContent>
       {/* Profile - always at bottom */}
-      <SidebarFooter className="border-t border-[color:var(--border-primary)] p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
-        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          <div className="h-12 w-12 flex-shrink-0 rounded-full bg-slate-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
+      <SidebarFooter className="border-t border-[color:var(--border-primary)] p-3 sm:p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
+        <div className="flex items-center gap-2.5 sm:gap-3 group-data-[collapsible=icon]:justify-center min-h-fit sm:min-h-16">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-full bg-slate-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
             <img
               src={employerProfile?.avatarUrl || 'https://placehold.co/48x48'}
               alt={employerProfile?.fullName || 'User'}
@@ -349,10 +349,10 @@ export function EmployerSidebar() {
             />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
-            <span className="body-body-1-medium text-[color:var(--text-primary)] leading-6">
+            <span className="text-xs sm:text-sm font-medium text-[color:var(--text-primary)] leading-4 sm:leading-6">
               {employerProfile?.fullName || 'Loading...'}
             </span>
-            <span className="text-sm text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)]">
+            <span className="text-xs text-[color:var(--text-secondary)] font-[family-name:var(--family-secondary)] truncate">
               {employerProfile?.email || ''}
             </span>
           </div>
