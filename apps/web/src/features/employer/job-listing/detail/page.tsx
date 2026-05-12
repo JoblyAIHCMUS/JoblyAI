@@ -269,12 +269,14 @@ export default function JobListingDetailPage() {
 
   if (loading || applicationsLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-4">
-          <ArrowLeft className="h-7 w-7 animate-pulse" />
-          <div className="h-9 w-96 bg-gray-200 rounded animate-pulse" />
+      <div className="w-full min-h-screen flex flex-col">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 flex items-center gap-2 sm:gap-3">
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse flex-shrink-0" />
+            <div className="h-6 w-48 sm:w-64 bg-gray-200 rounded animate-pulse flex-1" />
+          </div>
         </div>
-        <div className="mt-8">
+        <div className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
           <div className="h-12 w-full bg-gray-200 rounded animate-pulse" />
         </div>
       </div>
@@ -283,19 +285,31 @@ export default function JobListingDetailPage() {
 
   if (error || applicationsError) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <button onClick={() => router.back()} aria-label="Go back">
-          <ArrowLeft className="h-7 w-7" />
-        </button>
-        <div className="mt-4">
-          <h1 className="text-2xl font-bold text-red-600">Error Loading Job</h1>
-          <p className="text-gray-600 mt-2">
-            {error instanceof Error
-              ? error.message
-              : applicationsError instanceof Error
-              ? applicationsError.message
-              : 'Failed to load job details'}
-          </p>
+      <div className="w-full min-h-screen flex flex-col">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-3 sm:px-4 md:px-6">
+          <div className="max-w-md w-full">
+            <h1 className="text-lg sm:text-xl font-bold text-red-600 mb-2">
+              Error Loading Job
+            </h1>
+            <p className="text-gray-600 text-xs sm:text-sm">
+              {error instanceof Error
+                ? error.message
+                : applicationsError instanceof Error
+                ? applicationsError.message
+                : 'Failed to load job details'}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -303,77 +317,130 @@ export default function JobListingDetailPage() {
 
   if (!job) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold">Job not found</h1>
+      <div className="w-full min-h-screen flex flex-col">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
+            <h1 className="text-lg sm:text-xl font-bold">Job not found</h1>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => router.back()} aria-label="Go back">
-          <ArrowLeft className="h-7 w-7" />
-        </button>
-        <h1 className="text-3xl font-bold">{job.title}</h1>
-        <Button variant="outline" size="icon" className="ml-2" asChild>
-          <Link href={`/employer/job-listing/${id}/edit`} aria-label="Edit job">
-            <Pencil className="h-4 w-4" />
-          </Link>
-        </Button>
+    <div className="w-full min-h-screen flex flex-col bg-white">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Top row: Back button and title */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button
+                onClick={() => router.back()}
+                aria-label="Go back"
+                className="flex-shrink-0 p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--text-primary)]" />
+              </button>
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)] truncate">
+                {job.title}
+              </h1>
+            </div>
 
-        {/* Status Dropdown */}
-        {backendJob && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            {/* Bottom row: Action buttons */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <Button
                 variant="outline"
-                disabled={statusUpdating || statusUpdateLoading}
+                size="sm"
+                className="text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
+                asChild
               >
-                Status: {backendJob.status}
+                <Link
+                  href={`/employer/job-listing/${id}/edit`}
+                  aria-label="Edit job"
+                >
+                  <Pencil className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Edit</span>
+                </Link>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {getAvailableStatusTransitions(backendJob.status).map(
-                (option) => (
-                  <DropdownMenuItem
-                    key={option.status}
-                    onClick={() => handleStatusChange(option.status)}
-                    disabled={statusUpdating || statusUpdateLoading}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                )
+
+              {/* Status Dropdown */}
+              {backendJob && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
+                      disabled={statusUpdating || statusUpdateLoading}
+                    >
+                      <span className="hidden sm:inline">Status: </span>
+                      <span className="sm:hidden">S:</span>
+                      {backendJob.status}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {getAvailableStatusTransitions(backendJob.status).map(
+                      (option) => (
+                        <DropdownMenuItem
+                          key={option.status}
+                          onClick={() => handleStatusChange(option.status)}
+                          disabled={statusUpdating || statusUpdateLoading}
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      )
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="applicants" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="applicants">Applicants</TabsTrigger>
-          <TabsTrigger value="job-details">Job Details</TabsTrigger>
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
-        </TabsList>
+      {/* Content area */}
+      <div className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-auto">
+        <Tabs defaultValue="applicants" className="max-w-7xl mx-auto">
+          <TabsList className="inline-flex flex-wrap justify-start gap-1 sm:gap-2 bg-transparent p-0 h-auto mb-4 sm:mb-6 overflow-x-auto">
+            <TabsTrigger
+              value="applicants"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            >
+              Applicants
+            </TabsTrigger>
+            <TabsTrigger
+              value="job-details"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            >
+              Job Details
+            </TabsTrigger>
+            <TabsTrigger
+              value="stats"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            >
+              Statistics
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="applicants" className="mt-6">
-          <JobApplicantsView
-            applicants={job.applicants}
-            onAdvanceApplicant={handleAdvanceApplicant}
-            onDeclineApplicant={handleDeclineApplicant}
-            onMoveApplicant={handleMoveApplicantToStage}
-          />
-        </TabsContent>
+          <TabsContent value="applicants" className="mt-4 sm:mt-6">
+            <JobApplicantsView
+              applicants={job.applicants}
+              onAdvanceApplicant={handleAdvanceApplicant}
+              onDeclineApplicant={handleDeclineApplicant}
+              onMoveApplicant={handleMoveApplicantToStage}
+            />
+          </TabsContent>
 
-        <TabsContent value="job-details" className="mt-6">
-          <JobDetailsReview job={job} />
-        </TabsContent>
+          <TabsContent value="job-details" className="mt-4 sm:mt-6">
+            <JobDetailsReview job={job} />
+          </TabsContent>
 
-        <TabsContent value="stats" className="mt-6">
-          <JobStatsPanel job={job} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="stats" className="mt-4 sm:mt-6">
+            <JobStatsPanel job={job} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
