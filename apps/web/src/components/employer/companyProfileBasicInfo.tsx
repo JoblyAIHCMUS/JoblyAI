@@ -23,58 +23,60 @@ export function CompanyProfileBasicInfo({
   industry,
 }: CompanyProfileBasicInfoProps) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 w-full">
-      <div className="flex items-center gap-6 min-w-0">
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6 md:gap-8 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 md:gap-8 min-w-0 flex-1">
         <div className="shrink-0">
           {logoUrl ? (
             <img
               src={logoUrl}
               alt={name + ' logo'}
-              className="w-28 h-28 rounded-xl object-cover bg-slate-100 border border-slate-200"
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg sm:rounded-xl object-cover bg-slate-100 border border-slate-200"
             />
           ) : (
-            <div className="w-28 h-28 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <Building2 className="w-12 h-12 text-slate-400" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+              <Building2 className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-slate-400" />
             </div>
           )}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="heading-h3-bold truncate">{name}</h2>
+            <h2 className="heading-h3-bold truncate text-xl sm:text-2xl md:text-3xl">
+              {name}
+            </h2>
           </div>
           <a
             href={websiteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline text-sm block mt-1 truncate"
+            className="text-blue-600 hover:underline text-xs sm:text-sm block mt-1 truncate"
           >
             {websiteUrl}
           </a>
-          <div className="flex flex-wrap gap-8 mt-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:gap-6 md:gap-8 mt-4">
             {/* Employees */}
-            <div className="flex items-center gap-3 min-w-[120px]">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-blue-100">
-                <Users className="w-7 h-7 text-blue-600" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
-                <span className="label-label-3-medium text-slate-500">
+                <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
                   Employees
                 </span>
-                <span className="heading-h6-bold text-slate-900">
+                <span className="heading-h6-bold text-slate-900 text-sm sm:text-base">
                   {SCALE_LABELS[scale] || scale}
                 </span>
               </div>
             </div>
             {/* Industry */}
-            <div className="flex items-center gap-3 min-w-[120px]">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-blue-100">
-                <Building2 className="w-7 h-7 text-blue-600" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
-                <span className="label-label-3-medium text-slate-500">
+                <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
                   Industry
                 </span>
-                <span className="heading-h6-bold text-slate-900">
+                <span className="heading-h6-bold text-slate-900 text-sm sm:text-base">
                   {INDUSTRY_LABELS[industry] || industry}
                 </span>
               </div>
@@ -82,9 +84,13 @@ export function CompanyProfileBasicInfo({
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
         <Link href="/employer/company-profile/edit" passHref>
-          <Button asChild variant="outline" className="gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+          >
             <span>Profile Settings</span>
           </Button>
         </Link>
