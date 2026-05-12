@@ -135,7 +135,16 @@ export class ProfileSyncService {
           if (existing) {
             await tx.experience.update({ 
               where: { id: existingId }, 
-              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+              data: { 
+                jobTitle: e.jobTitle,
+                companyName: e.companyName,
+                description: e.description,
+                startDate: new Date(e.startDate),
+                endDate: e.endDate ? new Date(e.endDate) : null,
+                type: e.type as any,
+                location: e.location,
+                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] 
+              } 
             });
             
             if (embedding && embedding.length > 0) {
@@ -199,7 +208,16 @@ export class ProfileSyncService {
           if (existing) {
             await tx.education.update({ 
               where: { id: existingId }, 
-              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+              data: { 
+                school: edu.school,
+                degree: edu.degree as any,
+                fieldOfStudy: edu.fieldOfStudy,
+                startDate: new Date(edu.startDate),
+                endDate: edu.endDate ? new Date(edu.endDate) : null,
+                grade: edu.grade,
+                description: edu.description,
+                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] 
+              } 
             });
 
             if (embedding && embedding.length > 0) {
@@ -263,7 +281,13 @@ export class ProfileSyncService {
           if (existing) {
             await tx.certificate.update({ 
               where: { id: existingId }, 
-              data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
+              data: { 
+                name: cert.name,
+                issuer: cert.issuer,
+                issueDate: new Date(cert.issueDate),
+                expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
+                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] 
+              } 
             });
 
             if (embedding && embedding.length > 0) {
@@ -274,9 +298,11 @@ export class ProfileSyncService {
             }
           }
         } else {
+          // Destructure to remove metadata fields not present in DB
+          const { isDuplicate, matchedId, ...certData } = cert;
           const created = await tx.certificate.create({
             data: {
-              ...cert,
+              ...certData,
               candidateId,
               sourceCvIds: [resumeId],
               issueDate: new Date(cert.issueDate),
@@ -320,8 +346,10 @@ export class ProfileSyncService {
           data: { sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])] } 
         });
       } else {
+        // Sanitize item by removing any metadata fields (isDuplicate, matchedId)
+        const { isDuplicate, matchedId, ...cleanItem } = item;
         const createData = { 
-          ...item, 
+          ...cleanItem, 
           candidateId, 
           sourceCvIds: [resumeId] 
         };
@@ -337,6 +365,152 @@ export class ProfileSyncService {
         await tx[model].create({ data: createData });
       }
     }
+  }
+
+  /**
+   * Enriches parsed resume data with isDuplicate flags by searching for semantic matches in the existing profile.
+   * Uses a combination of Vector Search (Semantic) and String Matching (Deterministic Fallback).
+   */
+  async enrichWithDuplicateFlags(candidateId: string, data: ParsedResume): Promise<ParsedResume> {
+    this.logger.log(`Enriching parsed data with duplicate flags for candidate ${candidateId}`);
+    const enriched = { ...data };
+
+    // Load existing profile data for fallback string matching
+    const profile = await this.prisma.user.findUnique({
+      where: { id: candidateId },
+      include: {
+        experiences: true,
+        education: true,
+        certificates: true,
+        candidateSkills: { include: { skill: true } }
+      }
+    });
+
+    if (!profile) return enriched;
+
+    // 1. Experience (Vector Search + String Match Fallback)
+    if (Array.isArray(enriched.experience)) {
+      for (const e of enriched.experience) {
+        let matchedId: number | null = null;
+        
+        // Try Vector Search
+        const content = `${e.companyName} | ${e.jobTitle} | ${e.description}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+        if (embedding && embedding.length > 0) {
+          const vectorStr = `[${embedding.join(',')}]`;
+          const similar: any[] = await this.prisma.$queryRawUnsafe(`
+            SELECT id, (embedding <=> $1::vector) as distance
+            FROM "Experience"
+            WHERE "candidateId" = $2 AND embedding IS NOT NULL
+            ORDER BY distance ASC
+            LIMIT 1
+          `, vectorStr, candidateId);
+          
+          if (similar.length > 0 && similar[0].distance < 0.15) {
+            matchedId = similar[0].id;
+          }
+        }
+
+        // Fallback: String Match
+        if (!matchedId) {
+          const matched = profile.experiences.find(old => 
+            this.normalize(old.companyName) === this.normalize(e.companyName) &&
+            this.normalize(old.jobTitle) === this.normalize(e.jobTitle)
+          );
+          if (matched) matchedId = matched.id;
+        }
+
+        e.isDuplicate = !!matchedId;
+        e.matchedId = matchedId;
+      }
+    }
+
+    // 2. Education
+    if (Array.isArray(enriched.education)) {
+      for (const edu of enriched.education) {
+        let matchedId: number | null = null;
+
+        const content = `${edu.school} | ${edu.degree} | ${edu.fieldOfStudy}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+        if (embedding && embedding.length > 0) {
+          const vectorStr = `[${embedding.join(',')}]`;
+          const similar: any[] = await this.prisma.$queryRawUnsafe(`
+            SELECT id, (embedding <=> $1::vector) as distance
+            FROM "Education"
+            WHERE "candidateId" = $2 AND embedding IS NOT NULL
+            ORDER BY distance ASC
+            LIMIT 1
+          `, vectorStr, candidateId);
+          if (similar.length > 0 && similar[0].distance < 0.1) {
+            matchedId = similar[0].id;
+          }
+        }
+
+        // Fallback: String Match
+        if (!matchedId) {
+          const matched = profile.education.find(old => 
+            this.normalize(old.school) === this.normalize(edu.school) &&
+            this.normalize(old.degree || '') === this.normalize(edu.degree || '')
+          );
+          if (matched) matchedId = matched.id;
+        }
+
+        edu.isDuplicate = !!matchedId;
+        edu.matchedId = matchedId;
+      }
+    }
+
+    // 3. Certificates
+    if (Array.isArray(enriched.certificates)) {
+      for (const cert of enriched.certificates) {
+        let matchedId: number | null = null;
+
+        const content = `${cert.name} | ${cert.issuer}`;
+        const embedding = await this.aiProvider.generateEmbedding(content);
+        if (embedding && embedding.length > 0) {
+          const vectorStr = `[${embedding.join(',')}]`;
+          const similar: any[] = await this.prisma.$queryRawUnsafe(`
+            SELECT id, (embedding <=> $1::vector) as distance
+            FROM "Certificate"
+            WHERE "candidateId" = $2 AND embedding IS NOT NULL
+            ORDER BY distance ASC
+            LIMIT 1
+          `, vectorStr, candidateId);
+          if (similar.length > 0 && similar[0].distance < 0.1) {
+            matchedId = similar[0].id;
+          }
+        }
+
+        // Fallback: String Match
+        if (!matchedId) {
+          const matched = profile.certificates.find(old => 
+            this.normalize(old.name) === this.normalize(cert.name)
+          );
+          if (matched) matchedId = matched.id;
+        }
+
+        cert.isDuplicate = !!matchedId;
+        cert.matchedId = matchedId;
+      }
+    }
+
+    // 4. Skills (Exact match on normalized name)
+    if (Array.isArray(enriched.skills)) {
+      for (const s of enriched.skills) {
+        const skillName = this.normalize(s.name);
+        const existing = profile.candidateSkills.find(cs => this.normalize(cs.skill.name) === skillName);
+        
+        if (existing) {
+          s.isDuplicate = true;
+          s.matchedId = existing.skillId;
+        } else {
+          s.isDuplicate = false;
+          s.matchedId = null;
+        }
+      }
+    }
+
+    return enriched;
   }
 
   async getBioRegenerationPreview(candidateId: string, resumeId: number): Promise<string | null> {
@@ -403,7 +577,7 @@ export class ProfileSyncService {
                 const skill = await tx.skill.findUnique({ where: { id: record.skillId } });
                 const { years, level } = await this.recalculateSkillAggregate(tx, remainingIds, skill?.name || '');
                 updateData = { ...updateData, years, level };
-              } else if (model === 'experience' || model === 'education') {
+              } else if (model === 'experience' || model === 'education' || model === 'certificate') {
                 const bestData = await this.getBestRecordFromSources(tx, model, remainingIds, record);
                 updateData = { ...updateData, ...bestData };
               }
@@ -460,7 +634,10 @@ export class ProfileSyncService {
     
     if (!bestMatch) return {};
 
-    const result = { ...bestMatch };
+    // Sanitize by removing metadata fields and unneeded properties
+    const { isDuplicate, matchedId, ...cleanMatch } = bestMatch;
+    const result = { ...cleanMatch };
+
     if (result.startDate) result.startDate = new Date(result.startDate);
     if (result.endDate) result.endDate = new Date(result.endDate);
     if (result.issueDate) result.issueDate = new Date(result.issueDate);

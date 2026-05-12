@@ -16,6 +16,7 @@ import { Check, ArrowRight, Briefcase, GraduationCap, Code2, Award, Share2, Phon
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -25,6 +26,9 @@ interface CvSyncCompareModalProps {
   onSync: (draftData: any) => Promise<void>;
   isLoading?: boolean;
 }
+
+// Define types for clarity
+type SyncStatus = 'EXISTING' | 'MATCHED' | 'NEW';
 
 function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
   const [formData, setFormData] = React.useState<any>(null);
@@ -168,7 +172,7 @@ function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => onSave(formData)}>Save Changes</Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => onSave(formData)}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -189,67 +193,56 @@ export function CvSyncCompareModal({
 
   const normalize = (str: string) => str ? str.trim().toLowerCase() : '';
 
-  const filterDuplicates = (rawNewData: any) => {
-    if (!rawNewData || !currentData) return rawNewData;
-    const filtered = { ...rawNewData };
+  const counts = React.useMemo(() => {
+    if (!draftData) return { newCount: 0, matchCount: 0 };
+    
+    let newCount = 0;
+    let matchCount = 0;
+    
+    // Bio & Title is always considered an AI Merged/New item in this view
+    newCount += 1;
 
-    // Filter Experience
-    if (Array.isArray(filtered.experience)) {
-      filtered.experience = filtered.experience.filter((newItem: any) => {
-        const isDuplicate = currentData.experiences?.some((oldItem: any) => 
-          normalize(oldItem.companyName) === normalize(newItem.companyName) &&
-          normalize(oldItem.jobTitle) === normalize(newItem.jobTitle)
-        );
-        return !isDuplicate;
-      });
-    }
+    const sections = ['experience', 'education', 'skills', 'certificates', 'contacts', 'socials'];
+    sections.forEach(section => {
+      if (Array.isArray(draftData[section])) {
+        draftData[section].forEach((item: any) => {
+          if (item.isDuplicate) matchCount++;
+          else newCount++;
+        });
+      }
+    });
+    
+    return { newCount, matchCount };
+  }, [draftData]);
 
-    // Filter Education
-    if (Array.isArray(filtered.education)) {
-      filtered.education = filtered.education.filter((newItem: any) => {
-        const isDuplicate = currentData.educations?.some((oldItem: any) => 
-          normalize(oldItem.school) === normalize(newItem.school) &&
-          normalize(oldItem.degree) === normalize(newItem.degree)
-        );
-        return !isDuplicate;
-      });
-    }
-
-    // Filter Skills
-    if (Array.isArray(filtered.skills)) {
-      filtered.skills = filtered.skills.filter((newItem: any) => {
-        const isDuplicate = currentData.skills?.some((oldItem: any) => 
-          normalize(oldItem.title || oldItem.name) === normalize(newItem.name || newItem.title)
-        );
-        return !isDuplicate;
-      });
-    }
-
-    // Filter Certificates
-    if (Array.isArray(filtered.certificates)) {
-      filtered.certificates = filtered.certificates.filter((newItem: any) => {
-        const isDuplicate = currentData.certificates?.some((oldItem: any) => 
-          normalize(oldItem.name) === normalize(newItem.name)
-        );
-        return !isDuplicate;
-      });
-    }
-
-    return filtered;
-  };
+  const Legend = () => (
+    <div className="flex flex-wrap gap-4 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-slate-300 rounded-full" />
+        <span className="text-xs font-medium text-slate-500">Hiện có (Profile)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)]" />
+        <span className="text-xs font-medium text-amber-700">Trùng khớp (Cập nhật)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
+        <span className="text-xs font-medium text-indigo-700">Thông tin mới / AI Hợp nhất</span>
+      </div>
+    </div>
+  );
 
   React.useEffect(() => {
     if (isOpen && newData && !hasInitialized.current) {
-      // Filter out items that already exist in currentData to avoid duplicates in the initial draft
-      const uniqueData = filterDuplicates(JSON.parse(JSON.stringify(newData)));
-      setDraftData(uniqueData);
+      // Use newData directly as it already contains isDuplicate flags from Backend Vector Search
+      setDraftData(JSON.parse(JSON.stringify(newData)));
       hasInitialized.current = true;
     }
     
     if (!isOpen) {
       hasInitialized.current = false;
     }
-  }, [isOpen, newData, currentData]);
+  }, [isOpen, newData]);
 
   const handleUpdateDraft = (section: string, index: number, data: any) => {
     setDraftData((prev: any) => {
@@ -304,6 +297,21 @@ export function CvSyncCompareModal({
   );
 
   const MergedSection = ({ icon, title, current, draft, renderItem, onEdit, onDelete, onAdd }: any) => {
+    const preservedExisting = current?.filter((oldItem: any) => {
+      return !draft?.some((newItem: any) => {
+        if (!newItem.isDuplicate || !newItem.matchedId) return false;
+        return title === "Skills" ? newItem.matchedId === oldItem.skillId : newItem.matchedId === oldItem.id;
+      });
+    }).map((item: any) => ({ ...item, _syncStatus: 'EXISTING' as SyncStatus }));
+
+    const draftItems = draft?.map((item: any, index: number) => ({
+      ...item,
+      _syncStatus: (item.isDuplicate ? 'MATCHED' : 'NEW') as SyncStatus,
+      _draftIndex: index
+    }));
+
+    const allItems = [...(preservedExisting || []), ...(draftItems || [])];
+
     return (
       <section className="mb-8 last:mb-0">
         <div className="flex gap-6">
@@ -340,38 +348,53 @@ export function CvSyncCompareModal({
             </div>
             
             <div className="space-y-3">
-              {/* Combine current and draft to show final result */}
               <div className="flex flex-col gap-3">
-                {/* Existing items (to be preserved) */}
-                {current?.map((item: any, i: number) => (
-                  <div key={`curr-${i}`} className="opacity-70 border-dashed">
-                    {renderItem(item, i)}
-                  </div>
-                ))}
+                {allItems.map((item: any, i: number) => {
+                  const status = item._syncStatus;
+                  const isDraft = status !== 'EXISTING';
+                  const draftIndex = item._draftIndex;
 
-                {/* New draft items (to be added) */}
-                {draft?.map((item: any, i: number) => (
-                  <div key={`draft-${i}`} className="relative group">
-                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
-                    <div className="flex gap-2 items-start">
-                      <div className="flex-1">
-                        {renderItem(item, i, true)}
+                  return (
+                    <div key={i} className="relative group">
+                      <div className={cn(
+                        "absolute -left-2 top-0 bottom-0 w-1 rounded-full shadow-sm",
+                        status === 'EXISTING' && "bg-slate-300 opacity-50",
+                        status === 'MATCHED' && "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]",
+                        status === 'NEW' && "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.3)]"
+                      )} />
+                      
+                      <div className="flex gap-2 items-start">
+                        <div className="flex-1">
+                          {renderItem(item, i, status)}
+                        </div>
+                        
+                        {isDraft && (
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-indigo-600 hover:bg-indigo-50" onClick={() => onEdit(draftIndex)}>
+                              <Edit2 size={12} />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => onDelete(draftIndex)}>
+                              <Trash2 size={12} />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-indigo-600 hover:bg-indigo-50" onClick={() => onEdit(i)}>
-                          <Edit2 size={12} />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:bg-red-50" onClick={() => onDelete(i)}>
-                          <Trash2 size={12} />
-                        </Button>
-                      </div>
+
+                      {status === 'EXISTING' && (
+                        <Badge variant="outline" className="absolute -right-1 -top-2 bg-white text-slate-400 text-[8px] h-4 border-slate-200 shadow-sm uppercase font-bold">Hiện có</Badge>
+                      )}
+                      {status === 'MATCHED' && (
+                        <Badge className="absolute -right-1 -top-2 bg-amber-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">Trùng khớp</Badge>
+                      )}
+                      {status === 'NEW' && (
+                        <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">Mới</Badge>
+                      )}
                     </div>
-                    <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm">AI / NEW</Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {(!current?.length && !draft?.length) && (
+              {allItems.length === 0 && (
                 <p className="text-xs text-indigo-400 italic bg-indigo-50/30 p-3 rounded-lg border border-dashed border-indigo-100 text-center">
                   No {title.toLowerCase()} to display.
                 </p>
@@ -382,6 +405,7 @@ export function CvSyncCompareModal({
       </section>
     );
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -408,6 +432,17 @@ export function CvSyncCompareModal({
 
           <ScrollArea className="flex-1 h-full min-h-0 px-8 py-8">
             <div className="max-w-screen-xl mx-auto space-y-10">
+              {/* Summary and Legend */}
+              <div className="mb-10">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <h2 className="text-lg font-bold text-slate-800">Tóm tắt thay đổi</h2>
+                  <span className="text-sm text-slate-500">
+                    Tìm thấy <span className="font-bold text-indigo-600">{counts.newCount}</span> thông tin mới và <span className="font-bold text-amber-600">{counts.matchCount}</span> thông tin trùng khớp.
+                  </span>
+                </div>
+                <Legend />
+              </div>
+
               {/* Bio & Title Section */}
               <section className="mb-8">
                 <div className="flex gap-6">
@@ -439,26 +474,26 @@ export function CvSyncCompareModal({
                       </h3>
                     </div>
                     <div className="relative group">
-                      <div className="absolute -left-2 top-0 bottom-0 w-1 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                      <div className="absolute -left-2 top-0 bottom-0 w-1 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
                       <div className="flex gap-2 items-start">
-                        <div className="flex-1 p-4 bg-blue-50/30 border border-blue-200 rounded-xl shadow-sm ring-1 ring-blue-50/50 space-y-3">
+                        <div className="flex-1 p-4 bg-indigo-50/30 border border-indigo-200 rounded-xl shadow-sm ring-1 ring-indigo-50/50 space-y-3">
                           <div>
-                            <span className="text-[10px] font-bold text-blue-400 uppercase">AI Suggested Title</span>
-                            <p className="text-sm font-semibold text-blue-900">{draftData?.title || "Professional"}</p>
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase">AI Suggested Title</span>
+                            <p className="text-sm font-semibold text-indigo-900">{draftData?.title || "Professional"}</p>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold text-blue-400 uppercase">AI Generated Bio</span>
-                            <p className="text-xs text-blue-800 leading-relaxed font-medium italic">"{draftData?.bio || "No bio extracted."}"</p>
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase">AI Generated Bio</span>
+                            <p className="text-xs text-indigo-800 leading-relaxed font-medium italic">"{draftData?.bio || "No bio extracted."}"</p>
                           </div>
                         </div>
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
-                          <Button size="icon" variant="ghost" className="h-6 w-6 text-blue-600 hover:bg-blue-50" 
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-indigo-600 hover:bg-indigo-50" 
                             onClick={() => setEditingItem({ section: 'bio', index: 0, data: { title: draftData?.title, bio: draftData?.bio } })}>
                             <Edit2 size={12} />
                           </Button>
                         </div>
                       </div>
-                      <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm">AI / NEW</Badge>
+                      <Badge className="absolute -right-1 -top-2 bg-indigo-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">AI Hợp nhất</Badge>
                     </div>
                   </div>
                 </div>
@@ -473,17 +508,39 @@ export function CvSyncCompareModal({
                 onAdd={() => handleAddDraft('experience', { jobTitle: 'New Job', companyName: 'Company', type: 'FULL_TIME', startDate: '2024', endDate: '', description: '' })}
                 onEdit={(i: number) => setEditingItem({ section: 'experience', index: i, data: draftData.experience[i] })}
                 onDelete={(i: number) => handleDeleteDraft('experience', i)}
-                renderItem={(exp: any, i: number, isDraft?: boolean) => (
-                  <div className={`p-4 border rounded-xl bg-white shadow-sm transition-colors ${isDraft ? 'border-blue-200 ring-1 ring-blue-50 hover:border-blue-300' : 'hover:border-slate-300'}`}>
+                renderItem={(exp: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "p-4 border rounded-xl bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
                     <div className="flex justify-between items-start mb-1">
-                      <div className={`font-bold text-sm ${isDraft ? 'text-blue-900' : 'text-slate-800'}`}>{exp.jobTitle}</div>
-                      <Badge variant={isDraft ? "default" : "outline"} className={`${isDraft ? 'bg-indigo-600 text-white border-none' : ''} text-[9px] py-0 h-4`}>{exp.type || 'N/A'}</Badge>
+                      <div className={cn(
+                        "font-bold text-sm",
+                        status === 'MATCHED' ? "text-amber-900" : status === 'NEW' ? "text-indigo-900" : "text-slate-800"
+                      )}>{exp.jobTitle}</div>
+                      <Badge variant={status === 'NEW' ? "default" : "outline"} className={cn(
+                        "text-[9px] py-0 h-4",
+                        status === 'NEW' && "bg-indigo-600 text-white border-none",
+                        status === 'MATCHED' && "border-amber-200 text-amber-700"
+                      )}>{exp.type || 'N/A'}</Badge>
                     </div>
-                    <div className={`text-xs font-semibold mb-1 ${isDraft ? 'text-blue-600' : 'text-accent-primary'}`}>{exp.companyName}</div>
+                    <div className={cn(
+                      "text-xs font-semibold mb-1",
+                      status === 'MATCHED' ? "text-amber-600" : status === 'NEW' ? "text-indigo-600" : "text-accent-primary"
+                    )}>{exp.companyName}</div>
                     <div className="text-[10px] text-slate-400 mb-2 font-medium flex items-center gap-1">
                       {exp.startDate} – {exp.endDate || 'Present'}
                     </div>
-                    <p className={`text-[11px] leading-relaxed ${isDraft ? 'text-blue-800/80 font-medium bg-blue-50/30 p-2 rounded border border-blue-100/50' : 'text-slate-500 line-clamp-2'}`}>{exp.description}</p>
+                    <p className={cn(
+                      "text-[11px] leading-relaxed",
+                      status === 'MATCHED' || status === 'NEW' 
+                        ? cn("font-medium p-2 rounded border", 
+                            status === 'MATCHED' ? "text-amber-800/80 bg-amber-50/30 border-amber-100/50" : "text-indigo-800/80 bg-indigo-50/30 border-indigo-100/50")
+                        : "text-slate-500 line-clamp-2"
+                    )}>{exp.description}</p>
                   </div>
                 )}
               />
@@ -497,12 +554,27 @@ export function CvSyncCompareModal({
                 onAdd={() => handleAddDraft('education', { school: 'University', degree: 'Degree', fieldOfStudy: 'Major', startDate: '2020', endDate: '2024', grade: '' })}
                 onEdit={(i: number) => setEditingItem({ section: 'education', index: i, data: draftData.education[i] })}
                 onDelete={(i: number) => handleDeleteDraft('education', i)}
-                renderItem={(edu: any, i: number, isDraft?: boolean) => (
-                  <div className={`p-4 border rounded-xl bg-white shadow-sm ${isDraft ? 'border-blue-200 ring-1 ring-blue-50' : ''}`}>
-                    <div className={`font-bold text-sm ${isDraft ? 'text-blue-900' : 'text-slate-800'}`}>{edu.school}</div>
-                    <div className={`text-xs ${isDraft ? 'text-blue-600 font-bold' : 'text-slate-500'}`}>{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</div>
+                renderItem={(edu: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "p-4 border rounded-xl bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
+                    <div className={cn(
+                      "font-bold text-sm",
+                      status === 'MATCHED' ? "text-amber-900" : status === 'NEW' ? "text-indigo-900" : "text-slate-800"
+                    )}>{edu.school}</div>
+                    <div className={cn(
+                      "text-xs",
+                      status === 'MATCHED' ? "text-amber-600 font-bold" : status === 'NEW' ? "text-indigo-600 font-bold" : "text-slate-500"
+                    )}>{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</div>
                     <div className="text-[10px] text-slate-400 font-medium mt-1">{edu.startDate} – {edu.endDate || 'Present'}</div>
-                    {edu.grade && <div className={`text-[10px] font-bold mt-1 ${isDraft ? 'text-green-600' : 'text-slate-400'}`}>GPA: {edu.grade}</div>}
+                    {edu.grade && <div className={cn(
+                      "text-[10px] font-bold mt-1",
+                      status === 'MATCHED' || status === 'NEW' ? "text-green-600" : "text-slate-400"
+                    )}>GPA: {edu.grade}</div>}
                   </div>
                 )}
               />
@@ -516,10 +588,23 @@ export function CvSyncCompareModal({
                 onAdd={() => handleAddDraft('skills', { name: 'New Skill', level: 'INTERMEDIATE', years: 1 })}
                 onEdit={(i: number) => setEditingItem({ section: 'skills', index: i, data: draftData.skills[i] })}
                 onDelete={(i: number) => handleDeleteDraft('skills', i)}
-                renderItem={(s: any, i: number, isDraft?: boolean) => (
-                  <div className={`flex items-center justify-between p-2 px-3 border rounded-lg bg-white shadow-sm ${isDraft ? 'border-blue-200 ring-1 ring-blue-50' : ''}`}>
-                    <span className={`text-xs font-semibold ${isDraft ? 'text-blue-900 font-bold' : ''}`}>{isDraft ? s.name : s.title}</span>
-                    <Badge variant={isDraft ? "default" : "secondary"} className={`${isDraft ? 'bg-indigo-600 text-white border-none uppercase font-bold' : ''} text-[9px] h-4`}>{s.level} • {s.years}y</Badge>
+                renderItem={(s: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "flex items-center justify-between p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      status === 'MATCHED' ? "text-amber-900 font-bold" : status === 'NEW' ? "text-indigo-900 font-bold" : "text-slate-700"
+                    )}>{status === 'EXISTING' || !status ? s.title : s.name}</span>
+                    <Badge variant={status === 'NEW' ? "default" : "secondary"} className={cn(
+                      "text-[9px] h-4",
+                      status === 'NEW' && "bg-indigo-600 text-white border-none uppercase font-bold",
+                      status === 'MATCHED' && "bg-amber-100 text-amber-700 border-amber-200 uppercase font-bold"
+                    )}>{s.level} • {s.years}y</Badge>
                   </div>
                 )}
               />
@@ -533,10 +618,22 @@ export function CvSyncCompareModal({
                 onAdd={() => handleAddDraft('certificates', { name: 'Certificate', issuer: 'Organization', issueDate: '2024' })}
                 onEdit={(i: number) => setEditingItem({ section: 'certificates', index: i, data: draftData.certificates[i] })}
                 onDelete={(i: number) => handleDeleteDraft('certificates', i)}
-                renderItem={(c: any, i: number, isDraft?: boolean) => (
-                  <div className={`p-3 border rounded-lg bg-white shadow-sm ${isDraft ? 'border-blue-200' : ''}`}>
-                    <div className={`font-bold text-xs ${isDraft ? 'text-blue-900' : ''}`}>{c.name}</div>
-                    <div className={`text-[10px] ${isDraft ? 'text-blue-600 font-bold' : 'text-slate-500'}`}>{c.issuer}</div>
+                renderItem={(c: any, i: number, status?: SyncStatus) => (
+                  <div className={cn(
+                    "p-3 border rounded-lg bg-white shadow-sm transition-colors",
+                    status === 'EXISTING' && "opacity-60 grayscale-[0.5] border-slate-200",
+                    status === 'MATCHED' && "border-amber-200 ring-1 ring-amber-50 hover:border-amber-300",
+                    status === 'NEW' && "border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300",
+                    !status && "hover:border-slate-300"
+                  )}>
+                    <div className={cn(
+                      "font-bold text-xs",
+                      status === 'MATCHED' ? "text-amber-900" : status === 'NEW' ? "text-indigo-900" : "text-slate-800"
+                    )}>{c.name}</div>
+                    <div className={cn(
+                      "text-[10px]",
+                      status === 'MATCHED' ? "text-amber-600 font-bold" : status === 'NEW' ? "text-indigo-600 font-bold" : "text-slate-500"
+                    )}>{c.issuer}</div>
                     {c.issueDate && <div className="text-[9px] text-slate-400 font-medium italic mt-1">{c.issueDate}</div>}
                   </div>
                 )}
@@ -568,11 +665,11 @@ export function CvSyncCompareModal({
                 </div>
                 <div className="w-1/2 space-y-6">
                   <section>
-                    <div className="flex items-center justify-between mb-3 border-b border-blue-200 pb-1">
-                      <h3 className="text-sm font-bold flex items-center gap-2 text-blue-700">
+                    <div className="flex items-center justify-between mb-3 border-b border-indigo-200 pb-1">
+                      <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-700">
                         <Phone size={16} /> Merged Contacts Preview
                       </h3>
-                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-blue-200 text-blue-600 py-0" 
+                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-indigo-200 text-indigo-600 py-0" 
                         onClick={() => handleAddDraft('contacts', { type: 'PHONE', value: '' })}>
                         <Plus size={10} /> Add
                       </Button>
@@ -582,16 +679,18 @@ export function CvSyncCompareModal({
                       {currentData?.contacts?.map((c: any, i: number) => (
                         <Badge key={`curr-c-${i}`} variant="outline" className="opacity-40 text-[10px] py-1 border-slate-200 bg-white">
                           <span className="text-slate-400 mr-1">{c.type}:</span> {c.value}
+                          <span className="ml-1 text-[8px] uppercase font-bold text-slate-300">(Hiện có)</span>
                         </Badge>
                       ))}
                       {/* Draft highlighted */}
                       {draftData?.contacts?.map((c: any, i: number) => (
                         <div key={`draft-c-${i}`} className="group relative">
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[10px] py-1 pr-8">
-                            <span className="text-blue-400 mr-1 uppercase font-bold">{c.type}:</span> {c.value}
+                          <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-indigo-200 text-[10px] py-1 pr-12">
+                            <span className="text-indigo-400 mr-1 uppercase font-bold">{c.type}:</span> {c.value}
+                            <span className="ml-1 text-[8px] uppercase font-bold text-indigo-500">(Mới)</span>
                           </Badge>
                           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setEditingItem({ section: 'contacts', index: i, data: c })} className="text-blue-600 p-0.5 hover:bg-blue-200 rounded"><Edit2 size={10} /></button>
+                            <button onClick={() => setEditingItem({ section: 'contacts', index: i, data: c })} className="text-indigo-600 p-0.5 hover:bg-indigo-200 rounded"><Edit2 size={10} /></button>
                             <button onClick={() => handleDeleteDraft('contacts', i)} className="text-red-600 p-0.5 hover:bg-red-200 rounded"><Trash2 size={10} /></button>
                           </div>
                         </div>
@@ -599,11 +698,11 @@ export function CvSyncCompareModal({
                     </div>
                   </section>
                   <section>
-                    <div className="flex items-center justify-between mb-3 border-b border-blue-200 pb-1">
-                      <h3 className="text-sm font-bold flex items-center gap-2 text-blue-700">
+                    <div className="flex items-center justify-between mb-3 border-b border-indigo-200 pb-1">
+                      <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-700">
                         <Share2 size={16} /> Merged Socials Preview
                       </h3>
-                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-blue-200 text-blue-600 py-0"
+                      <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1 border-indigo-200 text-indigo-600 py-0"
                         onClick={() => handleAddDraft('socials', { platform: 'LINKEDIN', url: '' })}>
                         <Plus size={10} /> Add
                       </Button>
@@ -613,16 +712,18 @@ export function CvSyncCompareModal({
                       {currentData?.socials?.map((s: any, i: number) => (
                         <Badge key={`curr-s-${i}`} variant="outline" className="opacity-40 text-[10px] py-1 border-slate-200 bg-white">
                           <span className="text-slate-400 mr-1">{s.platform}:</span> {s.url}
+                          <span className="ml-1 text-[8px] uppercase font-bold text-slate-300">(Hiện có)</span>
                         </Badge>
                       ))}
                       {/* Draft highlighted */}
                       {draftData?.socials?.map((s: any, i: number) => (
                         <div key={`draft-s-${i}`} className="group relative">
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[10px] py-1 pr-8">
-                            <span className="text-blue-400 mr-1 uppercase font-bold">{s.platform}:</span> {s.url}
+                          <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-indigo-200 text-[10px] py-1 pr-12">
+                            <span className="text-indigo-400 mr-1 uppercase font-bold">{s.platform}:</span> {s.url}
+                            <span className="ml-1 text-[8px] uppercase font-bold text-indigo-500">(Mới)</span>
                           </Badge>
                           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setEditingItem({ section: 'socials', index: i, data: s })} className="text-blue-600 p-0.5 hover:bg-blue-200 rounded"><Edit2 size={10} /></button>
+                            <button onClick={() => setEditingItem({ section: 'socials', index: i, data: s })} className="text-indigo-600 p-0.5 hover:bg-indigo-200 rounded"><Edit2 size={10} /></button>
                             <button onClick={() => handleDeleteDraft('socials', i)} className="text-red-600 p-0.5 hover:bg-red-200 rounded"><Trash2 size={10} /></button>
                           </div>
                         </div>

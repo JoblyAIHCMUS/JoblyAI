@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { AiGateway } from '../ai.gateway';
 import { ResumeParserService } from '../resume-parser.service';
+import { ProfileSyncService } from '../profile-sync.service';
 import { S3Service } from '../../s3/s3.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
@@ -14,6 +15,7 @@ export class ResumeProcessor extends WorkerHost {
   constructor(
     private readonly aiGateway: AiGateway,
     private readonly parserService: ResumeParserService,
+    private readonly profileSyncService: ProfileSyncService,
     private readonly s3Service: S3Service,
     @InjectPrisma() private readonly prisma: PrismaClient,
   ) {
@@ -42,13 +44,22 @@ export class ResumeProcessor extends WorkerHost {
 
       // 4. Parse with Gemini (Extract data + Generate whole-document embedding)
       const result = await this.parserService.parseResumeText(text);
-      const data = result.data;
+      let data = result.data;
       const embedding = result.embedding;
       
       this.logger.log(`Successfully parsed resume ${resumeId}. Data found: ${!!data}`);
 
       if (!data) {
         throw new Error(`AI failed to parse resume ${resumeId}`);
+      }
+
+      // 4.1 Enrich data with isDuplicate flags using Vector Search / Profile data
+      try {
+        data = await this.profileSyncService.enrichWithDuplicateFlags(candidateId, data);
+        this.logger.log(`Enriched resume ${resumeId} with duplicate flags`);
+      } catch (enrichError: any) {
+        this.logger.error(`Failed to enrich resume with duplicate flags: ${enrichError.message}`);
+        // Continue even if enrichment fails, we still want to save the base data
       }
 
       // 5. Store draft data (in parsedText field as stringified JSON)
