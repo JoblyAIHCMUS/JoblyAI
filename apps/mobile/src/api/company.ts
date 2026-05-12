@@ -8,3 +8,14 @@ export async function getCompanies(options?: ApiOptions): Promise<Company[]> {
   });
   return response.data;
 }
+
+export async function getTopCompaniesWithMostJobs(
+  limit: number,
+  options?: ApiOptions
+): Promise<Company[]> {
+  const response = await apiClient.get<Company[]>('/company/top', {
+    params: { limit },
+    signal: options?.signal,
+  });
+  return response.data;
+}

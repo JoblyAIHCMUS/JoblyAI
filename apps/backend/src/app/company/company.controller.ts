@@ -52,6 +52,13 @@ export class CompanyController {
     return this.companyService.getBySlug(slug);
   }
 
+  @Get('top')
+  async getTopCompaniesWithMostJobs(
+    @Query('limit', ParseIntPipe) limit: number
+  ) {
+    return this.companyService.getTopCompaniesWithMostJobs(limit);
+  }
+
   @Get(':id/employees')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

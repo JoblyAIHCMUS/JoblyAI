@@ -65,7 +65,7 @@
     "jsonc-eslint-parser": "^2.4.2",
     "metro-config": "~0.83.0",
     "metro-resolver": "~0.83.0",
-    "next": "~16.1.6",
+    "next": "^16.2.6",
     "nx": "22.6.4",
     "prettier": "^2.8.8",
     "react-native-svg": "15.12.1",
