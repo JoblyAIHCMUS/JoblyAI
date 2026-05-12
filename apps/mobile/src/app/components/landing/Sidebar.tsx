@@ -23,9 +23,16 @@ import { AppButton } from '../shared/AppButton';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginPress: () => void;
+  onSignUpPress: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  onLoginPress,
+  onSignUpPress,
+}: SidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
@@ -160,13 +167,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={() => undefined} />
+            <AppButton title="Sign Up" onPress={onSignUpPress} />
             <View style={{ height: SPACING.md }} />
-            <AppButton
-              title="Login"
-              variant="outline"
-              onPress={() => undefined}
-            />
+            <AppButton title="Login" variant="outline" onPress={onLoginPress} />
           </View>
         </View>
       </SafeAreaView>
