@@ -39,16 +39,17 @@ export function EmployerTopBar() {
     <header
       className={cn(
         'w-full',
-        'px-6 md:px-8 py-4',
+        'px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4',
         'bg-white',
-        'border-b border-[#d6ddeb]'
+        'border-b border-[#d6ddeb]',
+        'sticky top-0 z-20'
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 sm:gap-4">
         {/* Left side - Company logo + name or Not Affiliated */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
           {/* Company logo or placeholder */}
-          <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium flex-shrink-0">
             {company?.logoUrl ? (
               <img
                 src={company.logoUrl}
@@ -66,16 +67,16 @@ export function EmployerTopBar() {
 
           {/* Company name or Not Affiliated + Register link or Error */}
           <div className="flex flex-col items-start">
-            <span className="label-label-2-regular text-[var(--text-secondary)]">
+            <span className="label-label-2-regular text-[var(--text-secondary)] text-xs sm:text-sm">
               Company
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
               {error ? (
-                <span className="heading-h6-semi-bold text-[#ff6550]">
+                <span className="heading-h6-semi-bold text-[#ff6550] text-sm sm:text-base">
                   Error loading profile
                 </span>
               ) : (
-                <span className="heading-h6-semi-bold text-[#25324b]">
+                <span className="heading-h6-semi-bold text-[#25324b] text-sm sm:text-base truncate">
                   {isPending
                     ? 'Loading...'
                     : company?.name
@@ -86,9 +87,9 @@ export function EmployerTopBar() {
               {!company && !isPending && !error && (
                 <Link
                   href="/employer/new-company"
-                  className="ml-3 text-[#4640de] label-label-2-semi-bold hover:underline"
+                  className="ml-1 sm:ml-3 text-[#4640de] label-label-2-semi-bold hover:underline text-xs sm:text-sm whitespace-nowrap"
                 >
-                  Register Company
+                  Register
                 </Link>
               )}
             </div>
@@ -96,7 +97,7 @@ export function EmployerTopBar() {
         </div>
 
         {/* Right side - Notification + Post job */}
-        <div className="flex items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 flex-shrink-0">
           {/* Notification bell button */}
           <div className="relative" ref={notificationWrapperRef}>
             <button
@@ -105,7 +106,7 @@ export function EmployerTopBar() {
               aria-expanded={isBellEnabled}
               aria-haspopup="menu"
               onClick={handleBellToggle}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              className={`relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-colors ${
                 isBellEnabled
                   ? 'bg-[#eef0ff] text-[#4640de]'
                   : 'text-[#25324b] hover:bg-[#f8fafc] hover:text-[#4640de]'
@@ -113,7 +114,7 @@ export function EmployerTopBar() {
             >
               <Bell className="h-5 w-5" strokeWidth={1.8} />
               {unreadCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 caption-caption-2-medium text-white">
+                <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6550] px-0.5 caption-caption-2-medium text-white text-xs">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -125,12 +126,12 @@ export function EmployerTopBar() {
                   type="button"
                   aria-label="Close notifications"
                   onClick={closeNotificationMenu}
-                  className="fixed inset-0 z-40 bg-black/10 sm:hidden"
+                  className="fixed inset-0 z-40 bg-black/10 lg:hidden"
                 />
 
-                <div className="fixed inset-x-2 top-[72px] z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[360px]">
-                  <div className="border-b border-[#eef1f6] px-4 py-3">
-                    <p className="heading-h6-semi-bold text-[#25324b]">
+                <div className="fixed inset-x-2 top-[72px] sm:inset-x-4 z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] lg:absolute lg:inset-x-auto lg:right-0 lg:top-12 lg:w-[360px]">
+                  <div className="border-b border-[#eef1f6] px-3 sm:px-4 py-2 sm:py-3">
+                    <p className="heading-h6-semi-bold text-[#25324b] text-sm sm:text-base">
                       Notifications
                     </p>
                   </div>
@@ -144,7 +145,7 @@ export function EmployerTopBar() {
                         <Link
                           href={notification.href}
                           onClick={closeNotificationMenu}
-                          className="flex gap-3 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                          className="flex gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 transition-colors hover:bg-[#f8fafc]"
                         >
                           <span
                             className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
@@ -154,10 +155,10 @@ export function EmployerTopBar() {
                             }`}
                           />
                           <div className="min-w-0">
-                            <p className="line-clamp-2 text-sm text-[#25324b]">
+                            <p className="line-clamp-2 text-xs sm:text-sm text-[#25324b]">
                               {notification.title}
                             </p>
-                            <p className="mt-1 text-xs text-[#7c8493]">
+                            <p className="mt-0.5 sm:mt-1 text-xs text-[#7c8493]">
                               {formatNotificationTime(notification.createdAt)}
                             </p>
                           </div>
@@ -166,7 +167,7 @@ export function EmployerTopBar() {
                     ))}
 
                     {hasMoreNotifications && (
-                      <li className="px-4 py-2 text-center text-xs text-[#7c8493]">
+                      <li className="px-3 sm:px-4 py-2 text-center text-xs text-[#7c8493]">
                         Scroll to load more
                       </li>
                     )}
@@ -180,11 +181,12 @@ export function EmployerTopBar() {
           {canPostJob ? (
             <Button
               asChild
-              className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)]"
+              className="gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 h-9 sm:h-11 bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)] text-xs sm:text-sm md:text-base"
             >
               <Link href="/employer/new-job">
-                <Plus className="h-5 w-5" />
-                Post a job
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Post a job</span>
+                <span className="sm:hidden">Post</span>
               </Link>
             </Button>
           ) : (
@@ -201,10 +203,11 @@ export function EmployerTopBar() {
                     <Button
                       type="button"
                       disabled
-                      className="gap-2 px-6 py-2.5 h-11 bg-[var(--bg-disabled)] text-[var(--text-disabled)] cursor-not-allowed"
+                      className="gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 h-9 sm:h-11 bg-[var(--bg-disabled)] text-[var(--text-disabled)] cursor-not-allowed text-xs sm:text-sm md:text-base"
                     >
-                      <Plus className="h-5 w-5" />
-                      Post a job
+                      <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="hidden sm:inline">Post a job</span>
+                      <span className="sm:hidden">Post</span>
                     </Button>
                   </span>
                 </TooltipTrigger>

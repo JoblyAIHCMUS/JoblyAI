@@ -639,10 +639,10 @@ export default function JobListingTable({
 
   if (error) {
     return (
-      <div className="rounded-md border border-red-200 bg-red-50 p-4">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-red-600" />
-          <p className="text-sm text-red-700">
+      <div className="rounded-md border border-red-200 bg-red-50 p-3 sm:p-4 md:p-5">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs sm:text-sm text-red-700">
             Failed to load job listings. Please try again later.
           </p>
         </div>
@@ -651,16 +651,16 @@ export default function JobListingTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
       {loading && displayData.length === 0 && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex items-center justify-center py-8 sm:py-10 md:py-12">
+          <Loader2 className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {!loading && displayData.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">
+        <div className="text-center py-8 sm:py-10 md:py-12">
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
             No job listings found. Create your first job posting to get started.
           </p>
         </div>
@@ -677,17 +677,18 @@ export default function JobListingTable({
 
           {/* Custom pagination controls for server-side pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between py-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 py-4 sm:py-6">
+              <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
                 Showing {(currentPage - 1) * pageSize + 1} to{' '}
                 {Math.min(currentPage * pageSize, total)} of {total} results
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2 order-1 sm:order-2 flex-wrap justify-start sm:justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1 || loading}
+                  className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Previous
                 </Button>
@@ -700,6 +701,7 @@ export default function JobListingTable({
                       size="sm"
                       onClick={() => handlePageChange(page)}
                       disabled={loading}
+                      className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                     >
                       {page}
                     </Button>
@@ -709,6 +711,7 @@ export default function JobListingTable({
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages || loading}
+                  className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Next
                 </Button>

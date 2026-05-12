@@ -55,7 +55,7 @@ export default function ChangePasswordForm() {
 
   return (
     <form
-      className="flex flex-col gap-6 w-full max-w-[540px]"
+      className="flex flex-col gap-4 sm:gap-5 md:gap-6 w-full"
       onSubmit={handleSubmit}
     >
       <FormField
@@ -88,10 +88,12 @@ export default function ChangePasswordForm() {
         isRequired
         width="full"
       />
-      {success && <span className="text-sm text-green-600">{success}</span>}
+      {success && (
+        <span className="text-xs sm:text-sm text-green-600">{success}</span>
+      )}
       <Button
         type="submit"
-        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white label-label-1-semi-bold"
+        className="self-start px-3 sm:px-6 py-2 sm:py-3 h-9 sm:h-10 text-xs sm:text-sm bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white label-label-1-semi-bold transition-opacity hover:opacity-90"
       >
         Change Password
       </Button>

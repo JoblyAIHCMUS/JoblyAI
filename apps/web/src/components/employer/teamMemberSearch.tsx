@@ -70,10 +70,12 @@ export function TeamMemberSearch({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-0 gap-0 max-w-md">
-        <DialogHeader className="px-4 pt-4 pb-2">
-          <DialogTitle>Add Team Member</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="p-0 gap-0 max-w-sm sm:max-w-md">
+        <DialogHeader className="px-3 sm:px-4 pt-4 pb-2">
+          <DialogTitle className="text-base sm:text-lg">
+            Add Team Member
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Search by name or email to add a member to your team.
           </DialogDescription>
         </DialogHeader>
@@ -83,13 +85,18 @@ export function TeamMemberSearch({
             placeholder="Search by name or email..."
             value={query}
             onValueChange={setQuery}
+            className="text-xs sm:text-sm"
           />
           <CommandList>
             {query.trim() !== '' && loading && (
-              <CommandEmpty>Searching members...</CommandEmpty>
+              <CommandEmpty className="text-xs sm:text-sm">
+                Searching members...
+              </CommandEmpty>
             )}
             {query.trim() !== '' && !loading && results.length === 0 && (
-              <CommandEmpty>No members found.</CommandEmpty>
+              <CommandEmpty className="text-xs sm:text-sm">
+                No members found.
+              </CommandEmpty>
             )}
             {results.length > 0 && (
               <CommandGroup>
@@ -102,9 +109,9 @@ export function TeamMemberSearch({
                       key={member.email}
                       value={member.email}
                       onSelect={() => handleSelect(member)}
-                      className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+                      className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 cursor-pointer text-xs sm:text-sm"
                     >
-                      <Avatar className="h-8 w-8 shrink-0">
+                      <Avatar className="h-7 w-7 sm:h-8 sm:w-8 shrink-0">
                         <AvatarImage
                           src={member.avatar}
                           alt={`${member.firstName} ${member.lastName}`}
@@ -114,7 +121,7 @@ export function TeamMemberSearch({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0">
-                        <span className="label-label-2-medium truncate">
+                        <span className="label-label-2-medium truncate text-xs sm:text-sm">
                           {member.firstName} {member.lastName}
                         </span>
                         <span className="text-xs text-muted-foreground truncate">
