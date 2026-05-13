@@ -219,6 +219,7 @@ model CandidateDescription {
   title           String?
   bio             String?                     @db.Text
   rawDescriptions Json?
+  rawTitles       Json?
   embedding       Unsupported("vector(3072)")?
 
   createdAt DateTime @default(now())

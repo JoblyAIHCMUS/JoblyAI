@@ -17,6 +17,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/date-picker';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -30,6 +33,45 @@ interface CvSyncCompareModalProps {
 // Define types for clarity
 type SyncStatus = 'EXISTING' | 'MATCHED' | 'NEW';
 
+function DatePickerField({ value, onChange, placeholder }: { value: string; onChange: (date: Date | null) => void; placeholder?: string }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const dateValue = value ? new Date(value) : undefined;
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <div className="relative w-full">
+        <Input
+          type="date"
+          value={value ? new Date(value).toISOString().split('T')[0] : ''}
+          onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
+          placeholder={placeholder}
+          className="bg-white text-slate-900 border-slate-200 text-sm pr-10 w-full h-9"
+        />
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer z-10"
+            onClick={() => setIsOpen(true)}
+          >
+            <CalendarIcon size={16} />
+          </button>
+        </PopoverTrigger>
+      </div>
+      <PopoverContent className="w-auto p-0 z-[100]" align="start">
+        <Calendar
+          mode="single"
+          selected={dateValue}
+          onSelect={(date) => {
+            onChange(date || null);
+            setIsOpen(false);
+          }}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
   const [formData, setFormData] = React.useState<any>(null);
 
@@ -42,6 +84,10 @@ function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (name: string, date: Date | null) => {
+    setFormData((prev: any) => ({ ...prev, [name]: date ? date.toISOString() : '' }));
   };
 
   return (
@@ -79,11 +125,11 @@ function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Start Date</Label>
-                  <Input name="startDate" value={formData.startDate || ''} onChange={handleChange} placeholder="MM/YYYY" />
+                  <DatePickerField value={formData.startDate} onChange={(date) => handleDateChange('startDate', date)} />
                 </div>
                 <div className="grid gap-2">
                   <Label>End Date</Label>
-                  <Input name="endDate" value={formData.endDate || ''} onChange={handleChange} placeholder="Present" />
+                  <DatePickerField value={formData.endDate} onChange={(date) => handleDateChange('endDate', date)} placeholder="Present" />
                 </div>
               </div>
               <div className="grid gap-2">
@@ -110,11 +156,11 @@ function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Start Date</Label>
-                  <Input name="startDate" value={formData.startDate || ''} onChange={handleChange} />
+                  <DatePickerField value={formData.startDate} onChange={(date) => handleDateChange('startDate', date)} />
                 </div>
                 <div className="grid gap-2">
                   <Label>End Date</Label>
-                  <Input name="endDate" value={formData.endDate || ''} onChange={handleChange} />
+                  <DatePickerField value={formData.endDate} onChange={(date) => handleDateChange('endDate', date)} />
                 </div>
               </div>
             </>
@@ -151,7 +197,7 @@ function EditItemDialog({ isOpen, onClose, section, data, onSave }: any) {
               </div>
               <div className="grid gap-2">
                 <Label>Issue Date</Label>
-                <Input name="issueDate" value={formData.issueDate || ''} onChange={handleChange} />
+                <DatePickerField value={formData.issueDate} onChange={(date) => handleDateChange('issueDate', date)} />
               </div>
             </>
           )}
@@ -281,6 +327,20 @@ export function CvSyncCompareModal({
     setTimeout(() => {
       setEditingItem({ section, index: draftData[section]?.length || 0, data: defaultValue });
     }, 0);
+  };
+
+  const formatDisplayDate = (date: string | null | undefined) => {
+    if (!date) return 'Present';
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return date; // Fallback to raw string if invalid
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch (e) {
+      return date;
+    }
   };
 
   const renderSectionHeader = (icon: React.ReactNode, title: string, count?: number) => (
@@ -532,7 +592,7 @@ export function CvSyncCompareModal({
                       status === 'MATCHED' ? "text-amber-600" : status === 'NEW' ? "text-indigo-600" : "text-accent-primary"
                     )}>{exp.companyName}</div>
                     <div className="text-[10px] text-slate-400 mb-2 font-medium flex items-center gap-1">
-                      {exp.startDate} – {exp.endDate || 'Present'}
+                      {formatDisplayDate(exp.startDate)} – {formatDisplayDate(exp.endDate)}
                     </div>
                     <p className={cn(
                       "text-[11px] leading-relaxed",
@@ -570,7 +630,7 @@ export function CvSyncCompareModal({
                       "text-xs",
                       status === 'MATCHED' ? "text-amber-600 font-bold" : status === 'NEW' ? "text-indigo-600 font-bold" : "text-slate-500"
                     )}>{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</div>
-                    <div className="text-[10px] text-slate-400 font-medium mt-1">{edu.startDate} – {edu.endDate || 'Present'}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-1">{formatDisplayDate(edu.startDate)} – {formatDisplayDate(edu.endDate)}</div>
                     {edu.grade && <div className={cn(
                       "text-[10px] font-bold mt-1",
                       status === 'MATCHED' || status === 'NEW' ? "text-green-600" : "text-slate-400"
@@ -634,7 +694,7 @@ export function CvSyncCompareModal({
                       "text-[10px]",
                       status === 'MATCHED' ? "text-amber-600 font-bold" : status === 'NEW' ? "text-indigo-600 font-bold" : "text-slate-500"
                     )}>{c.issuer}</div>
-                    {c.issueDate && <div className="text-[9px] text-slate-400 font-medium italic mt-1">{c.issueDate}</div>}
+                    {c.issueDate && <div className="text-[9px] text-slate-400 font-medium italic mt-1">{formatDisplayDate(c.issueDate)}</div>}
                   </div>
                 )}
               />

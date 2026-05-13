@@ -58,11 +58,22 @@ export class ProfileSyncService {
     const education = data.education || [];
     const certificates = data.certificates || [];
 
-    // 1. Pre-calculate Bio & Title
+    // 1. Bio & Title
     const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
     const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
-    rawDescriptions[resumeId.toString()] = data.bio || '';
-    const finalBio = await this.regenerateBio(rawDescriptions);
+    
+    // Check if user provided an edited bio in the draft data
+    let finalBio = data.bio || '';
+    
+    // If bio is empty in the draft, fallback to regeneration
+    if (!finalBio) {
+      rawDescriptions[resumeId.toString()] = data.bio || '';
+      finalBio = await this.regenerateBio(rawDescriptions);
+    } else {
+      // If user provided a bio, save it and update sources tracking
+      rawDescriptions[resumeId.toString()] = data.bio;
+    }
+    
     const bioEmbedding = await this.aiProvider.generateEmbedding(finalBio);
 
     return this.prisma.$transaction(async (tx) => {
@@ -536,6 +547,14 @@ export class ProfileSyncService {
       }
     }
 
+    // 7. Bio Regeneration Preview (Merged Result)
+    const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+    const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
+    // Temporarily add the new bio to the descriptions for preview purposes
+    // We don't save this yet, it's just for the returned draft
+    const tempRawDescriptions = { ...rawDescriptions, "draft": enriched.bio || '' };
+    enriched.bio = await this.regenerateBio(tempRawDescriptions);
+
     return enriched;
   }
 
@@ -550,8 +569,8 @@ export class ProfileSyncService {
   async handleResumeDeletion(candidateId: string, resumeId: number, shouldKeepData = false) {
     this.logger.log(`[handleResumeDeletion] Start: resumeId=${resumeId}, candidateId=${candidateId}, keepData=${shouldKeepData}`);
     
-    let finalBio: string = '';
-    let finalTitle: string = '';
+    let finalBio = '';
+    let finalTitle = '';
     let updatedRawDescriptions: Record<string, string> = {};
     let shouldClearEntirely = false;
 
