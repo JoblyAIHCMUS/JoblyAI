@@ -11,6 +11,7 @@ export const EMPLOYMENT_TYPE_MAP: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
+  OTHER: 'Other',
 };
 
 export const EMPLOYMENT_TYPE_OPTIONS = Object.entries(EMPLOYMENT_TYPE_MAP).map(

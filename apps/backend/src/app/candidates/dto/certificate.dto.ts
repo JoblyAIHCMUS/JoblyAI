@@ -54,7 +54,7 @@ export class QueryCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
   expiryDate?: string; // Optional: Some certs don't expire
 
   @IsOptional()
@@ -85,7 +85,7 @@ export class QueryCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
   expiryDate?: string;
 
   @IsOptional()
