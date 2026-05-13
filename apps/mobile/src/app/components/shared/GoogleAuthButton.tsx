@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { COLORS, SPACING } from '../../constants/theme';
+import { Text } from '../../../components/ui/text';
 
 interface GoogleAuthButtonProps {
   label: string;
@@ -32,64 +32,26 @@ const GoogleIcon = () => (
 export const GoogleAuthButton = ({ label, onPress }: GoogleAuthButtonProps) => {
   return (
     <TouchableOpacity
-      style={styles.button}
+      className="flex-row items-center justify-center bg-white border border-border rounded-lg py-4 mb-6"
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.iconContainer}>
+      <View className="mr-2">
         <GoogleIcon />
       </View>
-      <Text style={styles.text}>{label}</Text>
+      <Text className="text-[#333333] text-base font-bold">{label}</Text>
     </TouchableOpacity>
   );
 };
 
 export const AuthDivider = ({ text }: { text: string }) => {
   return (
-    <View style={styles.dividerContainer}>
-      <View style={styles.line} />
-      <Text style={styles.dividerText}>{text}</Text>
-      <View style={styles.line} />
+    <View className="flex-row items-center mb-6">
+      <View className="flex-1 h-[1px] bg-border" />
+      <Text variant="muted" className="mx-4 text-sm font-medium">
+        {text}
+      </Text>
+      <View className="flex-1 h-[1px] bg-border" />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    paddingVertical: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
-  iconContainer: {
-    marginRight: SPACING.sm,
-  },
-  text: {
-    color: '#333333', // Darker text for google auth
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Inter',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
-  dividerText: {
-    marginHorizontal: SPACING.md,
-    color: COLORS.textLight,
-    fontSize: 14,
-    fontWeight: '500',
-    fontFamily: 'Inter',
-  },
-});

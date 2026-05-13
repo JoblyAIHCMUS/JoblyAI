@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, SPACING } from '../../../constants/theme';
 import { TextInput } from '../../../components/shared/TextInput';
-import { AppButton } from '../../../components/shared/AppButton';
+import { Button } from '../../../../components/ui/button';
+import { Text } from '../../../../components/ui/text';
 import { useSendOTP, useResetPassword } from '../../../../hooks/useAuth';
 
 interface ForgotPasswordPageProps {
@@ -116,38 +109,35 @@ const ForgotPasswordPage = ({
   const loading = otpLoading || resetLoading;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-grow" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => onGoToLanding?.()}>
-            <View>
-              <Text style={styles.title}>Reset Password</Text>
-              <Text style={styles.subtitle}>
-                Enter your email to receive a verification code
-              </Text>
-            </View>
-          </TouchableOpacity>
+        <View className="flex-row justify-between items-start mb-6 px-6 py-8">
+          <View className="flex-1">
+            <Text variant="h1" className="text-left mb-2">
+              Reset Password
+            </Text>
+            <Text variant="muted" className="text-sm">
+              Enter your email to receive a verification code
+            </Text>
+          </View>
           <TouchableOpacity onPress={() => onGoToLogin?.()}>
-            <Text style={styles.headerLink}>Login</Text>
+            <Text className="text-sm font-semibold text-primary">Login</Text>
           </TouchableOpacity>
         </View>
 
         {/* Error Message */}
         {error && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error.message}</Text>
+          <View className="bg-destructive/10 rounded-lg p-4 mb-4 border-l-4 border-destructive mx-6">
+            <Text className="text-destructive text-sm">{error.message}</Text>
           </View>
         )}
 
         {/* Form */}
-        <View style={styles.form}>
+        <View className="flex-1 px-6 py-4">
           {/* Email Input */}
-          <Text style={styles.label}>Email Address</Text>
           <TextInput
+            label="Email Address"
             placeholder="Enter email address"
             value={email}
             onChangeText={setEmail}
@@ -157,9 +147,9 @@ const ForgotPasswordPage = ({
 
           {/* OTP Input */}
           {otpSent && (
-            <>
-              <Text style={styles.label}>Verification Code</Text>
+            <View className="gap-4">
               <TextInput
+                label="Verification Code"
                 placeholder="Enter 6-digit code"
                 value={otp}
                 onChangeText={(text) => setOtp(text.slice(0, 6))}
@@ -169,58 +159,58 @@ const ForgotPasswordPage = ({
               />
 
               {/* New Password */}
-              <Text style={styles.label}>New Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  placeholder="Enter your new password"
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!showNewPassword}
-                  editable={!loading}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setShowNewPassword(!showNewPassword)}
-                >
-                  <Text>{showNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                </TouchableOpacity>
-              </View>
+              <TextInput
+                label="New Password"
+                placeholder="Enter your new password"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showNewPassword}
+                editable={!loading}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    <Text className="text-xl">
+                      {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                    </Text>
+                  </TouchableOpacity>
+                }
+              />
 
               {/* Confirm Password */}
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  placeholder="Confirm your new password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  editable={!loading}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  <Text>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                </TouchableOpacity>
-              </View>
+              <TextInput
+                label="Confirm Password"
+                placeholder="Confirm your new password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                editable={!loading}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    <Text className="text-xl">
+                      {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                    </Text>
+                  </TouchableOpacity>
+                }
+              />
 
               {/* Password Match Indicator */}
               {newPassword && confirmPassword && (
                 <View
-                  style={[
-                    styles.matchIndicator,
+                  className={`rounded p-3 ${
                     newPassword === confirmPassword
-                      ? styles.matchIndicatorSuccess
-                      : styles.matchIndicatorError,
-                  ]}
+                      ? 'bg-green-100'
+                      : 'bg-red-100'
+                  }`}
                 >
                   <Text
-                    style={[
-                      styles.matchIndicatorText,
+                    className={`text-xs font-medium ${
                       newPassword === confirmPassword
-                        ? styles.matchIndicatorTextSuccess
-                        : styles.matchIndicatorTextError,
-                    ]}
+                        ? 'text-green-700'
+                        : 'text-red-600'
+                    }`}
                   >
                     {newPassword === confirmPassword
                       ? '✓ Passwords match'
@@ -230,24 +220,29 @@ const ForgotPasswordPage = ({
               )}
 
               {/* Reset Button */}
-              <AppButton
-                title={loading ? 'Resetting password...' : 'Reset Password'}
+              <Button
+                size="lg"
                 onPress={handleResetPassword}
-                variant="primary"
-              />
+                disabled={loading}
+              >
+                <Text>
+                  {loading ? 'Resetting password...' : 'Reset Password'}
+                </Text>
+              </Button>
 
               {/* Resend OTP */}
-              <View style={styles.resendContainer}>
-                <Text style={styles.resendText}>Didn't receive a code? </Text>
+              <View className="flex-row justify-center mt-4">
+                <Text variant="muted" className="text-sm">
+                  Didn't receive a code?{' '}
+                </Text>
                 <TouchableOpacity
                   onPress={handleSendOTP}
                   disabled={resendTimer > 0 || loading}
                 >
                   <Text
-                    style={[
-                      styles.resendLink,
-                      (resendTimer > 0 || loading) && styles.resendLinkDisabled,
-                    ]}
+                    className={`text-sm font-semibold text-primary ${
+                      (resendTimer > 0 || loading) && 'opacity-50'
+                    }`}
                   >
                     {resendTimer > 0
                       ? `Resend in ${resendTimer}s`
@@ -255,22 +250,24 @@ const ForgotPasswordPage = ({
                   </Text>
                 </TouchableOpacity>
               </View>
-            </>
+            </View>
           )}
 
           {/* Send OTP Button */}
           {!otpSent && (
-            <AppButton
-              title={loading ? 'Sending code...' : 'Send Verification Code'}
-              onPress={handleSendOTP}
-              variant="primary"
-            />
+            <Button size="lg" onPress={handleSendOTP} disabled={loading}>
+              <Text>
+                {loading ? 'Sending code...' : 'Send Verification Code'}
+              </Text>
+            </Button>
           )}
 
           {/* Back to Login */}
-          <View style={styles.backContainer}>
+          <View className="mt-8 items-center">
             <TouchableOpacity onPress={() => onGoToLogin?.()}>
-              <Text style={styles.backLink}>← Back to Login</Text>
+              <Text className="text-sm font-semibold text-primary">
+                ← Back to Login
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -278,120 +275,5 @@ const ForgotPasswordPage = ({
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.lg,
-  },
-  header: {
-    marginBottom: SPACING.lg,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  headerLink: {
-    color: COLORS.primary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  form: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  passwordContainer: {
-    position: 'relative',
-    marginBottom: SPACING.md,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: SPACING.md,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-  },
-  matchIndicator: {
-    borderRadius: 6,
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  matchIndicatorSuccess: {
-    backgroundColor: '#D1FAE5',
-  },
-  matchIndicatorError: {
-    backgroundColor: '#FFE5E5',
-  },
-  matchIndicatorText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  matchIndicatorTextSuccess: {
-    color: '#059669',
-  },
-  matchIndicatorTextError: {
-    color: COLORS.error,
-  },
-  resendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.md,
-  },
-  resendText: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  resendLink: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  resendLinkDisabled: {
-    color: COLORS.textLight,
-    opacity: 0.5,
-  },
-  backContainer: {
-    marginTop: SPACING.lg,
-    alignItems: 'center',
-  },
-  backLink: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  errorBox: {
-    backgroundColor: '#FFE5E5',
-    borderRadius: 8,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-  },
-});
 
 export default ForgotPasswordPage;
