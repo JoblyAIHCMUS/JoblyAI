@@ -41,10 +41,10 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: COLORS.primary },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.primary,
   },
-  text: { fontWeight: '700', fontSize: 16 },
+  text: { fontWeight: '700', fontSize: 16, fontFamily: 'Inter' },
   textPrimary: { color: COLORS.white },
   textOutline: { color: COLORS.primary },
 });
