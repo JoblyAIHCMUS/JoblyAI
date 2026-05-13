@@ -136,7 +136,7 @@ export function mapDataToCandidate(
     name: fullName,
     email: data.email || '',
     phone: data.phoneNumber || '',
-    title: '', // Title is no longer stored in about section
+    title: data.about?.title || '', // Map title from about section
     avatar: data.avatarUrl || '',
     banner: '#4640DE',
     openForOpportunities: data.openForOpportunities || false,
