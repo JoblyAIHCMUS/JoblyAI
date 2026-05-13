@@ -212,8 +212,8 @@ export const createExperienceSchema = () => {
         .optional()
         .or(z.literal(''))
         .refine(
-          (val) => !val || val.length <= 500,
-          'Description must not exceed 500 characters'
+          (val) => !val || val.length <= 1000,
+          'Description must not exceed 1000 characters'
         ),
     })
     .superRefine((data, ctx) => {

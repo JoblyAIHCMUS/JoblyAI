@@ -59,7 +59,7 @@ export class CreateEducationDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
   endDate?: string;
 
   @IsOptional()
@@ -92,7 +92,7 @@ export class UpdateEducationDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
   endDate?: string;
 
   @IsOptional()
