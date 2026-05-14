@@ -1,18 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { useState } from 'react';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { COLORS, SPACING } from '../../../constants/theme';
 import { TextInput } from '../../../components/shared/TextInput';
-import { AppButton } from '../../../components/shared/AppButton';
+import { Button } from '../../../../components/ui/button';
+import { Text } from '../../../../components/ui/text';
 import {
   GoogleAuthButton,
   AuthDivider,
@@ -54,7 +48,7 @@ const LoginPage = () => {
         text2: 'Login successful!',
       });
       router.push('/');
-    } catch (err: any) {
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
@@ -65,95 +59,117 @@ const LoginPage = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        className="flex-grow"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back, Dude</Text>
+        <View className="px-6 py-8">
+          <Text variant="h1" className="text-left mb-2">
+            Welcome Back
+          </Text>
+          <Text variant="muted" className="text-base">
+            Login to your account to continue exploring opportunities.
+          </Text>
         </View>
 
         {/* Google Login */}
-        <GoogleAuthButton label="Log in with Google" />
+        <View className="px-6">
+          <GoogleAuthButton label="Log in with Google" />
+        </View>
 
-        <AuthDivider text="Or login with email" />
+        <View className="px-6">
+          <AuthDivider text="Or login with email" />
+        </View>
 
         {/* Error Message */}
         {error && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error.message}</Text>
+          <View className="bg-destructive/10 rounded-lg p-4 mb-6 border-l-4 border-destructive mx-6">
+            <Text className="text-destructive text-sm font-medium">
+              {error.message}
+            </Text>
           </View>
         )}
 
-        {/* Email Input */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Email Address</Text>
+        {/* Form Fields */}
+        <View className="px-6">
+          {/* Email Input */}
           <TextInput
-            placeholder="Enter email address"
+            label="Email Address"
+            placeholder="name@example.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             editable={!loading}
           />
 
+          <View className="h-2" />
+
           {/* Password Input */}
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              placeholder="Enter password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            label="Password"
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            rightElement={
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Text className="text-xl">{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            }
+          />
 
           {/* Remember Me & Forgot Password */}
-          <View style={styles.optionsRow}>
+          <View className="flex-row justify-between items-center mt-4 mb-8">
             <TouchableOpacity
-              style={styles.rememberMeContainer}
+              className="flex-row items-center"
               onPress={() => setRememberMe(!rememberMe)}
+              activeOpacity={0.7}
             >
               <View
-                style={[
-                  styles.checkbox,
-                  rememberMe ? styles.checkboxChecked : {},
-                ]}
+                className={`w-5 h-5 border-2 rounded items-center justify-center mr-2 ${
+                  rememberMe
+                    ? 'border-primary bg-primary'
+                    : 'border-input bg-background'
+                }`}
               >
-                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+                {rememberMe && (
+                  <Text className="text-white text-[10px]">✓</Text>
+                )}
               </View>
-              <Text style={styles.rememberMeText}>Remember me</Text>
+              <Text className="text-sm font-medium text-foreground">
+                Remember me
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/forgot-password')}
+              activeOpacity={0.7}
             >
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              <Text className="text-sm font-semibold text-primary">
+                Forgot password?
+              </Text>
             </TouchableOpacity>
           </View>
 
           {/* Login Button */}
-          <AppButton
-            title={loading ? 'Logging in...' : 'Login'}
-            onPress={handleLogin}
-            variant="primary"
-          />
+          <Button size="lg" onPress={handleLogin} disabled={loading}>
+            <Text>{loading ? 'Logging in...' : 'Login'}</Text>
+          </Button>
 
           {/* Sign Up Link */}
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+          <View className="flex-row justify-center mt-6">
+            <Text className="text-sm text-muted-foreground">
+              Don't have an account?{' '}
+            </Text>
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/register')}
+              activeOpacity={0.7}
             >
-              <Text style={styles.signupLink}>Sign Up</Text>
+              <Text className="text-sm font-bold text-primary">Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -161,117 +177,5 @@ const LoginPage = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.lg,
-  },
-  header: {
-    marginBottom: SPACING.xl,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    fontFamily: 'Inter',
-    marginBottom: SPACING.lg,
-  },
-  form: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333333',
-    fontFamily: 'Inter',
-    marginBottom: SPACING.xs,
-  },
-  passwordContainer: {
-    position: 'relative',
-    marginBottom: SPACING.md,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: SPACING.md,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  rememberMeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#D0D5DD',
-    borderRadius: 4,
-    marginRight: SPACING.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-  },
-  checkboxChecked: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary,
-  },
-  checkmark: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '900',
-    fontFamily: 'System', // use system font to ensure checkmark renders perfectly
-    lineHeight: 16,
-    textAlign: 'center',
-  },
-  rememberMeText: {
-    fontSize: 14,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.md,
-  },
-  signupText: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  signupLink: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  errorBox: {
-    backgroundColor: '#FFE5E5',
-    borderRadius: 8,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-  },
-});
 
 export default LoginPage;

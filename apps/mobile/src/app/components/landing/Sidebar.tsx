@@ -19,23 +19,18 @@ import Svg, { Path } from 'react-native-svg';
 import Logo from '../../../assets/images/jobly-logo.svg';
 import { COLORS, SPACING } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
+import { useRouter } from 'expo-router';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginPress: () => void;
-  onSignUpPress: () => void;
 }
 
-const Sidebar = ({
-  isOpen,
-  onClose,
-  onLoginPress,
-  onSignUpPress,
-}: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
+  const router = useRouter();
 
   // Keep width ref updated for the PanResponder closure
   const widthRef = useRef(width);
@@ -167,9 +162,16 @@ const Sidebar = ({
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={onSignUpPress} />
+            <AppButton
+              title="Sign Up"
+              onPress={() => router.push('/pages/(auth)/register')}
+            />
             <View style={{ height: SPACING.md }} />
-            <AppButton title="Login" variant="outline" onPress={onLoginPress} />
+            <AppButton
+              title="Login"
+              variant="outline"
+              onPress={() => router.push('/pages/(auth)/login')}
+            />
           </View>
         </View>
       </SafeAreaView>

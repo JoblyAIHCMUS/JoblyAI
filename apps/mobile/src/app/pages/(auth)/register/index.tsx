@@ -1,18 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { useState } from 'react';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { COLORS, SPACING } from '../../../constants/theme';
 import { TextInput } from '../../../components/shared/TextInput';
-import { AppButton } from '../../../components/shared/AppButton';
+import { Button } from '../../../../components/ui/button';
+import { Text } from '../../../../components/ui/text';
 import {
   GoogleAuthButton,
   AuthDivider,
@@ -108,7 +102,7 @@ const RegisterPage = () => {
         text2: 'Account created successfully! Redirecting...',
       });
       router.push('/pages/(auth)/login');
-    } catch (err) {
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Signup Failed',
@@ -120,44 +114,56 @@ const RegisterPage = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        className="flex-grow"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Get more opportunities</Text>
+        <View className="px-6 py-8">
+          <Text variant="h1" className="text-left mb-2">
+            Create Account
+          </Text>
+          <Text variant="muted" className="text-base">
+            Join JoblyAI to find your dream job or the best talent.
+          </Text>
         </View>
 
         {/* Google Signup */}
-        <GoogleAuthButton label="Sign Up with Google" />
+        <View className="px-6">
+          <GoogleAuthButton label="Sign Up with Google" />
+        </View>
 
-        <AuthDivider text="Or sign up with email" />
+        <View className="px-6">
+          <AuthDivider text="Or sign up with email" />
+        </View>
 
         {/* Error Message */}
         {error && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error.message}</Text>
+          <View className="bg-destructive/10 rounded-lg p-4 mb-6 border-l-4 border-destructive mx-6">
+            <Text className="text-destructive text-sm font-medium">
+              {error.message}
+            </Text>
           </View>
         )}
 
         {/* Form */}
-        <View style={styles.form}>
+        <View className="px-6">
           {/* Name Fields */}
-          <View style={styles.nameRow}>
-            <View style={styles.nameField}>
-              <Text style={styles.label}>First Name</Text>
+          <View className="flex-row gap-4 mb-2">
+            <View className="flex-1">
               <TextInput
+                label="First Name"
                 placeholder="John"
                 value={firstName}
                 onChangeText={setFirstName}
                 editable={!loading}
               />
             </View>
-            <View style={styles.nameField}>
-              <Text style={styles.label}>Last Name</Text>
+            <View className="flex-1">
               <TextInput
+                label="Last Name"
                 placeholder="Doe"
                 value={lastName}
                 onChangeText={setLastName}
@@ -167,247 +173,152 @@ const RegisterPage = () => {
           </View>
 
           {/* Email */}
-          <Text style={styles.label}>Email Address</Text>
           <TextInput
-            placeholder="Enter email address"
+            label="Email Address"
+            placeholder="name@example.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             editable={!loading}
           />
 
+          <View className="h-2" />
+
           {/* Password */}
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              placeholder="Enter password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            label="Password"
+            placeholder="At least 8 characters"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            rightElement={
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Text className="text-xl">{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            }
+          />
+
+          <View className="h-2" />
 
           {/* Confirm Password */}
-          <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Text>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            label="Confirm Password"
+            placeholder="Re-enter password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showConfirmPassword}
+            editable={!loading}
+            rightElement={
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Text className="text-xl">
+                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                </Text>
+              </TouchableOpacity>
+            }
+          />
 
           {/* User Type Selection */}
-          <View style={styles.userTypeSection}>
+          <View className="my-8 gap-4">
+            <Text className="text-sm font-semibold text-foreground mb-1">
+              I am a:
+            </Text>
             <TouchableOpacity
-              style={styles.radioButtonContainer}
+              className={`flex-row items-center p-4 border rounded-lg ${
+                userType === 'job-seeker'
+                  ? 'border-primary bg-muted/50'
+                  : 'border-input bg-background'
+              }`}
               onPress={() => setUserType('job-seeker')}
+              activeOpacity={0.7}
             >
               <View
-                style={[
-                  styles.radioButton,
-                  userType === 'job-seeker' ? styles.radioButtonSelected : {},
-                ]}
+                className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+                  userType === 'job-seeker' ? 'border-primary' : 'border-input'
+                }`}
               >
                 {userType === 'job-seeker' && (
-                  <View style={styles.radioButtonInner} />
+                  <View className="w-2.5 h-2.5 rounded-full bg-primary" />
                 )}
               </View>
               <View>
-                <Text style={styles.radioLabel}>Job Seeker</Text>
-                <Text style={styles.radioDescription}>Looking for a job</Text>
+                <Text className="text-sm font-bold text-foreground">
+                  Job Seeker
+                </Text>
+                <Text variant="muted" className="text-xs">
+                  Looking for my next career move
+                </Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.radioButtonContainer}
+              className={`flex-row items-center p-4 border rounded-lg ${
+                userType === 'employer'
+                  ? 'border-primary bg-muted/50'
+                  : 'border-input bg-background'
+              }`}
               onPress={() => setUserType('employer')}
+              activeOpacity={0.7}
             >
               <View
-                style={[
-                  styles.radioButton,
-                  userType === 'employer' ? styles.radioButtonSelected : {},
-                ]}
+                className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+                  userType === 'employer' ? 'border-primary' : 'border-input'
+                }`}
               >
                 {userType === 'employer' && (
-                  <View style={styles.radioButtonInner} />
+                  <View className="w-2.5 h-2.5 rounded-full bg-primary" />
                 )}
               </View>
               <View>
-                <Text style={styles.radioLabel}>Employer</Text>
-                <Text style={styles.radioDescription}>
-                  Hiring, sourcing candidates, or posting jobs
+                <Text className="text-sm font-bold text-foreground">
+                  Employer
+                </Text>
+                <Text variant="muted" className="text-xs">
+                  Hiring talent or posting jobs
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Continue Button */}
-          <AppButton
-            title={loading ? 'Creating account...' : 'Continue'}
-            onPress={handleSignup}
-            variant="primary"
-          />
+          <Button size="lg" onPress={handleSignup} disabled={loading}>
+            <Text>{loading ? 'Creating account...' : 'Create Account'}</Text>
+          </Button>
 
           {/* Login Link */}
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
+          <View className="flex-row justify-center mt-6">
+            <Text className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+            </Text>
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/login')}
+              activeOpacity={0.7}
             >
-              <Text style={styles.loginLink}>Login</Text>
+              <Text className="text-sm font-bold text-primary">Login</Text>
             </TouchableOpacity>
           </View>
 
           {/* Terms */}
-          <Text style={styles.termsText}>
-            By clicking 'Continue', you acknowledge that you have read and
-            accept the Terms of Service and Privacy Policy.
+          <Text
+            variant="muted"
+            className="text-xs mt-6 text-center leading-relaxed"
+          >
+            By creating an account, you agree to our{' '}
+            <Text className="font-semibold text-foreground">
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text className="font-semibold text-foreground">
+              Privacy Policy
+            </Text>
+            .
           </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.lg,
-  },
-  header: {
-    marginBottom: SPACING.xl,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    fontFamily: 'Inter',
-    marginBottom: SPACING.sm,
-  },
-  form: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333333',
-    fontFamily: 'Inter',
-    marginBottom: SPACING.xs,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  nameField: {
-    flex: 1,
-    marginBottom: SPACING.md,
-  },
-  passwordContainer: {
-    position: 'relative',
-    marginBottom: SPACING.md,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: SPACING.md,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-  },
-  userTypeSection: {
-    marginVertical: SPACING.lg,
-    gap: SPACING.md,
-  },
-  radioButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center', // use center instead of flex-start for cleaner look
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 8,
-    backgroundColor: COLORS.white,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#D0D5DD',
-    marginRight: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioButtonSelected: {
-    borderColor: COLORS.primary,
-  },
-  radioButtonInner: {
-    width: 10, // slightly bigger inner dot
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.primary,
-  },
-  radioLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  radioDescription: {
-    fontSize: 12,
-    color: COLORS.textLight,
-  },
-  loginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.md,
-  },
-  loginText: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  loginLink: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  termsText: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    marginTop: SPACING.md,
-    lineHeight: 18,
-  },
-  errorBox: {
-    backgroundColor: '#FFE5E5',
-    borderRadius: 8,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-  },
-});
 
 export default RegisterPage;
