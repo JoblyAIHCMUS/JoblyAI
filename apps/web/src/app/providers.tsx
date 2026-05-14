@@ -25,7 +25,12 @@ export function Providers({ children }: { children: ReactNode }) {
         <SocketProvider>
           <QueryClientProvider client={queryClient}>
             {children}
-            <Toaster position="bottom-right" />
+            <Toaster 
+              position="bottom-right" 
+              richColors 
+              expand={true}
+              visibleToasts={5}
+            />
           </QueryClientProvider>
         </SocketProvider>
       </SessionProvider>

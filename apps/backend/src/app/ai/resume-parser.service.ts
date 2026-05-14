@@ -4,6 +4,8 @@ import { AiProviderService } from './ai-provider.service';
 export interface ParsedResume {
   title: string;
   bio: string;
+  originalTitle?: string;
+  originalBio?: string;
   skills: { 
     name: string; 
     years?: number; 

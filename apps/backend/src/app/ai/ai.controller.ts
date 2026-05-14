@@ -121,8 +121,11 @@ export class AiController {
   async previewDeleteImpact(@Body() body: { resumeId: number }, @Req() req: any) {
     const userId = req.user.id;
     this.logger.log(`Previewing delete impact for resume ${body.resumeId} by user ${userId}`);
-    const previewBio = await this.profileSyncService.getBioRegenerationPreview(userId, body.resumeId);
-    return { previewBio };
+    const [previewBio, previewTitle] = await Promise.all([
+      this.profileSyncService.getBioRegenerationPreview(userId, body.resumeId),
+      this.profileSyncService.getTitleRegenerationPreview(userId, body.resumeId)
+    ]);
+    return { previewBio, previewTitle };
   }
 }
 
