@@ -274,16 +274,20 @@ const CV = forwardRef<CVRef, CVProps>(
                         <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
                           {resume.fileName}
                         </span>
-                        {resume.isSyncedToProfile === false && (
+                        {resume.parsedText && resume.isSyncedToProfile === false && (
                           <Badge 
                             variant="secondary" 
-                            className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5 cursor-pointer" 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              window.dispatchEvent(new CustomEvent('OPEN_CV_SYNC_MODAL', { detail: { resumeId: resume.id } }));
-                            }}
+                            className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5"
                           >
-                            ✨ Not Synced
+                            ✨ Ready to Sync
+                          </Badge>
+                        )}
+                        {resume.isSyncedToProfile === true && (
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200 text-[10px] py-0 h-5 px-1.5"
+                          >
+                            ✓ Synced
                           </Badge>
                         )}
                       </div>
@@ -299,7 +303,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (resume.parsedText && resume.isSyncedToProfile === false) {
+                          if (resume.parsedText) {
                             window.dispatchEvent(new CustomEvent('OPEN_CV_SYNC_MODAL', { detail: { resumeId: resume.id } }));
                           } else {
                             window.dispatchEvent(new CustomEvent('TRIGGER_AI_PARSE', { detail: { resumeId: resume.id } }));
@@ -308,19 +312,21 @@ const CV = forwardRef<CVRef, CVProps>(
                         disabled={isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
                         className={cn(
                           "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
-                          resume.parsedText && resume.isSyncedToProfile === false
-                            ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
-                            : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          resume.isSyncedToProfile 
+                            ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" 
+                            : resume.parsedText
+                              ? "border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm ring-1 ring-amber-100"
+                              : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                         )}
                         aria-label="Extract Data"
-                        title={resume.parsedText && resume.isSyncedToProfile === false ? "Review Extracted Data" : "Extract Data with AI"}
+                        title={resume.parsedText ? "Review and Extract Data" : "Extract Data with AI"}
                       >
                         {processingTasks[resume.id]?.parsing ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
-                          <Code2 size={14} />
+                          <Code2 size={14} className={cn(!resume.isSyncedToProfile && resume.parsedText && "animate-pulse")} />
                         )}
-                        {resume.parsedText && resume.isSyncedToProfile === false ? "Review Data" : "Extract Data"}
+                        {resume.isSyncedToProfile ? "View Sync" : resume.parsedText ? "Review & Sync" : "Extract Data"}
                       </button>
 
                       {/* Score Resume Button */}
