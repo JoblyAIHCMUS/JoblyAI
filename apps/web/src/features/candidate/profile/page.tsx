@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { usePageTitle } from '@/contexts/page-title-context';
 import { useCandidateProfileContext } from '@/api-hook/candidate';
 
@@ -70,6 +71,8 @@ import { triggerAiAnalysis, commitResumeMerge, triggerAiParse, triggerAiScore } 
 const CandidateProfilePage = () => {
   const { setTitle } = usePageTitle();
   const { data: candidateProfile, fetchCandidateProfile } = useCandidateProfileContext();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
@@ -87,7 +90,29 @@ const CandidateProfilePage = () => {
     ([_, tasks]) => tasks.parsing || tasks.scoring
   )?.[0];
 
-  useAiSocket(candidateProfile?.id);
+  // Handle opening modals via URL parameters (for redirection from other pages)
+  useEffect(() => {
+    const openSyncModal = searchParams.get('openSyncModal');
+    const openFeedbackModal = searchParams.get('openFeedbackModal');
+
+    if (openSyncModal) {
+      setActiveResumeId(parseInt(openSyncModal));
+      setSyncModalOpen(true);
+      // Clean up the URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('openSyncModal');
+      router.replace(`/candidate/profile?${params.toString()}`, { scroll: false });
+    }
+
+    if (openFeedbackModal) {
+      setActiveResumeId(parseInt(openFeedbackModal));
+      setFeedbackModalOpen(true);
+      // Clean up the URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('openFeedbackModal');
+      router.replace(`/candidate/profile?${params.toString()}`, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // Warning when leaving page during AI processing
   useEffect(() => {
