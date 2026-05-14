@@ -40,9 +40,10 @@ export function Providers({ children }: { children: ReactNode }) {
               expand={true}
               visibleToasts={5}
               closeButton
+              style={{ zIndex: 10000 }}
               toastOptions={{
                 style: {
-                  zIndex: 9999,
+                  zIndex: 10001,
                 },
               }}
             />
