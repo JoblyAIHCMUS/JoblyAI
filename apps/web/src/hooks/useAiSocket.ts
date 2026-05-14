@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSocket } from '@/contexts/socket-provider';
 import { toast } from 'sonner';
+import { useRouter, usePathname } from 'next/navigation';
 
 /**
  * useAiSocket: Hook to listen for AI-related WebSocket events
@@ -10,31 +11,17 @@ import { toast } from 'sonner';
  */
 export const useAiSocket = (userId: string | undefined) => {
   const { socket, isConnected } = useSocket();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    console.log('[useAiSocket] Effect triggered', { 
-      socketExists: !!socket, 
-      isConnected, 
-      userId,
-      socketId: socket?.id
-    });
-
+    // ... (previous logging)
     if (!socket || !isConnected || !userId) {
-      console.log('[useAiSocket] ⏳ Waiting for requirements...', { 
-        hasSocket: !!socket, 
-        isConnected, 
-        hasUserId: !!userId 
-      });
       return;
     }
 
-    const parseEvent = `RESUME_PARSED_${userId}`;
-    const scoreEvent = `RESUME_SCORED_${userId}`;
-
-    console.log(`[useAiSocket] ✅ Registering listeners for user ${userId}:`, { parseEvent, scoreEvent });
-
     const handleParsed = (data: { resumeId: number }) => {
-      console.log(`[useAiSocket] 🎯 EVENT RECEIVED: ${parseEvent}`, data);
+      console.log(`[useAiSocket] 🎯 EVENT RECEIVED: RESUME_PARSED_${userId}`, data);
       
       // Dispatch custom event to notify components that AI has finished
       window.dispatchEvent(new CustomEvent('ai-parsed-success', { detail: data }));
@@ -46,11 +33,15 @@ export const useAiSocket = (userId: string | undefined) => {
         action: {
           label: 'Review',
           onClick: () => {
-            window.dispatchEvent(
-              new CustomEvent('OPEN_CV_SYNC_MODAL', { 
-                detail: { resumeId: data.resumeId } 
-              })
-            );
+            if (pathname === '/candidate/profile') {
+              window.dispatchEvent(
+                new CustomEvent('OPEN_CV_SYNC_MODAL', { 
+                  detail: { resumeId: data.resumeId } 
+                })
+              );
+            } else {
+              router.push(`/candidate/profile?openSyncModal=${data.resumeId}`);
+            }
           },
         },
       });
@@ -69,11 +60,15 @@ export const useAiSocket = (userId: string | undefined) => {
         action: {
           label: 'View Feedback',
           onClick: () => {
-            window.dispatchEvent(
-              new CustomEvent('OPEN_AI_FEEDBACK_MODAL', { 
-                detail: { resumeId: data.resumeId } 
-              })
-            );
+            if (pathname === '/candidate/profile') {
+              window.dispatchEvent(
+                new CustomEvent('OPEN_AI_FEEDBACK_MODAL', { 
+                  detail: { resumeId: data.resumeId } 
+                })
+              );
+            } else {
+              router.push(`/candidate/profile?openFeedbackModal=${data.resumeId}`);
+            }
           },
         },
       });
@@ -87,5 +82,5 @@ export const useAiSocket = (userId: string | undefined) => {
       socket.off(`RESUME_PARSED_${userId}`, handleParsed);
       socket.off(`RESUME_SCORED_${userId}`, handleScored);
     };
-  }, [socket, isConnected, userId]);
+  }, [socket, isConnected, userId, pathname, router]);
 };
