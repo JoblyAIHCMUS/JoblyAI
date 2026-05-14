@@ -216,7 +216,7 @@ model CandidateDescription {
   candidateId String   @unique
   candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  title           String?
+  title           String?                     @db.Text
   bio             String?                     @db.Text
   rawDescriptions Json?
   rawTitles       Json?

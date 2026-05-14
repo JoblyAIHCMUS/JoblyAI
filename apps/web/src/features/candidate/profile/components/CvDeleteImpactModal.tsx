@@ -49,6 +49,7 @@ export function CvDeleteImpactModal({
 }: CvDeleteImpactModalProps) {
   
   const [previewBio, setPreviewBio] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string | null>(null);
   const [isPreviewBioLoading, setIsPreviewBioLoading] = useState(false);
   
   // A CV is the "last one" if the resumes array has exactly 1 item
@@ -62,9 +63,11 @@ export function CvDeleteImpactModal({
         try {
           const result = await previewDeleteImpact(resumeId);
           setPreviewBio(result.previewBio);
+          setPreviewTitle(result.previewTitle);
         } catch (error) {
           console.error('Failed to fetch bio preview:', error);
           setPreviewBio(null);
+          setPreviewTitle(null);
         } finally {
           setIsPreviewBioLoading(false);
         }
@@ -72,6 +75,7 @@ export function CvDeleteImpactModal({
       fetchPreview();
     } else {
       setPreviewBio(null);
+      setPreviewTitle(null);
       setIsPreviewBioLoading(false);
     }
   }, [isOpen, resumeId, isLastCv]);
@@ -174,38 +178,60 @@ export function CvDeleteImpactModal({
               <section>
                 <div className="flex gap-6">
                   <div className="w-1/2">
-                    {renderSectionHeader(<User size={16} />, "Current Bio", "text-slate-700 border-slate-200")}
-                    <div className="p-4 bg-slate-50 border rounded-xl shadow-sm opacity-60">
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium italic">
-                        "{Array.isArray(currentData?.about) 
-                           ? (currentData.about[0] || "No biography provided.") 
-                           : (currentData?.about?.bio || "No biography provided.")}"
-                      </p>
+                    {renderSectionHeader(<User size={16} />, "Current Profile", "text-slate-700 border-slate-200")}
+                    <div className="p-4 bg-slate-50 border rounded-xl shadow-sm opacity-60 space-y-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Current Title</span>
+                        <p className="text-sm font-medium">
+                          {Array.isArray(currentData?.about) 
+                             ? (currentData.title || "No title set")
+                             : (currentData?.about?.title || "No title set")}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Current Bio</span>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium italic">
+                          "{Array.isArray(currentData?.about) 
+                             ? (currentData.about[0] || "No biography provided.") 
+                             : (currentData?.about?.bio || "No biography provided.")}"
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="w-1/2">
-                    {renderSectionHeader(<ArrowRight size={16} />, isLastCv ? "Final Outcome" : "New AI-Generated Bio", isLastCv ? "text-red-700 border-red-200" : "text-blue-700 border-blue-200")}
+                    {renderSectionHeader(<ArrowRight size={16} />, isLastCv ? "Final Outcome" : "New AI-Generated Profile", isLastCv ? "text-red-700 border-red-200" : "text-blue-700 border-blue-200")}
                     <div className={cn(
-                      "p-4 border rounded-xl shadow-sm ring-1 relative min-h-[100px]",
+                      "p-4 border rounded-xl shadow-sm ring-1 relative min-h-[100px] space-y-3",
                       isLastCv ? "bg-red-50/30 border-red-200 ring-red-50/50" : "bg-blue-50/30 border-blue-200 ring-blue-50/50"
                     )}>
                       {isPreviewBioLoading ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-xl z-10">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mb-2" />
                           <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">AI is thinking...</span>
                         </div>
-                      ) : previewBio ? (
-                        <div className="animate-in fade-in slide-in-from-bottom-1 duration-500">
+                      ) : (previewBio || previewTitle) ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-1 duration-500 space-y-3">
                            <Badge className="mb-2 bg-blue-100 text-blue-700 hover:bg-blue-100 text-[9px] border-blue-200 uppercase tracking-tighter font-bold">AI Preview</Badge>
-                           <p className="text-xs text-blue-900 leading-relaxed font-semibold">"{previewBio}"</p>
+                           {previewTitle && (
+                             <div>
+                               <span className="text-[10px] font-bold text-blue-400 uppercase">New Suggested Title</span>
+                               <p className="text-sm font-semibold text-blue-900">{previewTitle}</p>
+                             </div>
+                           )}
+                           {previewBio && (
+                             <div>
+                               <span className="text-[10px] font-bold text-blue-400 uppercase">New Generated Bio</span>
+                               <p className="text-xs text-blue-800 leading-relaxed font-medium italic">"{previewBio}"</p>
+                             </div>
+                           )}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center p-4">
                           <AlertTriangle size={20} className={cn("mb-2", isLastCv ? "text-red-500" : "text-slate-400")} />
                           <p className={cn("text-[11px] italic font-bold", isLastCv ? "text-red-700" : "text-slate-500")}>
                             {isLastCv 
-                              ? "THIS IS YOUR LAST CV. Deleting it will clear your entire profile bio as there is no remaining evidence." 
-                              : "No remaining source data to generate a new bio. This field will be cleared."}
+                              ? "THIS IS YOUR LAST CV. Deleting it will clear your entire profile as there is no remaining evidence." 
+                              : "No remaining source data to generate a new profile. This field will be cleared."}
                           </p>
                         </div>
                       )}

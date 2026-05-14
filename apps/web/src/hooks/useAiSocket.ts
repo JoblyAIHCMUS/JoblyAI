@@ -36,14 +36,11 @@ export const useAiSocket = (userId: string | undefined) => {
     const handleParsed = (data: { resumeId: number }) => {
       console.log(`[useAiSocket] 🎯 EVENT RECEIVED: ${parseEvent}`, data);
       
-      // Dismiss the processing toast if it exists
-      toast.dismiss('ai-processing');
-
       // Dispatch custom event to notify components that AI has finished
       window.dispatchEvent(new CustomEvent('ai-parsed-success', { detail: data }));
 
       toast.success('Resume parsed successfully!', {
-        id: 'ai-parsed-success',
+        id: `ai-parsed-success-${data.resumeId}`,
         description: 'AI has finished reading your CV. Review and sync to your profile now.',
         duration: 10000,
         action: {
@@ -62,13 +59,11 @@ export const useAiSocket = (userId: string | undefined) => {
     const handleScored = (data: { resumeId: number }) => {
       console.log('[useAiSocket] RESUME_SCORED received', data);
       
-      // Dismiss the processing toast
-      toast.dismiss('ai-processing');
-
       // Dispatch custom event
       window.dispatchEvent(new CustomEvent('ai-scored-success', { detail: data }));
 
       toast.success('AI Scoring complete!', {
+        id: `ai-scored-success-${data.resumeId}`,
         description: 'Your CV has been evaluated with a strategic score.',
         duration: 8000,
         action: {

@@ -18,7 +18,6 @@ interface AboutMeProps {
 
 export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
   const [bio, setBio] = useState(about.bio || '');
-  const [title, setTitle] = useState(about.title || '');
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +26,6 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
   useEffect(() => {
     if (!editing) {
       setBio(about.bio || '');
-      setTitle(about.title || '');
     }
   }, [about, editing]);
 
@@ -39,7 +37,6 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
       await handleUpdateAbout({
         id: about.id || 0,
         bio,
-        title,
       });
       setEditing(false);
     } catch {
@@ -68,17 +65,6 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
       </div>
       {editing ? (
         <div className="flex flex-col gap-4 px-4">
-          <div className="flex flex-col gap-2">
-            <label className="label-label-1-semi-bold text-primary">Professional Title</label>
-            <input
-              type="text"
-              className="body-body-1-regular text-primary border rounded p-2"
-              placeholder="e.g. Senior Software Engineer"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              disabled={loading}
-            />
-          </div>
           <div className="flex flex-col gap-2">
             <label className="label-label-1-semi-bold text-primary">Biography</label>
             <textarea

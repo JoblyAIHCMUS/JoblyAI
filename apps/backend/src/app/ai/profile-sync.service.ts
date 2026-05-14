@@ -20,7 +20,25 @@ export class ProfileSyncService {
     const sources = Object.values(rawDescriptions).filter(Boolean);
     if (sources.length === 0) return '';
     if (sources.length === 1) return sources[0];
-    const prompt = `Combine these resume summaries into one professional bio (max 4 sentences): ${sources.join(' | ')}`;
+    const prompt = `You are a Professional Resume Writer. Combine these professional summaries into one cohesive, punchy, and professional "About Me" paragraph: "${sources.join(' | ')}".
+    Rules:
+    - Maximum 4 sentences.
+    - Focus on core strengths, technologies, and impact.
+    - Use a professional third-person narrative (avoid repeating the candidate's name if possible).
+    - Return ONLY the text. No preamble, no explanation.`;
+    return this.aiProvider.generateText(prompt);
+  }
+
+  async regenerateTitle(rawTitles: Record<string, string>): Promise<string> {
+    const sources = Object.values(rawTitles).filter(Boolean);
+    if (sources.length === 0) return '';
+    if (sources.length === 1) return sources[0];
+    const prompt = `You are an Expert Technical Recruiter. Based on these job titles/roles from a resume: "${sources.join(', ')}", suggest ONE single, concise, and professional job title that best represents the candidate's current expertise and level.
+    Rules:
+    - Return ONLY the text of the title (e.g., "Full-Stack Developer").
+    - NO introductory text, NO bullet points, NO multiple options.
+    - Align seniority with the input (do not suggest "Senior" if the roles are "Intern", "Student", or "Junior").
+    - Maximum 5 words.`;
     return this.aiProvider.generateText(prompt);
   }
 
@@ -60,18 +78,33 @@ export class ProfileSyncService {
 
     // 1. Bio & Title
     const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
-    const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
+    const rawDescriptions = { ...((currentDesc?.rawDescriptions as Record<string, string>) || {}) };
+    const rawTitles = { ...((currentDesc?.rawTitles as Record<string, string>) || {}) };
+
+    // If no AI sources exist but we have current data, treat it as a source to enable combination
+    // This matches the logic in enrichWithDuplicateFlags for consistency
+    if (Object.keys(rawDescriptions).length === 0 && currentDesc?.bio) {
+      rawDescriptions['current'] = currentDesc.bio;
+    }
+    if (Object.keys(rawTitles).length === 0 && currentDesc?.title) {
+      rawTitles['current'] = currentDesc.title;
+    }
     
     // Check if user provided an edited bio in the draft data
     let finalBio = data.bio || '';
+    let finalTitle = data.title || '';
     
-    // If bio is empty in the draft, fallback to regeneration
+    // Update source tracking using the ORIGINAL raw data, not the combined/edited one
+    // This ensures future regenerations are accurate
+    rawDescriptions[resumeId.toString()] = data.originalBio || data.bio || '';
+    rawTitles[resumeId.toString()] = data.originalTitle || data.title || '';
+
+    // If bio/title are empty in the draft (e.g. user cleared them), fallback to regeneration
     if (!finalBio) {
-      rawDescriptions[resumeId.toString()] = data.bio || '';
       finalBio = await this.regenerateBio(rawDescriptions);
-    } else {
-      // If user provided a bio, save it and update sources tracking
-      rawDescriptions[resumeId.toString()] = data.bio;
+    }
+    if (!finalTitle) {
+      finalTitle = await this.regenerateTitle(rawTitles);
     }
     
     const bioEmbedding = await this.aiProvider.generateEmbedding(finalBio);
@@ -82,14 +115,16 @@ export class ProfileSyncService {
         where: { candidateId },
         create: { 
           candidateId, 
-          title: data.title || '', 
+          title: finalTitle, 
           bio: finalBio, 
           rawDescriptions,
+          rawTitles
         },
         update: { 
-          title: data.title || '', 
+          title: finalTitle, 
           bio: finalBio, 
           rawDescriptions,
+          rawTitles
         },
       });
 
@@ -547,13 +582,30 @@ export class ProfileSyncService {
       }
     }
 
-    // 7. Bio Regeneration Preview (Merged Result)
+    // 7. Bio & Title Regeneration Preview (Merged Result)
     const currentDesc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
-    const rawDescriptions = (currentDesc?.rawDescriptions as Record<string, string>) || {};
-    // Temporarily add the new bio to the descriptions for preview purposes
+    const rawDescriptions = { ...((currentDesc?.rawDescriptions as Record<string, string>) || {}) };
+    const rawTitles = { ...((currentDesc?.rawTitles as Record<string, string>) || {}) };
+
+    // If no AI sources exist but we have current data, treat it as a source to enable combination
+    if (Object.keys(rawDescriptions).length === 0 && currentDesc?.bio) {
+      rawDescriptions['current'] = currentDesc.bio;
+    }
+    if (Object.keys(rawTitles).length === 0 && currentDesc?.title) {
+      rawTitles['current'] = currentDesc.title;
+    }
+
+    // Preserve original raw data for source tracking later
+    enriched.originalBio = data.bio || '';
+    enriched.originalTitle = data.title || '';
+
+    // Temporarily add the new bio/title to the descriptions for preview purposes
     // We don't save this yet, it's just for the returned draft
-    const tempRawDescriptions = { ...rawDescriptions, "draft": enriched.bio || '' };
+    const tempRawDescriptions = { ...rawDescriptions, "draft": enriched.originalBio };
+    const tempRawTitles = { ...rawTitles, "draft": enriched.originalTitle };
+
     enriched.bio = await this.regenerateBio(tempRawDescriptions);
+    enriched.title = await this.regenerateTitle(tempRawTitles);
 
     return enriched;
   }
@@ -566,23 +618,38 @@ export class ProfileSyncService {
     return this.regenerateBio(updatedRawDescriptions);
   }
 
+  async getTitleRegenerationPreview(candidateId: string, resumeId: number): Promise<string | null> {
+    const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
+    if (!desc?.rawTitles) return null;
+    const updatedRawTitles = { ...(desc.rawTitles as Record<string, string>) };
+    delete updatedRawTitles[resumeId.toString()];
+    return this.regenerateTitle(updatedRawTitles);
+  }
+
   async handleResumeDeletion(candidateId: string, resumeId: number, shouldKeepData = false) {
     this.logger.log(`[handleResumeDeletion] Start: resumeId=${resumeId}, candidateId=${candidateId}, keepData=${shouldKeepData}`);
     
     let finalBio = '';
     let finalTitle = '';
     let updatedRawDescriptions: Record<string, string> = {};
+    let updatedRawTitles: Record<string, string> = {};
     let shouldClearEntirely = false;
 
     if (!shouldKeepData) {
       const desc = await this.prisma.candidateDescription.findUnique({ where: { candidateId } });
       const currentRaw = (desc?.rawDescriptions as Record<string, string>) || {};
+      const currentRawTitles = (desc?.rawTitles as Record<string, string>) || {};
       
       this.logger.log(`[handleResumeDeletion] Current raw sources: ${Object.keys(currentRaw).join(', ')}`);
       
       updatedRawDescriptions = { ...currentRaw };
+      updatedRawTitles = { ...currentRawTitles };
+
       const existedInSources = !!updatedRawDescriptions[resumeId.toString()];
+      const existedInTitles = !!updatedRawTitles[resumeId.toString()];
+
       delete updatedRawDescriptions[resumeId.toString()];
+      delete updatedRawTitles[resumeId.toString()];
       
       const remainingSourcesCount = Object.keys(updatedRawDescriptions).length;
       
@@ -591,15 +658,19 @@ export class ProfileSyncService {
         shouldClearEntirely = true;
         finalBio = '';
         finalTitle = '';
-      } else if (existedInSources) {
-        this.logger.log(`[handleResumeDeletion] ${remainingSourcesCount} sources remain. Regenerating bio.`);
-        finalBio = await this.regenerateBio(updatedRawDescriptions);
-        finalTitle = desc?.title || '';
       } else {
-        // Not in sources, check if any resumes remain at all
-        const remainingResumesCount = await this.prisma.resume.count({ where: { candidateId } });
-        if (remainingResumesCount === 0) {
-          shouldClearEntirely = true;
+        if (existedInSources) {
+          this.logger.log(`[handleResumeDeletion] ${remainingSourcesCount} sources remain. Regenerating bio.`);
+          finalBio = await this.regenerateBio(updatedRawDescriptions);
+        } else {
+          finalBio = desc?.bio || '';
+        }
+
+        if (existedInTitles) {
+          this.logger.log(`[handleResumeDeletion] ${remainingSourcesCount} sources remain. Regenerating title.`);
+          finalTitle = await this.regenerateTitle(updatedRawTitles);
+        } else {
+          finalTitle = desc?.title || '';
         }
       }
     }
@@ -639,7 +710,7 @@ export class ProfileSyncService {
           // Definitive clear including vector embedding
           await tx.$executeRawUnsafe(
             `UPDATE "CandidateDescription" 
-             SET bio = '', title = '', embedding = NULL, "rawDescriptions" = '{}'::jsonb 
+             SET bio = '', title = '', embedding = NULL, "rawDescriptions" = '{}'::jsonb, "rawTitles" = '{}'::jsonb 
              WHERE "candidateId" = $1`,
             candidateId
           );
@@ -650,11 +721,13 @@ export class ProfileSyncService {
             create: { 
               candidateId,
               rawDescriptions: updatedRawDescriptions,
+              rawTitles: updatedRawTitles,
               bio: finalBio,
               title: finalTitle
             },
             update: { 
               rawDescriptions: updatedRawDescriptions, 
+              rawTitles: updatedRawTitles,
               bio: finalBio, 
               title: finalTitle
             }

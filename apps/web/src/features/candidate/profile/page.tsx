@@ -130,7 +130,7 @@ const CandidateProfilePage = () => {
       }));
       
       toast.info('AI is extracting data from your resume...', {
-        id: 'ai-processing',
+        id: `ai-processing-${resumeId}`,
         description: 'This usually takes 10-20 seconds. We will notify you when it is done.',
         duration: Infinity,
       });
@@ -143,7 +143,7 @@ const CandidateProfilePage = () => {
           ...prev, 
           [resumeId]: { ...(prev[resumeId] || { scoring: false }), parsing: false } 
         }));
-        toast.dismiss('ai-processing');
+        toast.dismiss(`ai-processing-${resumeId}`);
         toast.error('Failed to start data extraction');
       }
     };
@@ -159,7 +159,7 @@ const CandidateProfilePage = () => {
       }));
       
       toast.info('AI is scoring your resume...', {
-        id: 'ai-processing',
+        id: `ai-processing-${resumeId}`,
         description: 'This usually takes 10-15 seconds.',
         duration: Infinity,
       });
@@ -172,7 +172,7 @@ const CandidateProfilePage = () => {
           ...prev, 
           [resumeId]: { ...(prev[resumeId] || { parsing: false }), scoring: false } 
         }));
-        toast.dismiss('ai-processing');
+        toast.dismiss(`ai-processing-${resumeId}`);
         toast.error('Failed to start AI scoring');
       }
     };
@@ -189,6 +189,12 @@ const CandidateProfilePage = () => {
         const next = { ...current };
         if (type === 'ai-parsed-success') next.parsing = false;
         if (type === 'ai-scored-success') next.scoring = false;
+        
+        // If all tasks for this resume are done, dismiss the processing toast
+        if (!next.parsing && !next.scoring) {
+          toast.dismiss(`ai-processing-${resumeId}`);
+        }
+        
         return { ...prev, [resumeId]: next };
       });
 
@@ -288,6 +294,15 @@ const CandidateProfilePage = () => {
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
       console.log('[CandidateProfilePage] Resume record created:', resumeData.id);
+      
+      // Replace generic processing toast with resume-specific one
+      toast.info('AI is extracting and scoring your resume...', {
+        id: `ai-processing-${resumeData.id}`,
+        description: 'This usually takes 10-20 seconds. We will notify you when it is done.',
+        duration: Infinity,
+      });
+      toast.dismiss('ai-processing-upload');
+
       setProcessingTasks(prev => ({ 
         ...prev, 
         [resumeData.id]: { parsing: true, scoring: true } 
@@ -318,7 +333,7 @@ const CandidateProfilePage = () => {
       const errorMsg =
         err instanceof Error ? err.message : 'Failed to save resume';
       setUploadErrorMsg(errorMsg);
-      toast.dismiss('ai-processing');
+      toast.dismiss('ai-processing-upload');
     },
   });
 
@@ -326,13 +341,26 @@ const CandidateProfilePage = () => {
   const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
 
   const { updateAbout, createAbout } = useUpdateCandidateAbout();
-  const handleUpdateAbout = async (aboutData: { id: number; bio?: string }) => {
+  const handleUpdateAbout = async (aboutData: {
+    id: number;
+    bio?: string;
+    title?: string;
+  }) => {
     if (aboutData.id === 0) {
-      const result = await createAbout({ bio: aboutData.bio });
+      const result = await createAbout({
+        bio: aboutData.bio,
+        title: aboutData.title,
+      });
       setProfile((prev) => (prev ? { ...prev, about: result } : prev));
     } else {
       await updateAbout(aboutData);
-      setProfile((prev) => (prev ? { ...prev, about: aboutData } : prev));
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          about: prev.about ? { ...prev.about, ...aboutData } : aboutData,
+        };
+      });
     }
   };
 
@@ -620,7 +648,7 @@ const CandidateProfilePage = () => {
 
       const uploadResult = await uploadToS3(file, 'resumes');
       toast.info('AI is analyzing your resume...', {
-        id: 'ai-processing',
+        id: 'ai-processing-upload',
         description: 'This usually takes 10-20 seconds. We will notify you when it is done.',
         duration: Infinity,
       });
@@ -698,6 +726,8 @@ const CandidateProfilePage = () => {
           handleAddContact={handleAddContact}
           handleUpdateContacts={handleUpdateContacts}
           handleDeleteContact={handleDeleteContact}
+          handleUpdateAbout={handleUpdateAbout}
+          descriptionId={profile?.about?.id}
         />
       </div>
 

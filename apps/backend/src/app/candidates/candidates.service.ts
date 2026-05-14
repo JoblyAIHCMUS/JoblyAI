@@ -761,6 +761,7 @@ export class CandidatesService {
       data: {
         ...createDto,
         rawDescriptions: {}, // Manual creation clears AI cache
+        rawTitles: {},
         candidate: { connect: { id: userId } },
       },
     });
@@ -787,6 +788,7 @@ export class CandidatesService {
       data: {
         ...data,
         rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
+        rawTitles: {},
       },
     });
   }
