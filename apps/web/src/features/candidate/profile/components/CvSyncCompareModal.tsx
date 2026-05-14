@@ -27,7 +27,9 @@ interface CvSyncCompareModalProps {
   currentData: any;
   newData: any;
   onSync: (draftData: any) => Promise<void>;
+  onExtract?: () => void;
   isLoading?: boolean;
+  isSynced?: boolean;
 }
 
 // Define types for clarity
@@ -231,7 +233,9 @@ export function CvSyncCompareModal({
   currentData,
   newData,
   onSync,
+  onExtract,
   isLoading = false,
+  isSynced = false,
 }: CvSyncCompareModalProps) {
   const [draftData, setDraftData] = React.useState<any>(null);
   const [editingItem, setEditingItem] = React.useState<{ section: string; index: number; data: any } | null>(null);
@@ -771,18 +775,50 @@ export function CvSyncCompareModal({
               <Button variant="ghost" onClick={onClose} disabled={isLoading} className="text-slate-500 hover:bg-slate-200 transition-colors">
                 Cancel
               </Button>
-              <Button onClick={() => onSync(draftData)} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white px-8 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> 
-                    Syncing profile...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Check size={18} strokeWidth={3} /> Approve & Sync Data
-                  </span>
-                )}
-              </Button>
+
+              {onExtract && !isSynced && (
+                <Button 
+                  variant="outline" 
+                  onClick={onExtract} 
+                  disabled={isLoading}
+                  className="border-amber-200 text-amber-700 hover:bg-amber-50"
+                >
+                  <Code2 size={16} className="mr-2" /> Extract Again
+                </Button>
+              )}
+
+              {isSynced ? (
+                <>
+                  <Button 
+                    variant="outline"
+                    onClick={() => onSync(draftData)} 
+                    disabled={isLoading} 
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50 font-bold"
+                  >
+                    Update Profile
+                  </Button>
+                  <Button 
+                    onClick={onExtract} 
+                    disabled={isLoading} 
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-8 font-bold shadow-lg shadow-amber-200 transition-all active:scale-95"
+                  >
+                    <Code2 size={18} className="mr-2" strokeWidth={3} /> Extract Again
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => onSync(draftData)} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white px-8 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> 
+                      Syncing profile...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Check size={18} strokeWidth={3} /> Approve & Sync Data
+                    </span>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </DialogFooter>

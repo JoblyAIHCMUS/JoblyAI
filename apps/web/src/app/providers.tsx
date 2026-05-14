@@ -30,6 +30,7 @@ export function Providers({ children }: { children: ReactNode }) {
               richColors 
               expand={true}
               visibleToasts={5}
+              closeButton
             />
           </QueryClientProvider>
         </SocketProvider>

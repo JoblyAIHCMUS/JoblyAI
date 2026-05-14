@@ -792,7 +792,14 @@ const CandidateProfilePage = () => {
           try { return res?.parsedText ? (typeof res.parsedText === 'string' ? JSON.parse(res.parsedText) : res.parsedText) : null; } catch(e) { return null; }
         })() : null}
         onSync={handleSyncResume}
+        onExtract={() => {
+          if (activeResumeId) {
+            window.dispatchEvent(new CustomEvent('TRIGGER_AI_PARSE', { detail: { resumeId: activeResumeId } }));
+            setSyncModalOpen(false);
+          }
+        }}
         isLoading={isSyncing}
+        isSynced={activeResumeId ? profile?.resumes?.find(r => r.id === activeResumeId)?.isSyncedToProfile : false}
       />
       <CvDeleteImpactModal
         isOpen={deleteImpactModalOpen}
