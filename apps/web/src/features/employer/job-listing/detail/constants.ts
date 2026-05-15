@@ -1,4 +1,4 @@
-import type { Category } from './data';
+import type { JobCategory } from '@/types/job';
 
 // Deterministic color palette for job categories
 // Generated using seeded hash (seed: 42) to ensure consistent colors
@@ -92,7 +92,7 @@ function seededRandom(hash: number): number {
  * Same category always returns the same colors (seeded with 42).
  * Accepts either a JobCategory object or a category name string.
  */
-export function getCategoryColors(category: Category | string): {
+export function getCategoryColors(category: JobCategory | string): {
   bg: string;
   text: string;
   hoverBg: string;
