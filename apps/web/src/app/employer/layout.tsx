@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { EmployerSidebar } from '@/components/employer/employerSidebar';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { EmployerTopBar } from '@/components/employer/employerTopBar';
 import { EmployerProfileProvider } from '@/api-hook/employer';
 import type { ReactNode } from 'react';
@@ -80,8 +80,6 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
           <main className="w-full flex flex-col h-screen lg:h-screen overflow-hidden bg-white">
             <EmployerTopBar />
             <div className="flex-1 overflow-auto hidden-scrollbar">
-              {/* Trigger allows collapsing/expanding on mobile - positioned for accessibility */}
-              <SidebarTrigger className="absolute top-20 left-4 z-30 lg:hidden" />
               {children}
             </div>
           </main>
