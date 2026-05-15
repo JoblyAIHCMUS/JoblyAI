@@ -33,6 +33,8 @@ export default function CandidateMessagesPage() {
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | undefined>(
     undefined
   );
+  // Mobile view state: true = show conversations, false = show chat
+  const [showConversationsList, setShowConversationsList] = useState(true);
 
   // Sync activeChatId with global SocketContext
   useEffect(() => {
@@ -179,6 +181,8 @@ export default function CandidateMessagesPage() {
   // Handle clicking a conversation in the sidebar
   const handleSelectConversation = useCallback((conversation: Conversation) => {
     setSelectedConversation(conversation);
+    // On mobile/tablet, switch to chat view when selecting a conversation
+    setShowConversationsList(false);
 
     // Optimistically remove the unread dot immediately
     if (conversation.unread) {
@@ -190,6 +194,11 @@ export default function CandidateMessagesPage() {
         )
       );
     }
+  }, []);
+
+  // Handle going back to conversations list on mobile
+  const handleBackToConversations = useCallback(() => {
+    setShowConversationsList(true);
   }, []);
 
   // Register callback for new messages via WebSocket
@@ -327,27 +336,66 @@ export default function CandidateMessagesPage() {
   }
 
   return (
-    <div className="flex w-full h-full gap-0 overflow-hidden bg-white">
-      <ConversationSidebar
-        conversations={conversations}
-        selectedConversation={selectedConversation}
-        onSelectConversation={handleSelectConversation}
-        isLoading={conversationsLoading}
-      />
-      {selectedConversation ? (
-        <ChatWindow
-          conversation={selectedConversation}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          onLoadMessages={handleLoadMessages}
-          currentUserId={currentUser?.id || ''}
-          isLoadingHistory={false}
+    <div className="w-full min-h-screen flex flex-col bg-white">
+      {/* Desktop layout: side by side */}
+      <div className="hidden lg:flex w-full h-full gap-0 overflow-hidden bg-white flex-1">
+        <ConversationSidebar
+          conversations={conversations}
+          selectedConversation={selectedConversation}
+          onSelectConversation={handleSelectConversation}
+          isLoading={conversationsLoading}
         />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-white">
-          <p className="text-slate-500">Select a conversation to start</p>
-        </div>
-      )}
+        {selectedConversation ? (
+          <ChatWindow
+            conversation={selectedConversation}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onLoadMessages={handleLoadMessages}
+            currentUserId={currentUser?.id || ''}
+            isLoadingHistory={false}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-white">
+            <p className="text-slate-500">Select a conversation to start</p>
+          </div>
+        )}
+      </div>
+
+      {/* Tablet and Mobile layout: toggle between conversations and chat */}
+      <div className="flex lg:hidden w-full h-full gap-0 overflow-hidden bg-white flex-1">
+        {/* Show conversations list */}
+        {showConversationsList && (
+          <div className="w-full h-full">
+            <ConversationSidebar
+              conversations={conversations}
+              selectedConversation={selectedConversation}
+              onSelectConversation={handleSelectConversation}
+              isLoading={conversationsLoading}
+              isMobileView={true}
+            />
+          </div>
+        )}
+
+        {/* Show chat window */}
+        {!showConversationsList && selectedConversation ? (
+          <ChatWindow
+            conversation={selectedConversation}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onLoadMessages={handleLoadMessages}
+            currentUserId={currentUser?.id || ''}
+            isLoadingHistory={false}
+            onBackClick={handleBackToConversations}
+            isMobileView={true}
+          />
+        ) : (
+          !showConversationsList && (
+            <div className="flex-1 flex items-center justify-center bg-white">
+              <p className="text-slate-500">Select a conversation to start</p>
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 }
