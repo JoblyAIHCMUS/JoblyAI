@@ -123,7 +123,7 @@ export const columns: ColumnDef<JobListing>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
   },
   {
     accessorKey: 'title',
@@ -147,7 +147,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     accessorKey: 'status',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -168,7 +168,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     accessorKey: 'datePosted',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -182,7 +182,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     accessorKey: 'dateUpdated',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -196,7 +196,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     accessorKey: 'employmentType',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -217,7 +217,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     accessorKey: 'applicants',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -235,7 +235,7 @@ export const columns: ColumnDef<JobListing>[] = [
   },
   {
     id: 'actions',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     cell: ({ row, table }) => {
       const job = row.original;
 
