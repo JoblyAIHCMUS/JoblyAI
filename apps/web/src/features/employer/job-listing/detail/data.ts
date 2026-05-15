@@ -4,8 +4,7 @@ import {
 } from '@/features/employer/job-listing/data';
 import { type SkillEntry } from '@/components/employer/skillTagsManager';
 import { type HiringStage } from '@/features/employer/hiringStage';
-
-export type Category = string;
+import { type JobCategory } from '@/types/job';
 
 export type SalaryCurrency =
   | 'none'
@@ -33,7 +32,7 @@ export interface JobListingDetail {
   employmentType: EmploymentType;
   remote: boolean;
   location?: string;
-  category: Category;
+  category: JobCategory;
   salaryCurrency: SalaryCurrency;
   salaryMin: string;
   salaryMax: string;

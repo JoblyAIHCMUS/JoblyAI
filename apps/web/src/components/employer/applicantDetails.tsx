@@ -115,7 +115,13 @@ export default function ApplicantDetails({
     setLoadingId(applicant.id);
     try {
       const applicationId = parseInt(applicant.id);
-      await rejectApplication(applicationId, { feedback: '' });
+      await rejectApplication(applicationId, {
+        feedback:
+          'Thank you for applying. We have decided to move forward with other candidates at this time.',
+      });
+    } catch (err) {
+      // Error is already handled by hook's onError callback
+      console.error('Failed to reject applicant:', err);
     } finally {
       setLoadingId(null);
     }

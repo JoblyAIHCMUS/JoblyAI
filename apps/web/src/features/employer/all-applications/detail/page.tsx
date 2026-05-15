@@ -8,13 +8,9 @@ import ApplicantDetails from '@/components/employer/applicantDetails';
 import { CandidateProfileProvider } from '@/api-hook/candidate/CandidateProfileContext';
 import { type HiringStage } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from './data';
+import { type JobCategory } from '@/types/job';
 import { listEmployerApplications } from '@/api-client/application/employer';
 import { toast } from 'sonner';
-
-// Simply use the category slug directly - supports all categories, not just hardcoded ones
-function getCategorySlug(slug: string): string {
-  return slug;
-}
 
 function mapApplicationStatusToHiringStage(status: string): HiringStage {
   const statusMap: Record<string, HiringStage> = {
@@ -83,7 +79,7 @@ function ApplicantDetailPageContent() {
           title: application.job.title,
           jobListingId: application.jobId.toString(),
           appliedRole: application.job.title,
-          jobCategory: getCategorySlug(application.job.category.slug),
+          jobCategory: application.job.category as JobCategory,
           employmentType: employmentType,
           appliedDate: new Date(application.createdAt)
             .toISOString()

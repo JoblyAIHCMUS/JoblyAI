@@ -181,7 +181,7 @@ export default function EmployerSettingsPage() {
               <Button
                 type="submit"
                 disabled={loadingProfile || isSaving}
-                className="text-xs sm:text-sm h-9 sm:h-10 px-4 sm:px-6 py-2 sm:py-2.5 bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded transition-colors"
+                className="text-xs sm:text-sm h-9 sm:h-10 px-4 sm:px-6 py-2 sm:py-2.5 bg-[var(--bg-accent-solid,#4f46e5)] text-white label-label-2-semi-bold sm:label-label-1-semi-bold hover:opacity-90 rounded transition-colors"
               >
                 {isSaving ? 'Saving...' : 'Save Profile'}
               </Button>
