@@ -2,6 +2,7 @@ import type {
   JobPosting,
   JobStatus,
   JobRequirement,
+  JobCategory,
 } from '@/api-client/jobs/types';
 import type {
   JobListingDetail,
@@ -40,13 +41,15 @@ function mapSalaryCurrency(currency: string | null): SalaryCurrency {
 }
 
 /**
- * Map backend category slug to frontend Category type
- * Now accepts any category slug (no longer limited to hardcoded list)
+ * Map backend JobCategory to frontend Category type
+ * Passes the full category object with id, name, and slug
  */
-function mapCategorySlug(slug?: string): Category {
-  // Simply return the slug directly - this allows any category from the backend
-  // If slug is missing, default to empty string
-  return slug || '';
+function mapCategorySlug(category?: JobCategory): Category {
+  // Return the full category object to preserve id, name, and slug
+  if (!category) {
+    return { id: 0, name: 'Other', slug: 'other' };
+  }
+  return category;
 }
 
 /**
@@ -94,7 +97,7 @@ export function mapJobPostingToListingDetail(
     employmentType: jobPosting.type,
     remote: jobPosting.remote,
     location: jobPosting.location || undefined,
-    category: mapCategorySlug(jobPosting.category?.slug),
+    category: mapCategorySlug(jobPosting.category),
     salaryCurrency: mapSalaryCurrency(jobPosting.currency),
     salaryMin: formatSalary(jobPosting.salaryMin),
     salaryMax: formatSalary(jobPosting.salaryMax),

@@ -4,8 +4,9 @@ import {
 } from '@/features/employer/job-listing/data';
 import { type SkillEntry } from '@/components/employer/skillTagsManager';
 import { type HiringStage } from '@/features/employer/hiringStage';
+import { type JobCategory } from '@/types/job';
 
-export type Category = string;
+export type Category = JobCategory;
 
 export type SalaryCurrency =
   | 'none'
