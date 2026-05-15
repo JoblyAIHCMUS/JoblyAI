@@ -6,8 +6,6 @@ import { type SkillEntry } from '@/components/employer/skillTagsManager';
 import { type HiringStage } from '@/features/employer/hiringStage';
 import { type JobCategory } from '@/types/job';
 
-export type Category = JobCategory;
-
 export type SalaryCurrency =
   | 'none'
   | 'usd'
@@ -34,7 +32,7 @@ export interface JobListingDetail {
   employmentType: EmploymentType;
   remote: boolean;
   location?: string;
-  category: Category;
+  category: JobCategory;
   salaryCurrency: SalaryCurrency;
   salaryMin: string;
   salaryMax: string;
