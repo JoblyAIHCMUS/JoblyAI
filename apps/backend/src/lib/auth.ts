@@ -75,53 +75,41 @@ export const auth = betterAuth({
   plugins: [
     admin({
       defaultRole: 'candidate',
-      import { transporter, isSmtpConfigured } from './mailingService';
-      import nodemailer from 'nodemailer';
-
-      export const auth = betterAuth({
-        database: prismaAdapter(prisma, {
-          provider: 'postgresql',
-        }),
-      ...
-          emailOTP({
-            async sendVerificationOTP({ email, otp, type }) {
-              if (type === 'forget-password') {
-                if (!isSmtpConfigured) {
-                  console.log('\n========================================');
-                  console.log('📧 DEVELOPMENT OTP LOG');
-                  console.log(`To: ${email}`);
-                  console.log(`OTP: ${otp}`);
-                  console.log('Reason: MAILER_USER not configured in .env');
-                  console.log('========================================\n');
-                  return;
-                }
-
-                try {
-                  const info = await transporter.sendMail({
-                    from: 'noreply@JoblyAI.com',
-                    to: email,
-                    subject: 'Your Password Reset Code',
-                    text: `Your password reset code is: ${otp}`,
-                    html: `
-                      <div style="font-family: sans-serif; padding: 20px;">
-                        <h2>Password Reset</h2>
-                        <p>Your one-time passcode is:</p>
-                        <h1 style="letter-spacing: 5px; color: #007bff;">${otp}</h1>
-                        <p>Enter this code on the verification page to reset your password.</p>
-                      </div>
-                    `,
-                  });
-                  console.log('\n========================================');
-                  console.log('MOCK EMAIL SENT');
-                  if (info.messageId && !info.messageId.includes('json')) {
-                    console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-                  }
-                  console.log('========================================\n');
-                } catch (e) {
-                  console.error('ERROR: Failed to send email:', e);
-                }
-              }
-            },
-          }),
-        ],
-      });
+      adminRoles: ['admin', 'superAdmin'],
+      roles: {
+        candidate,
+        employer,
+        admin: adminRole,
+        superAdmin,
+      },
+    }),
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        if (type === 'forget-password') {
+          try {
+            const info = await transporter.sendMail({
+              from: 'noreply@JoblyAI.com',
+              to: email,
+              subject: 'Your Password Reset Code',
+              text: `Your password reset code is: ${otp}`,
+              html: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                  <h2>Password Reset</h2>
+                  <p>Your one-time passcode is:</p>
+                  <h1 style="letter-spacing: 5px; color: #007bff;">${otp}</h1>
+                  <p>Enter this code on the verification page to reset your password.</p>
+                </div>
+              `,
+            });
+            console.log('\n========================================');
+            console.log('MOCK EMAIL SENT');
+            console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+            console.log('========================================\n');
+          } catch (e) {
+            console.error('ERROR: Failed to send Ethereal email:', e);
+          }
+        }
+      },
+    }),
+  ],
+});
