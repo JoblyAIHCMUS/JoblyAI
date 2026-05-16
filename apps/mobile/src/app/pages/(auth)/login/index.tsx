@@ -14,6 +14,8 @@ import {
 import { useLogin } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
 
+import { Eye, EyeOff, Check } from 'lucide-react-native';
+
 const LoginPage = () => {
   const { login, loading, error } = useLogin();
   const [email, setEmail] = useState('');
@@ -117,7 +119,11 @@ const LoginPage = () => {
             editable={!loading}
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text className="text-xl">{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                {showPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
               </TouchableOpacity>
             }
           />
@@ -137,7 +143,7 @@ const LoginPage = () => {
                 }`}
               >
                 {rememberMe && (
-                  <Text className="text-white text-[10px]">✓</Text>
+                  <Check size={12} color="white" strokeWidth={3} />
                 )}
               </View>
               <Text className="text-sm font-medium text-foreground">

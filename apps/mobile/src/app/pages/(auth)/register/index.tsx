@@ -16,6 +16,8 @@ import { router } from 'expo-router';
 
 type UserType = 'job-seeker' | 'employer';
 
+import { Eye, EyeOff } from 'lucide-react-native';
+
 const RegisterPage = () => {
   const { signup, loading, error } = useSignup();
   const [firstName, setFirstName] = useState('');
@@ -82,6 +84,18 @@ const RegisterPage = () => {
       return;
     }
 
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2:
+          'Password must include upper, lower, number, and special character',
+      });
+      return;
+    }
+
     try {
       const roleMap: Record<UserType, 'candidate' | 'employer'> = {
         'job-seeker': 'candidate',
@@ -89,6 +103,7 @@ const RegisterPage = () => {
       };
 
       await signup({
+        name: `${firstName} ${lastName}`,
         firstName,
         lastName,
         email,
@@ -102,13 +117,13 @@ const RegisterPage = () => {
         text2: 'Account created successfully! Redirecting...',
       });
       router.push('/pages/(auth)/login');
-    } catch {
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred during signup';
       Toast.show({
         type: 'error',
         text1: 'Signup Failed',
-        text2:
-          error?.message ||
-          'An error occurred during signup. Please try again.',
+        text2: errorMessage,
       });
     }
   };
@@ -194,7 +209,11 @@ const RegisterPage = () => {
             editable={!loading}
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text className="text-xl">{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                {showPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
               </TouchableOpacity>
             }
           />
@@ -213,9 +232,11 @@ const RegisterPage = () => {
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                <Text className="text-xl">
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                </Text>
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
               </TouchableOpacity>
             }
           />
