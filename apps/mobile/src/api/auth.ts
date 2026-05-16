@@ -50,9 +50,13 @@ export const login = async (
   data: LoginPayload,
   signal?: AbortSignal
 ): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/sign-in/email', data, {
-    signal,
-  });
+  const response = await apiClient.post<AuthResponse>(
+    '/auth/sign-in/email',
+    data,
+    {
+      signal,
+    }
+  );
   return response.data;
 };
 
@@ -60,9 +64,13 @@ export const signup = async (
   data: SignupPayload,
   signal?: AbortSignal
 ): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/sign-up/email', data, {
-    signal,
-  });
+  const response = await apiClient.post<AuthResponse>(
+    '/auth/sign-up/email',
+    data,
+    {
+      signal,
+    }
+  );
   return response.data;
 };
 

@@ -238,7 +238,15 @@ export const ChevronIcon = () => (
 );
 
 export const SquigglyLines = () => (
-  <View style={{ height: 4, width: 80, backgroundColor: COLORS.primary, borderRadius: 2, marginTop: 4 }} />
+  <View
+    style={{
+      height: 4,
+      width: 80,
+      backgroundColor: COLORS.primary,
+      borderRadius: 2,
+      marginTop: 4,
+    }}
+  />
 );
 
 // ============= Header Icons =============

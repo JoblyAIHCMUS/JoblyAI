@@ -213,7 +213,12 @@ const ForgotPasswordPage = () => {
                   >
                     {newPassword === confirmPassword ? (
                       <View className="flex-row items-center">
-                        <Check size={12} color="#15803d" strokeWidth={3} className="mr-1" />
+                        <Check
+                          size={12}
+                          color="#15803d"
+                          strokeWidth={3}
+                          className="mr-1"
+                        />
                         <Text className="text-green-700">Passwords match</Text>
                       </View>
                     ) : (
@@ -268,7 +273,10 @@ const ForgotPasswordPage = () => {
 
           {/* Back to Login */}
           <View className="mt-8 items-center">
-            <TouchableOpacity onPress={() => router.push('/pages/(auth)/login')} className="flex-row items-center">
+            <TouchableOpacity
+              onPress={() => router.push('/pages/(auth)/login')}
+              className="flex-row items-center"
+            >
               <ArrowLeft size={16} color="#4338CA" className="mr-2" />
               <Text className="text-sm font-semibold text-primary">
                 Back to Login
