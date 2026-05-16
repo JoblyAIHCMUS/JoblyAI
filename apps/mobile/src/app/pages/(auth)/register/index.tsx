@@ -13,10 +13,9 @@ import {
 } from '../../../components/shared/GoogleAuthButton';
 import { useSignup } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 type UserType = 'job-seeker' | 'employer';
-
-import { Eye, EyeOff } from 'lucide-react-native';
 
 const RegisterPage = () => {
   const { signup, loading, error } = useSignup();
