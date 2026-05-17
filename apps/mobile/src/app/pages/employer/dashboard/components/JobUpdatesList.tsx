@@ -23,7 +23,7 @@ export const JobUpdatesList = () => {
 
           <View className="flex-row gap-x-2 mb-6">
             {job.tags.map((tag, i) => (
-              <View key={i} className="border border-orange-400 px-4 py-1.5 rounded-full">
+              <View key={i} className="border border-[#CBD5E1] px-4 py-1.5 rounded-full">
                 <Text className="text-orange-500 font-medium">{tag}</Text>
               </View>
             ))}
@@ -31,9 +31,9 @@ export const JobUpdatesList = () => {
 
           <View>
             <Text className="text-gray-900 font-bold mb-2">
-              {job.applied} applied <Text className="font-normal text-gray-500">of {job.capacity} capacity</Text>
+              {job.applied} applied <Text className="font-normal text-gray-500 text-base">of {job.capacity} capacity</Text>
             </Text>
-            <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <View className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
               <View className="h-full bg-green-500 rounded-full" style={{ width: `${(job.applied / job.capacity) * 100}%` }} />
             </View>
           </View>
