@@ -30,14 +30,6 @@ export const DetailedStatCards = () => {
           <Feather name="clipboard" size={20} color="white" />
         </View>
       </View>
-
-      <View className="bg-white rounded-2xl p-5 border border-[#CBD5E1] shadow-sm mt-4">
-        <Text className="text-xl font-bold text-[#0F172A] mb-2">Job Open</Text>
-        <View className="flex-row items-baseline gap-x-2">
-          <Text className="text-6xl font-extrabold text-[#0F172A]">12</Text>
-          <Text className="text-[#475569] font-medium text-xl">Jobs Opened</Text>
-        </View>
-      </View>
     </View>
   );
 };
