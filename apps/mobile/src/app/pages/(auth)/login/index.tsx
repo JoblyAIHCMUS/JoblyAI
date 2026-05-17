@@ -72,13 +72,10 @@ const LoginPage = () => {
           <Text variant="h1" className="text-left mb-2">
             Welcome Back
           </Text>
-          <Text variant="muted" className="text-base">
-            Login to your account to continue exploring opportunities.
-          </Text>
         </View>
 
         {/* Google Login */}
-        <View className="px-6">
+        <View className="px-6 text-indigo-700">
           <GoogleAuthButton label="Log in with Google" />
         </View>
 
@@ -138,7 +135,7 @@ const LoginPage = () => {
               <View
                 className={`w-5 h-5 border-2 rounded items-center justify-center mr-2 ${
                   rememberMe
-                    ? 'border-primary bg-primary'
+                    ? 'border-primary bg-indigo-700'
                     : 'border-input bg-background'
                 }`}
               >
@@ -146,7 +143,7 @@ const LoginPage = () => {
                   <Check size={12} color="white" strokeWidth={3} />
                 )}
               </View>
-              <Text className="text-sm font-medium text-foreground">
+              <Text className="text-md font-medium text-foreground">
                 Remember me
               </Text>
             </TouchableOpacity>
@@ -155,27 +152,32 @@ const LoginPage = () => {
               onPress={() => router.push('/pages/(auth)/forgot-password')}
               activeOpacity={0.7}
             >
-              <Text className="text-sm font-semibold text-primary">
+              <Text className="text-md font-semibold text-indigo-700">
                 Forgot password?
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Login Button */}
-          <Button size="lg" onPress={handleLogin} disabled={loading}>
+          <Button
+            className="text-white bg-indigo-700 font-bold"
+            size="lg"
+            onPress={handleLogin}
+            disabled={loading}
+          >
             <Text>{loading ? 'Logging in...' : 'Login'}</Text>
           </Button>
 
           {/* Sign Up Link */}
           <View className="flex-row justify-center mt-6">
-            <Text className="text-sm text-muted-foreground">
+            <Text className="text-lg text-muted-foreground">
               Don't have an account?{' '}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/register')}
               activeOpacity={0.7}
             >
-              <Text className="text-sm font-bold text-primary">Sign Up</Text>
+              <Text className="text-lg font-bold text-indigo-700">Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>

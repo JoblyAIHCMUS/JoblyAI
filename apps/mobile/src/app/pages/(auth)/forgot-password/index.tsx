@@ -117,7 +117,7 @@ const ForgotPasswordPage = () => {
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/pages/(auth)/login')}>
-            <Text className="text-sm font-semibold text-primary">Login</Text>
+            <Text className="text-sm font-semibold text-indigo-700">Login</Text>
           </TouchableOpacity>
         </View>
 
@@ -249,7 +249,7 @@ const ForgotPasswordPage = () => {
                   disabled={resendTimer > 0 || loading}
                 >
                   <Text
-                    className={`text-sm font-semibold text-primary ${
+                    className={`text-sm font-semibold text-indigo-700 ${
                       (resendTimer > 0 || loading) && 'opacity-50'
                     }`}
                   >
@@ -278,7 +278,7 @@ const ForgotPasswordPage = () => {
               className="flex-row items-center"
             >
               <ArrowLeft size={16} color="#4338CA" className="mr-2" />
-              <Text className="text-sm font-semibold text-primary">
+              <Text className="text-sm font-semibold text-indigo-700">
                 Back to Login
               </Text>
             </TouchableOpacity>

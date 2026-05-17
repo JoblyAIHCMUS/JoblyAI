@@ -39,7 +39,7 @@ export const GoogleAuthButton = ({ label, onPress }: GoogleAuthButtonProps) => {
       <View className="mr-2">
         <GoogleIcon />
       </View>
-      <Text className="text-[#333333] text-base font-bold">{label}</Text>
+      <Text className="text-indigo-700 text-base font-bold">{label}</Text>
     </TouchableOpacity>
   );
 };

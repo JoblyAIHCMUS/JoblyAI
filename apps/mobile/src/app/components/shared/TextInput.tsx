@@ -33,7 +33,7 @@ export const TextInput = React.forwardRef<
     {label && (
       <Label
         className={cn(
-          'mb-1 text-sm font-semibold text-foreground',
+          'mb-1 text-md font-extrabold text-foreground',
           error && 'text-destructive'
         )}
       >
