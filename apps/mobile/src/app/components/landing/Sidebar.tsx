@@ -133,7 +133,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         </View>
 
         <View style={styles.content}>
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity 
+            style={styles.navItem} 
+            onPress={() => {
+              onClose();
+              router.push('/pages/employer/dashboard');
+            }}
+          >
             <Text style={styles.navText}>Browse Jobs</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
