@@ -24,6 +24,7 @@
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "*",
     "jest-expo": "*",
+    "lucide-react-native": "^1.16.0",
     "metro-config": "*",
     "metro-resolver": "*",
     "nativewind": "^4.2.3",

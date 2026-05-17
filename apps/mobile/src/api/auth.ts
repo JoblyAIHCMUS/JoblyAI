@@ -6,6 +6,7 @@ export interface LoginPayload {
 }
 
 export interface SignupPayload {
+  name: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -35,17 +36,27 @@ export interface AuthResponse {
     firstName?: string;
     lastName?: string;
     role: 'candidate' | 'employer';
+    emailVerified: boolean;
+    image?: string;
   };
-  token?: string;
+  session?: {
+    id: string;
+    userId: string;
+    expiresAt: string;
+  };
 }
 
 export const login = async (
   data: LoginPayload,
   signal?: AbortSignal
 ): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/login', data, {
-    signal,
-  });
+  const response = await apiClient.post<AuthResponse>(
+    '/auth/sign-in/email',
+    data,
+    {
+      signal,
+    }
+  );
   return response.data;
 };
 
@@ -53,17 +64,25 @@ export const signup = async (
   data: SignupPayload,
   signal?: AbortSignal
 ): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/signup', data, {
-    signal,
-  });
+  const response = await apiClient.post<AuthResponse>(
+    '/auth/sign-up/email',
+    data,
+    {
+      signal,
+    }
+  );
   return response.data;
 };
 
 export const sendOTP = async (
   data: SendOTPPayload,
   signal?: AbortSignal
-): Promise<{ success: boolean }> => {
-  const response = await apiClient.post('/auth/send-otp', data, { signal });
+): Promise<{ status: boolean }> => {
+  const response = await apiClient.post(
+    '/auth/email-otp/send-verification-otp',
+    data,
+    { signal }
+  );
   return response.data;
 };
 
@@ -72,7 +91,7 @@ export const resetPassword = async (
   signal?: AbortSignal
 ): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>(
-    '/auth/reset-password',
+    '/auth/email-otp/reset-password',
     data,
     { signal }
   );

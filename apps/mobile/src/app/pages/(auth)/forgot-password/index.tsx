@@ -8,15 +8,10 @@ import { Button } from '../../../../components/ui/button';
 import { Text } from '../../../../components/ui/text';
 import { useSendOTP, useResetPassword } from '../../../../hooks/useAuth';
 
-interface ForgotPasswordPageProps {
-  onGoToLanding?: () => void;
-  onGoToLogin?: () => void;
-}
+import { Eye, EyeOff, Check, ArrowLeft } from 'lucide-react-native';
+import { router } from 'expo-router';
 
-const ForgotPasswordPage = ({
-  onGoToLanding,
-  onGoToLogin,
-}: ForgotPasswordPageProps) => {
+const ForgotPasswordPage = () => {
   const { sendOTP, loading: otpLoading, error: otpError } = useSendOTP();
   const {
     resetPassword,
@@ -96,7 +91,7 @@ const ForgotPasswordPage = ({
         'Success',
         'Password reset successful! Redirecting to login...'
       );
-      onGoToLogin?.();
+      router.push('/pages/(auth)/login');
     } catch {
       Alert.alert(
         'Error',
@@ -121,8 +116,8 @@ const ForgotPasswordPage = ({
               Enter your email to receive a verification code
             </Text>
           </View>
-          <TouchableOpacity onPress={() => onGoToLogin?.()}>
-            <Text className="text-sm font-semibold text-primary">Login</Text>
+          <TouchableOpacity onPress={() => router.push('/pages/(auth)/login')}>
+            <Text className="text-sm font-semibold text-indigo-700">Login</Text>
           </TouchableOpacity>
         </View>
 
@@ -170,9 +165,11 @@ const ForgotPasswordPage = ({
                   <TouchableOpacity
                     onPress={() => setShowNewPassword(!showNewPassword)}
                   >
-                    <Text className="text-xl">
-                      {showNewPassword ? '👁️' : '👁️‍🗨️'}
-                    </Text>
+                    {showNewPassword ? (
+                      <EyeOff size={20} color="#64748b" />
+                    ) : (
+                      <Eye size={20} color="#64748b" />
+                    )}
                   </TouchableOpacity>
                 }
               />
@@ -189,9 +186,11 @@ const ForgotPasswordPage = ({
                   <TouchableOpacity
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    <Text className="text-xl">
-                      {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                    </Text>
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} color="#64748b" />
+                    ) : (
+                      <Eye size={20} color="#64748b" />
+                    )}
                   </TouchableOpacity>
                 }
               />
@@ -212,9 +211,19 @@ const ForgotPasswordPage = ({
                         : 'text-red-600'
                     }`}
                   >
-                    {newPassword === confirmPassword
-                      ? '✓ Passwords match'
-                      : '✗ Passwords do not match'}
+                    {newPassword === confirmPassword ? (
+                      <View className="flex-row items-center">
+                        <Check
+                          size={12}
+                          color="#15803d"
+                          strokeWidth={3}
+                          className="mr-1"
+                        />
+                        <Text className="text-green-700">Passwords match</Text>
+                      </View>
+                    ) : (
+                      '✗ Passwords do not match'
+                    )}
                   </Text>
                 </View>
               )}
@@ -240,7 +249,7 @@ const ForgotPasswordPage = ({
                   disabled={resendTimer > 0 || loading}
                 >
                   <Text
-                    className={`text-sm font-semibold text-primary ${
+                    className={`text-sm font-semibold text-indigo-700 ${
                       (resendTimer > 0 || loading) && 'opacity-50'
                     }`}
                   >
@@ -264,9 +273,13 @@ const ForgotPasswordPage = ({
 
           {/* Back to Login */}
           <View className="mt-8 items-center">
-            <TouchableOpacity onPress={() => onGoToLogin?.()}>
-              <Text className="text-sm font-semibold text-primary">
-                ← Back to Login
+            <TouchableOpacity
+              onPress={() => router.push('/pages/(auth)/login')}
+              className="flex-row items-center"
+            >
+              <ArrowLeft size={16} color="#4338CA" className="mr-2" />
+              <Text className="text-sm font-semibold text-indigo-700">
+                Back to Login
               </Text>
             </TouchableOpacity>
           </View>

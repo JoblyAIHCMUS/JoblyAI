@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import {
   login as apiLogin,
   signup as apiSignup,
@@ -30,7 +31,13 @@ export function useLogin() {
       setData(result);
       return result;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Login failed');
+      let errorMessage = 'Login failed';
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      const error = new Error(errorMessage);
       setError(error);
       throw error;
     } finally {
@@ -54,7 +61,13 @@ export function useSignup() {
       setData(result);
       return result;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Signup failed');
+      let errorMessage = 'Signup failed';
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      const error = new Error(errorMessage);
       setError(error);
       throw error;
     } finally {

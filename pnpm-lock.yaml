@@ -469,6 +469,9 @@ importers:
       jest-expo:
         specifier: '*'
         version: 54.0.17(@babel/core@7.29.0)(expo@54.0.34)(jest@30.3.0(@types/node@20.19.9)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.33(@swc/helpers@0.5.21))(@types/node@20.19.9)(typescript@5.9.3)))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+      lucide-react-native:
+        specifier: ^1.16.0
+        version: 1.16.0(react-native-svg@15.12.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       metro-config:
         specifier: '*'
         version: 0.83.7
@@ -16979,6 +16982,16 @@ packages:
         integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==,
       }
 
+  lucide-react-native@1.16.0:
+    resolution:
+      {
+        integrity: sha512-clxA22OvrNUHB2tQQEvURN8KJ5/vbUV/6GSctU1aCoFlJmDwNrdo8xxNTG535tu7iOATZCth6R2AW1kbva+g6A==,
+      }
+    peerDependencies:
+      react: 19.1.0
+      react-native: '*'
+      react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
+
   lucide-react@0.473.0:
     resolution:
       {
@@ -31322,7 +31335,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
+      vitest: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.4.2)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
 
   '@vitest/expect@4.1.4':
     dependencies:
@@ -31348,6 +31361,7 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)
+    optional: true
 
   '@vitest/pretty-format@4.1.4':
     dependencies:
@@ -31376,7 +31390,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vitest: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
+      vitest: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.4.2)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))
 
   '@vitest/utils@4.1.4':
     dependencies:
@@ -36528,6 +36542,12 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lucide-react-native@1.16.0(react-native-svg@15.12.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0)
+      react-native-svg: 15.12.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+
   lucide-react@0.473.0(react@19.1.0):
     dependencies:
       react: 19.1.0
@@ -40761,6 +40781,7 @@ snapshots:
       sass-embedded: 1.99.0
       terser: 5.46.1
       yaml: 2.8.3
+    optional: true
 
   vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@20.19.9)(@vitest/coverage-v8@4.1.4)(@vitest/ui@4.1.4)(jsdom@22.1.0)(vite@7.3.2(@types/node@20.19.9)(jiti@2.4.2)(less@4.5.1)(lightningcss@1.32.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)):
     dependencies:
@@ -40823,6 +40844,7 @@ snapshots:
       jsdom: 22.1.0
     transitivePeerDependencies:
       - msw
+    optional: true
 
   vlq@1.0.1: {}
 

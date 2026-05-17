@@ -13,6 +13,7 @@ import {
 } from '../../../components/shared/GoogleAuthButton';
 import { useSignup } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 type UserType = 'job-seeker' | 'employer';
 
@@ -82,6 +83,18 @@ const RegisterPage = () => {
       return;
     }
 
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2:
+          'Password must include upper, lower, number, and special character',
+      });
+      return;
+    }
+
     try {
       const roleMap: Record<UserType, 'candidate' | 'employer'> = {
         'job-seeker': 'candidate',
@@ -89,6 +102,7 @@ const RegisterPage = () => {
       };
 
       await signup({
+        name: `${firstName} ${lastName}`,
         firstName,
         lastName,
         email,
@@ -102,13 +116,13 @@ const RegisterPage = () => {
         text2: 'Account created successfully! Redirecting...',
       });
       router.push('/pages/(auth)/login');
-    } catch {
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred during signup';
       Toast.show({
         type: 'error',
         text1: 'Signup Failed',
-        text2:
-          error?.message ||
-          'An error occurred during signup. Please try again.',
+        text2: errorMessage,
       });
     }
   };
@@ -126,12 +140,13 @@ const RegisterPage = () => {
             Create Account
           </Text>
           <Text variant="muted" className="text-base">
-            Join JoblyAI to find your dream job or the best talent.
+            Join JoblyAI to get more opportunities and find your next career
+            move.
           </Text>
         </View>
 
         {/* Google Signup */}
-        <View className="px-6">
+        <View className="px-6 text-indigo-700">
           <GoogleAuthButton label="Sign Up with Google" />
         </View>
 
@@ -194,7 +209,11 @@ const RegisterPage = () => {
             editable={!loading}
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text className="text-xl">{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                {showPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
               </TouchableOpacity>
             }
           />
@@ -213,22 +232,24 @@ const RegisterPage = () => {
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                <Text className="text-xl">
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                </Text>
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
               </TouchableOpacity>
             }
           />
 
           {/* User Type Selection */}
           <View className="my-8 gap-4">
-            <Text className="text-sm font-semibold text-foreground mb-1">
+            <Text className="text-md font-semibold text-foreground">
               I am a:
             </Text>
             <TouchableOpacity
               className={`flex-row items-center p-4 border rounded-lg ${
                 userType === 'job-seeker'
-                  ? 'border-primary bg-muted/50'
+                  ? 'border-indigo-700'
                   : 'border-input bg-background'
               }`}
               onPress={() => setUserType('job-seeker')}
@@ -236,19 +257,21 @@ const RegisterPage = () => {
             >
               <View
                 className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
-                  userType === 'job-seeker' ? 'border-primary' : 'border-input'
+                  userType === 'job-seeker'
+                    ? 'border-indigo-700'
+                    : 'border-input'
                 }`}
               >
                 {userType === 'job-seeker' && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <View className="w-2.5 h-2.5 rounded-full bg-indigo-700" />
                 )}
               </View>
               <View>
-                <Text className="text-sm font-bold text-foreground">
+                <Text className="text-lg font-bold text-foreground">
                   Job Seeker
                 </Text>
                 <Text variant="muted" className="text-xs">
-                  Looking for my next career move
+                  Looking for my next career move or expand my network
                 </Text>
               </View>
             </TouchableOpacity>
@@ -256,7 +279,7 @@ const RegisterPage = () => {
             <TouchableOpacity
               className={`flex-row items-center p-4 border rounded-lg ${
                 userType === 'employer'
-                  ? 'border-primary bg-muted/50'
+                  ? 'border-indigo-700'
                   : 'border-input bg-background'
               }`}
               onPress={() => setUserType('employer')}
@@ -264,39 +287,46 @@ const RegisterPage = () => {
             >
               <View
                 className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
-                  userType === 'employer' ? 'border-primary' : 'border-input'
+                  userType === 'employer'
+                    ? 'border-indigo-700  '
+                    : 'border-input'
                 }`}
               >
                 {userType === 'employer' && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <View className="w-2.5 h-2.5 rounded-full bg-indigo-700 " />
                 )}
               </View>
               <View>
-                <Text className="text-sm font-bold text-foreground">
+                <Text className="text-lg font-bold text-foreground">
                   Employer
                 </Text>
                 <Text variant="muted" className="text-xs">
-                  Hiring talent or posting jobs
+                  Hiring talents, sourcing candidates, or posting jobs
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Continue Button */}
-          <Button size="lg" onPress={handleSignup} disabled={loading}>
+          <Button
+            className="bg-indigo-700 text-white font-extrabold"
+            size="lg"
+            onPress={handleSignup}
+            disabled={loading}
+          >
             <Text>{loading ? 'Creating account...' : 'Create Account'}</Text>
           </Button>
 
           {/* Login Link */}
           <View className="flex-row justify-center mt-6">
-            <Text className="text-sm text-muted-foreground">
+            <Text className="text-lg text-muted-foreground">
               Already have an account?{' '}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/login')}
               activeOpacity={0.7}
             >
-              <Text className="text-sm font-bold text-primary">Login</Text>
+              <Text className="text-lg font-bold text-indigo-700">Login</Text>
             </TouchableOpacity>
           </View>
 
@@ -306,14 +336,9 @@ const RegisterPage = () => {
             className="text-xs mt-6 text-center leading-relaxed"
           >
             By creating an account, you agree to our{' '}
-            <Text className="font-semibold text-foreground">
-              Terms of Service
-            </Text>{' '}
+            <Text className="font-bold text-indigo-700">Terms of Service</Text>{' '}
             and{' '}
-            <Text className="font-semibold text-foreground">
-              Privacy Policy
-            </Text>
-            .
+            <Text className="font-bold text-indigo-700">Privacy Policy</Text>.
           </Text>
         </View>
       </ScrollView>
