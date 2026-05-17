@@ -56,6 +56,7 @@ export const JobStatisticsChart = () => {
             marginTop: 4,
           }}
           isAnimated
+          disableScroll={true}
         />
         
         <View className="flex-row mt-6 gap-x-6" pointerEvents="box-none">
