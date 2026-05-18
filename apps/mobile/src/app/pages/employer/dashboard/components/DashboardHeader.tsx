@@ -11,8 +11,8 @@ export const DashboardHeader = () => {
       <Text className="text-lg text-[#475569] mb-2 leading-6">
         Here is your job listings statistic report from July 19 - July 25.
       </Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         activeOpacity={0.7}
         className="flex-row items-center justify-between border border-[#CBD5E1] rounded-xl px-4 py-4 bg-white"
       >

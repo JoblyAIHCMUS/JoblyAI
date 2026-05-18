@@ -133,8 +133,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         </View>
 
         <View style={styles.content}>
-          <TouchableOpacity 
-            style={styles.navItem} 
+          <TouchableOpacity
+            style={styles.navItem}
             onPress={() => {
               onClose();
               router.push('/pages/employer/dashboard');

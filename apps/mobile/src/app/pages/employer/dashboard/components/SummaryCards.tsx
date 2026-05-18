@@ -8,10 +8,10 @@ interface SummaryCardsProps {
   loading?: boolean;
 }
 
-export const SummaryCards = ({ 
-  candidateCount = 0, 
-  messageCount = 0, 
-  loading = false 
+export const SummaryCards = ({
+  candidateCount = 0,
+  messageCount = 0,
+  loading = false,
 }: SummaryCardsProps) => {
   return (
     <View className="px-4 gap-y-3">
@@ -23,9 +23,13 @@ export const SummaryCards = ({
           {loading ? (
             <ActivityIndicator color="white" size="large" />
           ) : (
-            <Text className="text-white text-5xl font-bold">{candidateCount}</Text>
+            <Text className="text-white text-5xl font-bold">
+              {candidateCount}
+            </Text>
           )}
-          <Text className="text-white text-xl font-medium flex-1">New candidates to review</Text>
+          <Text className="text-white text-xl font-medium flex-1">
+            New candidates to review
+          </Text>
         </View>
         <MaterialIcons name="chevron-right" size={28} color="white" />
       </TouchableOpacity>
@@ -38,9 +42,13 @@ export const SummaryCards = ({
           {loading ? (
             <ActivityIndicator color="white" size="large" />
           ) : (
-            <Text className="text-white text-5xl font-bold">{messageCount}</Text>
+            <Text className="text-white text-5xl font-bold">
+              {messageCount}
+            </Text>
           )}
-          <Text className="text-white text-xl font-medium flex-1">Messages received</Text>
+          <Text className="text-white text-xl font-medium flex-1">
+            Messages received
+          </Text>
         </View>
         <MaterialIcons name="chevron-right" size={28} color="white" />
       </TouchableOpacity>

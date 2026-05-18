@@ -1,4 +1,9 @@
-export type ApplicationStatus = 'APPLIED' | 'INTERVIEW' | 'OFFER' | 'REJECTED' | 'WITHDRAWN';
+export type ApplicationStatus =
+  | 'APPLIED'
+  | 'INTERVIEW'
+  | 'OFFER'
+  | 'REJECTED'
+  | 'WITHDRAWN';
 
 export interface ApplicationRecord {
   id: number;

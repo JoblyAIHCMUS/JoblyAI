@@ -9,7 +9,9 @@ interface EmployerDashboardHeaderProps {
   onMenuPress?: () => void;
 }
 
-const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({ onMenuPress }) => {
+const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
+  onMenuPress,
+}) => {
   return (
     <SafeAreaView edges={['top']} className="border-b border-[#CBD5E1]">
       <View className="h-16 flex-row items-center justify-between px-4">
@@ -31,20 +33,25 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({ onMen
 
         {/* Center Company Info */}
         <View className="flex-row items-center">
-          <View 
-            className="w-12 h-12 rounded-xl items-center justify-center mr-3" 
+          <View
+            className="w-12 h-12 rounded-xl items-center justify-center mr-3"
             style={{ backgroundColor: '#2DD4BF20' }}
           >
-             <View className="w-6 h-6 rounded-md" style={{ backgroundColor: '#2DD4BF' }} />
+            <View
+              className="w-6 h-6 rounded-md"
+              style={{ backgroundColor: '#2DD4BF' }}
+            />
           </View>
           <View>
             <Text className="text-[#475569] text-base">Company</Text>
-            <Text className="text-[#0F172A] text-lg font-semibold -mt-1">Nomad</Text>
+            <Text className="text-[#0F172A] text-lg font-semibold -mt-1">
+              Nomad
+            </Text>
           </View>
         </View>
 
         {/* Notification Bell Right */}
-        <TouchableOpacity 
+        <TouchableOpacity
           className="w-11 h-11 items-center justify-center"
           activeOpacity={0.7}
         >

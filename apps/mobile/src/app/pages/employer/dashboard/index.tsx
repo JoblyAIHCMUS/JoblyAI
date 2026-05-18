@@ -17,26 +17,42 @@ import { useJobAnalytics } from '../../../../hooks/useJobAnalytics';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 
 // Utils
-import { aggregateAnalyticsData, getDateRangeForPeriods } from './utils/statsAggregation';
+import {
+  aggregateAnalyticsData,
+  getDateRangeForPeriods,
+} from './utils/statsAggregation';
 
 export default function EmployerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
-  const { fetchApplications, data: applicationsResult, loading: applicationsLoading } = useListEmployerApplications();
-  const { fetchChatSummary, data: chatsResult, loading: chatsLoading } = useGetChatSummary();
-  const { fetchAnalytics, viewsData, appsData, loading: analyticsLoading } = useJobAnalytics();
+  const {
+    fetchApplications,
+    data: applicationsResult,
+    loading: applicationsLoading,
+  } = useListEmployerApplications();
+  const {
+    fetchChatSummary,
+    data: chatsResult,
+    loading: chatsLoading,
+  } = useGetChatSummary();
+  const {
+    fetchAnalytics,
+    viewsData,
+    appsData,
+    loading: analyticsLoading,
+  } = useJobAnalytics();
   const { fetchEmployerProfile } = useGetEmployerProfile();
 
   const loadData = useCallback(async () => {
     try {
       const [startDate, endDate] = getDateRangeForPeriods('day', 7);
-      
+
       // Fetch profile first to get the user ID for chat summary
       const employerProfile = await fetchEmployerProfile();
-      
+
       const promises: Promise<unknown>[] = [
         fetchApplications({ status: 'APPLIED', pageSize: 1 }),
-        fetchAnalytics(startDate, endDate, 'day')
+        fetchAnalytics(startDate, endDate, 'day'),
       ];
 
       if (employerProfile?.id) {
@@ -47,7 +63,12 @@ export default function EmployerDashboard() {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
-  }, [fetchApplications, fetchChatSummary, fetchAnalytics, fetchEmployerProfile]);
+  }, [
+    fetchApplications,
+    fetchChatSummary,
+    fetchAnalytics,
+    fetchEmployerProfile,
+  ]);
 
   useEffect(() => {
     loadData();
@@ -60,8 +81,9 @@ export default function EmployerDashboard() {
   }, [loadData]);
 
   const candidateCount = applicationsResult?.total || 0;
-  const messageCount = chatsResult?.filter(chat => chat.hasUnread).length || 0;
-  
+  const messageCount =
+    chatsResult?.filter((chat) => chat.hasUnread).length || 0;
+
   const chartData = useMemo(() => {
     if (!viewsData && !appsData) return [];
     return aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
@@ -73,7 +95,7 @@ export default function EmployerDashboard() {
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader />
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -81,16 +103,13 @@ export default function EmployerDashboard() {
       >
         <View className="pb-10">
           <DashboardHeader />
-          <SummaryCards 
+          <SummaryCards
             candidateCount={candidateCount}
             messageCount={messageCount}
             loading={isLoadingSummary}
           />
           <View className="h-[1px] bg-[#CBD5E1] mt-8" />
-          <JobStatisticsChart 
-            data={chartData}
-            loading={analyticsLoading}
-          />
+          <JobStatisticsChart data={chartData} loading={analyticsLoading} />
           <DetailedStatCards />
           <View className="h-[1px] bg-[#CBD5E1] mt-8 mb-2" />
           <ApplicantsSummary />

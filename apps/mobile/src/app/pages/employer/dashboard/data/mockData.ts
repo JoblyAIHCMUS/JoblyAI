@@ -23,7 +23,7 @@ export const applicantsSummary = {
     { label: 'Remote', count: 22, color: '#38BDF8' },
     { label: 'Internship', count: 32, color: '#F59E0B' },
     { label: 'Contract', count: 30, color: '#F43F5E' },
-  ]
+  ],
 };
 
 export const jobUpdates = [

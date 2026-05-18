@@ -1,4 +1,7 @@
-import { JobViewAnalytics, JobApplicationAnalytics } from '../../../../../types/analytics';
+import {
+  JobViewAnalytics,
+  JobApplicationAnalytics,
+} from '../../../../../types/analytics';
 
 export type StatsDataSet = {
   stacks: { value: number; color: string }[];
@@ -50,12 +53,12 @@ export function aggregateAnalyticsData(
     .map((period, index) => {
       const values = periodMap.get(period);
       if (!values) return null;
-      
+
       return {
         label: formatPeriodLabel(period, groupBy, index),
         stacks: [
           { value: values.jobApplications, color: '#A855F7' }, // Purple-500 for Job Applied
-          { value: values.jobViews, color: '#F59E0B' },       // Amber-500 for Job View
+          { value: values.jobViews, color: '#F59E0B' }, // Amber-500 for Job View
         ],
       };
     })
