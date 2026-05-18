@@ -1,16 +1,29 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { MaterialIcons } from '@expo/vector-icons';
-import { jobStatsStackData } from '../data/mockData';
+import { StatsDataSet } from '../utils/statsAggregation';
 
-export const JobStatisticsChart = () => {
+interface JobStatisticsChartProps {
+  data?: StatsDataSet;
+  loading?: boolean;
+}
+
+export const JobStatisticsChart = ({ data = [], loading = false }: JobStatisticsChartProps) => {
   const screenWidth = Dimensions.get('window').width;
   const CHART_WIDTH = screenWidth - 32;
   const CHART_HEIGHT = 220;
-  const MAX_VALUE = 200;
+  
+  // Calculate max value dynamically or use a default
+  const MAX_VALUE = Math.max(
+    ...data.flatMap(item => item.stacks.reduce((acc, stack) => acc + stack.value, 0)),
+    10 // Minimum max value to prevent issues
+  ) * 1.2; // Add 20% headroom
+
   const BAR_WIDTH = 34;
-  const SPACING = (CHART_WIDTH - (7 * BAR_WIDTH)) / 6;
+  const SPACING = data.length > 1 
+    ? (CHART_WIDTH - (data.length * BAR_WIDTH)) / (data.length - 1)
+    : 0;
 
   return (
     <View className="px-4 py-8">
@@ -18,7 +31,7 @@ export const JobStatisticsChart = () => {
       <View className="flex-row justify-between mb-6" pointerEvents="box-none">
         <View>
           <Text className="text-2xl font-bold text-gray-900">Job statistics</Text>
-          <Text className="text-[#475569] text-base">Showing Job statistic Jul 19-25</Text>
+          <Text className="text-[#475569] text-base">Showing Job statistic (Past 7 days)</Text>
         </View>
         <TouchableOpacity className="border border-[#CBD5E1] rounded-md px-4 flex-row items-center justify-center bg-white self-stretch gap-x-1">
           <Text className="text-[#0F172A] font-medium text-base">Week</Text>
@@ -34,30 +47,38 @@ export const JobStatisticsChart = () => {
         <Text className="text-[#475569] pb-2 font-semibold text-lg">Jobs Applied</Text>
       </View>
 
-      <View className="relative">
-        <BarChart
-          stackData={jobStatsStackData}
-          width={CHART_WIDTH}
-          height={CHART_HEIGHT}
-          barWidth={BAR_WIDTH}
-          spacing={SPACING}
-          initialSpacing={0}
-          hideRules
-          xAxisThickness={0}
-          yAxisThickness={0}
-          hideYAxisText
-          yAxisLabelWidth={0}
-          noOfSections={3}
-          maxValue={MAX_VALUE}
-          xAxisLabelTextStyle={{
-            color: '#475569',
-            fontSize: 16,
-            textAlign: 'center',
-            marginTop: 4,
-          }}
-          isAnimated
-          disableScroll={true}
-        />
+      <View className="relative min-h-[220px] justify-center">
+        {loading ? (
+          <ActivityIndicator size="large" color="#4F46E5" />
+        ) : data.length > 0 ? (
+          <BarChart
+            stackData={data}
+            width={CHART_WIDTH}
+            height={CHART_HEIGHT}
+            barWidth={BAR_WIDTH}
+            spacing={SPACING}
+            initialSpacing={0}
+            hideRules
+            xAxisThickness={0}
+            yAxisThickness={0}
+            hideYAxisText
+            yAxisLabelWidth={0}
+            noOfSections={3}
+            maxValue={MAX_VALUE}
+            xAxisLabelTextStyle={{
+              color: '#475569',
+              fontSize: 16,
+              textAlign: 'center',
+              marginTop: 4,
+            }}
+            isAnimated
+            disableScroll={true}
+          />
+        ) : (
+          <View className="items-center justify-center h-[220px]">
+            <Text className="text-gray-500">No data available for this period</Text>
+          </View>
+        )}
         
         <View className="flex-row mt-6 gap-x-6" pointerEvents="box-none">
           <View className="flex-row items-center gap-x-2">
