@@ -7,6 +7,7 @@ import { SummaryCards } from './components/SummaryCards';
 import { JobStatisticsChart } from './components/JobStatisticsChart';
 import { DetailedStatCards } from './components/DetailedStatCards';
 import EmployerDashboardHeader from './components/EmployerDashboardHeader';
+import EmployerDashboardSidebar from './components/EmployerDashboardSidebar';
 
 // Hooks
 import { useListEmployerApplications } from '../../../../hooks/useListEmployerApplications';
@@ -22,6 +23,7 @@ import {
 
 export default function EmployerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
 
   const {
@@ -107,7 +109,7 @@ export default function EmployerDashboard() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <EmployerDashboardHeader />
+      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -131,6 +133,10 @@ export default function EmployerDashboard() {
           <DetailedStatCards summary={summary} loading={analyticsLoading} />
         </View>
       </ScrollView>
+      <EmployerDashboardSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
     </SafeAreaView>
   );
 }
