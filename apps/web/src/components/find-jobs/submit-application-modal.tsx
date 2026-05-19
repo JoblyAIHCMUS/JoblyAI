@@ -21,7 +21,6 @@ import { SubmitApplicationSchema } from '@/lib/validation';
 import type { SubmitApplicationFormData } from '@/lib/validation';
 import { z } from 'zod';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
 import { useUploadFile } from '@/api-hook/s3';
 import {
@@ -423,7 +422,7 @@ export const SubmitApplicationModal = ({
         <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:mb-6 sm:flex-row sm:gap-6 sm:pb-6">
           {job.logoUrl ? (
             <div className="flex-shrink-0">
-              <Image
+              <img
                 src={job.logoUrl}
                 alt={job.company}
                 width={64}
