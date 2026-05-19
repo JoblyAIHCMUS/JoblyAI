@@ -46,7 +46,9 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const avatarUrl = employerProfile?.avatarUrl?.trim();
   const isSvgAvatar =
     !!avatarUrl &&
-    (avatarUrl.endsWith('.svg') || avatarUrl.includes('/svg') || avatarUrl.includes('image/svg+xml'));
+    (avatarUrl.endsWith('.svg') ||
+      avatarUrl.includes('/svg') ||
+      avatarUrl.includes('image/svg+xml'));
 
   // Keep width ref updated for the PanResponder closure
   const widthRef = useRef(width);
@@ -186,7 +188,9 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                   onClose();
                   router.push(item.path as never);
                 }}
-                className={`relative flex-row items-center rounded-xl px-4 py-4 mb-2 overflow-hidden ${isActive ? 'bg-[#EEEDFC]' : ''}`}
+                className={`relative flex-row items-center rounded-xl px-4 py-4 mb-2 overflow-hidden ${
+                  isActive ? 'bg-[#EEEDFC]' : ''
+                }`}
                 activeOpacity={0.8}
               >
                 {isActive && (
@@ -198,7 +202,9 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 <Text
-                  className={`ml-4 text-[17px] font-semibold ${isActive ? 'text-[#4F46E5]' : 'text-[#64748B]'}`}
+                  className={`ml-4 text-[17px] font-semibold ${
+                    isActive ? 'text-[#4F46E5]' : 'text-[#64748B]'
+                  }`}
                 >
                   {item.name}
                 </Text>
@@ -216,21 +222,30 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
 
           <View className="h-px bg-[#CBD5E1] my-4 mx-2" />
 
-          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-1" activeOpacity={0.8}>
+          <TouchableOpacity
+            className="flex-row items-center px-4 py-3 mb-1"
+            activeOpacity={0.8}
+          >
             <Settings size={24} color="#64748B" />
             <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
               Settings
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-1" activeOpacity={0.8}>
+          <TouchableOpacity
+            className="flex-row items-center px-4 py-3 mb-1"
+            activeOpacity={0.8}
+          >
             <HelpCircle size={24} color="#64748B" />
             <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
               Help Center
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-8 mt-2" activeOpacity={0.8}>
+          <TouchableOpacity
+            className="flex-row items-center px-4 py-3 mb-8 mt-2"
+            activeOpacity={0.8}
+          >
             <LogOut size={24} color="#EF4444" strokeWidth={2.5} />
             <Text className="ml-4 text-[17px] font-bold text-[#EF4444]">
               Logout
@@ -265,7 +280,10 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
         </View>
 
         <View className="px-6 pb-8 pt-4">
-          <TouchableOpacity className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4" activeOpacity={0.9}>
+          <TouchableOpacity
+            className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4"
+            activeOpacity={0.9}
+          >
             <Plus size={22} color="#ffffff" strokeWidth={2.5} />
             <Text className="ml-2 text-[18px] font-bold text-white">
               Post a job

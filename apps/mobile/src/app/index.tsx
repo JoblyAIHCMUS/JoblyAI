@@ -27,10 +27,7 @@ export default function Index() {
         <Footer />
       </ScrollView>
 
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
     </View>
   );
 }

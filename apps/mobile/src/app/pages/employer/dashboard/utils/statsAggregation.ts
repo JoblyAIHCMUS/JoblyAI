@@ -112,8 +112,8 @@ export function aggregateAnalyticsData(
     groupBy === 'day'
       ? 'This Week'
       : groupBy === 'week'
-        ? 'This Month'
-        : 'This Year';
+      ? 'This Month'
+      : 'This Year';
 
   return {
     chartData,

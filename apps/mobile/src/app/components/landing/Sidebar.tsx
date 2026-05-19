@@ -177,13 +177,17 @@ const Sidebar = ({
           <View style={styles.footer}>
             <AppButton
               title="Sign Up"
-              onPress={onSignUpPress ?? (() => router.push('/pages/(auth)/register'))}
+              onPress={
+                onSignUpPress ?? (() => router.push('/pages/(auth)/register'))
+              }
             />
             <View style={{ height: SPACING.md }} />
             <AppButton
               title="Login"
               variant="outline"
-              onPress={onLoginPress ?? (() => router.push('/pages/(auth)/login'))}
+              onPress={
+                onLoginPress ?? (() => router.push('/pages/(auth)/login'))
+              }
             />
           </View>
         </View>

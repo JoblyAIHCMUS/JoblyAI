@@ -41,9 +41,7 @@ export const DetailedStatCards = ({
     return (
       <View className="bg-white rounded-2xl p-5 border border-[#CBD5E1] shadow-sm flex-row justify-between items-center">
         <View className="flex-1">
-          <Text className="text-xl font-bold text-[#0F172A] mb-2">
-            {title}
-          </Text>
+          <Text className="text-xl font-bold text-[#0F172A] mb-2">{title}</Text>
           <View className="flex-row items-baseline gap-x-2">
             {loading ? (
               <ActivityIndicator size="small" color="#25324B" />
@@ -68,7 +66,9 @@ export const DetailedStatCards = ({
             </View>
           </View>
         </View>
-        <View className={`w-10 h-10 rounded-full ${iconBg} items-center justify-center`}>
+        <View
+          className={`w-10 h-10 rounded-full ${iconBg} items-center justify-center`}
+        >
           <Feather name={icon} size={20} color="white" />
         </View>
       </View>

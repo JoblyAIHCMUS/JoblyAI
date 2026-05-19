@@ -18,7 +18,10 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
   const company = profile?.company;
 
   return (
-    <SafeAreaView edges={['top']} className="border-b border-[#CBD5E1] bg-white">
+    <SafeAreaView
+      edges={['top']}
+      className="border-b border-[#CBD5E1] bg-white"
+    >
       <View className="h-16 flex-row items-center justify-between px-4">
         {/* Menu Icon Left */}
         <TouchableOpacity
@@ -38,12 +41,10 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
 
         {/* Center Company Info */}
         <View className="flex-row items-center">
-          <View
-            className="w-12 h-12 rounded-xl items-center justify-center mr-3 overflow-hidden bg-slate-100"
-          >
+          <View className="w-12 h-12 rounded-xl items-center justify-center mr-3 overflow-hidden bg-slate-100">
             {company?.logoUrl ? (
-              <Image 
-                source={{ uri: company.logoUrl }} 
+              <Image
+                source={{ uri: company.logoUrl }}
                 className="w-full h-full"
                 resizeMode="cover"
               />
@@ -67,11 +68,11 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
                   Error
                 </Text>
               ) : (
-                <Text 
+                <Text
                   className="text-[#0F172A] text-base font-semibold"
                   numberOfLines={1}
                 >
-                  {isPending ? 'Loading...' : (company?.name || 'Not Affiliated')}
+                  {isPending ? 'Loading...' : company?.name || 'Not Affiliated'}
                 </Text>
               )}
               {!company && !isPending && !error && (
