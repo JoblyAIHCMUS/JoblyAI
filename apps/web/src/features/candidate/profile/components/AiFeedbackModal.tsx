@@ -10,22 +10,36 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, CheckCircle2, AlertTriangle, Lightbulb, Layout, Target } from 'lucide-react';
+import {
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Lightbulb,
+  Layout,
+  Target,
+} from 'lucide-react';
 
 interface AiFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   score: number | null;
-  feedback: {
-    strengths: string[];
-    weaknesses: string[];
-    suggestions: string[];
-    formatting: string;
-    impact: string;
-  } | any;
+  feedback:
+    | {
+        strengths: string[];
+        weaknesses: string[];
+        suggestions: string[];
+        formatting: string;
+        impact: string;
+      }
+    | any;
 }
 
-export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedbackModalProps) {
+export function AiFeedbackModal({
+  isOpen,
+  onClose,
+  score,
+  feedback,
+}: AiFeedbackModalProps) {
   const displayScore = score !== null ? Math.round(score * 100) : null;
 
   const getScoreColor = (s: number) => {
@@ -40,7 +54,9 @@ export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedback
         <DialogHeader className="px-6 py-4 border-b shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="text-accent-primary w-5 h-5" />
-            <DialogTitle className="text-xl font-['Lexend_Deca']">AI Resume Analysis</DialogTitle>
+            <DialogTitle className="text-xl font-['Lexend_Deca']">
+              AI Resume Analysis
+            </DialogTitle>
           </div>
           <DialogDescription>
             Strategic evaluation based on 2026 recruitment standards.
@@ -51,9 +67,18 @@ export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedback
           <div className="space-y-6 pb-6">
             {/* Score Section */}
             <div className="flex flex-col items-center justify-center py-6 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1 font-['Lexend_Deca']">Overall Strategic Score</div>
-              <div className={`text-5xl font-bold font-['Lexend_Deca'] ${displayScore ? getScoreColor(displayScore).split(' ')[0] : 'text-slate-400'}`}>
-                {displayScore ?? '--'}<span className="text-2xl ml-1 text-slate-400">/100</span>
+              <div className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1 font-['Lexend_Deca']">
+                Overall Strategic Score
+              </div>
+              <div
+                className={`text-5xl font-bold font-['Lexend_Deca'] ${
+                  displayScore
+                    ? getScoreColor(displayScore).split(' ')[0]
+                    : 'text-slate-400'
+                }`}
+              >
+                {displayScore ?? '--'}
+                <span className="text-2xl ml-1 text-slate-400">/100</span>
               </div>
             </div>
 
@@ -98,7 +123,8 @@ export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedback
                 <span>The "So What?" Factor (Impact)</span>
               </div>
               <p className="text-sm text-slate-600 italic">
-                {feedback?.impact || "AI analysis of your measurable achievements."}
+                {feedback?.impact ||
+                  'AI analysis of your measurable achievements.'}
               </p>
             </div>
 
@@ -109,7 +135,8 @@ export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedback
                 <span>Presentation & Readability</span>
               </div>
               <p className="text-sm text-slate-600">
-                {feedback?.formatting || "Evaluation of layout and ATS compatibility."}
+                {feedback?.formatting ||
+                  'Evaluation of layout and ATS compatibility.'}
               </p>
             </div>
 
@@ -121,10 +148,18 @@ export function AiFeedbackModal({ isOpen, onClose, score, feedback }: AiFeedback
               </div>
               <div className="flex flex-wrap gap-2">
                 {feedback?.suggestions?.map((suggestion: string, i: number) => (
-                  <Badge key={i} variant="outline" className="bg-white text-blue-600 border-blue-200 px-3 py-1">
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="bg-white text-blue-600 border-blue-200 px-3 py-1"
+                  >
                     {suggestion}
                   </Badge>
-                )) || <span className="text-sm text-slate-500">Keep up the good work!</span>}
+                )) || (
+                  <span className="text-sm text-slate-500">
+                    Keep up the good work!
+                  </span>
+                )}
               </div>
             </div>
           </div>

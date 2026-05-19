@@ -34,9 +34,9 @@ export function Providers({ children }: { children: ReactNode }) {
           <GlobalAiSocket />
           <QueryClientProvider client={queryClient}>
             {children}
-            <Toaster 
-              position="bottom-right" 
-              richColors 
+            <Toaster
+              position="bottom-right"
+              richColors
               expand={true}
               visibleToasts={5}
               closeButton

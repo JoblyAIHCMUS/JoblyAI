@@ -37,7 +37,10 @@ export async function updateResume(
   return response.data;
 }
 
-export async function deleteResume(resumeId: number, keepData = false): Promise<string> {
+export async function deleteResume(
+  resumeId: number,
+  keepData = false
+): Promise<string> {
   const response = await axios.delete<string>(
     `${API_BASE_URL}/api/candidate/me/resume/${resumeId}?keepData=${keepData}`,
     {

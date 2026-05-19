@@ -6,9 +6,9 @@ export interface ParsedResume {
   bio: string;
   originalTitle?: string;
   originalBio?: string;
-  skills: { 
-    name: string; 
-    years?: number; 
+  skills: {
+    name: string;
+    years?: number;
     level?: string;
     isDuplicate?: boolean;
     matchedId?: number | null;
@@ -67,14 +67,14 @@ export class ResumeParserService {
     try {
       // Use dynamic import for pdfjs-dist as it is an ESM module
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-      
+
       const data = new Uint8Array(fileBuffer);
       const loadingTask = pdfjs.getDocument({
         data,
         useSystemFonts: true,
         disableFontFace: true,
       });
-      
+
       const pdf = await loadingTask.promise;
       this.logger.log(`PDF loaded. Number of pages: ${pdf.numPages}`);
       let fullText = '';
@@ -89,10 +89,14 @@ export class ResumeParserService {
       }
 
       const cleanText = fullText.trim();
-      this.logger.log(`PDF extraction complete. Text length: ${cleanText.length}`);
-      
+      this.logger.log(
+        `PDF extraction complete. Text length: ${cleanText.length}`
+      );
+
       if (cleanText.length < 50) {
-        this.logger.warn('Extracted text is very short. PDF might be scanned/image-based or empty.');
+        this.logger.warn(
+          'Extracted text is very short. PDF might be scanned/image-based or empty.'
+        );
       }
 
       return cleanText;
@@ -102,7 +106,9 @@ export class ResumeParserService {
     }
   }
 
-  async parseResumeText(text: string): Promise<{ data: ParsedResume; embedding: number[] }> {
+  async parseResumeText(
+    text: string
+  ): Promise<{ data: ParsedResume; embedding: number[] }> {
     const prompt = `
       You are a Senior Technical Recruiter and Expert Resume Parser. Your task is to extract high-fidelity structured data from the provided resume text.
 
@@ -153,8 +159,12 @@ export class ResumeParserService {
       }
     `;
 
-    this.logger.log(`Calling Gemini API for resume extraction. Prompt length: ${prompt.length}`);
-    const result = await this.aiProvider.generateStructuredData<ParsedResume>(prompt);
+    this.logger.log(
+      `Calling Gemini API for resume extraction. Prompt length: ${prompt.length}`
+    );
+    const result = await this.aiProvider.generateStructuredData<ParsedResume>(
+      prompt
+    );
 
     // 3. Generate Embedding for the whole resume (RAG Readiness)
     let resumeEmbedding: number[] = [];
@@ -162,15 +172,23 @@ export class ResumeParserService {
       this.logger.log('Generating full-resume embedding...');
       resumeEmbedding = await this.aiProvider.generateEmbedding(text);
     } catch (error: any) {
-      this.logger.error(`Failed to generate resume embedding: ${error.message}`);
+      this.logger.error(
+        `Failed to generate resume embedding: ${error.message}`
+      );
     }
-    
+
     // Log a summary of extracted data
-    this.logger.log(`Extraction complete for resume. Found: ${result?.skills?.length || 0} skills, ${result?.experience?.length || 0} experiences, ${result?.education?.length || 0} educations.`);
-    
+    this.logger.log(
+      `Extraction complete for resume. Found: ${
+        result?.skills?.length || 0
+      } skills, ${result?.experience?.length || 0} experiences, ${
+        result?.education?.length || 0
+      } educations.`
+    );
+
     return {
       data: result,
-      embedding: resumeEmbedding
+      embedding: resumeEmbedding,
     };
   }
 }

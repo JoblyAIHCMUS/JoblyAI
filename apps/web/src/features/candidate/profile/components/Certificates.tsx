@@ -1,7 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Award, Edit, Plus, Trash2, ExternalLink, Calendar } from 'lucide-react';
+import {
+  Award,
+  Edit,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Calendar,
+} from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DateInput } from '@/components/ui/date-input';
@@ -15,7 +22,9 @@ import { cn } from '@/lib/utils';
 
 interface CertificatesProps {
   certificates: CandidateCertificate[];
-  handleUpdateCertificate?: (certificate: CandidateCertificate) => Promise<void>;
+  handleUpdateCertificate?: (
+    certificate: CandidateCertificate
+  ) => Promise<void>;
   handleAddCertificate?: (certificate: CandidateCertificate) => Promise<void>;
   handleDeleteCertificate?: (id: number) => Promise<void>;
 }
@@ -78,13 +87,17 @@ function CertificateEditForm({
                 {...field}
                 placeholder="e.g. AWS Certified Solutions Architect"
                 className={cn(
-                  "w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all",
-                  errors.name ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-accent-primary"
+                  'w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all',
+                  errors.name
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
                 )}
               />
             )}
           />
-          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         <div className="w-full">
@@ -99,13 +112,17 @@ function CertificateEditForm({
                 {...field}
                 placeholder="e.g. Amazon Web Services"
                 className={cn(
-                  "w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all",
-                  errors.issuer ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-accent-primary"
+                  'w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all',
+                  errors.issuer
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
                 )}
               />
             )}
           />
-          {errors.issuer && <p className="text-red-500 text-xs mt-1">{errors.issuer.message}</p>}
+          {errors.issuer && (
+            <p className="text-red-500 text-xs mt-1">{errors.issuer.message}</p>
+          )}
         </div>
       </div>
 
@@ -129,7 +146,11 @@ function CertificateEditForm({
               />
             )}
           />
-          {errors.issueDate && <p className="text-red-500 text-xs mt-1">{errors.issueDate.message}</p>}
+          {errors.issueDate && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.issueDate.message}
+            </p>
+          )}
         </div>
 
         <div className="w-full">
@@ -142,7 +163,7 @@ function CertificateEditForm({
             render={({ field }) => (
               <DateInput
                 label=""
-                placeholder={hasExpiry ? "Select date" : "Does not expire"}
+                placeholder={hasExpiry ? 'Select date' : 'Does not expire'}
                 value={field.value}
                 onChange={(date) => {
                   field.onChange(date);
@@ -152,7 +173,11 @@ function CertificateEditForm({
               />
             )}
           />
-          {errors.expiryDate && <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>}
+          {errors.expiryDate && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.expiryDate.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -178,14 +203,19 @@ function CertificateEditForm({
             />
           )}
         />
-        <label htmlFor="hasExpiry" className="text-sm text-tertiary cursor-pointer select-none">
+        <label
+          htmlFor="hasExpiry"
+          className="text-sm text-tertiary cursor-pointer select-none"
+        >
           This credential has an expiration date
         </label>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="w-full">
-          <label className="block label-label-1-semi-bold mb-1">Credential ID</label>
+          <label className="block label-label-1-semi-bold mb-1">
+            Credential ID
+          </label>
           <Controller
             name="credentialId"
             control={control}
@@ -200,7 +230,9 @@ function CertificateEditForm({
         </div>
 
         <div className="w-full">
-          <label className="block label-label-1-semi-bold mb-1">Credential URL</label>
+          <label className="block label-label-1-semi-bold mb-1">
+            Credential URL
+          </label>
           <Controller
             name="url"
             control={control}
@@ -209,13 +241,17 @@ function CertificateEditForm({
                 {...field}
                 placeholder="https://..."
                 className={cn(
-                  "w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all",
-                  errors.url ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-accent-primary"
+                  'w-full text-primary border rounded-md p-2 focus:outline-none focus:ring-2 transition-all',
+                  errors.url
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-accent-primary'
                 )}
               />
             )}
           />
-          {errors.url && <p className="text-red-500 text-xs mt-1">{errors.url.message}</p>}
+          {errors.url && (
+            <p className="text-red-500 text-xs mt-1">{errors.url.message}</p>
+          )}
         </div>
       </div>
 
@@ -264,7 +300,9 @@ function CertificateView({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-base font-bold text-primary truncate tracking-tight">{cert.name}</h4>
+          <h4 className="text-base font-bold text-primary truncate tracking-tight">
+            {cert.name}
+          </h4>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={onEdit}
@@ -336,7 +374,9 @@ export default function Certificates({
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const displayedCerts = showAll ? certificates : certificates.slice(0, MAX_DISPLAY);
+  const displayedCerts = showAll
+    ? certificates
+    : certificates.slice(0, MAX_DISPLAY);
 
   const handleAdd = () => {
     setIsAdding(true);
@@ -367,7 +407,10 @@ export default function Certificates({
         ...editItem,
         ...formData,
         issueDate: formData.issueDate.toISOString(),
-        expiryDate: formData.hasExpiry && formData.expiryDate ? formData.expiryDate.toISOString() : '',
+        expiryDate:
+          formData.hasExpiry && formData.expiryDate
+            ? formData.expiryDate.toISOString()
+            : '',
       });
       setEditingIdx(null);
       setEditItem(null);
@@ -387,7 +430,10 @@ export default function Certificates({
         ...editItem,
         ...formData,
         issueDate: formData.issueDate.toISOString(),
-        expiryDate: formData.hasExpiry && formData.expiryDate ? formData.expiryDate.toISOString() : '',
+        expiryDate:
+          formData.hasExpiry && formData.expiryDate
+            ? formData.expiryDate.toISOString()
+            : '',
       });
       setIsAdding(false);
       setEditItem(null);
@@ -442,7 +488,9 @@ export default function Certificates({
             onSubmit={handleSaveAdd}
             onCancel={handleCancel}
           />
-          {error && <p className="text-red-500 text-xs mt-3 font-medium">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-xs mt-3 font-medium">{error}</p>
+          )}
         </div>
       )}
 
@@ -458,7 +506,11 @@ export default function Certificates({
                   onSubmit={handleSaveEdit}
                   onCancel={handleCancel}
                 />
-                {error && <p className="text-red-500 text-xs mt-3 font-medium">{error}</p>}
+                {error && (
+                  <p className="text-red-500 text-xs mt-3 font-medium">
+                    {error}
+                  </p>
+                )}
               </div>
             ) : (
               <CertificateView
@@ -477,10 +529,17 @@ export default function Certificates({
       {certificates.length === 0 && !isAdding && (
         <div className="text-center py-10 border-2 border-dashed rounded-2xl border-slate-100 bg-slate-50/30">
           <div className="inline-flex p-3 bg-white rounded-full shadow-sm text-slate-300 mb-3">
-             <Award size={32} />
+            <Award size={32} />
           </div>
-          <p className="text-slate-500 text-sm font-medium">No certifications added yet.</p>
-          <button onClick={handleAdd} className="mt-2 text-accent-primary text-xs font-bold hover:underline">Click here to add your first one</button>
+          <p className="text-slate-500 text-sm font-medium">
+            No certifications added yet.
+          </p>
+          <button
+            onClick={handleAdd}
+            className="mt-2 text-accent-primary text-xs font-bold hover:underline"
+          >
+            Click here to add your first one
+          </button>
         </div>
       )}
 
@@ -490,7 +549,9 @@ export default function Certificates({
             onClick={() => setShowAll(!showAll)}
             className="text-sm font-bold text-accent-primary hover:text-accent-hover transition-colors"
           >
-            {showAll ? 'Show less' : `Show all ${certificates.length} certifications`}
+            {showAll
+              ? 'Show less'
+              : `Show all ${certificates.length} certifications`}
           </button>
         </div>
       )}

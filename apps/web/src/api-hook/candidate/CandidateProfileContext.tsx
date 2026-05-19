@@ -58,7 +58,9 @@ export function CandidateProfileProvider({
         (isRequestInFlightRef.current ||
           (candidateId && lastFetchedIdRef.current === candidateId))
       ) {
-        console.log('[CandidateProfileContext] Skipping fetch - already in flight or same ID');
+        console.log(
+          '[CandidateProfileContext] Skipping fetch - already in flight or same ID'
+        );
         return data; // Return current data instead of null to prevent state clearing
       }
 
@@ -72,7 +74,7 @@ export function CandidateProfileProvider({
         const result = candidateId
           ? await getCandidateProfileById(candidateId)
           : await getCandidateProfile();
-        
+
         // Ensure we are setting a NEW object reference to trigger re-renders
         const newResult = { ...result };
         setData(newResult);

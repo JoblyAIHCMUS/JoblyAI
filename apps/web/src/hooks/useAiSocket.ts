@@ -21,22 +21,28 @@ export const useAiSocket = (userId: string | undefined) => {
     }
 
     const handleParsed = (data: { resumeId: number }) => {
-      console.log(`[useAiSocket] 🎯 EVENT RECEIVED: RESUME_PARSED_${userId}`, data);
-      
+      console.log(
+        `[useAiSocket] 🎯 EVENT RECEIVED: RESUME_PARSED_${userId}`,
+        data
+      );
+
       // Dispatch custom event to notify components that AI has finished
-      window.dispatchEvent(new CustomEvent('ai-parsed-success', { detail: data }));
+      window.dispatchEvent(
+        new CustomEvent('ai-parsed-success', { detail: data })
+      );
 
       toast.success('Resume parsed successfully!', {
         id: `ai-parsed-success-${data.resumeId}`,
-        description: 'AI has finished reading your CV. Review and sync to your profile now.',
+        description:
+          'AI has finished reading your CV. Review and sync to your profile now.',
         duration: 10000,
         action: {
           label: 'Review',
           onClick: () => {
             if (pathname === '/candidate/profile') {
               window.dispatchEvent(
-                new CustomEvent('OPEN_CV_SYNC_MODAL', { 
-                  detail: { resumeId: data.resumeId } 
+                new CustomEvent('OPEN_CV_SYNC_MODAL', {
+                  detail: { resumeId: data.resumeId },
                 })
               );
             } else {
@@ -49,9 +55,11 @@ export const useAiSocket = (userId: string | undefined) => {
 
     const handleScored = (data: { resumeId: number }) => {
       console.log('[useAiSocket] RESUME_SCORED received', data);
-      
+
       // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('ai-scored-success', { detail: data }));
+      window.dispatchEvent(
+        new CustomEvent('ai-scored-success', { detail: data })
+      );
 
       toast.success('AI Scoring complete!', {
         id: `ai-scored-success-${data.resumeId}`,
@@ -62,12 +70,14 @@ export const useAiSocket = (userId: string | undefined) => {
           onClick: () => {
             if (pathname === '/candidate/profile') {
               window.dispatchEvent(
-                new CustomEvent('OPEN_AI_FEEDBACK_MODAL', { 
-                  detail: { resumeId: data.resumeId } 
+                new CustomEvent('OPEN_AI_FEEDBACK_MODAL', {
+                  detail: { resumeId: data.resumeId },
                 })
               );
             } else {
-              router.push(`/candidate/profile?openFeedbackModal=${data.resumeId}`);
+              router.push(
+                `/candidate/profile?openFeedbackModal=${data.resumeId}`
+              );
             }
           },
         },

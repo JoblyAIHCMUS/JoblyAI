@@ -9,7 +9,14 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { Download, AlertCircle, Trash2, Star, Wand2, Code2 } from 'lucide-react';
+import {
+  Download,
+  AlertCircle,
+  Trash2,
+  Star,
+  Wand2,
+  Code2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
 import type { CandidateResume } from '@/types/candidate';
@@ -72,11 +79,18 @@ const CV = forwardRef<CVRef, CVProps>(
     const [uploadOpen, setUploadOpen] = useState(false);
 
     const { createDownloadUrl } = useCreateDownloadUrl();
-    
+
     // Any AI task in progress makes the whole CV section "busy" for general actions (like upload)
-    const isAnyAiProcessing = Object.values(processingTasks).some(t => t.parsing || t.scoring);
-    const isBusy = isUploading || isUpdating || isDeleting || isAnyAiProcessing || !!deletingResumeId;
-    
+    const isAnyAiProcessing = Object.values(processingTasks).some(
+      (t) => t.parsing || t.scoring
+    );
+    const isBusy =
+      isUploading ||
+      isUpdating ||
+      isDeleting ||
+      isAnyAiProcessing ||
+      !!deletingResumeId;
+
     const resumeCount = resumes?.length || 0;
     const isAtMax = resumeCount >= maxResumes;
     const sortedResumes = [...resumes].sort(
@@ -274,17 +288,18 @@ const CV = forwardRef<CVRef, CVProps>(
                         <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
                           {resume.fileName}
                         </span>
-                        {resume.parsedText && resume.isSyncedToProfile === false && (
-                          <Badge 
-                            variant="secondary" 
-                            className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5"
-                          >
-                            ✨ Ready to Sync
-                          </Badge>
-                        )}
+                        {resume.parsedText &&
+                          resume.isSyncedToProfile === false && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5"
+                            >
+                              ✨ Ready to Sync
+                            </Badge>
+                          )}
                         {resume.isSyncedToProfile === true && (
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200 text-[10px] py-0 h-5 px-1.5"
                           >
                             ✓ Synced
@@ -304,29 +319,56 @@ const CV = forwardRef<CVRef, CVProps>(
                         onClick={(e) => {
                           e.stopPropagation();
                           if (resume.parsedText) {
-                            window.dispatchEvent(new CustomEvent('OPEN_CV_SYNC_MODAL', { detail: { resumeId: resume.id } }));
+                            window.dispatchEvent(
+                              new CustomEvent('OPEN_CV_SYNC_MODAL', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
                           } else {
-                            window.dispatchEvent(new CustomEvent('TRIGGER_AI_PARSE', { detail: { resumeId: resume.id } }));
+                            window.dispatchEvent(
+                              new CustomEvent('TRIGGER_AI_PARSE', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
                           }
                         }}
-                        disabled={isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
+                        disabled={
+                          isBusy ||
+                          processingTasks[resume.id]?.parsing ||
+                          processingTasks[resume.id]?.scoring
+                        }
                         className={cn(
-                          "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
-                          resume.isSyncedToProfile 
-                            ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" 
+                          'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
+                          resume.isSyncedToProfile
+                            ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                             : resume.parsedText
-                              ? "border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm ring-1 ring-amber-100"
-                              : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                            ? 'border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm ring-1 ring-amber-100'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                         )}
                         aria-label="Extract Data"
-                        title={resume.parsedText ? "Review and Extract Data" : "Extract Data with AI"}
+                        title={
+                          resume.parsedText
+                            ? 'Review and Extract Data'
+                            : 'Extract Data with AI'
+                        }
                       >
                         {processingTasks[resume.id]?.parsing ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
-                          <Code2 size={14} className={cn(!resume.isSyncedToProfile && resume.parsedText && "animate-pulse")} />
+                          <Code2
+                            size={14}
+                            className={cn(
+                              !resume.isSyncedToProfile &&
+                                resume.parsedText &&
+                                'animate-pulse'
+                            )}
+                          />
                         )}
-                        {resume.isSyncedToProfile ? "View Sync" : resume.parsedText ? "Review & Sync" : "Extract Data"}
+                        {resume.isSyncedToProfile
+                          ? 'View Sync'
+                          : resume.parsedText
+                          ? 'Review & Sync'
+                          : 'Extract Data'}
                       </button>
 
                       {/* Score Resume Button */}
@@ -334,28 +376,51 @@ const CV = forwardRef<CVRef, CVProps>(
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (resume.aiScore !== undefined && resume.aiScore !== null) {
-                            window.dispatchEvent(new CustomEvent('OPEN_AI_FEEDBACK_MODAL', { detail: { resumeId: resume.id } }));
+                          if (
+                            resume.aiScore !== undefined &&
+                            resume.aiScore !== null
+                          ) {
+                            window.dispatchEvent(
+                              new CustomEvent('OPEN_AI_FEEDBACK_MODAL', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
                           } else {
-                            window.dispatchEvent(new CustomEvent('TRIGGER_AI_SCORE', { detail: { resumeId: resume.id } }));
+                            window.dispatchEvent(
+                              new CustomEvent('TRIGGER_AI_SCORE', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
                           }
                         }}
-                        disabled={isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
+                        disabled={
+                          isBusy ||
+                          processingTasks[resume.id]?.parsing ||
+                          processingTasks[resume.id]?.scoring
+                        }
                         className={cn(
-                          "h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold",
-                          resume.aiScore !== undefined && resume.aiScore !== null
-                            ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
-                            : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                          'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
+                          resume.aiScore !== undefined &&
+                            resume.aiScore !== null
+                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                            : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
                         )}
                         aria-label="Score Resume"
-                        title={resume.aiScore !== undefined && resume.aiScore !== null ? "View AI Score" : "Score with AI"}
+                        title={
+                          resume.aiScore !== undefined &&
+                          resume.aiScore !== null
+                            ? 'View AI Score'
+                            : 'Score with AI'
+                        }
                       >
                         {processingTasks[resume.id]?.scoring ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Wand2 size={14} />
                         )}
-                        {resume.aiScore !== undefined && resume.aiScore !== null ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%` : "Score Resume"}
+                        {resume.aiScore !== undefined && resume.aiScore !== null
+                          ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
+                          : 'Score Resume'}
                       </button>
 
                       <button

@@ -25,21 +25,28 @@ export class AiController {
     private readonly scoringService: ResumeScoringService,
     private readonly profileSyncService: ProfileSyncService,
     @InjectQueue('resume-extraction') private readonly extractionQueue: Queue,
-    @InjectQueue('resume-scoring') private readonly scoringQueue: Queue,
+    @InjectQueue('resume-scoring') private readonly scoringQueue: Queue
   ) {}
 
   @Post('commit-merge')
   @UseGuards(AuthGuard)
-  async commitMerge(@Body() body: { resumeId: number; data: any }, @Req() req: any) {
+  async commitMerge(
+    @Body() body: { resumeId: number; data: any },
+    @Req() req: any
+  ) {
     const userId = req.user.id;
-    return this.profileSyncService.commitMerge(userId, body.resumeId, body.data);
+    return this.profileSyncService.commitMerge(
+      userId,
+      body.resumeId,
+      body.data
+    );
   }
 
   @Post('test-parse')
   @UseInterceptors(FileInterceptor('file'))
   async testParse(@UploadedFile() file: any) {
     this.logger.log(`Received file for parsing test: ${file?.originalname}`);
-    
+
     if (!file) {
       return { error: 'No file uploaded' };
     }
@@ -68,8 +75,10 @@ export class AiController {
   @UseGuards(AuthGuard)
   async triggerAnalysis(@Body() body: { resumeId: number }, @Req() req: any) {
     const userId = req.user.id;
-    this.logger.log(`Manually triggering full analysis for resume ${body.resumeId} by user ${userId}`);
-    
+    this.logger.log(
+      `Manually triggering full analysis for resume ${body.resumeId} by user ${userId}`
+    );
+
     await this.extractionQueue.add('extract', {
       resumeId: body.resumeId,
       candidateId: userId,
@@ -87,8 +96,10 @@ export class AiController {
   @UseGuards(AuthGuard)
   async triggerParse(@Body() body: { resumeId: number }, @Req() req: any) {
     const userId = req.user.id;
-    this.logger.log(`Manually triggering parse for resume ${body.resumeId} by user ${userId}`);
-    
+    this.logger.log(
+      `Manually triggering parse for resume ${body.resumeId} by user ${userId}`
+    );
+
     await this.extractionQueue.add('extract', {
       resumeId: body.resumeId,
       candidateId: userId,
@@ -101,14 +112,18 @@ export class AiController {
   @UseGuards(AuthGuard)
   async triggerScore(@Body() body: { resumeId: number }, @Req() req: any) {
     const userId = req.user.id;
-    this.logger.log(`[HTTP] Manually triggering score for resume ${body.resumeId} by user ${userId}`);
-    
+    this.logger.log(
+      `[HTTP] Manually triggering score for resume ${body.resumeId} by user ${userId}`
+    );
+
     try {
       await this.scoringQueue.add('score', {
         resumeId: body.resumeId,
         candidateId: userId,
       });
-      this.logger.log(`[BullMQ] Successfully added score job for resume ${body.resumeId}`);
+      this.logger.log(
+        `[BullMQ] Successfully added score job for resume ${body.resumeId}`
+      );
       return { success: true, message: 'Score triggered' };
     } catch (error: any) {
       this.logger.error(`[BullMQ] Failed to add score job: ${error.message}`);
@@ -118,14 +133,21 @@ export class AiController {
 
   @Post('preview-delete-impact')
   @UseGuards(AuthGuard)
-  async previewDeleteImpact(@Body() body: { resumeId: number }, @Req() req: any) {
+  async previewDeleteImpact(
+    @Body() body: { resumeId: number },
+    @Req() req: any
+  ) {
     const userId = req.user.id;
-    this.logger.log(`Previewing delete impact for resume ${body.resumeId} by user ${userId}`);
+    this.logger.log(
+      `Previewing delete impact for resume ${body.resumeId} by user ${userId}`
+    );
     const [previewBio, previewTitle] = await Promise.all([
       this.profileSyncService.getBioRegenerationPreview(userId, body.resumeId),
-      this.profileSyncService.getTitleRegenerationPreview(userId, body.resumeId)
+      this.profileSyncService.getTitleRegenerationPreview(
+        userId,
+        body.resumeId
+      ),
     ]);
     return { previewBio, previewTitle };
   }
 }
-

@@ -268,7 +268,11 @@ export const createCertificateSchema = () => {
         });
       }
 
-      if (data.issueDate && data.expiryDate && data.expiryDate < data.issueDate) {
+      if (
+        data.issueDate &&
+        data.expiryDate &&
+        data.expiryDate < data.issueDate
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['expiryDate'],

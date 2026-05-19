@@ -240,7 +240,7 @@
   }
 
   /* Ensure sonner toasts are interactive even when Radix UI modals are open */
-  [data-sonner-toaster], 
+  [data-sonner-toaster],
   [data-sonner-toaster] *,
   [data-sonner-toaster] > ol {
     pointer-events: auto !important;

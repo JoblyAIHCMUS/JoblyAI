@@ -11,7 +11,13 @@ import {
   UpdateContactPayload,
   CandidateProfileResponse,
 } from '@/api-client/candidate';
-import { CandidateEducation, CandidateExperience, CandidateCertificate, CandidateSocial, CandidateContact } from '@/types/candidate';
+import {
+  CandidateEducation,
+  CandidateExperience,
+  CandidateCertificate,
+  CandidateSocial,
+  CandidateContact,
+} from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 
 export function mapUIToApiCreateContact(

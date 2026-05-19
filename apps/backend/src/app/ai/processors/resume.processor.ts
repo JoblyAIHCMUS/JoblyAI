@@ -17,7 +17,7 @@ export class ResumeProcessor extends WorkerHost {
     private readonly parserService: ResumeParserService,
     private readonly profileSyncService: ProfileSyncService,
     private readonly s3Service: S3Service,
-    @InjectPrisma() private readonly prisma: PrismaClient,
+    @InjectPrisma() private readonly prisma: PrismaClient
   ) {
     super();
   }
@@ -46,8 +46,10 @@ export class ResumeProcessor extends WorkerHost {
       const result = await this.parserService.parseResumeText(text);
       let data = result.data;
       const embedding = result.embedding;
-      
-      this.logger.log(`Successfully parsed resume ${resumeId}. Data found: ${!!data}`);
+
+      this.logger.log(
+        `Successfully parsed resume ${resumeId}. Data found: ${!!data}`
+      );
 
       if (!data) {
         throw new Error(`AI failed to parse resume ${resumeId}`);
@@ -55,10 +57,15 @@ export class ResumeProcessor extends WorkerHost {
 
       // 4.1 Enrich data with isDuplicate flags using Vector Search / Profile data
       try {
-        data = await this.profileSyncService.enrichWithDuplicateFlags(candidateId, data);
+        data = await this.profileSyncService.enrichWithDuplicateFlags(
+          candidateId,
+          data
+        );
         this.logger.log(`Enriched resume ${resumeId} with duplicate flags`);
       } catch (enrichError: any) {
-        this.logger.error(`Failed to enrich resume with duplicate flags: ${enrichError.message}`);
+        this.logger.error(
+          `Failed to enrich resume with duplicate flags: ${enrichError.message}`
+        );
         // Continue even if enrichment fails, we still want to save the base data
       }
 
@@ -82,9 +89,13 @@ export class ResumeProcessor extends WorkerHost {
             vectorStr,
             resumeId
           );
-          this.logger.log(`Successfully saved whole-resume embedding for ID: ${resumeId}`);
+          this.logger.log(
+            `Successfully saved whole-resume embedding for ID: ${resumeId}`
+          );
         } catch (vectorError: any) {
-          this.logger.error(`Failed to save resume vector via Raw SQL: ${vectorError.message}`);
+          this.logger.error(
+            `Failed to save resume vector via Raw SQL: ${vectorError.message}`
+          );
           // Don't throw here, the main data is already saved
         }
       }
@@ -94,9 +105,10 @@ export class ResumeProcessor extends WorkerHost {
 
       return { success: true, resumeId };
     } catch (error: any) {
-      this.logger.error(`Failed to process resume ${resumeId}: ${error.message}`);
+      this.logger.error(
+        `Failed to process resume ${resumeId}: ${error.message}`
+      );
       throw error;
     }
   }
 }
-

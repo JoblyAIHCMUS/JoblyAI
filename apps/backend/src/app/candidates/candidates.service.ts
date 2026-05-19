@@ -588,7 +588,11 @@ export class CandidatesService {
     });
   }
 
-  async deleteResume(userId: string, resumeId: number, shouldKeepData = false): Promise<string> {
+  async deleteResume(
+    userId: string,
+    resumeId: number,
+    shouldKeepData = false
+  ): Promise<string> {
     // First, get the resume to get the fileKey for S3 deletion
     const resume = await this.prismaClient.resume.findFirst({
       where: {
@@ -665,10 +669,7 @@ export class CandidatesService {
       ...(expiryDate === undefined
         ? {}
         : {
-            expiryDate: this.toPrismaNullableDateTime(
-              expiryDate,
-              'expiryDate'
-            ),
+            expiryDate: this.toPrismaNullableDateTime(expiryDate, 'expiryDate'),
           }),
     };
 

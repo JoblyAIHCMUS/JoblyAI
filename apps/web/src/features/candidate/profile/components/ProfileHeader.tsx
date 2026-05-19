@@ -92,7 +92,7 @@ export default function ProfileHeader({
               <div className="heading-h5-semi-bold text-primary break-words">
                 {candidate.name}
               </div>
-              
+
               {isEditingTitle ? (
                 <div className="flex flex-col gap-2 mt-1">
                   <input
@@ -104,15 +104,18 @@ export default function ProfileHeader({
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
                   />
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={handleSaveTitle}
                       disabled={loading}
                       className="px-3 py-1 rounded-md bg-accent-solid text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-all"
                     >
                       {loading ? 'Saving...' : 'Save'}
                     </button>
-                    <button 
-                      onClick={() => { setIsEditingTitle(false); setTitle(candidate.title); }}
+                    <button
+                      onClick={() => {
+                        setIsEditingTitle(false);
+                        setTitle(candidate.title);
+                      }}
                       className="px-3 py-1 rounded-md border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50"
                     >
                       Cancel
@@ -120,11 +123,17 @@ export default function ProfileHeader({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsEditingTitle(true)}>
+                <div
+                  className="flex items-center gap-2 group cursor-pointer"
+                  onClick={() => setIsEditingTitle(true)}
+                >
                   <div className="heading-h6-regular text-secondary break-words">
-                    {candidate.title || "Add Professional Title"}
+                    {candidate.title || 'Add Professional Title'}
                   </div>
-                  <Edit size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Edit
+                    size={14}
+                    className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
                 </div>
               )}
 

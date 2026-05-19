@@ -18,7 +18,9 @@ export class AiProviderService {
 
   async generateStructuredData<T>(prompt: string, _schema?: any): Promise<T> {
     try {
-      this.logger.log('Calling Gemini API (@google/genai) for structured data...');
+      this.logger.log(
+        'Calling Gemini API (@google/genai) for structured data...'
+      );
 
       const response = await this.client.models.generateContent({
         model: process.env.GEMINI_MAIN_MODEL || 'gemini-3-flash-preview',
@@ -36,10 +38,14 @@ export class AiProviderService {
       try {
         return JSON.parse(text) as T;
       } catch (parseError: any) {
-        this.logger.error(`Failed to parse Gemini response as JSON. Error: ${parseError.message}. Content: ${text}`);
-        
+        this.logger.error(
+          `Failed to parse Gemini response as JSON. Error: ${parseError.message}. Content: ${text}`
+        );
+
         // Try to fix common Gemini JSON issues (like markdown blocks)
-        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```([\s\S]*?)```/);
+        const jsonMatch =
+          text.match(/```json\n([\s\S]*?)\n```/) ||
+          text.match(/```([\s\S]*?)```/);
         if (jsonMatch && jsonMatch[1]) {
           try {
             this.logger.log('Attempting to parse extracted JSON block...');
@@ -48,7 +54,7 @@ export class AiProviderService {
             this.logger.error('Failed to parse extracted JSON block.');
           }
         }
-        
+
         throw new Error('Invalid JSON response from AI');
       }
     } catch (error: any) {
@@ -75,14 +81,16 @@ export class AiProviderService {
       // Use the flagship Gemini Embedding 2 model
       const result = await this.client.models.embedContent({
         model: 'gemini-embedding-2',
-        contents: [{ 
-          parts: [{ text }], 
-          role: 'user' 
-        }],
+        contents: [
+          {
+            parts: [{ text }],
+            role: 'user',
+          },
+        ],
         // Standard task types for best quality
         config: {
-          taskType: 'RETRIEVAL_DOCUMENT'
-        }
+          taskType: 'RETRIEVAL_DOCUMENT',
+        },
       });
 
       if (!result.embeddings || result.embeddings.length === 0) {
@@ -96,4 +104,3 @@ export class AiProviderService {
     }
   }
 }
-

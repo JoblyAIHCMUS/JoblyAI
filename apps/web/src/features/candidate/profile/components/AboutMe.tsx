@@ -66,7 +66,9 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
       {editing ? (
         <div className="flex flex-col gap-4 px-4">
           <div className="flex flex-col gap-2">
-            <label className="label-label-1-semi-bold text-primary">Biography</label>
+            <label className="label-label-1-semi-bold text-primary">
+              Biography
+            </label>
             <textarea
               className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[150px] resize-none"
               placeholder="Tell us about yourself..."

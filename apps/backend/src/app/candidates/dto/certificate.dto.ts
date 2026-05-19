@@ -40,7 +40,7 @@ export class QueryCertificateDto {
   @IsInt({ each: true })
   sourceCvIds?: number[];
 }
-  export class CreateCertificateDto {
+export class CreateCertificateDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
@@ -64,9 +64,9 @@ export class QueryCertificateDto {
   @IsOptional()
   @IsUrl()
   url?: string; // Link to the digital badge or verification page
-  }
+}
 
-  export class UpdateCertificateDto {
+export class UpdateCertificateDto {
   @IsNumber()
   id!: number;
 

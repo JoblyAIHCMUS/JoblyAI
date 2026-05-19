@@ -5,7 +5,11 @@ import {
   Social,
   CandidateCertificate,
 } from '@/types/candidate';
-import type { CandidateSkill, CandidateContact, CandidateSocial } from '@/api-client/candidate/types';
+import type {
+  CandidateSkill,
+  CandidateContact,
+  CandidateSocial,
+} from '@/api-client/candidate/types';
 
 export interface PortfolioItem {
   img: string;

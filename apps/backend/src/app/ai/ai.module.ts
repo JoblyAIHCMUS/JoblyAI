@@ -18,7 +18,7 @@ import { AuthModule } from '../auth/auth.module';
     AuthModule,
     BullModule.registerQueue(
       { name: 'resume-extraction' },
-      { name: 'resume-scoring' },
+      { name: 'resume-scoring' }
     ),
   ],
   controllers: [AiController],

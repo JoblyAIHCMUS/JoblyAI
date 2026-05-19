@@ -55,12 +55,14 @@ function ExperienceEditForm({
       companyName: editItem.companyName || '',
       type: editItem.type || 'FULL_TIME',
       location: editItem.location || '',
-      startDate: (editItem.startDate && !isNaN(new Date(editItem.startDate).getTime())) 
-        ? new Date(editItem.startDate) 
-        : undefined,
-      endDate: (editItem.endDate && !isNaN(new Date(editItem.endDate).getTime())) 
-        ? new Date(editItem.endDate) 
-        : null,
+      startDate:
+        editItem.startDate && !isNaN(new Date(editItem.startDate).getTime())
+          ? new Date(editItem.startDate)
+          : undefined,
+      endDate:
+        editItem.endDate && !isNaN(new Date(editItem.endDate).getTime())
+          ? new Date(editItem.endDate)
+          : null,
       isCurrent: !isNew && !editItem.endDate,
       description: editItem.description || '',
     },
@@ -268,7 +270,9 @@ function ExperienceEditForm({
                 }}
                 className="w-4.5 h-4.5 rounded border border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer transition-all"
               />
-              <span className="text-slate-600 font-medium group-hover:text-indigo-600 transition-colors">I currently work here</span>
+              <span className="text-slate-600 font-medium group-hover:text-indigo-600 transition-colors">
+                I currently work here
+              </span>
             </label>
           </div>
         </div>
@@ -276,7 +280,9 @@ function ExperienceEditForm({
 
       {/* Row 3 - Location */}
       <div className="w-full box-border">
-        <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">Location</label>
+        <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
+          Location
+        </label>
         <Controller
           name="location"
           control={control}
@@ -336,9 +342,9 @@ function ExperienceEditForm({
       <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-slate-100">
         {!isValid && Object.keys(errors).length > 0 && (
           <div className="bg-red-50 border border-red-100 p-2 rounded-lg mb-2">
-             <p className="text-red-600 text-[10px] text-center font-bold uppercase">
-               Please fill in all required fields (marked with *)
-             </p>
+            <p className="text-red-600 text-[10px] text-center font-bold uppercase">
+              Please fill in all required fields (marked with *)
+            </p>
           </div>
         )}
         <div className="flex gap-3">

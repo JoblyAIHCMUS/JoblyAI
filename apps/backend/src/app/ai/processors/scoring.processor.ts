@@ -17,7 +17,7 @@ export class ScoringProcessor extends WorkerHost {
     private readonly parserService: ResumeParserService,
     private readonly scoringService: ResumeScoringService,
     private readonly s3Service: S3Service,
-    @InjectPrisma() private readonly prisma: PrismaClient,
+    @InjectPrisma() private readonly prisma: PrismaClient
   ) {
     super();
   }
@@ -45,20 +45,25 @@ export class ScoringProcessor extends WorkerHost {
       // 4. Score with Gemini
       this.logger.log(`Calling scoring service for resume ${resumeId}...`);
       const scoringResult = await this.scoringService.evaluateResume(text);
-      
+
       if (!scoringResult) {
         throw new Error(`AI returned no scoring result for resume ${resumeId}`);
       }
 
-      this.logger.log(`Successfully scored resume ${resumeId}. Raw Score: ${scoringResult?.score}`);
+      this.logger.log(
+        `Successfully scored resume ${resumeId}. Raw Score: ${scoringResult?.score}`
+      );
 
       // 5. Update database - Ensure score is a float
-      const finalScore = typeof scoringResult.score === 'string' 
-        ? parseFloat(scoringResult.score) 
-        : scoringResult.score;
+      const finalScore =
+        typeof scoringResult.score === 'string'
+          ? parseFloat(scoringResult.score)
+          : scoringResult.score;
 
       if (isNaN(finalScore)) {
-        this.logger.warn(`AI returned an invalid score: ${scoringResult.score}. Defaulting to 0.`);
+        this.logger.warn(
+          `AI returned an invalid score: ${scoringResult.score}. Defaulting to 0.`
+        );
       }
 
       await this.prisma.resume.update({
@@ -69,7 +74,9 @@ export class ScoringProcessor extends WorkerHost {
         },
       });
 
-      this.logger.log(`Updated database for resume ${resumeId} with score ${finalScore}`);
+      this.logger.log(
+        `Updated database for resume ${resumeId} with score ${finalScore}`
+      );
 
       // Emit notification
       this.aiGateway.notifyUser(candidateId, 'RESUME_SCORED', { resumeId });
