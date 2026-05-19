@@ -13,6 +13,7 @@ import {
 } from '../../../components/shared/GoogleAuthButton';
 import { useLogin } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
+import { getPostAuthRoute } from '../../../../lib/auth-redirect';
 
 import { Eye, EyeOff, Check } from 'lucide-react-native';
 
@@ -50,12 +51,7 @@ const LoginPage = () => {
         text2: 'Login successful!',
       });
 
-      // Role-based redirect
-      if (result.user.role === 'employer') {
-        router.push('/pages/employer/dashboard');
-      } else {
-        router.push('/');
-      }
+      router.replace(getPostAuthRoute(result.user));
     } catch {
       Toast.show({
         type: 'error',

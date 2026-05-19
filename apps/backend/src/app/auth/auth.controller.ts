@@ -4,6 +4,7 @@ import {
   Req,
   Res,
   Get,
+  Post,
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
@@ -34,6 +35,49 @@ export class AuthController {
       emailVerified: req.user.emailVerified,
       avatar: req.user.avatarUrl,
     };
+  }
+
+  /**
+   * Silent refresh endpoint for clients: proxy to Better Auth session endpoint
+   * Client should call POST /auth/refresh to attempt to rotate/refresh session cookie
+   */
+  @Post('refresh')
+  async refresh(@Req() req: ExpressRequest, @Res() res: Response) {
+    const baseUrl =
+      process.env.BETTER_AUTH_URL || process.env.APP_URL || 'http://localhost:3000';
+
+    // Build a Request to Better Auth's /session endpoint using the incoming headers (cookies)
+    const url = new URL('/session', baseUrl);
+    const headers = new Headers();
+    Object.entries(req.headers).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        headers.set(key, value);
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((entry) => headers.append(key, entry));
+      }
+    });
+
+    // Ensure Origin header is set for Better Auth
+    if (!headers.has('origin')) {
+      headers.set('origin', new URL(baseUrl).origin);
+    }
+
+    const request = new Request(url.toString(), {
+      method: 'GET',
+      headers,
+    });
+
+    const authRes = await auth.handler(request);
+
+    res.status(authRes.status);
+    authRes.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+
+    const body = await authRes.text();
+    return res.send(body);
   }
 
   @Get('admin-only-check')
