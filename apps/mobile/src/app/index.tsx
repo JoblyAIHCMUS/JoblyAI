@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -31,14 +30,6 @@ export default function Index() {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLoginPress={() => {
-          setIsSidebarOpen(false);
-          router.push('/pages/(auth)/login');
-        }}
-        onSignUpPress={() => {
-          setIsSidebarOpen(false);
-          router.push('/pages/(auth)/register');
-        }}
       />
     </View>
   );
