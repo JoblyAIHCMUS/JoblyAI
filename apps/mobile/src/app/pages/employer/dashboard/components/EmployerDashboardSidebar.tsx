@@ -1,24 +1,35 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  Image,
   PanResponder,
+  Text,
+  TouchableOpacity,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
   Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { COLORS, SPACING } from '../../../../constants/theme';
-import { AppButton } from '../../../../components/shared/AppButton';
-import { useRouter } from 'expo-router';
+import { SvgUri } from 'react-native-svg';
+import {
+  Building2,
+  ClipboardList,
+  HelpCircle,
+  Home,
+  LogOut,
+  MessageSquare,
+  Plus,
+  Settings,
+  Users,
+  X,
+} from 'lucide-react-native';
+import { usePathname, useRouter } from 'expo-router';
+import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -30,6 +41,12 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
   const router = useRouter();
+  const pathname = usePathname();
+  const { data: employerProfile } = useGetEmployerProfile();
+  const avatarUrl = employerProfile?.avatarUrl?.trim();
+  const isSvgAvatar =
+    !!avatarUrl &&
+    (avatarUrl.endsWith('.svg') || avatarUrl.includes('/svg') || avatarUrl.includes('image/svg+xml'));
 
   // Keep width ref updated for the PanResponder closure
   const widthRef = useRef(width);
@@ -64,14 +81,45 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
     transform: [{ translateX: translateX.value }],
   }));
 
+  const primaryNav = [
+    { name: 'Dashboard', icon: Home, path: '/pages/employer/dashboard' },
+    {
+      name: 'Messages',
+      icon: MessageSquare,
+      path: '/pages/employer/messages',
+      badge: 1,
+    },
+    {
+      name: 'Company Profile',
+      icon: Building2,
+      path: '/pages/employer/profile',
+    },
+    {
+      name: 'All Applicants',
+      icon: Users,
+      path: '/pages/employer/applicants',
+    },
+    {
+      name: 'Job Listing',
+      icon: ClipboardList,
+      path: '/pages/employer/jobs',
+    },
+  ];
+
+  const isRouteActive = (path: string) => {
+    if (path === '/pages/employer/dashboard') {
+      return pathname === path || pathname === '/';
+    }
+
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
+
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only trigger if swiping left and sidebar is active
         return Math.abs(gestureState.dx) > 10 && gestureState.dx < 0;
       },
       onPanResponderMove: (_, gestureState) => {
-        // Follow the finger but don't allow sliding right past 0
         if (gestureState.dx < 0) {
           translateX.value = gestureState.dx;
         }
@@ -79,7 +127,6 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
       onPanResponderRelease: (_, gestureState) => {
         const currentWidth = widthRef.current;
 
-        // If swiped more than 1/3 way or high velocity swipe
         if (gestureState.dx < -currentWidth / 3 || gestureState.vx < -0.5) {
           translateX.value = withTiming(
             -currentWidth,
@@ -94,7 +141,6 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             }
           );
         } else {
-          // Snap back to fully open without bouncing
           translateX.value = withTiming(0, {
             duration: 200,
             easing: Easing.out(Easing.quad),
@@ -108,160 +154,127 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <Animated.View
-      style={[styles.container, animatedStyle]}
+      className="absolute inset-0 z-50 bg-[#f8f9fa] shadow-2xl elevation-5"
+      style={animatedStyle}
       {...panResponder.panHandlers}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M18 6L6 18M6 6L18 18"
-                stroke={COLORS.text}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
-          </TouchableOpacity>
-          <View style={styles.brandContainer}>
-            <View style={styles.logoContainer}>
+      <SafeAreaView className="flex-1">
+        <View className="flex-row items-center justify-between px-6 py-4">
+          <View className="flex-row items-center gap-3">
+            <View className="w-10 h-10 items-center justify-center rounded-full bg-[#4F46E5]">
+              <View className="w-4 h-4 rounded-full bg-white" />
             </View>
-            <Text style={styles.brandText}>JoblyAI</Text>
+            <Text className="text-2xl font-extrabold tracking-tight text-[#111827]">
+              JoblyAI
+            </Text>
+          </View>
+
+          <TouchableOpacity onPress={onClose} className="p-2">
+            <X size={28} color="#111827" strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-1 px-4 pt-4">
+          {primaryNav.map((item) => {
+            const isActive = isRouteActive(item.path);
+            const Icon = item.icon;
+
+            return (
+              <TouchableOpacity
+                key={item.name}
+                onPress={() => {
+                  onClose();
+                  router.push(item.path as never);
+                }}
+                className={`relative flex-row items-center rounded-xl px-4 py-4 mb-2 overflow-hidden ${isActive ? 'bg-[#EEEDFC]' : ''}`}
+                activeOpacity={0.8}
+              >
+                {isActive && (
+                  <View className="absolute left-0 top-0 bottom-0 w-1.5 rounded-r-md bg-[#4F46E5]" />
+                )}
+                <Icon
+                  size={24}
+                  color={isActive ? '#4F46E5' : '#94A3B8'}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <Text
+                  className={`ml-4 text-[17px] font-semibold ${isActive ? 'text-[#4F46E5]' : 'text-[#64748B]'}`}
+                >
+                  {item.name}
+                </Text>
+
+                {item.badge && (
+                  <View className="ml-auto h-10 min-w-10 items-center justify-center rounded-full bg-[#4F46E5] px-2">
+                    <Text className="text-white text-sm font-bold">
+                      {item.badge}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+
+          <View className="h-px bg-[#CBD5E1] my-4 mx-2" />
+
+          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-1" activeOpacity={0.8}>
+            <Settings size={24} color="#64748B" />
+            <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
+              Settings
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-1" activeOpacity={0.8}>
+            <HelpCircle size={24} color="#64748B" />
+            <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
+              Help Center
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center px-4 py-3 mb-8 mt-2" activeOpacity={0.8}>
+            <LogOut size={24} color="#EF4444" strokeWidth={2.5} />
+            <Text className="ml-4 text-[17px] font-bold text-[#EF4444]">
+              Logout
+            </Text>
+          </TouchableOpacity>
+
+          <View className="mt-auto pb-4">
+            <View className="flex-row items-center px-4 mb-4">
+              <View className="w-14 h-14 overflow-hidden rounded-full bg-[#D1D5DB]">
+                {avatarUrl ? (
+                  isSvgAvatar ? (
+                    <SvgUri uri={avatarUrl} width={56} height={56} />
+                  ) : (
+                    <Image
+                      source={{ uri: avatarUrl }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  )
+                ) : null}
+              </View>
+              <View className="ml-4">
+                <Text className="text-[19px] font-bold text-[#111827]">
+                  {employerProfile?.fullName || 'Loading...'}
+                </Text>
+                <Text className="text-[15px] text-[#64748B]">
+                  {employerProfile?.email || ''}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
-        <View style={styles.content}>
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() => {
-              onClose();
-              router.push('/pages/employer/dashboard');
-            }}
-          >
-            <Text style={styles.navText}>Browse Jobs</Text>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M9 18L15 12L9 6"
-                stroke={COLORS.primary}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
+        <View className="px-6 pb-8 pt-4">
+          <TouchableOpacity className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4" activeOpacity={0.9}>
+            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+            <Text className="ml-2 text-[18px] font-bold text-white">
+              Post a job
+            </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem}>
-            <Text style={styles.navText}>Browse Companies</Text>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M9 18L15 12L9 6"
-                stroke={COLORS.primary}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <View style={styles.footer}>
-            <AppButton
-              title="Sign Up"
-              onPress={() => router.push('/pages/(auth)/register')}
-            />
-            <View style={{ height: SPACING.md }} />
-            <AppButton
-              title="Login"
-              variant="outline"
-              onPress={() => router.push('/pages/(auth)/login')}
-            />
-          </View>
         </View>
       </SafeAreaView>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLORS.white,
-    zIndex: 1000,
-    // Add shadow for better visual separation during slide
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#E6E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  brandContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    overflow: 'hidden',
-  },
-  brandText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#121419',
-    letterSpacing: -0.5,
-  },
-  content: {
-    padding: SPACING.lg,
-    flex: 1,
-  },
-  navItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.lg,
-  },
-  navText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginVertical: SPACING.lg,
-  },
-  footer: {
-    marginTop: 'auto',
-    paddingBottom: SPACING.xl,
-  },
-});
 
 export default EmployerDashboardSidebar;
