@@ -1,22 +1,31 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { COLORS, SPACING } from '../../constants/theme';
 
 interface AppButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'outline';
+  style?: StyleProp<ViewStyle>;
 }
 
 export const AppButton = ({
   title,
   onPress,
   variant = 'primary',
+  style,
 }: AppButtonProps) => (
   <TouchableOpacity
     style={[
       styles.button,
       variant === 'outline' ? styles.outline : styles.primary,
+      style,
     ]}
     onPress={onPress}
   >
@@ -41,10 +50,10 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: COLORS.primary },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.primary,
   },
-  text: { fontWeight: '700', fontSize: 16 },
+  text: { fontWeight: '700', fontSize: 16, fontFamily: 'Inter' },
   textPrimary: { color: COLORS.white },
   textOutline: { color: COLORS.primary },
 });

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Plus } from 'lucide-react';
+import { Bell, Plus, Menu } from 'lucide-react';
+import { useSidebar } from '@/components/ui/sidebar';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +22,7 @@ export function EmployerTopBar() {
   const { data: profile, loading: isPending, error } = useGetEmployerProfile();
   const company = profile?.company;
   const canPostJob = Boolean(company?.id) && !isPending;
+  const { toggleSidebar, isMobile } = useSidebar();
 
   const {
     visibleNotifications,
@@ -46,8 +48,20 @@ export function EmployerTopBar() {
       )}
     >
       <div className="flex items-center justify-between gap-3 sm:gap-4">
-        {/* Left side - Company logo + name or Not Affiliated */}
+        {/* Left side - Menu toggle (mobile) + Company logo + name or Not Affiliated */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
+          {/* Mobile menu toggle */}
+          {isMobile && (
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label="Toggle sidebar"
+              className="lg:hidden p-0 text-[#25324b] hover:text-[#4640de] transition-colors"
+            >
+              <Menu className="h-4 w-4" strokeWidth={2} />
+            </button>
+          )}
+
           {/* Company logo or placeholder */}
           <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium flex-shrink-0">
             {company?.logoUrl ? (

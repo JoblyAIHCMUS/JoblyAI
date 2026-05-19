@@ -17,29 +17,6 @@ import {
 import { hiringStageStyles } from '@/features/employer/hiringStage';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
 
-const categoryLabels: Record<string, string> = {
-  design: 'Design',
-  marketing: 'Marketing',
-  business: 'Business',
-  technology: 'Technology',
-  sales: 'Sales',
-  finance: 'Finance',
-  'human-resources': 'Human Resources',
-  operations: 'Operations',
-};
-
-// Helper to get category label, with fallback to title-cased slug
-const getCategoryLabel = (slug: string): string => {
-  if (categoryLabels[slug]) {
-    return categoryLabels[slug];
-  }
-  // Fallback: convert slug to title case (e.g., "product-management" -> "Product Management")
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
 const employmentTypeLabels: Record<EmploymentType, string> = {
   FULL_TIME: 'Full-Time',
   PART_TIME: 'Part-Time',
@@ -59,7 +36,7 @@ export default function ApplicantOverview({
   const progressColor = hiringStageColor[applicant.hiringStage];
 
   return (
-    <Card className="w-full sticky top-20 md:top-[88px] lg:top-20">
+    <Card className="w-full md:sticky md:top-[88px] lg:top-20">
       <CardHeader className="items-center text-center pb-3 sm:pb-4 px-3 sm:px-4 pt-4 sm:pt-6">
         <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mb-2 sm:mb-3 flex-shrink-0">
           <AvatarImage src={applicant.image} alt={applicant.name} />
@@ -88,8 +65,8 @@ export default function ApplicantOverview({
             <p className="label-label-2-semi-bold text-xs sm:text-sm line-clamp-2">
               {applicant.appliedRole}
             </p>
-            <p className="label-label-2-regular text-muted-foreground text-xs sm:text-sm line-clamp-1">
-              {getCategoryLabel(applicant.jobCategory)} &bull;{' '}
+            <p className="label-label-2-regular text-muted-foreground text-xs sm:text-sm">
+              {applicant.jobCategory.name} &bull;{' '}
               {employmentTypeLabels[applicant.employmentType]}
             </p>
           </div>
