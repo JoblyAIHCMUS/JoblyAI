@@ -60,9 +60,7 @@ export class CompanyController {
   }
 
   @Get('recommended')
-  async getRecommendedCompanies(
-    @Query('limit', ParseIntPipe) limit: number
-  ) {
+  async getRecommendedCompanies(@Query('limit', ParseIntPipe) limit: number) {
     const companies = await this.companyService.getRecommendedCompanies(limit);
     return companies.map((company) => ({
       id: String(company.id),
