@@ -22,6 +22,7 @@ import {
 
 export default function EmployerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
+  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
 
   const {
     fetchApplications,
@@ -43,14 +44,15 @@ export default function EmployerDashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      const [startDate, endDate] = getDateRangeForPeriods('day', 7);
+      const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+      const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
 
       // Fetch profile first to get the user ID for chat summary
       const { data: employerProfile } = await fetchEmployerProfile();
 
       const promises: Promise<unknown>[] = [
         fetchApplications({ status: 'APPLIED', pageSize: 1 }),
-        fetchAnalytics(startDate, endDate, 'day'),
+        fetchAnalytics(startDate, endDate, groupBy),
       ];
 
       if (employerProfile?.id) {
@@ -66,6 +68,7 @@ export default function EmployerDashboard() {
     fetchChatSummary,
     fetchAnalytics,
     fetchEmployerProfile,
+    groupBy,
   ]);
 
   useEffect(() => {
@@ -96,8 +99,8 @@ export default function EmployerDashboard() {
       };
     }
 
-    return aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
-  }, [viewsData, appsData]);
+    return aggregateAnalyticsData(viewsData || [], appsData || [], groupBy);
+  }, [viewsData, appsData, groupBy]);
 
   const isLoadingSummary = applicationsLoading || chatsLoading;
 
@@ -119,7 +122,12 @@ export default function EmployerDashboard() {
             loading={isLoadingSummary}
           />
           <View className="h-[1px] bg-[#CBD5E1] mt-8" />
-          <JobStatisticsChart data={chartData} loading={analyticsLoading} />
+          <JobStatisticsChart
+            data={chartData}
+            loading={analyticsLoading}
+            groupBy={groupBy}
+            onGroupByChange={setGroupBy}
+          />
           <DetailedStatCards summary={summary} loading={analyticsLoading} />
         </View>
       </ScrollView>
