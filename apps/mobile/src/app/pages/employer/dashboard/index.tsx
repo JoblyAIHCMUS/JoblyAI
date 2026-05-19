@@ -41,14 +41,14 @@ export default function EmployerDashboard() {
     appsData,
     loading: analyticsLoading,
   } = useJobAnalytics();
-  const { fetchEmployerProfile } = useGetEmployerProfile();
+  const { refetch: fetchEmployerProfile } = useGetEmployerProfile();
 
   const loadData = useCallback(async () => {
     try {
       const [startDate, endDate] = getDateRangeForPeriods('day', 7);
 
       // Fetch profile first to get the user ID for chat summary
-      const employerProfile = await fetchEmployerProfile();
+      const { data: employerProfile } = await fetchEmployerProfile();
 
       const promises: Promise<unknown>[] = [
         fetchApplications({ status: 'APPLIED', pageSize: 1 }),
