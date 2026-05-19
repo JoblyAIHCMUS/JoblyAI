@@ -97,3 +97,18 @@ export const resetPassword = async (
   );
   return response.data;
 };
+
+export const getSession = async (
+  signal?: AbortSignal
+): Promise<AuthResponse> => {
+  const response = await apiClient.get<AuthResponse>('/auth/session', {
+    signal,
+  });
+  return response.data;
+};
+
+export const logout = async (signal?: AbortSignal): Promise<void> => {
+  await apiClient.post('/auth/sign-out', undefined, {
+    signal,
+  });
+};

@@ -3,20 +3,32 @@ import {
   JobApplicationAnalytics,
 } from '../../../../../types/analytics';
 
+export interface StatsSummary {
+  totalJobViews: number;
+  totalJobApplications: number;
+  jobViewsDiff: number;
+  jobApplicationsDiff: number;
+  periodLabel: string;
+}
+
 export type StatsDataSet = {
   stacks: { value: number; color: string }[];
   label: string;
 }[];
 
+export interface AnalyticsResult {
+  chartData: StatsDataSet;
+  summary: StatsSummary;
+}
+
 /**
- * Aggregates job views and application data into the StatsDataSet format
- * used by the JobStatisticsChart component in the mobile app.
+ * Aggregates job views and application data into chart and summary formats.
  */
 export function aggregateAnalyticsData(
   viewsData: JobViewAnalytics[] = [],
   applicationsData: JobApplicationAnalytics[] = [],
   groupBy: 'day' | 'week' | 'month' = 'day'
-): StatsDataSet {
+): AnalyticsResult {
   // Create a map of periods to aggregate data
   const periodMap = new Map<
     string,
@@ -49,7 +61,7 @@ export function aggregateAnalyticsData(
   const sortedPeriods = Array.from(periodMap.keys()).sort();
 
   // Create data points
-  return sortedPeriods
+  const chartData = sortedPeriods
     .map((period, index) => {
       const values = periodMap.get(period);
       if (!values) return null;
@@ -63,6 +75,56 @@ export function aggregateAnalyticsData(
       };
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const totalJobViews = chartData.reduce(
+    (sum, dataPoint) => sum + dataPoint.stacks[1].value,
+    0
+  );
+  const totalJobApplications = chartData.reduce(
+    (sum, dataPoint) => sum + dataPoint.stacks[0].value,
+    0
+  );
+
+  let jobViewsDiff = 0;
+  let jobApplicationsDiff = 0;
+
+  if (chartData.length >= 2) {
+    const lastDataPoint = chartData[chartData.length - 1];
+    const previousDataPoint = chartData[chartData.length - 2];
+
+    const lastViews = lastDataPoint.stacks[1].value;
+    const previousViews = previousDataPoint.stacks[1].value;
+    const lastApplications = lastDataPoint.stacks[0].value;
+    const previousApplications = previousDataPoint.stacks[0].value;
+
+    if (previousViews > 0) {
+      jobViewsDiff = ((lastViews - previousViews) / previousViews) * 100;
+    }
+
+    if (previousApplications > 0) {
+      jobApplicationsDiff =
+        ((lastApplications - previousApplications) / previousApplications) *
+        100;
+    }
+  }
+
+  const periodLabel =
+    groupBy === 'day'
+      ? 'This Week'
+      : groupBy === 'week'
+      ? 'This Month'
+      : 'This Year';
+
+  return {
+    chartData,
+    summary: {
+      totalJobViews,
+      totalJobApplications,
+      jobViewsDiff: Math.round(jobViewsDiff * 10) / 10,
+      jobApplicationsDiff: Math.round(jobApplicationsDiff * 10) / 10,
+      periodLabel,
+    },
+  };
 }
 
 /**

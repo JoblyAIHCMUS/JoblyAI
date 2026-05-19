@@ -6,9 +6,8 @@ import { DashboardHeader } from './components/DashboardHeader';
 import { SummaryCards } from './components/SummaryCards';
 import { JobStatisticsChart } from './components/JobStatisticsChart';
 import { DetailedStatCards } from './components/DetailedStatCards';
-import { ApplicantsSummary } from './components/ApplicantsSummary';
-import { JobUpdatesList } from './components/JobUpdatesList';
 import EmployerDashboardHeader from './components/EmployerDashboardHeader';
+import EmployerDashboardSidebar from './components/EmployerDashboardSidebar';
 
 // Hooks
 import { useListEmployerApplications } from '../../../../hooks/useListEmployerApplications';
@@ -24,6 +23,8 @@ import {
 
 export default function EmployerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
 
   const {
     fetchApplications,
@@ -41,18 +42,19 @@ export default function EmployerDashboard() {
     appsData,
     loading: analyticsLoading,
   } = useJobAnalytics();
-  const { fetchEmployerProfile } = useGetEmployerProfile();
+  const { refetch: fetchEmployerProfile } = useGetEmployerProfile();
 
   const loadData = useCallback(async () => {
     try {
-      const [startDate, endDate] = getDateRangeForPeriods('day', 7);
+      const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+      const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
 
       // Fetch profile first to get the user ID for chat summary
-      const employerProfile = await fetchEmployerProfile();
+      const { data: employerProfile } = await fetchEmployerProfile();
 
       const promises: Promise<unknown>[] = [
         fetchApplications({ status: 'APPLIED', pageSize: 1 }),
-        fetchAnalytics(startDate, endDate, 'day'),
+        fetchAnalytics(startDate, endDate, groupBy),
       ];
 
       if (employerProfile?.id) {
@@ -68,6 +70,7 @@ export default function EmployerDashboard() {
     fetchChatSummary,
     fetchAnalytics,
     fetchEmployerProfile,
+    groupBy,
   ]);
 
   useEffect(() => {
@@ -84,17 +87,29 @@ export default function EmployerDashboard() {
   const messageCount =
     chatsResult?.filter((chat) => chat.hasUnread).length || 0;
 
-  const chartData = useMemo(() => {
-    if (!viewsData && !appsData) return [];
-    return aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
-  }, [viewsData, appsData]);
+  const { chartData, summary } = useMemo(() => {
+    if (!viewsData && !appsData) {
+      return {
+        chartData: [],
+        summary: {
+          totalJobViews: 0,
+          totalJobApplications: 0,
+          jobViewsDiff: 0,
+          jobApplicationsDiff: 0,
+          periodLabel: 'This Week',
+        },
+      };
+    }
+
+    return aggregateAnalyticsData(viewsData || [], appsData || [], groupBy);
+  }, [viewsData, appsData, groupBy]);
 
   const isLoadingSummary = applicationsLoading || chatsLoading;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <EmployerDashboardHeader />
+      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -109,14 +124,19 @@ export default function EmployerDashboard() {
             loading={isLoadingSummary}
           />
           <View className="h-[1px] bg-[#CBD5E1] mt-8" />
-          <JobStatisticsChart data={chartData} loading={analyticsLoading} />
-          <DetailedStatCards />
-          <View className="h-[1px] bg-[#CBD5E1] mt-8 mb-2" />
-          <ApplicantsSummary />
-          <View className="h-[1px] bg-[#CBD5E1] mt-2 mb-2" />
-          <JobUpdatesList />
+          <JobStatisticsChart
+            data={chartData}
+            loading={analyticsLoading}
+            groupBy={groupBy}
+            onGroupByChange={setGroupBy}
+          />
+          <DetailedStatCards summary={summary} loading={analyticsLoading} />
         </View>
       </ScrollView>
+      <EmployerDashboardSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../../../../constants/theme';
+import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
+import { Link } from 'expo-router';
 
 interface EmployerDashboardHeaderProps {
   onMenuPress?: () => void;
@@ -12,8 +14,14 @@ interface EmployerDashboardHeaderProps {
 const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
   onMenuPress,
 }) => {
+  const { data: profile, isPending, error } = useGetEmployerProfile();
+  const company = profile?.company;
+
   return (
-    <SafeAreaView edges={['top']} className="border-b border-[#CBD5E1]">
+    <SafeAreaView
+      edges={['top']}
+      className="border-b border-[#CBD5E1] bg-white"
+    >
       <View className="h-16 flex-row items-center justify-between px-4">
         {/* Menu Icon Left */}
         <TouchableOpacity
@@ -33,20 +41,50 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
 
         {/* Center Company Info */}
         <View className="flex-row items-center">
-          <View
-            className="w-12 h-12 rounded-xl items-center justify-center mr-3"
-            style={{ backgroundColor: '#2DD4BF20' }}
-          >
-            <View
-              className="w-6 h-6 rounded-md"
-              style={{ backgroundColor: '#2DD4BF' }}
-            />
+          <View className="w-12 h-12 rounded-xl items-center justify-center mr-3 overflow-hidden bg-slate-100">
+            {company?.logoUrl ? (
+              <Image
+                source={{ uri: company.logoUrl }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="w-full h-full items-center justify-center"
+                style={{ backgroundColor: '#2DD4BF20' }}
+              >
+                <View
+                  className="w-6 h-6 rounded-md"
+                  style={{ backgroundColor: '#2DD4BF' }}
+                />
+              </View>
+            )}
           </View>
-          <View>
-            <Text className="text-[#475569] text-base">Company</Text>
-            <Text className="text-[#0F172A] text-lg font-semibold -mt-1">
-              Nomad
-            </Text>
+          <View className="flex-col">
+            <Text className="text-[#475569] text-xs">Company</Text>
+            <View className="flex-row items-center flex-wrap">
+              {error ? (
+                <Text className="text-[#EF4444] text-sm font-semibold">
+                  Error
+                </Text>
+              ) : (
+                <Text
+                  className="text-[#0F172A] text-base font-semibold"
+                  numberOfLines={1}
+                >
+                  {isPending ? 'Loading...' : company?.name || 'Not Affiliated'}
+                </Text>
+              )}
+              {!company && !isPending && !error && (
+                <Link href="/pages/employer/new-company" asChild>
+                  <TouchableOpacity className="ml-2">
+                    <Text className="text-[#4640de] text-xs font-semibold underline">
+                      Register
+                    </Text>
+                  </TouchableOpacity>
+                </Link>
+              )}
+            </View>
           </View>
         </View>
 

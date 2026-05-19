@@ -1,22 +1,19 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import {
   login as apiLogin,
   signup as apiSignup,
   sendOTP as apiSendOTP,
   resetPassword as apiResetPassword,
+  logout as apiLogout,
   LoginPayload,
   SignupPayload,
   SendOTPPayload,
   ResetPasswordPayload,
   AuthResponse,
 } from '../api/auth';
-
-interface UseAuthResult {
-  data: AuthResponse | null;
-  loading: boolean;
-  error: Error | null;
-}
 
 export function useLogin() {
   const [loading, setLoading] = useState(false);
@@ -124,4 +121,57 @@ export function useResetPassword() {
   };
 
   return { resetPassword, loading, error, data };
+}
+
+export function useLogout() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const clearSessionAndRedirect = () => {
+    queryClient.removeQueries({ queryKey: ['user'] });
+    queryClient.removeQueries({ queryKey: ['employer-profile'] });
+    router.dismissTo('/');
+  };
+
+  const logout = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await apiLogout();
+      clearSessionAndRedirect();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          clearSessionAndRedirect();
+          return;
+        }
+
+        if (!err.response) {
+          const networkError = new Error(
+            'Network Error: Cannot reach backend. Please ensure the backend server is running and accessible.'
+          );
+          setError(networkError);
+          throw networkError;
+        }
+
+        const errorMessage =
+          err.response.data?.message || err.message || 'Logout failed';
+        const logoutError = new Error(errorMessage);
+        setError(logoutError);
+        throw logoutError;
+      }
+
+      const logoutError =
+        err instanceof Error ? err : new Error('Logout failed');
+      setError(logoutError);
+      throw logoutError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { logout, loading, error };
 }
