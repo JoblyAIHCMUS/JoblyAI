@@ -82,8 +82,20 @@ export default function EmployerDashboard() {
   const messageCount =
     chatsResult?.filter((chat) => chat.hasUnread).length || 0;
 
-  const chartData = useMemo(() => {
-    if (!viewsData && !appsData) return [];
+  const { chartData, summary } = useMemo(() => {
+    if (!viewsData && !appsData) {
+      return {
+        chartData: [],
+        summary: {
+          totalJobViews: 0,
+          totalJobApplications: 0,
+          jobViewsDiff: 0,
+          jobApplicationsDiff: 0,
+          periodLabel: 'This Week',
+        },
+      };
+    }
+
     return aggregateAnalyticsData(viewsData || [], appsData || [], 'day');
   }, [viewsData, appsData]);
 
@@ -108,7 +120,7 @@ export default function EmployerDashboard() {
           />
           <View className="h-[1px] bg-[#CBD5E1] mt-8" />
           <JobStatisticsChart data={chartData} loading={analyticsLoading} />
-          <DetailedStatCards />
+          <DetailedStatCards summary={summary} loading={analyticsLoading} />
         </View>
       </ScrollView>
     </SafeAreaView>
