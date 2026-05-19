@@ -43,13 +43,19 @@ const LoginPage = () => {
     }
 
     try {
-      await login({ email, password });
+      const result = await login({ email, password });
       Toast.show({
         type: 'success',
         text1: 'Success',
         text2: 'Login successful!',
       });
-      router.push('/');
+
+      // Role-based redirect
+      if (result.user.role === 'employer') {
+        router.push('/pages/employer/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch {
       Toast.show({
         type: 'error',

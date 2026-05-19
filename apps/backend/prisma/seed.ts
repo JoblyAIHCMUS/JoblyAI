@@ -416,6 +416,16 @@ async function main() {
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
     },
   });
+
+  // Create account for Maria
+  await prisma.account.create({
+    data: {
+      userId: maria.id,
+      accountId: maria.email,
+      providerId: 'credential',
+      password: hashedPassword,
+    },
+  });
   console.log('Created user Maria Kelly');
 
   // Create Nomad company
