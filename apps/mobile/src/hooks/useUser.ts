@@ -36,14 +36,13 @@ export function useUser() {
  */
 export function getGreetingName(user: User | null | undefined): string {
   if (!user) return 'User';
-  
-  // 1. Prefer explicit firstName
-  if (user.firstName) return user.firstName;
-  
-  // 2. Fallback to name split
-  if (user.name) {
-    return user.name.trim().split(' ')[0] || 'User';
+
+  // Prefer firstName, fallback to name
+  const nameToSplit = user.firstName || user.name;
+
+  if (nameToSplit) {
+    return nameToSplit.trim().split(/\s+/)[0] || 'User';
   }
-  
+
   return 'User';
 }
