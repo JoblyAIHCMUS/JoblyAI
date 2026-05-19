@@ -159,8 +159,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
     try {
       await logout();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Logout failed';
+      const message = error instanceof Error ? error.message : 'Logout failed';
 
       Toast.show({
         type: 'error',
