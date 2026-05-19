@@ -370,8 +370,6 @@ export function CvSyncCompareModal({
   } | null>(null);
   const hasInitialized = React.useRef(false);
 
-  const normalize = (str: string) => (str ? str.trim().toLowerCase() : '');
-
   const counts = React.useMemo(() => {
     if (!draftData) return { newCount: 0, matchCount: 0 };
 

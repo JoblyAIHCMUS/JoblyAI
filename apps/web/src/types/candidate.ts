@@ -107,12 +107,26 @@ export interface CandidateResume {
   updatedAt: string;
 }
 
-export interface Contact {
-  email: string;
-  phone: string;
+export interface CandidateContact {
+  id: number;
+  type?: string;
+  value: string;
+  isPrimary: boolean;
+  sourceCvIds?: number[];
 }
 
-export interface Social {
-  type: string;
+export interface CandidateSocial {
+  id: number;
+  platform: string;
   url: string;
+  username?: string;
+  sourceCvIds?: number[];
+}
+
+export interface CandidateSkill {
+  id: number;
+  title: string;
+  level?: string;
+  years?: number;
+  sourceCvIds?: number[];
 }

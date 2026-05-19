@@ -62,12 +62,10 @@ import {
 } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 import { formatErrorForDisplay } from '@/lib/errors';
-import { useAiSocket } from '@/hooks/useAiSocket';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
 import { AiFeedbackModal } from './components/AiFeedbackModal';
 import {
-  triggerAiAnalysis,
   commitResumeMerge,
   triggerAiParse,
   triggerAiScore,
@@ -92,11 +90,6 @@ const CandidateProfilePage = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
-
-  // Derive processingAiResumeId for backward compatibility with CV component
-  const processingAiResumeId = Object.entries(processingTasks).find(
-    ([_, tasks]) => tasks.parsing || tasks.scoring
-  )?.[0];
 
   // Handle opening modals via URL parameters (for redirection from other pages)
   useEffect(() => {
@@ -918,10 +911,10 @@ const CandidateProfilePage = () => {
         }}
         isLoading={isSyncing}
         isSynced={
-          activeResumeId
+          !!(activeResumeId
             ? profile?.resumes?.find((r) => r.id === activeResumeId)
                 ?.isSyncedToProfile
-            : false
+            : false)
         }
       />
       <CvDeleteImpactModal

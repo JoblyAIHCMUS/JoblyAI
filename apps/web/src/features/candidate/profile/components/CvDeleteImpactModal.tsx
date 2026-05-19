@@ -22,7 +22,6 @@ import {
   Share2,
   Phone,
   User,
-  Info,
   FileX,
   Mail,
   Globe,

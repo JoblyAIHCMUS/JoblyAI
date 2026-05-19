@@ -254,7 +254,7 @@ export const createCertificateSchema = () => {
         .refine((date) => date <= new Date(), {
           message: 'Issue date cannot be in the future',
         }),
-      hasExpiry: z.boolean().default(false),
+      hasExpiry: z.boolean(),
       expiryDate: z.date().nullable(),
       credentialId: z.string().optional().or(z.literal('')),
       url: z.string().url('Invalid URL format').optional().or(z.literal('')),

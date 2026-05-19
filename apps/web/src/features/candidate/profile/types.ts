@@ -1,19 +1,20 @@
 import {
   CandidateEducation,
   CandidateExperience,
-  Contact,
-  Social,
   CandidateCertificate,
-} from '@/types/candidate';
-import type {
   CandidateSkill,
   CandidateContact,
   CandidateSocial,
-} from '@/api-client/candidate/types';
+} from '@/types/candidate';
 
 export interface PortfolioItem {
   img: string;
   name: string;
+}
+
+export interface Contact {
+  email: string;
+  phone: string;
 }
 
 export interface CandidateProfileUI {

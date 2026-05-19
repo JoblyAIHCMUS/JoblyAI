@@ -4,7 +4,6 @@ import {
   Edit,
   Plus,
   Trash,
-  Trash2,
   Globe,
   Github,
   Linkedin,
@@ -15,9 +14,6 @@ import {
   Mail,
   Phone,
   Smartphone,
-  Check,
-  X,
-  Star,
 } from 'lucide-react';
 import type { CandidateSocial, CandidateContact } from '@/types/candidate';
 import { cn } from '@/lib/utils';

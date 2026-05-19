@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flag, Mail, Smartphone, Edit, Check, X } from 'lucide-react';
+import { Flag, Mail, Smartphone, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SideBar from './sideBar';
 import type { CandidateSocial, CandidateContact } from '@/types/candidate';
