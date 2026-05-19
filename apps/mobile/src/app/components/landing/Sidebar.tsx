@@ -24,9 +24,16 @@ import { useRouter } from 'expo-router';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginPress?: () => void;
+  onSignUpPress?: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  onLoginPress,
+  onSignUpPress,
+}: SidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
@@ -170,13 +177,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View style={styles.footer}>
             <AppButton
               title="Sign Up"
-              onPress={() => router.push('/pages/(auth)/register')}
+              onPress={onSignUpPress ?? (() => router.push('/pages/(auth)/register'))}
             />
             <View style={{ height: SPACING.md }} />
             <AppButton
               title="Login"
               variant="outline"
-              onPress={() => router.push('/pages/(auth)/login')}
+              onPress={onLoginPress ?? (() => router.push('/pages/(auth)/login'))}
             />
           </View>
         </View>
