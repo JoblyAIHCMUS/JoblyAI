@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
 export const DetailedStatCards = () => {
@@ -14,10 +15,11 @@ export const DetailedStatCards = () => {
             <Text className="text-4xl font-extrabold text-[#25324B]">
               2,342
             </Text>
-            <Text className="text-[#64748B] text-base">
-              This Week{' '}
-              <Text className="text-[#22C55E] font-medium">6.4% ▲</Text>
-            </Text>
+            <View className="flex-row items-center gap-x-1">
+              <Text className="text-[#64748B] text-base">This Week</Text>
+              <Text className="text-[#22C55E] font-medium ml-1">6.4%</Text>
+              <MaterialIcons name="arrow-drop-up" size={28} color="#22C55E" />
+            </View>
           </View>
         </View>
         <View className="w-10 h-10 rounded-full bg-[#F59E0B] items-center justify-center">
@@ -32,10 +34,11 @@ export const DetailedStatCards = () => {
           </Text>
           <View className="flex-row items-baseline gap-x-2">
             <Text className="text-4xl font-extrabold text-[#25324B]">654</Text>
-            <Text className="text-[#64748B] text-base">
-              This Week{' '}
-              <Text className="text-[#EC4899] font-medium">0.5% ▼</Text>
-            </Text>
+            <View className="flex-row items-center gap-x-1">
+              <Text className="text-[#64748B] text-base">This Week</Text>
+              <Text className="text-[#EC4899] font-medium ml-1">0.5%</Text>
+              <MaterialIcons name="arrow-drop-down" size={28} color="#EC4899" />
+            </View>
           </View>
         </View>
         <View className="w-10 h-10 rounded-full bg-[#A855F7] items-center justify-center">

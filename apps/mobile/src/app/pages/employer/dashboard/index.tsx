@@ -6,8 +6,6 @@ import { DashboardHeader } from './components/DashboardHeader';
 import { SummaryCards } from './components/SummaryCards';
 import { JobStatisticsChart } from './components/JobStatisticsChart';
 import { DetailedStatCards } from './components/DetailedStatCards';
-import { ApplicantsSummary } from './components/ApplicantsSummary';
-import { JobUpdatesList } from './components/JobUpdatesList';
 import EmployerDashboardHeader from './components/EmployerDashboardHeader';
 
 // Hooks
@@ -111,10 +109,6 @@ export default function EmployerDashboard() {
           <View className="h-[1px] bg-[#CBD5E1] mt-8" />
           <JobStatisticsChart data={chartData} loading={analyticsLoading} />
           <DetailedStatCards />
-          <View className="h-[1px] bg-[#CBD5E1] mt-8 mb-2" />
-          <ApplicantsSummary />
-          <View className="h-[1px] bg-[#CBD5E1] mt-2 mb-2" />
-          <JobUpdatesList />
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -68,11 +68,6 @@ export const JobUpdatesList = () => {
           </View>
         </View>
       ))}
-
-      <TouchableOpacity className="flex-row items-center justify-center py-4">
-        <Text className="text-[#4338CA] font-bold text-lg mr-2">View All</Text>
-        <Feather name="arrow-right" size={20} color="#4338CA" />
-      </TouchableOpacity>
     </View>
   );
 };
