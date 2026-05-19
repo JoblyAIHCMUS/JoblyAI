@@ -106,3 +106,9 @@ export const getSession = async (
   });
   return response.data;
 };
+
+export const logout = async (signal?: AbortSignal): Promise<void> => {
+  await apiClient.post('/auth/sign-out', undefined, {
+    signal,
+  });
+};

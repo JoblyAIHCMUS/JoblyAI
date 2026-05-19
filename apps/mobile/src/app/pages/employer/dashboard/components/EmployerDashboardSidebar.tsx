@@ -29,7 +29,9 @@ import {
   X,
 } from 'lucide-react-native';
 import { usePathname, useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
+import { useLogout } from '../../../../../hooks/useAuth';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -43,6 +45,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { data: employerProfile } = useGetEmployerProfile();
+  const { logout, loading: isLoggingOut } = useLogout();
   const avatarUrl = employerProfile?.avatarUrl?.trim();
   const isSvgAvatar =
     !!avatarUrl &&
@@ -152,6 +155,21 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
     })
   ).current;
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Logout failed';
+
+      Toast.show({
+        type: 'error',
+        text1: 'Logout Failed',
+        text2: message,
+      });
+    }
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -245,10 +263,12 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
           <TouchableOpacity
             className="flex-row items-center px-4 py-3 mb-8 mt-2"
             activeOpacity={0.8}
+            onPress={handleLogout}
+            disabled={isLoggingOut}
           >
             <LogOut size={24} color="#EF4444" strokeWidth={2.5} />
             <Text className="ml-4 text-[17px] font-bold text-[#EF4444]">
-              Logout
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Text>
           </TouchableOpacity>
 
