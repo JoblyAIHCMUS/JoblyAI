@@ -171,3 +171,16 @@ export async function getRecommendedCompanies(limit: number) {
   );
   return response.data;
 }
+
+export async function getTopCompaniesWithMostJobs(
+  limit: number
+): Promise<Company[]> {
+  const response = await axios.get<Company[]>(
+    `${API_BASE_URL}/api/company/top`,
+    {
+      params: { limit },
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+  return response.data;
+}
