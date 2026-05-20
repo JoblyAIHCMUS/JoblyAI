@@ -6,13 +6,12 @@ import type { ReactNode } from 'react';
 import RoleContext from '@/contexts/role-context';
 import type { AppRole } from '@/contexts/role-context';
 import { PageTitleProvider } from '@/contexts/page-title-context';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   // === ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT TOP (Rules of Hooks) ===
   const { data: user, isLoading } = useUser();
   const pathname = usePathname();
-  const router = useRouter();
 
   // Determine the role to use in context
   const userRole: AppRole = useMemo(() => {
@@ -30,23 +29,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         Loading...
       </div>
     );
-  }
-
-  // ✅ SAFETY NET: Redirect authenticated users away from guest-only routes
-  // Middleware already handles this, but this is a fallback
-  // if middleware redirect somehow failed
-  // NOTE: Not rendering loading state - directly redirecting is correct approach
-  const isGuestOnlyRoute =
-    pathname === '/find-jobs' ||
-    pathname.startsWith('/find-jobs/') ||
-    pathname === '/browse-companies' ||
-    pathname.startsWith('/browse-companies/');
-
-  if (user && isGuestOnlyRoute) {
-    // Client-side redirect (safety net for middleware failure)
-    router.push('/');
-    // Return nothing while redirect is processing
-    return null;
   }
 
   // Auth pages (login/signup) should not show header and footer

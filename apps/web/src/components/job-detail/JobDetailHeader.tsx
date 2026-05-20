@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Share2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
-import { useRole } from '@/contexts/role-context';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
@@ -51,19 +50,26 @@ export default function JobDetailHeader({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: user } = useUser();
-  const role = useRole();
   const isApplied = Boolean(hasApplied);
+  const userRole = user?.role ?? null;
+  const canApplyRole = userRole === 'candidate';
+  const disableApply = isApplied || Boolean(user && !canApplyRole);
+  const applyButtonText = !user
+    ? 'Sign in to Apply'
+    : isApplied
+      ? 'Applied'
+      : 'Apply';
 
   const handleApply = () => {
     if (isApplied) return;
     if (!user) {
       const basePath =
-        role === 'candidate'
+        userRole === 'candidate'
           ? `/candidate/find-jobs/${jobId}`
           : `/find-jobs/${jobId}`;
       const redirectPath = sanitizeRedirectPath(basePath);
       router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
-    } else {
+    } else if (canApplyRole) {
       setIsModalOpen(true);
     }
   };
@@ -111,9 +117,8 @@ export default function JobDetailHeader({
                   </Link>
                 ) : (
                   <span
-                    className={`truncate ${
-                      isLast ? 'font-semibold text-slate-900' : ''
-                    }`}
+                    className={`truncate ${isLast ? 'font-semibold text-slate-900' : ''
+                      }`}
                   >
                     {item.label}
                   </span>
@@ -170,31 +175,41 @@ export default function JobDetailHeader({
             <div className="w-px h-10 bg-slate-200 hidden sm:block" />
             <button
               onClick={handleApply}
-              disabled={isApplied}
-              className={`${
-                isApplied
+              disabled={disableApply}
+              className={`${disableApply
                   ? 'bg-slate-100 text-slate-500 cursor-not-allowed opacity-60'
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-              } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
+                } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
+              title={
+                !user
+                  ? 'Sign in to apply'
+                  : !canApplyRole
+                    ? 'Only candidates can apply'
+                    : isApplied
+                      ? 'You have already applied'
+                      : 'Apply for this job'
+              }
             >
-              {isApplied ? 'Applied' : 'Apply'}
+              {applyButtonText}
             </button>
           </div>
         </div>
       </div>
 
-      <SubmitApplicationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        job={{
-          id: jobId,
-          title: jobTitle,
-          company: company.name,
-          location: address,
-          jobType,
-          logoUrl: company.logoUrl || undefined,
-        }}
-      />
+      {canApplyRole ? (
+        <SubmitApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          job={{
+            id: jobId,
+            title: jobTitle,
+            company: company.name,
+            location: address,
+            jobType,
+            logoUrl: company.logoUrl || undefined,
+          }}
+        />
+      ) : null}
     </section>
   );
 }
