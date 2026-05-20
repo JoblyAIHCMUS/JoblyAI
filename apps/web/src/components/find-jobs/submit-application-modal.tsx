@@ -31,6 +31,7 @@ import {
 import type { CandidateResume } from '@/types/candidate';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { Dot } from 'lucide-react';
+import { type EmploymentType } from '@/types/job';
 
 const MAX_RESUMES = 5;
 
@@ -46,7 +47,7 @@ export interface JobApplication {
   title: string;
   company: string;
   location: string | null;
-  jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
+  jobType: EmploymentType;
   logoUrl?: string;
   currentResume?: {
     id?: number;

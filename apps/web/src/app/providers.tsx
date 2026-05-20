@@ -6,6 +6,8 @@ import { MantineProvider } from '@mantine/core';
 import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
 import { SocketProvider } from '@/contexts/socket-provider';
+import { useAiSocket } from '@/hooks/useAiSocket';
+import { authClient } from '@/lib/auth-client';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,14 +20,33 @@ const queryClient = new QueryClient({
   },
 });
 
+function GlobalAiSocket() {
+  const { data: session } = authClient.useSession();
+  useAiSocket(session?.user?.id);
+  return null;
+}
+
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
       <SessionProvider>
         <SocketProvider>
+          <GlobalAiSocket />
           <QueryClientProvider client={queryClient}>
             {children}
-            <Toaster position="bottom-right" />
+            <Toaster
+              position="bottom-right"
+              richColors
+              expand={true}
+              visibleToasts={5}
+              closeButton
+              style={{ zIndex: 10000 }}
+              toastOptions={{
+                style: {
+                  zIndex: 10001,
+                },
+              }}
+            />
           </QueryClientProvider>
         </SocketProvider>
       </SessionProvider>

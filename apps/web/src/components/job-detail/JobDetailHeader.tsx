@@ -10,6 +10,7 @@ import { useRole } from '@/contexts/role-context';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import type { EmploymentType } from '@/types/job';
 
 export type JobDetailBreadcrumbItem = {
   label: string;
@@ -33,7 +34,7 @@ interface JobDetailHeaderProps {
   address: string;
   workType: string;
   jobId: number;
-  jobType?: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
+  jobType?: EmploymentType;
 }
 
 export default function JobDetailHeader({

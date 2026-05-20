@@ -24,12 +24,14 @@ import { UpdateAvatarDto } from './dto/avatar.dto';
 import { UpdateEducationDto } from './dto/education.dto';
 import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { CreateSkillDto, UpdateSkillDto } from './dto/skill.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CandidatesService {
   constructor(
     @InjectPrisma() private readonly prismaClient: PrismaClient,
-    private readonly s3Service: S3Service
+    private readonly s3Service: S3Service,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   private toPrismaDateTime(value: string | Date, fieldName: string): Date {
@@ -189,23 +191,26 @@ export class CandidatesService {
       role: user.role || 'candidate',
       createdAt: user.createdAt,
       educations: user.education.map((edu) => ({
-        ...edu,
-        grade: edu.grade || '',
+        id: edu.id,
+        school: edu.school,
+        degree: edu.degree ?? 'OTHER',
         fieldOfStudy: edu.fieldOfStudy || '',
-        degree: edu.degree ?? 'OTHER', // luôn trả về enum, không trả chuỗi rỗng
-        description: edu.description || '',
         startDate: edu.startDate.toISOString(),
         endDate: edu.endDate?.toISOString(),
+        grade: edu.grade || '',
+        description: edu.description || '',
+        sourceCvIds: edu.sourceCvIds || [],
       })),
       experiences: user.experiences.map((exp) => ({
-        ...exp,
-        companyName: exp.companyName ?? '',
-        jobTitle: exp.jobTitle ?? '',
-        type: exp.type ?? undefined,
-        location: exp.location ?? '',
-        description: exp.description ?? '',
+        id: exp.id,
+        companyName: exp.companyName,
+        jobTitle: exp.jobTitle,
+        location: exp.location || '',
         startDate: exp.startDate.toISOString(),
         endDate: exp.endDate?.toISOString(),
+        description: exp.description || '',
+        type: exp.type ?? undefined,
+        sourceCvIds: exp.sourceCvIds || [],
       })),
       certificates: user.certificates.map((cert) => ({
         id: cert.id,
@@ -215,6 +220,7 @@ export class CandidatesService {
         expiryDate: cert.expiryDate?.toISOString() ?? undefined,
         credentialId: cert.credentialId ?? undefined,
         url: cert.url ?? undefined,
+        sourceCvIds: cert.sourceCvIds || [],
       })),
       resumes: await Promise.all(
         [...user.resumes]
@@ -236,6 +242,10 @@ export class CandidatesService {
                   )
                 ).downloadUrl
               : '',
+            aiScore: resume.aiScore,
+            aiFeedback: resume.aiFeedback,
+            parsedText: resume.parsedText,
+            isSyncedToProfile: resume.isSyncedToProfile,
             createdAt: resume.createdAt.toISOString(),
             updatedAt: resume.updatedAt.toISOString(),
           }))
@@ -253,18 +263,21 @@ export class CandidatesService {
         title: skill.skill.name,
         level: skill.level ?? undefined,
         years: skill.years ?? undefined,
+        sourceCvIds: skill.sourceCvIds || [],
       })),
       contacts: user.candidateContacts.map((contact) => ({
         id: contact.id,
         type: contact.type ?? undefined,
         value: contact.value,
         isPrimary: contact.isPrimary ?? false,
+        sourceCvIds: contact.sourceCvIds || [],
       })),
       socials: user.candidateSocials.map((social) => ({
         id: social.id,
         platform: social.platform,
         url: social.url,
         username: social.username ?? undefined,
+        sourceCvIds: social.sourceCvIds || [],
       })),
     };
   }
@@ -517,6 +530,11 @@ export class CandidatesService {
         `Failed to create resume record for candidate with ID ${userId}.`
       );
 
+    this.eventEmitter.emit('resume.created', {
+      resumeId: result.id,
+      candidateId: userId,
+    });
+
     return result;
   }
 
@@ -570,7 +588,11 @@ export class CandidatesService {
     });
   }
 
-  async deleteResume(userId: string, resumeId: number): Promise<string> {
+  async deleteResume(
+    userId: string,
+    resumeId: number,
+    shouldKeepData = false
+  ): Promise<string> {
     // First, get the resume to get the fileKey for S3 deletion
     const resume = await this.prismaClient.resume.findFirst({
       where: {
@@ -588,7 +610,6 @@ export class CandidatesService {
     // Delete from S3 if fileKey exists
     if (resume.fileKey) {
       try {
-        // Defensive: ensure fileKey is a string (Prisma might return it as-is from DB)
         const fileKeyToDelete = String(resume.fileKey).trim();
         if (fileKeyToDelete) {
           await this.s3Service.deleteFile(fileKeyToDelete);
@@ -598,7 +619,6 @@ export class CandidatesService {
           `Failed to delete S3 file, continuing with DB deletion:`,
           error
         );
-        // Continue with DB deletion even if S3 deletion fails
       }
     }
 
@@ -610,7 +630,15 @@ export class CandidatesService {
       },
     });
 
-    return `Deleted resume with ID ${resumeId} and file from S3`;
+    // Emit event for cleanup (e.g. AI-sync data removal)
+    // CRITICAL: Use emitAsync and await to ensure profile data is updated BEFORE returning success to frontend
+    await this.eventEmitter.emitAsync('resume.deleted', {
+      resumeId,
+      candidateId: userId,
+      shouldKeepData,
+    });
+
+    return 'Resume deleted';
   }
 
   // Certificate
@@ -618,7 +646,7 @@ export class CandidatesService {
     userId: string,
     updateDto: UpdateCertificateDto
   ): Promise<Certificate> {
-    const { id, issueDate, expirationDate, ...rest } = updateDto;
+    const { id, issueDate, expiryDate, ...rest } = updateDto;
 
     const existing = await this.prismaClient.certificate.findFirst({
       where: {
@@ -638,13 +666,10 @@ export class CandidatesService {
       ...(issueDate === undefined
         ? {}
         : { issueDate: this.toPrismaDateTime(issueDate, 'issueDate') }),
-      ...(expirationDate === undefined
+      ...(expiryDate === undefined
         ? {}
         : {
-            expiryDate: this.toPrismaNullableDateTime(
-              expirationDate,
-              'expirationDate'
-            ),
+            expiryDate: this.toPrismaNullableDateTime(expiryDate, 'expiryDate'),
           }),
     };
 
@@ -736,6 +761,8 @@ export class CandidatesService {
     return this.prismaClient.candidateDescription.create({
       data: {
         ...createDto,
+        rawDescriptions: {}, // Manual creation clears AI cache
+        rawTitles: {},
         candidate: { connect: { id: userId } },
       },
     });
@@ -759,7 +786,11 @@ export class CandidatesService {
 
     return this.prismaClient.candidateDescription.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
+        rawTitles: {},
+      },
     });
   }
 

@@ -18,7 +18,9 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear user data and redirect to login
       // This will be triggered via React Query cache invalidation
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

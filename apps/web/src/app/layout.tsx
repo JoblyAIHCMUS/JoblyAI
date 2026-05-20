@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           lexendDeca.variable,
           beVietnamPro.variable
         )}
+        suppressHydrationWarning
       >
         <Providers>
           <ClientLayout>{children}</ClientLayout>

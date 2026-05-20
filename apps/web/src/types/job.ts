@@ -23,7 +23,8 @@ export type EmploymentType =
   | 'PART_TIME'
   | 'CONTRACT'
   | 'INTERNSHIP'
-  | 'FREELANCE';
+  | 'FREELANCE'
+  | 'OTHER';
 export type JobStatus = 'OPEN' | 'CLOSED' | 'DRAFT';
 
 export type RequirementImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';

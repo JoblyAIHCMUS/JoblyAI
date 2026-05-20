@@ -2,6 +2,7 @@ import { CandidateContactType } from '@prisma/client';
 import {
   IsBoolean,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -22,6 +23,10 @@ export class QueryContactDto {
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateContactDto {

@@ -1,13 +1,14 @@
 import { CandidateExperienceType } from '@prisma/client';
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class QueryExperienceDto {
   @IsNumber()
@@ -40,6 +41,10 @@ export class QueryExperienceDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateExperienceDto {
@@ -65,7 +70,7 @@ export class CreateExperienceDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => (value === '' ? null : value))
   endDate?: string;
 
   @IsOptional()
@@ -92,7 +97,7 @@ export class UpdateExperienceDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => (value === '' ? null : value))
   endDate?: string;
 
   @IsOptional()

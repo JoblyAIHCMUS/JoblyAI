@@ -8,7 +8,7 @@ import ApplicantDetails from '@/components/employer/applicantDetails';
 import { CandidateProfileProvider } from '@/api-hook/candidate/CandidateProfileContext';
 import { type HiringStage } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from './data';
-import { type JobCategory } from '@/types/job';
+import { type JobCategory, type EmploymentType } from '@/types/job';
 import { listEmployerApplications } from '@/api-client/application/employer';
 import { toast } from 'sonner';
 
@@ -60,12 +60,8 @@ function ApplicantDetailPageContent() {
         // Transform API response to ApplicantDetail
         const candidateName =
           application.candidate?.name || 'Unknown Applicant';
-        const employmentType = (application.job.type || 'FULL_TIME') as
-          | 'FULL_TIME'
-          | 'PART_TIME'
-          | 'CONTRACT'
-          | 'INTERNSHIP'
-          | 'FREELANCE';
+        const employmentType = (application.job.type ||
+          'FULL_TIME') as EmploymentType;
 
         const applicantData: ApplicantDetail = {
           id: application.id.toString(),

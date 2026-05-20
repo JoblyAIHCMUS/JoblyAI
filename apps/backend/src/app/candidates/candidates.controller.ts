@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -164,13 +165,16 @@ export class CandidatesController {
   @Roles('candidate')
   async deleteResumeDetail(
     @Request() req: AuthRequest,
-    @Param('id') resumeId: string
+    @Param('id') resumeId: string,
+    @Query('keepData') keepData?: string
   ) {
     const { id: userId } = req.user;
+    const shouldKeepData = keepData === 'true';
 
     return await this.candidatesService.deleteResume(
       userId,
-      Number.parseInt(resumeId)
+      Number.parseInt(resumeId),
+      shouldKeepData
     );
   }
 

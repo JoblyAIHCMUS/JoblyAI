@@ -63,6 +63,7 @@ const employmentTypeStyles: Record<EmploymentType, string> = {
   INTERNSHIP: 'border-sky-500 text-sky-600 bg-transparent hover:bg-sky-50',
   FREELANCE:
     'border-orange-500 text-orange-600 bg-transparent hover:bg-orange-50',
+  OTHER: 'border-slate-500 text-slate-600 bg-transparent hover:bg-slate-50',
 };
 
 const employmentTypeLabels: Record<EmploymentType, string> = {
@@ -71,6 +72,7 @@ const employmentTypeLabels: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
+  OTHER: 'Other',
 };
 
 /**
