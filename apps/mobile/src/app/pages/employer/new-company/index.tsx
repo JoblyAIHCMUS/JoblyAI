@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
@@ -44,12 +44,14 @@ export default function EmployerNewCompanyPage() {
   const [errors, setErrors] = useState<Record<string, any>>({});
 
   const { data: currentUser } = useGetEmployerProfile();
+  const initializedRef = useRef(false);
 
   // Initialize with current user as owner
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !initializedRef.current) {
+      initializedRef.current = true;
       const owner = convertUserToTeamMember(currentUser);
-      if (owner && !teamMembers.some((m) => m.email === owner.email)) {
+      if (owner) {
         setTeamMembers([{ ...owner, isEditable: false }]);
       }
     }
