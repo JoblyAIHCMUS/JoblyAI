@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
-import { useRole } from '@/contexts/role-context';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
 import { useListCandidateApplications } from '@/api-hook/application';
 import { useUser } from '@/hooks/useUser';
@@ -42,8 +41,8 @@ function formatSalaryRange(
   return salaryMin
     ? `From ${formatter.format(salaryMin)}`
     : salaryMax
-    ? `Up to ${formatter.format(salaryMax)}`
-    : 'Salary not specified';
+      ? `Up to ${formatter.format(salaryMax)}`
+      : 'Salary not specified';
 }
 
 type JobCardProps = {
@@ -75,30 +74,33 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
   const [hasApplied, setHasApplied] = useState(false);
   const { fetchApplications } = useListCandidateApplications();
   const { data: user } = useUser();
-  const role = useRole();
   const router = useRouter();
+  const userRole = user?.role ?? null;
   const jobHref =
-    role === 'candidate'
+    userRole === 'candidate'
       ? `/candidate/find-jobs/${job.id}`
       : `/find-jobs/${job.id}`;
 
   // Gate apply button by role - only candidates can apply
-  const canApplyRole = role === 'candidate';
-  const canApply = canApplyRole && !hasApplied;
+  const isGuest = !user;
+  const canApplyRole = userRole === 'candidate';
+
+  const isDisabled =
+    !!user && (!canApplyRole || hasApplied);
 
   const handleApply = () => {
     if (canApplyRole) {
       // Candidate: open modal if not already applied
       if (!hasApplied) setIsModalOpen(true);
-    } else {
-      // Non-candidates (guest, employer, admin): redirect to login
+    } else if (!user) {
+      // Guest: redirect to login
       router.push(`/login?redirect=${encodeURIComponent(jobHref)}`);
     }
   };
 
-  const applyButtonClass = canApply
-    ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
-    : 'bg-slate-300 text-slate-500 cursor-not-allowed';
+  const applyButtonClass = isDisabled
+    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+    : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
   const handleApplicationSuccess = (message: string) => {
     setHasApplied(true);
@@ -134,11 +136,10 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
   return (
     <>
       <article
-        className={`flex flex-col gap-4 rounded-xl border border-slate-200 p-5 ${
-          viewMode === 'grid'
-            ? 'h-full'
-            : 'lg:flex-row lg:items-center lg:justify-between'
-        }`}
+        className={`flex flex-col gap-4 rounded-xl border border-slate-200 p-5 ${viewMode === 'grid'
+          ? 'h-full'
+          : 'lg:flex-row lg:items-center lg:justify-between'
+          }`}
       >
         <Link
           href={jobHref}
@@ -190,23 +191,24 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </Link>
 
         <div
-          className={`flex w-full flex-col items-start gap-3 ${
-            viewMode === 'grid' ? '' : 'lg:w-[196px] lg:items-end'
-          }`}
+          className={`flex w-full flex-col items-start gap-3 ${viewMode === 'grid' ? '' : 'lg:w-[196px] lg:items-end'
+            }`}
         >
           <button
             onClick={handleApply}
-            disabled={!canApply}
+            disabled={isDisabled}
             className={`h-11 w-full rounded-[6px] text-sm font-semibold transition-colors lg:w-[168px] ${applyButtonClass}`}
             title={
-              !canApplyRole
-                ? 'Only candidates can apply'
-                : hasApplied
-                ? 'You have already applied'
-                : 'Apply for this job'
+              isGuest
+                ? 'Sign in to apply'
+                : !canApplyRole
+                  ? 'Only candidates can apply'
+                  : hasApplied
+                    ? 'You have already applied'
+                    : 'Apply for this job'
             }
           >
-            {!canApplyRole ? 'Sign in to Apply' : hasApplied ? 'Applied' : 'Apply'}
+            {isGuest ? 'Sign in to Apply' : hasApplied ? 'Applied' : 'Apply'}
           </button>
           <div className="w-full lg:w-[168px]">
             <p className="mb-1 text-xs font-semibold text-slate-500">Salary</p>
@@ -217,20 +219,22 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </div>
       </article>
 
-      <SubmitApplicationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        job={{
-          id: job.id,
-          title: job.title,
-          company: job.company.name,
-          location: job.location,
-          jobType: job.type,
-          logoUrl: job.company.logoUrl || undefined,
-        }}
-        onSuccess={handleApplicationSuccess}
-        onError={handleApplicationError}
-      />
+      {canApplyRole ? (
+        <SubmitApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          job={{
+            id: job.id,
+            title: job.title,
+            company: job.company.name,
+            location: job.location,
+            jobType: job.type,
+            logoUrl: job.company.logoUrl || undefined,
+          }}
+          onSuccess={handleApplicationSuccess}
+          onError={handleApplicationError}
+        />
+      ) : null}
     </>
   );
 }
