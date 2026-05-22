@@ -65,6 +65,7 @@ export interface CandidateEducation {
   endDate?: string;
   grade?: string;
   description?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateExperience {
@@ -76,6 +77,7 @@ export interface CandidateExperience {
   startDate: string;
   endDate?: string;
   description?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateCertificate {
@@ -86,6 +88,7 @@ export interface CandidateCertificate {
   expiryDate?: string;
   credentialId?: string;
   url?: string;
+  sourceCvIds?: number[];
 }
 
 export interface CandidateResume {
@@ -96,16 +99,34 @@ export interface CandidateResume {
   fileUrl: string;
   fileType: string;
   fileSize: number;
+  aiScore?: number | null;
+  aiFeedback?: any | null;
+  isSyncedToProfile?: boolean | null;
+  parsedText?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Contact {
-  email: string;
-  phone: string;
+export interface CandidateContact {
+  id: number;
+  type?: string;
+  value: string;
+  isPrimary: boolean;
+  sourceCvIds?: number[];
 }
 
-export interface Social {
-  type: string;
+export interface CandidateSocial {
+  id: number;
+  platform: string;
   url: string;
+  username?: string;
+  sourceCvIds?: number[];
+}
+
+export interface CandidateSkill {
+  id: number;
+  title: string;
+  level?: string;
+  years?: number;
+  sourceCvIds?: number[];
 }

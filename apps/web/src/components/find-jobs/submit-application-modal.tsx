@@ -21,7 +21,6 @@ import { SubmitApplicationSchema } from '@/lib/validation';
 import type { SubmitApplicationFormData } from '@/lib/validation';
 import { z } from 'zod';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
 import { useUploadFile } from '@/api-hook/s3';
 import {
@@ -32,6 +31,7 @@ import {
 import type { CandidateResume } from '@/types/candidate';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { Dot } from 'lucide-react';
+import { type EmploymentType } from '@/types/job';
 
 const MAX_RESUMES = 5;
 
@@ -47,7 +47,7 @@ export interface JobApplication {
   title: string;
   company: string;
   location: string | null;
-  jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
+  jobType: EmploymentType;
   logoUrl?: string;
   currentResume?: {
     id?: number;
@@ -423,7 +423,7 @@ export const SubmitApplicationModal = ({
         <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:mb-6 sm:flex-row sm:gap-6 sm:pb-6">
           {job.logoUrl ? (
             <div className="flex-shrink-0">
-              <Image
+              <img
                 src={job.logoUrl}
                 alt={job.company}
                 width={64}

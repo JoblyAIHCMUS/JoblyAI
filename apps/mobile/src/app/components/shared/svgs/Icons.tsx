@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import Svg, { Path, Circle, Rect, G, ClipPath, Defs } from 'react-native-svg';
 import { COLORS } from '../../../constants/theme';
 import { Dimensions } from 'react-native';
@@ -298,23 +299,6 @@ export const InstagramIcon = () => (
     <Rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
     <Path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
     <Path d="M17.5 6.5h.01" />
-  </Svg>
-);
-
-export const GlobeIcon = () => (
-  <Svg
-    width={18}
-    height={18}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={COLORS.white}
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <Circle cx="12" cy="12" r="10" />
-    <Path d="M2 12h20" />
-    <Path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </Svg>
 );
 

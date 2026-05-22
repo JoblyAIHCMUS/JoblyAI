@@ -55,6 +55,55 @@ export class CompanyService {
     return company;
   }
 
+  async getTopCompaniesWithMostJobs(limit: number): Promise<Company[]> {
+    return this.prisma.company.findMany({
+      take: limit,
+      orderBy: {
+        jobPostings: {
+          _count: 'desc',
+        },
+      },
+      where: {
+        jobPostings: {
+          some: {},
+        },
+      },
+    });
+  }
+
+  async getRecommendedCompanies(limit: number) {
+    return this.prisma.company.findMany({
+      take: limit,
+      orderBy: {
+        jobPostings: {
+          _count: 'desc',
+        },
+      },
+      where: {
+        jobPostings: {
+          some: {},
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        websiteUrl: true,
+        sizeRange: true,
+        industry: true,
+        description: true,
+        logoUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            jobPostings: true,
+          },
+        },
+      },
+    });
+  }
+
   async getEmployees(
     companyId: number,
     requesterUserId: string

@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
   type JobListingDetail,
-  type Category,
   type SalaryCurrency,
 } from '@/features/employer/job-listing/detail/data';
 import type { EmploymentType } from '@/features/employer/job-listing/data';
@@ -15,18 +14,7 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
-};
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  design: 'Design',
-  marketing: 'Marketing',
-  business: 'Business',
-  technology: 'Technology',
-  sales: 'Sales',
-  finance: 'Finance',
-  'human-resources': 'Human Resources',
-  operations: 'Operations',
-  other: 'Other',
+  OTHER: 'Other',
 };
 
 const CURRENCY_SYMBOLS: Record<Exclude<SalaryCurrency, 'none'>, string> = {
@@ -159,13 +147,13 @@ export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
         <div>
           <h3 className="heading-h6-semi-bold mb-3">Category</h3>
           <Badge
-            className={`${CATEGORY_COLORS[job.category].bg} ${
-              CATEGORY_COLORS[job.category].text
+            className={`${CATEGORY_COLORS[job.category.name].bg} ${
+              CATEGORY_COLORS[job.category.name].text
             } ${
-              CATEGORY_COLORS[job.category].hoverBg
+              CATEGORY_COLORS[job.category.name].hoverBg
             } border-0 shadow-none rounded-full`}
           >
-            {CATEGORY_LABELS[job.category]}
+            {job.category.name}
           </Badge>
         </div>
 

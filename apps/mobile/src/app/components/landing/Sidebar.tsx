@@ -19,16 +19,25 @@ import Svg, { Path } from 'react-native-svg';
 import Logo from '../../../assets/images/jobly-logo.svg';
 import { COLORS, SPACING } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
+import { useRouter } from 'expo-router';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginPress?: () => void;
+  onSignUpPress?: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  onLoginPress,
+  onSignUpPress,
+}: SidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
+  const router = useRouter();
 
   // Keep width ref updated for the PanResponder closure
   const widthRef = useRef(width);
@@ -131,7 +140,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         </View>
 
         <View style={styles.content}>
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => {
+              onClose();
+              router.push('/pages/employer/dashboard');
+            }}
+          >
             <Text style={styles.navText}>Browse Jobs</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
@@ -160,12 +175,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View style={styles.divider} />
 
           <View style={styles.footer}>
-            <AppButton title="Sign Up" onPress={() => undefined} />
+            <AppButton
+              title="Sign Up"
+              onPress={
+                onSignUpPress ?? (() => router.push('/pages/(auth)/register'))
+              }
+            />
             <View style={{ height: SPACING.md }} />
             <AppButton
               title="Login"
               variant="outline"
-              onPress={() => undefined}
+              onPress={
+                onLoginPress ?? (() => router.push('/pages/(auth)/login'))
+              }
             />
           </View>
         </View>

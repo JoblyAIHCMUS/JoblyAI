@@ -38,6 +38,11 @@ export class JobsController {
     return this.jobsService.getCategories();
   }
 
+  @Get('categories/popular')
+  async getPopularCategories(@Query('limit', ParseIntPipe) limit: number) {
+    return this.jobsService.getPopularCategories(limit);
+  }
+
   @Get('analytics/views')
   @UseGuards(AuthGuard)
   async getJobViewsAnalytics(

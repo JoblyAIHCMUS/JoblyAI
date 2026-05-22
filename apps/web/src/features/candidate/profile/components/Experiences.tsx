@@ -39,8 +39,6 @@ function ExperienceEditForm({
   onCancel,
 }: ExperienceEditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // When creating: start unchecked by default.
-  // When editing: infer the initial value from the stored end date.
 
   const {
     control,
@@ -48,18 +46,24 @@ function ExperienceEditForm({
     watch,
     setValue,
     trigger,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isValid, isSubmitting },
   } = useForm<ExperienceFormData>({
     resolver: zodResolver(createExperienceSchema()),
-    mode: 'onChange',
+    mode: 'all',
     defaultValues: {
       jobTitle: editItem.jobTitle || '',
       companyName: editItem.companyName || '',
-      type: editItem.type ?? undefined,
+      type: editItem.type || 'FULL_TIME',
       location: editItem.location || '',
-      startDate: editItem.startDate ? new Date(editItem.startDate) : undefined,
-      endDate: editItem.endDate ? new Date(editItem.endDate) : null,
-      isCurrent: !isNew && !editItem.endDate, // If editing and no end date, treat as current job
+      startDate:
+        editItem.startDate && !isNaN(new Date(editItem.startDate).getTime())
+          ? new Date(editItem.startDate)
+          : undefined,
+      endDate:
+        editItem.endDate && !isNaN(new Date(editItem.endDate).getTime())
+          ? new Date(editItem.endDate)
+          : null,
+      isCurrent: !isNew && !editItem.endDate,
       description: editItem.description || '',
     },
   });
@@ -78,11 +82,11 @@ function ExperienceEditForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-2 w-full max-w-full"
+      className="space-y-4 w-full max-w-full bg-slate-50/50 p-4 rounded-xl border border-slate-100"
     >
       {/* Row 1 - Job Title */}
       <div className="w-full box-border">
-        <label className="block label-label-1-semi-bold mb-1">
+        <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
           Job Title <span className="text-red-500">*</span>
         </label>
         <Controller
@@ -92,15 +96,15 @@ function ExperienceEditForm({
             <>
               <input
                 {...field}
-                placeholder="Job Title"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                placeholder="e.g. Senior Software Engineer"
+                className={`w-full text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
                   errors.jobTitle
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
+                    : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
                 }`}
               />
               {errors.jobTitle && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 text-xs mt-1 font-medium">
                   {errors.jobTitle.message}
                 </p>
               )}
@@ -110,10 +114,10 @@ function ExperienceEditForm({
       </div>
 
       {/* Row 2 - Company, Type & Dates */}
-      <div className="flex flex-col gap-3 w-full box-border">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex-1 min-w-[150px]">
-            <label className="block label-label-1-semi-bold mb-1">
+      <div className="flex flex-col gap-4 w-full box-border">
+        <div className="flex items-end gap-3 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
               Company <span className="text-red-500">*</span>
             </label>
             <Controller
@@ -123,15 +127,15 @@ function ExperienceEditForm({
                 <>
                   <input
                     {...field}
-                    placeholder="Company"
-                    className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                    placeholder="e.g. Google"
+                    className={`w-full text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
                       errors.companyName
                         ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-accent-primary'
+                        : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
                     }`}
                   />
                   {errors.companyName && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p className="text-red-500 text-xs mt-1 font-medium">
                       {errors.companyName.message}
                     </p>
                   )}
@@ -139,10 +143,9 @@ function ExperienceEditForm({
               )}
             />
           </div>
-          <Dot size={16} className="flex-shrink-0" />
-          <div className="min-w-20 flex-1 max-w-[200px]">
-            <label className="block label-label-1-semi-bold mb-1">
-              Type <span className="text-red-500">*</span>
+          <div className="min-w-[150px] flex-1 max-w-[220px]">
+            <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
+              Employment Type <span className="text-red-500">*</span>
             </label>
             <Controller
               name="type"
@@ -154,12 +157,12 @@ function ExperienceEditForm({
                     onChange={(e) =>
                       field.onChange(e.target.value || undefined)
                     }
-                    className={`w-full break-words border rounded p-2 focus:outline-none focus:ring-2 ${
-                      !field.value ? 'text-gray-400' : 'text-tertiary'
+                    className={`w-full font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
+                      !field.value ? 'text-slate-400' : 'text-slate-900'
                     } ${
                       errors.type
                         ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-accent-primary'
+                        : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
                     }`}
                   >
                     <option value="" disabled hidden>
@@ -172,7 +175,7 @@ function ExperienceEditForm({
                     ))}
                   </select>
                   {errors.type && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p className="text-red-500 text-xs mt-1 font-medium">
                       {errors.type.message}
                     </p>
                   )}
@@ -181,10 +184,11 @@ function ExperienceEditForm({
             />
           </div>
         </div>
-        <div className="w-full">
-          <div className="flex items-center gap-2 flex-wrap w-full box-border">
-            <div className="flex-1 min-w-[150px]">
-              <label className="block label-label-1-semi-bold mb-1">
+
+        <div className="w-full space-y-4">
+          <div className="flex items-start gap-4 flex-wrap w-full box-border">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
                 Start Date <span className="text-red-500">*</span>
               </label>
               <Controller
@@ -195,6 +199,7 @@ function ExperienceEditForm({
                     label=""
                     placeholder="Select start date"
                     value={field.value}
+                    inputClassNames="text-slate-900 font-medium"
                     onChange={(date) => {
                       field.onChange(date);
                       trigger(['startDate', 'endDate']);
@@ -203,8 +208,8 @@ function ExperienceEditForm({
                 )}
               />
             </div>
-            <div className="flex-1 min-w-[150px]">
-              <label className="block label-label-1-semi-bold mb-1">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
                 End Date {!isCurrent && <span className="text-red-500">*</span>}
               </label>
               <Controller
@@ -215,6 +220,7 @@ function ExperienceEditForm({
                     label=""
                     placeholder={isCurrent ? 'Present' : 'Select end date'}
                     value={field.value}
+                    inputClassNames="text-slate-900 font-medium"
                     onChange={(date) => {
                       field.onChange(date);
                       trigger('endDate');
@@ -226,26 +232,27 @@ function ExperienceEditForm({
             </div>
           </div>
           {errors.startDate || errors.endDate ? (
-            <div className="flex items-center gap-2 flex-wrap w-full box-border">
-              <div className="flex-1 min-w-[150px]">
+            <div className="flex items-center gap-4 flex-wrap w-full box-border mt-[-10px]">
+              <div className="flex-1 min-w-[180px]">
                 {errors.startDate && (
-                  <p className="text-red-500 text-xs">
+                  <p className="text-red-500 text-xs font-medium">
                     {errors.startDate.message}
                   </p>
                 )}
               </div>
-              <div className="flex-1 min-w-[150px]">
+              <div className="flex-1 min-w-[180px]">
                 {errors.endDate && (
-                  <p className="text-red-500 text-xs">
+                  <p className="text-red-500 text-xs font-medium">
                     {errors.endDate.message}
                   </p>
                 )}
               </div>
             </div>
           ) : null}
+
           {/* Currently Working Checkbox */}
-          <div className="w-full box-border mt-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="w-full box-border">
+            <label className="flex items-center gap-2.5 cursor-pointer group select-none">
               <input
                 type="checkbox"
                 checked={isCurrent}
@@ -261,9 +268,11 @@ function ExperienceEditForm({
                     trigger('endDate');
                   }
                 }}
-                className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
+                className="w-4.5 h-4.5 rounded border border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer transition-all"
               />
-              <span className="text-tertiary">I currently work here</span>
+              <span className="text-slate-600 font-medium group-hover:text-indigo-600 transition-colors">
+                I currently work here
+              </span>
             </label>
           </div>
         </div>
@@ -271,7 +280,9 @@ function ExperienceEditForm({
 
       {/* Row 3 - Location */}
       <div className="w-full box-border">
-        <label className="block label-label-1-semi-bold mb-1">Location</label>
+        <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
+          Location
+        </label>
         <Controller
           name="location"
           control={control}
@@ -279,15 +290,15 @@ function ExperienceEditForm({
             <>
               <input
                 {...field}
-                placeholder="Location"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 ${
+                placeholder="e.g. Ho Chi Minh City, Vietnam"
+                className={`w-full text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
                   errors.location
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
+                    : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
                 }`}
               />
               {errors.location && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 text-xs mt-1 font-medium">
                   {errors.location.message}
                 </p>
               )}
@@ -298,7 +309,7 @@ function ExperienceEditForm({
 
       {/* Row 4 - Description */}
       <div className="w-full box-border">
-        <label className="block label-label-1-semi-bold mb-1">
+        <label className="block label-label-1-semi-bold mb-1.5 text-slate-700">
           Description
         </label>
         <Controller
@@ -309,16 +320,16 @@ function ExperienceEditForm({
               <textarea
                 {...field}
                 ref={textareaRef}
-                placeholder="Description"
-                className={`w-full text-tertiary break-words border rounded p-2 focus:outline-none focus:ring-2 min-h-[60px] ${
+                placeholder="Briefly describe your responsibilities and achievements..."
+                className={`w-full text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 min-h-[100px] ${
                   errors.description
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-accent-primary'
+                    : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
                 }`}
-                style={{ maxHeight: '200px', resize: 'vertical' }}
+                style={{ maxHeight: '300px', resize: 'vertical' }}
               />
               {errors.description && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 text-xs mt-1 font-medium">
                   {errors.description.message}
                 </p>
               )}
@@ -328,22 +339,31 @@ function ExperienceEditForm({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 mt-4">
-        <button
-          type="submit"
-          disabled={loading || !isDirty || !isValid}
-          className="px-4 py-2 rounded bg-accent-solid text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={loading}
-          className="px-4 py-2 rounded border disabled:opacity-50"
-        >
-          Cancel
-        </button>
+      <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-slate-100">
+        {!isValid && Object.keys(errors).length > 0 && (
+          <div className="bg-red-50 border border-red-100 p-2 rounded-lg mb-2">
+            <p className="text-red-600 text-[10px] text-center font-bold uppercase">
+              Please fill in all required fields (marked with *)
+            </p>
+          </div>
+        )}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={loading || isSubmitting || !isValid}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed shadow-md shadow-indigo-100 transition-all active:scale-95"
+          >
+            {loading || isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading || isSubmitting}
+            className="px-6 py-2.5 rounded-lg border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 disabled:opacity-50 transition-all"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -455,6 +475,17 @@ export default function Experiences({
     setDeleteIdx(idx);
   };
 
+  // Handle visibility changes while editing
+  useEffect(() => {
+    if (editingIdx !== null && editingIdx !== -1) {
+      if (!showAll && editingIdx >= 3) {
+        // Form would be hidden, close it
+        setEditingIdx(null);
+        setEditItem(null);
+      }
+    }
+  }, [showAll, editingIdx]);
+
   const handleConfirmDelete = async () => {
     if (deleteIdx === null || !handleDeleteExperience) return;
     setLoadingDelete(true);
@@ -475,7 +506,7 @@ export default function Experiences({
       id: Date.now(),
       jobTitle: '',
       companyName: '',
-      type: undefined,
+      type: 'FULL_TIME',
       startDate: '',
       endDate: '',
       location: '',
@@ -490,7 +521,7 @@ export default function Experiences({
 
   const handleEdit = (idx: number) => {
     setEditingIdx(idx);
-    setEditItem({ ...experiences[idx] });
+    setEditItem({ ...displayedExperiences[idx] });
     setError(null);
   };
 
@@ -543,6 +574,7 @@ export default function Experiences({
         description: formData.description,
       });
       setIsAdding(false);
+      setEditingIdx(null);
       setEditItem(null);
     } catch {
       setError('Add experience failed. Please try again.');
@@ -639,7 +671,7 @@ export default function Experiences({
             className="label-label-1-semi-bold text-accent-primary cursor-pointer break-words"
             onClick={() => setShowAll(true)}
           >
-            Show 3 more experiences
+            Show {experiences.length - 3} more experiences
           </button>
         </div>
       )}

@@ -52,6 +52,43 @@ export class CompanyController {
     return this.companyService.getBySlug(slug);
   }
 
+  @Get('top')
+  async getTopCompaniesWithMostJobs(
+    @Query('limit', ParseIntPipe) limit: number
+  ) {
+    return this.companyService.getTopCompaniesWithMostJobs(limit);
+  }
+
+  @Get('recommended')
+  async getRecommendedCompanies(@Query('limit', ParseIntPipe) limit: number) {
+    const companies = await this.companyService.getRecommendedCompanies(limit);
+    return companies.map((company) => ({
+      id: String(company.id),
+      name: company.name,
+      jobs: company._count.jobPostings,
+      description: company.description || '',
+      logo: {
+        imageUrl: company.logoUrl || '',
+        alt: `${company.name} logo`,
+        rounded: 'square' as const,
+      },
+      tag: {
+        id: String(company.id),
+        label: company.industry || 'Technology',
+        tone: this.getTagTone(company.industry),
+      },
+    }));
+  }
+
+  private getTagTone(
+    industry: string | null
+  ): 'orange-outline' | 'orange-soft' | 'indigo-soft' {
+    if (!industry) return 'orange-outline';
+    if (industry.toLowerCase().includes('fintech')) return 'indigo-soft';
+    if (industry.toLowerCase().includes('hosting')) return 'orange-soft';
+    return 'orange-outline';
+  }
+
   @Get(':id/employees')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import ApplicantResumeViewer from './applicantResumeViewer';
-import ApplicationNotes from './applicationNotes';
-import ApplicantProfile from './applicantProfile';
+import ApplicantResumeViewer from '@/components/employer/applicantResumeViewer';
+import ApplicationNotes from '@/components/employer/applicationNotes';
+import ApplicantProfile from '@/components/employer/applicantProfile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -106,8 +106,6 @@ export default function ApplicantDetails({
       } else if (hiringStage === 'Interview') {
         await moveToOffer(applicationId);
       }
-    } catch (error) {
-      // Error is already handled by the hook callbacks
     } finally {
       setLoadingId(null);
     }
@@ -117,35 +115,59 @@ export default function ApplicantDetails({
     setLoadingId(applicant.id);
     try {
       const applicationId = parseInt(applicant.id);
-      await rejectApplication(applicationId, { feedback: '' });
-    } catch (error) {
-      // Error is already handled by the hook callbacks
+      await rejectApplication(applicationId, {
+        feedback:
+          'Thank you for applying. We have decided to move forward with other candidates at this time.',
+      });
+    } catch (err) {
+      // Error is already handled by hook's onError callback
+      console.error('Failed to reject applicant:', err);
     } finally {
       setLoadingId(null);
     }
   }, [applicant.id, rejectApplication]);
   return (
     <Card className="w-full">
-      <CardContent className="pt-6">
+      <CardContent className="pt-4 sm:pt-5 md:pt-6 px-3 sm:px-4 md:px-6 pb-4 sm:pb-5 md:pb-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="inline-flex flex-wrap justify-start">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="resume">Resume</TabsTrigger>
-            <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
-            <TabsTrigger value="hiring-process">Hiring Process</TabsTrigger>
+          <TabsList className="inline-flex flex-wrap justify-start gap-1 sm:gap-2 bg-transparent p-0 h-auto mb-4 sm:mb-6 overflow-x-auto">
+            <TabsTrigger
+              value="profile"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger
+              value="resume"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3"
+            >
+              Resume
+            </TabsTrigger>
+            <TabsTrigger
+              value="cover-letter"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            >
+              Cover Letter
+            </TabsTrigger>
+            <TabsTrigger
+              value="hiring-process"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+            >
+              Hiring Process
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="mt-6">
+          <TabsContent value="profile" className="mt-4 sm:mt-6">
             {/* Applicant Profile Section */}
             {profileLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-[var(--text-secondary)]">
+              <div className="flex items-center justify-center py-8 sm:py-12">
+                <div className="text-[var(--text-secondary)] text-sm sm:text-base">
                   Loading profile...
                 </div>
               </div>
             ) : profileError ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-[var(--text-tertiary)]">
+              <div className="flex items-center justify-center py-8 sm:py-12">
+                <div className="text-[var(--text-tertiary)] text-sm sm:text-base">
                   Unable to load profile. Showing basic information.
                 </div>
               </div>
@@ -153,39 +175,36 @@ export default function ApplicantDetails({
             <ApplicantProfile profile={candidateProfile || undefined} />
           </TabsContent>
 
-          <TabsContent value="resume" className="mt-6">
+          <TabsContent value="resume" className="mt-4 sm:mt-6">
             <ApplicantResumeViewer fileKey={applicant.resume} />
           </TabsContent>
 
-          <TabsContent value="cover-letter" className="mt-6">
-            <p className="text-sm text-muted-foreground">
+          <TabsContent value="cover-letter" className="mt-4 sm:mt-6">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Cover letter details coming soon.
             </p>
           </TabsContent>
 
-          <TabsContent value="hiring-process" className="mt-6">
+          <TabsContent value="hiring-process" className="mt-4 sm:mt-6">
             {/* Hiring Stage Control */}
-            <div className="mb-6">
-              <div className="mb-2">
-                <span className="block text-left label-label-1-semi-bold text-gray-700">
+            <div className="mb-4 sm:mb-6">
+              <div className="mb-2 sm:mb-3">
+                <span className="block text-left label-label-1-semi-bold text-gray-700 text-xs sm:text-sm">
                   Current stage
                 </span>
               </div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
                 <Badge
                   variant="outline"
-                  className={
-                    hiringStageStyles[hiringStage] +
-                    ' text-lg px-6 py-2 border-2'
-                  }
-                  style={{ fontSize: '1.25rem', minHeight: '2.5rem' }}
+                  className={`${hiringStageStyles[hiringStage]} text-sm sm:text-base py-2 px-3 sm:px-4 border-2 whitespace-nowrap w-fit`}
                 >
                   {hiringStage}
                 </Badge>
-                <div className="flex gap-4 ml-auto">
+                <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    className="border-red-500 text-red-600 hover:bg-red-50"
+                    size="sm"
+                    className="border-red-500 text-red-600 hover:bg-red-50 text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                     onClick={handleDecline}
                     disabled={
                       loadingId === applicant.id || hiringStage === 'Rejected'
@@ -195,6 +214,8 @@ export default function ApplicantDetails({
                   </Button>
                   <Button
                     variant="outline"
+                    size="sm"
+                    className="text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                     onClick={handleAdvanceStage}
                     disabled={
                       loadingId === applicant.id ||
@@ -204,13 +225,13 @@ export default function ApplicantDetails({
                       hiringStage === 'Offer'
                     }
                   >
-                    To Next Stage
+                    Next Stage
                   </Button>
                 </div>
               </div>
               <Separator />
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <ApplicationNotes />
             </div>
           </TabsContent>

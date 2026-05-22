@@ -32,6 +32,10 @@ export interface JobCategory {
   slug: string;
 }
 
+export interface PopularJobCategory extends JobCategory {
+  jobCount: number;
+}
+
 export interface CompanyInfo {
   id: number;
   name: string;

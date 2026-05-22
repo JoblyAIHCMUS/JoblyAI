@@ -160,3 +160,14 @@ export async function checkCompanyNameExists(name: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function getRecommendedCompanies(limit: number) {
+  const response = await axios.get<any[]>(
+    `${API_BASE_URL}/api/company/recommended`,
+    {
+      params: { limit },
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+  return response.data;
+}

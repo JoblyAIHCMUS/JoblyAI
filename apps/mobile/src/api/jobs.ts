@@ -2,6 +2,7 @@ import { apiClient } from './config';
 import {
   PaginatedJobsResponse,
   JobCategory,
+  PopularJobCategory,
   ListJobsQuery,
   JobPosting,
 } from '../types/job';
@@ -27,6 +28,20 @@ export async function getCategories(
   const response = await apiClient.get<JobCategory[]>('/jobs/categories', {
     signal: options?.signal,
   });
+  return response.data;
+}
+
+export async function getPopularCategories(
+  limit?: number,
+  options?: ApiOptions
+): Promise<PopularJobCategory[]> {
+  const response = await apiClient.get<PopularJobCategory[]>(
+    '/jobs/categories/popular',
+    {
+      params: { limit },
+      signal: options?.signal,
+    }
+  );
   return response.data;
 }
 

@@ -59,7 +59,7 @@ export const columns: ColumnDef<Applicant>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
   },
   {
     accessorKey: 'name',
@@ -101,7 +101,7 @@ export const columns: ColumnDef<Applicant>[] = [
   },
   {
     accessorKey: 'appliedDate',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -115,7 +115,7 @@ export const columns: ColumnDef<Applicant>[] = [
   },
   {
     accessorKey: 'score',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -133,7 +133,7 @@ export const columns: ColumnDef<Applicant>[] = [
   },
   {
     accessorKey: 'hiringStage',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -159,7 +159,7 @@ export const columns: ColumnDef<Applicant>[] = [
   },
   {
     id: 'actions',
-    meta: { className: 'text-center' },
+    meta: { className: 'text-center px-0 sm:px-2' },
     cell: ({ row, table }) => {
       const applicant = row.original;
       const nextStage = nextStageMap[applicant.hiringStage];

@@ -35,7 +35,14 @@ export const jobPostingSchema = z
         'Job description is required and cannot be empty'
       ),
     type: z
-      .enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'])
+      .enum([
+        'FULL_TIME',
+        'PART_TIME',
+        'CONTRACT',
+        'INTERNSHIP',
+        'FREELANCE',
+        'OTHER',
+      ])
       .refine(
         (value) => value !== undefined && value !== null,
         'Please select a valid employment type'

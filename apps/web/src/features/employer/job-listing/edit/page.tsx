@@ -30,18 +30,11 @@ import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillIds } from '@/api-hook/skills/useSkillIds';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
+import { EMPLOYMENT_TYPE_OPTIONS } from '@/lib/employment-type-config';
 
 const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
-] as const;
-
-const EMPLOYMENT_TYPES = [
-  { value: 'FULL_TIME', label: 'Full-time' },
-  { value: 'PART_TIME', label: 'Part-time' },
-  { value: 'CONTRACT', label: 'Contract' },
-  { value: 'INTERNSHIP', label: 'Internship' },
-  { value: 'FREELANCE', label: 'Freelance' },
 ] as const;
 
 const CURRENCIES = [
@@ -162,16 +155,20 @@ export default function JobListingEditPage() {
 
   if (jobLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold">Loading job...</h1>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+          Loading job...
+        </h1>
       </div>
     );
   }
 
   if (!jobData) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold">Job not found</h1>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+          Job not found
+        </h1>
       </div>
     );
   }
@@ -239,14 +236,18 @@ export default function JobListingEditPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} aria-label="Go back">
-          <ArrowLeft className="h-7 w-7" />
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 md:mb-6">
+        <button
+          onClick={() => router.back()}
+          aria-label="Go back"
+          className="p-0.5"
+        >
+          <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7" />
         </button>
-        <h1 className="text-3xl font-bold">Edit Job</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Edit Job</h1>
       </div>
-      <p className="body-body-1-regular text-slate-600 mb-10">
+      <p className="body-body-1-regular text-slate-600 mb-6 sm:mb-8 md:mb-10 text-sm sm:text-base">
         Update the details for <strong>{jobData.title}</strong>.
       </p>
 
@@ -257,11 +258,14 @@ export default function JobListingEditPage() {
           loading={submitLoading || skillsLoading || categoriesLoading}
         >
           {/* Step 1: Basic Information */}
-          <div className="space-y-8 max-w-2xl mx-auto">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-2xl mx-auto px-3 sm:px-0">
             {/* Job Title */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div className="pt-3">
-                <Label htmlFor="title" className="label-label-1-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label
+                  htmlFor="title"
+                  className="label-label-1-semibold text-sm sm:text-base"
+                >
                   Job Title <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-xs text-slate-500 mt-1">
@@ -272,13 +276,15 @@ export default function JobListingEditPage() {
                 <Input
                   id="title"
                   placeholder="e.g. Software Engineer"
-                  className={`h-12 text-base ${
+                  className={`h-10 sm:h-12 text-sm sm:text-base ${
                     errors.title ? 'border-red-500' : ''
                   }`}
                   {...register('title')}
                 />
                 {errors.title && (
-                  <p className="text-sm text-red-500">{errors.title.message}</p>
+                  <p className="text-xs sm:text-sm text-red-500">
+                    {errors.title.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -286,13 +292,13 @@ export default function JobListingEditPage() {
             <Separator />
 
             {/* Type of Employment */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div>
-                <Label className="label-label-1-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label className="label-label-1-semibold text-sm sm:text-base">
                   Type of employment <span className="text-red-500">*</span>
                 </Label>
                 {errors.type && (
-                  <p className="text-sm text-red-500 mt-1">
+                  <p className="text-xs sm:text-sm text-red-500 mt-1">
                     {errors.type.message}
                   </p>
                 )}
@@ -302,14 +308,17 @@ export default function JobListingEditPage() {
                 onValueChange={(value) =>
                   setValue('type', value as EmploymentType)
                 }
-                className="flex flex-wrap gap-4"
+                className="flex flex-wrap gap-2 sm:gap-4"
               >
-                {EMPLOYMENT_TYPES.map((t) => (
-                  <div key={t.value} className="flex items-center space-x-2">
+                {EMPLOYMENT_TYPE_OPTIONS.map((t) => (
+                  <div
+                    key={t.value}
+                    className="flex items-center space-x-1.5 sm:space-x-2"
+                  >
                     <RadioGroupItem value={t.value} id={t.value} />
                     <Label
                       htmlFor={t.value}
-                      className="font-normal cursor-pointer"
+                      className="font-normal cursor-pointer text-xs sm:text-sm"
                     >
                       {t.label}
                     </Label>
@@ -321,34 +330,37 @@ export default function JobListingEditPage() {
             <Separator />
 
             {/* Location */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div className="pt-3">
-                <Label htmlFor="location" className="label-label-1-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label
+                  htmlFor="location"
+                  className="label-label-1-semibold text-sm sm:text-base"
+                >
                   Location
                 </Label>
                 <p className="text-xs text-slate-500 mt-1">
                   Where is the job based?
                 </p>
               </div>
-              <div className="grid grid-rows-[auto_auto] gap-4">
+              <div className="grid grid-rows-[auto_auto] gap-3 sm:gap-4">
                 <div className="space-y-1">
                   <Input
                     id="location"
                     placeholder="e.g. 123 This Street, That Town, The Other Country"
                     disabled={remote}
-                    className={`h-12 text-base ${
+                    className={`h-10 sm:h-12 text-sm sm:text-base ${
                       errors.location ? 'border-red-500' : ''
                     }`}
                     {...register('location')}
                   />
                   {errors.location && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-xs sm:text-sm text-red-500">
                       {errors.location.message}
                     </p>
                   )}
                 </div>
                 {/* Remote Work */}
-                <div className="flex items-center gap-3 pt-1">
+                <div className="flex items-center gap-2 sm:gap-3 pt-1">
                   <Switch
                     id="remote"
                     className="data-[state=checked]:bg-black"
@@ -360,7 +372,7 @@ export default function JobListingEditPage() {
                   />
                   <Label
                     htmlFor="remote"
-                    className="font-normal cursor-pointer"
+                    className="font-normal cursor-pointer text-xs sm:text-sm"
                   >
                     This is a remote position
                   </Label>
@@ -371,9 +383,9 @@ export default function JobListingEditPage() {
             <Separator />
 
             {/* Category */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div className="pt-3">
-                <Label className="label-label-1-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label className="label-label-1-semibold text-sm sm:text-base">
                   Category <span className="text-red-500">*</span>
                 </Label>
               </div>
@@ -385,7 +397,7 @@ export default function JobListingEditPage() {
                   }
                 >
                   <SelectTrigger
-                    className={`h-12 text-base ${
+                    className={`h-10 sm:h-12 text-sm sm:text-base ${
                       errors.categoryId ? 'border-red-500' : ''
                     }`}
                   >
@@ -393,7 +405,7 @@ export default function JobListingEditPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {categoriesLoading ? (
-                      <div className="p-2 text-sm text-slate-500">
+                      <div className="p-2 text-xs sm:text-sm text-slate-500">
                         Loading categories...
                       </div>
                     ) : (
@@ -406,7 +418,7 @@ export default function JobListingEditPage() {
                   </SelectContent>
                 </Select>
                 {errors.categoryId && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs sm:text-sm text-red-500">
                     {errors.categoryId.message}
                   </p>
                 )}
@@ -416,9 +428,9 @@ export default function JobListingEditPage() {
             <Separator />
 
             {/* Required Skills */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div>
-                <Label className="label-label-1-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label className="label-label-1-semibold text-sm sm:text-base">
                   Required Skills
                 </Label>
                 <p className="text-xs text-slate-500 mt-1">
@@ -441,13 +453,15 @@ export default function JobListingEditPage() {
             <Separator />
 
             {/* Salary */}
-            <div className="grid grid-cols-[200px_1fr] gap-6 items-start">
-              <div className="pt-3">
-                <Label className="label-label-1-semibold">Salary</Label>
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+              <div className="pt-0 md:pt-3">
+                <Label className="label-label-1-semibold text-sm sm:text-base">
+                  Salary
+                </Label>
                 <p className="text-xs text-slate-500 mt-1">Optional</p>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                   <Select
                     value={currency}
                     onValueChange={(value) =>
@@ -464,7 +478,7 @@ export default function JobListingEditPage() {
                       )
                     }
                   >
-                    <SelectTrigger className="w-[100px] h-12">
+                    <SelectTrigger className="h-10 sm:h-12 w-full sm:w-[100px] text-xs sm:text-sm">
                       <SelectValue placeholder="Currency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -480,17 +494,19 @@ export default function JobListingEditPage() {
                       <Input
                         type="number"
                         placeholder="Min"
-                        className={`h-12 text-base w-[120px] ${
+                        className={`h-10 sm:h-12 text-xs sm:text-sm ${
                           errors.salaryMin ? 'border-red-500' : ''
                         }`}
                         min="0"
                         {...register('salaryMin', { valueAsNumber: true })}
                       />
-                      <span className="text-slate-500">to</span>
+                      <span className="text-xs sm:text-sm text-slate-500">
+                        to
+                      </span>
                       <Input
                         type="number"
                         placeholder="Max"
-                        className={`h-12 text-base w-[120px] ${
+                        className={`h-10 sm:h-12 text-xs sm:text-sm ${
                           errors.salaryMax ? 'border-red-500' : ''
                         }`}
                         min="0"
@@ -503,12 +519,12 @@ export default function JobListingEditPage() {
                   (errors.salaryMin || errors.salaryMax) && (
                     <div className="space-y-1">
                       {errors.salaryMin && (
-                        <p className="text-xs text-red-500">
+                        <p className="text-xs sm:text-sm text-red-500">
                           {errors.salaryMin.message}
                         </p>
                       )}
                       {errors.salaryMax && (
-                        <p className="text-xs text-red-500">
+                        <p className="text-xs sm:text-sm text-red-500">
                           {errors.salaryMax.message}
                         </p>
                       )}
@@ -519,21 +535,21 @@ export default function JobListingEditPage() {
           </div>
 
           {/* Step 2: Job Description */}
-          <div className="space-y-8 max-w-3xl mx-auto">
-            <div className="space-y-3">
-              <Label className="label-label-1-semibold">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-3xl mx-auto px-3 sm:px-0">
+            <div className="space-y-2 sm:space-y-3">
+              <Label className="label-label-1-semibold text-sm sm:text-base">
                 Job Description <span className="text-red-500">*</span>
               </Label>
               <RichTextEditor
                 content={description}
                 onChange={(content) => setValue('description', content)}
                 placeholder="Describe the role, key responsibilities, required skills, qualifications, what we offer, and any other important information..."
-                className={`min-h-[360px] ${
+                className={`min-h-[240px] sm:min-h-[320px] md:min-h-[360px] ${
                   errors.description ? 'border-red-500' : ''
                 }`}
               />
               {errors.description && (
-                <p className="text-sm text-red-500">
+                <p className="text-xs sm:text-sm text-red-500">
                   {errors.description.message}
                 </p>
               )}

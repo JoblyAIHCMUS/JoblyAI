@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { BullModule } from '@nestjs/bullmq';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,10 +15,16 @@ import { S3Module } from './s3/s3.module';
 import { MessagesModule } from './messages/messages.module';
 import { CompanyModule } from './company/company.module';
 import { SkillsModule } from './skills/skills.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    BullModule.forRoot({
+      connection: {
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+      },
+    }),
     DatabaseModule,
     AuthModule,
     JobsModule,
@@ -29,6 +36,7 @@ import { SkillsModule } from './skills/skills.module';
     MessagesModule,
     CompanyModule,
     SkillsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

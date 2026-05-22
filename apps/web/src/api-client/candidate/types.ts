@@ -1,15 +1,20 @@
-// Re-export types for compatibility with hooks and consumers
 export type {
   CandidateEducation,
   CandidateCertificate,
   CandidateExperience,
   CandidateResume,
+  CandidateContact,
+  CandidateSocial,
+  CandidateSkill,
 } from '@/types/candidate';
 import {
   CandidateEducation,
   CandidateCertificate,
   CandidateExperience,
   CandidateResume,
+  CandidateContact,
+  CandidateSocial,
+  CandidateSkill,
 } from '@/types/candidate';
 import type { EmploymentType } from '@/types/job';
 
@@ -43,16 +48,9 @@ export interface CandidateProfileResponse {
   openForOpportunities?: boolean;
   skills?: CandidateSkill[];
   portfolios?: { img: string; name: string }[];
-  contact?: { email: string; phone?: string };
-  socials?: { type: string; url: string }[];
+  contacts?: CandidateContact[];
+  socials?: CandidateSocial[];
   banner?: string;
-}
-
-export interface CandidateSkill {
-  id: number;
-  title: string;
-  level?: string;
-  years?: number;
 }
 
 export interface CreateEducationPayload {
@@ -108,6 +106,26 @@ export interface CreateCertificatePayload {
 }
 
 export interface UpdateCertificatePayload extends CreateCertificatePayload {
+  id: number;
+}
+
+export interface CreateSocialPayload {
+  platform: string;
+  url: string;
+  username?: string;
+}
+
+export interface UpdateSocialPayload extends CreateSocialPayload {
+  id: number;
+}
+
+export interface CreateContactPayload {
+  type?: string;
+  value: string;
+  isPrimary?: boolean;
+}
+
+export interface UpdateContactPayload extends CreateContactPayload {
   id: number;
 }
 import type { Degree } from '@/types/candidate';

@@ -32,9 +32,9 @@ export default function ConfirmLogoChange({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 px-4 py-4">
       <div
-        className="bg-white rounded-2xl shadow-lg w-full max-w-[500px] p-8 flex flex-col items-center"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-lg w-full max-w-[500px] p-4 sm:p-6 md:p-8 flex flex-col items-center"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -43,26 +43,26 @@ export default function ConfirmLogoChange({
       >
         <div
           id={titleId}
-          className="text-lg font-semibold text-gray-900 mb-4 text-center"
+          className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 text-center"
         >
           Change Company Logo
         </div>
 
         <div
           id={descId}
-          className="text-sm text-gray-500 mb-6 text-center w-full"
+          className="text-xs sm:text-sm text-gray-500 mb-6 sm:mb-8 text-center w-full"
         >
           Confirm to change your company logo. Your old logo will be removed
           from the system.
         </div>
 
         {/* Logo Preview Section */}
-        <div className="flex gap-6 mb-8 justify-center items-center w-full px-4">
+        <div className="flex gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 justify-center items-center w-full px-2">
           {/* Current Logo */}
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-1 sm:gap-2">
             <div className="text-xs font-medium text-gray-600">Current</div>
             <div
-              className="w-24 h-24 rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center"
               style={{
                 backgroundColor: 'var(--indigo-50)',
               }}
@@ -78,7 +78,7 @@ export default function ConfirmLogoChange({
                 />
               ) : (
                 <svg
-                  className="w-10 h-10 text-gray-400"
+                  className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -96,7 +96,7 @@ export default function ConfirmLogoChange({
 
           {/* Arrow */}
           <svg
-            className="w-6 h-6 text-gray-400"
+            className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-400 flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -110,10 +110,10 @@ export default function ConfirmLogoChange({
           </svg>
 
           {/* New Logo */}
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-1 sm:gap-2">
             <div className="text-xs font-medium text-gray-600">New</div>
             <div
-              className="w-24 h-24 rounded-lg border-2 border-blue-400 overflow-hidden flex items-center justify-center ring-1 ring-blue-200"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg border-2 border-blue-400 overflow-hidden flex items-center justify-center ring-1 ring-blue-200"
               style={{
                 backgroundColor: 'var(--indigo-50)',
               }}
@@ -133,17 +133,17 @@ export default function ConfirmLogoChange({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 w-full px-4">
+        <div className="flex gap-2 sm:gap-3 w-full px-2">
           <button
             ref={cancelRef}
-            className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition font-medium"
+            className="flex-1 py-2 sm:py-2.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition font-medium text-xs sm:text-sm"
             onClick={onCancel}
             disabled={loading}
           >
             Cancel
           </button>
           <button
-            className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-2 sm:py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
             onClick={onConfirm}
             disabled={loading}
           >

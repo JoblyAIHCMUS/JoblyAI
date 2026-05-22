@@ -3,6 +3,7 @@ const { join } = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  ignoreWarnings: [/Failed to parse source map/, /google-logging-utils/],
   output: {
     path: join(__dirname, 'dist'),
     clean: true,
@@ -12,7 +13,8 @@ module.exports = {
   },
   plugins: [
     new webpack.IgnorePlugin({
-      resourceRegExp: /^(kerberos|pg-native)$/,
+      resourceRegExp:
+        /^(kerberos|pg-native|bufferutil|utf-8-validate|@opentelemetry\/api)$/,
     }),
     new NxAppWebpackPlugin({
       target: 'node',

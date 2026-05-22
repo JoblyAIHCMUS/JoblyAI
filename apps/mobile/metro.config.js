@@ -25,4 +25,5 @@ const customConfig = {
 
 module.exports = withNativeWind(mergeConfig(defaultConfig, customConfig), {
   input: './src/global.css',
+  inlineRem: 16,
 });

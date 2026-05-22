@@ -24,24 +24,26 @@ export function SettingsTabs({
 }: SettingsTabsProps) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="self-stretch pl-6 bg-bg-primary shadow-[inset_0px_-1px_0px_0px_rgba(214,221,235,1.00)] rounded-none h-auto inline-flex justify-start items-start gap-10 p-0">
+      <TabsList className="inline-flex justify-start items-start gap-2 sm:gap-6 md:gap-10 bg-transparent p-0 h-auto overflow-x-auto border-b border-[#d6ddeb] w-full">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="inline-flex flex-col justify-start items-center gap-2 bg-transparent border-none cursor-pointer p-0 h-auto"
+              className="inline-flex flex-col justify-start items-center gap-2 bg-transparent border-none cursor-pointer p-0 h-auto flex-shrink-0"
             >
               <div
-                className={`justify-center text-base font-medium font-['Lexend_Deca'] leading-5 ${
-                  isActive ? 'text-text-primary' : 'text-text-secondary'
+                className={`justify-center text-xs sm:text-sm md:text-base font-medium font-['Lexend_Deca'] leading-5 whitespace-nowrap transition-colors ${
+                  isActive
+                    ? 'text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)]'
                 }`}
               >
                 {tab.label}
               </div>
               {isActive && (
-                <div className="self-stretch h-1 bg-icon-accent-primary" />
+                <div className="self-stretch h-1 bg-[var(--icon-accent-primary)]" />
               )}
             </button>
           );

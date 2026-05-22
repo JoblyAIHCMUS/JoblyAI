@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Input } from '../../../components/ui/input';
 import { COLORS, SPACING } from '../../constants/theme';
 
 interface IconInputProps {
@@ -17,8 +18,8 @@ export const IconInput = ({
 }: IconInputProps) => (
   <View style={styles.container}>
     <View style={styles.iconContainer}>{icon}</View>
-    <TextInput
-      style={styles.input}
+    <Input
+      className={styles.inputClassName}
       placeholder={placeholder}
       value={value}
       onChangeText={onChangeText}
@@ -37,5 +38,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   iconContainer: { marginRight: SPACING.sm },
-  input: { flex: 1, fontSize: 16, color: COLORS.text },
+  inputClassName:
+    'flex-1 border-0 bg-transparent px-0 text-base text-black shadow-none',
 });

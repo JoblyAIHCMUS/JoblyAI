@@ -122,10 +122,14 @@ export default function EmployerSettingsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-primary">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <div className="w-full min-h-screen flex flex-col bg-white">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full flex flex-col flex-1"
+      >
         {/* Header Section with Tabs */}
-        <div className="self-stretch px-8 pt-8 border-b border-primary">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
           <SettingsTabs
             tabs={SETTINGS_TABS}
             activeTab={activeTab}
@@ -136,30 +140,28 @@ export default function EmployerSettingsPage() {
         {/* My Profile Tab Content */}
         <TabsContent
           value="my-profile"
-          className={`self-stretch bg-primary flex flex-col justify-start items-end gap-6 !mt-0${
-            activeTab === 'my-profile' ? ' px-8 pt-6 pb-8' : ''
-          }`}
+          className="self-stretch bg-white flex flex-col justify-start items-start gap-4 sm:gap-5 md:gap-6 !mt-0 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 flex-1"
         >
           <FormProvider {...methods}>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="self-stretch flex flex-col justify-start items-end gap-6"
+              className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-5 md:gap-6 w-full max-w-4xl mx-auto"
             >
               {/* Section Header */}
               <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <h2 className="heading-h5-semi-bold text-primary">
+                <h2 className="heading-h6-semi-bold sm:heading-h5-semi-bold text-[var(--text-primary)] text-sm sm:text-base">
                   Basic Information
                 </h2>
-                <p className="body-body-1-regular text-tertiary">
+                <p className="body-body-1-regular text-[var(--text-tertiary)] text-xs sm:text-sm">
                   This is your personal information that you can update anytime.
                 </p>
               </div>
 
               {/* Divider */}
-              <hr className="self-stretch border-primary" />
+              <hr className="self-stretch border-[#d6ddeb]" />
 
               {/* Profile Photo */}
-              <div className="self-stretch inline-flex justify-start items-start gap-28">
+              <div className="self-stretch w-full">
                 <ProfilePhotoSection
                   photoUrl={profilePhoto}
                   onAvatarUpdated={handleAvatarUpdated}
@@ -168,10 +170,10 @@ export default function EmployerSettingsPage() {
               </div>
 
               {/* Divider */}
-              <hr className="self-stretch border-primary" />
+              <hr className="self-stretch border-[#d6ddeb]" />
 
               {/* Personal Details Form */}
-              <div className="self-stretch inline-flex justify-start items-start gap-60">
+              <div className="self-stretch w-full">
                 <PersonalDetailsForm disabled={loadingProfile || isSaving} />
               </div>
 
@@ -179,22 +181,22 @@ export default function EmployerSettingsPage() {
               <Button
                 type="submit"
                 disabled={loadingProfile || isSaving}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 h-auto bg-[var(--bg-accent-solid,#4f46e5)] hover:opacity-90 rounded-[5px] font-label-label-1-semi-bold text-[length:var(--label-label-1-semi-bold-font-size)] text-[var(--text-white,#ffffff)] text-center tracking-[var(--label-label-1-semi-bold-letter-spacing)] leading-[var(--label-label-1-semi-bold-line-height)] whitespace-nowrap"
+                className="text-xs sm:text-sm h-9 sm:h-10 px-4 sm:px-6 py-2 sm:py-2.5 bg-[var(--bg-accent-solid,#4f46e5)] text-white label-label-2-semi-bold sm:label-label-1-semi-bold hover:opacity-90 rounded transition-colors"
               >
                 {isSaving ? 'Saving...' : 'Save Profile'}
               </Button>
 
               {/* Divider */}
-              <hr className="self-stretch border-primary" />
+              <hr className="self-stretch border-[#d6ddeb]" />
 
               {/* Change Password Section */}
-              <div className="self-stretch grid-cols-[260px_1fr] gap-4 md:grid md:grid-cols-[260px_1fr] md:gap-[117px] flex flex-col sm:flex-col">
+              <div className="self-stretch flex flex-col sm:grid gap-4 sm:gap-6 md:grid-cols-[280px_1fr] w-full">
                 {/* Left: Title & Desc */}
-                <div className="flex flex-col gap-1">
-                  <div className="heading-h6-semi-bold text-primary">
+                <div className="flex flex-col gap-1 min-w-0">
+                  <div className="heading-h6-semi-bold text-[var(--text-primary)] text-sm sm:text-base">
                     Change Password
                   </div>
-                  <div className="body-body-1-regular text-tertiary">
+                  <div className="body-body-1-regular text-[var(--text-tertiary)] text-xs sm:text-sm">
                     Manage your password to make sure it is safe
                   </div>
                 </div>
@@ -203,7 +205,7 @@ export default function EmployerSettingsPage() {
               </div>
 
               {/* Divider */}
-              <hr className="self-stretch border-primary" />
+              <hr className="self-stretch border-[#d6ddeb]" />
             </form>
           </FormProvider>
         </TabsContent>
@@ -211,27 +213,20 @@ export default function EmployerSettingsPage() {
         {/* System Settings Tab Content */}
         <TabsContent
           value="system-settings"
-          className={`self-stretch flex flex-col gap-6 bg-[var(--bg-primary,white)] !mt-0${
-            activeTab === 'system-settings' ? ' px-8 pt-6 pb-8' : ''
-          }`}
+          className="self-stretch flex flex-col gap-4 sm:gap-5 md:gap-6 bg-white !mt-0 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 flex-1"
         >
           {/* Section Header */}
           <div className="flex flex-col gap-1">
-            <h2 className="heading-h6-semi-bold text-primary">Notifications</h2>
-            <p className="body-body-1-regular text-tertiary">
+            <h2 className="heading-h6-semi-bold text-[var(--text-primary)] text-sm sm:text-base">
+              Notifications
+            </h2>
+            <p className="body-body-1-regular text-[var(--text-tertiary)] text-xs sm:text-sm">
               Manage your notification preferences.
             </p>
           </div>
 
           {/* Divider */}
-          <hr
-            className="self-stretch"
-            style={{
-              borderColor: 'var(--border-primary, #CBD5E1)',
-              borderWidth: 1,
-              outlineOffset: '-0.5px',
-            }}
-          />
+          <hr className="self-stretch border-[#d6ddeb]" />
 
           {/* Notifications Section */}
           <NotificationOptions

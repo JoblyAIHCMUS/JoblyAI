@@ -145,11 +145,11 @@ export default function EmployerAllApplicationsPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="rounded-md border border-red-200 bg-red-50 p-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <p className="text-sm text-red-700">
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 sm:p-4 md:p-5">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs sm:text-sm text-red-700">
               Failed to load applications. Please try again later.
             </p>
           </div>
@@ -159,18 +159,22 @@ export default function EmployerAllApplicationsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="heading-h4-semi-bold mb-6">All Applications</h1>
-      <div className="space-y-4">
+    <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <h1 className="heading-h4-semi-bold mb-4 sm:mb-6 md:mb-8 text-2xl sm:text-3xl md:text-4xl">
+        All Applications
+      </h1>
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {loading && displayData.length === 0 && (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-8 sm:py-10 md:py-12">
+            <Loader2 className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 animate-spin text-muted-foreground" />
           </div>
         )}
 
         {!loading && displayData.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No applications found.</p>
+          <div className="text-center py-8 sm:py-10 md:py-12">
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+              No applications found.
+            </p>
           </div>
         )}
 

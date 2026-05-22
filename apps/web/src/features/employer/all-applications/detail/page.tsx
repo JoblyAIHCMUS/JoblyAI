@@ -8,13 +8,9 @@ import ApplicantDetails from '@/components/employer/applicantDetails';
 import { CandidateProfileProvider } from '@/api-hook/candidate/CandidateProfileContext';
 import { type HiringStage } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from './data';
+import { type JobCategory, type EmploymentType } from '@/types/job';
 import { listEmployerApplications } from '@/api-client/application/employer';
 import { toast } from 'sonner';
-
-// Simply use the category slug directly - supports all categories, not just hardcoded ones
-function getCategorySlug(slug: string): string {
-  return slug;
-}
 
 function mapApplicationStatusToHiringStage(status: string): HiringStage {
   const statusMap: Record<string, HiringStage> = {
@@ -64,12 +60,8 @@ function ApplicantDetailPageContent() {
         // Transform API response to ApplicantDetail
         const candidateName =
           application.candidate?.name || 'Unknown Applicant';
-        const employmentType = (application.job.type || 'FULL_TIME') as
-          | 'FULL_TIME'
-          | 'PART_TIME'
-          | 'CONTRACT'
-          | 'INTERNSHIP'
-          | 'FREELANCE';
+        const employmentType = (application.job.type ||
+          'FULL_TIME') as EmploymentType;
 
         const applicantData: ApplicantDetail = {
           id: application.id.toString(),
@@ -83,7 +75,7 @@ function ApplicantDetailPageContent() {
           title: application.job.title,
           jobListingId: application.jobId.toString(),
           appliedRole: application.job.title,
-          jobCategory: getCategorySlug(application.job.category.slug),
+          jobCategory: application.job.category as JobCategory,
           employmentType: employmentType,
           appliedDate: new Date(application.createdAt)
             .toISOString()
@@ -110,14 +102,18 @@ function ApplicantDetailPageContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => router.back()} aria-label="Go back">
-            <ArrowLeft className="h-7 w-7" />
+      <div className="w-full h-screen flex flex-col">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 border-b border-[#d6ddeb]">
+          <button
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="p-1"
+          >
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-[var(--text-secondary)]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-[var(--text-secondary)] text-sm sm:text-base">
             Loading application details...
           </div>
         </div>
@@ -127,42 +123,60 @@ function ApplicantDetailPageContent() {
 
   if (error || !applicant) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => router.back()} aria-label="Go back">
-            <ArrowLeft className="h-7 w-7" />
+      <div className="w-full min-h-screen flex flex-col">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 border-b border-[#d6ddeb] flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="p-1"
+          >
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h2 className="text-lg font-semibold text-red-900">
-            {error || 'Application not found'}
-          </h2>
-          <p className="mt-2 text-sm text-red-700">
-            {error
-              ? 'Please try again or go back to the applications list.'
-              : 'The application you are looking for does not exist.'}
-          </p>
+        <div className="flex-1 flex items-center justify-center px-3 sm:px-4 md:px-6">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 sm:p-6 max-w-md w-full">
+            <h2 className="text-base sm:text-lg font-semibold text-red-900">
+              {error || 'Application not found'}
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-red-700">
+              {error
+                ? 'Please try again or go back to the applications list.'
+                : 'The application you are looking for does not exist.'}
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} aria-label="Go back">
-          <ArrowLeft className="h-7 w-7" />
-        </button>
-        <h1 className="text-3xl font-bold">{applicant.name}</h1>
+    <div className="w-full min-h-screen flex flex-col bg-white">
+      {/* Header with back button and title */}
+      <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 flex items-center gap-2 sm:gap-3 md:gap-4">
+          <button
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="flex-shrink-0 p-1 hover:bg-gray-100 rounded transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--text-primary)]" />
+          </button>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)] truncate">
+            {applicant.name}
+          </h1>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-        <ApplicantOverview applicant={{ ...applicant, hiringStage }} />
-        <ApplicantDetails
-          applicant={{ ...applicant, hiringStage }}
-          hiringStage={hiringStage}
-          setHiringStage={setHiringStage}
-        />
+      {/* Content area */}
+      <div className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-auto">
+        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr] gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
+          <ApplicantOverview applicant={{ ...applicant, hiringStage }} />
+          <ApplicantDetails
+            applicant={{ ...applicant, hiringStage }}
+            hiringStage={hiringStage}
+            setHiringStage={setHiringStage}
+          />
+        </div>
       </div>
     </div>
   );
