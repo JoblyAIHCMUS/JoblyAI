@@ -174,6 +174,7 @@ export default function EmployerNewCompanyPage() {
     currentStepStrokeWidth: 5,
     stepStrokeCurrentColor: '#4F46E5',
     stepIndicatorCurrentColor: '#4F46E5',
+    stepIndicatorLabelCurrentColor: '#e2e8f0',
     stepIndicatorFinishedColor: '#4F46E5',
     stepIndicatorUnFinishedColor: '#e2e8f0',
     separatorFinishedColor: '#4F46E5',
