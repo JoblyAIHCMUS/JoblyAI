@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { X, Search } from 'lucide-react-native';
 import { useSearchEmployers } from '../../../../../hooks/useSearchEmployers';
@@ -105,11 +106,19 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
                 className="px-4 py-3 border-b border-slate-100 flex-row items-center justify-between active:bg-slate-50"
               >
                 <View className="flex-1 flex-row items-center gap-3">
-                  <View className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Text className="text-sm font-bold text-indigo-600">
-                      {item.firstName[0]}
-                      {item.lastName[0]}
-                    </Text>
+                  <View className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {item.avatar ? (
+                      <Image
+                        source={{ uri: item.avatar }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text className="text-sm font-bold text-indigo-600">
+                        {item.firstName[0]}
+                        {item.lastName[0]}
+                      </Text>
+                    )}
                   </View>
                   <View className="flex-1 min-w-0">
                     <Text className="text-sm font-medium text-slate-900 truncate">
