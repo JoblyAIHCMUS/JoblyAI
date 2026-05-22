@@ -74,17 +74,19 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      postgres:
-        condition: service_healthy
+      # Comment out dependency to postgres in prod so it works gracefully when external DB is used.
+      # postgres:
+      #   condition: service_healthy
       redis:
         condition: service_healthy
       # Add Scylla dependency if your app connects on startup
       scylla:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://jobly:jobly@postgres:5432/jobly_db
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+      # Define critical defaults, but ALLOW overriding via apps/backend/.env
+      DATABASE_URL: ${DATABASE_URL:-postgres://jobly:jobly@postgres:5432/jobly_db}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: ${NODE_ENV:-production}
     command: ['sh', '-c', 'node apps/backend/dist/main']
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api || exit 1']
