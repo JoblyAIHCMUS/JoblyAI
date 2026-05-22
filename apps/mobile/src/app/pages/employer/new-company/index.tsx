@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
@@ -24,12 +25,14 @@ import {
   type TeamMember,
 } from './data';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
+import { useCreateCompany } from '../../../../hooks/useCreateCompany';
+import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
 
 export default function EmployerNewCompanyPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [loading, setLoading] = useState(false);
 
   // Form state
   const [companyName, setCompanyName] = useState('');
@@ -44,6 +47,30 @@ export default function EmployerNewCompanyPage() {
   const [errors, setErrors] = useState<Record<string, any>>({});
 
   const { data: currentUser } = useGetEmployerProfile();
+
+  const {
+    submitCompany,
+    loading: creatingCompany,
+    error: createError,
+  } = useCreateCompany({
+    onSuccess: async () => {
+      // Refetch employer profile to update affiliation
+      await queryClient.invalidateQueries({ queryKey: ['employer-profile'] });
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : 'Failed to create company';
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: message,
+      });
+    },
+  });
+
+  const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
+
+  const loading = creatingCompany || addingMembers;
   const initializedRef = useRef(false);
 
   // Initialize with current user as owner
@@ -131,18 +158,52 @@ export default function EmployerNewCompanyPage() {
       return;
     }
 
-    setLoading(true);
     try {
-      // TODO: Implement company creation API call
-      console.log('Creating company:', {
-        companyName,
-        website,
-        scale,
-        industry,
-        logoUrl,
-        description,
-        teamMembers,
+      // Prepare payload for backend
+      const payload = {
+        name: companyName,
+        websiteUrl: website || undefined,
+        sizeRange: scale || undefined,
+        industry: industry || undefined,
+        description: description || undefined,
+        logoUrl: logoUrl || undefined,
+      };
+
+      // Create company
+      const company = await submitCompany(payload);
+
+      // Get current user email
+      const currentUserEmail = currentUser?.email?.toLowerCase();
+
+      // Add team members (excluding the current user)
+      const membersToAdd = teamMembers.filter((member) => {
+        const memberEmail = member.email.toLowerCase();
+        return currentUserEmail ? memberEmail !== currentUserEmail : true;
       });
+
+      if (membersToAdd.length > 0) {
+        const addResults = await Promise.allSettled(
+          membersToAdd.map((member) =>
+            submitAddEmployee(company.id, {
+              email: member.email,
+              role:
+                member.role && member.role !== 'None' ? member.role : undefined,
+            })
+          )
+        );
+
+        const failedAdds = addResults.filter(
+          (result) => result.status === 'rejected'
+        ).length;
+
+        if (failedAdds > 0) {
+          Toast.show({
+            type: 'warning',
+            text1: 'Partial Success',
+            text2: `${failedAdds} team member(s) could not be added. You can retry in Company Profile.`,
+          });
+        }
+      }
 
       Toast.show({
         type: 'success',
@@ -153,17 +214,10 @@ export default function EmployerNewCompanyPage() {
       // Navigate to dashboard after a short delay
       setTimeout(() => {
         router.push('/pages/employer/dashboard');
-      }, 1500);
+      }, 1200);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'An error occurred';
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: message,
-      });
-    } finally {
-      setLoading(false);
+      // Error is handled in the onError callback of useCreateCompany
+      console.error('Company registration failed:', error);
     }
   };
 
