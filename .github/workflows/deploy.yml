@@ -16,41 +16,53 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
 
           script: |
-            # 1. Chuyển về thư mục home để đảm bảo đường dẫn
+            # 1. Chuyển về thư mục home
             cd $HOME
-
-            # 2. Xóa và Clone lại nếu thư mục bị lỗi hoặc không có .git
+            
+            # 2. Sao lưu file .env nếu tồn tại để tránh bị mất khi xóa thư mục
+            if [ -f "joblyai/apps/backend/.env" ]; then
+              echo "--- Đang sao lưu file .env ---"
+              cp "joblyai/apps/backend/.env" "$HOME/backend_env_backup"
+            fi
+            
+            # 3. Xóa và Clone lại nếu thư mục bị lỗi hoặc không có .git
             if [ ! -d "joblyai/.git" ]; then
               echo "--- Thư mục lỗi hoặc chưa tồn tại, đang xóa và clone mới ---"
               rm -rf joblyai
-              # Sử dụng token để clone (vượt qua lỗi Private repo)
               git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
-
-            # 3. Vào thư mục và cập nhật code
+            
+            # 4. Vào thư mục và cập nhật code
             cd joblyai
-            echo "--- Đang kéo code mới ---"
+            echo "--- Đang cập nhật mã nguồn ---"
             git fetch origin main
             git reset --hard origin/main
-
-            # 4. Kiểm tra sự tồn tại của file cấu hình
-            if [ ! -f "docker-compose.yml" ]; then
-              echo "LỖI: Không tìm thấy file docker-compose.yml!"
+            
+            # 5. Khôi phục file .env từ bản sao lưu (nếu có)
+            if [ -f "$HOME/backend_env_backup" ]; then
+              echo "--- Đang khôi phục file .env ---"
+              mkdir -p apps/backend
+              mv "$HOME/backend_env_backup" apps/backend/.env
+            fi
+            
+            # 6. Kiểm tra file .env (Bắt buộc phải có để chạy Docker)
+            if [ ! -f "apps/backend/.env" ]; then
+              echo "LỖI: Không tìm thấy file apps/backend/.env! Hãy tạo nó thủ công trên EC2."
               exit 1
             fi
-
-            # 5. Đảm bảo docker-compose hoạt động (Fix Status 127)
+            
+            # 7. Đảm bảo docker-compose hoạt động
             DOCKER_COMPOSE_CMD="docker-compose"
             if ! command -v docker-compose &> /dev/null; then
                 DOCKER_COMPOSE_CMD="docker compose"
             fi
-
-            # 6. Chạy môi trường Production
-            echo "--- Đang build và chạy Docker ---"
+            
+            # 8. Chạy Docker Compose
+            echo "--- Đang khởi động hệ thống ---"
             $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
-
-            # 7. Dọn dẹp RAM
+            
+            # 9. Dọn dẹp RAM
             docker image prune -f
-
-            # 8. Database Migration
+            
+            # 10. Database Migration
             $DOCKER_COMPOSE_CMD exec -T backend npx prisma migrate deploy
