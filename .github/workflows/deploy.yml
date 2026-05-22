@@ -1,0 +1,30 @@
+name: Deploy Backend JoblyAI to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          script: |
+            # 1. Clone git repository
+            cd ~/joblyai || (git clone https://github.com/${{ github.repository }}.git ~/joblyai && cd ~/joblyai)
+            git pull origin main
+
+            # 2. Run Docker compose
+            docker-compose -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
+
+            # 3. Clean RAM
+            docker image prune -f
+
+            # 4. Database (Prisma Migrate)
+            docker-compose exec -T -T backend npx prisma migrate deploy
