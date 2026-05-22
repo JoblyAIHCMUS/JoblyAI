@@ -16,15 +16,41 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
 
           script: |
-            # 1. Clone git repository
-            cd ~/joblyai || (git clone https://github.com/${{ github.repository }}.git ~/joblyai && cd ~/joblyai)
-            git pull origin main
+            # 1. Chuyển về thư mục home để đảm bảo đường dẫn
+            cd $HOME
 
-            # 2. Run Docker compose
-            docker-compose -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
+            # 2. Xóa và Clone lại nếu thư mục bị lỗi hoặc không có .git
+            if [ ! -d "joblyai/.git" ]; then
+              echo "--- Thư mục lỗi hoặc chưa tồn tại, đang xóa và clone mới ---"
+              rm -rf joblyai
+              # Sử dụng token để clone (vượt qua lỗi Private repo)
+              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
+            fi
 
-            # 3. Clean RAM
+            # 3. Vào thư mục và cập nhật code
+            cd joblyai
+            echo "--- Đang kéo code mới ---"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 4. Kiểm tra sự tồn tại của file cấu hình
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "LỖI: Không tìm thấy file docker-compose.yml!"
+              exit 1
+            fi
+
+            # 5. Đảm bảo docker-compose hoạt động (Fix Status 127)
+            DOCKER_COMPOSE_CMD="docker-compose"
+            if ! command -v docker-compose &> /dev/null; then
+                DOCKER_COMPOSE_CMD="docker compose"
+            fi
+
+            # 6. Chạy môi trường Production
+            echo "--- Đang build và chạy Docker ---"
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
+
+            # 7. Dọn dẹp RAM
             docker image prune -f
 
-            # 4. Database (Prisma Migrate)
-            docker-compose exec -T -T backend npx prisma migrate deploy
+            # 8. Database Migration
+            $DOCKER_COMPOSE_CMD exec -T backend npx prisma migrate deploy
