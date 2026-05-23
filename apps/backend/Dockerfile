@@ -36,7 +36,8 @@ COPY libs ./libs
 # Generate Prisma Client (running from the backend directory to ensure paths are correct)
 RUN cd apps/backend && npx prisma generate
 
-# Build the backend using Nx
+# Sync Nx workspace and build the backend
+RUN pnpm exec nx sync --yes
 RUN pnpm exec nx build backend --prod
 
 # Production stage
