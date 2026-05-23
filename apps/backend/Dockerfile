@@ -26,6 +26,10 @@ COPY apps/backend/prisma ./apps/backend/prisma/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --frozen-lockfile
 
+# Note: In pnpm workspaces, if prisma is a dependency of the local project it may need `pnpm exec`
+# Create a shortcut binary if not present
+RUN pnpm install -g prisma@6.3.0
+
 # Copy backend source code
 COPY apps/backend ./apps/backend
 
