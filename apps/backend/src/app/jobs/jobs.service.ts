@@ -276,6 +276,13 @@ export class JobsService {
       );
     }
 
+    // Mark all applications as job deleted instead of cascade deleting them
+    await this.prisma.application.updateMany({
+      where: { jobId: id },
+      data: { jobDeletedAt: new Date() },
+    });
+
+    // Delete the job
     await this.prisma.jobPosting.delete({
       where: { id },
     });

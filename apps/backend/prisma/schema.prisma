@@ -374,18 +374,19 @@ model Resume {
 }
 
 model Application {
-  id              Int               @id @default(autoincrement())
-  jobId           Int
-  job             JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  candidateId     String
-  candidate       User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  resumeId        Int
-  resume          Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  matchPercentage Float?
-  aiFeedback      Json?
-  status          ApplicationStatus @default(APPLIED)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id               Int               @id @default(autoincrement())
+  jobId            Int
+  job              JobPosting        @relation(fields: [jobId], references: [id])
+  candidateId      String
+  candidate        User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId         Int
+  resume           Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  matchPercentage  Float?
+  aiFeedback       Json?
+  status           ApplicationStatus @default(APPLIED)
+  jobDeletedAt     DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([jobId])
   @@index([candidateId])

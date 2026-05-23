@@ -8,6 +8,7 @@ export interface Application {
   status: ApplicationStatus;
   matchPercentage: number | null;
   aiFeedback: unknown | null; // JSON field
+  jobDeletedAt: Date | null; // Timestamp when the job was deleted
   createdAt: Date;
   updatedAt: Date;
   job: {

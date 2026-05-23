@@ -675,6 +675,7 @@ export class ApplicationsService {
         ? Number(application.matchPercentage)
         : null,
       aiFeedback: application.aiFeedback,
+      jobDeletedAt: application.jobDeletedAt,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
       job: {
