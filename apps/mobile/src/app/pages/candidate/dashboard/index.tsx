@@ -275,10 +275,14 @@ function StatusChartsSection({
               key={tab}
               activeOpacity={0.7}
               onPress={() => setActiveView(tab)}
-              className={`rounded-md px-3 py-1.5 ${active ? 'bg-[#eef0ff]' : 'bg-transparent'}`}
+              className={`rounded-md px-3 py-1.5 ${
+                active ? 'bg-[#eef0ff]' : 'bg-transparent'
+              }`}
             >
               <Text
-                className={`text-xs font-medium ${active ? 'text-[#4640de]' : 'text-[#7c8493]'}`}
+                className={`text-xs font-medium ${
+                  active ? 'text-[#4640de]' : 'text-[#7c8493]'
+                }`}
               >
                 {tab}
               </Text>
@@ -303,8 +307,11 @@ function StatusChartsSection({
                 {Object.entries(applicationsByStatus)
                   .filter(([, count]) => count > 0)
                   .map(([status, count]) => {
-                    const typedStatus = status as CandidateApplicationRecord['status'];
-                    const percent = Math.round((count / totalApplications) * 100);
+                    const typedStatus =
+                      status as CandidateApplicationRecord['status'];
+                    const percent = Math.round(
+                      (count / totalApplications) * 100
+                    );
 
                     return (
                       <View
@@ -314,7 +321,9 @@ function StatusChartsSection({
                         <View className="flex-row items-center gap-3">
                           <View
                             className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: getStatusDotColor(typedStatus) }}
+                            style={{
+                              backgroundColor: getStatusDotColor(typedStatus),
+                            }}
                           />
                           <Text className="text-sm font-semibold text-[#25324b]">
                             {getStatusLabel(typedStatus)}
@@ -330,7 +339,9 @@ function StatusChartsSection({
             ) : (
               <View className="mt-8 h-[130px] w-[130px] items-center justify-center rounded-full border-[16px] border-[#e8ecff] bg-white shadow-[0_14px_30px_rgba(70,64,222,0.08)]">
                 <View className="items-center px-4">
-                  <Text className="text-lg font-semibold text-[#25324b]">0</Text>
+                  <Text className="text-lg font-semibold text-[#25324b]">
+                    0
+                  </Text>
                   <Text className="text-center text-xs text-[#7c8493]">
                     Applications
                   </Text>
@@ -363,7 +374,10 @@ function StatusChartsSection({
                   );
 
                   return (
-                    <View key={bucket.key} className="flex-1 items-center gap-2">
+                    <View
+                      key={bucket.key}
+                      className="flex-1 items-center gap-2"
+                    >
                       <Text className="text-[11px] font-semibold text-[#25324b]">
                         {bucket.count}
                       </Text>
@@ -434,7 +448,8 @@ function RecentApplicationsSection({
       ) : applications.length > 0 ? (
         <View className="mt-4 gap-3">
           {applications.map((application) => {
-            const companyName = application.job.companyName ?? 'Unknown company';
+            const companyName =
+              application.job.companyName ?? 'Unknown company';
             const location =
               application.job.location ??
               (application.job.remote ? 'Remote' : 'Location unavailable');
@@ -597,7 +612,10 @@ export default function CandidateDashboard() {
   }, [applicationsLoading, applicationsResult, fetchApplications]);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f9fbff]" edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      className="flex-1 bg-[#f9fbff]"
+      edges={['top', 'left', 'right']}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="border-b border-[#d6ddeb] bg-white px-4 py-3">
@@ -610,7 +628,9 @@ export default function CandidateDashboard() {
             <Menu size={22} color="#25324b" />
           </TouchableOpacity>
 
-          <Text className="text-[20px] font-bold text-[#25324b]">Dashboard</Text>
+          <Text className="text-[20px] font-bold text-[#25324b]">
+            Dashboard
+          </Text>
 
           <View className="flex-row items-center gap-2">
             <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef0ff]">
@@ -621,7 +641,9 @@ export default function CandidateDashboard() {
             <View className="relative p-2">
               <Bell size={22} color="#25324b" />
               <View className="absolute right-1 top-1 h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6b5a] px-1">
-                <Text className="text-[10px] font-bold leading-3 text-white">9</Text>
+                <Text className="text-[10px] font-bold leading-3 text-white">
+                  9
+                </Text>
               </View>
             </View>
           </View>
@@ -673,13 +695,21 @@ export default function CandidateDashboard() {
             label="Interviewed"
             value={interviewedCount}
             loading={applicationsLoading && interviewedCount === 0}
-            icon={<MessageCircleQuestion size={48} color="#26a4ff" strokeWidth={1.4} />}
+            icon={
+              <MessageCircleQuestion
+                size={48}
+                color="#26a4ff"
+                strokeWidth={1.4}
+              />
+            }
           />
 
           <StatusChartsSection
             applications={currentRangeApplications}
             loading={applicationsLoading && allApplications.length === 0}
-            onViewAllPress={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            onViewAllPress={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
           />
 
           <RecentApplicationsSection

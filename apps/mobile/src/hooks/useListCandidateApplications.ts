@@ -1,9 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import {
-  listCandidateApplications,
-  ApiOptions,
-} from '../api/application';
+import { listCandidateApplications, ApiOptions } from '../api/application';
 import {
   CandidateApplicationsQuery,
   PaginatedCandidateApplicationsResponse,

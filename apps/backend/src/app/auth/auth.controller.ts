@@ -44,7 +44,9 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() req: ExpressRequest, @Res() res: Response) {
     const baseUrl =
-      process.env.BETTER_AUTH_URL || process.env.APP_URL || 'http://localhost:3000';
+      process.env.BETTER_AUTH_URL ||
+      process.env.APP_URL ||
+      'http://localhost:3000';
 
     // Build a Request to Better Auth's /session endpoint using the incoming headers (cookies)
     const url = new URL('/session', baseUrl);

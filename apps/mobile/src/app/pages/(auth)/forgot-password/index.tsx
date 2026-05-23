@@ -265,7 +265,12 @@ const ForgotPasswordPage = () => {
 
           {/* Send OTP Button */}
           {!otpSent && (
-            <Button className={'bg-indigo-700'} size="lg" onPress={handleSendOTP} disabled={loading}>
+            <Button
+              className={'bg-indigo-700'}
+              size="lg"
+              onPress={handleSendOTP}
+              disabled={loading}
+            >
               <Text>
                 {loading ? 'Sending code...' : 'Send Verification Code'}
               </Text>

@@ -174,7 +174,10 @@ const CandidateDashboardSidebar = ({
             </Text>
           </View>
 
-          <TouchableOpacity onPress={onClose} className="h-11 w-11 items-center justify-center rounded-full border border-[#e6e8f0] bg-white">
+          <TouchableOpacity
+            onPress={onClose}
+            className="h-11 w-11 items-center justify-center rounded-full border border-[#e6e8f0] bg-white"
+          >
             <X size={24} color="#111827" strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
@@ -194,7 +197,9 @@ const CandidateDashboardSidebar = ({
                     router.push(item.path as never);
                   }
                 }}
-                className={`mb-2 flex-row items-center rounded-2xl px-4 py-4 ${active ? 'bg-[#EEEDFC] shadow-sm' : ''}`}
+                className={`mb-2 flex-row items-center rounded-2xl px-4 py-4 ${
+                  active ? 'bg-[#EEEDFC] shadow-sm' : ''
+                }`}
               >
                 {active && (
                   <View className="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-[#4F46E5]" />
@@ -206,7 +211,11 @@ const CandidateDashboardSidebar = ({
                   strokeWidth={active ? 2.4 : 2}
                 />
 
-                <Text className={`ml-4 text-[17px] font-semibold ${active ? 'text-[#4F46E5]' : 'text-[#64748B]'}`}>
+                <Text
+                  className={`ml-4 text-[17px] font-semibold ${
+                    active ? 'text-[#4F46E5]' : 'text-[#64748B]'
+                  }`}
+                >
                   {item.name}
                 </Text>
 
@@ -223,7 +232,9 @@ const CandidateDashboardSidebar = ({
 
                 {item.badge && (
                   <View className="ml-2 h-7 min-w-7 items-center justify-center rounded-full bg-[#4F46E5] px-2">
-                    <Text className="text-xs font-bold text-white">{item.badge}</Text>
+                    <Text className="text-xs font-bold text-white">
+                      {item.badge}
+                    </Text>
                   </View>
                 )}
               </TouchableOpacity>

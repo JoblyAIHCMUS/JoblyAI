@@ -2,11 +2,28 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as DocumentPicker from 'expo-document-picker';
 import { useState } from 'react';
-import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, FileText, Mail, Pencil, Phone, Upload } from 'lucide-react-native';
+import {
+  BadgeCheck,
+  FileText,
+  Mail,
+  Pencil,
+  Phone,
+  Upload,
+} from 'lucide-react-native';
 
-import { InstagramIcon, TwitterIcon } from '../../../components/shared/svgs/Icons';
+import {
+  InstagramIcon,
+  TwitterIcon,
+} from '../../../components/shared/svgs/Icons';
 
 function HeaderIcon({ children }: { children: React.ReactNode }) {
   return (
@@ -36,9 +53,17 @@ function SectionHeader({
   );
 }
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Card({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <View className={`rounded-[14px] border border-[#dbe1ee] bg-white ${className}`}>
+    <View
+      className={`rounded-[14px] border border-[#dbe1ee] bg-white ${className}`}
+    >
       {children}
     </View>
   );
@@ -55,7 +80,9 @@ function SimpleMenu() {
 }
 
 function SimpleHome() {
-  return <View className="h-[12px] w-[12px] rounded-[3px] border border-[#1f2937]" />;
+  return (
+    <View className="h-[12px] w-[12px] rounded-[3px] border border-[#1f2937]" />
+  );
 }
 
 function SimpleBell() {
@@ -71,7 +98,9 @@ function SimpleEdit() {
 }
 
 function SimpleLocation() {
-  return <View className="h-[12px] w-[8px] rounded-t-full rounded-b-[4px] border border-[#667085]" />;
+  return (
+    <View className="h-[12px] w-[8px] rounded-t-full rounded-b-[4px] border border-[#667085]" />
+  );
 }
 
 function SimpleFlag() {
@@ -87,7 +116,9 @@ function SimplePhone() {
 }
 
 function SimpleGlobe() {
-  return <View className="h-[16px] w-[16px] rounded-full border border-[#667085]" />;
+  return (
+    <View className="h-[16px] w-[16px] rounded-full border border-[#667085]" />
+  );
 }
 
 function SimplePlus() {
@@ -124,7 +155,11 @@ export default function CandidatePublicProfileScreen() {
 
   const handleResumeUpload = async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      type: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ],
       multiple: false,
       copyToCacheDirectory: true,
     });
@@ -139,11 +174,14 @@ export default function CandidatePublicProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="dark" />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <View className="px-3 pt-1">
           <View className="flex-row items-center justify-between pb-3">
             <View className="flex-row items-center gap-3">
@@ -183,7 +221,10 @@ export default function CandidatePublicProfileScreen() {
                 <View className="absolute right-[48px] top-0 h-full w-[22px] bg-[#a84f8d]" />
                 <View className="absolute right-[62px] top-[4px] h-[12px] w-[62px] rounded-full bg-[#a56aa4] opacity-35" />
 
-                <TouchableOpacity activeOpacity={0.8} className="absolute right-[11px] top-[9px] h-[28px] w-[28px] items-center justify-center rounded-[3px] border border-white/60 bg-transparent">
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  className="absolute right-[11px] top-[9px] h-[28px] w-[28px] items-center justify-center rounded-[3px] border border-white/60 bg-transparent"
+                >
                   <SimpleEdit />
                 </TouchableOpacity>
               </View>
@@ -212,7 +253,10 @@ export default function CandidatePublicProfileScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity activeOpacity={0.85} className="mt-[9px] h-[34px] w-full items-center justify-center rounded-[3px] border border-[#d7ddfb] bg-white">
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  className="mt-[9px] h-[34px] w-full items-center justify-center rounded-[3px] border border-[#d7ddfb] bg-white"
+                >
                   <Text className="text-[13px] font-semibold text-[#5758e7]">
                     Edit Profile
                   </Text>
@@ -226,8 +270,8 @@ export default function CandidatePublicProfileScreen() {
           <SectionHeader title="About Me" action={<SectionAction />} />
           <Card className="px-3 py-2.5">
             <Text className="text-[14px] leading-[20px] tracking-[-0.1px] text-[#4c5466]">
-              I&apos;m a product designer + filmmaker currently working remotely at
-              Twitter from beautiful Manchester, United Kingdom. I&apos;m
+              I&apos;m a product designer + filmmaker currently working remotely
+              at Twitter from beautiful Manchester, United Kingdom. I&apos;m
               passionate about designing digital products that have a positive
               impact on the world.
             </Text>
@@ -272,8 +316,8 @@ export default function CandidatePublicProfileScreen() {
                 </Text>
                 <Text className="mt-[6px] text-[13px] leading-[18px] text-[#57606d]">
                   Created and executed social media plan for 10 brands utilizing
-                  multiple features and content types to increase brand outreach,
-                  engagement, and leads.
+                  multiple features and content types to increase brand
+                  outreach, engagement, and leads.
                 </Text>
               </View>
             </View>
@@ -307,7 +351,10 @@ export default function CandidatePublicProfileScreen() {
               </View>
             </View>
 
-            <TouchableOpacity activeOpacity={0.8} className="mt-2.5 items-center">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              className="mt-2.5 items-center"
+            >
               <Text className="text-[12px] font-bold text-[#5758e7]">
                 Show 3 more experiences
               </Text>
@@ -331,7 +378,9 @@ export default function CandidatePublicProfileScreen() {
           <Card className="px-3 py-2.5">
             <View className="flex-row gap-3 pb-2.5">
               <View className="h-[37px] w-[37px] items-center justify-center rounded-full bg-[#981b1e]">
-                <Text className="text-[10px] font-bold text-white">HARVARD</Text>
+                <Text className="text-[10px] font-bold text-white">
+                  HARVARD
+                </Text>
               </View>
               <View className="flex-1">
                 <View className="absolute right-0 top-0">
@@ -348,8 +397,8 @@ export default function CandidatePublicProfileScreen() {
                 </Text>
                 <Text className="mt-[6px] text-[13px] leading-[18px] text-[#57606d]">
                   As an Applied Psychologist in the field of Consumer and
-                  Society, I am specialized in creating business opportunities by
-                  observing, analysing, researching and changing behaviour.
+                  Society, I am specialized in creating business opportunities
+                  by observing, analysing, researching and changing behaviour.
                 </Text>
               </View>
             </View>
@@ -358,7 +407,9 @@ export default function CandidatePublicProfileScreen() {
 
             <View className="flex-row gap-3">
               <View className="h-[37px] w-[37px] items-center justify-center rounded-full bg-[#0d2f64]">
-                <Text className="text-[10px] font-bold text-white">TORONTO</Text>
+                <Text className="text-[10px] font-bold text-white">
+                  TORONTO
+                </Text>
               </View>
               <View className="flex-1">
                 <View className="absolute right-0 top-0">
@@ -376,7 +427,10 @@ export default function CandidatePublicProfileScreen() {
               </View>
             </View>
 
-            <TouchableOpacity activeOpacity={0.8} className="mt-2.5 items-center">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              className="mt-2.5 items-center"
+            >
               <Text className="text-[12px] font-bold text-[#5758e7]">
                 Show 2 more educations
               </Text>
@@ -399,8 +453,17 @@ export default function CandidatePublicProfileScreen() {
 
           <Card className="px-3 py-2.5">
             <View className="flex-row flex-wrap gap-2">
-              {['Communication', 'Analytics', 'Facebook Ads', 'Content Planning', 'Community Manager'].map((skill) => (
-                <View key={skill} className="rounded-[2px] border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-[5px]">
+              {[
+                'Communication',
+                'Analytics',
+                'Facebook Ads',
+                'Content Planning',
+                'Community Manager',
+              ].map((skill) => (
+                <View
+                  key={skill}
+                  className="rounded-[2px] border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-[5px]"
+                >
                   <Text className="text-[11px] font-medium text-[#4e5cf0]">
                     {skill}
                   </Text>
@@ -434,7 +497,8 @@ export default function CandidatePublicProfileScreen() {
                     Upload your resume
                   </Text>
                   <Text className="mt-1 text-[13px] leading-[18px] text-[#667085]">
-                    Add your latest CV in PDF, DOC, or DOCX format so employers can review it quickly.
+                    Add your latest CV in PDF, DOC, or DOCX format so employers
+                    can review it quickly.
                   </Text>
 
                   <Text className="mt-2 text-[12px] font-medium text-[#4f46e5]">
@@ -458,12 +522,17 @@ export default function CandidatePublicProfileScreen() {
         </View>
 
         <View className="mt-5 px-3">
-          <SectionHeader title="Additional Details" action={<SectionAction />} />
+          <SectionHeader
+            title="Additional Details"
+            action={<SectionAction />}
+          />
           <Card className="px-3 py-3">
             <View className="flex-row items-center gap-3 py-2">
               <SimpleMail />
               <View>
-                <Text className="text-[12px] font-medium text-[#556070]">Email</Text>
+                <Text className="text-[12px] font-medium text-[#556070]">
+                  Email
+                </Text>
                 <Text className="mt-1 text-[13px] text-[#4e5cf0]">
                   jakegyll@email.com
                 </Text>
@@ -475,7 +544,9 @@ export default function CandidatePublicProfileScreen() {
             <View className="flex-row items-center gap-3 py-2">
               <SimplePhone />
               <View>
-                <Text className="text-[12px] font-medium text-[#556070]">Phone</Text>
+                <Text className="text-[12px] font-medium text-[#556070]">
+                  Phone
+                </Text>
                 <Text className="mt-1 text-[13px] text-[#1f2937]">
                   +44 1245 572 135
                 </Text>
@@ -490,7 +561,9 @@ export default function CandidatePublicProfileScreen() {
             <View className="flex-row items-center gap-3 py-2">
               <InstagramIcon />
               <View>
-                <Text className="text-[12px] font-medium text-[#556070]">Instagram</Text>
+                <Text className="text-[12px] font-medium text-[#556070]">
+                  Instagram
+                </Text>
                 <Text className="mt-1 text-[13px] text-[#4e5cf0]">
                   instagram.com/jakegyll
                 </Text>
@@ -502,7 +575,9 @@ export default function CandidatePublicProfileScreen() {
             <View className="flex-row items-center gap-3 py-2">
               <TwitterIcon />
               <View>
-                <Text className="text-[12px] font-medium text-[#556070]">Twitter</Text>
+                <Text className="text-[12px] font-medium text-[#556070]">
+                  Twitter
+                </Text>
                 <Text className="mt-1 text-[13px] text-[#4e5cf0]">
                   twitter.com/jakegyll
                 </Text>
