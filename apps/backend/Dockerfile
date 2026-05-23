@@ -43,7 +43,7 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 
 # Critical runtime libraries
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl libgcc libstdc++
 
 WORKDIR /app
 RUN chown -R node:node /app
@@ -53,19 +53,20 @@ COPY --chown=node:node pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --chown=node:node apps/backend/package.json ./apps/backend/package.json
 COPY --chown=node:node apps/backend/prisma ./apps/backend/prisma/
 
-# Copy the built application from base stage
-COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
-
 # Install production-only dependencies
 RUN corepack enable && \
     mkdir -p /pnpm && chmod -R 777 /pnpm && \
     pnpm install --prod --frozen-lockfile --filter @jobly/backend
 
-# Generate Prisma client for production (This creates the engine file)
-RUN cd apps/backend && pnpm exec prisma generate
+# Copy the built application from base stage
+COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# Help Prisma find the engine in production (Set AFTER generate to avoid validation error)
-ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
+# CHỦ CHỐT: Generate Prisma và tìm file engine để copy ra chỗ cố định
+RUN cd apps/backend && pnpm exec prisma generate && \
+    find /app/node_modules -name "libquery_engine-linux-musl-openssl-3.0.x.so.node" -exec cp {} /app/query-engine.so.node \;
+
+# Trỏ đích danh vào file đã copy
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
 
 USER node
 
