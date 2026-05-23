@@ -1,8 +1,11 @@
+import { JobPosting, JobStatus as BackendJobStatus } from '../../../../types/job';
+
 export type JobStatus = 'Live' | 'Closed' | 'Draft';
 export type JobType = 'Fulltime' | 'Freelance' | 'Part-time';
 
 export interface JobListing {
   id: string;
+  originalId: number; // Keep track of the number ID for mutations
   title: string;
   datePosted: string;
   applicants: number;
@@ -12,55 +15,38 @@ export interface JobListing {
   type: JobType;
 }
 
-export const MOCK_JOBS: JobListing[] = [
-  {
-    id: '1',
-    title: 'Social Media Specialist',
-    datePosted: '24 July 2021',
-    applicants: 19,
-    needsFilled: 4,
-    needsTotal: 11,
-    status: 'Live',
-    type: 'Fulltime'
-  },
-  {
-    id: '2',
-    title: 'Senior Product Designer',
-    datePosted: '24 July 2021',
-    applicants: 19,
-    needsFilled: 4,
-    needsTotal: 11,
-    status: 'Live',
-    type: 'Fulltime'
-  },
-  {
-    id: '3',
-    title: 'Visual Designer',
-    datePosted: '24 July 2021',
-    applicants: 19,
-    needsFilled: 4,
-    needsTotal: 11,
-    status: 'Live',
-    type: 'Freelance'
-  },
-  {
-    id: '4',
-    title: 'Data Science',
-    datePosted: '24 July 2021',
-    applicants: 19,
-    needsFilled: 4,
-    needsTotal: 4,
-    status: 'Closed',
-    type: 'Freelance'
-  },
-  {
-    id: '5',
-    title: 'Kotlin Developer',
-    datePosted: '24 July 2021',
-    applicants: 19,
-    needsFilled: 3,
-    needsTotal: 3,
-    status: 'Closed',
-    type: 'Freelance'
+export function mapJobPostingToListing(job: JobPosting): JobListing {
+  const statusMap: Record<BackendJobStatus, JobStatus> = {
+    OPEN: 'Live',
+    DRAFT: 'Draft',
+    CLOSED: 'Closed',
+  };
+
+  // Safe fallback for formatting dates
+  let formattedDate = 'Unknown Date';
+  if (job.createdAt) {
+    try {
+      const d = new Date(job.createdAt);
+      formattedDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch {
+      formattedDate = String(job.createdAt).split('T')[0];
+    }
   }
-];
+
+  // Map EmploymentType to frontend JobType (Simplified map, adjust as needed)
+  let type: JobType = 'Fulltime';
+  if (job.type === 'PART_TIME') type = 'Part-time';
+  else if (job.type === 'FREELANCE' || job.type === 'CONTRACT') type = 'Freelance';
+
+  return {
+    id: String(job.id),
+    originalId: job.id,
+    title: job.title,
+    datePosted: formattedDate,
+    applicants: 0, // Mocked for now until applicant count is added to backend response
+    needsFilled: 0,
+    needsTotal: 0,
+    status: statusMap[job.status] || 'Draft',
+    type,
+  };
+}

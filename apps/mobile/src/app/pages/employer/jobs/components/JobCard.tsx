@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MoreHorizontal } from 'lucide-react-native';
 import { JobListing } from '../data';
 import { JobCardMenu } from './JobCardMenu';
+import { DeleteConfirmationModal } from '../../../../../components/DeleteConfirmationModal';
+import { useJobActions } from '../../../../../hooks/useEmployerJobs';
 
 interface JobCardProps {
   job: JobListing;
@@ -11,41 +13,100 @@ interface JobCardProps {
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const isLive = job.status === 'Live';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const [triggerPosition, setTriggerPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [isUpdating, setIsUpdating] = useState(false);
   
+  const { updateStatus, deleteJob } = useJobActions();
+
   const handleMenuPress = () => {
     moreButtonRef.current?.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-      setTriggerPosition({
-        x: pageX,
-        y: pageY,
-        width,
-        height,
-      });
+      setTriggerPosition({ x: pageX, y: pageY, width, height });
       setIsMenuOpen(true);
     });
   };
 
-  const handleViewDetails = () => {
-    console.log('View Details:', job.id);
-  };
-
-  const handleEditJobPosting = () => {
-    console.log('Edit Job Posting:', job.id);
-  };
+  const handleViewDetails = () => console.log('View Details:', job.id);
+  const handleEditJobPosting = () => console.log('Edit Job Posting:', job.id);
 
   const handlePublishJobPosting = () => {
-    console.log('Publish Job Posting:', job.id);
+    setIsUpdating(true);
+    setIsMenuOpen(false);
+    updateStatus.mutate({ id: job.originalId, status: 'OPEN' }, {
+      onSettled: () => setIsUpdating(false),
+    });
+  };
+
+  const handleRevertToDraft = () => {
+    setIsUpdating(true);
+    setIsMenuOpen(false);
+    updateStatus.mutate({ id: job.originalId, status: 'DRAFT' }, {
+      onSettled: () => setIsUpdating(false),
+    });
   };
 
   const handleMarkAsClosed = () => {
-    console.log('Mark as Closed:', job.id);
+    setIsUpdating(true);
+    setIsMenuOpen(false);
+    updateStatus.mutate({ id: job.originalId, status: 'CLOSED' }, {
+      onSettled: () => setIsUpdating(false),
+    });
   };
 
   const handleDelete = () => {
-    console.log('Delete:', job.id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteJob.mutate(job.originalId, {
+      onError: () => {
+        // Error will be handled by the mutation state, but we can add toast/alert if needed
+      },
+      onSuccess: () => {
+        setIsDeleteModalOpen(false);
+      }
+    });
   };
   
+  if (isUpdating) {
+    return (
+      <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm opacity-60">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-2xl font-bold text-[#0F172A] flex-1 mr-2" numberOfLines={1}>
+            {job.title}
+          </Text>
+          <ActivityIndicator size="small" color="#4640DE" />
+        </View>
+
+        <View className="flex-row justify-between mb-4 border-b border-[#CBD5E1] pb-4">
+          <View>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">Date Posted</Text>
+            <Text className="text-lg text-[#475569]">{job.datePosted}</Text>
+          </View>
+          <View>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">Applicants</Text>
+            <Text className="text-lg text-[#475569]">{job.applicants}</Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center gap-3">
+          <View className={`px-4 py-1 rounded-full border ${isLive ? 'border-[#14B8A6]' : job.status === 'Draft' ? 'border-[#EAB308]' : 'border-[#E11D48]'}`}>
+            <Text className={`text-base font-semibold ${isLive ? 'text-[#14B8A6]' : job.status === 'Draft' ? 'text-[#EAB308]' : 'text-[#E11D48]'}`}>
+              {job.status}
+            </Text>
+          </View>
+
+          <View className={`px-4 py-1 rounded-full border ${job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'}`}>
+            <Text className={`text-base font-semibold ${job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'}`}>
+              {job.type}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <>
       <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm">
@@ -77,14 +138,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
         {/* Tags Row */}
         <View className="flex-row items-center gap-3">
-          {/* Status Tag */}
-          <View className={`px-4 py-1 rounded-full border ${isLive ? 'border-[#14B8A6]' : 'border-[#E11D48]'}`}>
-            <Text className={`text-base font-semibold ${isLive ? 'text-[#14B8A6]' : 'text-[#E11D48]'}`}>
+          <View className={`px-4 py-1 rounded-full border ${isLive ? 'border-[#14B8A6]' : job.status === 'Draft' ? 'border-[#EAB308]' : 'border-[#E11D48]'}`}>
+            <Text className={`text-base font-semibold ${isLive ? 'text-[#14B8A6]' : job.status === 'Draft' ? 'text-[#EAB308]' : 'text-[#E11D48]'}`}>
               {job.status}
             </Text>
           </View>
 
-          {/* Type Tag */}
           <View className={`px-4 py-1 rounded-full border ${job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'}`}>
             <Text className={`text-base font-semibold ${job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'}`}>
               {job.type}
@@ -97,11 +156,22 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
         isVisible={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         triggerPosition={triggerPosition}
+        status={job.status}
         onViewDetails={handleViewDetails}
         onEditJobPosting={handleEditJobPosting}
         onPublishJobPosting={handlePublishJobPosting}
+        onRevertToDraft={handleRevertToDraft}
         onMarkAsClosed={handleMarkAsClosed}
         onDelete={handleDelete}
+      />
+
+      <DeleteConfirmationModal
+        isVisible={isDeleteModalOpen}
+        title="Delete Job Posting"
+        description="Are you sure you want to delete this job posting? This action cannot be undone."
+        onCancel={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteJob.isPending}
       />
     </>
   );
