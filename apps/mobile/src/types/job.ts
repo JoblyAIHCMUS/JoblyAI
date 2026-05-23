@@ -88,3 +88,23 @@ export interface ListJobsQuery {
   type?: EmploymentType[];
   remote?: boolean;
 }
+
+export interface JobRequirementInput {
+  skillId: number;
+  importance?: RequirementImportance;
+  minYearsExperience?: number;
+}
+
+export interface CreateJobPayload {
+  title: string;
+  description: string;
+  location?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  currency?: string;
+  remote?: boolean;
+  type?: EmploymentType | EmploymentType[];
+  categoryId: number;
+  companyId: number;
+  requirements?: JobRequirementInput[];
+}
