@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,14 @@ import JobDescriptionStep from './components/JobDescriptionStep';
 import { NEW_JOB_STEPS } from './constants';
 import type { SkillEntry } from './components/SkillTagsManager';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
+import { useCreateJob } from '../../../../hooks/useCreateJob';
+import { useSkillIds } from '../../../../hooks/useSkillIds';
+import { useCategories } from '../../../../hooks/useCategories';
+import type { CreateJobPayload } from '../../../../types/job';
+import type {
+  EmploymentType,
+  RequirementImportance,
+} from '../../../../types/job';
 
 interface FormData {
   title: string;
@@ -38,12 +46,23 @@ const isHtmlContentEmpty = (html: string): boolean => {
   return text === '';
 };
 
+// Helper to convert SkillImportance to RequirementImportance
+const convertToRequirementImportance = (
+  importance: 'REQUIRED' | 'PREFERRED' | 'OPTIONAL'
+): RequirementImportance => {
+  if (importance === 'OPTIONAL') {
+    return 'OPTIONAL';
+  }
+  return importance as RequirementImportance;
+};
+
 export default function EmployerNewJobPage() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { data: employerProfile } = useGetEmployerProfile();
+  const { data: employerProfile, refetch: fetchEmployerProfile } =
+    useGetEmployerProfile();
 
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -61,6 +80,35 @@ export default function EmployerNewJobPage() {
 
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // API hooks
+  const { submitJob, loading: creatingJob } = useCreateJob({
+    onSuccess: () => {
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Job posted successfully!',
+      });
+      setTimeout(() => {
+        router.back();
+      }, 1500);
+    },
+    onError: (err) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to post job. Please try again.',
+      });
+    },
+  });
+
+  const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
+  const { loading: categoriesLoading } = useCategories();
+
+  // Fetch employer profile on mount
+  useEffect(() => {
+    fetchEmployerProfile();
+  }, [fetchEmployerProfile]);
 
   // Validation for each step
   const canProceed = (stepIndex: number): boolean => {
@@ -129,31 +177,45 @@ export default function EmployerNewJobPage() {
     try {
       setLoading(true);
 
-      // TODO: Call API to create job posting
-      // For now, just show success message
-      console.log('Job posting data:', {
-        ...formData,
-        companyId: employerProfile?.company?.id,
-      });
+      // 1. Resolve skill IDs (create if needed)
+      let requirements = undefined;
+      if (formData.skills && formData.skills.length > 0) {
+        const skillObjs = await getOrCreateSkills(
+          formData.skills.map((s) => s.name)
+        );
+        // Map skill names to IDs
+        requirements = formData.skills.map((s) => {
+          const skillObj = skillObjs.find(
+            (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
+          );
+          return {
+            skillId: skillObj ? skillObj.id : 0,
+            importance: convertToRequirementImportance(s.importance),
+            minYearsExperience: s.minYearsExperience || 0,
+          };
+        });
+      }
 
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Job posted successfully!',
-      });
+      const payload: CreateJobPayload = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type as EmploymentType,
+        remote: formData.remote,
+        location: formData.remote ? undefined : formData.location,
+        categoryId: Number(formData.categoryId),
+        currency:
+          formData.currency === 'none'
+            ? undefined
+            : formData.currency.toUpperCase(),
+        salaryMin: formData.salaryMin,
+        salaryMax: formData.salaryMax,
+        companyId: employerProfile?.company?.id || 0,
+        requirements,
+      };
 
-      // Navigate back to job listing
-      setTimeout(() => {
-        router.push('/pages/employer/jobs');
-      }, 1500);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to post job';
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: message,
-      });
+      await submitJob(payload);
+    } catch {
+      // Error handled in hook
     } finally {
       setLoading(false);
     }
@@ -168,9 +230,9 @@ export default function EmployerNewJobPage() {
     stepIndicatorCurrentColor: '#4F46E5',
     stepIndicatorLabelCurrentColor: '#e2e8f0',
     stepIndicatorFinishedColor: '#4F46E5',
-    stepIndicatorUnFinishedColor: '#E5E7EB',
+    stepIndicatorUnFinishedColor: '#e2e8f0',
     separatorFinishedColor: '#4F46E5',
-    separatorUnFinishedColor: '#E5E7EB',
+    separatorUnFinishedColor: '#e2e8f0',
     labelAlign: 'center' as const,
     labelSize: 12,
     currentStepLabelColor: '#4F46E5',
@@ -287,7 +349,9 @@ export default function EmployerNewJobPage() {
           {currentStep < NEW_JOB_STEPS.length - 1 ? (
             <TouchableOpacity
               onPress={handleNext}
-              disabled={loading}
+              disabled={
+                loading || creatingJob || skillsLoading || categoriesLoading
+              }
               className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50"
             >
               <Text className="text-center text-white font-semibold">
@@ -297,12 +361,16 @@ export default function EmployerNewJobPage() {
           ) : (
             <TouchableOpacity
               onPress={handleSubmit}
-              disabled={loading}
+              disabled={
+                loading || creatingJob || skillsLoading || categoriesLoading
+              }
               className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50 flex-row items-center justify-center gap-2"
             >
-              {loading && <ActivityIndicator color="white" size="small" />}
+              {(loading || creatingJob) && (
+                <ActivityIndicator color="white" size="small" />
+              )}
               <Text className="text-center text-white font-semibold">
-                {loading ? 'Posting...' : 'Post Job'}
+                {loading || creatingJob ? 'Posting...' : 'Post Job'}
               </Text>
             </TouchableOpacity>
           )}

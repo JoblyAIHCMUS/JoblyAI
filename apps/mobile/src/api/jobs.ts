@@ -5,6 +5,7 @@ import {
   PopularJobCategory,
   ListJobsQuery,
   JobPosting,
+  CreateJobPayload,
 } from '../types/job';
 
 export interface ApiOptions {
@@ -50,6 +51,16 @@ export async function getJobById(
   options?: ApiOptions
 ): Promise<JobPosting> {
   const response = await apiClient.get<JobPosting>(`/jobs/${id}`, {
+    signal: options?.signal,
+  });
+  return response.data;
+}
+
+export async function createJobPosting(
+  payload: CreateJobPayload,
+  options?: ApiOptions
+): Promise<JobPosting> {
+  const response = await apiClient.post<JobPosting>('/jobs', payload, {
     signal: options?.signal,
   });
   return response.data;

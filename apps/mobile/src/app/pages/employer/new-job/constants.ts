@@ -21,17 +21,3 @@ export const CURRENCIES = [
   { value: 'jpy', label: 'JPY' },
   { value: 'cny', label: 'CNY' },
 ] as const;
-
-// Mock categories from backend
-export const MOCK_CATEGORIES = [
-  { id: 1, name: 'Technology' },
-  { id: 2, name: 'Finance' },
-  { id: 3, name: 'Healthcare' },
-  { id: 4, name: 'Education' },
-  { id: 5, name: 'Marketing' },
-  { id: 6, name: 'Sales' },
-  { id: 7, name: 'Design' },
-  { id: 8, name: 'Human Resources' },
-  { id: 9, name: 'Operations' },
-  { id: 10, name: 'Customer Service' },
-] as const;

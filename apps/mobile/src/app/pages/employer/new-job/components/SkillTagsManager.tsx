@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Plus, X, ChevronDown } from 'lucide-react-native';
 import { Input } from '../../../../../components/ui/input';
 import { Label } from '../../../../../components/ui/label';
 import ModalPicker from '../../new-company/components/ModalPicker';
+import { useSearchSkills } from '../../../../../hooks/useSearchSkills';
 
 export type SkillImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
 
@@ -40,35 +41,6 @@ const IMPORTANCE_ORDER: SkillImportance[] = [
   'OPTIONAL',
 ];
 
-// Mock skills for autocomplete
-const MOCK_SKILLS = [
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Node.js',
-  'Python',
-  'Java',
-  'C#',
-  'SQL',
-  'MongoDB',
-  'Git',
-  'Docker',
-  'Kubernetes',
-  'AWS',
-  'Azure',
-  'Google Cloud',
-  'REST API',
-  'GraphQL',
-  'HTML',
-  'CSS',
-  'Vue.js',
-  'Angular',
-  'Next.js',
-  'Express.js',
-  'Django',
-  'Spring Boot',
-];
-
 interface SkillTagsManagerProps {
   skills: SkillEntry[];
   onChange: (skills: SkillEntry[]) => void;
@@ -85,11 +57,15 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
   const [newMinYears, setNewMinYears] = useState('');
   const [showImportanceModal, setShowImportanceModal] = useState(false);
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const {
+    results: searchResults,
+    search: searchSkillsAPI,
+    loading: skillsLoading,
+  } = useSearchSkills();
 
-  const filteredSuggestions = MOCK_SKILLS.filter(
+  const filteredSuggestions = searchResults.filter(
     (skill) =>
-      !skills.some((s) => s.name.toLowerCase() === skill.toLowerCase()) &&
-      skill.toLowerCase().includes(newSkillName.toLowerCase())
+      !skills.some((s) => s.name.toLowerCase() === skill.name.toLowerCase())
   );
 
   const handleAdd = () => {
@@ -127,6 +103,16 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
     setShowSkillSuggestions(false);
   };
 
+  const handleSkillInputChange = (text: string) => {
+    setNewSkillName(text);
+    if (text.trim()) {
+      setShowSkillSuggestions(true);
+      searchSkillsAPI(text);
+    } else {
+      setShowSkillSuggestions(false);
+    }
+  };
+
   const groupedSkills = IMPORTANCE_ORDER.map((level) => ({
     level,
     label: IMPORTANCE_LABELS[level],
@@ -156,29 +142,28 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
               <Input
                 placeholder="Enter skill name"
                 value={newSkillName}
-                onChangeText={(text) => {
-                  setNewSkillName(text);
-                  setShowSkillSuggestions(text.length > 0);
-                }}
+                onChangeText={handleSkillInputChange}
                 autoFocus
                 autoComplete="off"
               />
 
-              {/* Skill Suggestions Dropdown - Replace FlatList with View */}
+              {/* Skill Suggestions Dropdown */}
               {showSkillSuggestions && filteredSuggestions.length > 0 && (
                 <View className="absolute top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-lg z-10 max-h-40">
                   <View className="max-h-40 overflow-hidden">
                     {filteredSuggestions.map((item, index) => (
                       <TouchableOpacity
-                        key={item}
-                        onPress={() => handleSelectSuggestion(item)}
+                        key={item.id}
+                        onPress={() => handleSelectSuggestion(item.name)}
                         className={`px-4 py-2 active:bg-slate-50 ${
                           index < filteredSuggestions.length - 1
                             ? 'border-b border-slate-100'
                             : ''
                         }`}
                       >
-                        <Text className="text-base text-slate-900">{item}</Text>
+                        <Text className="text-base text-slate-900">
+                          {item.name}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -230,10 +215,12 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
           <View className="flex-row gap-2 mt-2">
             <TouchableOpacity
               onPress={handleAdd}
-              disabled={!newSkillName.trim()}
+              disabled={!newSkillName.trim() || skillsLoading}
               className="flex-1 bg-indigo-600 disabled:bg-indigo-300 px-4 py-2.5 rounded-lg items-center justify-center"
             >
-              <Text className="text-white font-medium text-base">Add</Text>
+              <Text className="text-white font-medium text-base">
+                {skillsLoading ? 'Loading...' : 'Add'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
