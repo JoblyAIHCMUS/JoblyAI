@@ -11,10 +11,13 @@ export async function listEmployerJobsByUser(
   pageSize = 10,
   options?: ApiOptions
 ): Promise<PaginatedJobsResponse> {
-  const response = await apiClient.get<PaginatedJobsResponse>(`/jobs/user/${userId}`, {
-    params: { page, pageSize },
-    signal: options?.signal,
-  });
+  const response = await apiClient.get<PaginatedJobsResponse>(
+    `/jobs/user/${userId}`,
+    {
+      params: { page, pageSize },
+      signal: options?.signal,
+    }
+  );
   return response.data;
 }
 
@@ -24,10 +27,13 @@ export async function listEmployerJobsByCompany(
   pageSize = 10,
   options?: ApiOptions
 ): Promise<PaginatedJobsResponse> {
-  const response = await apiClient.get<PaginatedJobsResponse>(`/jobs/company/${companyId}`, {
-    params: { page, pageSize },
-    signal: options?.signal,
-  });
+  const response = await apiClient.get<PaginatedJobsResponse>(
+    `/jobs/company/${companyId}`,
+    {
+      params: { page, pageSize },
+      signal: options?.signal,
+    }
+  );
   return response.data;
 }
 

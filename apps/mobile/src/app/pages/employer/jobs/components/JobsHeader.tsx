@@ -14,20 +14,24 @@ export const JobsHeader = () => {
 
       {/* Controls Row */}
       <View className="flex-row items-center gap-3">
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 flex-row items-center justify-between bg-white border border-[#E5E7EB] rounded-lg px-4 py-3 shadow-sm"
           activeOpacity={0.7}
         >
-          <Text className="text-base text-[#374151] font-medium">Jul 19 - Jul 25</Text>
+          <Text className="text-base text-[#374151] font-medium">
+            Jul 19 - Jul 25
+          </Text>
           <Calendar size={20} color="#4640DE" />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-row items-center bg-white border border-[#E5E7EB] rounded-lg px-5 py-3 shadow-sm"
           activeOpacity={0.7}
         >
           <SlidersHorizontal size={24} color="#0F172A" />
-          <Text className="ml-2 text-base text-[#0F172A] font-semibold">Filters</Text>
+          <Text className="ml-2 text-base text-[#0F172A] font-semibold">
+            Filters
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

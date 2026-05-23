@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
 
 interface DeleteConfirmationModalProps {
@@ -11,7 +17,9 @@ interface DeleteConfirmationModalProps {
   isDeleting?: boolean;
 }
 
-export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
+export const DeleteConfirmationModal: React.FC<
+  DeleteConfirmationModalProps
+> = ({
   isVisible,
   title = 'Delete Job Posting',
   description = 'Are you sure you want to delete this job posting? This action cannot be undone.',

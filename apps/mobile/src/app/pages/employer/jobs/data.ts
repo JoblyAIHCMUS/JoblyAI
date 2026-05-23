@@ -1,4 +1,7 @@
-import { JobPosting, JobStatus as BackendJobStatus } from '../../../../types/job';
+import {
+  JobPosting,
+  JobStatus as BackendJobStatus,
+} from '../../../../types/job';
 
 export type JobStatus = 'Live' | 'Closed' | 'Draft';
 export type JobType = 'Fulltime' | 'Freelance' | 'Part-time';
@@ -27,7 +30,11 @@ export function mapJobPostingToListing(job: JobPosting): JobListing {
   if (job.createdAt) {
     try {
       const d = new Date(job.createdAt);
-      formattedDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      formattedDate = d.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
     } catch {
       formattedDate = String(job.createdAt).split('T')[0];
     }
@@ -36,7 +43,8 @@ export function mapJobPostingToListing(job: JobPosting): JobListing {
   // Map EmploymentType to frontend JobType (Simplified map, adjust as needed)
   let type: JobType = 'Fulltime';
   if (job.type === 'PART_TIME') type = 'Part-time';
-  else if (job.type === 'FREELANCE' || job.type === 'CONTRACT') type = 'Freelance';
+  else if (job.type === 'FREELANCE' || job.type === 'CONTRACT')
+    type = 'Freelance';
 
   return {
     id: String(job.id),
