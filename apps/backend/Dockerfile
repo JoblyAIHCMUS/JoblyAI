@@ -41,12 +41,17 @@ RUN pnpm exec nx build backend --prod
 FROM node:22-alpine AS production
 
 ENV NODE_ENV=production
+# Ensure pnpm is in the PATH even at runtime
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 # Critical runtime libraries
 RUN apk add --no-cache libc6-compat openssl libgcc libstdc++
 
+# Enable corepack for pnpm support
+RUN corepack enable
+
 WORKDIR /app
-RUN chown -R node:node /app
 
 # Copy necessary manifests and schema
 COPY --chown=node:node pnpm-workspace.yaml package.json pnpm-lock.yaml ./
@@ -54,14 +59,13 @@ COPY --chown=node:node apps/backend/package.json ./apps/backend/package.json
 COPY --chown=node:node apps/backend/prisma ./apps/backend/prisma/
 
 # Install production-only dependencies
-RUN corepack enable && \
-    mkdir -p /pnpm && chmod -R 777 /pnpm && \
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
     pnpm install --prod --frozen-lockfile --filter @jobly/backend
 
 # Copy the built application from base stage
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# CHỦ CHỐT: Generate Prisma và tìm file engine để copy ra chỗ cố định
+# CHỦ CHỐT: Generate Prisma và cố định file engine
 RUN cd apps/backend && pnpm exec prisma generate && \
     find /app/node_modules -name "libquery_engine-linux-musl-openssl-3.0.x.so.node" -exec cp {} /app/query-engine.so.node \;
 
