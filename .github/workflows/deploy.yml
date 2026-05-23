@@ -29,7 +29,7 @@ jobs:
             if [ ! -d "joblyai/.git" ]; then
               echo "--- Corrupted or missing directory, deleting and cloning fresh ---"
               rm -rf joblyai
-              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
+              git clone https://x-access-token:${{ secrets.JOBLY_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
             
             # 4. Enter directory and update source code
