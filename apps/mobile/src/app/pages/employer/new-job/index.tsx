@@ -12,12 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
 import BasicInformationStep from './components/BasicInformationStep';
 import JobDescriptionStep from './components/JobDescriptionStep';
 import { NEW_JOB_STEPS } from './constants';
-import type { SkillEntry } from './components/SkillTagsManager';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useCreateJob } from '../../../../hooks/useCreateJob';
 import { useSkillIds } from '../../../../hooks/useSkillIds';
@@ -27,19 +28,7 @@ import type {
   EmploymentType,
   RequirementImportance,
 } from '../../../../types/job';
-
-interface FormData {
-  title: string;
-  type: string;
-  remote: boolean;
-  location: string;
-  categoryId: string;
-  currency: string;
-  salaryMin?: number;
-  salaryMax?: number;
-  skills: SkillEntry[];
-  description: string;
-}
+import { jobPostingSchema, type JobPostingFormData } from './schema';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -64,22 +53,34 @@ export default function EmployerNewJobPage() {
   const { data: employerProfile, refetch: fetchEmployerProfile } =
     useGetEmployerProfile();
 
-  // Form state
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    type: '',
-    remote: false,
-    location: '',
-    categoryId: '',
-    currency: 'none',
-    salaryMin: undefined,
-    salaryMax: undefined,
-    skills: [],
-    description: '',
+  // Form setup with yup validation
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    getValues,
+    trigger,
+  } = useForm<JobPostingFormData>({
+    // @ts-expect-error yup.InferType creates nullable fields, but react-hook-form expects undefined
+    resolver: yupResolver(jobPostingSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      title: '',
+      type: 'FULL_TIME' as const,
+      remote: false,
+      location: '',
+      categoryId: '',
+      currency: 'none' as const,
+      salaryMin: undefined,
+      salaryMax: undefined,
+      skills: [],
+      description: '',
+    },
   });
 
-  // Error state
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  // Watch fields for tracking
+  const formData = watch();
 
   // API hooks
   const { submitJob, loading: creatingJob } = useCreateJob({
@@ -112,51 +113,50 @@ export default function EmployerNewJobPage() {
 
   // Validation for each step
   const canProceed = (stepIndex: number): boolean => {
-    const newErrors: Record<string, string> = {};
+    const currentValues = getValues();
 
     if (stepIndex === 0) {
       // Basic Information validation
-      if (!formData.title.trim() || formData.title.trim().length < 2) {
-        newErrors.title = 'Job title must be at least 2 characters';
-      }
-      if (!formData.type) {
-        newErrors.type = 'Please select employment type';
-      }
-      if (!formData.remote && !formData.location.trim()) {
-        newErrors.location = 'Location is required for non-remote jobs';
-      }
-      if (!formData.categoryId) {
-        newErrors.categoryId = 'Please select a category';
-      }
+      const hasTitle =
+        !!currentValues.title && currentValues.title.trim().length >= 2;
+      const hasType = !!currentValues.type;
+      const hasCategory = !!currentValues.categoryId;
+      const hasLocation =
+        currentValues.remote ||
+        (!!currentValues.location && currentValues.location.trim() !== '');
 
-      // Salary validation
-      if (formData.currency && formData.currency !== 'none') {
-        if (formData.salaryMin === undefined) {
-          newErrors.salaryMin = 'Minimum salary is required';
-        }
-        if (formData.salaryMax === undefined) {
-          newErrors.salaryMax = 'Maximum salary is required';
-        }
-        if (
-          formData.salaryMin !== undefined &&
-          formData.salaryMax !== undefined &&
-          formData.salaryMin > formData.salaryMax
-        ) {
-          newErrors.salaryMax = 'Maximum salary must be greater than minimum';
-        }
-      }
+      const noErrorsInBasic =
+        !errors.title && !errors.type && !errors.categoryId && !errors.location;
+
+      return (
+        hasTitle && hasType && hasCategory && hasLocation && noErrorsInBasic
+      );
     } else if (stepIndex === 1) {
       // Job Description validation
-      if (!formData.description || isHtmlContentEmpty(formData.description)) {
-        newErrors.description = 'Job description is required';
-      }
+      return (
+        !errors.description && !isHtmlContentEmpty(formData.description || '')
+      );
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Trigger validation for current step fields
+    if (currentStep === 0) {
+      const fieldsToValidate: (keyof JobPostingFormData)[] = [
+        'title',
+        'type',
+        'categoryId',
+        'remote',
+        'location',
+      ];
+      await trigger(fieldsToValidate);
+    } else if (currentStep === 1) {
+      await trigger('description');
+    }
+
+    // Check if we can proceed after validation
     if (canProceed(currentStep)) {
       setCurrentStep(currentStep + 1);
     }
@@ -165,11 +165,10 @@ export default function EmployerNewJobPage() {
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setErrors({});
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit_ = async (data: JobPostingFormData) => {
     if (!canProceed(currentStep)) {
       return;
     }
@@ -179,12 +178,12 @@ export default function EmployerNewJobPage() {
 
       // 1. Resolve skill IDs (create if needed)
       let requirements = undefined;
-      if (formData.skills && formData.skills.length > 0) {
+      if (data.skills && data.skills.length > 0) {
         const skillObjs = await getOrCreateSkills(
-          formData.skills.map((s) => s.name)
+          data.skills.map((s) => s.name)
         );
         // Map skill names to IDs
-        requirements = formData.skills.map((s) => {
+        requirements = data.skills.map((s) => {
           const skillObj = skillObjs.find(
             (obj) => obj.name.toLowerCase() === s.name.toLowerCase()
           );
@@ -196,19 +195,21 @@ export default function EmployerNewJobPage() {
         });
       }
 
+      // Convert null values to undefined for API
+      const salaryMin = data.salaryMin === null ? undefined : data.salaryMin;
+      const salaryMax = data.salaryMax === null ? undefined : data.salaryMax;
+
       const payload: CreateJobPayload = {
-        title: formData.title,
-        description: formData.description,
-        type: formData.type as EmploymentType,
-        remote: formData.remote,
-        location: formData.remote ? undefined : formData.location,
-        categoryId: Number(formData.categoryId),
+        title: data.title,
+        description: data.description,
+        type: data.type as EmploymentType,
+        remote: data.remote,
+        location: data.remote ? undefined : data.location,
+        categoryId: Number(data.categoryId),
         currency:
-          formData.currency === 'none'
-            ? undefined
-            : formData.currency.toUpperCase(),
-        salaryMin: formData.salaryMin,
-        salaryMax: formData.salaryMax,
+          data.currency === 'none' ? undefined : data.currency.toUpperCase(),
+        salaryMin,
+        salaryMax,
         companyId: employerProfile?.company?.id || 0,
         requirements,
       };
@@ -275,58 +276,19 @@ export default function EmployerNewJobPage() {
           <View className="flex-1 min-h-96">
             {currentStep === 0 && (
               <BasicInformationStep
-                title={formData.title}
-                onTitleChange={(value) =>
-                  setFormData({ ...formData, title: value })
-                }
-                type={formData.type}
-                onTypeChange={(value) =>
-                  setFormData({ ...formData, type: value })
-                }
-                remote={formData.remote}
-                onRemoteChange={(value) =>
-                  setFormData({ ...formData, remote: value })
-                }
-                location={formData.location}
-                onLocationChange={(value) =>
-                  setFormData({ ...formData, location: value })
-                }
-                categoryId={formData.categoryId}
-                onCategoryChange={(value) =>
-                  setFormData({ ...formData, categoryId: value })
-                }
-                currency={formData.currency}
-                onCurrencyChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    currency: value,
-                    salaryMin: undefined,
-                    salaryMax: undefined,
-                  })
-                }
-                salaryMin={formData.salaryMin}
-                onSalaryMinChange={(value) =>
-                  setFormData({ ...formData, salaryMin: value })
-                }
-                salaryMax={formData.salaryMax}
-                onSalaryMaxChange={(value) =>
-                  setFormData({ ...formData, salaryMax: value })
-                }
-                skills={formData.skills}
-                onSkillsChange={(value) =>
-                  setFormData({ ...formData, skills: value })
-                }
+                // @ts-expect-error yup/react-hook-form type mismatch
+                control={control}
                 errors={errors}
+                watch={watch}
+                formData={formData}
               />
             )}
 
             {currentStep === 1 && (
               <JobDescriptionStep
-                description={formData.description}
-                onDescriptionChange={(value) =>
-                  setFormData({ ...formData, description: value })
-                }
-                error={errors.description}
+                // @ts-expect-error yup/react-hook-form type mismatch
+                control={control}
+                errors={errors}
               />
             )}
           </View>
@@ -360,7 +322,8 @@ export default function EmployerNewJobPage() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              onPress={handleSubmit}
+              // @ts-expect-error yup/react-hook-form type mismatch
+              onPress={handleSubmit(handleSubmit_)}
               disabled={
                 loading || creatingJob || skillsLoading || categoriesLoading
               }

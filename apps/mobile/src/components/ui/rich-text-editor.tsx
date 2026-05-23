@@ -49,7 +49,7 @@ export const RichTextEditor = React.forwardRef<
       initialContentRef.current = content;
       hasInitialized.current = true;
     }
-  }, []);
+  });
 
   const handleChangeHtml = (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => {
     onChange(e.nativeEvent.value);
