@@ -28,7 +28,7 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { router } from 'expo-router';
 
 import { getGreetingName, useUser } from '../../../../../hooks/useUser';
 import { useLogout } from '../../../../../hooks/useAuth';
@@ -45,8 +45,6 @@ const CandidateDashboardSidebar = ({
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width);
-  const router = useRouter();
-  const pathname = usePathname();
   const { data: user } = useUser();
   const { logout, loading: isLoggingOut } = useLogout();
 
@@ -88,25 +86,17 @@ const CandidateDashboardSidebar = ({
     { name: 'My Applications', icon: FileText },
     { name: 'Find Jobs', icon: Search, path: '/' },
     { name: 'Browse Companies', icon: Building2, path: '/' },
-    { name: 'My Public Profile', icon: User },
+    {
+      name: 'My Public Profile',
+      icon: User,
+      path: '/pages/candidate/public-profile',
+    },
   ];
 
   const secondaryItems = [
     { name: 'Settings', icon: Settings },
     { name: 'Help Center', icon: HelpCircle },
   ];
-
-  const isRouteActive = (path?: string) => {
-    if (!path) {
-      return false;
-    }
-
-    if (path === '/pages/candidate/dashboard') {
-      return pathname === path || pathname === '/';
-    }
-
-    return pathname === path || pathname.startsWith(`${path}/`);
-  };
 
   const widthPanResponder = useRef(
     PanResponder.create({
@@ -155,8 +145,12 @@ const CandidateDashboardSidebar = ({
   if (!isVisible) return null;
 
   const firstName = getGreetingName(user);
-  const avatarInitials = (firstName || 'User').slice(0, 2).toUpperCase();
-  const avatarUrl = user?.image?.trim();
+  const fullName =
+    user?.name?.trim() ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() ||
+    firstName;
+  const avatarInitials = fullName.slice(0, 2).toUpperCase();
+  const avatarUrl = user?.avatarUrl?.trim();
 
   return (
     <Animated.View
@@ -188,7 +182,7 @@ const CandidateDashboardSidebar = ({
         <View className="flex-1 px-4 pt-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const active = isRouteActive(item.path);
+            const active = item.path === '/pages/candidate/dashboard';
 
             return (
               <TouchableOpacity
@@ -286,7 +280,7 @@ const CandidateDashboardSidebar = ({
 
               <View className="ml-4">
                 <Text className="text-[18px] font-bold text-[#111827]">
-                  {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                  {fullName}
                 </Text>
                 <Text className="text-[14px] text-[#64748B]">
                   {user?.email || ''}

@@ -9,7 +9,7 @@ import {
   employer,
   superAdmin,
 } from './permission';
-import { transporter } from './mailingService';
+import { getTransporter } from './mailingService';
 import nodemailer from 'nodemailer';
 
 export const auth = betterAuth({
@@ -87,6 +87,7 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp, type }) {
         if (type === 'forget-password') {
           try {
+            const transporter = await getTransporter();
             const info = await transporter.sendMail({
               from: 'noreply@JoblyAI.com',
               to: email,
