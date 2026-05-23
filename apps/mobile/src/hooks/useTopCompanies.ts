@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getTopCompaniesWithMostJobs } from '../api/company';
 import { Company } from '../types/company';
 
-export function useTopCompanies(limit = 5) {
+export function useTopCompanies(limit: number) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
