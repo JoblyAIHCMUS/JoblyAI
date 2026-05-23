@@ -25,6 +25,10 @@ export const CANDIDATE_DASHBOARD_STATUS_META: ApplicationStatusMeta = {
     label: 'Rejected',
     className: 'border-[#ff6550] text-[#ff6550]',
   },
+  closed: {
+    label: 'Job Closed',
+    className: 'border-[#7c8493] text-[#7c8493] bg-[#f8f8fd]',
+  },
 };
 
 export const CANDIDATE_DASHBOARD_FILTER_META: ApplicationFilterMeta = {
@@ -40,5 +44,5 @@ export function isActiveApplicationStatus(status: ApplicationStatus) {
 }
 
 export function isClosedApplicationStatus(status: ApplicationStatus) {
-  return status === 'offered' || status === 'rejected';
+  return status === 'offered' || status === 'rejected' || status === 'closed';
 }

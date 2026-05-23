@@ -51,6 +51,7 @@ export interface ApplicationRecord {
   status: ApplicationStatus;
   matchPercentage: number | null;
   aiFeedback: unknown | null;
+  jobDeletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   job: ApplicationJob;
