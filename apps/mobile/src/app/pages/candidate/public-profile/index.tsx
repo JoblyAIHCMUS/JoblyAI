@@ -1,24 +1,8 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as DocumentPicker from 'expo-document-picker';
-import { useState } from 'react';
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  BadgeCheck,
-  FileText,
-  Mail,
-  Pencil,
-  Phone,
-  Upload,
-} from 'lucide-react-native';
+import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
 
 import {
   InstagramIcon,
@@ -115,12 +99,6 @@ function SimplePhone() {
   return <Phone size={16} color="#667085" strokeWidth={2} />;
 }
 
-function SimpleGlobe() {
-  return (
-    <View className="h-[16px] w-[16px] rounded-full border border-[#667085]" />
-  );
-}
-
 function SimplePlus() {
   return (
     <View className="items-center justify-center">
@@ -151,28 +129,6 @@ function SectionAction() {
 }
 
 export default function CandidatePublicProfileScreen() {
-  const [resumeName, setResumeName] = useState('No resume uploaded yet');
-
-  const handleResumeUpload = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ],
-      multiple: false,
-      copyToCacheDirectory: true,
-    });
-
-    if (result.canceled) {
-      return;
-    }
-
-    const fileName = result.assets?.[0]?.name ?? 'Selected resume';
-    setResumeName(fileName);
-    Alert.alert('Resume selected', fileName);
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
