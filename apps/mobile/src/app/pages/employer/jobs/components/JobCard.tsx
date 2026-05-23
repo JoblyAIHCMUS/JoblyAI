@@ -11,14 +11,14 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const isLive = job.status === 'Live';
   
   return (
-    <View className="bg-white rounded-xl border border-[#E5E7EB] p-4 mb-4 shadow-sm">
+    <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm">
       {/* Top Row */}
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-[19px] font-bold text-[#111827] flex-1 mr-2" numberOfLines={1}>
+        <Text className="text-[19px] font-bold text-[#0F172A] flex-1 mr-2" numberOfLines={1}>
           {job.title}
         </Text>
         <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <MoreHorizontal size={24} color="#111827" />
+          <MoreHorizontal size={24} color="#0F172A" />
         </TouchableOpacity>
       </View>
 

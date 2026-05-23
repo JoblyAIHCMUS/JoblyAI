@@ -5,7 +5,7 @@ import { Calendar, SlidersHorizontal } from 'lucide-react-native';
 export const JobsHeader = () => {
   return (
     <View className="mb-6 pt-6 px-4">
-      <Text className="text-3xl font-extrabold text-[#111827] mb-2">
+      <Text className="text-3xl font-extrabold text-[#0F172A] mb-2">
         Job Listing
       </Text>
       <Text className="text-[17px] text-[#6B7280] mb-6 leading-6">
@@ -26,8 +26,8 @@ export const JobsHeader = () => {
           className="flex-row items-center bg-white border border-[#E5E7EB] rounded-lg px-5 py-3 shadow-sm"
           activeOpacity={0.7}
         >
-          <SlidersHorizontal size={20} color="#111827" />
-          <Text className="ml-2 text-[16px] text-[#111827] font-semibold">Filters</Text>
+          <SlidersHorizontal size={20} color="#0F172A" />
+          <Text className="ml-2 text-[16px] text-[#0F172A] font-semibold">Filters</Text>
         </TouchableOpacity>
       </View>
     </View>

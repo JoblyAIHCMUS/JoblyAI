@@ -27,7 +27,7 @@ export default function EmployerJobListingScreen() {
         <JobsHeader />
 
         <View className="px-4">
-          <Text className="text-[19px] font-bold text-[#111827] mb-4">
+          <Text className="text-[19px] font-bold text-[#0F172A] mb-4">
             All jobs : {MOCK_JOBS.length}
           </Text>
 
