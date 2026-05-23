@@ -12,6 +12,7 @@ export type ApplicationFilter = 'all' | 'active' | 'closed';
 
 export type ApplicationItem = {
   id: string;
+  jobId: string;
   company: string;
   logoUrl?: string;
   location: string;

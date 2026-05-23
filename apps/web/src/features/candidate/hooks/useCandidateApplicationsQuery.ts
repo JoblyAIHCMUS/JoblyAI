@@ -69,6 +69,7 @@ function mapApiStatusToCandidateStatus(
 function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
   return {
     id: String(record.id),
+    jobId: String(record.jobId),
     company: record.job.companyName ?? 'Unknown company',
     logoUrl: record.job.companyLogoUrl ?? undefined,
     location: record.job.location ?? (record.job.remote ? 'Remote' : 'Unknown'),
