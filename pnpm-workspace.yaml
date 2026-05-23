@@ -3,22 +3,22 @@ packages:
   - 'libs/*'
   - 'apps/*'
 allowBuilds:
-  '@google/genai': set this to true or false
-  '@nestjs/core': set this to true or false
-  '@parcel/watcher': set this to true or false
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  '@scarf/scarf': set this to true or false
-  '@swc/core': set this to true or false
-  better-sqlite3: set this to true or false
-  cypress: set this to true or false
-  detox: set this to true or false
-  dtrace-provider: set this to true or false
-  esbuild: set this to true or false
-  less: set this to true or false
-  msgpackr-extract: set this to true or false
-  nx: set this to true or false
-  prisma: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  '@google/genai': false
+  '@nestjs/core': false
+  '@parcel/watcher': false
+  '@prisma/client': false
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  '@swc/core': false
+  better-sqlite3: false
+  cypress: false
+  detox: false
+  dtrace-provider: false
+  esbuild: false
+  less: false
+  msgpackr-extract: false
+  nx: false
+  prisma: false
+  protobufjs: false
+  sharp: false
+  unrs-resolver: false
