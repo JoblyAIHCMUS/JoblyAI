@@ -101,5 +101,17 @@ jobs:
             
             # 10. Database Migration
             echo "--- Running Database Migrations ---"
-            # Extract DATABASE_URL directly from the env file to ensure it uses RDS
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend sh -c "DATABASE_URL=\$(grep DATABASE_URL apps/backend/.env | cut -d'=' -f2- | sed 's/\"//g') npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma"
+            # Check if file exists first
+            if [ -f "$HOME/joblyai/apps/backend/.env" ]; then
+              echo "Found .env file at $HOME/joblyai/apps/backend/.env"
+              # Extract URL using a more robust method
+              DB_URL=$(grep "^DATABASE_URL=" "$HOME/joblyai/apps/backend/.env" | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+              echo "Extracted DATABASE_URL (masked): $(echo $DB_URL | sed 's/:[^@]*@/:****@/')"
+              
+              # Run migration with explicit environment variable
+              $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+            else
+              echo "ERROR: .env file NOT FOUND at $HOME/joblyai/apps/backend/.env"
+              ls -la $HOME/joblyai/apps/backend/
+              exit 1
+            fi
