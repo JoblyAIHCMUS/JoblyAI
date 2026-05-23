@@ -56,7 +56,6 @@ jobs:
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
       - name: Verify React Native node modules
-        working-directory: apps/mobile
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
@@ -92,7 +91,6 @@ jobs:
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
       - name: Verify React Native node modules
-        working-directory: apps/mobile
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
@@ -125,14 +123,12 @@ jobs:
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
       - name: Verify React Native node modules
-        working-directory: apps/mobile
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
       # 4. Generate Android native code
       - name: Prebuild Android
         run: pnpm exec expo prebuild --platform android --no-install
-        working-directory: apps/mobile
 
   # JOB 4: Build iOS (Expo prebuild)
   build-ios:
@@ -169,11 +165,9 @@ jobs:
       # 5. Install Dependencies
       - run: pnpm install --frozen-lockfile
       - name: Verify React Native node modules
-        working-directory: apps/mobile
         run: |
           test -d node_modules/react-native
           test -d node_modules/react-native-safe-area-context
       # 6. Generate iOS native code
       - name: Prebuild iOS
         run: pnpm exec expo prebuild --platform ios
-        working-directory: apps/mobile

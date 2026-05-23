@@ -23,6 +23,7 @@
     },
     "outDir": "dist",
     "rootDir": "src",
+    "skipLibCheck": true,
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
