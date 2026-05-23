@@ -5,7 +5,7 @@ import {
   isActiveApplicationStatus,
   isClosedApplicationStatus,
 } from '@/lib/candidateStatus';
-import { candidateDashboardService } from '@/services/candidateDashboardService';
+import { filterApplicationsByDate } from '@/lib/candidateFilter';
 import {
   ApplicationFilter,
   ApplicationItem,
@@ -55,7 +55,7 @@ export function useCandidateApplicationsViewModel({
   }, [selectedStartDate, selectedEndDate]);
 
   const applicationsInDateRange = useMemo(() => {
-    return candidateDashboardService.filterApplicationsByDate(
+    return filterApplicationsByDate(
       applications,
       selectedStartDate,
       selectedEndDate
