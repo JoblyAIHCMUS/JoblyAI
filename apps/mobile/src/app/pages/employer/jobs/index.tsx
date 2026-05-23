@@ -1,5 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
@@ -15,7 +21,7 @@ import { mapJobPostingToListing, JobListing } from './data';
 
 export default function EmployerJobListingScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   const {
     data,
     isLoading,
@@ -24,7 +30,7 @@ export default function EmployerJobListingScreen() {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-    isRefetching
+    isRefetching,
   } = useEmployerJobsQuery();
 
   const jobsList: JobListing[] = useMemo(() => {
@@ -48,7 +54,7 @@ export default function EmployerJobListingScreen() {
     return (
       <View className="items-center py-10">
         <Text className="text-base text-[#475569]">
-          {isError ? "Failed to load jobs." : "No jobs found."}
+          {isError ? 'Failed to load jobs.' : 'No jobs found.'}
         </Text>
       </View>
     );
@@ -58,7 +64,7 @@ export default function EmployerJobListingScreen() {
     <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={['left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
-      
+
       <FlatList
         data={jobsList}
         keyExtractor={(item) => item.id}
@@ -68,7 +74,7 @@ export default function EmployerJobListingScreen() {
         ListHeaderComponent={
           <>
             <View className="-mx-4">
-               <JobsHeader />
+              <JobsHeader />
             </View>
             <View className="h-[1px] bg-[#CBD5E1] mb-4 -mx-4" />
             <Text className="text-2xl font-bold text-[#0F172A] mb-4">
@@ -85,10 +91,10 @@ export default function EmployerJobListingScreen() {
         }}
         onEndReachedThreshold={0.5}
         refreshControl={
-          <RefreshControl 
-             refreshing={isRefetching && !isFetchingNextPage} 
-             onRefresh={refetch} 
-             colors={["#4640DE"]}
+          <RefreshControl
+            refreshing={isRefetching && !isFetchingNextPage}
+            onRefresh={refetch}
+            colors={['#4640DE']}
           />
         }
       />

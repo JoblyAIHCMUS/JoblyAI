@@ -15,16 +15,30 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
-  const [triggerPosition, setTriggerPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [triggerPosition, setTriggerPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const { updateStatus, deleteJob } = useJobActions();
 
   const handleMenuPress = () => {
-    moreButtonRef.current?.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-      setTriggerPosition({ x: pageX, y: pageY, width, height });
-      setIsMenuOpen(true);
-    });
+    moreButtonRef.current?.measure(
+      (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number
+      ) => {
+        setTriggerPosition({ x: pageX, y: pageY, width, height });
+        setIsMenuOpen(true);
+      }
+    );
   };
 
   const handleViewDetails = () => console.log('View Details:', job.id);
@@ -33,25 +47,34 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
   const handlePublishJobPosting = () => {
     setIsUpdating(true);
     setIsMenuOpen(false);
-    updateStatus.mutate({ id: job.originalId, status: 'OPEN' }, {
-      onSettled: () => setIsUpdating(false),
-    });
+    updateStatus.mutate(
+      { id: job.originalId, status: 'OPEN' },
+      {
+        onSettled: () => setIsUpdating(false),
+      }
+    );
   };
 
   const handleRevertToDraft = () => {
     setIsUpdating(true);
     setIsMenuOpen(false);
-    updateStatus.mutate({ id: job.originalId, status: 'DRAFT' }, {
-      onSettled: () => setIsUpdating(false),
-    });
+    updateStatus.mutate(
+      { id: job.originalId, status: 'DRAFT' },
+      {
+        onSettled: () => setIsUpdating(false),
+      }
+    );
   };
 
   const handleMarkAsClosed = () => {
     setIsUpdating(true);
     setIsMenuOpen(false);
-    updateStatus.mutate({ id: job.originalId, status: 'CLOSED' }, {
-      onSettled: () => setIsUpdating(false),
-    });
+    updateStatus.mutate(
+      { id: job.originalId, status: 'CLOSED' },
+      {
+        onSettled: () => setIsUpdating(false),
+      }
+    );
   };
 
   const handleDelete = () => {
@@ -65,15 +88,18 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
       },
       onSuccess: () => {
         setIsDeleteModalOpen(false);
-      }
+      },
     });
   };
-  
+
   if (isUpdating) {
     return (
       <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm opacity-60">
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold text-[#0F172A] flex-1 mr-2" numberOfLines={1}>
+          <Text
+            className="text-2xl font-bold text-[#0F172A] flex-1 mr-2"
+            numberOfLines={1}
+          >
             {job.title}
           </Text>
           <ActivityIndicator size="small" color="#4640DE" />
@@ -81,24 +107,52 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
         <View className="flex-row justify-between mb-4 border-b border-[#CBD5E1] pb-4">
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">Date Posted</Text>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">
+              Date Posted
+            </Text>
             <Text className="text-lg text-[#475569]">{job.datePosted}</Text>
           </View>
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">Applicants</Text>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">
+              Applicants
+            </Text>
             <Text className="text-lg text-[#475569]">{job.applicants}</Text>
           </View>
         </View>
 
         <View className="flex-row items-center gap-3">
-          <View className={`px-4 py-1 rounded-full border ${isLive ? 'border-[#14B8A6]' : job.status === 'Draft' ? 'border-[#EAB308]' : 'border-[#E11D48]'}`}>
-            <Text className={`text-base font-semibold ${isLive ? 'text-[#14B8A6]' : job.status === 'Draft' ? 'text-[#EAB308]' : 'text-[#E11D48]'}`}>
+          <View
+            className={`px-4 py-1 rounded-full border ${
+              isLive
+                ? 'border-[#14B8A6]'
+                : job.status === 'Draft'
+                ? 'border-[#EAB308]'
+                : 'border-[#E11D48]'
+            }`}
+          >
+            <Text
+              className={`text-base font-semibold ${
+                isLive
+                  ? 'text-[#14B8A6]'
+                  : job.status === 'Draft'
+                  ? 'text-[#EAB308]'
+                  : 'text-[#E11D48]'
+              }`}
+            >
               {job.status}
             </Text>
           </View>
 
-          <View className={`px-4 py-1 rounded-full border ${job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'}`}>
-            <Text className={`text-base font-semibold ${job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'}`}>
+          <View
+            className={`px-4 py-1 rounded-full border ${
+              job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'
+            }`}
+          >
+            <Text
+              className={`text-base font-semibold ${
+                job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'
+              }`}
+            >
               {job.type}
             </Text>
           </View>
@@ -112,7 +166,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
       <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm">
         {/* Top Row */}
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold text-[#0F172A] flex-1 mr-2" numberOfLines={1}>
+          <Text
+            className="text-2xl font-bold text-[#0F172A] flex-1 mr-2"
+            numberOfLines={1}
+          >
             {job.title}
           </Text>
           <TouchableOpacity
@@ -127,25 +184,53 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
         {/* Stats Row */}
         <View className="flex-row justify-between mb-4 border-b border-[#CBD5E1] pb-4">
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">Date Posted</Text>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">
+              Date Posted
+            </Text>
             <Text className="text-lg text-[#475569]">{job.datePosted}</Text>
           </View>
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">Applicants</Text>
+            <Text className="text-lg text-[#475569] mb-1 font-medium">
+              Applicants
+            </Text>
             <Text className="text-lg text-[#475569]">{job.applicants}</Text>
           </View>
         </View>
 
         {/* Tags Row */}
         <View className="flex-row items-center gap-3">
-          <View className={`px-4 py-1 rounded-full border ${isLive ? 'border-[#14B8A6]' : job.status === 'Draft' ? 'border-[#EAB308]' : 'border-[#E11D48]'}`}>
-            <Text className={`text-base font-semibold ${isLive ? 'text-[#14B8A6]' : job.status === 'Draft' ? 'text-[#EAB308]' : 'text-[#E11D48]'}`}>
+          <View
+            className={`px-4 py-1 rounded-full border ${
+              isLive
+                ? 'border-[#14B8A6]'
+                : job.status === 'Draft'
+                ? 'border-[#EAB308]'
+                : 'border-[#E11D48]'
+            }`}
+          >
+            <Text
+              className={`text-base font-semibold ${
+                isLive
+                  ? 'text-[#14B8A6]'
+                  : job.status === 'Draft'
+                  ? 'text-[#EAB308]'
+                  : 'text-[#E11D48]'
+              }`}
+            >
               {job.status}
             </Text>
           </View>
 
-          <View className={`px-4 py-1 rounded-full border ${job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'}`}>
-            <Text className={`text-base font-semibold ${job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'}`}>
+          <View
+            className={`px-4 py-1 rounded-full border ${
+              job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'
+            }`}
+          >
+            <Text
+              className={`text-base font-semibold ${
+                job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'
+              }`}
+            >
               {job.type}
             </Text>
           </View>

@@ -1,4 +1,8 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   listEmployerJobsByUser,
   listEmployerJobsByCompany,
@@ -13,7 +17,8 @@ const PAGE_SIZE = 10;
 
 export function useEmployerJobsQuery() {
   const { data: user } = useUser();
-  const { data: profile, isLoading: isProfileLoading } = useGetEmployerProfile();
+  const { data: profile, isLoading: isProfileLoading } =
+    useGetEmployerProfile();
 
   const useCompany = !!profile?.company?.id;
   const companyId = profile?.company?.id;
@@ -23,11 +28,24 @@ export function useEmployerJobsQuery() {
     queryKey: ['employer-jobs', { useCompany, companyId, userId }],
     queryFn: async ({ pageParam = 1, signal }) => {
       if (useCompany && companyId) {
-        return await listEmployerJobsByCompany(companyId, pageParam, PAGE_SIZE, { signal });
+        return await listEmployerJobsByCompany(
+          companyId,
+          pageParam,
+          PAGE_SIZE,
+          { signal }
+        );
       } else if (userId) {
-        return await listEmployerJobsByUser(userId, pageParam, PAGE_SIZE, { signal });
+        return await listEmployerJobsByUser(userId, pageParam, PAGE_SIZE, {
+          signal,
+        });
       }
-      return { jobs: [], total: 0, page: 1, pageSize: PAGE_SIZE, totalPages: 0 };
+      return {
+        jobs: [],
+        total: 0,
+        page: 1,
+        pageSize: PAGE_SIZE,
+        totalPages: 0,
+      };
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.page < lastPage.totalPages) {
@@ -44,7 +62,8 @@ export function useJobActions() {
   const queryClient = useQueryClient();
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: JobStatus }) => updateJobPostingStatus(id, status),
+    mutationFn: ({ id, status }: { id: number; status: JobStatus }) =>
+      updateJobPostingStatus(id, status),
     onSuccess: (updatedJob, variables) => {
       // Update cache immediately with the server response
       queryClient.setQueriesData(
@@ -57,9 +76,9 @@ export function useJobActions() {
               ...page,
               jobs: page.jobs.map((job: any) =>
                 // 1. Safely compare IDs regardless of string/number types
-                String(job.id) === String(variables.id) 
-                  // 2. Merge the data to preserve fields like `applicants` count
-                  ? { ...job, ...updatedJob } 
+                String(job.id) === String(variables.id)
+                  ? // 2. Merge the data to preserve fields like `applicants` count
+                    { ...job, ...updatedJob }
                   : job
               ),
             })),
@@ -84,7 +103,9 @@ export function useJobActions() {
               // Update the total count on each page
               total: Math.max(0, (page.total || 0) - 1),
               // Coerce to string here as well just to be safe
-              jobs: page.jobs.filter((job: any) => String(job.id) !== String(variables)),
+              jobs: page.jobs.filter(
+                (job: any) => String(job.id) !== String(variables)
+              ),
             })),
           };
         }
