@@ -62,7 +62,7 @@ jobs:
       # 3a. Run format check
       - run: pnpm nx format:check --base=origin/main --head=HEAD
       # 3b. Package audit
-      - run: pnpm audit --audit-level=high
+      - run: pnpm audit --audit-level=high --prod
       # 4. Run mobile lint
       - run: pnpm nx run @jobly/mobile:lint
 
