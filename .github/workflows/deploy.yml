@@ -101,4 +101,4 @@ jobs:
             
             # 10. Database Migration
             echo "--- Running Database Migrations ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend pnpm exec prisma migrate deploy --schema apps/backend/prisma/schema.prisma
