@@ -59,3 +59,18 @@ export async function addCompanyEmployee(
   );
   return response.data;
 }
+
+export async function checkCompanyNameExists(name: string): Promise<boolean> {
+  try {
+    const response = await apiClient.get<{ exists: boolean }>(
+      '/company/check-name',
+      {
+        params: { name },
+      }
+    );
+    return response.data.exists;
+  } catch {
+    // If endpoint doesn't exist or fails, assume name is available
+    return false;
+  }
+}
