@@ -6,9 +6,12 @@ dotenv.config();
 
 const { ETHEREAL_USER, ETHEREAL_PASSWORD } = process.env;
 console.log('Ethereal credentials:', { ETHEREAL_USER, ETHEREAL_PASSWORD });
-let transporterInstance: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = null;
+let transporterInstance: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null =
+  null;
 
-export const getTransporter = async (): Promise<nodemailer.Transporter<SMTPTransport.SentMessageInfo>> => {
+export const getTransporter = async (): Promise<
+  nodemailer.Transporter<SMTPTransport.SentMessageInfo>
+> => {
   if (transporterInstance) {
     return transporterInstance;
   }
