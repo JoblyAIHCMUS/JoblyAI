@@ -17,7 +17,9 @@ export async function listNotifications(
   return response.data;
 }
 
-export async function markNotificationAsRead(id: number): Promise<Notification> {
+export async function markNotificationAsRead(
+  id: number
+): Promise<Notification> {
   const response = await apiClient.patch<Notification>(
     `/notifications/${id}/read`
   );

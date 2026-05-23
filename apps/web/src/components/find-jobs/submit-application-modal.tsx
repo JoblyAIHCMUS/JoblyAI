@@ -253,7 +253,10 @@ export const SubmitApplicationModal = ({
             sortedResumes.find((resume) => resume.isDefault)?.id ?? null;
 
           setSelectedResumeId(
-            defaultResumeId ?? sortedResumes[0]?.id ?? job.currentResume?.id ?? null
+            defaultResumeId ??
+              sortedResumes[0]?.id ??
+              job.currentResume?.id ??
+              null
           );
         } catch (error) {
           console.error('Failed to load candidate resumes', error);

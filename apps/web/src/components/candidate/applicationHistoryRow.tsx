@@ -122,7 +122,7 @@ export function ApplicationHistoryRow({
 
   const handleRowClick = () => {
     // If the job is closed (deleted), navigating might lead to a 404.
-    // However, we allow navigation so the user can see the 404/Not Found page 
+    // However, we allow navigation so the user can see the 404/Not Found page
     // which should ideally handle the "Job no longer available" state.
     router.push(`/candidate/find-jobs/${item.jobId}`);
   };
@@ -165,7 +165,9 @@ export function ApplicationHistoryRow({
     <div
       onClick={handleRowClick}
       className={`group w-full min-w-0 cursor-pointer rounded-[10px] px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
-        tinted ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]' : 'bg-white hover:bg-[#f8f8fd]'
+        tinted
+          ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]'
+          : 'bg-white hover:bg-[#f8f8fd]'
       }`}
     >
       <div className="flex flex-col gap-2 lg:hidden">

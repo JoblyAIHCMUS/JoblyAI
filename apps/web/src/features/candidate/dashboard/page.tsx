@@ -55,9 +55,7 @@ export default function CandidateDashboardPage() {
   );
 
   const firstName =
-    candidateProfile?.name?.split(' ')[0] ??
-    user?.name?.split(' ')[0] ??
-    '';
+    candidateProfile?.name?.split(' ')[0] ?? user?.name?.split(' ')[0] ?? '';
   const greeting = getGreeting();
   const dateRangeLabel = formatDateRangeLabel(
     selectedStartDate,
