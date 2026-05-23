@@ -25,7 +25,7 @@ export default function EmployerJobListingScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <JobsHeader />
-        <View className="h-[1px] bg-[#CBD5E1]" />
+        <View className="h-[1px] bg-[#CBD5E1] mb-4" />
 
         <View className="px-4">
           <Text className="text-2xl font-bold text-[#0F172A] mb-4">
