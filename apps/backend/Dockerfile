@@ -26,18 +26,16 @@ COPY libs/shared-types/package.json ./libs/shared-types/
 # Copy Prisma schema (needed for generate)
 COPY apps/backend/prisma ./apps/backend/prisma/
 
-# Install dependencies (installs everything including devDeps for build)
+# Install dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --frozen-lockfile
 
 # Copy backend source code AND root libraries
-# Note: Root folder is 'libs' (plural) containing shared-types, 
-# while backend internal folder is 'apps/backend/src/lib' (singular).
 COPY apps/backend ./apps/backend
 COPY libs ./libs
 
-# Generate Prisma Client (running from the backend directory to ensure paths are correct)
-RUN cd apps/backend && pnpm exec prisma generate
+# Generate Prisma Client with explicit binary targets
+RUN cd apps/backend && PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x pnpm exec prisma generate
 
 # Sync Nx workspace and build the backend
 RUN pnpm exec nx sync --yes
@@ -50,6 +48,9 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+# Help Prisma find the engine in bundled environment
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/apps/backend/dist/libquery_engine-linux-musl-openssl-3.0.x.so.node
+
 RUN corepack enable &&  mkdir -p /pnpm && chmod -R 777 /pnpm && \
     mkdir -p /tmp && chmod -R 777 /tmp
 
@@ -77,8 +78,9 @@ COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
-# Regenerate Prisma Client in production environment
-RUN cd apps/backend && pnpm exec prisma generate
+# Regenerate Prisma Client and COPY ENGINE TO DIST
+RUN cd apps/backend && PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x pnpm exec prisma generate && \
+    cp /app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node /app/apps/backend/dist/
 
 # Expose port
 EXPOSE 3000
