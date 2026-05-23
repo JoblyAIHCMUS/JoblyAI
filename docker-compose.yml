@@ -42,6 +42,7 @@ services:
     volumes:
       - scylla_data:/var/lib/scylla
       - ./apps/backend/scylladb/schema.cql:/docker-entrypoint-initdb.d/schema.cql
+    command: --smp 1 --memory 1G --overprovisioned 1 --api-address 0.0.0.0
     # Scylla needs more generous timeouts
     healthcheck:
       test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
@@ -73,6 +74,10 @@ services:
       - apps/backend/.env
     ports:
       - '3000:3000'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     depends_on:
       # Comment out dependency to postgres in prod so it works gracefully when external DB is used.
       # postgres:
