@@ -59,14 +59,14 @@ jobs:
             
             # 8. Super-Sequential Startup for Maximum RAM Efficiency
             echo "--- [1/5] Stopping all services to free memory ---"
-            $DOCKER_COMPOSE_CMD down --remove-orphans
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml down --remove-orphans
             docker system prune -a -f # Deep cleanup
             
             echo "--- [2/5] Building Backend image in isolation ---"
-            $DOCKER_COMPOSE_CMD build backend
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml build backend
             
             echo "--- [3/5] Starting Infrastructure (Redis, Scylla) ---"
-            $DOCKER_COMPOSE_CMD up -d redis scylla
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d redis scylla
             
             echo "--- [4/5] Waiting for Infrastructure to be healthy ---"
             for i in {1..24}; do
@@ -79,7 +79,7 @@ jobs:
             done
             
             echo "--- [5/5] Starting Application (Backend, Nginx) ---"
-            $DOCKER_COMPOSE_CMD up -d backend nginx scylla-init
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d backend nginx scylla-init
             
             # 9. Wait for Backend to be healthy before migration
             echo "--- Waiting for Backend to be healthy ---"
@@ -101,4 +101,4 @@ jobs:
             
             # 10. Database Migration
             echo "--- Running Database Migrations ---"
-            $DOCKER_COMPOSE_CMD exec -T backend npx prisma migrate deploy
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend npx prisma migrate deploy
