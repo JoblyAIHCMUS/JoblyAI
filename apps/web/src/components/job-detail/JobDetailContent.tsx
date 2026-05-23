@@ -131,7 +131,6 @@ function RichContentSection({ content }: { content: string[] | string }) {
 export default function JobDetailContent(props: JobDetailContentProps) {
   const {
     descriptionContent,
-    applicationProgress,
     formattedSalary,
     aboutRole,
     category,

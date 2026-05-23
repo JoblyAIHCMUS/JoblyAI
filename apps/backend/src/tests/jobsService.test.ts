@@ -40,11 +40,15 @@ const mockJobDbRecord = vi.hoisted(() => ({
 const mockPrisma = vi.hoisted(() => ({
   jobPosting: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     count: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+  },
+  application: {
+    updateMany: vi.fn(),
   },
   $transaction: vi.fn(),
 }));
@@ -74,14 +78,14 @@ describe('JobsService', () => {
   describe('getJobById', () => {
     it('should return a mapped job when found', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
 
       // Act
       const result = await service.getJobById(1);
 
       // Assert
-      expect(mockPrisma.jobPosting.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(mockPrisma.jobPosting.findFirst).toHaveBeenCalledWith({
+        where: { id: 1, deletedAt: null },
         include: expect.any(Object), // We use expect.any(Object) to avoid hardcoding the entire include object
       });
 
@@ -95,7 +99,7 @@ describe('JobsService', () => {
 
     it('should throw NotFoundException when job is not found', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(null);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(null);
 
       // Act & Assert
       await expect(service.getJobById(99)).rejects.toThrow(NotFoundException);
@@ -205,28 +209,38 @@ describe('JobsService', () => {
     it('should delete the job if the user is the original poster', async () => {
       // Arrange
       mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord); // postedById is 'employer123'
-      mockPrisma.jobPosting.delete.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.application.updateMany.mockResolvedValue({ count: 0 });
 
       // Act
       await service.deleteJobById(1, 'employer123', 'employer');
 
       // Assert
-      expect(mockPrisma.jobPosting.delete).toHaveBeenCalledWith({
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalledWith({
         where: { id: 1 },
+        data: expect.objectContaining({
+          status: 'CLOSED',
+          deletedAt: expect.any(Date),
+        }),
       });
     });
 
     it('should delete the job if the user is an admin', async () => {
       // Arrange
       mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
-      mockPrisma.jobPosting.delete.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.application.updateMany.mockResolvedValue({ count: 0 });
 
       // Act
       await service.deleteJobById(1, 'some_other_user', 'admin');
 
       // Assert
-      expect(mockPrisma.jobPosting.delete).toHaveBeenCalledWith({
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalledWith({
         where: { id: 1 },
+        data: expect.objectContaining({
+          status: 'CLOSED',
+          deletedAt: expect.any(Date),
+        }),
       });
     });
 
@@ -257,7 +271,7 @@ describe('JobsService', () => {
   describe('updateJobById', () => {
     it('should update and return a mapped job when user is the original poster', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord); // postedById is 'employer123'
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord); // postedById is 'employer123'
 
       // We simulate the DB returning the updated record
       const updatedDbRecord = {
@@ -305,7 +319,7 @@ describe('JobsService', () => {
 
     it('should allow an admin to update the job', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
       mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
 
       // Act
@@ -322,7 +336,7 @@ describe('JobsService', () => {
 
     it('should throw ForbiddenException if user is not poster and not admin', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
 
       // Act & Assert
       await expect(
@@ -339,7 +353,7 @@ describe('JobsService', () => {
 
     it('should throw NotFoundException if job does not exist', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(null);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(null);
 
       // Act & Assert
       await expect(
@@ -354,7 +368,7 @@ describe('JobsService', () => {
 
     it('should perform a partial update without changing requirements if omitted', async () => {
       // Arrange
-      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
       mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
 
       // Act
@@ -537,7 +551,7 @@ describe('JobsService', () => {
 
       // Assert
       expect(mockPrisma.jobPosting.findMany).toHaveBeenCalledWith({
-        where: { categoryId: 1, status: 'OPEN' },
+        where: { categoryId: 1, status: 'OPEN', deletedAt: null },
         include: expect.any(Object),
       });
       expect(result).toHaveLength(1);

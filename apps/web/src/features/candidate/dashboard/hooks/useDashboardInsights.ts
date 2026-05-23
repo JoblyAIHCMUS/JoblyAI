@@ -19,6 +19,7 @@ export function useDashboardInsights({
     interviewing: '#4640de',
     offered: '#00a36c',
     rejected: '#ff6550',
+    closed: '#7c8493',
   };
 
   const barChartItems = useMemo(() => {
