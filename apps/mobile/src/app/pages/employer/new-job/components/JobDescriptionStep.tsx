@@ -2,19 +2,19 @@
 
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
+import { Controller, type Control, type FieldErrors } from 'react-hook-form';
 import { Label } from '../../../../../components/ui/label';
 import { RichTextEditor } from '../../../../../components/ui/rich-text-editor';
+import type { JobPostingFormData } from '../schema';
 
 interface JobDescriptionStepProps {
-  description: string;
-  onDescriptionChange: (value: string) => void;
-  error?: string;
+  control: Control<JobPostingFormData>;
+  errors: FieldErrors<JobPostingFormData>;
 }
 
 export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
-  description,
-  onDescriptionChange,
-  error,
+  control,
+  errors,
 }) => {
   return (
     <ScrollView
@@ -23,7 +23,9 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
       contentContainerClassName="gap-4 pb-8"
     >
       <View className="gap-2">
-        <Label className={`font-medium ${error ? 'text-red-600' : ''}`}>
+        <Label
+          className={`font-medium ${errors.description ? 'text-red-600' : ''}`}
+        >
           Job Description *
         </Label>
         <Text className="text-sm text-slate-600">
@@ -32,20 +34,29 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
         </Text>
       </View>
 
-      <View
-        className={`rounded-lg overflow-hidden ${
-          error ? 'border-2 border-red-500' : ''
-        }`}
-      >
-        <RichTextEditor
-          content={description}
-          onChange={onDescriptionChange}
-          placeholder="Enter job description..."
-          editable={true}
-        />
-      </View>
-
-      {error && <Text className="text-xs text-red-600">{error}</Text>}
+      <Controller
+        control={control}
+        name="description"
+        render={({ field }) => (
+          <View
+            className={`rounded-lg overflow-hidden ${
+              errors.description ? 'border-2 border-red-500' : ''
+            }`}
+          >
+            <RichTextEditor
+              content={field.value}
+              onChange={field.onChange}
+              placeholder="Enter job description..."
+              editable={true}
+            />
+            {errors.description && (
+              <Text className="text-xs text-red-600 mt-2">
+                {errors.description.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
     </ScrollView>
   );
 };

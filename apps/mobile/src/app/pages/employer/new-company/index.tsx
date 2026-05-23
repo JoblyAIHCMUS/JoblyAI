@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   View,
   Text,
@@ -10,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
@@ -23,27 +26,66 @@ import {
   type TeamMemberData,
   type TeamMember,
 } from './data';
+import {
+  companyRegistrationSchema,
+  type CompanyRegistrationFormData,
+} from './schema';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
+import { useCreateCompany } from '../../../../hooks/useCreateCompany';
+import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
 
 export default function EmployerNewCompanyPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  // Form state
-  const [companyName, setCompanyName] = useState('');
-  const [website, setWebsite] = useState('');
-  const [scale, setScale] = useState('');
-  const [industry, setIndustry] = useState('');
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [description, setDescription] = useState('');
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
 
-  // Error state
-  const [errors, setErrors] = useState<Record<string, any>>({});
-
   const { data: currentUser } = useGetEmployerProfile();
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isValidating },
+    setValue,
+    trigger,
+  } = useForm<CompanyRegistrationFormData>({
+    resolver: yupResolver(companyRegistrationSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      companyName: '',
+      website: '',
+      scale: '',
+      industry: '',
+      companyDescription: '',
+      logoUrl: null,
+    },
+  });
+
+  // Watch fields for tracking
+  const companyDescription = watch('companyDescription');
+  const logoUrl = watch('logoUrl');
+
+  const { submitCompany, loading: creatingCompany } = useCreateCompany({
+    onSuccess: async () => {
+      // Refetch employer profile to update affiliation
+      await queryClient.invalidateQueries({ queryKey: ['employer-profile'] });
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : 'Failed to create company';
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: message,
+      });
+    },
+  });
+
+  const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
+
+  const loading = creatingCompany || addingMembers;
   const initializedRef = useRef(false);
 
   // Initialize with current user as owner
@@ -57,46 +99,10 @@ export default function EmployerNewCompanyPage() {
     }
   }, [currentUser]);
 
-  // Validation for each step
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, any> = {};
-
-    if (step === 0) {
-      if (!companyName.trim()) {
-        newErrors.companyName = {
-          message: 'Company name is required',
-        };
-      } else if (companyName.trim().length < 2) {
-        newErrors.companyName = {
-          message: 'Company name must be at least 2 characters',
-        };
-      }
-
-      if (!scale) {
-        newErrors.scale = {
-          message: 'Company size is required',
-        };
-      }
-
-      if (!industry) {
-        newErrors.industry = {
-          message: 'Industry is required',
-        };
-      }
-
-      if (website && !/^(https?:\/\/)?.+\..+/.test(website)) {
-        newErrors.website = {
-          message: 'Please enter a valid website URL',
-        };
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
+  const handleNext = async () => {
+    // Validate current step
+    const isValid = await trigger();
+    if (isValid) {
       if (currentStep < NEW_COMPANY_STEPS.length - 1) {
         setCurrentStep(currentStep + 1);
       }
@@ -125,45 +131,67 @@ export default function EmployerNewCompanyPage() {
     setTeamMembers((prev) => prev.filter((m) => m.email !== email));
   };
 
-  const handleComplete = async () => {
-    if (!validateStep(0)) {
-      setCurrentStep(0);
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (data: CompanyRegistrationFormData) => {
     try {
-      // TODO: Implement company creation API call
-      console.log('Creating company:', {
-        companyName,
-        website,
-        scale,
-        industry,
-        logoUrl,
-        description,
-        teamMembers,
+      // Prepare payload for backend
+      const payload = {
+        name: data.companyName,
+        websiteUrl: data.website || undefined,
+        sizeRange: data.scale || undefined,
+        industry: data.industry || undefined,
+        description: data.companyDescription || undefined,
+        logoUrl: data.logoUrl || undefined,
+      };
+
+      // Create company
+      const company = await submitCompany(payload);
+
+      // Get current user email
+      const currentUserEmail = currentUser?.email?.toLowerCase();
+
+      // Add team members (excluding the current user)
+      const membersToAdd = teamMembers.filter((member) => {
+        const memberEmail = member.email.toLowerCase();
+        return currentUserEmail ? memberEmail !== currentUserEmail : true;
       });
+
+      if (membersToAdd.length > 0) {
+        const addResults = await Promise.allSettled(
+          membersToAdd.map((member) =>
+            submitAddEmployee(company.id, {
+              email: member.email,
+              role:
+                member.role && member.role !== 'None' ? member.role : undefined,
+            })
+          )
+        );
+
+        const failedAdds = addResults.filter(
+          (result) => result.status === 'rejected'
+        ).length;
+
+        if (failedAdds > 0) {
+          Toast.show({
+            type: 'warning',
+            text1: 'Partial Success',
+            text2: `${failedAdds} team member(s) could not be added. You can retry in Company Profile.`,
+          });
+        }
+      }
 
       Toast.show({
         type: 'success',
         text1: 'Success',
-        text2: `Company "${companyName}" registered successfully!`,
+        text2: `Company "${data.companyName}" registered successfully!`,
       });
 
       // Navigate to dashboard after a short delay
       setTimeout(() => {
         router.push('/pages/employer/dashboard');
-      }, 1500);
+      }, 1200);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'An error occurred';
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: message,
-      });
-    } finally {
-      setLoading(false);
+      // Error is handled in the onError callback of useCreateCompany
+      console.error('Company registration failed:', error);
     }
   };
 
@@ -174,6 +202,7 @@ export default function EmployerNewCompanyPage() {
     currentStepStrokeWidth: 5,
     stepStrokeCurrentColor: '#4F46E5',
     stepIndicatorCurrentColor: '#4F46E5',
+    stepIndicatorLabelCurrentColor: '#e2e8f0',
     stepIndicatorFinishedColor: '#4F46E5',
     stepIndicatorUnFinishedColor: '#e2e8f0',
     separatorFinishedColor: '#4F46E5',
@@ -221,7 +250,7 @@ export default function EmployerNewCompanyPage() {
               labels={NEW_COMPANY_STEPS.map((s) => s.label)}
               stepCount={NEW_COMPANY_STEPS.length}
               onPress={(position) => {
-                if (position < currentStep || validateStep(currentStep)) {
+                if (position < currentStep) {
                   setCurrentStep(position);
                 }
               }}
@@ -232,25 +261,19 @@ export default function EmployerNewCompanyPage() {
           <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
             {currentStep === 0 && (
               <BasicInfoStep
-                companyName={companyName}
-                onCompanyNameChange={setCompanyName}
-                website={website}
-                onWebsiteChange={setWebsite}
-                scale={scale}
-                onScaleChange={setScale}
-                industry={industry}
-                onIndustryChange={setIndustry}
-                logoUrl={logoUrl}
-                onLogoChange={setLogoUrl}
+                control={control}
                 errors={errors}
+                isValidating={isValidating}
+                logoUrl={logoUrl || null}
+                onLogoChange={(url) => setValue('logoUrl', url)}
               />
             )}
 
             {currentStep === 1 && (
               <AboutCompanyStep
-                description={description}
-                onDescriptionChange={setDescription}
+                control={control}
                 errors={errors}
+                description={companyDescription || ''}
               />
             )}
 
@@ -281,7 +304,7 @@ export default function EmployerNewCompanyPage() {
           <TouchableOpacity
             onPress={
               currentStep === NEW_COMPANY_STEPS.length - 1
-                ? handleComplete
+                ? () => handleSubmit(onSubmit)()
                 : handleNext
             }
             disabled={loading}

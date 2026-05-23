@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   TextInput,
   Modal,
   FlatList,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { X, Search } from 'lucide-react-native';
-import { mockEmployers } from '../data';
+import { useSearchEmployers } from '../../../../../hooks/useSearchEmployers';
 import type { TeamMember } from '../data';
 
 interface TeamMemberSearchProps {
@@ -25,22 +27,43 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
   excludeEmails,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
+  const { results: employerResults, loading, search } = useSearchEmployers();
 
-  const filteredEmployers = mockEmployers.filter((emp) => {
-    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
-    const query = searchQuery.toLowerCase();
-    return (
-      !excludeEmails.includes(emp.email) &&
-      (fullName.includes(query) || emp.email.includes(query))
-    );
-  });
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    void search(searchQuery);
+  }, [open, searchQuery, search]);
+
+  const filteredEmployers = employerResults
+    .map((member) => ({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      avatar: member.avatarUrl,
+      role: 'None',
+    }))
+    .filter((user) => !excludeEmails.includes(user.email));
+
+  const handleSelect = (member: TeamMember) => {
+    onSelect(member);
+    onOpenChange(false);
+    setSearchQuery('');
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) setSearchQuery('');
+    onOpenChange(nextOpen);
+  };
 
   return (
     <Modal
       visible={open}
       transparent
       animationType="fade"
-      onRequestClose={() => onOpenChange(false)}
+      onRequestClose={() => handleOpenChange(false)}
     >
       <View className="flex-1 bg-black/50 flex items-center justify-end">
         <View className="w-full bg-white rounded-t-2xl max-h-96">
@@ -49,7 +72,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             <Text className="text-lg font-bold text-slate-900">
               Add Team Members
             </Text>
-            <TouchableOpacity onPress={() => onOpenChange(false)}>
+            <TouchableOpacity onPress={() => handleOpenChange(false)}>
               <X size={24} color="#64748B" strokeWidth={2} />
             </TouchableOpacity>
           </View>
@@ -79,19 +102,23 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             keyExtractor={(item) => item.email}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => {
-                  onSelect(item);
-                  onOpenChange(false);
-                  setSearchQuery('');
-                }}
+                onPress={() => handleSelect(item)}
                 className="px-4 py-3 border-b border-slate-100 flex-row items-center justify-between active:bg-slate-50"
               >
                 <View className="flex-1 flex-row items-center gap-3">
-                  <View className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Text className="text-sm font-bold text-indigo-600">
-                      {item.firstName[0]}
-                      {item.lastName[0]}
-                    </Text>
+                  <View className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {item.avatar ? (
+                      <Image
+                        source={{ uri: item.avatar }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text className="text-sm font-bold text-indigo-600">
+                        {item.firstName[0]}
+                        {item.lastName[0]}
+                      </Text>
+                    )}
                   </View>
                   <View className="flex-1 min-w-0">
                     <Text className="text-sm font-medium text-slate-900 truncate">
@@ -106,11 +133,15 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             )}
             ListEmptyComponent={
               <View className="px-4 py-8 flex items-center justify-center">
-                <Text className="text-sm text-slate-500 text-center">
-                  {searchQuery
-                    ? 'No team members found'
-                    : 'No available team members'}
-                </Text>
+                {loading && searchQuery ? (
+                  <ActivityIndicator size="small" color="#4F46E5" />
+                ) : (
+                  <Text className="text-sm text-slate-500 text-center">
+                    {searchQuery
+                      ? 'No team members found'
+                      : 'Start typing to search for team members'}
+                  </Text>
+                )}
               </View>
             }
             scrollEnabled={true}
