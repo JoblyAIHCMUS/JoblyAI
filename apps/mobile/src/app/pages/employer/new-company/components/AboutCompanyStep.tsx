@@ -1,18 +1,20 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
+import { Controller, Control, FieldErrors } from 'react-hook-form';
 import { Label } from '../../../../../components/ui/label';
 import { RichTextEditor } from '../../../../../components/ui/rich-text-editor';
+import type { CompanyRegistrationFormData } from '../schema';
 
 interface AboutCompanyStepProps {
+  control: Control<CompanyRegistrationFormData>;
+  errors: FieldErrors<CompanyRegistrationFormData>;
   description: string;
-  onDescriptionChange: (value: string) => void;
-  errors: Record<string, any>;
 }
 
 export const AboutCompanyStep: React.FC<AboutCompanyStepProps> = ({
-  description,
-  onDescriptionChange,
+  control,
   errors,
+  description,
 }) => {
   return (
     <ScrollView
@@ -41,18 +43,25 @@ export const AboutCompanyStep: React.FC<AboutCompanyStepProps> = ({
           </Text>
         </View>
 
-        <RichTextEditor
-          content={description}
-          onChange={onDescriptionChange}
-          placeholder="Write a compelling description about your company..."
-          editable={true}
+        <Controller
+          control={control}
+          name="companyDescription"
+          render={({ field: { value, onChange, onBlur } }) => (
+            <View>
+              <RichTextEditor
+                content={value || ''}
+                onChange={onChange}
+                placeholder="Write a compelling description about your company..."
+                editable={true}
+              />
+              {errors.companyDescription && (
+                <Text className="text-xs text-red-600 mt-2">
+                  {errors.companyDescription.message}
+                </Text>
+              )}
+            </View>
+          )}
         />
-
-        {errors.description && (
-          <Text className="text-xs text-red-600">
-            {errors.description.message}
-          </Text>
-        )}
       </View>
     </ScrollView>
   );

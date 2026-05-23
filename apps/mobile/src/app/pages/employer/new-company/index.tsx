@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   View,
   Text,
@@ -24,6 +26,10 @@ import {
   type TeamMemberData,
   type TeamMember,
 } from './data';
+import {
+  companyRegistrationSchema,
+  type CompanyRegistrationFormData,
+} from './schema';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useCreateCompany } from '../../../../hooks/useCreateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
@@ -33,26 +39,35 @@ export default function EmployerNewCompanyPage() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-
-  // Form state
-  const [companyName, setCompanyName] = useState('');
-  const [website, setWebsite] = useState('');
-  const [scale, setScale] = useState('');
-  const [industry, setIndustry] = useState('');
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [description, setDescription] = useState('');
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
-
-  // Error state
-  const [errors, setErrors] = useState<Record<string, any>>({});
 
   const { data: currentUser } = useGetEmployerProfile();
 
   const {
-    submitCompany,
-    loading: creatingCompany,
-    error: createError,
-  } = useCreateCompany({
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isValidating },
+    setValue,
+    trigger,
+  } = useForm<CompanyRegistrationFormData>({
+    resolver: yupResolver(companyRegistrationSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      companyName: '',
+      website: '',
+      scale: '',
+      industry: '',
+      companyDescription: '',
+      logoUrl: null,
+    },
+  });
+
+  // Watch fields for tracking
+  const companyDescription = watch('companyDescription');
+  const logoUrl = watch('logoUrl');
+
+  const { submitCompany, loading: creatingCompany } = useCreateCompany({
     onSuccess: async () => {
       // Refetch employer profile to update affiliation
       await queryClient.invalidateQueries({ queryKey: ['employer-profile'] });
@@ -84,46 +99,10 @@ export default function EmployerNewCompanyPage() {
     }
   }, [currentUser]);
 
-  // Validation for each step
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, any> = {};
-
-    if (step === 0) {
-      if (!companyName.trim()) {
-        newErrors.companyName = {
-          message: 'Company name is required',
-        };
-      } else if (companyName.trim().length < 2) {
-        newErrors.companyName = {
-          message: 'Company name must be at least 2 characters',
-        };
-      }
-
-      if (!scale) {
-        newErrors.scale = {
-          message: 'Company size is required',
-        };
-      }
-
-      if (!industry) {
-        newErrors.industry = {
-          message: 'Industry is required',
-        };
-      }
-
-      if (website && !/^(https?:\/\/)?.+\..+/.test(website)) {
-        newErrors.website = {
-          message: 'Please enter a valid website URL',
-        };
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
+  const handleNext = async () => {
+    // Validate current step
+    const isValid = await trigger();
+    if (isValid) {
       if (currentStep < NEW_COMPANY_STEPS.length - 1) {
         setCurrentStep(currentStep + 1);
       }
@@ -152,21 +131,16 @@ export default function EmployerNewCompanyPage() {
     setTeamMembers((prev) => prev.filter((m) => m.email !== email));
   };
 
-  const handleComplete = async () => {
-    if (!validateStep(0)) {
-      setCurrentStep(0);
-      return;
-    }
-
+  const onSubmit = async (data: CompanyRegistrationFormData) => {
     try {
       // Prepare payload for backend
       const payload = {
-        name: companyName,
-        websiteUrl: website || undefined,
-        sizeRange: scale || undefined,
-        industry: industry || undefined,
-        description: description || undefined,
-        logoUrl: logoUrl || undefined,
+        name: data.companyName,
+        websiteUrl: data.website || undefined,
+        sizeRange: data.scale || undefined,
+        industry: data.industry || undefined,
+        description: data.companyDescription || undefined,
+        logoUrl: data.logoUrl || undefined,
       };
 
       // Create company
@@ -208,7 +182,7 @@ export default function EmployerNewCompanyPage() {
       Toast.show({
         type: 'success',
         text1: 'Success',
-        text2: `Company "${companyName}" registered successfully!`,
+        text2: `Company "${data.companyName}" registered successfully!`,
       });
 
       // Navigate to dashboard after a short delay
@@ -276,7 +250,7 @@ export default function EmployerNewCompanyPage() {
               labels={NEW_COMPANY_STEPS.map((s) => s.label)}
               stepCount={NEW_COMPANY_STEPS.length}
               onPress={(position) => {
-                if (position < currentStep || validateStep(currentStep)) {
+                if (position < currentStep) {
                   setCurrentStep(position);
                 }
               }}
@@ -287,25 +261,19 @@ export default function EmployerNewCompanyPage() {
           <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
             {currentStep === 0 && (
               <BasicInfoStep
-                companyName={companyName}
-                onCompanyNameChange={setCompanyName}
-                website={website}
-                onWebsiteChange={setWebsite}
-                scale={scale}
-                onScaleChange={setScale}
-                industry={industry}
-                onIndustryChange={setIndustry}
-                logoUrl={logoUrl}
-                onLogoChange={setLogoUrl}
+                control={control}
                 errors={errors}
+                isValidating={isValidating}
+                logoUrl={logoUrl || null}
+                onLogoChange={(url) => setValue('logoUrl', url)}
               />
             )}
 
             {currentStep === 1 && (
               <AboutCompanyStep
-                description={description}
-                onDescriptionChange={setDescription}
+                control={control}
                 errors={errors}
+                description={companyDescription || ''}
               />
             )}
 
@@ -336,7 +304,7 @@ export default function EmployerNewCompanyPage() {
           <TouchableOpacity
             onPress={
               currentStep === NEW_COMPANY_STEPS.length - 1
-                ? handleComplete
+                ? () => handleSubmit(onSubmit)()
                 : handleNext
             }
             disabled={loading}
