@@ -20,11 +20,6 @@ const nextConfig = {
         hostname: 'jobly-*.s3.ap-southeast-1.amazonaws.com',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'getlogo.dev',
-        pathname: '/**',
-      },
     ],
   },
 };
