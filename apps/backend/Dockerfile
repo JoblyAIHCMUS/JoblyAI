@@ -34,7 +34,7 @@ RUN pnpm install -g prisma@6.3.0
 COPY apps/backend ./apps/backend
 
 # Generate Prisma Client
-RUN pnpm --filter @jobly/backend exec prisma generate
+RUN cd apps/backend && npx prisma generate
 
 # Sync Nx TypeScript project references and build the backend
 RUN pnpm exec nx sync --yes
