@@ -89,8 +89,6 @@ services:
         condition: service_healthy
     environment:
       # Define critical defaults, but ALLOW overriding via apps/backend/.env
-      DATABASE_URL: ${DATABASE_URL:-postgres://jobly:jobly@postgres:5432/jobly_db}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       NODE_ENV: ${NODE_ENV:-production}
     command: ['sh', '-c', 'node apps/backend/dist/main']
     healthcheck:

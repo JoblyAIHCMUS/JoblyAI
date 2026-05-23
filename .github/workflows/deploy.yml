@@ -101,4 +101,5 @@ jobs:
             
             # 10. Database Migration
             echo "--- Running Database Migrations ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+            # Extract DATABASE_URL directly from the env file to ensure it uses RDS
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T backend sh -c "DATABASE_URL=\$(grep DATABASE_URL apps/backend/.env | cut -d'=' -f2- | sed 's/\"//g') npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma"
