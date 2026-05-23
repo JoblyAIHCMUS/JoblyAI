@@ -14,7 +14,7 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-
+          command_timeout: 30m
           script: |
             # 1. Change to home directory
             cd $HOME
@@ -69,7 +69,6 @@ jobs:
             $DOCKER_COMPOSE_CMD up -d redis scylla
             
             echo "--- [4/5] Waiting for Infrastructure to be healthy ---"
-            # Wait until Scylla is ready (max 2 minutes)
             for i in {1..24}; do
               if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
                 echo "Infrastructure is healthy!"
@@ -82,10 +81,17 @@ jobs:
             echo "--- [5/5] Starting Application (Backend, Nginx) ---"
             $DOCKER_COMPOSE_CMD up -d backend nginx scylla-init
             
-            # 9. Final check
-            docker ps
+            # 9. Wait for Backend to be healthy before migration
+            echo "--- Waiting for Backend to be healthy ---"
+            for i in {1..24}; do
+              if docker ps | grep backend_jobly | grep -q "(healthy)"; then
+                echo "Backend is healthy!"
+                break
+              fi
+              echo "Waiting for Backend... ($((i*5))s)"
+              sleep 5
+            done
             
             # 10. Database Migration
             echo "--- Running Database Migrations ---"
-            sleep 5
             $DOCKER_COMPOSE_CMD exec -T backend npx prisma migrate deploy
