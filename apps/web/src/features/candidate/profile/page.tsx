@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/useToast';
+import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { usePageTitle } from '@/contexts/page-title-context';
 import { useCandidateProfileContext } from '@/api-hook/candidate';
 
@@ -11,6 +12,7 @@ import CV, { type CVRef } from './components/CV';
 import Experiences from './components/Experiences';
 import Educations from './components/Educations';
 import Skills from './components/Skills';
+import Certificates from './components/Certificates';
 // import Portfolios from './components/Portfolios';
 import { useUploadFile } from '@/api-hook/s3';
 import { useCreateResume } from '@/api-hook/candidate';
@@ -25,6 +27,15 @@ import {
   useUpdateEducation,
   useCreateEducation,
   useDeleteEducation,
+  useCreateCertificate,
+  useUpdateCertificate,
+  useDeleteCertificate,
+  useCreateSocial,
+  useUpdateSocial,
+  useDeleteSocial,
+  useCreateContact,
+  useUpdateContact,
+  useDeleteContact,
 } from '@/api-hook/candidate';
 import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
 import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
@@ -33,26 +44,333 @@ import {
   mapUIToApiUpdateExperience,
   mapUIToApiUpdateEducation,
   mapUIToApiCreateEducation,
+  mapUIToApiCreateCertificate,
+  mapUIToApiUpdateCertificate,
+  mapUIToApiCreateSocial,
+  mapUIToApiUpdateSocial,
+  mapUIToApiCreateContact,
+  mapUIToApiUpdateContact,
   mapDataToCandidate,
 } from './mapper';
 import {
   CandidateEducation,
   CandidateExperience,
   CandidateResume,
+  CandidateCertificate,
+  CandidateSocial,
+  CandidateContact,
 } from '@/types/candidate';
 import { CandidateProfileUI } from './types';
 import { formatErrorForDisplay } from '@/lib/errors';
+import { CvSyncCompareModal } from './components/CvSyncCompareModal';
+import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
+import { AiFeedbackModal } from './components/AiFeedbackModal';
+import {
+  commitResumeMerge,
+  triggerAiParse,
+  triggerAiScore,
+} from '@/api-client/ai';
 
 const CandidateProfilePage = () => {
   const { setTitle } = usePageTitle();
-  const { toast } = useToast();
-  const { data: candidateProfile } = useCandidateProfileContext();
+  const { data: candidateProfile, fetchCandidateProfile } =
+    useCandidateProfileContext();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [profile, setProfile] = useState<CandidateProfileResponse | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
+  const [processingTasks, setProcessingTasks] = useState<
+    Record<number, { parsing: boolean; scoring: boolean }>
+  >({});
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
 
-  // S3 upload hooks
+  // Handle opening modals via URL parameters (for redirection from other pages)
+  useEffect(() => {
+    const openSyncModal = searchParams.get('openSyncModal');
+    const openFeedbackModal = searchParams.get('openFeedbackModal');
+
+    if (openSyncModal) {
+      setActiveResumeId(parseInt(openSyncModal));
+      setSyncModalOpen(true);
+      // Clean up the URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('openSyncModal');
+      router.replace(`/candidate/profile?${params.toString()}`, {
+        scroll: false,
+      });
+    }
+
+    if (openFeedbackModal) {
+      setActiveResumeId(parseInt(openFeedbackModal));
+      setFeedbackModalOpen(true);
+      // Clean up the URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('openFeedbackModal');
+      router.replace(`/candidate/profile?${params.toString()}`, {
+        scroll: false,
+      });
+    }
+  }, [searchParams, router]);
+
+  // Warning when leaving page during AI processing
+  useEffect(() => {
+    const hasAnyTask = Object.values(processingTasks).some(
+      (t) => t.parsing || t.scoring
+    );
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasAnyTask || isSyncing) {
+        e.preventDefault();
+        e.returnValue =
+          'Operation in progress. Leaving now will stop the feature. Are you sure?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [processingTasks, isSyncing]);
+
+  useEffect(() => {
+    const handleOpenSyncModal = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log(
+        '[CandidateProfilePage] Opening sync modal for resume:',
+        customEvent.detail.resumeId
+      );
+      setActiveResumeId(customEvent.detail.resumeId);
+      setSyncModalOpen(true);
+    };
+
+    const handleOpenFeedbackModal = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log(
+        '[CandidateProfilePage] Opening feedback modal for resume:',
+        customEvent.detail.resumeId
+      );
+      setActiveResumeId(customEvent.detail.resumeId);
+      setFeedbackModalOpen(true);
+    };
+
+    const handleTriggerAiParse = async (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const resumeId = customEvent.detail.resumeId;
+
+      console.log(
+        '[CandidateProfilePage] Triggering AI parse for resume:',
+        resumeId
+      );
+      setProcessingTasks((prev) => ({
+        ...prev,
+        [resumeId]: {
+          ...(prev[resumeId] || { scoring: false }),
+          parsing: true,
+        },
+      }));
+
+      toast.info('AI is extracting data from your resume...', {
+        id: `ai-processing-${resumeId}`,
+        description:
+          'This usually takes 10-20 seconds. We will notify you when it is done.',
+        duration: Infinity,
+      });
+
+      try {
+        await triggerAiParse(resumeId);
+      } catch (error) {
+        console.error(
+          '[CandidateProfilePage] Failed to trigger AI parse:',
+          error
+        );
+        setProcessingTasks((prev) => ({
+          ...prev,
+          [resumeId]: {
+            ...(prev[resumeId] || { scoring: false }),
+            parsing: false,
+          },
+        }));
+        toast.dismiss(`ai-processing-${resumeId}`);
+        toast.error('Failed to start data extraction');
+      }
+    };
+
+    const handleTriggerAiScore = async (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const resumeId = customEvent.detail.resumeId;
+
+      console.log(
+        '[CandidateProfilePage] Triggering AI score for resume:',
+        resumeId
+      );
+      setProcessingTasks((prev) => ({
+        ...prev,
+        [resumeId]: {
+          ...(prev[resumeId] || { parsing: false }),
+          scoring: true,
+        },
+      }));
+
+      toast.info('AI is scoring your resume...', {
+        id: `ai-processing-${resumeId}`,
+        description: 'This usually takes 10-15 seconds.',
+        duration: Infinity,
+      });
+
+      try {
+        await triggerAiScore(resumeId);
+      } catch (error) {
+        console.error(
+          '[CandidateProfilePage] Failed to trigger AI score:',
+          error
+        );
+        setProcessingTasks((prev) => ({
+          ...prev,
+          [resumeId]: {
+            ...(prev[resumeId] || { parsing: false }),
+            scoring: false,
+          },
+        }));
+        toast.dismiss(`ai-processing-${resumeId}`);
+        toast.error('Failed to start AI scoring');
+      }
+    };
+
+    const handleAiFinished = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { resumeId } = customEvent.detail;
+      const type = e.type;
+
+      console.log(
+        `[CandidateProfilePage] AI processing finished: ${type} for resume ${resumeId}`
+      );
+
+      setProcessingTasks((prev) => {
+        const current = prev[resumeId] || { parsing: false, scoring: false };
+        const next = { ...current };
+        if (type === 'ai-parsed-success') next.parsing = false;
+        if (type === 'ai-scored-success') next.scoring = false;
+
+        // If all tasks for this resume are done, dismiss the processing toast
+        if (!next.parsing && !next.scoring) {
+          toast.dismiss(`ai-processing-${resumeId}`);
+        }
+
+        return { ...prev, [resumeId]: next };
+      });
+
+      fetchCandidateProfile();
+    };
+
+    window.addEventListener('OPEN_CV_SYNC_MODAL', handleOpenSyncModal);
+    window.addEventListener('OPEN_AI_FEEDBACK_MODAL', handleOpenFeedbackModal);
+    window.addEventListener('TRIGGER_AI_PARSE', handleTriggerAiParse);
+    window.addEventListener('TRIGGER_AI_SCORE', handleTriggerAiScore);
+    window.addEventListener('ai-parsed-success', handleAiFinished);
+    window.addEventListener('ai-scored-success', handleAiFinished);
+
+    return () => {
+      window.removeEventListener('OPEN_CV_SYNC_MODAL', handleOpenSyncModal);
+      window.removeEventListener(
+        'OPEN_AI_FEEDBACK_MODAL',
+        handleOpenFeedbackModal
+      );
+      window.removeEventListener('TRIGGER_AI_PARSE', handleTriggerAiParse);
+      window.removeEventListener('TRIGGER_AI_SCORE', handleTriggerAiScore);
+      window.removeEventListener('ai-parsed-success', handleAiFinished);
+      window.removeEventListener('ai-scored-success', handleAiFinished);
+    };
+  }, [fetchCandidateProfile]);
+
+  const handleSyncResume = async (modifiedDraftData?: any) => {
+    if (!activeResumeId || !profile) return;
+
+    const resume = profile.resumes?.find((r) => r.id === activeResumeId);
+    if (!resume || !resume.parsedText) return;
+
+    setIsSyncing(true);
+    try {
+      console.log(
+        '[CandidateProfilePage] Committing resume merge for:',
+        activeResumeId
+      );
+
+      // Use modifiedDraftData if provided, otherwise fallback to original parsedText
+      const dataToSync =
+        modifiedDraftData ||
+        (typeof resume.parsedText === 'string'
+          ? JSON.parse(resume.parsedText)
+          : resume.parsedText);
+
+      await commitResumeMerge(activeResumeId, dataToSync);
+
+      // CRITICAL: Force refresh data BEFORE closing modal
+      const updatedProfile = await fetchCandidateProfile({
+        forceRefresh: true,
+      });
+      if (updatedProfile) {
+        setProfile({ ...updatedProfile });
+      }
+
+      toast.success('Profile synced with resume data!');
+      setSyncModalOpen(false);
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+    } catch (error) {
+      console.error('[CandidateProfilePage] Failed to sync profile:', error);
+      toast.error('Failed to sync profile');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleConfirmDeleteResume = async (keepData = false) => {
+    if (!activeResumeId || !profile) return;
+
+    const resumeId = activeResumeId;
+    const resumeToDelete = profile.resumes?.find((r) => r.id === resumeId);
+    if (!resumeToDelete) return;
+
+    setDeletingResumeId(resumeId);
+    try {
+      console.log(
+        '[CandidateProfilePage] Deleting resume:',
+        resumeId,
+        'keepData:',
+        keepData
+      );
+      await deleteResumeRecord(resumeId, keepData);
+
+      // CRITICAL: Force refresh data while modal is still open (showing loading state)
+      // This ensures the backend cleanup (async until now) is reflected in the new profile
+      const updatedProfile = await fetchCandidateProfile({
+        forceRefresh: true,
+      });
+      if (updatedProfile) {
+        setProfile({ ...updatedProfile });
+
+        const nextSelectedId =
+          updatedProfile.resumes?.find((resume) => resume.isDefault)?.id ||
+          updatedProfile.resumes?.[0]?.id ||
+          null;
+        setSelectedResumeId(nextSelectedId);
+      }
+
+      toast.success('CV deleted successfully.');
+      setDeleteImpactModalOpen(false);
+    } catch (error) {
+      console.error('Failed to delete CV:', error);
+      toast.error('Failed to delete CV');
+    } finally {
+      setDeletingResumeId(null);
+      setActiveResumeId(null);
+    }
+  };
+
   const {
     upload: uploadToS3,
     loading: uploading,
@@ -60,22 +378,46 @@ const CandidateProfilePage = () => {
   } = useUploadFile();
   const { createResumeRecord, loading: creatingResume } = useCreateResume({
     onSuccess: (resumeData: CandidateResume) => {
-      // Update profile state with new resume
+      console.log(
+        '[CandidateProfilePage] Resume record created:',
+        resumeData.id
+      );
+
+      // Replace generic processing toast with resume-specific one
+      toast.info('AI is extracting and scoring your resume...', {
+        id: `ai-processing-${resumeData.id}`,
+        description:
+          'This usually takes 10-20 seconds. We will notify you when it is done.',
+        duration: Infinity,
+      });
+      toast.dismiss('ai-processing-upload');
+
+      setProcessingTasks((prev) => ({
+        ...prev,
+        [resumeData.id]: { parsing: true, scoring: true },
+      }));
+
+      const newResume = {
+        ...resumeData,
+        parsedText: null,
+        aiScore: null,
+        aiFeedback: null,
+        isSyncedToProfile: false,
+        isDefault: true,
+      };
+
       setProfile((prev) => {
         if (!prev) return null;
-        const nextResumes = [...(prev.resumes || []), resumeData].map(
-          (resume) =>
-            resume.id === resumeData.id
-              ? { ...resumeData, isDefault: true }
-              : { ...resume, isDefault: false }
-        );
+        const nextResumes = (prev.resumes || []).map((r) => ({
+          ...r,
+          isDefault: false,
+        }));
         return {
           ...prev,
-          resumes: nextResumes,
+          resumes: [...nextResumes, newResume],
         };
       });
       setSelectedResumeId(resumeData.id);
-      // Immediately refresh the CV display with new resume's fileKey
       cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
     },
@@ -83,6 +425,7 @@ const CandidateProfilePage = () => {
       const errorMsg =
         err instanceof Error ? err.message : 'Failed to save resume';
       setUploadErrorMsg(errorMsg);
+      toast.dismiss('ai-processing-upload');
     },
   });
 
@@ -90,19 +433,29 @@ const CandidateProfilePage = () => {
   const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
 
   const { updateAbout, createAbout } = useUpdateCandidateAbout();
-  const handleUpdateAbout = async (aboutData: { id: number; bio?: string }) => {
-    // If id is 0, create new about, otherwise update existing
+  const handleUpdateAbout = async (aboutData: {
+    id: number;
+    bio?: string;
+    title?: string;
+  }) => {
     if (aboutData.id === 0) {
-      const result = await createAbout({ bio: aboutData.bio });
+      const result = await createAbout({
+        bio: aboutData.bio,
+        title: aboutData.title,
+      });
       setProfile((prev) => (prev ? { ...prev, about: result } : prev));
     } else {
       await updateAbout(aboutData);
-      // Update profile state with new about data
-      setProfile((prev) => (prev ? { ...prev, about: aboutData } : prev));
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          about: prev.about ? { ...prev.about, ...aboutData } : aboutData,
+        };
+      });
     }
   };
 
-  // Hàm xử lý cập nhật experience
   const { updateExperienceRecord } = useUpdateExperience();
   const handleUpdateExperience = async (experiences: CandidateExperience) => {
     const apiExperience = mapUIToApiUpdateExperience(experiences);
@@ -116,7 +469,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý thêm experience
   const { createExperienceRecord } = useCreateExperience();
   const handleAddExperience = async (experience: CandidateExperience) => {
     const apiExperience = mapUIToApiCreateExperience(experience);
@@ -131,7 +483,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý delete experience
   const { deleteExperienceRecord } = useDeleteExperience();
   const handleDeleteExperience = async (id: number) => {
     await deleteExperienceRecord(id);
@@ -144,7 +495,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý cập nhật education
   const { updateEducationRecord } = useUpdateEducation();
   const handleUpdateEducation = async (education: CandidateEducation) => {
     const apiEducation = mapUIToApiUpdateEducation(education);
@@ -159,11 +509,9 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Hàm xử lý thêm education
   const { createEducationRecord } = useCreateEducation();
   const handleAddEducation = async (education: CandidateEducation) => {
     const apiEducation = mapUIToApiCreateEducation(education);
-
     const newEducation = await createEducationRecord(apiEducation);
     setProfile((prev) => {
       if (!prev) return prev;
@@ -174,7 +522,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // hàm xử lý delete education
   const { deleteEducationRecord } = useDeleteEducation();
   const handleDeleteEducation = async (id: number) => {
     await deleteEducationRecord(id);
@@ -187,7 +534,135 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // hàm xử lý add skill
+  const { updateCertificateRecord } = useUpdateCertificate();
+  const handleUpdateCertificate = async (cert: CandidateCertificate) => {
+    const apiPayload = mapUIToApiUpdateCertificate(cert);
+    await updateCertificateRecord(apiPayload);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updated = prev.certificates?.map((c) =>
+        c.id === cert.id ? cert : c
+      );
+      return { ...prev, certificates: updated };
+    });
+  };
+
+  const { createCertificateRecord } = useCreateCertificate();
+  const handleAddCertificate = async (cert: CandidateCertificate) => {
+    const apiPayload = mapUIToApiCreateCertificate(cert);
+    const created = await createCertificateRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        certificates: [...(prev.certificates || []), created],
+      };
+    });
+  };
+
+  const { deleteCertificateRecord } = useDeleteCertificate();
+  const handleDeleteCertificate = async (id: number) => {
+    await deleteCertificateRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        certificates: prev.certificates?.filter((c) => c.id !== id),
+      };
+    });
+  };
+
+  // Social link handlers
+  const { createSocialRecord } = useCreateSocial();
+  const handleAddSocial = async (social: CandidateSocial) => {
+    const apiPayload = mapUIToApiCreateSocial(social);
+    const created = await createSocialRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        socials: [...(prev.socials || []), created],
+      };
+    });
+  };
+
+  const { updateSocialRecord } = useUpdateSocial();
+  const handleUpdateSocials = async (socials: CandidateSocial[]) => {
+    try {
+      for (const s of socials) {
+        if (s.id) {
+          await updateSocialRecord(mapUIToApiUpdateSocial(s));
+        }
+      }
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+      toast.success('Social links updated');
+    } catch (error) {
+      toast.error('Failed to update social links');
+    }
+  };
+
+  const { deleteSocialRecord } = useDeleteSocial();
+  const handleDeleteSocial = async (id: number) => {
+    await deleteSocialRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        socials: prev.socials?.filter((s) => s.id !== id),
+      };
+    });
+  };
+
+  // Contact link handlers
+  const { createContactRecord } = useCreateContact();
+  const handleAddContact = async (contact: CandidateContact) => {
+    const apiPayload = mapUIToApiCreateContact(contact);
+    const created = await createContactRecord(apiPayload);
+    if (!created) return;
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        contacts: [...(prev.contacts || []), created],
+      };
+    });
+  };
+
+  const { updateContactRecord } = useUpdateContact();
+  const handleUpdateContacts = async (contacts: CandidateContact[]) => {
+    try {
+      for (const c of contacts) {
+        if (c.id) {
+          await updateContactRecord(mapUIToApiUpdateContact(c));
+        }
+      }
+      const updatedProfile = await fetchCandidateProfile();
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+      toast.success('Contact info updated');
+    } catch (error) {
+      toast.error('Failed to update contact info');
+    }
+  };
+
+  const { deleteContactRecord } = useDeleteContact();
+  const handleDeleteContact = async (id: number) => {
+    await deleteContactRecord(id);
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        contacts: prev.contacts?.filter((c) => c.id !== id),
+      };
+    });
+  };
+
   const { createSkillRecord } = useCreateSkill();
   const handleAddSkill = async (skill: string) => {
     const normalizedSkill = skill.trim().toLowerCase();
@@ -215,7 +690,6 @@ const CandidateProfilePage = () => {
     }
   };
 
-  // Hàm xử lý delete skill
   const { deleteSkillRecord } = useDeleteSkill();
   const handleDeleteSkill = async (skillId: number) => {
     await deleteSkillRecord(skillId);
@@ -228,12 +702,6 @@ const CandidateProfilePage = () => {
     });
   };
 
-  // Contact and Social handlers are not implemented yet
-  // Disable related edit UI until endpoints exist
-  const handleAddSocial = undefined;
-  const handleUpdateSocials = undefined;
-
-  // Initialize profile from context
   useEffect(() => {
     setTitle('Profile');
   }, [setTitle]);
@@ -250,17 +718,14 @@ const CandidateProfilePage = () => {
     setSelectedResumeId(defaultResumeId);
   }, [profile?.resumes]);
 
-  // Listen for profile updates (from settings or other pages)
   useEffect(() => {
     const handleProfileUpdate = () => {
-      // Context will refetch and update candidateProfile automatically
-      // which will trigger the useEffect above
+      fetchCandidateProfile();
     };
-
     window.addEventListener('profile-updated', handleProfileUpdate);
     return () =>
       window.removeEventListener('profile-updated', handleProfileUpdate);
-  }, []);
+  }, [fetchCandidateProfile]);
 
   const handleCVUpload = async (file: File) => {
     setUploadErrorMsg(null);
@@ -274,6 +739,13 @@ const CandidateProfilePage = () => {
       }
 
       const uploadResult = await uploadToS3(file, 'resumes');
+      toast.info('AI is analyzing your resume...', {
+        id: 'ai-processing-upload',
+        description:
+          'This usually takes 10-20 seconds. We will notify you when it is done.',
+        duration: Infinity,
+      });
+
       await createResumeRecord({
         fileKey: uploadResult.fileKey,
         fileName: file.name,
@@ -318,46 +790,9 @@ const CandidateProfilePage = () => {
     }
   };
 
-  const handleDeleteResume = async (resumeId: number) => {
-    if (!profile?.resumes?.length) return;
-    const resumeToDelete = profile.resumes.find(
-      (resume) => resume.id === resumeId
-    );
-    if (!resumeToDelete) return;
-
-    await deleteResumeRecord(resumeId);
-    let nextResumes = profile.resumes.filter(
-      (resume) => resume.id !== resumeId
-    );
-
-    if (resumeToDelete.isDefault && nextResumes.length) {
-      try {
-        const updatedDefault = await updateResumeRecord({
-          id: nextResumes[0].id,
-          isDefault: true,
-        });
-        nextResumes = nextResumes.map((resume) =>
-          resume.id === updatedDefault.id
-            ? updatedDefault
-            : { ...resume, isDefault: false }
-        );
-      } catch (error) {
-        const errorMessage = formatErrorForDisplay(
-          error,
-          'Failed to update default CV'
-        );
-        toast.error(errorMessage);
-      }
-    }
-
-    const nextSelectedId =
-      nextResumes.find((resume) => resume.isDefault)?.id ||
-      nextResumes[0]?.id ||
-      null;
-
-    setProfile((prev) => (prev ? { ...prev, resumes: nextResumes } : prev));
-    setSelectedResumeId(nextSelectedId);
-    toast.success('CV deleted successfully.');
+  const handleOpenDeleteModal = async (resumeId: number) => {
+    setActiveResumeId(resumeId);
+    setDeleteImpactModalOpen(true);
   };
 
   if (!profile) {
@@ -375,16 +810,20 @@ const CandidateProfilePage = () => {
       className="w-full min-h-screen bg-[color:var(--slate-50)] px-[var(--space-xl)] py-[var(--space-xl)] flex flex-col items-start gap-[var(--space-lg)] overflow-x-hidden"
       style={{ boxSizing: 'border-box' }}
     >
-      {/* ProfileHeader with SideBar */}
       <div className="w-full">
         <ProfileHeader
           candidate={candidate}
           handleAddSocial={handleAddSocial}
           handleUpdateSocials={handleUpdateSocials}
+          handleDeleteSocial={handleDeleteSocial}
+          handleAddContact={handleAddContact}
+          handleUpdateContacts={handleUpdateContacts}
+          handleDeleteContact={handleDeleteContact}
+          handleUpdateAbout={handleUpdateAbout}
+          descriptionId={profile?.about?.id}
         />
       </div>
 
-      {/* Bottom Section: AboutMe, CV, Experiences, Educations, Skills - Full Width */}
       <div className="w-full flex flex-col gap-[var(--space-xl)]">
         <AboutMe
           about={profile?.about || { id: 0, bio: '' }}
@@ -396,11 +835,13 @@ const CandidateProfilePage = () => {
           selectedResumeId={selectedResumeId}
           onCVChange={handleCVUpload}
           onSelectResume={handleSelectResume}
-          onDeleteResume={handleDeleteResume}
+          onDeleteResume={handleOpenDeleteModal}
           maxResumes={5}
           isUploading={uploading || creatingResume}
-          isUpdating={updatingResume}
+          isUpdating={updatingResume || isSyncing}
           isDeleting={deletingResume}
+          processingTasks={processingTasks}
+          deletingResumeId={deletingResumeId}
           uploadError={
             uploadErrorMsg ||
             (uploadError
@@ -422,13 +863,108 @@ const CandidateProfilePage = () => {
           handleUpdateEducation={handleUpdateEducation}
           handleDeleteEducation={handleDeleteEducation}
         />
+        <Certificates
+          certificates={candidate.certificates}
+          handleAddCertificate={handleAddCertificate}
+          handleUpdateCertificate={handleUpdateCertificate}
+          handleDeleteCertificate={handleDeleteCertificate}
+        />
         <Skills
           skills={candidate.skills}
           handleAddSkill={handleAddSkill}
           handleDeleteSkill={handleDeleteSkill}
         />
-        {/* <Portfolios portfolios={candidate.portfolios} />/ */}
       </div>
+
+      <CvSyncCompareModal
+        isOpen={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
+        currentData={candidate}
+        newData={
+          activeResumeId
+            ? (() => {
+                const res = profile?.resumes?.find(
+                  (r) => r.id === activeResumeId
+                );
+                try {
+                  return res?.parsedText
+                    ? typeof res.parsedText === 'string'
+                      ? JSON.parse(res.parsedText)
+                      : res.parsedText
+                    : null;
+                } catch (e) {
+                  return null;
+                }
+              })()
+            : null
+        }
+        onSync={handleSyncResume}
+        onExtract={() => {
+          if (activeResumeId) {
+            window.dispatchEvent(
+              new CustomEvent('TRIGGER_AI_PARSE', {
+                detail: { resumeId: activeResumeId },
+              })
+            );
+            setSyncModalOpen(false);
+          }
+        }}
+        isLoading={isSyncing}
+        isSynced={
+          !!(activeResumeId
+            ? profile?.resumes?.find((r) => r.id === activeResumeId)
+                ?.isSyncedToProfile
+            : false)
+        }
+      />
+      <CvDeleteImpactModal
+        isOpen={deleteImpactModalOpen}
+        onClose={() => setDeleteImpactModalOpen(false)}
+        onConfirm={handleConfirmDeleteResume}
+        isLoading={!!deletingResumeId}
+        resumeName={
+          activeResumeId
+            ? profile?.resumes?.find((r) => r.id === activeResumeId)
+                ?.fileName || 'Selected CV'
+            : ''
+        }
+        resumeId={activeResumeId || 0}
+        currentData={profile}
+        experiences={candidate.experiences || []}
+        educations={candidate.educations || []}
+        skills={candidate.skills || []}
+        certificates={candidate.certificates || []}
+        contacts={candidate.contacts || []}
+        socials={candidate.socials || []}
+      />
+      <AiFeedbackModal
+        isOpen={feedbackModalOpen}
+        onClose={() => setFeedbackModalOpen(false)}
+        score={
+          activeResumeId
+            ? profile?.resumes?.find((r) => r.id === activeResumeId)?.aiScore ||
+              null
+            : null
+        }
+        feedback={
+          activeResumeId
+            ? (() => {
+                const res = profile?.resumes?.find(
+                  (r) => r.id === activeResumeId
+                );
+                try {
+                  return res?.aiFeedback
+                    ? typeof res.aiFeedback === 'string'
+                      ? JSON.parse(res.aiFeedback)
+                      : res.aiFeedback
+                    : null;
+                } catch (e) {
+                  return null;
+                }
+              })()
+            : null
+        }
+      />
     </div>
   );
 };

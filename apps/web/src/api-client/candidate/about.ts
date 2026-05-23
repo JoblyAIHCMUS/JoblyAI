@@ -4,16 +4,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface CreateAboutPayload {
   bio?: string;
+  title?: string;
 }
 
 export interface UpdateAboutPayload {
   id: number;
   bio?: string;
+  title?: string;
 }
 
 export interface AboutResponse {
   id: number;
   bio?: string;
+  title?: string;
 }
 
 export async function createCandidateAbout(

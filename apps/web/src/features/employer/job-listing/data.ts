@@ -1,11 +1,7 @@
-export type JobListingStatus = 'Draft' | 'Live' | 'Closed';
+import { type EmploymentType } from '@/types/job';
+export { type EmploymentType };
 
-export type EmploymentType =
-  | 'FULL_TIME'
-  | 'PART_TIME'
-  | 'CONTRACT'
-  | 'INTERNSHIP'
-  | 'FREELANCE';
+export type JobListingStatus = 'Draft' | 'Live' | 'Closed';
 
 export interface JobListing {
   id: string;

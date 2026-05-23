@@ -26,6 +26,10 @@ export class QuerySkillDto {
   @IsOptional()
   @IsInt()
   years?: number;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateSkillDto {

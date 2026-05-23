@@ -7,10 +7,12 @@ interface AboutMeProps {
   about: {
     id?: number;
     bio?: string;
+    title?: string;
   };
   handleUpdateAbout?: (aboutData: {
     id: number;
     bio?: string;
+    title?: string;
   }) => Promise<void>;
 }
 
@@ -62,14 +64,19 @@ export default function AboutMe({ about, handleUpdateAbout }: AboutMeProps) {
         </div>
       </div>
       {editing ? (
-        <div className="flex flex-col gap-2 px-4">
-          <textarea
-            className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[150px] resize-none"
-            placeholder="Tell us about yourself..."
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            disabled={loading}
-          />
+        <div className="flex flex-col gap-4 px-4">
+          <div className="flex flex-col gap-2">
+            <label className="label-label-1-semi-bold text-primary">
+              Biography
+            </label>
+            <textarea
+              className="body-body-1-regular text-primary break-words border rounded p-2 min-h-[150px] resize-none"
+              placeholder="Tell us about yourself..."
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              disabled={loading}
+            />
+          </div>
           <div className="flex gap-2 mt-2">
             <button
               className={`px-4 py-2 rounded ${

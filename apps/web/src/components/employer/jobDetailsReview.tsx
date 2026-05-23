@@ -14,6 +14,7 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
+  OTHER: 'Other',
 };
 
 const CURRENCY_SYMBOLS: Record<Exclude<SalaryCurrency, 'none'>, string> = {

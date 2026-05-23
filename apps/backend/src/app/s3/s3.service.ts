@@ -196,6 +196,36 @@ export class S3Service {
     }
   }
 
+  async getFileBuffer(fileKey: string): Promise<Buffer> {
+    if (!fileKey || fileKey.trim().length === 0) {
+      throw new BadRequestException('File key is required');
+    }
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: s3Config.bucketName,
+        Key: fileKey,
+      });
+
+      const response = await s3Client.send(command);
+      const stream = response.Body as any;
+
+      return new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        stream.on('data', (chunk: any) => chunks.push(chunk));
+        stream.on('error', (err: any) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+      });
+    } catch (error: unknown) {
+      const awsError = error as { message?: string };
+      throw new NotFoundException(
+        `Failed to get file buffer for "${fileKey}". Error: ${
+          awsError.message || 'Unknown error'
+        }`
+      );
+    }
+  }
+
   private validateFileType(fileType: string, folder: S3Folder): void {
     const allowed = ALLOWED_FILE_TYPES[folder];
 

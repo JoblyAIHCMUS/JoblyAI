@@ -22,6 +22,7 @@ interface CandidateProfileContextType {
     options?: {
       onSuccess?: (data: CandidateProfileResponse) => void;
       onError?: (error: unknown) => void;
+      forceRefresh?: boolean;
     },
     candidateId?: string
   ) => Promise<CandidateProfileResponse | null>;
@@ -47,15 +48,20 @@ export function CandidateProfileProvider({
       options?: {
         onSuccess?: (data: CandidateProfileResponse) => void;
         onError?: (error: unknown) => void;
+        forceRefresh?: boolean;
       },
       candidateId?: string
     ): Promise<CandidateProfileResponse | null> => {
-      // Prevent duplicate requests for the same ID
+      // Prevent duplicate requests for the same ID, unless forced
       if (
-        isRequestInFlightRef.current ||
-        (candidateId && lastFetchedIdRef.current === candidateId)
+        !options?.forceRefresh &&
+        (isRequestInFlightRef.current ||
+          (candidateId && lastFetchedIdRef.current === candidateId))
       ) {
-        return null;
+        console.log(
+          '[CandidateProfileContext] Skipping fetch - already in flight or same ID'
+        );
+        return data; // Return current data instead of null to prevent state clearing
       }
 
       isRequestInFlightRef.current = true;
@@ -64,12 +70,16 @@ export function CandidateProfileProvider({
       setError(null);
 
       try {
+        console.log('[CandidateProfileContext] Fetching profile...');
         const result = candidateId
           ? await getCandidateProfileById(candidateId)
           : await getCandidateProfile();
-        setData(result);
-        options?.onSuccess?.(result);
-        return result;
+
+        // Ensure we are setting a NEW object reference to trigger re-renders
+        const newResult = { ...result };
+        setData(newResult);
+        options?.onSuccess?.(newResult);
+        return newResult;
       } catch (err: unknown) {
         setError(err);
         options?.onError?.(err);
@@ -79,7 +89,7 @@ export function CandidateProfileProvider({
         setLoading(false);
       }
     },
-    []
+    [data]
   );
 
   // Memoize context value to prevent unnecessary provider updates

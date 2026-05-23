@@ -6,7 +6,9 @@
     "start": "nx run-many --target=serve --all",
     "android": "emulator @Pixel_9_Pro_XL & pnpm nx run mobile:run-android",
     "lint": "nx affected -t lint test",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "format": "prettier --write . --ignore-unknown",
+    "format:check": "prettier --check . --ignore-unknown"
   },
   "private": true,
   "devDependencies": {
@@ -42,6 +44,7 @@
     "@swc/core": "~1.15.5",
     "@swc/helpers": "~0.5.19",
     "@types/node": "20.19.9",
+    "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19.1.0",
     "@types/react-datepicker": "^7.0.0",
     "@types/react-dom": "19.0.0",
