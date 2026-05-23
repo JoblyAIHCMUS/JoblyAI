@@ -4,6 +4,7 @@ import {
   EmploymentType,
   JobStatus,
   RequirementImportance,
+  Employer,
 } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
@@ -160,11 +161,34 @@ async function main() {
 
   const companies = await prisma.company.findMany();
 
+  // Ensure employers are linked to companies before posting jobs
+  console.log('Ensuring employers are linked to companies...');
+  const employerRecords: Employer[] = [];
+  for (let i = 0; i < employers.length; i++) {
+    const user = employers[i];
+    let record = await prisma.employer.findUnique({
+      where: { employerId: user.id },
+    });
+
+    if (!record) {
+      record = await prisma.employer.create({
+        data: {
+          employerId: user.id,
+          companyId: companies[i % companies.length].id,
+          role: 'employer',
+          assignedAt: new Date(),
+        },
+      });
+    }
+    employerRecords.push(record);
+  }
+
   // Create job postings
   console.log('Creating job postings...');
   const createdJobPostings = await Promise.all(
-    jobPosting.map((job, index) =>
-      prisma.jobPosting.create({
+    jobPosting.map((job, index) => {
+      const employer = employerRecords[index % employerRecords.length];
+      return prisma.jobPosting.create({
         data: {
           title: job.title,
           description: job.description,
@@ -175,13 +199,13 @@ async function main() {
           salaryMin: job.salaryMin,
           salaryMax: job.salaryMax,
 
-          // IMPORTANT: add relations here
-          postedById: employers[index % employers.length].id,
-          companyId: companies[index % companies.length].id,
+          // Use the correct relations from Employer record
+          postedById: employer.employerId,
+          companyId: employer.companyId!,
           categoryId: allCategories[index % allCategories.length].id,
         },
-      })
-    )
+      });
+    })
   );
   console.log(`Created ${createdJobPostings.length} job postings`);
 
@@ -500,13 +524,19 @@ async function main() {
   console.log('Added Grace to Nomad as employee');
 
   // Assign Carol White as HR in Tech Corp
-  console.log('Creating employer role for Carol...');
+  console.log('Setting up Carol White as HR...');
   const carol = allUsers.find((u) => u.email === 'carol@example.com');
   if (carol) {
-    await prisma.employer.create({
-      data: {
+    await prisma.employer.upsert({
+      where: { employerId: carol.id },
+      create: {
         companyId: companies[0].id, // Tech Corp
         employerId: carol.id,
+        role: 'HR',
+        assignedAt: new Date('2021-01-01'),
+      },
+      update: {
+        companyId: companies[0].id,
         role: 'HR',
         assignedAt: new Date('2021-01-01'),
       },
