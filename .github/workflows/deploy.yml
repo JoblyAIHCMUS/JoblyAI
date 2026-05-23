@@ -16,52 +16,52 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
 
           script: |
-            # 1. Chuyển về thư mục home
+            # 1. Change to home directory
             cd $HOME
             
-            # 2. Sao lưu file .env nếu tồn tại để tránh bị mất khi xóa thư mục
+            # 2. Backup .env file if it exists to prevent loss during directory deletion
             if [ -f "joblyai/apps/backend/.env" ]; then
-              echo "--- Đang sao lưu file .env ---"
+              echo "--- Backing up .env file ---"
               cp "joblyai/apps/backend/.env" "$HOME/backend_env_backup"
             fi
             
-            # 3. Xóa và Clone lại nếu thư mục bị lỗi hoặc không có .git
+            # 3. Delete and Re-clone if directory is corrupted or .git is missing
             if [ ! -d "joblyai/.git" ]; then
-              echo "--- Thư mục lỗi hoặc chưa tồn tại, đang xóa và clone mới ---"
+              echo "--- Corrupted or missing directory, deleting and cloning fresh ---"
               rm -rf joblyai
               git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
             
-            # 4. Vào thư mục và cập nhật code
+            # 4. Enter directory and update source code
             cd joblyai
-            echo "--- Đang cập nhật mã nguồn ---"
+            echo "--- Updating source code ---"
             git fetch origin main
             git reset --hard origin/main
             
-            # 5. Khôi phục file .env từ bản sao lưu (nếu có)
+            # 5. Restore .env file from backup (if exists)
             if [ -f "$HOME/backend_env_backup" ]; then
-              echo "--- Đang khôi phục file .env ---"
+              echo "--- Restoring .env file ---"
               mkdir -p apps/backend
               mv "$HOME/backend_env_backup" apps/backend/.env
             fi
             
-            # 6. Kiểm tra file .env (Bắt buộc phải có để chạy Docker)
+            # 6. Check for .env file (Required for Docker)
             if [ ! -f "apps/backend/.env" ]; then
-              echo "LỖI: Không tìm thấy file apps/backend/.env! Hãy tạo nó thủ công trên EC2."
+              echo "ERROR: apps/backend/.env file not found! Please create it manually on EC2."
               exit 1
             fi
             
-            # 7. Đảm bảo docker-compose hoạt động
+            # 7. Ensure docker-compose is available (Fix Status 127)
             DOCKER_COMPOSE_CMD="docker-compose"
             if ! command -v docker-compose &> /dev/null; then
                 DOCKER_COMPOSE_CMD="docker compose"
             fi
             
-            # 8. Chạy Docker Compose
-            echo "--- Đang khởi động hệ thống ---"
+            # 8. Run Docker Compose
+            echo "--- Starting the system ---"
             $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
             
-            # 9. Dọn dẹp RAM
+            # 9. Cleanup RAM (prune unused images)
             docker image prune -f
             
             # 10. Database Migration
