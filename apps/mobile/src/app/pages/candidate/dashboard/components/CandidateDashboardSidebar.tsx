@@ -197,12 +197,12 @@ const CandidateDashboardSidebar = ({
                     router.push(item.path as never);
                   }
                 }}
-                className={`mb-2 flex-row items-center rounded-2xl px-4 py-4 ${
+                className={`relative mb-2 flex-row items-center overflow-hidden rounded-2xl px-4 py-4 ${
                   active ? 'bg-[#EEEDFC] shadow-sm' : ''
                 }`}
               >
                 {active && (
-                  <View className="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-[#4F46E5]" />
+                  <View className="absolute left-0 top-2 bottom-2 w-1.5 rounded-r-full bg-[#4F46E5]" />
                 )}
 
                 <Icon

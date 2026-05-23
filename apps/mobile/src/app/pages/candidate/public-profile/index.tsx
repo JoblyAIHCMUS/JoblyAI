@@ -475,54 +475,6 @@ export default function CandidatePublicProfileScreen() {
 
         <View className="mt-5 px-3">
           <SectionHeader
-            title="CV / Resume"
-            action={
-              <View className="flex-row items-center gap-2">
-                <HeaderIcon>
-                  <Upload size={14} color="#4f46e5" strokeWidth={2.2} />
-                </HeaderIcon>
-                <SectionAction />
-              </View>
-            }
-          />
-
-          <Card className="px-3 py-3">
-            <View className="rounded-[12px] border border-dashed border-[#d7ddfb] bg-[#f8faff] px-3 py-4">
-              <View className="flex-row items-start gap-3">
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef2ff]">
-                  <FileText size={18} color="#4f46e5" strokeWidth={2} />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[16px] font-semibold tracking-[-0.2px] text-[#1f2535]">
-                    Upload your resume
-                  </Text>
-                  <Text className="mt-1 text-[13px] leading-[18px] text-[#667085]">
-                    Add your latest CV in PDF, DOC, or DOCX format so employers
-                    can review it quickly.
-                  </Text>
-
-                  <Text className="mt-2 text-[12px] font-medium text-[#4f46e5]">
-                    {resumeName}
-                  </Text>
-
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={handleResumeUpload}
-                    className="mt-3 h-[38px] flex-row items-center justify-center gap-2 rounded-[3px] bg-[#5758e7] px-4"
-                  >
-                    <Upload size={15} color="#ffffff" strokeWidth={2.2} />
-                    <Text className="text-[13px] font-semibold text-white">
-                      Upload Resume
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Card>
-        </View>
-
-        <View className="mt-5 px-3">
-          <SectionHeader
             title="Additional Details"
             action={<SectionAction />}
           />
