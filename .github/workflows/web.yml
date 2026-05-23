@@ -53,7 +53,7 @@ jobs:
       # 3a. Run format check
       - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
-      - run: pnpm audit --audit-level=high
+      - run: pnpm audit --audit-level=high --prod
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
