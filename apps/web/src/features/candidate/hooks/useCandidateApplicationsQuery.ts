@@ -75,7 +75,9 @@ function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
     jobType: formatJobType(record.job.type),
     title: record.job.title,
     createdAt: record.createdAt.split('T')[0] ?? record.createdAt,
-    status: mapApiStatusToCandidateStatus(record.status),
+    status: record.jobDeletedAt
+      ? 'closed'
+      : mapApiStatusToCandidateStatus(record.status),
     recruiterId: record.job.postedBy.id,
   };
 }

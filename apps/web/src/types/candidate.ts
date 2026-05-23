@@ -5,7 +5,8 @@ export type ApplicationStatus =
   | 'viewed'
   | 'interviewing'
   | 'offered'
-  | 'rejected';
+  | 'rejected'
+  | 'closed';
 
 export type ApplicationFilter = 'all' | 'active' | 'closed';
 

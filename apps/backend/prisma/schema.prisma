@@ -152,6 +152,7 @@ model JobPosting {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   requirements JobRequirement[]
   applications Application[]
