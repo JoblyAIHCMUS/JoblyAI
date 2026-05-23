@@ -51,18 +51,41 @@ jobs:
               exit 1
             fi
             
-            # 7. Ensure docker-compose is available (Fix Status 127)
+            # 7. Ensure docker-compose is available
             DOCKER_COMPOSE_CMD="docker-compose"
             if ! command -v docker-compose &> /dev/null; then
                 DOCKER_COMPOSE_CMD="docker compose"
             fi
             
-            # 8. Run Docker Compose
-            echo "--- Starting the system ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
+            # 8. Super-Sequential Startup for Maximum RAM Efficiency
+            echo "--- [1/5] Stopping all services to free memory ---"
+            $DOCKER_COMPOSE_CMD down --remove-orphans
+            docker system prune -a -f # Deep cleanup
             
-            # 9. Cleanup RAM (prune unused images)
-            docker image prune -f
+            echo "--- [2/5] Building Backend image in isolation ---"
+            $DOCKER_COMPOSE_CMD build backend
+            
+            echo "--- [3/5] Starting Infrastructure (Redis, Scylla) ---"
+            $DOCKER_COMPOSE_CMD up -d redis scylla
+            
+            echo "--- [4/5] Waiting for Infrastructure to be healthy ---"
+            # Wait until Scylla is ready (max 2 minutes)
+            for i in {1..24}; do
+              if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
+                echo "Infrastructure is healthy!"
+                break
+              fi
+              echo "Waiting for Scylla... ($((i*5))s)"
+              sleep 5
+            done
+            
+            echo "--- [5/5] Starting Application (Backend, Nginx) ---"
+            $DOCKER_COMPOSE_CMD up -d backend nginx scylla-init
+            
+            # 9. Final check
+            docker ps
             
             # 10. Database Migration
+            echo "--- Running Database Migrations ---"
+            sleep 5
             $DOCKER_COMPOSE_CMD exec -T backend npx prisma migrate deploy
