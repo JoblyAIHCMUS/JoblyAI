@@ -1,33 +1,73 @@
 import React from 'react';
-import { Flag, Mail, Smartphone } from 'lucide-react';
+import { Flag, Mail, Smartphone, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SideBar from './sideBar';
-import type { Social } from '@/types/candidate';
+import type { CandidateSocial, CandidateContact } from '@/types/candidate';
 
 interface Candidate {
   name: string;
   title: string;
-  // location: string;
   avatar: string;
   banner: string;
   openForOpportunities: boolean;
   email?: string;
   phone?: string;
-  socials: Social[];
+  socials: CandidateSocial[];
+  contacts: CandidateContact[];
 }
 
 interface ProfileHeaderProps {
   candidate: Candidate;
-  handleAddSocial?: (social: Social) => void;
-  handleUpdateSocials?: (social: Social[]) => void;
+  handleAddSocial?: (social: CandidateSocial) => Promise<void> | void;
+  handleUpdateSocials?: (socials: CandidateSocial[]) => Promise<void> | void;
+  handleDeleteSocial?: (id: number) => Promise<void> | void;
+  handleAddContact?: (contact: CandidateContact) => Promise<void> | void;
+  handleUpdateContacts?: (contacts: CandidateContact[]) => Promise<void> | void;
+  handleDeleteContact?: (id: number) => Promise<void> | void;
 }
 
 export default function ProfileHeader({
   candidate,
   handleAddSocial,
   handleUpdateSocials,
-}: ProfileHeaderProps) {
+  handleDeleteSocial,
+  handleAddContact,
+  handleUpdateContacts,
+  handleDeleteContact,
+  handleUpdateAbout,
+  descriptionId, // Add this to receive the ID from page.tsx
+}: ProfileHeaderProps & {
+  handleUpdateAbout?: (aboutData: {
+    id: number;
+    title?: string;
+    bio?: string;
+  }) => Promise<void>;
+  descriptionId?: number;
+}) {
   const router = useRouter();
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+  const [title, setTitle] = React.useState(candidate.title || '');
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    setTitle(candidate.title || '');
+  }, [candidate.title]);
+
+  const handleSaveTitle = async () => {
+    if (!handleUpdateAbout) return;
+    setLoading(true);
+    try {
+      await handleUpdateAbout({
+        id: descriptionId || 0, // Pass the correct ID
+        title,
+      });
+      setIsEditingTitle(false);
+    } catch (error) {
+      console.error('Failed to update title:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-row w-full gap-[var(--space-base)] items-stretch">
@@ -48,17 +88,55 @@ export default function ProfileHeader({
         </div>
         <div className="w-full pl-[180px] pr-8 mt-6">
           <div className="flex flex-row justify-between items-start">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full max-w-md">
               <div className="heading-h5-semi-bold text-primary break-words">
                 {candidate.name}
               </div>
-              <div className="heading-h6-regular text-secondary break-words">
-                {candidate.title}
-              </div>
-              {/* <div className="flex items-center gap-[var(--space-xs)] text-[color:var(--slate-500)] text-base font-normal">
-              <MapPin size={20} />
-              {candidate.location}
-            </div> */}
+
+              {isEditingTitle ? (
+                <div className="flex flex-col gap-2 mt-1">
+                  <input
+                    type="text"
+                    className="heading-h6-regular text-secondary border-b border-accent-primary outline-none bg-transparent w-full"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveTitle}
+                      disabled={loading}
+                      className="px-3 py-1 rounded-md bg-accent-solid text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-all"
+                    >
+                      {loading ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingTitle(false);
+                        setTitle(candidate.title);
+                      }}
+                      className="px-3 py-1 rounded-md border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-2 group cursor-pointer"
+                  onClick={() => setIsEditingTitle(true)}
+                >
+                  <div className="heading-h6-regular text-secondary break-words">
+                    {candidate.title || 'Add Professional Title'}
+                  </div>
+                  <Edit
+                    size={14}
+                    className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                </div>
+              )}
+
               <div className="flex items-center gap-3 mt-2">
                 {candidate.email && (
                   <div className="flex items-center gap-2">
@@ -101,13 +179,18 @@ export default function ProfileHeader({
           </div>
         </div>
       </div>
-      {/* Right side: 2/5 - SideBar (Social Links) */}
+      {/* Right side: 2/5 - SideBar (Contacts & Social Links) */}
       <div className="flex-[2] rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] overflow-hidden">
         <div className="h-full p-[var(--space-md)]">
           <SideBar
             socials={candidate.socials || []}
             handleAddSocial={handleAddSocial}
             handleUpdateSocials={handleUpdateSocials}
+            handleDeleteSocial={handleDeleteSocial}
+            contacts={candidate.contacts || []}
+            handleAddContact={handleAddContact}
+            handleUpdateContacts={handleUpdateContacts}
+            handleDeleteContact={handleDeleteContact}
           />
         </div>
       </div>

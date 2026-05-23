@@ -212,8 +212,8 @@ export const createExperienceSchema = () => {
         .optional()
         .or(z.literal(''))
         .refine(
-          (val) => !val || val.length <= 500,
-          'Description must not exceed 500 characters'
+          (val) => !val || val.length <= 1000,
+          'Description must not exceed 1000 characters'
         ),
     })
     .superRefine((data, ctx) => {
@@ -238,6 +238,52 @@ export const createExperienceSchema = () => {
 
 export const ExperienceSchema = createExperienceSchema();
 export type ExperienceFormData = z.infer<typeof ExperienceSchema>;
+
+/**
+ * Zod schema for certificate form validation
+ */
+export const createCertificateSchema = () => {
+  return z
+    .object({
+      name: z.string().min(1, 'Certificate name is required').trim(),
+      issuer: z.string().min(1, 'Issuer name is required').trim(),
+      issueDate: z
+        .date({
+          error: 'Issue date is required',
+        })
+        .refine((date) => date <= new Date(), {
+          message: 'Issue date cannot be in the future',
+        }),
+      hasExpiry: z.boolean(),
+      expiryDate: z.date().nullable(),
+      credentialId: z.string().optional().or(z.literal('')),
+      url: z.string().url('Invalid URL format').optional().or(z.literal('')),
+    })
+    .superRefine((data, ctx) => {
+      if (data.hasExpiry && !data.expiryDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['expiryDate'],
+          message: 'Expiry date is required',
+        });
+      }
+
+      if (
+        data.issueDate &&
+        data.expiryDate &&
+        data.expiryDate < data.issueDate
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['expiryDate'],
+          message: 'Expiry date cannot be before issue date',
+        });
+      }
+    });
+};
+
+export const CertificateSchema = createCertificateSchema();
+export type CertificateFormData = z.infer<typeof CertificateSchema>;
 
 /**
  * Zod schema for submit application form validation

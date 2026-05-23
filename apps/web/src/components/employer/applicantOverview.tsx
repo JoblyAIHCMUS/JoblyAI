@@ -23,6 +23,7 @@ const employmentTypeLabels: Record<EmploymentType, string> = {
   CONTRACT: 'Contract',
   INTERNSHIP: 'Internship',
   FREELANCE: 'Freelance',
+  OTHER: 'Other',
 };
 
 interface ApplicantOverviewProps {

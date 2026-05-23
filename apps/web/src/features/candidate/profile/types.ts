@@ -1,14 +1,20 @@
 import {
   CandidateEducation,
   CandidateExperience,
-  Contact,
-  Social,
+  CandidateCertificate,
+  CandidateSkill,
+  CandidateContact,
+  CandidateSocial,
 } from '@/types/candidate';
-import type { CandidateSkill } from '@/api-client/candidate/types';
 
 export interface PortfolioItem {
   img: string;
   name: string;
+}
+
+export interface Contact {
+  email: string;
+  phone: string;
 }
 
 export interface CandidateProfileUI {
@@ -23,7 +29,9 @@ export interface CandidateProfileUI {
   experiences: Array<CandidateExperience>;
   educations: Array<CandidateEducation>;
   skills: CandidateSkill[];
+  certificates: CandidateCertificate[];
   portfolios: PortfolioItem[];
-  contact: Contact;
-  socials: Array<Social>;
+  contact: Contact; // Keeping for backward compatibility with some UI parts
+  contacts: CandidateContact[];
+  socials: Array<CandidateSocial>;
 }

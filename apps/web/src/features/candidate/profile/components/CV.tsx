@@ -9,10 +9,18 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { Download, AlertCircle, Trash2, Star } from 'lucide-react';
+import {
+  Download,
+  AlertCircle,
+  Trash2,
+  Star,
+  Wand2,
+  Code2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
 import type { CandidateResume } from '@/types/candidate';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +39,8 @@ interface CVProps {
   isUploading?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
+  processingTasks?: Record<number, { parsing: boolean; scoring: boolean }>;
+  deletingResumeId?: number | null;
   uploadError?: string | null;
 }
 
@@ -51,6 +61,8 @@ const CV = forwardRef<CVRef, CVProps>(
       isUploading = false,
       isUpdating = false,
       isDeleting = false,
+      processingTasks = {},
+      deletingResumeId = null,
       uploadError = null,
     }: CVProps,
     ref
@@ -62,13 +74,23 @@ const CV = forwardRef<CVRef, CVProps>(
     const [actionError, setActionError] = useState<string | null>(null);
     const [previewResumeId, setPreviewResumeId] = useState<number | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [confirmDefaultOpen, setConfirmDefaultOpen] = useState(false);
     const [pendingResumeId, setPendingResumeId] = useState<number | null>(null);
     const [uploadOpen, setUploadOpen] = useState(false);
 
     const { createDownloadUrl } = useCreateDownloadUrl();
-    const isBusy = isUploading || isUpdating || isDeleting;
+
+    // Any AI task in progress makes the whole CV section "busy" for general actions (like upload)
+    const isAnyAiProcessing = Object.values(processingTasks).some(
+      (t) => t.parsing || t.scoring
+    );
+    const isBusy =
+      isUploading ||
+      isUpdating ||
+      isDeleting ||
+      isAnyAiProcessing ||
+      !!deletingResumeId;
+
     const resumeCount = resumes?.length || 0;
     const isAtMax = resumeCount >= maxResumes;
     const sortedResumes = [...resumes].sort(
@@ -185,42 +207,15 @@ const CV = forwardRef<CVRef, CVProps>(
       }
     };
 
-    const handleDeleteResume = async (resumeId: number) => {
-      if (isBusy) return;
-      const resumeToDelete = resumes.find((resume) => resume.id === resumeId);
-      if (!resumeToDelete) return;
-
-      try {
-        setActionError(null);
-        await onDeleteResume?.(resumeToDelete.id);
-      } catch (error) {
-        console.error('Failed to delete resume:', error);
-        setActionError('Failed to delete CV. Please try again.');
-      }
-    };
-
     const handleOpenPreview = (resumeId: number) => {
       setPreviewResumeId(resumeId);
       setIsPreviewOpen(true);
-    };
-
-    const handleOpenDeleteConfirm = (resumeId: number) => {
-      if (isBusy) return;
-      setPendingResumeId(resumeId);
-      setConfirmDeleteOpen(true);
     };
 
     const handleOpenDefaultConfirm = (resumeId: number) => {
       if (isBusy) return;
       setPendingResumeId(resumeId);
       setConfirmDefaultOpen(true);
-    };
-
-    const handleConfirmDelete = async () => {
-      if (pendingResumeId == null) return;
-      await handleDeleteResume(pendingResumeId);
-      setConfirmDeleteOpen(false);
-      setPendingResumeId(null);
     };
 
     const handleConfirmDefault = async () => {
@@ -286,12 +281,31 @@ const CV = forwardRef<CVRef, CVProps>(
                     <button
                       type="button"
                       onClick={() => handleOpenPreview(resume.id)}
-                      className="flex flex-col text-left"
+                      className="flex flex-col text-left gap-1"
                       aria-label={`Preview ${resume.fileName}`}
                     >
-                      <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
-                        {resume.fileName}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-primary font-['Be_Vietnam_Pro']">
+                          {resume.fileName}
+                        </span>
+                        {resume.parsedText &&
+                          resume.isSyncedToProfile === false && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 h-5 px-1.5"
+                            >
+                              ✨ Ready to Sync
+                            </Badge>
+                          )}
+                        {resume.isSyncedToProfile === true && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200 text-[10px] py-0 h-5 px-1.5"
+                          >
+                            ✓ Synced
+                          </Badge>
+                        )}
+                      </div>
                       {resume.isDefault && (
                         <span className="text-xs font-medium text-accent-primary font-['Be_Vietnam_Pro']">
                           Default
@@ -299,6 +313,116 @@ const CV = forwardRef<CVRef, CVProps>(
                       )}
                     </button>
                     <div className="flex flex-wrap items-center gap-2">
+                      {/* Extract Data Button (Parse) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (resume.parsedText) {
+                            window.dispatchEvent(
+                              new CustomEvent('OPEN_CV_SYNC_MODAL', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
+                          } else {
+                            window.dispatchEvent(
+                              new CustomEvent('TRIGGER_AI_PARSE', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
+                          }
+                        }}
+                        disabled={
+                          isBusy ||
+                          processingTasks[resume.id]?.parsing ||
+                          processingTasks[resume.id]?.scoring
+                        }
+                        className={cn(
+                          'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
+                          resume.isSyncedToProfile
+                            ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            : resume.parsedText
+                            ? 'border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm ring-1 ring-amber-100'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        )}
+                        aria-label="Extract Data"
+                        title={
+                          resume.parsedText
+                            ? 'Review and Extract Data'
+                            : 'Extract Data with AI'
+                        }
+                      >
+                        {processingTasks[resume.id]?.parsing ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                        ) : (
+                          <Code2
+                            size={14}
+                            className={cn(
+                              !resume.isSyncedToProfile &&
+                                resume.parsedText &&
+                                'animate-pulse'
+                            )}
+                          />
+                        )}
+                        {resume.isSyncedToProfile
+                          ? 'View Sync'
+                          : resume.parsedText
+                          ? 'Review & Sync'
+                          : 'Extract Data'}
+                      </button>
+
+                      {/* Score Resume Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (
+                            resume.aiScore !== undefined &&
+                            resume.aiScore !== null
+                          ) {
+                            window.dispatchEvent(
+                              new CustomEvent('OPEN_AI_FEEDBACK_MODAL', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
+                          } else {
+                            window.dispatchEvent(
+                              new CustomEvent('TRIGGER_AI_SCORE', {
+                                detail: { resumeId: resume.id },
+                              })
+                            );
+                          }
+                        }}
+                        disabled={
+                          isBusy ||
+                          processingTasks[resume.id]?.parsing ||
+                          processingTasks[resume.id]?.scoring
+                        }
+                        className={cn(
+                          'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
+                          resume.aiScore !== undefined &&
+                            resume.aiScore !== null
+                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                            : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                        )}
+                        aria-label="Score Resume"
+                        title={
+                          resume.aiScore !== undefined &&
+                          resume.aiScore !== null
+                            ? 'View AI Score'
+                            : 'Score with AI'
+                        }
+                      >
+                        {processingTasks[resume.id]?.scoring ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                        ) : (
+                          <Wand2 size={14} />
+                        )}
+                        {resume.aiScore !== undefined && resume.aiScore !== null
+                          ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
+                          : 'Score Resume'}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleOpenDefaultConfirm(resume.id)}
@@ -316,13 +440,17 @@ const CV = forwardRef<CVRef, CVProps>(
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleOpenDeleteConfirm(resume.id)}
-                        disabled={isBusy}
+                        onClick={() => onDeleteResume?.(resume.id)}
+                        disabled={isBusy || deletingResumeId === resume.id}
                         className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        <Trash2 size={16} className="text-red-600" />
+                        {deletingResumeId === resume.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
+                        ) : (
+                          <Trash2 size={16} className="text-red-600" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -357,38 +485,6 @@ const CV = forwardRef<CVRef, CVProps>(
                   disabled={isBusy}
                 >
                   Set default
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-          <DialogContent className="max-w-sm">
-            <div className="flex flex-col gap-3">
-              <DialogTitle className="text-lg font-semibold text-primary font-['Lexend_Deca']">
-                Delete CV
-              </DialogTitle>
-              <DialogDescription className="text-sm text-secondary">
-                Are you sure you want to delete this CV? This action cannot be
-                undone.
-              </DialogDescription>
-              <div className="mt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md border border-[color:var(--border-primary)] text-primary hover:bg-[color:var(--bg-tertiary)]"
-                  onClick={() => setConfirmDeleteOpen(false)}
-                  disabled={isBusy}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
-                  onClick={handleConfirmDelete}
-                  disabled={isBusy}
-                >
-                  Delete
                 </button>
               </div>
             </div>

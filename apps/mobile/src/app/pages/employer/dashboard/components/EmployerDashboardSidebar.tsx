@@ -28,7 +28,7 @@ import {
   Users,
   X,
 } from 'lucide-react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, Link } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
 import { useLogout } from '../../../../../hooks/useAuth';
@@ -299,15 +299,17 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
         </View>
 
         <View className="px-6 pb-8 pt-4">
-          <TouchableOpacity
-            className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4"
-            activeOpacity={0.9}
-          >
-            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-            <Text className="ml-2 text-[18px] font-bold text-white">
-              Post a job
-            </Text>
-          </TouchableOpacity>
+          <Link href="/pages/employer/new-job" asChild>
+            <TouchableOpacity
+              className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4"
+              activeOpacity={0.9}
+            >
+              <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+              <Text className="ml-2 text-[18px] font-bold text-white">
+                Post a job
+              </Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </SafeAreaView>
     </Animated.View>

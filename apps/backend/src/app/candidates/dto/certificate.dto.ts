@@ -1,5 +1,6 @@
 import {
   IsDateString,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -25,7 +26,7 @@ export class QueryCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  expirationDate?: string; // Optional: Some certs don't expire
+  expiryDate?: string; // Optional: Some certs don't expire
 
   @IsOptional()
   @IsString()
@@ -34,8 +35,11 @@ export class QueryCertificateDto {
   @IsOptional()
   @IsUrl()
   url?: string; // Link to the digital badge or verification page
-}
 
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
+}
 export class CreateCertificateDto {
   @IsString()
   @IsNotEmpty()
@@ -50,8 +54,8 @@ export class CreateCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
-  expirationDate?: string; // Optional: Some certs don't expire
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
+  expiryDate?: string; // Optional: Some certs don't expire
 
   @IsOptional()
   @IsString()
@@ -76,13 +80,13 @@ export class UpdateCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }: { value: any }) => (value === '' ? undefined : value))
   issueDate?: string;
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => (value === '' ? undefined : value))
-  expirationDate?: string;
+  @Transform(({ value }: { value: any }) => (value === '' ? null : value))
+  expiryDate?: string;
 
   @IsOptional()
   @IsString()

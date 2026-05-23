@@ -1,6 +1,7 @@
 import { CandidateSocialPlatform } from '@prisma/client';
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -21,6 +22,10 @@ export class QuerySocialDto {
   @IsOptional()
   @IsString()
   username?: string;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  sourceCvIds?: number[];
 }
 
 export class CreateSocialDto {

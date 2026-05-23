@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import RecommendedCompaniesSection from '@/components/browse-companies/RecommendedCompaniesSection';
-import CompaniesCategorySection from '@/components/browse-companies/CompaniesCategorySection';
 import { usePageTitle } from '@/contexts/page-title-context';
 
 export default function BrowseCompaniesPage() {
@@ -17,7 +16,6 @@ export default function BrowseCompaniesPage() {
     <>
       <FindJobsHeroSection />
       <RecommendedCompaniesSection />
-      <CompaniesCategorySection />
     </>
   );
 }
