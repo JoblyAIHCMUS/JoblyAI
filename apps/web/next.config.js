@@ -10,8 +10,8 @@ const nextConfig = {
   // Use this to set Nx-specific options
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
-  // Enable standalone output for Docker
-  output: 'standalone',
+  // Enable standalone output ONLY for Docker builds (Amplify will handle SSR natively)
+  output: process.env.AWS_APP_ID ? undefined : 'standalone',
   // Configure external image domains for Next.js Image component
   images: {
     remotePatterns: [
