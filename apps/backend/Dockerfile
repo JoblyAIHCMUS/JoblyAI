@@ -10,7 +10,7 @@ ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN corepack enable
 
 # Create pnpm directory with proper permissions BEFORE install
-RUN mkdir -p /pnpm && chmod -R 777 /pnpm
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm && apk add --no-cache libc6-compat openssl
 
 # Set working directory
 WORKDIR /app
@@ -19,8 +19,11 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY nx.json tsconfig.base.json tsconfig.json eslint.config.mjs ./
 
-# Copy backend package.json and Prisma schema
+# Copy ALL package.json files for workspace discovery BEFORE install
 COPY apps/backend/package.json ./apps/backend/
+COPY libs/shared-types/package.json ./libs/shared-types/
+
+# Copy Prisma schema (needed for generate)
 COPY apps/backend/prisma ./apps/backend/prisma/
 
 # Install dependencies (installs everything including devDeps for build)
@@ -34,7 +37,7 @@ COPY apps/backend ./apps/backend
 COPY libs ./libs
 
 # Generate Prisma Client (running from the backend directory to ensure paths are correct)
-RUN cd apps/backend && npx prisma generate
+RUN cd apps/backend && pnpm exec prisma generate
 
 # Sync Nx workspace and build the backend
 RUN pnpm exec nx sync --yes
@@ -75,7 +78,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
 # Regenerate Prisma Client in production environment
-RUN cd apps/backend && npx prisma generate
+RUN cd apps/backend && pnpm exec prisma generate
 
 # Expose port
 EXPOSE 3000
