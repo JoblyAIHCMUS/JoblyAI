@@ -102,9 +102,31 @@ export class AuthController {
     const authRes = await auth.handler(request);
 
     res.status(authRes.status);
+
+    // CRITICAL: Handle Set-Cookie headers correctly from Better Auth
+    // Use forEach to get all headers, but handle Set-Cookie separately to avoid overwriting or incorrect concatenation
     authRes.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        // We'll handle Set-Cookie after this loop using getSetCookie() for maximum reliability
+        return;
+      }
       res.setHeader(key, value);
     });
+
+    // Manually handle all Set-Cookie headers properly to avoid them being merged into a single header
+    // getSetCookie() is available in Node 18+ and returns an array of individual cookie strings
+    if (typeof authRes.headers.getSetCookie === 'function') {
+      const betterAuthCookies = authRes.headers.getSetCookie();
+      if (betterAuthCookies && betterAuthCookies.length > 0) {
+        betterAuthCookies.forEach((cookie) => {
+          res.appendHeader('Set-Cookie', cookie);
+        });
+      }
+    } else {
+      // Fallback for older Node versions if necessary
+      const cookie = authRes.headers.get('set-cookie');
+      if (cookie) res.setHeader('Set-Cookie', cookie);
+    }
 
     let body = await authRes.text();
 
@@ -188,13 +210,24 @@ export class AuthController {
 
     // ✅ CLEAR ROLE COOKIE on logout (sign-out)
     const isSignOut =
-      (req.originalUrl || req.url).includes('/sign-out') &&
+      (req.originalUrl || req.url || '').includes('/sign-out') &&
       authRes.status === 200;
     if (isSignOut) {
       // Clear the role cookie by setting it with max-age=0
       const clearRoleCookie = 'user-role=; Path=/; SameSite=Lax; Max-Age=0';
       res.appendHeader('Set-Cookie', clearRoleCookie);
-      console.log('[AUTH] Cleared role cookie on sign-out');
+
+      // REDUNDANT CLEAR: Ensure session cookies are cleared even if proxying logic had issues
+      res.appendHeader(
+        'Set-Cookie',
+        'better-auth.session_token=; Path=/; SameSite=Lax; Max-Age=0; HttpOnly'
+      );
+      res.appendHeader(
+        'Set-Cookie',
+        '__Secure-better-auth.session_token=; Path=/; SameSite=Lax; Max-Age=0; HttpOnly; Secure'
+      );
+
+      console.log('[AUTH] Cleared role and session cookies on sign-out');
     }
 
     return res.send(body);
