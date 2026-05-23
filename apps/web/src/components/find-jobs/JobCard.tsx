@@ -41,8 +41,8 @@ function formatSalaryRange(
   return salaryMin
     ? `From ${formatter.format(salaryMin)}`
     : salaryMax
-      ? `Up to ${formatter.format(salaryMax)}`
-      : 'Salary not specified';
+    ? `Up to ${formatter.format(salaryMax)}`
+    : 'Salary not specified';
 }
 
 type JobCardProps = {
@@ -85,8 +85,7 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
   const isGuest = !user;
   const canApplyRole = userRole === 'candidate';
 
-  const isDisabled =
-    !!user && (!canApplyRole || hasApplied);
+  const isDisabled = !!user && (!canApplyRole || hasApplied);
 
   const handleApply = () => {
     if (canApplyRole) {
@@ -136,10 +135,11 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
   return (
     <>
       <article
-        className={`flex flex-col gap-4 rounded-xl border border-slate-200 p-5 ${viewMode === 'grid'
-          ? 'h-full'
-          : 'lg:flex-row lg:items-center lg:justify-between'
-          }`}
+        className={`flex flex-col gap-4 rounded-xl border border-slate-200 p-5 ${
+          viewMode === 'grid'
+            ? 'h-full'
+            : 'lg:flex-row lg:items-center lg:justify-between'
+        }`}
       >
         <Link
           href={jobHref}
@@ -191,8 +191,9 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         </Link>
 
         <div
-          className={`flex w-full flex-col items-start gap-3 ${viewMode === 'grid' ? '' : 'lg:w-[196px] lg:items-end'
-            }`}
+          className={`flex w-full flex-col items-start gap-3 ${
+            viewMode === 'grid' ? '' : 'lg:w-[196px] lg:items-end'
+          }`}
         >
           <button
             onClick={handleApply}
@@ -202,10 +203,10 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
               isGuest
                 ? 'Sign in to apply'
                 : !canApplyRole
-                  ? 'Only candidates can apply'
-                  : hasApplied
-                    ? 'You have already applied'
-                    : 'Apply for this job'
+                ? 'Only candidates can apply'
+                : hasApplied
+                ? 'You have already applied'
+                : 'Apply for this job'
             }
           >
             {isGuest ? 'Sign in to Apply' : hasApplied ? 'Applied' : 'Apply'}

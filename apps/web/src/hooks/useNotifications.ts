@@ -40,12 +40,8 @@ function formatNotificationTime(createdAt: string) {
 
 export function useNotifications() {
   const PAGE_SIZE = 7;
-  const {
-    fetchNotifications,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-  } = useNotificationsApi();
+  const { fetchNotifications, markAsRead, markAllAsRead, removeNotification } =
+    useNotificationsApi();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isBellEnabled, setIsBellEnabled] = useState(false);

@@ -57,8 +57,8 @@ export default function JobDetailHeader({
   const applyButtonText = !user
     ? 'Sign in to Apply'
     : isApplied
-      ? 'Applied'
-      : 'Apply';
+    ? 'Applied'
+    : 'Apply';
 
   const handleApply = () => {
     if (isApplied) return;
@@ -117,8 +117,9 @@ export default function JobDetailHeader({
                   </Link>
                 ) : (
                   <span
-                    className={`truncate ${isLast ? 'font-semibold text-slate-900' : ''
-                      }`}
+                    className={`truncate ${
+                      isLast ? 'font-semibold text-slate-900' : ''
+                    }`}
                   >
                     {item.label}
                   </span>
@@ -176,18 +177,19 @@ export default function JobDetailHeader({
             <button
               onClick={handleApply}
               disabled={disableApply}
-              className={`${disableApply
+              className={`${
+                disableApply
                   ? 'bg-slate-100 text-slate-500 cursor-not-allowed opacity-60'
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
+              } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
               title={
                 !user
                   ? 'Sign in to apply'
                   : !canApplyRole
-                    ? 'Only candidates can apply'
-                    : isApplied
-                      ? 'You have already applied'
-                      : 'Apply for this job'
+                  ? 'Only candidates can apply'
+                  : isApplied
+                  ? 'You have already applied'
+                  : 'Apply for this job'
               }
             >
               {applyButtonText}

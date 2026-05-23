@@ -31,7 +31,7 @@ export function CandidateTopBar() {
 
   const fullName = candidateProfile?.name;
   const email = candidateProfile?.email;
-  const initials = getInitials(fullName|| 'Candidate');
+  const initials = getInitials(fullName || 'Candidate');
   const avatarUrl = candidateProfile?.avatarUrl;
 
   return (

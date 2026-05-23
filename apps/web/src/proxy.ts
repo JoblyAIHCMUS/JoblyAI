@@ -6,9 +6,7 @@ const SESSION_COOKIE_NAMES = [
 ];
 
 function hasSession(request: NextRequest) {
-  return SESSION_COOKIE_NAMES.some(
-    (name) => request.cookies.get(name)?.value
-  );
+  return SESSION_COOKIE_NAMES.some((name) => request.cookies.get(name)?.value);
 }
 
 function getRole(request: NextRequest) {
@@ -30,9 +28,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (role === 'employer') {
-      return NextResponse.redirect(
-        new URL('/employer/dashboard', request.url)
-      );
+      return NextResponse.redirect(new URL('/employer/dashboard', request.url));
     }
   }
 
@@ -44,15 +40,15 @@ export async function proxy(request: NextRequest) {
 
     if (role === 'candidate') {
       if (pathname === '/candidate' || pathname === '/candidate/') {
-        return NextResponse.redirect(new URL('/candidate/dashboard', request.url));
+        return NextResponse.redirect(
+          new URL('/candidate/dashboard', request.url)
+        );
       }
       return NextResponse.next();
     }
 
     if (role === 'employer') {
-      return NextResponse.redirect(
-        new URL('/employer/dashboard', request.url)
-      );
+      return NextResponse.redirect(new URL('/employer/dashboard', request.url));
     }
 
     return NextResponse.redirect(new URL('/', request.url));
@@ -66,7 +62,9 @@ export async function proxy(request: NextRequest) {
 
     if (role === 'employer') {
       if (pathname === '/employer' || pathname === '/employer/') {
-        return NextResponse.redirect(new URL('/employer/dashboard', request.url));
+        return NextResponse.redirect(
+          new URL('/employer/dashboard', request.url)
+        );
       }
       return NextResponse.next();
     }
@@ -89,9 +87,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (role === 'employer') {
-      return NextResponse.redirect(
-        new URL('/employer/dashboard', request.url)
-      );
+      return NextResponse.redirect(new URL('/employer/dashboard', request.url));
     }
 
     return NextResponse.redirect(new URL('/', request.url));
@@ -101,11 +97,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/login',
-    '/signup',
-    '/candidate/:path*',
-    '/employer/:path*',
-  ],
+  matcher: ['/', '/login', '/signup', '/candidate/:path*', '/employer/:path*'],
 };

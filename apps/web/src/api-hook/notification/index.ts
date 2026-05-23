@@ -5,9 +5,7 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
 } from '@/api-client/notification';
-import {
-  NotificationsQuery,
-} from '@/api-client/notification/types';
+import { NotificationsQuery } from '@/api-client/notification/types';
 
 export function useNotificationsApi() {
   const [loading, setLoading] = useState(false);
