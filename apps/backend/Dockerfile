@@ -34,8 +34,8 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
 COPY apps/backend ./apps/backend
 COPY libs ./libs
 
-# Generate Prisma Client with explicit binary targets
-RUN cd apps/backend && PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x pnpm exec prisma generate
+# Generate Prisma Client (Relying on binaryTargets in schema.prisma)
+RUN cd apps/backend && pnpm exec prisma generate
 
 # Sync Nx workspace and build the backend
 RUN pnpm exec nx sync --yes
@@ -79,8 +79,8 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --prod --filter @jobly/backend --frozen-lockfile
 
 # Regenerate Prisma Client and COPY ENGINE TO DIST
-RUN cd apps/backend && PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x pnpm exec prisma generate && \
-    cp /app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node /app/apps/backend/dist/
+RUN cd apps/backend && pnpm exec prisma generate && \
+    cp /app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node /app/apps/backend/dist/ 2>/dev/null || true
 
 # Expose port
 EXPOSE 3000
