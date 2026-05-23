@@ -1,6 +1,7 @@
-import { UIEvent, useEffect, useRef, useState } from 'react';
+import { UIEvent, useEffect, useRef, useState, useCallback } from 'react';
 
-import { notificationService } from '@/services/notificationService';
+import { useNotificationsApi } from '@/api-hook/notification';
+import { Notification } from '@/types/notification';
 
 function formatNotificationTime(createdAt: string) {
   const createdAtDate = new Date(createdAt);
@@ -39,11 +40,36 @@ function formatNotificationTime(createdAt: string) {
 
 export function useNotifications() {
   const PAGE_SIZE = 7;
-  const notifications = notificationService.getCandidateNotifications();
+  const {
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    removeNotification,
+  } = useNotificationsApi();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isBellEnabled, setIsBellEnabled] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isLoading, setIsLoading] = useState(false);
   const notificationWrapperRef = useRef<HTMLDivElement>(null);
+
+  const loadNotifications = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,9 +102,43 @@ export function useNotifications() {
     setIsBellEnabled(false);
   };
 
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (id: number) => {
+    try {
+      const notification = notifications.find((n) => n.id === id);
+      await removeNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      if (notification?.unread) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
   const visibleNotifications = notifications.slice(0, visibleCount);
   const hasMoreNotifications = visibleCount < notifications.length;
-  const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleNotificationScroll = (event: UIEvent<HTMLUListElement>) => {
     if (!hasMoreNotifications) {
@@ -103,9 +163,13 @@ export function useNotifications() {
     isBellEnabled,
     showNotificationMenu,
     notificationWrapperRef,
+    isLoading,
     handleBellToggle,
     handleNotificationScroll,
     closeNotificationMenu,
     formatNotificationTime,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleDeleteNotification,
   };
 }

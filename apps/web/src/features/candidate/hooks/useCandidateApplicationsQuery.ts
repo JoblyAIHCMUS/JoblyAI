@@ -7,8 +7,13 @@ import { useCandidate } from '@/features/candidate/context/candidate-context';
 import {
   isActiveApplicationStatus,
   isClosedApplicationStatus,
+  CANDIDATE_DASHBOARD_STATUS_META,
+  CANDIDATE_DASHBOARD_FILTER_META,
 } from '@/lib/candidateStatus';
-import { candidateDashboardService } from '@/services/candidateDashboardService';
+import {
+  filterApplicationsByDate,
+  getUniqueFilterOptions,
+} from '@/lib/candidateFilter';
 import {
   ApplicationItem,
   ApplicationFilter,
@@ -103,24 +108,18 @@ export function useCandidateApplicationsQuery() {
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
-  const statusMeta = candidateDashboardService.getStatusMeta();
-  const filterMeta = candidateDashboardService.getFilterMeta();
+  const statusMeta = CANDIDATE_DASHBOARD_STATUS_META;
+  const filterMeta = CANDIDATE_DASHBOARD_FILTER_META;
   const companyOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(applications, 'company'),
+    () => getUniqueFilterOptions(applications, 'company'),
     [applications]
   );
   const jobTypeOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(applications, 'jobType'),
+    () => getUniqueFilterOptions(applications, 'jobType'),
     [applications]
   );
   const locationOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(
-        applications,
-        'location'
-      ),
+    () => getUniqueFilterOptions(applications, 'location'),
     [applications]
   );
 
@@ -175,7 +174,7 @@ export function useCandidateApplicationsQuery() {
   }, []);
 
   const filteredApplications = useMemo(() => {
-    const dateFiltered = candidateDashboardService.filterApplicationsByDate(
+    const dateFiltered = filterApplicationsByDate(
       applications,
       selectedStartDate,
       selectedEndDate

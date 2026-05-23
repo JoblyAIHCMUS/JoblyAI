@@ -43,6 +43,9 @@ export async function proxy(request: NextRequest) {
     }
 
     if (role === 'candidate') {
+      if (pathname === '/candidate' || pathname === '/candidate/') {
+        return NextResponse.redirect(new URL('/candidate/dashboard', request.url));
+      }
       return NextResponse.next();
     }
 
@@ -62,6 +65,9 @@ export async function proxy(request: NextRequest) {
     }
 
     if (role === 'employer') {
+      if (pathname === '/employer' || pathname === '/employer/') {
+        return NextResponse.redirect(new URL('/employer/dashboard', request.url));
+      }
       return NextResponse.next();
     }
 
