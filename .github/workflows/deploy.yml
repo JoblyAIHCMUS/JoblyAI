@@ -79,7 +79,8 @@ jobs:
             $DOCKER_COMPOSE_CMD up -d redis scylla
             
             echo "--- [5/6] Waiting for Infrastructure to be healthy ---"
-            for i in {1..24}; do
+            # Increased wait time for ScyllaDB on t3.medium
+            for i in {1..40}; do
               if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
                 echo "Infrastructure is healthy!"
                 break
@@ -93,18 +94,28 @@ jobs:
             
             # 8. Wait for Backend healthy before Migration
             echo "--- Waiting for Backend to be healthy ---"
-            for i in {1..24}; do
-              if docker ps | grep backend_jobly | grep -q "(healthy)"; then
+            for i in {1..40}; do
+              # Get container status and health
+              CONTAINER_INFO=$(docker inspect --format='{{.State.Status}} {{.State.Health.Status}}' backend_jobly 2>/dev/null || echo "notfound")
+              echo "Backend status: $CONTAINER_INFO... ($((i*5))s)"
+              
+              if [[ "$CONTAINER_INFO" == *"healthy"* ]]; then
                 echo "Backend is healthy!"
                 break
               fi
-              # Check if container died
-              if ! docker ps | grep -q backend_jobly; then
-                echo "ERROR: Backend container died unexpectedly!"
-                $DOCKER_COMPOSE_CMD logs backend
+              
+              # If container is crashing or exited, print logs
+              if [[ "$CONTAINER_INFO" == "restarting"* ]] || [[ "$CONTAINER_INFO" == "exited"* ]]; then
+                echo "Backend is in bad state ($CONTAINER_INFO). Printing logs..."
+                docker logs --tail=50 backend_jobly
+              fi
+
+              # Check if container disappeared
+              if [[ "$CONTAINER_INFO" == "notfound" ]]; then
+                echo "ERROR: Backend container disappeared!"
                 exit 1
               fi
-              echo "Waiting for Backend... ($((i*5))s)"
+              
               sleep 5
             done
             
@@ -112,7 +123,8 @@ jobs:
             echo "--- Running Database Migrations ---"
             if [ -f "apps/backend/.env" ]; then
                 DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-                $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+                # Fix path inside container: schema is at prisma/schema.prisma
+                $DOCKER_COMPOSE_CMD exec -T -u root -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
             else
                 echo "ERROR: apps/backend/.env not found."
                 exit 1
