@@ -36,7 +36,7 @@ RUN pnpm exec nx sync --yes && pnpm exec nx build backend --prod
 
 # 3. PNPM DEPLOY: Create a standalone flattened production folder
 # This is the most reliable way to handle pnpm monorepos in Docker
-RUN pnpm --filter @jobly/backend deploy --prod /deployed && \
+RUN pnpm --filter @jobly/backend deploy --prod --legacy /deployed && \
     # Manually copy the build output into the deployed folder
     cp -r apps/backend/dist /deployed/dist && \
     # Manually copy prisma schema for migrations
