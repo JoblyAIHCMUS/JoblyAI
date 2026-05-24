@@ -70,4 +70,4 @@ EXPOSE 3001
 ENTRYPOINT ["node"]
 
 # In standalone mode, server.js is in the root of the standalone folder
-CMD ["server.js"]
+CMD ["apps/web/server.js"]
