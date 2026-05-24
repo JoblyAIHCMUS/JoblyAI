@@ -16,6 +16,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 30m
           script: |
+            # Enable immediate exit on any error
+            set -e
+            
             # 1. Change to home directory
             cd $HOME
             
@@ -91,8 +94,14 @@ jobs:
             
             # 9. Database Migration
             echo "--- Running Database Migrations ---"
-            DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-            $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+            # Explicitly check for .env file before migration
+            if [ -f "apps/backend/.env" ]; then
+                DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+                $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+            else
+                echo "ERROR: apps/backend/.env not found. Skipping migration."
+                exit 1
+            fi
             
             echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
             docker ps
