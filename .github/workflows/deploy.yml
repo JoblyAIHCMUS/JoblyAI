@@ -86,11 +86,13 @@ jobs:
             
             trap print_logs_and_exit ERR
 
-            echo "--- [1/6] Stopping services ---"
+            echo "--- [1/6] Stopping services & Cleaning disk ---"
             $DOCKER_COMPOSE_CMD down --remove-orphans
             
-            # KHÔNG dùng prune -a để giữ lại cache, giúp build nhanh hơn
-            docker system prune -f 
+            # Xóa các container, network và image thừa (không gắn thẻ)
+            # Giữ lại các Image cơ sở để không phải tải lại, nhưng xóa cache build cũ
+            docker image prune -f
+            docker builder prune -f --filter "until=24h"
             
             if [ "$BUILD_BACKEND" = "true" ]; then
               echo "--- [2/6] Building Backend ---"
