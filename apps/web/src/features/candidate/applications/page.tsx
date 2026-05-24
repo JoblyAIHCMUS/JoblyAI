@@ -90,7 +90,7 @@ export default function CandidateApplicationsPage() {
     applySearch,
   });
 
-  const firstName = candidateProfile?.name?.split(' ')[0] ?? 'Jake';
+  const firstName = candidateProfile?.name?.split(' ')[0] ?? '';
   const activityStatusText =
     dateRangeLabel === 'Select date range'
       ? 'from all time'

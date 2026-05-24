@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Menu } from 'lucide-react';
+import { Bell, Menu, X, CheckCheck } from 'lucide-react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePageTitle } from '@/contexts/page-title-context';
@@ -24,11 +24,14 @@ export function CandidateTopBar() {
     handleNotificationScroll,
     closeNotificationMenu,
     formatNotificationTime,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleDeleteNotification,
   } = useNotifications();
 
-  const fullName = candidateProfile?.name ?? 'Jake Gyll';
-  const email = candidateProfile?.email ?? 'jakegyll@email.com';
-  const initials = getInitials(fullName || 'Jake Gyll');
+  const fullName = candidateProfile?.name;
+  const email = candidateProfile?.email;
+  const initials = getInitials(fullName || 'Candidate');
   const avatarUrl = candidateProfile?.avatarUrl;
 
   return (
@@ -99,41 +102,79 @@ export function CandidateTopBar() {
                 />
 
                 <div className="fixed inset-x-2 top-[72px] z-50 rounded-xl border border-[#d6ddeb] bg-white shadow-[0_12px_28px_rgba(37,50,75,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[360px]">
-                  <div className="border-b border-[#eef1f6] px-4 py-3">
+                  <div className="flex items-center justify-between border-b border-[#eef1f6] px-4 py-3">
                     <p className="font-[family-name:var(--family-primary)] text-lg font-semibold text-[#25324b]">
                       Notifications
                     </p>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#4640de] transition-colors hover:text-[#3731bb]"
+                      >
+                        <CheckCheck className="h-3.5 w-3.5" />
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
 
                   <ul
                     className="max-h-[calc(100vh-180px)] overflow-auto py-2 sm:max-h-[360px]"
                     onScroll={handleNotificationScroll}
                   >
-                    {visibleNotifications.map((notification) => (
-                      <li key={notification.id}>
-                        <Link
-                          href={notification.href}
-                          onClick={closeNotificationMenu}
-                          className="flex gap-3 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
-                        >
-                          <span
-                            className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                              notification.unread
-                                ? 'bg-[#4640de]'
-                                : 'bg-[#d6ddeb]'
-                            }`}
-                          />
-                          <div className="min-w-0">
-                            <p className="line-clamp-2 text-sm text-[#25324b]">
-                              {notification.title}
-                            </p>
-                            <p className="mt-1 text-xs text-[#7c8493]">
-                              {formatNotificationTime(notification.createdAt)}
-                            </p>
-                          </div>
-                        </Link>
+                    {visibleNotifications.length === 0 ? (
+                      <li className="px-4 py-8 text-center text-sm text-[#7c8493]">
+                        No notifications yet
                       </li>
-                    ))}
+                    ) : (
+                      visibleNotifications.map((notification) => (
+                        <li
+                          key={notification.id}
+                          className="group relative transition-colors hover:bg-[#f8fafc]"
+                        >
+                          <Link
+                            href={notification.href}
+                            onClick={() => {
+                              handleMarkAsRead(notification.id);
+                              closeNotificationMenu();
+                            }}
+                            className="flex gap-3 px-4 py-3 pr-10"
+                          >
+                            <span
+                              className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                                notification.unread
+                                  ? 'bg-[#4640de]'
+                                  : 'bg-[#d6ddeb]'
+                              }`}
+                            />
+                            <div className="min-w-0">
+                              <p
+                                className={`line-clamp-2 text-sm ${
+                                  notification.unread
+                                    ? 'font-medium text-[#25324b]'
+                                    : 'text-[#7c8493]'
+                                }`}
+                              >
+                                {notification.title}
+                              </p>
+                              <p className="mt-1 text-xs text-[#7c8493]">
+                                {formatNotificationTime(notification.createdAt)}
+                              </p>
+                            </div>
+                          </Link>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteNotification(notification.id);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-[#7c8493] opacity-0 transition-all hover:bg-[#f1f3f9] hover:text-[#ff6550] group-hover:opacity-100"
+                            aria-label="Delete notification"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </li>
+                      ))
+                    )}
 
                     {hasMoreNotifications && (
                       <li className="px-4 py-2 text-center text-xs text-[#7c8493]">

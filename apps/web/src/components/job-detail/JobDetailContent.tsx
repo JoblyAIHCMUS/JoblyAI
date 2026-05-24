@@ -131,7 +131,6 @@ function RichContentSection({ content }: { content: string[] | string }) {
 export default function JobDetailContent(props: JobDetailContentProps) {
   const {
     descriptionContent,
-    applicationProgress,
     formattedSalary,
     aboutRole,
     category,
@@ -195,7 +194,7 @@ export default function JobDetailContent(props: JobDetailContentProps) {
               <SectionHeading>About this role</SectionHeading>
 
               {/* Progress bar */}
-              <div className="flex flex-col gap-2 py-3">
+              {/* <div className="flex flex-col gap-2 py-3">
                 <p className="text-sm sm:text-base text-slate-900">
                   <span className="font-medium">
                     {aboutRole.appliedCount} applied
@@ -210,7 +209,7 @@ export default function JobDetailContent(props: JobDetailContentProps) {
                     style={{ width: applicationProgress }}
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Meta rows */}
               <div className="flex flex-col gap-6">

@@ -4,12 +4,14 @@ import {
   EmploymentType,
   JobStatus,
   RequirementImportance,
+  Employer,
 } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
 import { Skill } from './data/Skill';
 import { users } from './data/User';
+import { resumeMetadata } from './data/resumemetadata';
 import { company } from './data/Company';
 import { jobPosting } from './data/JobPosting';
 
@@ -160,11 +162,34 @@ async function main() {
 
   const companies = await prisma.company.findMany();
 
+  // Ensure employers are linked to companies before posting jobs
+  console.log('Ensuring employers are linked to companies...');
+  const employerRecords: Employer[] = [];
+  for (let i = 0; i < employers.length; i++) {
+    const user = employers[i];
+    let record = await prisma.employer.findUnique({
+      where: { employerId: user.id },
+    });
+
+    if (!record) {
+      record = await prisma.employer.create({
+        data: {
+          employerId: user.id,
+          companyId: companies[i % companies.length].id,
+          role: 'employer',
+          assignedAt: new Date(),
+        },
+      });
+    }
+    employerRecords.push(record);
+  }
+
   // Create job postings
   console.log('Creating job postings...');
   const createdJobPostings = await Promise.all(
-    jobPosting.map((job, index) =>
-      prisma.jobPosting.create({
+    jobPosting.map((job, index) => {
+      const employer = employerRecords[index % employerRecords.length];
+      return prisma.jobPosting.create({
         data: {
           title: job.title,
           description: job.description,
@@ -175,13 +200,13 @@ async function main() {
           salaryMin: job.salaryMin,
           salaryMax: job.salaryMax,
 
-          // IMPORTANT: add relations here
-          postedById: employers[index % employers.length].id,
-          companyId: companies[index % companies.length].id,
+          // Use the correct relations from Employer record
+          postedById: employer.employerId,
+          companyId: employer.companyId!,
           categoryId: allCategories[index % allCategories.length].id,
         },
-      })
-    )
+      });
+    })
   );
   console.log(`Created ${createdJobPostings.length} job postings`);
 
@@ -256,64 +281,22 @@ async function main() {
 
   // Create resumes for candidates
   console.log('Creating resumes...');
-  const resumes = await Promise.all([
-    // Alice's resumes
-    prisma.resume.create({
-      data: {
-        candidateId: jobSeekers[0].id, // Alice
-        fileKey: 'resumes/alice-senior-dev.pdf',
-        fileName: 'alice-senior-dev.pdf',
-        fileType: 'application/pdf',
-        fileSize: 245678,
-        parsedText:
-          'Alice Johnson - Senior Full Stack Developer\n\nExperience:\n- 5+ years TypeScript, React, Node.js\n- Led team of 5 developers\n- Built scalable microservices\n\nSkills: TypeScript, React, Node.js, PostgreSQL, Docker',
-        aiScore: 0.92,
-        isDefault: true,
-      },
-    }),
-    prisma.resume.create({
-      data: {
-        candidateId: jobSeekers[0].id, // Alice - alternative resume
-        fileKey: 'resumes/alice-fullstack.pdf',
-        fileName: 'alice-fullstack.pdf',
-        fileType: 'application/pdf',
-        fileSize: 198234,
-        parsedText:
-          'Alice Johnson - Full Stack Engineer\n\nFocused on modern web technologies and cloud infrastructure.',
-        aiScore: 0.88,
-        isDefault: false,
-      },
-    }),
-    // Bob's resume
-    prisma.resume.create({
-      data: {
-        candidateId: jobSeekers[1].id, // Bob
-        fileKey: 'resumes/bob-react-dev.pdf',
-        fileName: 'bob-react-dev.pdf',
-        fileType: 'application/pdf',
-        fileSize: 186543,
-        parsedText:
-          'Bob Smith - React Developer\n\nExperience:\n- 2 years React development\n- Built responsive SPAs\n- Strong JavaScript fundamentals\n\nSkills: React, JavaScript, HTML, CSS, Git',
-        aiScore: 0.75,
-        isDefault: true,
-      },
-    }),
-    // Eve's resume
-    prisma.resume.create({
-      data: {
-        candidateId: jobSeekers[2].id, // Eve
-        fileKey: 'resumes/eve-junior-dev.pdf',
-        fileName: 'eve-junior-dev.pdf',
-        fileType: 'application/pdf',
-        fileSize: 123456,
-        parsedText:
-          'Eve Davis - Junior Developer\n\nRecent graduate with passion for web development.\n\nSkills: JavaScript, React basics, Git',
-        aiScore: 0.68,
-        isDefault: true,
-      },
-    }),
-  ]);
-  console.log(`Created ${resumes.length} resumes`);
+  const resumes = await Promise.all(
+    resumeMetadata.map((meta, index) => {
+      const candidate = jobSeekers[index % jobSeekers.length];
+      return prisma.resume.create({
+        data: {
+          candidateId: candidate.id,
+          fileKey: meta.fileKey,
+          fileName: meta.fileName,
+          fileType: 'application/pdf',
+          fileSize: meta.fileSize,
+          isDefault: index < jobSeekers.length,
+        },
+      });
+    })
+  );
+  console.log(`Created ${resumes.length} resumes from metadata`);
 
   // Create applications
   console.log('Creating applications...');
@@ -500,13 +483,19 @@ async function main() {
   console.log('Added Grace to Nomad as employee');
 
   // Assign Carol White as HR in Tech Corp
-  console.log('Creating employer role for Carol...');
+  console.log('Setting up Carol White as HR...');
   const carol = allUsers.find((u) => u.email === 'carol@example.com');
   if (carol) {
-    await prisma.employer.create({
-      data: {
+    await prisma.employer.upsert({
+      where: { employerId: carol.id },
+      create: {
         companyId: companies[0].id, // Tech Corp
         employerId: carol.id,
+        role: 'HR',
+        assignedAt: new Date('2021-01-01'),
+      },
+      update: {
+        companyId: companies[0].id,
         role: 'HR',
         assignedAt: new Date('2021-01-01'),
       },

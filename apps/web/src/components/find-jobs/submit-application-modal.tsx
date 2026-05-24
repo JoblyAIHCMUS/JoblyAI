@@ -249,16 +249,15 @@ export const SubmitApplicationModal = ({
             }));
 
           setResumeOptions(sortedResumes);
-          setSelectedResumeId((current) => {
-            if (
-              current &&
-              sortedResumes.some((resume) => resume.id === current)
-            ) {
-              return current;
-            }
+          const defaultResumeId =
+            sortedResumes.find((resume) => resume.isDefault)?.id ?? null;
 
-            return sortedResumes[0]?.id ?? job.currentResume?.id ?? null;
-          });
+          setSelectedResumeId(
+            defaultResumeId ??
+              sortedResumes[0]?.id ??
+              job.currentResume?.id ??
+              null
+          );
         } catch (error) {
           console.error('Failed to load candidate resumes', error);
           setResumeOptions([]);
@@ -306,7 +305,6 @@ export const SubmitApplicationModal = ({
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        isDefault: true,
       });
       setUploadProgress(100);
       // onSuccess callback will update the selected resume

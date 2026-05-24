@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
@@ -70,8 +71,13 @@ function MoreActionsMenu({
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        className="flex h-6 w-6 items-center justify-center text-[#25324b]"
-        onClick={() => setIsOpen((prev) => !prev)}
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-all hover:bg-[#efeffd] hover:text-[#4640de] active:scale-95 ${
+          isOpen ? 'bg-[#efeffd] text-[#4640de] shadow-sm' : 'text-[#25324b]'
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
       >
         <MoreHorizontal className="h-5 w-5" />
       </button>
@@ -110,8 +116,16 @@ export function ApplicationHistoryRow({
   onMoreActionSelect,
   onMessageRecruiter,
 }: ApplicationHistoryRowProps) {
+  const router = useRouter();
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
+
+  const handleRowClick = () => {
+    // If the job is closed (deleted), navigating might lead to a 404.
+    // However, we allow navigation so the user can see the 404/Not Found page
+    // which should ideally handle the "Job no longer available" state.
+    router.push(`/candidate/find-jobs/${item.jobId}`);
+  };
 
   const handleMoreActionSelect = (
     option: string,
@@ -149,19 +163,24 @@ export function ApplicationHistoryRow({
 
   return (
     <div
-      className={`w-full min-w-0 rounded-[10px] px-4 py-4 lg:rounded-[2px] lg:px-5 xl:px-6 ${
-        tinted ? 'bg-[#f8f8fd]' : 'bg-white'
+      onClick={handleRowClick}
+      className={`group w-full min-w-0 cursor-pointer rounded-[10px] px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
+        tinted
+          ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]'
+          : 'bg-white hover:bg-[#f8f8fd]'
       }`}
     >
       <div className="flex flex-col gap-2 lg:hidden">
         <div className="flex items-start justify-between gap-3">
           {mobileLogoNode}
           {showMoreActions && (
-            <MoreActionsMenu
-              item={item}
-              options={moreActionOptions}
-              onSelect={handleMoreActionSelect}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <MoreActionsMenu
+                item={item}
+                options={moreActionOptions}
+                onSelect={handleMoreActionSelect}
+              />
+            </div>
           )}
         </div>
 
@@ -219,11 +238,13 @@ export function ApplicationHistoryRow({
         </div>
 
         {showMoreActions && (
-          <MoreActionsMenu
-            item={item}
-            options={moreActionOptions}
-            onSelect={handleMoreActionSelect}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <MoreActionsMenu
+              item={item}
+              options={moreActionOptions}
+              onSelect={handleMoreActionSelect}
+            />
+          </div>
         )}
       </div>
     </div>

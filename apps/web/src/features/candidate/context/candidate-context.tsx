@@ -20,11 +20,7 @@ export interface Candidate {
 }
 
 // Mock candidates - replace with API data later
-const MOCK_CANDIDATES: Candidate[] = [
-  { id: '1', name: 'Jake Gyll', avatar: undefined },
-  { id: '2', name: 'Maria Garcia', avatar: undefined },
-  { id: '3', name: 'John Smith', avatar: undefined },
-];
+const MOCK_CANDIDATES: Candidate[] = [];
 
 interface CandidateContextType {
   candidates: Candidate[];

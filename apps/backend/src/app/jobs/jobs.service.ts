@@ -48,7 +48,9 @@ export class JobsService {
       status,
     } = query;
 
-    const whereClause: Prisma.JobPostingWhereInput = {};
+    const whereClause: Prisma.JobPostingWhereInput = {
+      deletedAt: null,
+    };
 
     // Default to OPEN status if not provided (candidates should only see published jobs)
     if (status && status.length > 0) {
@@ -191,8 +193,8 @@ export class JobsService {
   }
 
   async getJobById(id: number): Promise<JobPostingInterface> {
-    const job = await this.prisma.jobPosting.findUnique({
-      where: { id },
+    const job = await this.prisma.jobPosting.findFirst({
+      where: { id, deletedAt: null },
       include: {
         category: true,
         company: true,
@@ -276,8 +278,19 @@ export class JobsService {
       );
     }
 
-    await this.prisma.jobPosting.delete({
+    // Soft delete the job: set deletedAt and change status to CLOSED
+    await this.prisma.jobPosting.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: 'CLOSED',
+      },
+    });
+
+    // Mark all applications as job deleted to notify candidates
+    await this.prisma.application.updateMany({
+      where: { jobId: id },
+      data: { jobDeletedAt: new Date() },
     });
   }
 
@@ -294,10 +307,10 @@ export class JobsService {
 
     const [total, jobs] = await this.prisma.$transaction([
       this.prisma.jobPosting.count({
-        where: { postedById: userId },
+        where: { postedById: userId, deletedAt: null },
       }),
       this.prisma.jobPosting.findMany({
-        where: { postedById: userId },
+        where: { postedById: userId, deletedAt: null },
         include: {
           category: true,
           company: true,
@@ -337,10 +350,10 @@ export class JobsService {
 
     const [total, jobs] = await this.prisma.$transaction([
       this.prisma.jobPosting.count({
-        where: { companyId },
+        where: { companyId, deletedAt: null },
       }),
       this.prisma.jobPosting.findMany({
-        where: { companyId },
+        where: { companyId, deletedAt: null },
         include: {
           category: true,
           company: true,
@@ -373,7 +386,9 @@ export class JobsService {
     userId: string,
     userRole: string
   ): Promise<JobPostingInterface> {
-    const job = await this.prisma.jobPosting.findUnique({ where: { id } });
+    const job = await this.prisma.jobPosting.findFirst({
+      where: { id, deletedAt: null },
+    });
 
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
@@ -425,6 +440,7 @@ export class JobsService {
         categoryId,
         // Only return OPEN jobs for public category view
         status: 'OPEN',
+        deletedAt: null,
       },
       include: {
         category: true,

@@ -7,8 +7,13 @@ import { useCandidate } from '@/features/candidate/context/candidate-context';
 import {
   isActiveApplicationStatus,
   isClosedApplicationStatus,
+  CANDIDATE_DASHBOARD_STATUS_META,
+  CANDIDATE_DASHBOARD_FILTER_META,
 } from '@/lib/candidateStatus';
-import { candidateDashboardService } from '@/services/candidateDashboardService';
+import {
+  filterApplicationsByDate,
+  getUniqueFilterOptions,
+} from '@/lib/candidateFilter';
 import {
   ApplicationItem,
   ApplicationFilter,
@@ -64,13 +69,16 @@ function mapApiStatusToCandidateStatus(
 function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
   return {
     id: String(record.id),
+    jobId: String(record.jobId),
     company: record.job.companyName ?? 'Unknown company',
     logoUrl: record.job.companyLogoUrl ?? undefined,
     location: record.job.location ?? (record.job.remote ? 'Remote' : 'Unknown'),
     jobType: formatJobType(record.job.type),
     title: record.job.title,
     createdAt: record.createdAt.split('T')[0] ?? record.createdAt,
-    status: mapApiStatusToCandidateStatus(record.status),
+    status: record.jobDeletedAt
+      ? 'closed'
+      : mapApiStatusToCandidateStatus(record.status),
     recruiterId: record.job.postedBy.id,
   };
 }
@@ -103,24 +111,18 @@ export function useCandidateApplicationsQuery() {
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
-  const statusMeta = candidateDashboardService.getStatusMeta();
-  const filterMeta = candidateDashboardService.getFilterMeta();
+  const statusMeta = CANDIDATE_DASHBOARD_STATUS_META;
+  const filterMeta = CANDIDATE_DASHBOARD_FILTER_META;
   const companyOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(applications, 'company'),
+    () => getUniqueFilterOptions(applications, 'company'),
     [applications]
   );
   const jobTypeOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(applications, 'jobType'),
+    () => getUniqueFilterOptions(applications, 'jobType'),
     [applications]
   );
   const locationOptions = useMemo(
-    () =>
-      candidateDashboardService.getUniqueFilterOptions(
-        applications,
-        'location'
-      ),
+    () => getUniqueFilterOptions(applications, 'location'),
     [applications]
   );
 
@@ -175,7 +177,7 @@ export function useCandidateApplicationsQuery() {
   }, []);
 
   const filteredApplications = useMemo(() => {
-    const dateFiltered = candidateDashboardService.filterApplicationsByDate(
+    const dateFiltered = filterApplicationsByDate(
       applications,
       selectedStartDate,
       selectedEndDate

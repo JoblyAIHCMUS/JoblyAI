@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
-import { useRole } from '@/contexts/role-context';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { useListCandidateApplications } from '@/api-hook/application';
+import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
   return type
@@ -70,37 +71,66 @@ function getColorForSkill(skill: string): string {
 
 export default function JobCard({ job, viewMode }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const role = useRole();
+  const [hasApplied, setHasApplied] = useState(false);
+  const { fetchApplications } = useListCandidateApplications();
+  const { data: user } = useUser();
   const router = useRouter();
+  const userRole = user?.role ?? null;
   const jobHref =
-    role === 'candidate'
+    userRole === 'candidate'
       ? `/candidate/find-jobs/${job.id}`
       : `/find-jobs/${job.id}`;
 
   // Gate apply button by role - only candidates can apply
-  const canApply = role === 'candidate';
+  const isGuest = !user;
+  const canApplyRole = userRole === 'candidate';
+
+  const isDisabled = !!user && (!canApplyRole || hasApplied);
 
   const handleApply = () => {
-    if (canApply) {
-      // Candidate: open modal
-      setIsModalOpen(true);
-    } else {
-      // Non-candidates (guest, employer, admin): redirect to login
+    if (canApplyRole) {
+      // Candidate: open modal if not already applied
+      if (!hasApplied) setIsModalOpen(true);
+    } else if (!user) {
+      // Guest: redirect to login
       router.push(`/login?redirect=${encodeURIComponent(jobHref)}`);
     }
   };
 
-  const applyButtonClass = canApply
-    ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
-    : 'bg-slate-300 text-slate-500 cursor-not-allowed';
+  const applyButtonClass = isDisabled
+    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+    : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
   const handleApplicationSuccess = (message: string) => {
+    setHasApplied(true);
     toast.success(message);
   };
 
   const handleApplicationError = (error: string) => {
     toast.error(error);
   };
+
+  useEffect(() => {
+    let mounted = true;
+    const checkApplied = async () => {
+      if (!user) return;
+      try {
+        const res = await fetchApplications({ page: 1, pageSize: 100 });
+        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+        const applied = (res.applications || []).some(
+          (a) => a.jobId === job.id && activeStatuses.includes(a.status)
+        );
+        if (mounted) setHasApplied(applied);
+      } catch (err) {
+        // ignore errors (likely unauthenticated)
+      }
+    };
+
+    checkApplied();
+    return () => {
+      mounted = false;
+    };
+  }, [user, fetchApplications, job.id]);
 
   return (
     <>
@@ -167,13 +197,19 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
         >
           <button
             onClick={handleApply}
-            disabled={!canApply}
+            disabled={isDisabled}
             className={`h-11 w-full rounded-[6px] text-sm font-semibold transition-colors lg:w-[168px] ${applyButtonClass}`}
             title={
-              !canApply ? 'Only candidates can apply' : 'Apply for this job'
+              isGuest
+                ? 'Sign in to apply'
+                : !canApplyRole
+                ? 'Only candidates can apply'
+                : hasApplied
+                ? 'You have already applied'
+                : 'Apply for this job'
             }
           >
-            {!canApply ? 'Sign in to Apply' : 'Apply'}
+            {isGuest ? 'Sign in to Apply' : hasApplied ? 'Applied' : 'Apply'}
           </button>
           <div className="w-full lg:w-[168px]">
             <p className="mb-1 text-xs font-semibold text-slate-500">Salary</p>
@@ -181,31 +217,25 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
               {formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)}
             </p>
           </div>
-          <div className="w-full lg:w-[168px]">
-            <p className="mb-1 text-xs font-semibold text-slate-500">
-              5 applied of 10 capacity
-            </p>
-            <div className="h-2 w-full rounded-full bg-slate-200">
-              <div className="h-2 w-1/2 rounded-full bg-emerald-500" />
-            </div>
-          </div>
         </div>
       </article>
 
-      <SubmitApplicationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        job={{
-          id: job.id,
-          title: job.title,
-          company: job.company.name,
-          location: job.location,
-          jobType: job.type,
-          logoUrl: job.company.logoUrl || undefined,
-        }}
-        onSuccess={handleApplicationSuccess}
-        onError={handleApplicationError}
-      />
+      {canApplyRole ? (
+        <SubmitApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          job={{
+            id: job.id,
+            title: job.title,
+            company: job.company.name,
+            location: job.location,
+            jobType: job.type,
+            logoUrl: job.company.logoUrl || undefined,
+          }}
+          onSuccess={handleApplicationSuccess}
+          onError={handleApplicationError}
+        />
+      ) : null}
     </>
   );
 }

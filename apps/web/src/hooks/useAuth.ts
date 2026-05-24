@@ -114,7 +114,10 @@ export function useLogout() {
       // Clear user-specific cached data
       queryClient.removeQueries({ queryKey: ['user'] });
 
-      // Redirect to login (middleware + backend will clear cookies)
+      // Clean up non-HttpOnly cookies just in case backend redirect didn't catch them
+      document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
+
+      // Redirect to login (backend will clear HttpOnly session cookies via signOut)
       router.push('/login');
     },
     onError: (error) => {
@@ -132,6 +135,7 @@ export function useLogout() {
         // User is already logged out on backend, clear frontend state
         console.log('✅ User logged out (auth error detected)');
         queryClient.removeQueries({ queryKey: ['user'] });
+        document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
         router.push('/login');
       } else {
         // Unknown error
