@@ -42,6 +42,7 @@ model User {
   conversations        Conversation[]        @relation("UserConversations")
   participating        Conversation[]        @relation("ParticipantInConversations")
   applications         Application[]
+  notifications        Notification[]
 
   @@map("user")
 }
@@ -372,6 +373,23 @@ model Resume {
 
   @@index([candidateId])
   @@map("resume")
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  recipientId String
+  recipient   User     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  type        String   // e.g., "NEW_MESSAGE", "APPLICATION_STATUS", "NEW_APP"
+  title       String
+  content     String
+  link        String?  // URL to redirect when clicked
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  metadata    Json?    // Extra info (senderId, jobId, etc.)
+
+  @@index([recipientId])
+  @@index([isRead])
+  @@map("notification")
 }
 
 model Application {

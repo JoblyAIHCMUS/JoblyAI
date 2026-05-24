@@ -14,6 +14,7 @@ import {
   Application,
   PaginatedApplicationsResponse,
 } from './applications.interface';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
@@ -43,7 +44,10 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
 
 @Injectable()
 export class ApplicationsService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly notificationsService: NotificationsService
+  ) {}
 
   async createApplication(
     candidateId: string,
@@ -167,6 +171,16 @@ export class ApplicationsService {
           },
         },
       },
+    });
+
+    // Notify job poster (Employer)
+    await this.notificationsService.createNotification({
+      recipientId: job.postedById,
+      type: 'NEW_APPLICATION',
+      title: 'New Job Application',
+      content: `A new candidate has applied for your job: ${job.title}`,
+      link: `/employer/jobs/${job.id}/applications`,
+      metadata: { applicationId: application.id, jobId: job.id },
     });
 
     return this.mapToApplicationResponse(application);
@@ -472,6 +486,16 @@ export class ApplicationsService {
       },
     });
 
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: updatedApplication.candidateId,
+      type: 'APPLICATION_STATUS_UPDATE',
+      title: 'Application Status Updated',
+      content: `Your application for ${updatedApplication.job.title} has been moved to INTERVIEW.`,
+      link: `/applications/${updatedApplication.id}`,
+      metadata: { applicationId: updatedApplication.id, status: 'INTERVIEW' },
+    });
+
     return this.mapToApplicationResponse(updatedApplication);
   }
 
@@ -547,6 +571,16 @@ export class ApplicationsService {
           },
         },
       },
+    });
+
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: updatedApplication.candidateId,
+      type: 'APPLICATION_REJECTED',
+      title: 'Application Update',
+      content: `Your application for ${updatedApplication.job.title} has been rejected.`,
+      link: `/applications/${updatedApplication.id}`,
+      metadata: { applicationId: updatedApplication.id, status: 'REJECTED' },
     });
 
     return this.mapToApplicationResponse(updatedApplication);

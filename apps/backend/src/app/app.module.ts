@@ -16,6 +16,7 @@ import { MessagesModule } from './messages/messages.module';
 import { CompanyModule } from './company/company.module';
 import { SkillsModule } from './skills/skills.module';
 import { AiModule } from './ai/ai.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AiModule } from './ai/ai.module';
     UserModule,
     S3Module,
     MessagesModule,
+    NotificationsModule,
     CompanyModule,
     SkillsModule,
     AiModule,

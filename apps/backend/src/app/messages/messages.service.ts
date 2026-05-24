@@ -4,12 +4,14 @@ import { InjectPrisma, InjectScylla } from '../decorators/inject.decorator';
 import { ChatSummaryResponse, ChatHistoryResponse } from './messages.interface';
 import { SendMessageDTO } from './dto/sendMessageDTO';
 import { PrismaClient } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectScylla() private readonly scylla: Client,
-    @InjectPrisma() private readonly prisma: PrismaClient
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   private static getChatId(userA: string, userB: string): string {
@@ -65,6 +67,16 @@ export class MessagesService {
         create: { ...recipientData, ...updatePayload },
       }),
     ]);
+
+    // Send notification to recipient
+    await this.notificationsService.createNotification({
+      recipientId: dto.recipientId,
+      type: 'NEW_MESSAGE',
+      title: 'New Message',
+      content: dto.text.length > 50 ? dto.text.substring(0, 47) + '...' : dto.text,
+      link: `/messages/${senderId}`,
+      metadata: { senderId },
+    });
   }
 
   async markAsRead(senderId: string, recipientId: string): Promise<void> {
