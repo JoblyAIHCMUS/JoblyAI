@@ -167,7 +167,7 @@ _(Khắc phục lỗi Windows: Nếu bạn gõ lệnh ssh mà bị báo lỗi **
    BETTER_AUTH_URL=https://jobly.ai.vn
    APP_URL=https://jobly.ai.vn
    WEB_URL=https://jobly.ai.vn
-   NEXT_PUBLIC_API_URL=https://jobly.ai.vn/api
+   NEXT_PUBLIC_API_URL=https://jobly.ai.vn
 
    # Thay bằng endpoint của RDS
    DATABASE_URL="postgresql://postgres:12345678@jobly-db.cn4qykaqe6n0.ap-southeast-1.rds.amazonaws.com:5432/postgres?schema=public"

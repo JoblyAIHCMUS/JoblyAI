@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     profiles:
-      - local-db # Only runs if specified, allowing RDS for production
+      - local-db
 
   redis:
     # Pinned to redis 7.x alpine for stability and performance.
@@ -85,6 +85,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    command: ["node", "apps/backend/dist/main"]
 
   web:
     container_name: web_jobly
@@ -92,14 +93,14 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn/api}
+        # Pass domain WITHOUT /api to avoid double /api in auth-client.ts
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn}
     env_file:
-      - apps/backend/.env # Re-use same env for simplicity if needed
+      - apps/backend/.env
     environment:
-      # These will be baked into the Next.js build if using standalone
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn}
     ports:
-      - '5173:5173'
+      - '3001:3000' # Host port 3001 -> Container port 3000
     deploy:
       resources:
         limits:
@@ -107,7 +108,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:5173 || exit 1']
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000 || exit 1']
       interval: 15s
       timeout: 5s
       retries: 3
