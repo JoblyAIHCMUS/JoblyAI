@@ -58,7 +58,6 @@ services:
 
   # --- APPLICATIONS ---
   backend:
-    user: root
     container_name: backend_jobly
     build:
       context: .
@@ -81,7 +80,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
   web:
     container_name: web_jobly

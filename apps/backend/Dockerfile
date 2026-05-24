@@ -7,7 +7,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 RUN corepack enable
-RUN apk add --no-cache libc6-compat openssl git
+RUN apk add --no-cache libc6-compat openssl git findutils
 
 WORKDIR /app
 
@@ -31,44 +31,40 @@ COPY libs ./libs
 # 1. Generate Prisma Client
 RUN cd apps/backend && pnpm exec prisma generate
 
-# 2. Build the backend
+# 2. Sync and Build
 RUN pnpm exec nx sync --yes && pnpm exec nx build backend --prod
 
-# 3. Resolve all symlinks for Prisma to real files (Flattening)
-RUN mkdir -p /prisma-real && \
-    find node_modules -name ".prisma" -type d -exec cp -rL {} /prisma-real/ \; && \
-    find node_modules -name "@prisma" -type d -exec cp -rL {} /prisma-real/ \;
+# 3. PNPM DEPLOY: Create a standalone flattened production folder
+# This is the most reliable way to handle pnpm monorepos in Docker
+RUN pnpm --filter @jobly/backend deploy --prod /deployed && \
+    # Manually copy the build output into the deployed folder
+    cp -r apps/backend/dist /deployed/dist && \
+    # Manually copy prisma schema for migrations
+    cp -r apps/backend/prisma /deployed/prisma
+
+# 4. Generate Prisma engine inside the deployed folder to ensure correct paths
+RUN cd /deployed && npx prisma generate && \
+    find node_modules -name "libquery_engine-*.so.node" -exec cp {} /deployed/query-engine.so.node \;
 
 # Production stage
 FROM node:22-alpine AS production
 
 ENV NODE_ENV=production
+# Force Prisma to use our co-located engine
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
 
 # Critical runtime libraries
 RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils
 
 WORKDIR /app
-RUN chown -R node:node /app
 
-# 1. Copy only necessary files for production
-COPY --chown=node:node apps/backend/package.json ./package.json
-COPY --chown=node:node --from=base /app/apps/backend/dist ./dist
-
-# 2. Copy the flattened Prisma modules (NO SYMLINKS)
-COPY --chown=node:node --from=base /prisma-real/.prisma ./node_modules/.prisma
-COPY --chown=node:node --from=base /prisma-real/@prisma/client ./node_modules/@prisma/client
-
-# 3. Find and co-locate engine
-RUN find /app/node_modules -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
-    if [ ! -f /app/query-engine.so.node ]; then echo "ERROR: Prisma engine not found!" && exit 1; fi
-
-# Explicitly point to the engine file
-ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
+# Copy the entire deployed folder (flattened node_modules + dist + engine)
+COPY --chown=node:node --from=base /deployed ./
 
 USER node
 
 # Expose port
 EXPOSE 3000
 
-# Start directly with node to avoid any pnpm issues in runtime
-CMD ["node", "dist/main"]
+# Start using absolute path and explicit node binary
+CMD ["/usr/local/bin/node", "/app/dist/main.js"]
