@@ -9,7 +9,7 @@ ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN corepack enable
 
 # Pre-install essential build tools
-RUN mkdir -p /pnpm && chmod -R 777 /pnpm && apk add --no-cache libc6-compat openssl git
+RUN mkdir -p /pnpm && chmod -R 777 /pnpm && apk add --no-cache libc6-compat openssl git tar
 
 # Set working directory
 WORKDIR /app
@@ -34,11 +34,9 @@ COPY libs ./libs
 # 1. Generate Prisma Client in the build stage
 RUN cd apps/backend && pnpm exec prisma generate
 
-# 2. FLATTEN PRISMA CLIENT: Resolve symlinks into real files for copying
-# This step is critical because Docker COPY --from cannot handle pnpm symlinks well
-RUN mkdir -p /prisma-real && \
-    cp -rL node_modules/.prisma /prisma-real/ && \
-    cp -rL node_modules/@prisma/client /prisma-real/
+# 2. TAR STRATEGY: Bundle Prisma client resolved files
+# We use -L (follow links) to turn pnpm symlinks into real directories
+RUN tar -chf /prisma.tar $(find node_modules -name ".prisma" -type d) $(find node_modules -name "@prisma" -type d | grep "client")
 
 # 3. Sync and Build
 RUN pnpm exec nx sync --yes && pnpm exec nx build backend --prod
@@ -49,7 +47,7 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 
 # Critical runtime libraries
-RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils
+RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils tar
 
 WORKDIR /app
 RUN chown -R node:node /app
@@ -57,12 +55,13 @@ RUN chown -R node:node /app
 # Copy built application
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# CHỦ CHỐT: Copy các thư mục Prisma ĐÃ ĐƯỢC LÀM PHẲNG (Flattened) từ stage base
-COPY --chown=node:node --from=base /prisma-real/.prisma ./node_modules/.prisma
-COPY --chown=node:node --from=base /prisma-real/@prisma/client ./node_modules/@prisma/client
+# CHỦ CHỐT: Extract Prisma client from the tar archive created in base stage
+COPY --from=base /prisma.tar /prisma.tar
+RUN tar -xf /prisma.tar && rm /prisma.tar
 
 # Tìm file engine và copy ra gốc để bundle nạp được
-RUN find /app/node_modules/.prisma -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \;
+RUN find /app/node_modules/.prisma -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
+    if [ ! -f /app/query-engine.so.node ]; then echo "ERROR: Prisma engine not found!" && exit 1; fi
 
 # Trỏ đích danh vào file đã copy
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
