@@ -1,20 +1,32 @@
 import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import dotenv from 'dotenv';
 
-// Real Nodemailer transporter (for production/staging)
-// TODO: uncomment when in production
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: process.env.GMAIL_USER,
-//     pass: process.env.GMAIL_APP_PASSWORD,
-//   },
-// });
+dotenv.config();
 
-export const transporter = nodemailer.createTransport({
-  host: 'smtp.ethereal.email',
-  port: 587,
-  auth: {
-    user: process.env.ETHEREAL_USER,
-    pass: process.env.ETHEREAL_PASS,
-  },
-});
+const { ETHEREAL_USER, ETHEREAL_PASSWORD } = process.env;
+console.log('Ethereal credentials:', { ETHEREAL_USER, ETHEREAL_PASSWORD });
+let transporterInstance: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null =
+  null;
+
+export const getTransporter = async (): Promise<
+  nodemailer.Transporter<SMTPTransport.SentMessageInfo>
+> => {
+  if (transporterInstance) {
+    return transporterInstance;
+  }
+
+  const testAccount = await nodemailer.createTestAccount();
+
+  transporterInstance = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: {
+      user: ETHEREAL_USER || testAccount.user,
+      pass: ETHEREAL_PASSWORD || testAccount.pass,
+    },
+  });
+
+  return transporterInstance;
+};
