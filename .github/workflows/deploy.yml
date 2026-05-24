@@ -1,11 +1,11 @@
-name: Deploy Backend JoblyAI to EC2
+name: Deploy Fullstack JoblyAI to EC2
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy-backend:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2 via SSH
@@ -19,56 +19,53 @@ jobs:
             # 1. Change to home directory
             cd $HOME
             
-            # 2. Backup .env file if it exists to prevent loss during directory deletion
+            # 2. Backup .env file if it exists
             if [ -f "joblyai/apps/backend/.env" ]; then
               echo "--- Backing up .env file ---"
               cp "joblyai/apps/backend/.env" "$HOME/backend_env_backup"
             fi
             
-            # 3. Delete and Re-clone if directory is corrupted or .git is missing
+            # 3. Clean and Clone if needed
             if [ ! -d "joblyai/.git" ]; then
-              echo "--- Corrupted or missing directory, deleting and cloning fresh ---"
+              echo "--- Corrupted or missing directory, re-cloning ---"
               rm -rf joblyai
               git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
             
-            # 4. Enter directory and update source code
+            # 4. Update source code
             cd joblyai
             echo "--- Updating source code ---"
             git fetch origin main
             git reset --hard origin/main
             
-            # 5. Restore .env file from backup (if exists)
+            # 5. Restore .env file
             if [ -f "$HOME/backend_env_backup" ]; then
               echo "--- Restoring .env file ---"
               mkdir -p apps/backend
               mv "$HOME/backend_env_backup" apps/backend/.env
             fi
             
-            # 6. Check for .env file (Required for Docker)
-            if [ ! -f "apps/backend/.env" ]; then
-              echo "ERROR: apps/backend/.env file not found! Please create it manually on EC2."
-              exit 1
-            fi
-            
-            # 7. Ensure docker-compose is available
+            # 6. Ensure docker-compose is available
             DOCKER_COMPOSE_CMD="docker-compose"
             if ! command -v docker-compose &> /dev/null; then
                 DOCKER_COMPOSE_CMD="docker compose"
             fi
             
-            # 8. Super-Sequential Startup for Maximum RAM Efficiency
-            echo "--- [1/5] Stopping all services to free memory ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml down --remove-orphans
-            docker system prune -a -f # Deep cleanup
+            # 7. SUPER-SEQUENTIAL DEPLOYMENT (Low RAM Optimization)
+            echo "--- [1/6] Stopping services ---"
+            $DOCKER_COMPOSE_CMD down --remove-orphans
+            docker system prune -a -f
             
-            echo "--- [2/5] Building Backend image in isolation ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml build backend
+            echo "--- [2/6] Building Backend ---"
+            $DOCKER_COMPOSE_CMD build backend
             
-            echo "--- [3/5] Starting Infrastructure (Redis, Scylla) ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d redis scylla
+            echo "--- [3/6] Building Frontend ---"
+            $DOCKER_COMPOSE_CMD build web
             
-            echo "--- [4/5] Waiting for Infrastructure to be healthy ---"
+            echo "--- [4/6] Starting Infrastructure (Redis, Scylla) ---"
+            $DOCKER_COMPOSE_CMD up -d redis scylla
+            
+            echo "--- [5/6] Waiting for Infrastructure to be healthy ---"
             for i in {1..24}; do
               if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
                 echo "Infrastructure is healthy!"
@@ -78,40 +75,24 @@ jobs:
               sleep 5
             done
             
-            echo "--- [5/5] Starting Application (Backend, Nginx) ---"
-            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d backend nginx scylla-init
+            echo "--- [6/6] Starting Apps (Web, Backend, Nginx) ---"
+            $DOCKER_COMPOSE_CMD up -d web backend nginx scylla-init
             
-            # 9. Wait for Backend to be healthy before migration
+            # 8. Wait for Backend healthy before Migration
             echo "--- Waiting for Backend to be healthy ---"
-            for i in {1..36}; do
+            for i in {1..24}; do
               if docker ps | grep backend_jobly | grep -q "(healthy)"; then
                 echo "Backend is healthy!"
                 break
               fi
               echo "Waiting for Backend... ($((i*5))s)"
-              docker logs --tail 10 backend_jobly || true
               sleep 5
             done
             
-            if ! docker ps | grep backend_jobly | grep -q "(healthy)"; then
-              echo "ERROR: Backend failed to become healthy. Check logs above."
-              docker logs backend_jobly
-              exit 1
-            fi
-            
-            # 10. Database Migration
+            # 9. Database Migration
             echo "--- Running Database Migrations ---"
-            # Check if file exists first
-            if [ -f "$HOME/joblyai/apps/backend/.env" ]; then
-              echo "Found .env file at $HOME/joblyai/apps/backend/.env"
-              # Extract URL using a more robust method
-              DB_URL=$(grep "^DATABASE_URL=" "$HOME/joblyai/apps/backend/.env" | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-              echo "Extracted DATABASE_URL (masked): $(echo $DB_URL | sed 's/:[^@]*@/:****@/')"
-              
-              # Run migration with explicit environment variable
-              $DOCKER_COMPOSE_CMD -f docker-compose.yml exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
-            else
-              echo "ERROR: .env file NOT FOUND at $HOME/joblyai/apps/backend/.env"
-              ls -la $HOME/joblyai/apps/backend/
-              exit 1
-            fi
+            DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+            $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
+            
+            echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
+            docker ps

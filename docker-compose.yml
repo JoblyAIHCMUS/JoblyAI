@@ -6,23 +6,19 @@ services:
     container_name: postgres_jobly
     environment:
       POSTGRES_USER: jobly
-      POSTGRES_PASSWORD: jobly
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-jobly}
       POSTGRES_DB: jobly_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U jobly -d jobly_db']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - local-db # Only runs if specified, allowing RDS for production
 
   redis:
-    # Pinned to Redis 7 (current stable major).
+    # Pinned to redis 7.x alpine for stability and performance.
     image: redis:7-alpine
     container_name: redis_jobly
-    command: ['redis-server', '--appendonly', 'yes']
     ports:
       - '6379:6379'
     volumes:
@@ -79,24 +75,42 @@ services:
         limits:
           memory: 1G
     depends_on:
-      # Comment out dependency to postgres in prod so it works gracefully when external DB is used.
-      # postgres:
-      #   condition: service_healthy
       redis:
         condition: service_healthy
-      # Add Scylla dependency if your app connects on startup
       scylla:
         condition: service_healthy
-    environment:
-      # Define critical defaults, but ALLOW overriding via apps/backend/.env
-      NODE_ENV: ${NODE_ENV:-production}
-    command: ['sh', '-c', 'node apps/backend/dist/main']
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  web:
+    container_name: web_jobly
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn/api}
+    env_file:
+      - apps/backend/.env # Re-use same env for simplicity if needed
+    environment:
+      # These will be baked into the Next.js build if using standalone
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    ports:
+      - '5173:5173'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    depends_on:
+      - backend
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:5173 || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
   nginx:
     # Pinned to nginx 1.27.x for stability.
@@ -107,7 +121,10 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+      web:
+        condition: service_healthy
 
 volumes:
   postgres_data:

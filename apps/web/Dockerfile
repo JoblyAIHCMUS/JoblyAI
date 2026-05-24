@@ -1,6 +1,11 @@
 # STAGE 1: Build
 FROM node:22-alpine AS builder
 WORKDIR /app
+
+# Accept build arguments
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # ⚠️ CRITICAL FOR NEXT.JS ON ALPINE
 RUN apk add --no-cache libc6-compat 
 RUN npm install -g pnpm
