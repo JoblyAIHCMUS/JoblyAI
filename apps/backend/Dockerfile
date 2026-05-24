@@ -41,8 +41,7 @@ RUN pnpm --filter @jobly/backend deploy --prod --legacy /deployed && \
 
 # 4. Final Prisma setup inside the deployed folder
 RUN cd /deployed && \
-    PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x npx prisma generate && \
-    find node_modules -name "libquery_engine-*.so.node" -exec cp {} /deployed/query-engine.so.node \;
+    PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x npx prisma generate
 
 RUN chown -R node:node /deployed
 
@@ -51,7 +50,7 @@ RUN chown -R node:node /deployed
 FROM node:22-alpine AS production
 
 ENV NODE_ENV=production
-ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 
 # Critical runtime libraries for Alpine
 RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils curl
@@ -65,11 +64,11 @@ COPY --chown=node:node --from=base /deployed ./
 
 USER node
 
-# Healthcheck inside container (Giữ nguyên của bạn)
+# Healthcheck inside container
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://127.0.0.1:3000/api || exit 1
 
 EXPOSE 3000
 
-# Start (Giữ nguyên chạy bằng Node thuần)
+# Start bằng Node thuần
 CMD ["node", "dist/main.js"]
