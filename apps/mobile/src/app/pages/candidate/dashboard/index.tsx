@@ -170,17 +170,17 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <View className="overflow-hidden rounded-[14px] border border-[#d6ddeb] bg-white p-4">
+    <View className="overflow-hidden rounded-xl border border-[#d6ddeb] bg-white p-4">
       <View className="flex-row items-end justify-between gap-4">
         <View className="flex-1 pr-2">
-          <Text className="text-[18px] font-semibold leading-6 text-[#25324b]">
+          <Text className="text-lg font-semibold leading-6 text-[#25324b]">
             {label}
           </Text>
-          <View className="mt-6 min-h-[56px] justify-center">
+          <View className="mt-6 min-h-14 justify-center">
             {loading ? (
               <ActivityIndicator color="#4640de" />
             ) : (
-              <Text className="text-[44px] font-medium leading-[56px] tracking-[-0.6px] text-[#25324b]">
+              <Text className="text-5xl font-medium leading-none tracking-tight text-[#25324b]">
                 {value}
               </Text>
             )}
@@ -265,7 +265,7 @@ function StatusChartsSection({
   );
 
   return (
-    <View className="w-full overflow-hidden rounded-[14px] border border-[#d6ddeb] bg-white p-4">
+    <View className="w-full overflow-hidden rounded-xl border border-[#d6ddeb] bg-white p-4">
       <View className="flex-row self-start rounded-lg border border-[#d6ddeb] p-1">
         {chartTabs.map((tab) => {
           const active = tab === activeView;
@@ -294,12 +294,12 @@ function StatusChartsSection({
       <View className="mt-8 items-center">
         {activeView === 'Status' ? (
           <>
-            <Text className="self-start text-[18px] font-semibold leading-6 text-[#25324b]">
+            <Text className="self-start text-lg font-semibold leading-6 text-[#25324b]">
               Jobs Applied Status
             </Text>
 
             {loading ? (
-              <View className="mt-8 h-[130px] w-[130px] items-center justify-center rounded-full border-[16px] border-[#e8ecff] bg-white shadow-[0_14px_30px_rgba(70,64,222,0.08)]">
+              <View className="mt-8 h-32 w-32 items-center justify-center rounded-full border-8 border-[#e8ecff] bg-white shadow-lg">
                 <ActivityIndicator color="#4640de" />
               </View>
             ) : totalApplications > 0 ? (
@@ -316,7 +316,7 @@ function StatusChartsSection({
                     return (
                       <View
                         key={status}
-                        className="flex-row items-center justify-between rounded-[12px] bg-[#f8fafc] px-3 py-3"
+                        className="flex-row items-center justify-between rounded-xl bg-[#f8fafc] px-3 py-3"
                       >
                         <View className="flex-row items-center gap-3">
                           <View
@@ -337,7 +337,7 @@ function StatusChartsSection({
                   })}
               </View>
             ) : (
-              <View className="mt-8 h-[130px] w-[130px] items-center justify-center rounded-full border-[16px] border-[#e8ecff] bg-white shadow-[0_14px_30px_rgba(70,64,222,0.08)]">
+              <View className="mt-8 h-32 w-32 items-center justify-center rounded-full border-8 border-[#e8ecff] bg-white shadow-lg">
                 <View className="items-center px-4">
                   <Text className="text-lg font-semibold text-[#25324b]">
                     0
@@ -357,16 +357,16 @@ function StatusChartsSection({
           </>
         ) : (
           <>
-            <Text className="self-start text-[18px] font-semibold leading-6 text-[#25324b]">
+            <Text className="self-start text-lg font-semibold leading-6 text-[#25324b]">
               CV Submitted Timeline
             </Text>
 
             {loading ? (
-              <View className="mt-8 h-[160px] w-full items-center justify-center rounded-[16px] bg-[#f8fafc]">
+              <View className="mt-8 h-40 w-full items-center justify-center rounded-2xl bg-[#f8fafc]">
                 <ActivityIndicator color="#4640de" />
               </View>
             ) : totalApplications > 0 ? (
-              <View className="mt-6 h-[160px] w-full flex-row items-end justify-between gap-2 rounded-[16px] bg-[#f8fafc] px-3 py-3">
+              <View className="mt-6 h-40 w-full flex-row items-end justify-between gap-2 rounded-2xl bg-[#f8fafc] px-3 py-3">
                 {timelineBuckets.map((bucket) => {
                   const height = Math.max(
                     20,
@@ -378,16 +378,16 @@ function StatusChartsSection({
                       key={bucket.key}
                       className="flex-1 items-center gap-2"
                     >
-                      <Text className="text-[11px] font-semibold text-[#25324b]">
+                      <Text className="text-xs font-semibold text-[#25324b]">
                         {bucket.count}
                       </Text>
-                      <View className="h-[92px] w-full items-end justify-end rounded-full bg-[#e8ecff] px-1 pb-1">
+                      <View className="h-24 w-full items-end justify-end rounded-full bg-[#e8ecff] px-1 pb-1">
                         <View
                           className="w-full rounded-full bg-[#4640de]"
                           style={{ height: `${height}%` }}
                         />
                       </View>
-                      <Text className="text-[10px] text-[#7c8493]">
+                      <Text className="text-xs text-[#7c8493]">
                         {bucket.label}
                       </Text>
                     </View>
@@ -395,7 +395,7 @@ function StatusChartsSection({
                 })}
               </View>
             ) : (
-              <View className="mt-8 h-[160px] w-full items-center justify-center rounded-[16px] bg-[#f8fafc]">
+              <View className="mt-8 h-40 w-full items-center justify-center rounded-2xl bg-[#f8fafc]">
                 <Text className="text-sm text-[#7c8493]">
                   No timeline data in the selected range.
                 </Text>
@@ -429,20 +429,20 @@ function RecentApplicationsSection({
   error: unknown;
 }) {
   return (
-    <View className="rounded-[14px] border border-[#d6ddeb] bg-white p-4">
-      <Text className="pb-4 text-[18px] font-semibold leading-6 text-[#25324b]">
+    <View className="rounded-xl border border-[#d6ddeb] bg-white p-4">
+      <Text className="pb-4 text-lg font-semibold leading-6 text-[#25324b]">
         Recent Applications History
       </Text>
       <View className="h-px w-full bg-[#d6ddeb]" />
 
       {error ? (
-        <View className="mt-6 min-h-[112px] rounded-[10px] bg-[#fff1f0] px-4 py-8">
+        <View className="mt-6 min-h-28 rounded-lg bg-[#fff1f0] px-4 py-8">
           <Text className="text-center text-sm text-[#d93025]">
             Unable to load applications. Pull to refresh.
           </Text>
         </View>
       ) : loading ? (
-        <View className="mt-6 min-h-[112px] items-center justify-center rounded-[10px] bg-[#f8fafc] px-4 py-8">
+        <View className="mt-6 min-h-28 items-center justify-center rounded-lg bg-[#f8fafc] px-4 py-8">
           <ActivityIndicator color="#4640de" />
         </View>
       ) : applications.length > 0 ? (
@@ -460,7 +460,7 @@ function RecentApplicationsSection({
             return (
               <View
                 key={application.id}
-                className="rounded-[12px] border border-[#e8ecff] bg-[#f8fafc] px-3 py-3"
+                className="rounded-xl border border-[#e8ecff] bg-[#f8fafc] px-3 py-3"
               >
                 <View className="flex-row items-start gap-3">
                   <View className="h-12 w-12 items-center justify-center rounded-full bg-[#eef0ff]">
@@ -479,7 +479,7 @@ function RecentApplicationsSection({
 
                   <View className="flex-1 gap-1">
                     <Text
-                      className="text-[15px] font-semibold leading-5 text-[#25324b]"
+                      className="text-base font-semibold leading-5 text-[#25324b]"
                       numberOfLines={2}
                     >
                       {application.job.title}
@@ -516,7 +516,7 @@ function RecentApplicationsSection({
                     style={{ backgroundColor: `${statusColor}14` }}
                   >
                     <Text
-                      className="text-[10px] font-bold uppercase tracking-[0.4px]"
+                      className="text-xs font-bold uppercase tracking-wide"
                       style={{ color: statusColor }}
                     >
                       {getStatusLabel(application.status)}
@@ -532,7 +532,7 @@ function RecentApplicationsSection({
           })}
         </View>
       ) : (
-        <View className="mt-6 min-h-[112px] rounded-[10px] bg-[#f8fafc] px-4 py-8">
+        <View className="mt-6 min-h-28 rounded-lg bg-[#f8fafc] px-4 py-8">
           <Text className="text-center text-sm text-[#7c8493]">
             No applications found for this filter.
           </Text>
@@ -632,7 +632,7 @@ export default function CandidateDashboard() {
             <Menu size={22} color="#25324b" />
           </TouchableOpacity>
 
-          <Text className="text-[20px] font-bold text-[#25324b]">
+          <Text className="text-xl font-bold text-[#25324b]">
             Dashboard
           </Text>
 
@@ -645,7 +645,7 @@ export default function CandidateDashboard() {
             <View className="relative p-2">
               <Bell size={22} color="#25324b" />
               <View className="absolute right-1 top-1 h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6b5a] px-1">
-                <Text className="text-[10px] font-bold leading-3 text-white">
+                <Text className="text-xs font-bold leading-3 text-white">
                   9
                 </Text>
               </View>
@@ -664,7 +664,7 @@ export default function CandidateDashboard() {
       >
         <View className="gap-4 px-4 py-4">
           <View>
-            <Text className="text-[28px] font-bold leading-8 text-[#25324b]">
+            <Text className="text-3xl font-bold leading-8 text-[#25324b]">
               {greeting}, {firstName}
             </Text>
             <Text className="mt-2 text-base leading-6 text-[#7c8493]">
@@ -680,7 +680,7 @@ export default function CandidateDashboard() {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            className="flex-row items-center justify-between rounded-[8px] border border-[#d6ddeb] bg-white px-3 py-3"
+            className="flex-row items-center justify-between rounded-lg border border-[#d6ddeb] bg-white px-3 py-3"
           >
             <Text className="text-sm font-medium text-[#25324b]">
               {dateRangeLabel}
@@ -727,6 +727,7 @@ export default function CandidateDashboard() {
       <CandidateDashboardSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        currentPath="/pages/candidate/dashboard"
       />
     </SafeAreaView>
   );

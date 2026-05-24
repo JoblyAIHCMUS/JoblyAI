@@ -36,11 +36,13 @@ import { useLogout } from '../../../../../hooks/useAuth';
 interface CandidateDashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  currentPath?: string;
 }
 
 const CandidateDashboardSidebar = ({
   isOpen,
   onClose,
+  currentPath,
 }: CandidateDashboardSidebarProps) => {
   const { width } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(isOpen);
@@ -74,7 +76,7 @@ const CandidateDashboardSidebar = ({
         }
       );
     }
-  }, [isOpen, width]);
+  }, [isOpen, translateX, width]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -173,8 +175,8 @@ const CandidateDashboardSidebar = ({
     >
       <View className="flex-1 bg-white">
         <View className="absolute inset-0 overflow-hidden pointer-events-none">
-          <View className="absolute -bottom-8 right-[-18px] h-56 w-56 rounded-[48px] border border-[#cfd2ff] opacity-80 rotate-45" />
-          <View className="absolute bottom-10 right-[-30px] h-44 w-44 rounded-[44px] border border-[#cfd2ff] opacity-90 rotate-45" />
+          <View className="absolute -bottom-8 -right-5 h-56 w-56 rounded-full border border-[#cfd2ff] opacity-80 rotate-45" />
+          <View className="absolute bottom-10 -right-8 h-44 w-44 rounded-full border border-[#cfd2ff] opacity-90 rotate-45" />
         </View>
 
         <SafeAreaView className="flex-1 bg-white">
@@ -183,7 +185,7 @@ const CandidateDashboardSidebar = ({
               <View className="h-10 w-10 items-center justify-center rounded-full bg-[#4F46E5]">
                 <View className="h-5 w-5 rounded-full border-2 border-white" />
               </View>
-              <Text className="text-[26px] font-extrabold tracking-tight text-[#111827]">
+              <Text className="text-3xl font-extrabold tracking-tight text-[#111827]">
                 JoblyAI
               </Text>
             </View>
@@ -199,7 +201,7 @@ const CandidateDashboardSidebar = ({
           <View className="flex-1 px-4 pt-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const active = item.path === '/pages/candidate/dashboard';
+              const active = item.path === currentPath;
 
               return (
                 <TouchableOpacity
@@ -226,7 +228,7 @@ const CandidateDashboardSidebar = ({
                   />
 
                   <Text
-                    className={`ml-4 text-[17px] font-semibold ${
+                    className={`ml-4 text-base font-semibold ${
                       active ? 'text-[#4F46E5]' : 'text-[#64748B]'
                     }`}
                   >
@@ -268,7 +270,7 @@ const CandidateDashboardSidebar = ({
                   onPress={onClose}
                 >
                   <Icon size={22} color="#64748B" />
-                  <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
+                  <Text className="ml-4 text-base font-medium text-[#64748B]">
                     {item.name}
                   </Text>
                 </TouchableOpacity>
@@ -282,7 +284,7 @@ const CandidateDashboardSidebar = ({
               disabled={isLoggingOut}
             >
               <LogOut size={22} color="#EF4444" strokeWidth={2.4} />
-              <Text className="ml-4 text-[17px] font-bold text-[#EF4444]">
+              <Text className="ml-4 text-base font-bold text-[#EF4444]">
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Text>
             </TouchableOpacity>
@@ -304,10 +306,10 @@ const CandidateDashboardSidebar = ({
                 </View>
 
                 <View className="ml-4">
-                  <Text className="text-[18px] font-bold text-[#111827]">
+                  <Text className="text-lg font-bold text-[#111827]">
                     {fullName}
                   </Text>
-                  <Text className="text-[14px] text-[#64748B]">
+                  <Text className="text-sm text-[#64748B]">
                     {user?.email || ''}
                   </Text>
                 </View>
