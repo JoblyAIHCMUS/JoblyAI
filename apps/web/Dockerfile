@@ -42,27 +42,22 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-RUN apk add --no-cache libc6-compat
+# Cài đặt wget để dùng cho healthcheck (Alpine mặc định có nhưng đảm bảo)
+RUN apk add --no-cache libc6-compat wget
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy Next.js standalone output
-# Trong cấu trúc Nx standalone:
-# /app/apps/web/.next/standalone/ chứa:
-#   ├── server.js
-#   ├── package.json
-#   └── apps/web/server.js (đây thường là file thực tế Nx muốn chạy)
-
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
 
-# Kiểm tra sức khỏe tại cổng 3000 (cổng mặc định của standalone)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+# Kiểm tra sức khỏe tại cổng 3000 (Sử dụng wget, tăng start_period cho máy t3.medium)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1
 
 EXPOSE 3000
 ENTRYPOINT ["node"]
