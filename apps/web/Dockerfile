@@ -28,7 +28,9 @@ COPY libs ./libs
 
 # Build Next.js
 ENV CI=true
-RUN npx nx sync --yes && npx nx build web --prod
+RUN npx nx sync --yes && npx nx build web --prod && \
+    echo "--- Build output structure ---" && \
+    ls -R apps/web/.next/standalone | head -n 20
 
 
 # STAGE 2: Run
@@ -45,9 +47,18 @@ RUN apk add --no-cache libc6-compat
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/web/public ./apps/web/public
+# Copy Next.js standalone output
+# Next.js standalone output structure:
+# .next/standalone/
+# ├── server.js
+# ├── package.json
+# └── apps/web/ (contains node_modules and .next)
+
+# We copy the contents of standalone to /app
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+# Next.js standalone does NOT include static and public folders by default, they must be copied manually
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
 
@@ -58,4 +69,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
 EXPOSE 3001
 ENTRYPOINT ["node"]
 
+# In standalone mode, server.js is in the root of the standalone folder
 CMD ["server.js"]

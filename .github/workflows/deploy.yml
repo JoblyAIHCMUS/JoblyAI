@@ -3,6 +3,18 @@ name: Deploy Fullstack JoblyAI to EC2
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_backend:
+        description: 'Build Backend?'
+        required: true
+        type: boolean
+        default: true
+      build_web:
+        description: 'Build Web?'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   deploy:
@@ -18,6 +30,16 @@ jobs:
           script: |
             # Enable immediate exit on any error
             set -e
+            
+            # Determine what to build (support both auto-push and manual trigger)
+            # Use default values if triggered by push
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              BUILD_BACKEND=${{ github.event.inputs.build_backend }}
+              BUILD_WEB=${{ github.event.inputs.build_web }}
+            else
+              BUILD_BACKEND=true
+              BUILD_WEB=true
+            fi
             
             # 1. Change to home directory
             cd $HOME
@@ -55,7 +77,6 @@ jobs:
             fi
             
             # 7. SUPER-SEQUENTIAL DEPLOYMENT (Low RAM Optimization)
-            # Function to print logs on failure
             function print_logs_and_exit {
                 echo "--- DEPLOYMENT FAILED! Printing container logs ---"
                 $DOCKER_COMPOSE_CMD logs --tail=100 backend
@@ -67,19 +88,28 @@ jobs:
 
             echo "--- [1/6] Stopping services ---"
             $DOCKER_COMPOSE_CMD down --remove-orphans
-            docker system prune -a -f
             
-            echo "--- [2/6] Building Backend ---"
-            $DOCKER_COMPOSE_CMD build backend
+            # KHÔNG dùng prune -a để giữ lại cache, giúp build nhanh hơn
+            docker system prune -f 
             
-            echo "--- [3/6] Building Frontend ---"
-            $DOCKER_COMPOSE_CMD build web
+            if [ "$BUILD_BACKEND" = "true" ]; then
+              echo "--- [2/6] Building Backend ---"
+              $DOCKER_COMPOSE_CMD build backend
+            else
+              echo "--- Skipping Backend Build ---"
+            fi
+            
+            if [ "$BUILD_WEB" = "true" ]; then
+              echo "--- [3/6] Building Frontend ---"
+              $DOCKER_COMPOSE_CMD build web
+            else
+              echo "--- Skipping Web Build ---"
+            fi
             
             echo "--- [4/6] Starting Infrastructure (Redis, Scylla) ---"
             $DOCKER_COMPOSE_CMD up -d redis scylla
             
             echo "--- [5/6] Waiting for Infrastructure to be healthy ---"
-            # Increased wait time for ScyllaDB on t3.medium
             for i in {1..40}; do
               if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
                 echo "Infrastructure is healthy!"
@@ -95,39 +125,25 @@ jobs:
             # 8. Wait for Backend healthy before Migration
             echo "--- Waiting for Backend to be healthy ---"
             for i in {1..40}; do
-              # Get container status and health
               CONTAINER_INFO=$(docker inspect --format='{{.State.Status}} {{.State.Health.Status}}' backend_jobly 2>/dev/null || echo "notfound")
-              echo "Backend status: $CONTAINER_INFO... ($((i*5))s)"
-              
               if [[ "$CONTAINER_INFO" == *"healthy"* ]]; then
                 echo "Backend is healthy!"
                 break
               fi
               
-              # If container is crashing or exited, print logs
               if [[ "$CONTAINER_INFO" == "restarting"* ]] || [[ "$CONTAINER_INFO" == "exited"* ]]; then
-                echo "Backend is in bad state ($CONTAINER_INFO). Printing logs..."
-                docker logs --tail=50 backend_jobly
-              fi
-
-              # Check if container disappeared
-              if [[ "$CONTAINER_INFO" == "notfound" ]]; then
-                echo "ERROR: Backend container disappeared!"
-                exit 1
+                echo "Backend error log:"
+                docker logs --tail=20 backend_jobly
               fi
               
               sleep 5
             done
             
             # 9. Database Migration
-            echo "--- Running Database Migrations ---"
-            if [ -f "apps/backend/.env" ]; then
-                DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-                # Fix path inside container: schema is at prisma/schema.prisma
-                $DOCKER_COMPOSE_CMD exec -T -u root -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
-            else
-                echo "ERROR: apps/backend/.env not found."
-                exit 1
+            if [ "$BUILD_BACKEND" = "true" ]; then
+              echo "--- Running Database Migrations ---"
+              DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
             fi
             
             echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
