@@ -46,7 +46,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 # Critical runtime libraries
-RUN apk add --no-cache libc6-compat openssl libgcc libstdc++
+RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils
 
 # Enable corepack for pnpm support
 RUN corepack enable
@@ -65,11 +65,13 @@ RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
 # Copy the built application from base stage
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# CHỦ CHỐT: Generate Prisma và cố định file engine
+# CHỦ CHỐT: Generate Prisma và tìm file engine bất kể nó nằm ở đâu (pnpm symlink)
+# Chúng ta tìm mọi file có dạng libquery_engine-*.so.node và copy ra gốc
 RUN cd apps/backend && pnpm exec prisma generate && \
-    find /app/node_modules -name "libquery_engine-linux-musl-openssl-3.0.x.so.node" -exec cp {} /app/query-engine.so.node \;
+    find /app/node_modules -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
+    if [ ! -f /app/query-engine.so.node ]; then echo "ERROR: Prisma engine not found!" && exit 1; fi
 
-# Trỏ đích danh vào file đã copy
+# Trỏ đích danh vào file đã copy để Webpack Bundle có thể nạp được
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
 
 USER node

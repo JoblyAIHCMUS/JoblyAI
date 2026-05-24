@@ -55,6 +55,16 @@ jobs:
             fi
             
             # 7. SUPER-SEQUENTIAL DEPLOYMENT (Low RAM Optimization)
+            # Function to print logs on failure
+            function print_logs_and_exit {
+                echo "--- DEPLOYMENT FAILED! Printing container logs ---"
+                $DOCKER_COMPOSE_CMD logs --tail=100 backend
+                $DOCKER_COMPOSE_CMD logs --tail=100 web
+                exit 1
+            }
+            
+            trap print_logs_and_exit ERR
+
             echo "--- [1/6] Stopping services ---"
             $DOCKER_COMPOSE_CMD down --remove-orphans
             docker system prune -a -f
@@ -88,18 +98,23 @@ jobs:
                 echo "Backend is healthy!"
                 break
               fi
+              # Check if container died
+              if ! docker ps | grep -q backend_jobly; then
+                echo "ERROR: Backend container died unexpectedly!"
+                $DOCKER_COMPOSE_CMD logs backend
+                exit 1
+              fi
               echo "Waiting for Backend... ($((i*5))s)"
               sleep 5
             done
             
             # 9. Database Migration
             echo "--- Running Database Migrations ---"
-            # Explicitly check for .env file before migration
             if [ -f "apps/backend/.env" ]; then
                 DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
                 $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
             else
-                echo "ERROR: apps/backend/.env not found. Skipping migration."
+                echo "ERROR: apps/backend/.env not found."
                 exit 1
             fi
             
