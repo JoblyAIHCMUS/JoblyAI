@@ -145,7 +145,8 @@ jobs:
             if [ "$BUILD_BACKEND" = "true" ]; then
               echo "--- Running Database Migrations ---"
               DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
+              # In our Dockerfile, prisma is copied to /app/prisma
+              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema ./prisma/schema.prisma
             fi
             
             echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
