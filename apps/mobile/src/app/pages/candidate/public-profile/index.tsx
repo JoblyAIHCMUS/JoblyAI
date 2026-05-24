@@ -73,9 +73,7 @@ function SimpleMenu() {
 }
 
 function SimpleHome() {
-  return (
-    <View className="h-3 w-3 rounded-sm border border-[#1f2937]" />
-  );
+  return <View className="h-3 w-3 rounded-sm border border-[#1f2937]" />;
 }
 
 function SimpleBell() {
@@ -293,7 +291,9 @@ export default function CandidatePublicProfileScreen() {
 
             <View className="flex-row gap-3">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-white">
-                <Text className="text-2xl font-black tracking-tight text-[#111111]">g</Text>
+                <Text className="text-2xl font-black tracking-tight text-[#111111]">
+                  g
+                </Text>
               </View>
               <View className="flex-1">
                 <View className="absolute right-0 top-0">
@@ -345,9 +345,7 @@ export default function CandidatePublicProfileScreen() {
           <Card className="px-3 py-2.5">
             <View className="flex-row gap-3 pb-2.5">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-[#981b1e]">
-                <Text className="text-xs font-bold text-white">
-                  HARVARD
-                </Text>
+                <Text className="text-xs font-bold text-white">HARVARD</Text>
               </View>
               <View className="flex-1">
                 <View className="absolute right-0 top-0">
@@ -359,9 +357,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
                   Postgraduate degree, Applied Psychology
                 </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">
-                  2010 - 2012
-                </Text>
+                <Text className="mt-1 text-sm text-[#6b7280]">2010 - 2012</Text>
                 <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
                   As an Applied Psychologist in the field of Consumer and
                   Society, I am specialized in creating business opportunities
@@ -388,9 +384,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
                   Bachelor of Arts, Visual Communication
                 </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">
-                  2005 - 2009
-                </Text>
+                <Text className="mt-1 text-sm text-[#6b7280]">2005 - 2009</Text>
               </View>
             </View>
 

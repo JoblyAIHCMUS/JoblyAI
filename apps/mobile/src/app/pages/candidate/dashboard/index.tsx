@@ -632,9 +632,7 @@ export default function CandidateDashboard() {
             <Menu size={22} color="#25324b" />
           </TouchableOpacity>
 
-          <Text className="text-xl font-bold text-[#25324b]">
-            Dashboard
-          </Text>
+          <Text className="text-xl font-bold text-[#25324b]">Dashboard</Text>
 
           <View className="flex-row items-center gap-2">
             <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef0ff]">
