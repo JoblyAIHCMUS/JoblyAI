@@ -38,11 +38,11 @@ services:
       - ./apps/backend/scylladb/schema.cql:/docker-entrypoint-initdb.d/schema.cql
     command: --smp 1 --memory 1G --overprovisioned 1 --api-address 0.0.0.0
     healthcheck:
-      test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 20
-      start_period: 120s
+      start_period: 60s
 
   scylla-init:
     image: scylladb/scylla:5.4
@@ -66,6 +66,7 @@ services:
       - apps/backend/.env
     ports:
       - '3000:3000'
+    restart: always
     deploy:
       resources:
         limits:
@@ -77,10 +78,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api || exit 1']
-      interval: 10s
-      timeout: 5s
+      interval: 15s
+      timeout: 10s
       retries: 5
-      start_period: 15s
+      start_period: 30s
 
   web:
     container_name: web_jobly
