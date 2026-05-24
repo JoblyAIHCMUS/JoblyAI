@@ -34,7 +34,13 @@ COPY libs ./libs
 # 1. Generate Prisma Client in the build stage
 RUN cd apps/backend && pnpm exec prisma generate
 
-# 2. Sync and Build (Explicitly add --yes to nx sync)
+# 2. FLATTEN PRISMA CLIENT: Resolve symlinks into real files for copying
+# This step is critical because Docker COPY --from cannot handle pnpm symlinks well
+RUN mkdir -p /prisma-real && \
+    cp -rL node_modules/.prisma /prisma-real/ && \
+    cp -rL node_modules/@prisma/client /prisma-real/
+
+# 3. Sync and Build
 RUN pnpm exec nx sync --yes && pnpm exec nx build backend --prod
 
 # Production stage
@@ -51,9 +57,9 @@ RUN chown -R node:node /app
 # Copy built application
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# CHỦ CHỐT: Copy trực tiếp các thư mục Prisma đã được generate từ stage base
-COPY --chown=node:node --from=base /app/node_modules/.prisma ./node_modules/.prisma
-COPY --chown=node:node --from=base /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# CHỦ CHỐT: Copy các thư mục Prisma ĐÃ ĐƯỢC LÀM PHẲNG (Flattened) từ stage base
+COPY --chown=node:node --from=base /prisma-real/.prisma ./node_modules/.prisma
+COPY --chown=node:node --from=base /prisma-real/@prisma/client ./node_modules/@prisma/client
 
 # Tìm file engine và copy ra gốc để bundle nạp được
 RUN find /app/node_modules/.prisma -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \;
