@@ -24,7 +24,11 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
       };
     };
   };
-}>;
+}> & {
+  _count?: {
+    applications: number;
+  };
+};
 
 @Injectable()
 export class JobsService {
@@ -139,6 +143,11 @@ export class JobsService {
               skill: true,
             },
           },
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
         },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -186,8 +195,12 @@ export class JobsService {
             skill: true,
           },
         },
-      },
-    });
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },    });
 
     return this.mapToJobResponse(createdJob);
   }
@@ -230,8 +243,12 @@ export class JobsService {
             skill: true,
           },
         },
-      },
-    });
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },    });
 
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
@@ -319,8 +336,12 @@ export class JobsService {
               skill: true,
             },
           },
-        },
-        skip: (page - 1) * pageSize,
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
+        },        skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
@@ -362,8 +383,12 @@ export class JobsService {
               skill: true,
             },
           },
-        },
-        skip: (page - 1) * pageSize,
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
+        },        skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
@@ -426,8 +451,12 @@ export class JobsService {
             skill: true,
           },
         },
-      },
-    });
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },    });
 
     return this.mapToJobResponse(updatedJob);
   }
@@ -450,8 +479,12 @@ export class JobsService {
             skill: true,
           },
         },
-      },
-    });
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },    });
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
@@ -663,11 +696,12 @@ export class JobsService {
   }
 
   private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
-    const { requirements, postedById, ...rest } = job;
+    const { requirements, postedById, _count, ...rest } = job;
 
     return {
       ...rest,
       employerId: postedById,
+      applicantsCount: _count?.applications,
       // Map requirements with full details including years and importance
       requirements: requirements
         ? requirements.map((jr) => ({

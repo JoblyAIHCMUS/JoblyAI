@@ -51,7 +51,7 @@ export function mapJobPostingToListing(job: JobPosting): JobListing {
     originalId: job.id,
     title: job.title,
     datePosted: formattedDate,
-    applicants: 0, // Mocked for now until applicant count is added to backend response
+    applicants: job.applicantsCount || 0,
     needsFilled: 0,
     needsTotal: 0,
     status: statusMap[job.status] || 'Draft',

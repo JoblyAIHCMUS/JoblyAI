@@ -35,6 +35,9 @@ const mockJobDbRecord = vi.hoisted(() => ({
     { skill: { name: 'TypeScript' } },
     { skill: { name: 'NestJS' } },
   ],
+  _count: {
+    applications: 5,
+  },
 }));
 
 const mockPrisma = vi.hoisted(() => ({
