@@ -20,12 +20,12 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
   return (
     <SafeAreaView
       edges={['top']}
-      className="border-b border-[#CBD5E1] bg-white"
+      className="border-b border-app-border-2 bg-white"
     >
       <View className="h-16 flex-row items-center justify-between px-4">
         {/* Menu Icon Left */}
         <TouchableOpacity
-          className="w-11 h-11 rounded-full bg-white border border-[#E6E8F0] items-center justify-center"
+          className="w-11 h-11 rounded-full bg-white border border-app-border-3 items-center justify-center"
           activeOpacity={0.7}
           onPress={onMenuPress}
         >
@@ -61,15 +61,15 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
             )}
           </View>
           <View className="flex-col">
-            <Text className="text-[#475569] text-xs">Company</Text>
+            <Text className="text-app-text-3 text-xs">Company</Text>
             <View className="flex-row items-center flex-wrap">
               {error ? (
-                <Text className="text-[#EF4444] text-sm font-semibold">
+                <Text className="text-app-red-1 text-sm font-semibold">
                   Error
                 </Text>
               ) : (
                 <Text
-                  className="text-[#0F172A] text-base font-semibold"
+                  className="text-app-slate-1 text-base font-semibold"
                   numberOfLines={1}
                 >
                   {isPending ? 'Loading...' : company?.name || 'Not Affiliated'}
@@ -78,7 +78,7 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
               {!company && !isPending && !error && (
                 <Link href="/pages/employer/new-company" asChild>
                   <TouchableOpacity className="ml-2">
-                    <Text className="text-[#4640de] text-xs font-semibold underline">
+                    <Text className="text-app-primary-1 text-xs font-semibold underline">
                       Register
                     </Text>
                   </TouchableOpacity>
@@ -95,7 +95,7 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
         >
           <View>
             <Feather name="bell" size={24} color="#202430" />
-            <View className="absolute top-0 right-0 w-3 h-3 bg-[#EF4444] rounded-full border-2 border-white" />
+            <View className="absolute top-0 right-0 w-3 h-3 bg-app-red-1 rounded-full border-2 border-white" />
           </View>
         </TouchableOpacity>
       </View>
