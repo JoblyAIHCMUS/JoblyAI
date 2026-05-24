@@ -16,8 +16,7 @@ export const SummaryCards = ({
   return (
     <View className="px-4 gap-y-3">
       <TouchableOpacity
-        style={{ backgroundColor: '#4F46E5' }}
-        className="rounded-2xl p-6 flex-row items-center justify-between"
+        className="rounded-2xl p-6 flex-row items-center justify-between bg-app-primary-2"
       >
         <View className="flex-row items-center gap-x-4 flex-1">
           {loading ? (
@@ -35,8 +34,7 @@ export const SummaryCards = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={{ backgroundColor: '#0EA5E9' }}
-        className="rounded-2xl p-6 flex-row items-center justify-between"
+        className="rounded-2xl p-6 flex-row items-center justify-between bg-app-secondary-2"
       >
         <View className="flex-row items-center gap-x-4 flex-1">
           {loading ? (
