@@ -7,11 +7,8 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 RUN corepack enable
+RUN apk add --no-cache libc6-compat openssl git
 
-# Pre-install essential build tools
-RUN mkdir -p /pnpm && chmod -R 777 /pnpm && apk add --no-cache libc6-compat openssl git tar
-
-# Set working directory
 WORKDIR /app
 
 # Copy workspace configuration
@@ -23,7 +20,7 @@ COPY apps/web/package.json ./apps/web/
 COPY apps/backend/package.json ./apps/backend/
 COPY libs/shared-types/package.json ./libs/shared-types/
 
-# Install ALL dependencies (Needed for Nx build and Prisma)
+# Install ALL dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
     pnpm install --frozen-lockfile
 
@@ -31,15 +28,16 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
 COPY apps/backend ./apps/backend
 COPY libs ./libs
 
-# 1. Generate Prisma Client in the build stage
+# 1. Generate Prisma Client
 RUN cd apps/backend && pnpm exec prisma generate
 
-# 2. TAR STRATEGY: Bundle Prisma client resolved files
-# We use -L (follow links) to turn pnpm symlinks into real directories
-RUN tar -chf /prisma.tar $(find node_modules -name ".prisma" -type d) $(find node_modules -name "@prisma" -type d | grep "client")
-
-# 3. Sync and Build
+# 2. Build the backend
 RUN pnpm exec nx sync --yes && pnpm exec nx build backend --prod
+
+# 3. Resolve all symlinks for Prisma to real files (Flattening)
+RUN mkdir -p /prisma-real && \
+    find node_modules -name ".prisma" -type d -exec cp -rL {} /prisma-real/ \; && \
+    find node_modules -name "@prisma" -type d -exec cp -rL {} /prisma-real/ \;
 
 # Production stage
 FROM node:22-alpine AS production
@@ -47,23 +45,24 @@ FROM node:22-alpine AS production
 ENV NODE_ENV=production
 
 # Critical runtime libraries
-RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils tar
+RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils
 
 WORKDIR /app
 RUN chown -R node:node /app
 
-# Copy built application
-COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
+# 1. Copy only necessary files for production
+COPY --chown=node:node apps/backend/package.json ./package.json
+COPY --chown=node:node --from=base /app/apps/backend/dist ./dist
 
-# CHỦ CHỐT: Extract Prisma client from the tar archive created in base stage
-COPY --from=base /prisma.tar /prisma.tar
-RUN tar -xf /prisma.tar && rm /prisma.tar
+# 2. Copy the flattened Prisma modules (NO SYMLINKS)
+COPY --chown=node:node --from=base /prisma-real/.prisma ./node_modules/.prisma
+COPY --chown=node:node --from=base /prisma-real/@prisma/client ./node_modules/@prisma/client
 
-# Tìm file engine và copy ra gốc để bundle nạp được
-RUN find /app/node_modules/.prisma -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
+# 3. Find and co-locate engine
+RUN find /app/node_modules -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
     if [ ! -f /app/query-engine.so.node ]; then echo "ERROR: Prisma engine not found!" && exit 1; fi
 
-# Trỏ đích danh vào file đã copy
+# Explicitly point to the engine file
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
 
 USER node
@@ -71,5 +70,5 @@ USER node
 # Expose port
 EXPOSE 3000
 
-# Start the application directly with node
-CMD ["node", "apps/backend/dist/main"]
+# Start directly with node to avoid any pnpm issues in runtime
+CMD ["node", "dist/main"]

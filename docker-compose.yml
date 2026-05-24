@@ -16,7 +16,6 @@ services:
       - local-db
 
   redis:
-    # Pinned to redis 7.x alpine for stability and performance.
     image: redis:7-alpine
     container_name: redis_jobly
     ports:
@@ -30,7 +29,6 @@ services:
       retries: 5
 
   scylla:
-    # Pinned to ScyllaDB 5.4 LTS for stability.
     image: scylladb/scylla:5.4
     container_name: scylla_jobly
     ports:
@@ -39,7 +37,6 @@ services:
       - scylla_data:/var/lib/scylla
       - ./apps/backend/scylladb/schema.cql:/docker-entrypoint-initdb.d/schema.cql
     command: --smp 1 --memory 1G --overprovisioned 1 --api-address 0.0.0.0
-    # Scylla needs more generous timeouts
     healthcheck:
       test: ['CMD-SHELL', "bash -c 'echo > /dev/tcp/$(hostname -i)/9042'"]
       interval: 15s
@@ -85,7 +82,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    command: ["node", "apps/backend/dist/main"]
 
   web:
     container_name: web_jobly
@@ -93,14 +89,13 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Pass domain WITHOUT /api to avoid double /api in auth-client.ts
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn}
     env_file:
       - apps/backend/.env
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://jobly.ai.vn}
     ports:
-      - '3001:3000' # Host port 3001 -> Container port 3000
+      - '3001:3000'
     deploy:
       resources:
         limits:
@@ -114,7 +109,6 @@ services:
       retries: 3
 
   nginx:
-    # Pinned to nginx 1.27.x for stability.
     image: nginx:1.27-alpine
     container_name: nginx_jobly
     ports:
