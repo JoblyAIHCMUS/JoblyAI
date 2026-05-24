@@ -10,10 +10,14 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN apk add --no-cache libc6-compat 
 RUN npm install -g pnpm
 
-# Copy package files for dependency installation
+# Copy workspace manifests for dependency resolution
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.json ./
 COPY eslint.config.mjs .prettierrc .prettierignore ./
+
+# Copy ALL package.json files for workspace discovery BEFORE install
 COPY apps/web/package.json ./apps/web/
+COPY apps/backend/package.json ./apps/backend/
+COPY libs/shared-types/package.json ./libs/shared-types/
 
 # Install all dependencies first
 RUN pnpm install --frozen-lockfile
