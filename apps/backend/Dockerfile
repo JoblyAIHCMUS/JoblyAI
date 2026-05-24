@@ -19,6 +19,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY nx.json tsconfig.base.json tsconfig.json eslint.config.mjs ./
 
 # Copy ALL package.json files for workspace discovery
+COPY apps/web/package.json ./apps/web/
 COPY apps/backend/package.json ./apps/backend/
 COPY libs/shared-types/package.json ./libs/shared-types/
 
@@ -34,16 +35,12 @@ COPY libs ./libs
 RUN cd apps/backend && pnpm exec prisma generate
 
 # 2. Sync and Build
-RUN pnpm exec nx sync --yes
-RUN pnpm exec nx build backend --prod
+RUN pnpm exec nx sync && pnpm exec nx build backend --prod
 
 # Production stage
 FROM node:22-alpine AS production
 
 ENV NODE_ENV=production
-# Ensure pnpm is in the PATH even at runtime
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
 
 # Critical runtime libraries
 RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils
@@ -53,7 +50,7 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Copy necessary manifests and schema
+# Copy workspace manifests
 COPY --chown=node:node pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --chown=node:node apps/backend/package.json ./apps/backend/package.json
 COPY --chown=node:node apps/backend/prisma ./apps/backend/prisma/
@@ -65,13 +62,12 @@ RUN mkdir -p /pnpm && chmod -R 777 /pnpm && \
 # Copy the built application from base stage
 COPY --chown=node:node --from=base /app/apps/backend/dist ./apps/backend/dist
 
-# CHỦ CHỐT: Generate Prisma và tìm file engine bất kể nó nằm ở đâu (pnpm symlink)
-# Chúng ta tìm mọi file có dạng libquery_engine-*.so.node và copy ra gốc
-RUN cd apps/backend && pnpm exec prisma generate && \
+# CHỦ CHỐT: Dùng npx để generate Prisma an toàn hơn
+RUN cd apps/backend && npx prisma@6.19.3 generate && \
     find /app/node_modules -name "libquery_engine-*.so.node" -exec cp {} /app/query-engine.so.node \; && \
     if [ ! -f /app/query-engine.so.node ]; then echo "ERROR: Prisma engine not found!" && exit 1; fi
 
-# Trỏ đích danh vào file đã copy để Webpack Bundle có thể nạp được
+# Trỏ đích danh vào file đã copy
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/query-engine.so.node
 
 USER node

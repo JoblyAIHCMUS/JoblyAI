@@ -34,7 +34,8 @@ RUN npx nx sync && npx nx build web --prod
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=5173
+# Next.js standalone default port is 3000
+ENV PORT=3000
 
 # ⚠️ CRITICAL FOR NEXT.JS ON ALPINE
 RUN apk add --no-cache libc6-compat
@@ -50,8 +51,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 USER nextjs
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5173', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-EXPOSE 5173
+EXPOSE 3000
 ENTRYPOINT ["node"]
 CMD ["apps/web/server.js"]
