@@ -146,11 +146,8 @@ jobs:
               echo "--- Running Database Migrations ---"
               DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
               
-              echo "Debug: Listing files in backend container..."
-              $DOCKER_COMPOSE_CMD exec -T backend ls -R /app | grep prisma || true
-              
-              # Try absolute path which is most reliable in Docker
-              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema /app/prisma/schema.prisma
+              # Based on debug logs, the file is at /app/apps/backend/prisma/schema.prisma
+              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema /app/apps/backend/prisma/schema.prisma
             fi
             
             echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
