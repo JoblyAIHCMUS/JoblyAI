@@ -145,12 +145,16 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
           <View
             className={`px-4 py-1 rounded-full border ${
-              job.type === 'Fulltime' ? 'border-app-indigo-1' : 'border-app-orange-1'
+              job.type === 'Fulltime'
+                ? 'border-app-indigo-1'
+                : 'border-app-orange-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
-                job.type === 'Fulltime' ? 'text-app-indigo-1' : 'text-app-orange-1'
+                job.type === 'Fulltime'
+                  ? 'text-app-indigo-1'
+                  : 'text-app-orange-1'
               }`}
             >
               {job.type}
@@ -223,12 +227,16 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
           <View
             className={`px-4 py-1 rounded-full border ${
-              job.type === 'Fulltime' ? 'border-app-indigo-1' : 'border-app-orange-1'
+              job.type === 'Fulltime'
+                ? 'border-app-indigo-1'
+                : 'border-app-orange-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
-                job.type === 'Fulltime' ? 'text-app-indigo-1' : 'text-app-orange-1'
+                job.type === 'Fulltime'
+                  ? 'text-app-indigo-1'
+                  : 'text-app-orange-1'
               }`}
             >
               {job.type}

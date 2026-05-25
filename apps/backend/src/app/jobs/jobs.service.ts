@@ -200,7 +200,8 @@ export class JobsService {
             applications: true,
           },
         },
-      },    });
+      },
+    });
 
     return this.mapToJobResponse(createdJob);
   }
@@ -248,7 +249,8 @@ export class JobsService {
             applications: true,
           },
         },
-      },    });
+      },
+    });
 
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
@@ -341,7 +343,8 @@ export class JobsService {
               applications: true,
             },
           },
-        },        skip: (page - 1) * pageSize,
+        },
+        skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
@@ -388,7 +391,8 @@ export class JobsService {
               applications: true,
             },
           },
-        },        skip: (page - 1) * pageSize,
+        },
+        skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
@@ -456,7 +460,8 @@ export class JobsService {
             applications: true,
           },
         },
-      },    });
+      },
+    });
 
     return this.mapToJobResponse(updatedJob);
   }
@@ -484,7 +489,8 @@ export class JobsService {
             applications: true,
           },
         },
-      },    });
+      },
+    });
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 

@@ -41,7 +41,9 @@ export const DetailedStatCards = ({
     return (
       <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm flex-row justify-between items-center">
         <View className="flex-1">
-          <Text className="text-xl font-bold text-app-slate-1 mb-2">{title}</Text>
+          <Text className="text-xl font-bold text-app-slate-1 mb-2">
+            {title}
+          </Text>
           <View className="flex-row items-baseline gap-x-2">
             {loading ? (
               <ActivityIndicator size="small" color="#25324B" />
