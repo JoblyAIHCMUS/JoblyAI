@@ -35,6 +35,7 @@ export function EmployerTopBar() {
     handleNotificationScroll,
     closeNotificationMenu,
     formatNotificationTime,
+    handleMarkAsRead,
   } = useNotifications();
 
   return (
@@ -157,20 +158,23 @@ export function EmployerTopBar() {
                     {visibleNotifications.map((notification) => (
                       <li key={notification.id}>
                         <Link
-                          href={notification.href}
-                          onClick={closeNotificationMenu}
+                          href={notification.link || '#'}
+                          onClick={() => {
+                            handleMarkAsRead(notification.id);
+                            closeNotificationMenu();
+                          }}
                           className="flex gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 transition-colors hover:bg-[#f8fafc]"
                         >
                           <span
                             className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                              notification.unread
+                              !notification.isRead
                                 ? 'bg-[#4640de]'
                                 : 'bg-[#d6ddeb]'
                             }`}
                           />
                           <div className="min-w-0">
                             <p className="line-clamp-2 text-xs sm:text-sm text-[#25324b]">
-                              {notification.title}
+                              {notification.content}
                             </p>
                             <p className="mt-0.5 sm:mt-1 text-xs text-[#7c8493]">
                               {formatNotificationTime(notification.createdAt)}
