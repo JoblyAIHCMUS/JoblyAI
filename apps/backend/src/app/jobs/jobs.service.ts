@@ -24,7 +24,11 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
       };
     };
   };
-}>;
+}> & {
+  _count?: {
+    applications: number;
+  };
+};
 
 @Injectable()
 export class JobsService {
@@ -139,6 +143,11 @@ export class JobsService {
               skill: true,
             },
           },
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
         },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -186,6 +195,11 @@ export class JobsService {
             skill: true,
           },
         },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
       },
     });
 
@@ -228,6 +242,11 @@ export class JobsService {
         requirements: {
           include: {
             skill: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
           },
         },
       },
@@ -319,6 +338,11 @@ export class JobsService {
               skill: true,
             },
           },
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
         },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -360,6 +384,11 @@ export class JobsService {
           requirements: {
             include: {
               skill: true,
+            },
+          },
+          _count: {
+            select: {
+              applications: true,
             },
           },
         },
@@ -426,6 +455,11 @@ export class JobsService {
             skill: true,
           },
         },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
       },
     });
 
@@ -448,6 +482,11 @@ export class JobsService {
         requirements: {
           include: {
             skill: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
           },
         },
       },
@@ -663,11 +702,12 @@ export class JobsService {
   }
 
   private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
-    const { requirements, postedById, ...rest } = job;
+    const { requirements, postedById, _count, ...rest } = job;
 
     return {
       ...rest,
       employerId: postedById,
+      applicantsCount: _count?.applications,
       // Map requirements with full details including years and importance
       requirements: requirements
         ? requirements.map((jr) => ({

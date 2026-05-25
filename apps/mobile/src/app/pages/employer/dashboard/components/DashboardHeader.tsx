@@ -16,7 +16,7 @@ export const DashboardHeader = () => {
 
   return (
     <View className="px-6 pt-10 pb-6">
-      <Text className="text-3xl font-extrabold text-[#0F172A] mb-1">
+      <Text className="text-3xl font-extrabold text-app-slate-1 mb-1">
         {greeting}, {firstName}
       </Text>
     </View>

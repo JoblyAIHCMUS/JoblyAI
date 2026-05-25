@@ -123,7 +123,7 @@ export default function EmployerDashboard() {
             messageCount={messageCount}
             loading={isLoadingSummary}
           />
-          <View className="h-[1px] bg-[#CBD5E1] mt-8" />
+          <View className="h-[1px] bg-app-border-2 mt-8" />
           <JobStatisticsChart
             data={chartData}
             loading={analyticsLoading}

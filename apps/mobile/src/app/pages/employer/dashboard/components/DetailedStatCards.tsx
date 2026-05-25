@@ -39,19 +39,21 @@ export const DetailedStatCards = ({
       : 'arrow-drop-down';
 
     return (
-      <View className="bg-white rounded-2xl p-5 border border-[#CBD5E1] shadow-sm flex-row justify-between items-center">
+      <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm flex-row justify-between items-center">
         <View className="flex-1">
-          <Text className="text-xl font-bold text-[#0F172A] mb-2">{title}</Text>
+          <Text className="text-xl font-bold text-app-slate-1 mb-2">
+            {title}
+          </Text>
           <View className="flex-row items-baseline gap-x-2">
             {loading ? (
               <ActivityIndicator size="small" color="#25324B" />
             ) : (
-              <Text className="text-4xl font-extrabold text-[#25324B]">
+              <Text className="text-4xl font-extrabold text-app-text-4">
                 {total.toLocaleString()}
               </Text>
             )}
             <View className="flex-row items-center gap-x-1">
-              <Text className="text-[#64748B] text-base">{periodLabel}</Text>
+              <Text className="text-app-text-5 text-base">{periodLabel}</Text>
               {!loading && (
                 <>
                   <Text
@@ -83,7 +85,7 @@ export const DetailedStatCards = ({
         resolvedSummary.jobViewsDiff,
         resolvedSummary.periodLabel,
         'eye',
-        'bg-[#F59E0B]'
+        'bg-app-amber-2'
       )}
 
       {renderStatCard(
@@ -92,7 +94,7 @@ export const DetailedStatCards = ({
         resolvedSummary.jobApplicationsDiff,
         resolvedSummary.periodLabel,
         'clipboard',
-        'bg-[#A855F7]'
+        'bg-app-purple-1'
       )}
     </View>
   );
