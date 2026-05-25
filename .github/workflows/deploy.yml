@@ -70,10 +70,11 @@ jobs:
               mv "$HOME/backend_env_backup" apps/backend/.env
             fi
             
-            # 6. Ensure docker-compose is available
-            DOCKER_COMPOSE_CMD="docker-compose"
+            # 6. Ensure docker-compose is available and FORCE using only the main file
+            # This ignores docker-compose.override.yml which is for development only
+            DOCKER_COMPOSE_CMD="docker-compose -f docker-compose.yml"
             if ! command -v docker-compose &> /dev/null; then
-                DOCKER_COMPOSE_CMD="docker compose"
+                DOCKER_COMPOSE_CMD="docker compose -f docker-compose.yml"
             fi
             
             # 7. SUPER-SEQUENTIAL DEPLOYMENT (Low RAM Optimization)
