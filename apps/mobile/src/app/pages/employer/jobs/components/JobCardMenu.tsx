@@ -133,7 +133,7 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
             >
-              <View className="bg-white rounded-2xl px-4 py-2 shadow-2xl border border-[#E2E8F0]">
+              <View className="bg-white rounded-2xl px-4 py-2 shadow-2xl border border-app-slate-2">
                 {menuItems.map((item, index) => (
                   <TouchableOpacity
                     key={index}
@@ -151,8 +151,8 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
                     <Text
                       className={`text-base font-medium ${
                         item.color === '#DC2626'
-                          ? 'text-[#DC2626]'
-                          : 'text-[#0F172A]'
+                          ? 'text-app-red-2'
+                          : 'text-app-slate-1'
                       }`}
                     >
                       {item.label}

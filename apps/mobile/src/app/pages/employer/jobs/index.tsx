@@ -53,7 +53,7 @@ export default function EmployerJobListingScreen() {
     if (isLoading) return null; // Wait for initial load
     return (
       <View className="items-center py-10">
-        <Text className="text-base text-[#475569]">
+        <Text className="text-base text-app-text-3">
           {isError ? 'Failed to load jobs.' : 'No jobs found.'}
         </Text>
       </View>
@@ -61,7 +61,7 @@ export default function EmployerJobListingScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={['left', 'right']}>
+    <SafeAreaView className="flex-1 bg-app-neutral-1" edges={['left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
 
@@ -76,8 +76,8 @@ export default function EmployerJobListingScreen() {
             <View className="-mx-4">
               <JobsHeader />
             </View>
-            <View className="h-[1px] bg-[#CBD5E1] mb-4 -mx-4" />
-            <Text className="text-2xl font-bold text-[#0F172A] mb-4">
+            <View className="h-[1px] bg-app-border-2 mb-4 -mx-4" />
+            <Text className="text-2xl font-bold text-app-slate-1 mb-4">
               All jobs : {isLoading ? '...' : totalJobs}
             </Text>
           </>

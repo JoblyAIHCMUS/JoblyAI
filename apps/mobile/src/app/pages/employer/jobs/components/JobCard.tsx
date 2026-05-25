@@ -94,10 +94,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
   if (isUpdating) {
     return (
-      <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm opacity-60">
+      <View className="bg-white rounded-xl border border-app-border-2 p-4 mb-4 shadow-sm opacity-60">
         <View className="flex-row justify-between items-center mb-4">
           <Text
-            className="text-2xl font-bold text-[#0F172A] flex-1 mr-2"
+            className="text-2xl font-bold text-app-slate-1 flex-1 mr-2"
             numberOfLines={1}
           >
             {job.title}
@@ -105,18 +105,18 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <ActivityIndicator size="small" color="#4640DE" />
         </View>
 
-        <View className="flex-row justify-between mb-4 border-b border-[#CBD5E1] pb-4">
+        <View className="flex-row justify-between mb-4 border-b border-app-border-2 pb-4">
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">
+            <Text className="text-lg text-app-text-3 mb-1 font-medium">
               Date Posted
             </Text>
-            <Text className="text-lg text-[#475569]">{job.datePosted}</Text>
+            <Text className="text-lg text-app-text-3">{job.datePosted}</Text>
           </View>
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">
+            <Text className="text-lg text-app-text-3 mb-1 font-medium">
               Applicants
             </Text>
-            <Text className="text-lg text-[#475569]">{job.applicants}</Text>
+            <Text className="text-lg text-app-text-3">{job.applicants}</Text>
           </View>
         </View>
 
@@ -124,19 +124,19 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <View
             className={`px-4 py-1 rounded-full border ${
               isLive
-                ? 'border-[#14B8A6]'
+                ? 'border-app-teal-1'
                 : job.status === 'Draft'
-                ? 'border-[#EAB308]'
-                : 'border-[#E11D48]'
+                ? 'border-app-yellow-1'
+                : 'border-app-rose-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
                 isLive
-                  ? 'text-[#14B8A6]'
+                  ? 'text-app-teal-1'
                   : job.status === 'Draft'
-                  ? 'text-[#EAB308]'
-                  : 'text-[#E11D48]'
+                  ? 'text-app-yellow-1'
+                  : 'text-app-rose-1'
               }`}
             >
               {job.status}
@@ -145,12 +145,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
           <View
             className={`px-4 py-1 rounded-full border ${
-              job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'
+              job.type === 'Fulltime' ? 'border-app-indigo-1' : 'border-app-orange-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
-                job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'
+                job.type === 'Fulltime' ? 'text-app-indigo-1' : 'text-app-orange-1'
               }`}
             >
               {job.type}
@@ -163,11 +163,11 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
   return (
     <>
-      <View className="bg-white rounded-xl border border-[#CBD5E1] p-4 mb-4 shadow-sm">
+      <View className="bg-white rounded-xl border border-app-border-2 p-4 mb-4 shadow-sm">
         {/* Top Row */}
         <View className="flex-row justify-between items-center mb-4">
           <Text
-            className="text-2xl font-bold text-[#0F172A] flex-1 mr-2"
+            className="text-2xl font-bold text-app-slate-1 flex-1 mr-2"
             numberOfLines={1}
           >
             {job.title}
@@ -182,18 +182,18 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
         </View>
 
         {/* Stats Row */}
-        <View className="flex-row justify-between mb-4 border-b border-[#CBD5E1] pb-4">
+        <View className="flex-row justify-between mb-4 border-b border-app-border-2 pb-4">
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">
+            <Text className="text-lg text-app-text-3 mb-1 font-medium">
               Date Posted
             </Text>
-            <Text className="text-lg text-[#475569]">{job.datePosted}</Text>
+            <Text className="text-lg text-app-text-3">{job.datePosted}</Text>
           </View>
           <View>
-            <Text className="text-lg text-[#475569] mb-1 font-medium">
+            <Text className="text-lg text-app-text-3 mb-1 font-medium">
               Applicants
             </Text>
-            <Text className="text-lg text-[#475569]">{job.applicants}</Text>
+            <Text className="text-lg text-app-text-3">{job.applicants}</Text>
           </View>
         </View>
 
@@ -202,19 +202,19 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <View
             className={`px-4 py-1 rounded-full border ${
               isLive
-                ? 'border-[#14B8A6]'
+                ? 'border-app-teal-1'
                 : job.status === 'Draft'
-                ? 'border-[#EAB308]'
-                : 'border-[#E11D48]'
+                ? 'border-app-yellow-1'
+                : 'border-app-rose-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
                 isLive
-                  ? 'text-[#14B8A6]'
+                  ? 'text-app-teal-1'
                   : job.status === 'Draft'
-                  ? 'text-[#EAB308]'
-                  : 'text-[#E11D48]'
+                  ? 'text-app-yellow-1'
+                  : 'text-app-rose-1'
               }`}
             >
               {job.status}
@@ -223,12 +223,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
           <View
             className={`px-4 py-1 rounded-full border ${
-              job.type === 'Fulltime' ? 'border-[#6366F1]' : 'border-[#EA580C]'
+              job.type === 'Fulltime' ? 'border-app-indigo-1' : 'border-app-orange-1'
             }`}
           >
             <Text
               className={`text-base font-semibold ${
-                job.type === 'Fulltime' ? 'text-[#6366F1]' : 'text-[#EA580C]'
+                job.type === 'Fulltime' ? 'text-app-indigo-1' : 'text-app-orange-1'
               }`}
             >
               {job.type}
