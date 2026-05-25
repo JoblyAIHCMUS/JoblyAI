@@ -13,6 +13,26 @@ function getRole(request: NextRequest) {
   return request.cookies.get('user-role')?.value ?? null;
 }
 
+function getRoleBasedRedirect(pathname: string, role: string, request: NextRequest) {
+  const publicRoleRedirects: Record<string, Record<string, string>> = {
+    '/find-jobs': {
+      candidate: '/candidate/find-jobs',
+      employer: '/employer/dashboard',
+    },
+    '/browse-companies': {
+      candidate: '/candidate/browse-companies',
+      employer: '/employer/browse-companies',
+    },
+  };
+
+  const redirectPath = publicRoleRedirects[pathname]?.[role];
+  if (redirectPath) {
+    return NextResponse.redirect(new URL(redirectPath, request.url));
+  }
+
+  return null;
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -78,6 +98,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // ===== PUBLIC ROUTES REDIRECT BY ROLE =====
+  if (authenticated && role) {
+    const redirectResponse = getRoleBasedRedirect(pathname, role, request);
+    if (redirectResponse) return redirectResponse;
+  }
+
   // ===== GUEST-ONLY ROUTES =====
   if (authenticated && (pathname === '/login' || pathname === '/signup')) {
     if (role === 'candidate') {
@@ -97,5 +123,13 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/signup', '/candidate/:path*', '/employer/:path*'],
+  matcher: [
+    '/',
+    '/login',
+    '/signup',
+    '/find-jobs',
+    '/browse-companies',
+    '/candidate/:path*',
+    '/employer/:path*',
+  ],
 };
