@@ -132,7 +132,7 @@ export function CandidateTopBar() {
                           className="group relative transition-colors hover:bg-[#f8fafc]"
                         >
                           <Link
-                            href={notification.href}
+                            href={notification.link || '#'}
                             onClick={() => {
                               handleMarkAsRead(notification.id);
                               closeNotificationMenu();
@@ -141,7 +141,7 @@ export function CandidateTopBar() {
                           >
                             <span
                               className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                                notification.unread
+                                !notification.isRead
                                   ? 'bg-[#4640de]'
                                   : 'bg-[#d6ddeb]'
                               }`}
@@ -149,12 +149,12 @@ export function CandidateTopBar() {
                             <div className="min-w-0">
                               <p
                                 className={`line-clamp-2 text-sm ${
-                                  notification.unread
+                                  !notification.isRead
                                     ? 'font-medium text-[#25324b]'
                                     : 'text-[#7c8493]'
                                 }`}
                               >
-                                {notification.title}
+                                {notification.content}
                               </p>
                               <p className="mt-1 text-xs text-[#7c8493]">
                                 {formatNotificationTime(notification.createdAt)}

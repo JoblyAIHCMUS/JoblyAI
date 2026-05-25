@@ -2,15 +2,19 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Param,
   ParseIntPipe,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('notifications')
 @Controller('notifications')
+@UseGuards(AuthGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
@@ -46,4 +50,15 @@ export class NotificationsController {
     const userId = req.user.id;
     return this.notificationsService.markAllAsRead(userId);
   }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a specific notification' })
+  async deleteNotification(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    const userId = req.user.id;
+    return this.notificationsService.deleteNotification(userId, id);
+  }
 }
+
