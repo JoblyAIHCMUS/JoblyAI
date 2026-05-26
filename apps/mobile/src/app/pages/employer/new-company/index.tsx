@@ -10,7 +10,10 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
@@ -37,6 +40,7 @@ import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
 export default function EmployerNewCompanyPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
@@ -290,7 +294,10 @@ export default function EmployerNewCompanyPage() {
         </ScrollView>
 
         {/* Navigation Buttons */}
-        <View className="border-t border-slate-200 bg-white px-4 py-4 flex-row gap-3">
+        <View
+          className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
+          style={{ paddingBottom: insets.bottom }}
+        >
           {currentStep > 0 && (
             <TouchableOpacity
               onPress={handlePrev}
