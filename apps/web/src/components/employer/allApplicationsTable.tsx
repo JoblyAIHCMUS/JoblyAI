@@ -26,6 +26,7 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useMessageCandidate } from '@/hooks/useMessageCandidate';
+import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 
 import { type AllApplication } from '@/features/employer/all-applications/data';
 import {
@@ -262,31 +263,69 @@ export default function AllApplicationsTable({
 }: AllApplicationsTableProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const { handleMessageCandidate: messageCandidate } = useMessageCandidate();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    show: boolean;
+    actionType: 'advance' | 'reject' | null;
+    applicationId: string | null;
+    currentStage?: HiringStage;
+    nextStage?: HiringStage;
+  }>({
+    show: false,
+    actionType: null,
+    applicationId: null,
+  });
 
   const handleAdvance = async (id: string) => {
-    setLoadingId(id);
-    try {
-      await advanceApplicant(id);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to advance applicant';
-      toast.error(message);
-    } finally {
-      setLoadingId(null);
-    }
+    const application = applications.find((a) => a.id === id);
+    if (!application) return;
+
+    const nextStage = nextStageMap[application.hiringStage];
+    setConfirmDialog({
+      show: true,
+      actionType: 'advance',
+      applicationId: id,
+      currentStage: application.hiringStage,
+      nextStage,
+    });
   };
 
   const handleDecline = async (id: string) => {
-    setLoadingId(id);
+    setConfirmDialog({
+      show: true,
+      actionType: 'reject',
+      applicationId: id,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.applicationId) return;
+
+    setLoadingId(confirmDialog.applicationId);
     try {
-      await declineApplicant(id);
+      if (confirmDialog.actionType === 'advance') {
+        await advanceApplicant(confirmDialog.applicationId);
+      } else if (confirmDialog.actionType === 'reject') {
+        await declineApplicant(confirmDialog.applicationId);
+      }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to decline applicant';
+      const message = error instanceof Error ? error.message : 'Action failed';
       toast.error(message);
     } finally {
       setLoadingId(null);
+      setConfirmDialog({
+        show: false,
+        actionType: null,
+        applicationId: null,
+      });
     }
+  };
+
+  const handleCancelDialog = () => {
+    setConfirmDialog({
+      show: false,
+      actionType: null,
+      applicationId: null,
+    });
   };
 
   const handleMessageCandidateClick = async (applicantId: string) => {
@@ -306,62 +345,74 @@ export default function AllApplicationsTable({
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4 md:space-y-6">
-      <DataTable
-        columns={columns}
-        data={applications}
-        pageSize={pageSize}
-        meta={{
-          advanceApplicant: handleAdvance,
-          declineApplicant: handleDecline,
-          messageCandidate: handleMessageCandidateClick,
-          loadingId,
-        }}
-      />
+    <>
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
+        <DataTable
+          columns={columns}
+          data={applications}
+          pageSize={pageSize}
+          meta={{
+            advanceApplicant: handleAdvance,
+            declineApplicant: handleDecline,
+            messageCandidate: handleMessageCandidateClick,
+            loadingId,
+          }}
+        />
 
-      {/* Custom pagination controls for server-side pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 py-4 sm:py-6">
-          <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, total)} of {total} results
+        {/* Custom pagination controls for server-side pagination */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 py-4 sm:py-6">
+            <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
+              Showing {(currentPage - 1) * pageSize + 1} to{' '}
+              {Math.min(currentPage * pageSize, total)} of {total} results
+            </div>
+            <div className="flex gap-1 sm:gap-2 order-1 sm:order-2 flex-wrap justify-start sm:justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                Previous
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, currentPage - 2), currentPage + 1)
+                .map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    disabled={loading}
+                    className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+                  >
+                    {page}
+                  </Button>
+                ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                Next
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-1 sm:gap-2 order-1 sm:order-2 flex-wrap justify-start sm:justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || loading}
-              className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-            >
-              Previous
-            </Button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(Math.max(0, currentPage - 2), currentPage + 1)
-              .map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handlePageChange(page)}
-                  disabled={loading}
-                  className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-                >
-                  {page}
-                </Button>
-              ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || loading}
-              className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        )}
+      </div>
+      {confirmDialog.show && (
+        <HiringStageChangeConfirm
+          actionType={confirmDialog.actionType as 'advance' | 'reject'}
+          currentStage={confirmDialog.currentStage}
+          nextStage={confirmDialog.nextStage}
+          onCancel={handleCancelDialog}
+          onConfirm={handleConfirmAction}
+          loading={loadingId === confirmDialog.applicationId}
+        />
       )}
-    </div>
+    </>
   );
 }
