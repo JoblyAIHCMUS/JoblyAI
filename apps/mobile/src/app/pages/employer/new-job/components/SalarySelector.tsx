@@ -19,6 +19,7 @@ interface SalarySelectorProps {
     salaryMin?: string;
     salaryMax?: string;
   };
+  onTriggerValidation?: () => void;
 }
 
 export const SalarySelector: React.FC<SalarySelectorProps> = ({
@@ -29,6 +30,7 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
   salaryMax,
   onSalaryMaxChange,
   errors = {},
+  onTriggerValidation,
 }) => {
   const [showCurrencyModal, setShowCurrencyModal] = React.useState(false);
 
@@ -43,11 +45,15 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
   const handleSalaryMinChange = (text: string) => {
     const num = text.trim() === '' ? undefined : parseInt(text, 10);
     onSalaryMinChange(isNaN(num!) ? undefined : num);
+    // Trigger validation to run schema-level tests
+    onTriggerValidation?.();
   };
 
   const handleSalaryMaxChange = (text: string) => {
     const num = text.trim() === '' ? undefined : parseInt(text, 10);
     onSalaryMaxChange(isNaN(num!) ? undefined : num);
+    // Trigger validation to run schema-level tests
+    onTriggerValidation?.();
   };
 
   return (

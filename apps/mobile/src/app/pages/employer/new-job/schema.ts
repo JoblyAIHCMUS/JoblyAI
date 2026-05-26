@@ -1,24 +1,31 @@
 import * as yup from 'yup';
 
+// Helper function to validate HTML content is not empty
+const isHtmlContentEmpty = (html: string): boolean => {
+  if (!html) return true;
+
+  // Strip tags and handle non-breaking spaces
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return text === '';
+};
+
 export const jobPostingSchema = yup
   .object({
     title: yup
       .string()
       .min(2, 'Job title must be at least 2 characters long')
       .max(255, 'Job title cannot exceed 255 characters')
-      .required('Job title is required')
-      .typeError('Job title must be a string'),
+      .required('Job title is required'),
     description: yup
       .string()
       .required('Job description is required')
       .test(
         'not-empty-html',
         'Job description is required and cannot be empty',
-        (value) => {
-          if (!value) return false;
-          const text = value.replace(/<[^>]*>/g, '').trim();
-          return text.length > 0;
-        }
+        (value) => !isHtmlContentEmpty(value)
       ),
     type: yup
       .string()
@@ -57,21 +64,21 @@ export const jobPostingSchema = yup
     salaryMin: yup
       .number()
       .typeError('Salary must be a number')
-      .min(0, 'Salary must be non-negative')
-      .optional()
       .nullable()
       .transform((value) =>
         value === null || value === '' ? undefined : value
-      ) as yup.Schema<number | undefined>,
+      )
+      .min(0, 'Salary must be non-negative')
+      .optional() as yup.Schema<number | undefined>,
     salaryMax: yup
       .number()
       .typeError('Salary must be a number')
-      .min(0, 'Salary must be non-negative')
-      .optional()
       .nullable()
       .transform((value) =>
         value === null || value === '' ? undefined : value
-      ) as yup.Schema<number | undefined>,
+      )
+      .min(0, 'Salary must be non-negative')
+      .optional() as yup.Schema<number | undefined>,
     skills: yup
       .array(
         yup.object({
@@ -104,8 +111,22 @@ export const jobPostingSchema = yup
   })
   .required()
   .test(
-    'salary-range',
+    'salary-range-min',
     'Minimum salary must be less than or equal to maximum salary',
+    function (values) {
+      if (
+        values.currency !== 'none' &&
+        values.salaryMin != null &&
+        values.salaryMax != null
+      ) {
+        return values.salaryMin <= values.salaryMax;
+      }
+      return true;
+    }
+  )
+  .test(
+    'salary-range-max',
+    'Maximum salary must be greater than or equal to minimum salary',
     function (values) {
       if (
         values.currency !== 'none' &&
