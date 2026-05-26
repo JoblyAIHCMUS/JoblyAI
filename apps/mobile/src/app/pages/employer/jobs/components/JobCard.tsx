@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MoreHorizontal } from 'lucide-react-native';
 import { JobListing } from '../data';
 import { JobCardMenu } from './JobCardMenu';
@@ -11,6 +12,7 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
+  const router = useRouter();
   const isLive = job.status === 'Live';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -41,7 +43,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
     );
   };
 
-  const handleViewDetails = () => console.log('View Details:', job.id);
+  const handleViewDetails = () => {
+    setIsMenuOpen(false);
+    router.push(`/pages/employer/jobs/${job.id}`);
+  };
   const handleEditJobPosting = () => console.log('Edit Job Posting:', job.id);
 
   const handlePublishJobPosting = () => {
