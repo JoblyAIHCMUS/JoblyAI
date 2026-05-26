@@ -79,6 +79,9 @@ module.exports = {
         'app-gray-1': '#E5E7EB',
         'app-gray-2': '#374151',
         'app-neutral-1': '#FAFAFA',
+        'app-brand-text': '#121419',
+        'app-background-2': '#F8F9FE',
+        'app-red-3': '#FF4444',
       },
       borderRadius: {
         lg: 'var(--radius)',

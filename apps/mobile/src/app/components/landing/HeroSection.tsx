@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { SPACING } from '../../constants/theme';
 import { IconInput } from '../shared/IconInput';
 import { AppButton } from '../shared/AppButton';
 import {
@@ -16,24 +16,24 @@ const handleNoop = (): void => {
 
 const HeroSection: React.FC = () => {
   return (
-    <View style={styles.heroContainer}>
+    <View style={styles.heroContainer} className="bg-app-background-1">
       <View style={styles.content}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>
+          <Text style={styles.title} className="text-app-text-1">
             Discover more than{' '}
-            <Text style={styles.highlightText}>5000+ Jobs</Text>
+            <Text style={styles.highlightText} className="text-app-primary-1">5000+ Jobs</Text>
           </Text>
           <View style={styles.squigglyContainer}>
             <SquigglyLines />
           </View>
         </View>
 
-        <Text style={styles.subheading}>
+        <Text style={styles.subheading} className="text-app-text-3">
           Great platform for the job seeker that searching for new career
           heights and passionate about startups.
         </Text>
 
-        <View style={styles.searchCard}>
+        <View style={styles.searchCard} className="bg-app-white-1">
           <IconInput
             icon={<SearchIcon />}
             placeholder="Job title or keyword"
@@ -55,7 +55,7 @@ const HeroSection: React.FC = () => {
         </View>
 
         <View style={styles.popularTagsContainer}>
-          <Text style={styles.popularText}>
+          <Text style={styles.popularText} className="text-app-text-3">
             Popular :{' '}
             <Text style={styles.tagsText}>
               UI Designer, UX Researcher, Android, Admin
@@ -69,7 +69,6 @@ const HeroSection: React.FC = () => {
 
 const styles = StyleSheet.create({
   heroContainer: {
-    backgroundColor: COLORS.background,
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.lg,
   },
@@ -83,11 +82,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: '800',
-    color: COLORS.text,
     lineHeight: 48,
   },
   highlightText: {
-    color: COLORS.primary,
   },
   squigglyContainer: {
     marginTop: SPACING.xs,
@@ -95,12 +92,10 @@ const styles = StyleSheet.create({
   subheading: {
     fontSize: 20,
     fontWeight: 500,
-    color: COLORS.textMuted,
     lineHeight: 24,
     marginBottom: SPACING.xl,
   },
   searchCard: {
-    backgroundColor: COLORS.white,
     padding: SPACING.lg,
     borderRadius: 12,
     shadowColor: '#000',
@@ -123,7 +118,6 @@ const styles = StyleSheet.create({
   },
   popularText: {
     fontSize: 15,
-    color: COLORS.textMuted,
     fontWeight: '600',
   },
   tagsText: {
