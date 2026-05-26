@@ -34,7 +34,7 @@ export const AboutCompanyStep: React.FC<AboutCompanyStepProps> = ({
         </View>
 
         <View className="gap-2">
-          <Label className="text-sm font-medium text-slate-700">
+          <Label className="text-base font-medium text-slate-700">
             Company Description (Optional)
           </Label>
           <Text className="text-xs text-slate-500">

@@ -54,7 +54,7 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
     <View className="gap-4">
       {/* Currency Selector */}
       <View className="gap-2">
-        <Label className="font-medium">Salary (Optional)</Label>
+        <Label className="text-base font-medium">Salary (Optional)</Label>
         <TouchableOpacity
           onPress={() => setShowCurrencyModal(true)}
           className="flex-row items-center justify-between px-4 py-3 rounded-lg border border-slate-200 bg-white"
@@ -81,11 +81,11 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
           <View className="flex-row gap-3">
             <View className="flex-1 gap-1">
               <Label
-                className={`text-sm font-medium ${
+                className={`text-base font-medium ${
                   errors.salaryMin ? 'text-red-600' : ''
                 }`}
               >
-                Min *
+                Min <Text className="text-red-600">*</Text>
               </Label>
               <Input
                 placeholder="0"
@@ -101,11 +101,11 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
 
             <View className="flex-1 gap-1">
               <Label
-                className={`text-sm font-medium ${
+                className={`text-base font-medium ${
                   errors.salaryMax ? 'text-red-600' : ''
                 }`}
               >
-                Max *
+                Max <Text className="text-red-600">*</Text>
               </Label>
               <Input
                 placeholder="0"

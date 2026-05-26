@@ -24,9 +24,11 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
     >
       <View className="gap-2">
         <Label
-          className={`font-medium ${errors.description ? 'text-red-600' : ''}`}
+          className={`text-base font-medium ${
+            errors.description ? 'text-red-600' : ''
+          }`}
         >
-          Job Description *
+          Job Description <Text className="text-red-600">*</Text>
         </Label>
         <Text className="text-sm text-slate-600">
           Describe the role, key responsibilities, required skills,

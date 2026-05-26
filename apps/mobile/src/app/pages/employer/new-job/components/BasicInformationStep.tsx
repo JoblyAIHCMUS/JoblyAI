@@ -53,9 +53,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-2">
             <Label
-              className={`font-medium ${errors.title ? 'text-red-600' : ''}`}
+              className={`text-base font-medium ${
+                errors.title ? 'text-red-600' : ''
+              }`}
             >
-              Job Title *
+              Job Title <Text className="text-red-600">*</Text>
             </Label>
             <Input
               placeholder="e.g. Software Engineer"
@@ -80,9 +82,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-2">
             <Label
-              className={`font-medium ${errors.type ? 'text-red-600' : ''}`}
+              className={`text-base font-medium ${
+                errors.type ? 'text-red-600' : ''
+              }`}
             >
-              Type of Employment *
+              Type of Employment <Text className="text-red-600">*</Text>
             </Label>
             <TouchableOpacity
               onPress={() => setShowTypeModal(true)}
@@ -129,7 +133,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Label className="font-medium">Remote Job</Label>
+              <Label className="text-base font-medium">Remote Job</Label>
               <Switch
                 value={field.value}
                 onValueChange={field.onChange}
@@ -144,11 +148,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
                 render={({ field: locationField }) => (
                   <View className="gap-2">
                     <Label
-                      className={`font-medium ${
+                      className={`text-base font-medium ${
                         errors.location ? 'text-red-600' : ''
                       }`}
                     >
-                      Location *
+                      Location <Text className="text-red-600">*</Text>
                     </Label>
                     <Input
                       placeholder="e.g. San Francisco, CA"
