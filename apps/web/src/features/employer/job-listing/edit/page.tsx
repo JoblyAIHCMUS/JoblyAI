@@ -224,8 +224,8 @@ export default function JobListingEditPage() {
         categoryId: Number(data.categoryId),
         currency:
           data.currency === 'none' ? undefined : data.currency.toUpperCase(),
-        salaryMin: data.salaryMin,
-        salaryMax: data.salaryMax,
+        salaryMin: data.salaryMin ?? undefined,
+        salaryMax: data.salaryMax ?? undefined,
         requirements,
       };
 

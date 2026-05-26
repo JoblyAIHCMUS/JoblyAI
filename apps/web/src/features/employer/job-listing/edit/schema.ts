@@ -51,8 +51,16 @@ export const jobPostingSchema = z
     location: z.string().optional(),
     categoryId: z.string().min(1, 'Please select a category'),
     currency: z.enum(['none', 'usd', 'eur', 'gbp', 'vnd', 'jpy', 'cny']),
-    salaryMin: z.number().nonnegative('Salary must be non-negative').optional(),
-    salaryMax: z.number().nonnegative('Salary must be non-negative').optional(),
+    salaryMin: z
+      .number()
+      .nonnegative('Salary must be non-negative')
+      .nullable()
+      .optional(),
+    salaryMax: z
+      .number()
+      .nonnegative('Salary must be non-negative')
+      .nullable()
+      .optional(),
     skills: z.array(
       z.object({
         name: z.string().min(1, 'Skill name is required'),
@@ -81,7 +89,9 @@ export const jobPostingSchema = z
       if (
         data.currency !== 'none' &&
         data.salaryMin !== undefined &&
-        data.salaryMax !== undefined
+        data.salaryMin !== null &&
+        data.salaryMax !== undefined &&
+        data.salaryMax !== null
       ) {
         return data.salaryMin <= data.salaryMax;
       }
@@ -90,6 +100,25 @@ export const jobPostingSchema = z
     {
       message: 'Minimum salary must be less than or equal to maximum salary',
       path: ['salaryMin'],
+    }
+  )
+  .refine(
+    (data) => {
+      // Check the same condition but report error on salaryMax
+      if (
+        data.currency !== 'none' &&
+        data.salaryMin !== undefined &&
+        data.salaryMin !== null &&
+        data.salaryMax !== undefined &&
+        data.salaryMax !== null
+      ) {
+        return data.salaryMin <= data.salaryMax;
+      }
+      return true;
+    },
+    {
+      message: 'Maximum salary must be greater than or equal to minimum salary',
+      path: ['salaryMax'],
     }
   )
   .strict();
