@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text } from 'react-native';
+import { COLORS } from '../../constants/theme';
 
 export interface BadgeProps {
   label: string;
@@ -14,34 +14,24 @@ export const Badge: React.FC<BadgeProps> = ({
   color = COLORS.badgeGreen,
   textColor = COLORS.badgeGreenText,
   outline = false,
-}) => (
-  <View
-    style={[
-      styles.badge,
-      {
+}) => {
+  const borderClasses = outline ? 'border' : '';
+
+  return (
+    <View
+      className={`px-2 py-1 rounded-full self-start ${borderClasses}`}
+      style={{
         backgroundColor: color === 'transparent' ? 'transparent' : color,
         borderColor: outline
           ? color === 'transparent'
             ? textColor
             : color
           : 'transparent',
-        borderWidth: outline ? 1 : 0,
-      },
-    ]}
-  >
-    <Text style={[styles.text, { color: textColor }]}>{label}</Text>
-  </View>
-);
-
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: 80,
-    alignSelf: 'flex-start',
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});
+      }}
+    >
+      <Text className="text-xs font-semibold" style={{ color: textColor }}>
+        {label}
+      </Text>
+    </View>
+  );
+};

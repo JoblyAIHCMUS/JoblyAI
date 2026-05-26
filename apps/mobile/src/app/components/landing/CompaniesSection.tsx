@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, Dimensions, Image } from 'react-native';
-import { SPACING } from '../../constants/theme';
 import { useTopCompanies } from '../../../hooks';
 
 const { width } = Dimensions.get('window');
@@ -18,7 +17,7 @@ export const CompaniesSection = () => {
       <View className="gap-6">
         <View className="flex-row flex-wrap justify-between items-center gap-4">
            {companies.map((company) => (
-             <View key={company.id} style={{ width: (width - SPACING.lg * 2 - SPACING.md * 2) / 3 }} className="h-[60px] items-center justify-center mb-4">
+             <View key={company.id} style={{ width: (width - 80) / 3 }} className="h-[60px] items-center justify-center mb-4">
                {company.logoUrl ? (
                  <Image
                    source={{ uri: company.logoUrl }}

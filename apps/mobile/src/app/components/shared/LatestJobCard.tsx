@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text, Image } from 'react-native';
+import { COLORS } from '../../constants/theme';
 import { Badge } from './Badge';
 
 export interface LatestJobProps {
@@ -21,25 +21,25 @@ export const LatestJobCard = ({
   logoUrl,
 }: LatestJobProps) => {
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
+    <View className="bg-app-white-1 p-4 rounded-2xl mb-4 border border-app-border-3">
+      <View className="flex-row items-start">
         {logoUrl ? (
           <Image
             source={{ uri: logoUrl }}
-            style={styles.logo}
+            style={{ width: 48, height: 48, borderRadius: 8, marginRight: 16 }}
             resizeMode="contain"
           />
         ) : (
-          <View style={styles.logoPlaceholder} />
+          <View className="w-12 h-12 bg-app-background-1 rounded-lg mr-4" />
         )}
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.companyLocation}>
+        <View className="flex-1">
+          <Text className="text-base font-bold text-app-text-1 mb-1">{title}</Text>
+          <Text className="text-sm text-app-text-2 mb-2">
             {company} • {location}
           </Text>
-          <View style={styles.tagsContainer}>
+          <View className="flex-row flex-wrap gap-1 items-center">
             <Badge label={type} color="#EBF9F1" textColor="#56CDAD" outline />
-            <View style={styles.separator} />
+            <View className="w-px h-6 bg-app-border-3 mx-1" />
             {tags.map((tag, index) => {
               const getTagStyles = (t: string) => {
                 const lowerTag = t.toLowerCase();
@@ -71,56 +71,4 @@ export const LatestJobCard = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: 16,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    marginRight: SPACING.md,
-  },
-  logoPlaceholder: {
-    width: 48,
-    height: 48,
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    marginRight: SPACING.md,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  companyLocation: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    marginBottom: SPACING.sm,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.xs,
-    alignItems: 'center',
-  },
-  separator: {
-    width: 1,
-    height: 24,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 4,
-  },
-});
+export default LatestJobCard;
