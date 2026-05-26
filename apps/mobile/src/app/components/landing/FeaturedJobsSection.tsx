@@ -2,12 +2,10 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { useListJobs } from '../../../hooks/useListJobs';
@@ -15,26 +13,33 @@ import { useListJobs } from '../../../hooks/useListJobs';
 export const FeaturedJobsSection = () => {
   const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 4 });
 
+  const scrollContent = {
+    paddingLeft: 24,
+    paddingRight: 8,
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Featured <Text style={styles.highlight}>jobs</Text>
+    <View className="bg-app-white-1 py-8">
+      <View className="flex-row justify-between items-center mb-6 px-6">
+        <Text className="text-4xl font-black text-app-text-1">
+          Featured <Text className="text-app-primary-1">jobs</Text>
         </Text>
       </View>
 
       {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+        <View className="h-[200px] justify-center items-center">
+          <ActivityIndicator size="large" className="text-app-primary-1" />
         </View>
       ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>Failed to load featured jobs</Text>
+        <View className="h-[200px] justify-center items-center">
+          <Text className="text-app-red-3 mb-4">
+            Failed to load featured jobs
+          </Text>
           <TouchableOpacity
             onPress={() => fetchJobs()}
-            style={styles.retryButton}
+            className="bg-app-primary-1 py-2 px-6 rounded-lg"
           >
-            <Text style={styles.retryText}>Retry</Text>
+            <Text className="text-white font-semibold">Retry</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -42,7 +47,7 @@ export const FeaturedJobsSection = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={scrollContent}
           >
             {data?.jobs.map((job) => (
               <FeaturedJobCard
@@ -56,8 +61,13 @@ export const FeaturedJobsSection = () => {
               />
             ))}
           </ScrollView>
-          <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-            <Text style={styles.showAllText}>Show all jobs</Text>
+          <TouchableOpacity
+            className="flex-row items-center gap-1 mt-6 px-6"
+            activeOpacity={0.7}
+          >
+            <Text className="text-lg font-bold text-app-primary-1">
+              Show all jobs
+            </Text>
             <ArrowRightIconPrimary />
           </TouchableOpacity>
         </>
@@ -65,62 +75,5 @@ export const FeaturedJobsSection = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: SPACING.xl,
-    backgroundColor: COLORS.white,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
-  highlight: {
-    color: COLORS.primary,
-  },
-  centerContainer: {
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#FF4444',
-    marginBottom: SPACING.md,
-  },
-  retryButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  showAll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    marginTop: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-  },
-  showAllText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  scrollContent: {
-    paddingLeft: SPACING.lg,
-    paddingRight: SPACING.lg - SPACING.md, // Adjust for card marginRight
-  },
-});
 
 export default FeaturedJobsSection;

@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text, TouchableOpacity } from 'react-native';
 import {
   FacebookIcon,
   InstagramIcon,
@@ -9,19 +8,19 @@ import {
 } from '../shared/svgs/Icons';
 
 const SocialIcon = ({ children }: { children: React.ReactNode }) => (
-  <TouchableOpacity style={styles.socialIconWrapper}>
+  <TouchableOpacity className="bg-white/10 w-9 h-9 rounded-full items-center justify-center mx-1">
     {children}
   </TouchableOpacity>
 );
 
 const Footer = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.copyrightText}>
+    <View className="bg-app-slate-1 py-8 px-4 items-center justify-center">
+      <Text className="text-app-text-5 text-sm mb-6 text-center">
         2026 @ JoblyAI. No rights reserved.
       </Text>
 
-      <View style={styles.socialContainer}>
+      <View className="flex-row items-center justify-center">
         <SocialIcon>
           <FacebookIcon />
         </SocialIcon>
@@ -41,35 +40,5 @@ const Footer = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.footerBg,
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copyrightText: {
-    color: COLORS.footerText,
-    fontSize: 14,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: SPACING.xs,
-  },
-});
 
 export default Footer;

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   PanResponder,
   useWindowDimensions,
@@ -17,7 +16,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Logo from '../../../assets/images/jobly-logo.svg';
-import { COLORS, SPACING } from '../../constants/theme';
+import { COLORS } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
 import { useRouter } from 'expo-router';
 
@@ -116,12 +115,31 @@ const Sidebar = ({
 
   return (
     <Animated.View
-      style={[styles.container, animatedStyle]}
+      style={[
+        {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 1000,
+          shadowColor: '#000',
+          shadowOffset: { width: 2, height: 0 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 5,
+        },
+        animatedStyle,
+      ]}
+      className="bg-app-white-1"
       {...panResponder.panHandlers}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <SafeAreaView className="flex-1">
+        <View className="h-16 flex-row items-center px-4 border-b border-black/5">
+          <TouchableOpacity
+            onPress={onClose}
+            className="w-11 h-11 rounded-full bg-app-white-1 border border-app-border-3 items-center justify-center mr-4"
+          >
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M18 6L6 18M6 6L18 18"
@@ -131,23 +149,27 @@ const Sidebar = ({
               />
             </Svg>
           </TouchableOpacity>
-          <View style={styles.brandContainer}>
-            <View style={styles.logoContainer}>
+          <View className="flex-row items-center gap-2.5">
+            <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
               <Logo width={34} height={34} />
             </View>
-            <Text style={styles.brandText}>JoblyAI</Text>
+            <Text className="text-2xl font-black text-app-brand-text tracking-tight">
+              JoblyAI
+            </Text>
           </View>
         </View>
 
-        <View style={styles.content}>
+        <View className="p-6 flex-1">
           <TouchableOpacity
-            style={styles.navItem}
+            className="flex-row items-center justify-between py-6"
             onPress={() => {
               onClose();
               router.push('/pages/employer/dashboard');
             }}
           >
-            <Text style={styles.navText}>Browse Jobs</Text>
+            <Text className="text-lg font-bold text-app-primary-1">
+              Browse Jobs
+            </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
@@ -159,8 +181,10 @@ const Sidebar = ({
             </Svg>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem}>
-            <Text style={styles.navText}>Browse Companies</Text>
+          <TouchableOpacity className="flex-row items-center justify-between py-6">
+            <Text className="text-lg font-bold text-app-primary-1">
+              Browse Companies
+            </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
@@ -172,16 +196,16 @@ const Sidebar = ({
             </Svg>
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View className="h-px bg-black/5 my-6" />
 
-          <View style={styles.footer}>
+          <View className="mt-auto pb-8">
             <AppButton
               title="Sign Up"
               onPress={
                 onSignUpPress ?? (() => router.push('/pages/(auth)/register'))
               }
             />
-            <View style={{ height: SPACING.md }} />
+            <View className="h-4" />
             <AppButton
               title="Login"
               variant="outline"
@@ -195,86 +219,5 @@ const Sidebar = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLORS.white,
-    zIndex: 1000,
-    // Add shadow for better visual separation during slide
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#E6E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  brandContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    overflow: 'hidden',
-  },
-  brandText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#121419',
-    letterSpacing: -0.5,
-  },
-  content: {
-    padding: SPACING.lg,
-    flex: 1,
-  },
-  navItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.lg,
-  },
-  navText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginVertical: SPACING.lg,
-  },
-  footer: {
-    marginTop: 'auto',
-    paddingBottom: SPACING.xl,
-  },
-});
 
 export default Sidebar;

@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text, Dimensions, Image } from 'react-native';
 import { useTopCompanies } from '../../../hooks';
 
 const { width } = Dimensions.get('window');
@@ -13,21 +12,27 @@ export const CompaniesSection = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Companies we helped grow</Text>
-      <View style={styles.grid}>
-        <View style={styles.row}>
+    <View className="bg-app-white-1 py-8 px-6">
+      <Text className="text-xl font-bold text-app-slate-1 mb-6">
+        Companies we helped grow
+      </Text>
+      <View className="gap-6">
+        <View className="flex-row flex-wrap justify-between items-center gap-4">
           {companies.map((company) => (
-            <View key={company.id} style={styles.logoItem}>
+            <View
+              key={company.id}
+              style={{ width: (width - 80) / 3 }}
+              className="h-[60px] items-center justify-center mb-4"
+            >
               {company.logoUrl ? (
                 <Image
                   source={{ uri: company.logoUrl }}
-                  style={styles.logoImage}
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="contain"
                 />
               ) : (
-                <View style={styles.fallbackLogo}>
-                  <Text style={styles.fallbackText}>
+                <View className="bg-app-background-1 w-[50px] h-[50px] rounded-full items-center justify-center">
+                  <Text className="text-2xl font-bold text-app-slate-1">
                     {company.name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -39,53 +44,5 @@ export const CompaniesSection = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.white,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.brandDark,
-    marginBottom: SPACING.lg,
-  },
-  grid: {
-    rowGap: SPACING.lg,
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  logoItem: {
-    width: (width - SPACING.lg * 2 - SPACING.md * 2) / 3,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.md,
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  fallbackLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fallbackText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.brandDark,
-  },
-});
 
 export default CompaniesSection;

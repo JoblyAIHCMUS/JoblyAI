@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text } from 'react-native';
 import { IconInput } from '../shared/IconInput';
 import { AppButton } from '../shared/AppButton';
 import {
@@ -16,48 +15,48 @@ const handleNoop = (): void => {
 
 const HeroSection: React.FC = () => {
   return (
-    <View style={styles.heroContainer}>
-      <View style={styles.content}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>
+    <View className="bg-app-background-1 py-8 px-6">
+      <View className="mt-4">
+        <View className="mb-4 relative">
+          <Text className="text-4xl font-black text-app-text-1 leading-12">
             Discover more than{' '}
-            <Text style={styles.highlightText}>5000+ Jobs</Text>
+            <Text className="text-app-primary-1">5000+ Jobs</Text>
           </Text>
-          <View style={styles.squigglyContainer}>
+          <View className="mt-1">
             <SquigglyLines />
           </View>
         </View>
 
-        <Text style={styles.subheading}>
+        <Text className="text-xl font-medium text-app-text-3 leading-6 mb-8">
           Great platform for the job seeker that searching for new career
           heights and passionate about startups.
         </Text>
 
-        <View style={styles.searchCard}>
+        <View className="bg-app-white-1 p-6 rounded-xl shadow-md mb-6">
           <IconInput
             icon={<SearchIcon />}
             placeholder="Job title or keyword"
             value=""
             onChangeText={handleNoop}
           />
-          <View style={styles.locationInputContainer}>
+          <View className="relative">
             <IconInput
               icon={<PinIcon />}
               placeholder="Florence, Italy"
               value=""
               onChangeText={handleNoop}
             />
-            <View style={styles.chevronContainer}>
+            <View className="absolute right-0 top-3">
               <ChevronIcon />
             </View>
           </View>
           <AppButton title="Search my job" onPress={handleNoop} />
         </View>
 
-        <View style={styles.popularTagsContainer}>
-          <Text style={styles.popularText}>
+        <View className="mt-2">
+          <Text className="text-base font-semibold text-app-text-3">
             Popular :{' '}
-            <Text style={styles.tagsText}>
+            <Text className="font-normal">
               UI Designer, UX Researcher, Android, Admin
             </Text>
           </Text>
@@ -66,69 +65,5 @@ const HeroSection: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  heroContainer: {
-    backgroundColor: COLORS.background,
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
-  },
-  content: {
-    marginTop: SPACING.md,
-  },
-  titleContainer: {
-    marginBottom: SPACING.md,
-    position: 'relative',
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: COLORS.text,
-    lineHeight: 48,
-  },
-  highlightText: {
-    color: COLORS.primary,
-  },
-  squigglyContainer: {
-    marginTop: SPACING.xs,
-  },
-  subheading: {
-    fontSize: 20,
-    fontWeight: 500,
-    color: COLORS.textMuted,
-    lineHeight: 24,
-    marginBottom: SPACING.xl,
-  },
-  searchCard: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.lg,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom: SPACING.lg,
-  },
-  locationInputContainer: {
-    position: 'relative',
-  },
-  chevronContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 12,
-  },
-  popularTagsContainer: {
-    marginTop: SPACING.sm,
-  },
-  popularText: {
-    fontSize: 15,
-    color: COLORS.textMuted,
-    fontWeight: '600',
-  },
-  tagsText: {
-    fontWeight: '400',
-  },
-});
 
 export default HeroSection;

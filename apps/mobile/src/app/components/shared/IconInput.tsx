@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Input } from '../../../components/ui/input';
-import { COLORS, SPACING } from '../../constants/theme';
+import { COLORS } from '../../constants/theme';
 
 interface IconInputProps {
   icon: ReactNode;
@@ -16,10 +16,10 @@ export const IconInput = ({
   value,
   onChangeText,
 }: IconInputProps) => (
-  <View style={styles.container}>
-    <View style={styles.iconContainer}>{icon}</View>
+  <View className="flex-row items-center border-b border-app-border-3 py-2 mb-4">
+    <View className="mr-2">{icon}</View>
     <Input
-      className={styles.inputClassName}
+      className="flex-1 border-0 bg-transparent px-0 text-base text-black shadow-none"
       placeholder={placeholder}
       value={value}
       onChangeText={onChangeText}
@@ -28,16 +28,4 @@ export const IconInput = ({
   </View>
 );
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    paddingVertical: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  iconContainer: { marginRight: SPACING.sm },
-  inputClassName:
-    'flex-1 border-0 bg-transparent px-0 text-base text-black shadow-none',
-});
+export default IconInput;

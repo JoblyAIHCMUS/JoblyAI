@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Logo from '../../../assets/images/jobly-logo.svg';
-import { COLORS, SPACING } from '../../constants/theme';
+import { COLORS } from '../../constants/theme';
 
 interface HeaderProps {
   onMenuPress?: () => void;
@@ -11,11 +11,14 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView
+      edges={['top']}
+      className="bg-app-background-2 border-b border-black/5"
+    >
+      <View className="h-16 flex-row items-center px-4">
         {/* Menu Icon Left */}
         <TouchableOpacity
-          style={styles.menuButton}
+          className="w-11 h-11 rounded-full bg-app-white-1 border border-app-border-3 items-center justify-center mr-4"
           activeOpacity={0.7}
           onPress={onMenuPress}
         >
@@ -30,57 +33,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
         </TouchableOpacity>
 
         {/* Logo and Brand */}
-        <View style={styles.brandContainer}>
-          <View style={styles.logoContainer}>
+        <View className="flex-row items-center gap-2.5">
+          <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
             <Logo width={34} height={34} />
           </View>
-          <Text style={styles.brandText}>JoblyAI</Text>
+          <Text className="text-2xl font-black text-app-brand-text tracking-tight">
+            JoblyAI
+          </Text>
         </View>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: '#F8F9FE', // Matches the light blue-ish background in the image
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
-  container: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-  },
-  menuButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#E6E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  brandContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    overflow: 'hidden',
-  },
-  brandText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#121419',
-    letterSpacing: -0.5,
-  },
-});
 
 export default Header;

@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { CategoryCard } from '../shared/CategoryCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { usePopularCategories } from '../../../hooks/usePopularCategories';
@@ -41,25 +34,19 @@ export const CategoriesSection = () => {
   const { categories, loading, error } = usePopularCategories(8);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Explore by <Text style={styles.highlight}>category</Text>
+    <View className="bg-app-background-1 py-8 px-6">
+      <View className="mb-6">
+        <Text className="text-4xl font-black text-app-text-1">
+          Explore by <Text className="text-app-primary-1">category</Text>
         </Text>
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={COLORS.primary}
-          style={{ marginTop: SPACING.xl }}
-        />
+        <ActivityIndicator size="large" className="text-app-primary-1 mt-8" />
       ) : error ? (
-        <Text style={{ color: COLORS.error, marginTop: SPACING.md }}>
-          Failed to load categories.
-        </Text>
+        <Text className="text-app-red-1 mt-4">Failed to load categories.</Text>
       ) : (
-        <View style={styles.grid}>
+        <View className="mt-4">
           {categories.map((category) => (
             <CategoryCard
               key={category.id.toString()}
@@ -74,46 +61,17 @@ export const CategoriesSection = () => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-        <Text style={styles.showAllText}>Show all jobs</Text>
+      <TouchableOpacity
+        className="flex-row items-center justify-start gap-1 mt-2"
+        activeOpacity={0.7}
+      >
+        <Text className="text-lg font-bold text-app-primary-1">
+          Show all jobs
+        </Text>
         <ArrowRightIconPrimary />
       </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    marginBottom: SPACING.lg,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
-  highlight: {
-    color: COLORS.primary,
-  },
-  showAll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: SPACING.xs,
-    marginTop: SPACING.sm,
-  },
-  showAllText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  grid: {
-    marginTop: SPACING.md,
-  },
-});
 
 export default CategoriesSection;
