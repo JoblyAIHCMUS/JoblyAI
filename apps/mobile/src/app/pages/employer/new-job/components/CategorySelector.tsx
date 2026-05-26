@@ -32,8 +32,12 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
   return (
     <View className="gap-2">
-      <Label className={error ? 'text-red-600 font-medium' : 'font-medium'}>
-        Category *
+      <Label
+        className={
+          error ? 'text-base text-red-600 font-medium' : 'text-base font-medium'
+        }
+      >
+        Category <Text className="text-red-600">*</Text>
       </Label>
       <TouchableOpacity
         onPress={() => setShowModal(true)}

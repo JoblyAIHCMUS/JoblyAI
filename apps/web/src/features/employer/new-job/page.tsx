@@ -76,7 +76,7 @@ export default function EmployerNewJobPage() {
     formState: { errors },
   } = useForm<JobPostingFormData>({
     resolver: zodResolver(jobPostingSchema),
-    mode: 'onBlur',
+    mode: 'onChange',
     defaultValues: {
       title: '',
       description: '',
@@ -129,7 +129,9 @@ export default function EmployerNewJobPage() {
           !!currentValues.categoryId &&
           !errors.title &&
           !errors.type &&
-          !errors.categoryId
+          !errors.categoryId &&
+          !errors.salaryMin &&
+          !errors.salaryMax
         );
       case 1: // Job Description
         return !errors.description && !isHtmlContentEmpty(description);
@@ -168,8 +170,8 @@ export default function EmployerNewJobPage() {
         categoryId: Number(data.categoryId),
         currency:
           data.currency === 'none' ? undefined : data.currency.toUpperCase(),
-        salaryMin: data.salaryMin,
-        salaryMax: data.salaryMax,
+        salaryMin: data.salaryMin ?? undefined,
+        salaryMax: data.salaryMax ?? undefined,
         companyId: employerProfile?.company?.id || 0,
         requirements,
       };

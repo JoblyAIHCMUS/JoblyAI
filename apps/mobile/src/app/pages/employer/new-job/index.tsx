@@ -8,7 +8,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
@@ -35,6 +38,25 @@ const isHtmlContentEmpty = (html: string): boolean => {
   return text === '';
 };
 
+// Helper to validate salary range
+const isSalaryRangeValid = (
+  currency: string,
+  salaryMin: number | undefined,
+  salaryMax: number | undefined
+): boolean => {
+  // Only validate if currency is selected (not 'none')
+  if (currency === 'none') {
+    return true;
+  }
+
+  // If both min and max are provided, min must be <= max
+  if (salaryMin != null && salaryMax != null) {
+    return salaryMin <= salaryMax;
+  }
+
+  return false;
+};
+
 // Helper to convert SkillImportance to RequirementImportance
 const convertToRequirementImportance = (
   importance: 'REQUIRED' | 'PREFERRED' | 'OPTIONAL'
@@ -47,6 +69,7 @@ const convertToRequirementImportance = (
 
 export default function EmployerNewJobPage() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -111,6 +134,10 @@ export default function EmployerNewJobPage() {
     fetchEmployerProfile();
   }, [fetchEmployerProfile]);
 
+  const validateSalaryRange = React.useCallback(() => {
+    trigger();
+  }, [trigger]);
+
   // Validation for each step
   const canProceed = (stepIndex: number): boolean => {
     const currentValues = getValues();
@@ -126,7 +153,12 @@ export default function EmployerNewJobPage() {
         (!!currentValues.location && currentValues.location.trim() !== '');
 
       const noErrorsInBasic =
-        !errors.title && !errors.type && !errors.categoryId && !errors.location;
+        !errors.title &&
+        !errors.type &&
+        !errors.categoryId &&
+        !errors.location &&
+        !errors.salaryMin &&
+        !errors.salaryMax;
 
       return (
         hasTitle && hasType && hasCategory && hasLocation && noErrorsInBasic
@@ -142,23 +174,57 @@ export default function EmployerNewJobPage() {
   };
 
   const handleNext = async () => {
-    // Trigger validation for current step fields
     if (currentStep === 0) {
-      const fieldsToValidate: (keyof JobPostingFormData)[] = [
-        'title',
-        'type',
-        'categoryId',
-        'remote',
-        'location',
-      ];
-      await trigger(fieldsToValidate);
-    } else if (currentStep === 1) {
-      await trigger('description');
-    }
+      await trigger();
 
-    // Check if we can proceed after validation
-    if (canProceed(currentStep)) {
-      setCurrentStep(currentStep + 1);
+      // Check only step 0 errors for advancing
+      const currentValues = getValues();
+      const hasTitle =
+        !!currentValues.title && currentValues.title.trim().length >= 2;
+      const hasType = !!currentValues.type;
+      const hasCategory = !!currentValues.categoryId;
+      const hasLocation =
+        currentValues.remote ||
+        (!!currentValues.location && currentValues.location.trim() !== '');
+
+      // Validate salary range
+      const salaryRangeValid = isSalaryRangeValid(
+        currentValues.currency,
+        currentValues.salaryMin,
+        currentValues.salaryMax
+      );
+
+      const noErrorsInBasic =
+        !errors.title &&
+        !errors.type &&
+        !errors.categoryId &&
+        !errors.location &&
+        !errors.salaryMin &&
+        !errors.salaryMax &&
+        salaryRangeValid;
+
+      if (
+        hasTitle &&
+        hasType &&
+        hasCategory &&
+        hasLocation &&
+        noErrorsInBasic
+      ) {
+        setCurrentStep(currentStep + 1);
+      } else if (!salaryRangeValid) {
+        // Show error for invalid salary range
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid Salary Range',
+          text2: 'Minimum salary must be less than or equal to maximum salary',
+        });
+      }
+    } else {
+      // On step 1, only validate description
+      const isValid = await trigger('description');
+      if (isValid) {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
@@ -281,6 +347,7 @@ export default function EmployerNewJobPage() {
                 errors={errors}
                 watch={watch}
                 formData={formData}
+                onValidate={validateSalaryRange}
               />
             )}
 
@@ -296,7 +363,10 @@ export default function EmployerNewJobPage() {
       </ScrollView>
 
       {/* Navigation Buttons */}
-      <View className="border-t border-slate-200 bg-white px-4 py-4 gap-3">
+      <View
+        className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
+        style={{ paddingBottom: 20 + insets.bottom }}
+      >
         <View className="flex-row gap-3">
           <TouchableOpacity
             onPress={handlePrevious}

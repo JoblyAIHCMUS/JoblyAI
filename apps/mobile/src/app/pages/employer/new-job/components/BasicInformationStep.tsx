@@ -23,6 +23,7 @@ interface BasicInformationStepProps {
   errors: FieldErrors<JobPostingFormData>;
   watch: UseFormWatch<JobPostingFormData>;
   formData: JobPostingFormData;
+  onValidate?: () => void;
 }
 
 export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
@@ -30,6 +31,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
   errors,
   watch,
   formData,
+  onValidate,
 }) => {
   const [showTypeModal, setShowTypeModal] = useState(false);
 
@@ -53,9 +55,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-2">
             <Label
-              className={`font-medium ${errors.title ? 'text-red-600' : ''}`}
+              className={`text-base font-medium ${
+                errors.title ? 'text-red-600' : ''
+              }`}
             >
-              Job Title *
+              Job Title <Text className="text-red-600">*</Text>
             </Label>
             <Input
               placeholder="e.g. Software Engineer"
@@ -80,9 +84,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-2">
             <Label
-              className={`font-medium ${errors.type ? 'text-red-600' : ''}`}
+              className={`text-base font-medium ${
+                errors.type ? 'text-red-600' : ''
+              }`}
             >
-              Type of Employment *
+              Type of Employment <Text className="text-red-600">*</Text>
             </Label>
             <TouchableOpacity
               onPress={() => setShowTypeModal(true)}
@@ -129,11 +135,12 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
         render={({ field }) => (
           <View className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Label className="font-medium">Remote Job</Label>
+              <Label className="text-base font-medium">Remote Job</Label>
               <Switch
                 value={field.value}
                 onValueChange={field.onChange}
-                ios_backgroundColor="#CBD5E1"
+                trackColor={{ false: '#CBD5E1', true: '#000000' }}
+                thumbColor="#f3f4f8"
               />
             </View>
 
@@ -144,11 +151,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
                 render={({ field: locationField }) => (
                   <View className="gap-2">
                     <Label
-                      className={`font-medium ${
+                      className={`text-base font-medium ${
                         errors.location ? 'text-red-600' : ''
                       }`}
                     >
-                      Location *
+                      Location <Text className="text-red-600">*</Text>
                     </Label>
                     <Input
                       placeholder="e.g. San Francisco, CA"
@@ -218,6 +225,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
                       salaryMin: errors.salaryMin?.message,
                       salaryMax: errors.salaryMax?.message,
                     }}
+                    onTriggerValidation={onValidate}
                   />
                 )}
               />

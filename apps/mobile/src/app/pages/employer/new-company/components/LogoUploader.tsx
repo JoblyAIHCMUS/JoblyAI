@@ -95,7 +95,7 @@ export const LogoUploader = React.forwardRef<
                 Tap to upload
               </Text>
               <Text className="text-xs text-slate-500 text-center">
-                SVG, PNG, JPG (max 1 MB)
+                SVG, PNG, JPG
               </Text>
             </View>
           )}

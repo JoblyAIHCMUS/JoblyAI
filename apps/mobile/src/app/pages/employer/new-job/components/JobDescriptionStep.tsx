@@ -24,9 +24,11 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
     >
       <View className="gap-2">
         <Label
-          className={`font-medium ${errors.description ? 'text-red-600' : ''}`}
+          className={`text-base font-medium ${
+            errors.description ? 'text-red-600' : ''
+          }`}
         >
-          Job Description *
+          Job Description <Text className="text-red-600">*</Text>
         </Label>
         <Text className="text-sm text-slate-600">
           Describe the role, key responsibilities, required skills,
@@ -38,19 +40,21 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
         control={control}
         name="description"
         render={({ field }) => (
-          <View
-            className={`rounded-lg overflow-hidden ${
-              errors.description ? 'border-2 border-red-500' : ''
-            }`}
-          >
-            <RichTextEditor
-              content={field.value}
-              onChange={field.onChange}
-              placeholder="Enter job description..."
-              editable={true}
-            />
+          <View className="gap-2">
+            <View
+              className={`rounded-lg w-full ${
+                errors.description ? 'border-2 border-red-500' : ''
+              }`}
+            >
+              <RichTextEditor
+                content={field.value}
+                onChange={field.onChange}
+                placeholder="Enter job description..."
+                editable={true}
+              />
+            </View>
             {errors.description && (
-              <Text className="text-xs text-red-600 mt-2">
+              <Text className="text-xs text-red-600">
                 {errors.description.message}
               </Text>
             )}
