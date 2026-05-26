@@ -25,7 +25,7 @@ export default function ConfirmDelete({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 min-h-screen">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 !m-0">
       <div
         className="bg-white rounded-2xl shadow-lg w-full max-w-[400px] p-8 flex flex-col items-center"
         role="dialog"
