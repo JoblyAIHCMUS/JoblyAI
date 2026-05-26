@@ -2,11 +2,9 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { SPACING } from '../../constants/theme';
 import { LatestJobCard } from '../shared/LatestJobCard';
 import { useListJobs } from '../../../hooks/useListJobs';
 
@@ -23,32 +21,30 @@ export const LatestJobsSection = () => {
   };
 
   return (
-    <View style={styles.container} className="bg-app-background-1">
-      <View style={styles.header}>
-        <Text style={styles.title} className="text-app-text-1">
-          Latest <Text style={styles.highlight} className="text-app-primary-1">jobs open</Text>
+    <View className="bg-app-background-1 py-8 px-6">
+      <View className="mb-6">
+        <Text className="text-4xl font-black text-app-text-1">
+          Latest <Text className="text-app-primary-1">jobs open</Text>
         </Text>
       </View>
 
       {loading ? (
         <ActivityIndicator
           size="large"
-          className="text-app-primary-1"
-          style={styles.loader}
+          className="text-app-primary-1 my-8"
         />
       ) : error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText} className="text-app-red-3">Failed to load jobs</Text>
+        <View className="p-8 items-center justify-center">
+          <Text className="text-app-red-3 mb-4">Failed to load jobs</Text>
           <TouchableOpacity
             onPress={() => fetchJobs()}
-            style={styles.retryButton}
-            className="bg-app-primary-1"
+            className="bg-app-primary-1 py-2 px-6 rounded-lg"
           >
-            <Text style={styles.retryText}>Retry</Text>
+            <Text className="text-white font-semibold">Retry</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.list}>
+        <View className="mt-4">
           {data?.jobs.map((job) => (
             <LatestJobCard
               key={job.id}
@@ -70,44 +66,5 @@ export const LatestJobsSection = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
-  },
-  header: {
-    marginBottom: SPACING.lg,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-  },
-  highlight: {
-  },
-  list: {
-    marginTop: SPACING.md,
-  },
-  loader: {
-    marginVertical: SPACING.xl,
-  },
-  errorContainer: {
-    padding: SPACING.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    marginBottom: SPACING.md,
-  },
-  retryButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-});
 
 export default LatestJobsSection;
