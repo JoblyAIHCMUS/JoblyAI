@@ -32,10 +32,18 @@ export const CategoryCard = ({ category, onPress }: CategoryCardProps) => {
       </View>
 
       <View className="flex-1">
-        <Text className={`text-2xl font-bold mb-1 ${active ? 'text-white' : 'text-app-text-1'}`}>
+        <Text
+          className={`text-2xl font-bold mb-1 ${
+            active ? 'text-white' : 'text-app-text-1'
+          }`}
+        >
           {name}
         </Text>
-        <Text className={`text-base ${active ? 'text-white/80' : 'text-app-text-2'}`}>
+        <Text
+          className={`text-base ${
+            active ? 'text-white/80' : 'text-app-text-2'
+          }`}
+        >
           {jobs} {jobs === 1 ? 'job' : 'jobs'} available
         </Text>
       </View>

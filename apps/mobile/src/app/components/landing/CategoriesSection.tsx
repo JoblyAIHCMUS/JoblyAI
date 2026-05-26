@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { CategoryCard } from '../shared/CategoryCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { usePopularCategories } from '../../../hooks/usePopularCategories';
@@ -47,32 +42,32 @@ export const CategoriesSection = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          className="text-app-primary-1 mt-8"
-        />
+        <ActivityIndicator size="large" className="text-app-primary-1 mt-8" />
       ) : error ? (
-        <Text className="text-app-red-1 mt-4">
-          Failed to load categories.
-        </Text>
+        <Text className="text-app-red-1 mt-4">Failed to load categories.</Text>
       ) : (
         <View className="mt-4">
-           {categories.map((category) => (
-             <CategoryCard
-               key={category.id.toString()}
-               category={{
-                 name: category.name,
-                 jobs: category.jobCount,
-                 icon: getCategoryIcon(category.name),
-                 active: false,
-               }}
-             />
-           ))}
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.id.toString()}
+              category={{
+                name: category.name,
+                jobs: category.jobCount,
+                icon: getCategoryIcon(category.name),
+                active: false,
+              }}
+            />
+          ))}
         </View>
-       )}
+      )}
 
-       <TouchableOpacity className="flex-row items-center justify-start gap-1 mt-2" activeOpacity={0.7}>
-         <Text className="text-lg font-bold text-app-primary-1">Show all jobs</Text>
+      <TouchableOpacity
+        className="flex-row items-center justify-start gap-1 mt-2"
+        activeOpacity={0.7}
+      >
+        <Text className="text-lg font-bold text-app-primary-1">
+          Show all jobs
+        </Text>
         <ArrowRightIconPrimary />
       </TouchableOpacity>
     </View>

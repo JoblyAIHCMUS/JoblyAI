@@ -12,10 +12,10 @@ import { useListJobs } from '../../../hooks/useListJobs';
 
 export const FeaturedJobsSection = () => {
   const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 4 });
-  
+
   const scrollContent = {
     paddingLeft: 24,
-    paddingRight: 8, 
+    paddingRight: 8,
   };
 
   return (
@@ -32,7 +32,9 @@ export const FeaturedJobsSection = () => {
         </View>
       ) : error ? (
         <View className="h-[200px] justify-center items-center">
-          <Text className="text-app-red-3 mb-4">Failed to load featured jobs</Text>
+          <Text className="text-app-red-3 mb-4">
+            Failed to load featured jobs
+          </Text>
           <TouchableOpacity
             onPress={() => fetchJobs()}
             className="bg-app-primary-1 py-2 px-6 rounded-lg"
@@ -42,11 +44,11 @@ export const FeaturedJobsSection = () => {
         </View>
       ) : (
         <>
-           <ScrollView
-             horizontal
-             showsHorizontalScrollIndicator={false}
-             contentContainerStyle={scrollContent}
-           >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={scrollContent}
+          >
             {data?.jobs.map((job) => (
               <FeaturedJobCard
                 key={job.id}
@@ -58,9 +60,14 @@ export const FeaturedJobsSection = () => {
                 tags={job.requirements.slice(0, 2).map((r) => r.skillName)}
               />
             ))}
-           </ScrollView>
-           <TouchableOpacity className="flex-row items-center gap-1 mt-6 px-6" activeOpacity={0.7}>
-             <Text className="text-lg font-bold text-app-primary-1">Show all jobs</Text>
+          </ScrollView>
+          <TouchableOpacity
+            className="flex-row items-center gap-1 mt-6 px-6"
+            activeOpacity={0.7}
+          >
+            <Text className="text-lg font-bold text-app-primary-1">
+              Show all jobs
+            </Text>
             <ArrowRightIconPrimary />
           </TouchableOpacity>
         </>

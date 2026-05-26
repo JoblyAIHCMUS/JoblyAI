@@ -46,7 +46,10 @@ export const FeaturedJobCard = ({
         <Badge label="Full Time" outline textColor={COLORS.badgeGreenText} />
       </View>
       <View className="mb-4 h-[100px]">
-        <Text className="text-lg font-bold text-app-text-1 mb-1" numberOfLines={1}>
+        <Text
+          className="text-lg font-bold text-app-text-1 mb-1"
+          numberOfLines={1}
+        >
           {title}
         </Text>
         <Text className="text-sm text-app-text-2 mb-2" numberOfLines={1}>

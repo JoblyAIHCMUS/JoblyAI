@@ -115,13 +115,31 @@ const Sidebar = ({
 
   return (
     <Animated.View
-      style={[{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1000, shadowColor: '#000', shadowOffset: { width: 2, height: 0 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 }, animatedStyle]}
+      style={[
+        {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 1000,
+          shadowColor: '#000',
+          shadowOffset: { width: 2, height: 0 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 5,
+        },
+        animatedStyle,
+      ]}
       className="bg-app-white-1"
       {...panResponder.panHandlers}
     >
       <SafeAreaView className="flex-1">
         <View className="h-16 flex-row items-center px-4 border-b border-black/5">
-          <TouchableOpacity onPress={onClose} className="w-11 h-11 rounded-full bg-app-white-1 border border-app-border-3 items-center justify-center mr-4">
+          <TouchableOpacity
+            onPress={onClose}
+            className="w-11 h-11 rounded-full bg-app-white-1 border border-app-border-3 items-center justify-center mr-4"
+          >
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M18 6L6 18M6 6L18 18"
@@ -135,7 +153,9 @@ const Sidebar = ({
             <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
               <Logo width={34} height={34} />
             </View>
-            <Text className="text-2xl font-black text-app-brand-text tracking-tight">JoblyAI</Text>
+            <Text className="text-2xl font-black text-app-brand-text tracking-tight">
+              JoblyAI
+            </Text>
           </View>
         </View>
 
@@ -147,7 +167,9 @@ const Sidebar = ({
               router.push('/pages/employer/dashboard');
             }}
           >
-            <Text className="text-lg font-bold text-app-primary-1">Browse Jobs</Text>
+            <Text className="text-lg font-bold text-app-primary-1">
+              Browse Jobs
+            </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
@@ -160,7 +182,9 @@ const Sidebar = ({
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-row items-center justify-between py-6">
-            <Text className="text-lg font-bold text-app-primary-1">Browse Companies</Text>
+            <Text className="text-lg font-bold text-app-primary-1">
+              Browse Companies
+            </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
