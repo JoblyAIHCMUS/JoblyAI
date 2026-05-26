@@ -8,7 +8,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
@@ -47,6 +50,7 @@ const convertToRequirementImportance = (
 
 export default function EmployerNewJobPage() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -296,7 +300,10 @@ export default function EmployerNewJobPage() {
       </ScrollView>
 
       {/* Navigation Buttons */}
-      <View className="border-t border-slate-200 bg-white px-4 py-4 gap-3">
+      <View
+        className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
+        style={{ paddingBottom: 20 + insets.bottom }}
+      >
         <View className="flex-row gap-3">
           <TouchableOpacity
             onPress={handlePrevious}
