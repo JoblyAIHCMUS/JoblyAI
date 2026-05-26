@@ -405,19 +405,19 @@ export default function JobListingDetailPage() {
           <TabsList className="inline-flex flex-wrap justify-start gap-1 sm:gap-2 bg-transparent p-0 h-auto mb-4 sm:mb-6 overflow-x-auto">
             <TabsTrigger
               value="applicants"
-              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
             >
               Applicants
             </TabsTrigger>
             <TabsTrigger
               value="job-details"
-              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
             >
               Job Details
             </TabsTrigger>
             <TabsTrigger
               value="stats"
-              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+              className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-indigo-600"
             >
               Statistics
             </TabsTrigger>
