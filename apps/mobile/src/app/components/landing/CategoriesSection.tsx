@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { SPACING } from '../../constants/theme';
 import { CategoryCard } from '../shared/CategoryCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { usePopularCategories } from '../../../hooks/usePopularCategories';
@@ -41,21 +41,21 @@ export const CategoriesSection = () => {
   const { categories, loading, error } = usePopularCategories(8);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className="bg-app-background-1">
       <View style={styles.header}>
-        <Text style={styles.title}>
-          Explore by <Text style={styles.highlight}>category</Text>
+        <Text style={styles.title} className="text-app-text-1">
+          Explore by <Text style={styles.highlight} className="text-app-primary-1">category</Text>
         </Text>
       </View>
 
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.primary}
+          className="text-app-primary-1"
           style={{ marginTop: SPACING.xl }}
         />
       ) : error ? (
-        <Text style={{ color: COLORS.error, marginTop: SPACING.md }}>
+        <Text className="text-app-red-1" style={{ marginTop: SPACING.md }}>
           Failed to load categories.
         </Text>
       ) : (
@@ -75,7 +75,7 @@ export const CategoriesSection = () => {
       )}
 
       <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-        <Text style={styles.showAllText}>Show all jobs</Text>
+        <Text style={styles.showAllText} className="text-app-primary-1">Show all jobs</Text>
         <ArrowRightIconPrimary />
       </TouchableOpacity>
     </View>
@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.background,
   },
   header: {
     marginBottom: SPACING.lg,
@@ -94,10 +93,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.text,
   },
   highlight: {
-    color: COLORS.primary,
   },
   showAll: {
     flexDirection: 'row',
@@ -109,7 +106,6 @@ const styles = StyleSheet.create({
   showAllText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.primary,
   },
   grid: {
     marginTop: SPACING.md,

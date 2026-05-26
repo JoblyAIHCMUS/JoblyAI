@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { SPACING } from '../../constants/theme';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { useListJobs } from '../../../hooks/useListJobs';
@@ -16,23 +16,24 @@ export const FeaturedJobsSection = () => {
   const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 4 });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className="bg-app-white-1">
       <View style={styles.header}>
-        <Text style={styles.title}>
-          Featured <Text style={styles.highlight}>jobs</Text>
+        <Text style={styles.title} className="text-app-text-1">
+          Featured <Text style={styles.highlight} className="text-app-primary-1">jobs</Text>
         </Text>
       </View>
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" className="text-app-primary-1" />
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>Failed to load featured jobs</Text>
+          <Text style={styles.errorText} className="text-app-red-3">Failed to load featured jobs</Text>
           <TouchableOpacity
             onPress={() => fetchJobs()}
             style={styles.retryButton}
+            className="bg-app-primary-1"
           >
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
@@ -57,7 +58,7 @@ export const FeaturedJobsSection = () => {
             ))}
           </ScrollView>
           <TouchableOpacity style={styles.showAll} activeOpacity={0.7}>
-            <Text style={styles.showAllText}>Show all jobs</Text>
+            <Text style={styles.showAllText} className="text-app-primary-1">Show all jobs</Text>
             <ArrowRightIconPrimary />
           </TouchableOpacity>
         </>
@@ -69,7 +70,6 @@ export const FeaturedJobsSection = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.xl,
-    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',
@@ -81,10 +81,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.text,
   },
   highlight: {
-    color: COLORS.primary,
   },
   centerContainer: {
     height: 200,
@@ -92,13 +90,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#FF4444',
     marginBottom: SPACING.md,
   },
   retryButton: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.primary,
     borderRadius: 8,
   },
   retryText: {
@@ -115,7 +111,6 @@ const styles = StyleSheet.create({
   showAllText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.primary,
   },
   scrollContent: {
     paddingLeft: SPACING.lg,

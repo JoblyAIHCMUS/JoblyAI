@@ -117,6 +117,7 @@ const Sidebar = ({
   return (
     <Animated.View
       style={[styles.container, animatedStyle]}
+      className="bg-app-white-1"
       {...panResponder.panHandlers}
     >
       <SafeAreaView style={styles.safeArea}>
@@ -133,9 +134,9 @@ const Sidebar = ({
           </TouchableOpacity>
           <View style={styles.brandContainer}>
             <View style={styles.logoContainer}>
-              <Logo width={34} height={34} />
-            </View>
-            <Text style={styles.brandText}>JoblyAI</Text>
+           <Logo width={34} height={34} />
+             </View>
+             <Text style={styles.brandText} className="text-app-brand-text">JoblyAI</Text>
           </View>
         </View>
 
@@ -147,7 +148,7 @@ const Sidebar = ({
               router.push('/pages/employer/dashboard');
             }}
           >
-            <Text style={styles.navText}>Browse Jobs</Text>
+            <Text style={styles.navText} className="text-app-primary-1">Browse Jobs</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
@@ -160,7 +161,7 @@ const Sidebar = ({
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navItem}>
-            <Text style={styles.navText}>Browse Companies</Text>
+            <Text style={styles.navText} className="text-app-primary-1">Browse Companies</Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M9 18L15 12L9 6"
@@ -203,7 +204,6 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: COLORS.white,
     zIndex: 1000,
     // Add shadow for better visual separation during slide
     shadowColor: '#000',
@@ -248,7 +248,6 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#121419',
     letterSpacing: -0.5,
   },
   content: {
@@ -264,7 +263,6 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.primary,
   },
   divider: {
     height: 1,

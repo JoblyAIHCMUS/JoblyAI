@@ -11,7 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <SafeAreaView edges={['top']} style={styles.safeArea} className="bg-app-background-2">
       <View style={styles.container}>
         {/* Menu Icon Left */}
         <TouchableOpacity
@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
           <View style={styles.logoContainer}>
             <Logo width={34} height={34} />
           </View>
-          <Text style={styles.brandText}>JoblyAI</Text>
+          <Text style={styles.brandText} className="text-app-brand-text">JoblyAI</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -43,7 +43,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#F8F9FE', // Matches the light blue-ish background in the image
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
@@ -78,7 +77,6 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#121419',
     letterSpacing: -0.5,
   },
 });

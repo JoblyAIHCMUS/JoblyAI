@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { SPACING } from '../../constants/theme';
 import { useTopCompanies } from '../../../hooks';
 
 const { width } = Dimensions.get('window');
@@ -13,8 +13,8 @@ export const CompaniesSection = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Companies we helped grow</Text>
+    <View style={styles.container} className="bg-app-white-1">
+      <Text style={styles.heading} className="text-app-slate-1">Companies we helped grow</Text>
       <View style={styles.grid}>
         <View style={styles.row}>
           {companies.map((company) => (
@@ -26,8 +26,8 @@ export const CompaniesSection = () => {
                   resizeMode="contain"
                 />
               ) : (
-                <View style={styles.fallbackLogo}>
-                  <Text style={styles.fallbackText}>
+                <View style={styles.fallbackLogo} className="bg-app-background-1">
+                   <Text style={styles.fallbackText} className="text-app-slate-1">
                     {company.name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -44,12 +44,10 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.white,
   },
   heading: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.brandDark,
     marginBottom: SPACING.lg,
   },
   grid: {
@@ -77,14 +75,12 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   fallbackText: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.brandDark,
   },
 });
 

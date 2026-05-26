@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { SPACING } from '../../constants/theme';
 import { LatestJobCard } from '../shared/LatestJobCard';
 import { useListJobs } from '../../../hooks/useListJobs';
 
@@ -23,25 +23,26 @@ export const LatestJobsSection = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className="bg-app-background-1">
       <View style={styles.header}>
-        <Text style={styles.title}>
-          Latest <Text style={styles.highlight}>jobs open</Text>
+        <Text style={styles.title} className="text-app-text-1">
+          Latest <Text style={styles.highlight} className="text-app-primary-1">jobs open</Text>
         </Text>
       </View>
 
       {loading ? (
         <ActivityIndicator
           size="large"
-          color={COLORS.primary}
+          className="text-app-primary-1"
           style={styles.loader}
         />
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load jobs</Text>
+          <Text style={styles.errorText} className="text-app-red-3">Failed to load jobs</Text>
           <TouchableOpacity
             onPress={() => fetchJobs()}
             style={styles.retryButton}
+            className="bg-app-primary-1"
           >
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
@@ -74,7 +75,6 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.background,
   },
   header: {
     marginBottom: SPACING.lg,
@@ -82,10 +82,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.text,
   },
   highlight: {
-    color: COLORS.primary,
   },
   list: {
     marginTop: SPACING.md,
@@ -99,13 +97,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    color: '#FF4444',
     marginBottom: SPACING.md,
   },
   retryButton: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.primary,
     borderRadius: 8,
   },
   retryText: {
