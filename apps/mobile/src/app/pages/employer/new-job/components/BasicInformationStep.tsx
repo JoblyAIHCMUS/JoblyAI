@@ -23,6 +23,7 @@ interface BasicInformationStepProps {
   errors: FieldErrors<JobPostingFormData>;
   watch: UseFormWatch<JobPostingFormData>;
   formData: JobPostingFormData;
+  onValidate?: () => void;
 }
 
 export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
@@ -30,6 +31,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
   errors,
   watch,
   formData,
+  onValidate,
 }) => {
   const [showTypeModal, setShowTypeModal] = useState(false);
 
@@ -137,7 +139,8 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
               <Switch
                 value={field.value}
                 onValueChange={field.onChange}
-                ios_backgroundColor="#CBD5E1"
+                trackColor={{ false: '#CBD5E1', true: '#000000' }}
+                thumbColor="#f3f4f8"
               />
             </View>
 
@@ -222,6 +225,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
                       salaryMin: errors.salaryMin?.message,
                       salaryMax: errors.salaryMax?.message,
                     }}
+                    onTriggerValidation={onValidate}
                   />
                 )}
               />

@@ -40,19 +40,21 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
         control={control}
         name="description"
         render={({ field }) => (
-          <View
-            className={`rounded-lg overflow-hidden ${
-              errors.description ? 'border-2 border-red-500' : ''
-            }`}
-          >
-            <RichTextEditor
-              content={field.value}
-              onChange={field.onChange}
-              placeholder="Enter job description..."
-              editable={true}
-            />
+          <View className="gap-2">
+            <View
+              className={`rounded-lg w-full ${
+                errors.description ? 'border-2 border-red-500' : ''
+              }`}
+            >
+              <RichTextEditor
+                content={field.value}
+                onChange={field.onChange}
+                placeholder="Enter job description..."
+                editable={true}
+              />
+            </View>
             {errors.description && (
-              <Text className="text-xs text-red-600 mt-2">
+              <Text className="text-xs text-red-600">
                 {errors.description.message}
               </Text>
             )}
