@@ -26,6 +26,7 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useMessageCandidate } from '@/hooks/useMessageCandidate';
+import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
 import {
@@ -236,31 +237,69 @@ export default function JobApplicantsTable({
 }: JobApplicantsTableProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const { handleMessageCandidate: messageCandidate } = useMessageCandidate();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    show: boolean;
+    actionType: 'advance' | 'reject' | null;
+    applicantId: string | null;
+    currentStage?: HiringStage;
+    nextStage?: HiringStage;
+  }>({
+    show: false,
+    actionType: null,
+    applicantId: null,
+  });
 
   const handleAdvance = async (id: string) => {
-    setLoadingId(id);
-    try {
-      await advanceApplicant(id);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to advance applicant';
-      toast.error(message);
-    } finally {
-      setLoadingId(null);
-    }
+    const applicant = applicants.find((a) => a.id === id);
+    if (!applicant) return;
+
+    const nextStage = nextStageMap[applicant.hiringStage];
+    setConfirmDialog({
+      show: true,
+      actionType: 'advance',
+      applicantId: id,
+      currentStage: applicant.hiringStage,
+      nextStage,
+    });
   };
 
   const handleDecline = async (id: string) => {
-    setLoadingId(id);
+    setConfirmDialog({
+      show: true,
+      actionType: 'reject',
+      applicantId: id,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.applicantId) return;
+
+    setLoadingId(confirmDialog.applicantId);
     try {
-      await declineApplicant(id);
+      if (confirmDialog.actionType === 'advance') {
+        await advanceApplicant(confirmDialog.applicantId);
+      } else if (confirmDialog.actionType === 'reject') {
+        await declineApplicant(confirmDialog.applicantId);
+      }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to decline applicant';
+      const message = error instanceof Error ? error.message : 'Action failed';
       toast.error(message);
     } finally {
       setLoadingId(null);
+      setConfirmDialog({
+        show: false,
+        actionType: null,
+        applicantId: null,
+      });
     }
+  };
+
+  const handleCancelDialog = () => {
+    setConfirmDialog({
+      show: false,
+      actionType: null,
+      applicantId: null,
+    });
   };
 
   const handleMessageCandidateClick = async (applicantId: string) => {
@@ -274,15 +313,27 @@ export default function JobApplicantsTable({
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={applicants}
-      meta={{
-        advanceApplicant: handleAdvance,
-        declineApplicant: handleDecline,
-        messageCandidate: handleMessageCandidateClick,
-        loadingId,
-      }}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={applicants}
+        meta={{
+          advanceApplicant: handleAdvance,
+          declineApplicant: handleDecline,
+          messageCandidate: handleMessageCandidateClick,
+          loadingId,
+        }}
+      />
+      {confirmDialog.show && (
+        <HiringStageChangeConfirm
+          actionType={confirmDialog.actionType as 'advance' | 'reject'}
+          currentStage={confirmDialog.currentStage}
+          nextStage={confirmDialog.nextStage}
+          onCancel={handleCancelDialog}
+          onConfirm={handleConfirmAction}
+          loading={loadingId === confirmDialog.applicantId}
+        />
+      )}
+    </>
   );
 }

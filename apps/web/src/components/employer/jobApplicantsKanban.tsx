@@ -7,6 +7,7 @@ import { MoreHorizontal, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
+import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 import {
   KanbanBoard,
   KanbanBoardProvider,
@@ -72,6 +73,16 @@ export default function JobApplicantsKanban({
   onStageChange,
 }: JobApplicantsKanbanProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    show: boolean;
+    applicantId: string | null;
+    targetStage: HiringStage | null;
+    currentStage?: HiringStage;
+  }>({
+    show: false,
+    applicantId: null,
+    targetStage: null,
+  });
 
   const groupedApplicants = useMemo(() => {
     const byStage = applicants.reduce<Record<string, Applicant[]>>(
@@ -89,12 +100,44 @@ export default function JobApplicantsKanban({
 
   const handleDropOnColumn = (stage: HiringStage) => async (data: string) => {
     const parsed = JSON.parse(data) as { id: string };
-    setLoadingId(parsed.id);
+    const applicant = applicants.find((a) => a.id === parsed.id);
+
+    // If dropping on the same stage, no confirmation needed
+    if (applicant?.hiringStage === stage) {
+      return;
+    }
+
+    // Show confirmation dialog for stage changes
+    setConfirmDialog({
+      show: true,
+      applicantId: parsed.id,
+      targetStage: stage,
+      currentStage: applicant?.hiringStage,
+    });
+  };
+
+  const handleConfirmStageChange = async () => {
+    if (!confirmDialog.applicantId || !confirmDialog.targetStage) return;
+
+    setLoadingId(confirmDialog.applicantId);
     try {
-      await onStageChange(parsed.id, stage);
+      await onStageChange(confirmDialog.applicantId, confirmDialog.targetStage);
     } finally {
       setLoadingId(null);
+      setConfirmDialog({
+        show: false,
+        applicantId: null,
+        targetStage: null,
+      });
     }
+  };
+
+  const handleCancelDialog = () => {
+    setConfirmDialog({
+      show: false,
+      applicantId: null,
+      targetStage: null,
+    });
   };
 
   return (
@@ -185,6 +228,16 @@ export default function JobApplicantsKanban({
           </KanbanBoardColumn>
         ))}
       </KanbanBoard>
+      {confirmDialog.show && confirmDialog.targetStage && (
+        <HiringStageChangeConfirm
+          actionType="advance"
+          currentStage={confirmDialog.currentStage}
+          nextStage={confirmDialog.targetStage}
+          onCancel={handleCancelDialog}
+          onConfirm={handleConfirmStageChange}
+          loading={loadingId === confirmDialog.applicantId}
+        />
+      )}
     </KanbanBoardProvider>
   );
 }
