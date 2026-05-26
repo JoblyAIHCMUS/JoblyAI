@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { SPACING } from '../../constants/theme';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
 import { useListJobs } from '../../../hooks/useListJobs';
@@ -15,8 +14,8 @@ export const FeaturedJobsSection = () => {
   const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 4 });
   
   const scrollContent = {
-    paddingLeft: SPACING.lg,
-    paddingRight: SPACING.lg - SPACING.md, // Adjust for card marginRight
+    paddingLeft: 24,
+    paddingRight: 8, 
   };
 
   return (

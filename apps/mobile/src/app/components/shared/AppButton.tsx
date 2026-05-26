@@ -2,11 +2,9 @@ import React from 'react';
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
 
 interface AppButtonProps {
   title: string;
@@ -20,40 +18,23 @@ export const AppButton = ({
   onPress,
   variant = 'primary',
   style,
-}: AppButtonProps) => (
-  <TouchableOpacity
-    style={[
-      styles.button,
-      variant === 'outline' ? styles.outline : styles.primary,
-      style,
-    ]}
-    onPress={onPress}
-  >
-    <Text
-      style={[
-        styles.text,
-        variant === 'outline' ? styles.textOutline : styles.textPrimary,
-      ]}
+}: AppButtonProps) => {
+  const baseClasses = 'py-4 rounded-lg items-center justify-center';
+  const variantClasses = variant === 'primary'
+    ? 'bg-app-primary-1'
+    : 'border border-app-primary-1';
+  
+  const outlineStyle = variant === 'outline' ? { borderWidth: 1.5 } : {};
+  
+  return (
+    <TouchableOpacity
+      className={`${baseClasses} ${variantClasses}`}
+      style={[outlineStyle, style]}
+      onPress={onPress}
     >
-      {title}
-    </Text>
-  </TouchableOpacity>
-);
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: SPACING.md,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primary: { backgroundColor: COLORS.primary },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-  },
-  text: { fontWeight: '700', fontSize: 16, fontFamily: 'Inter' },
-  textPrimary: { color: COLORS.white },
-  textOutline: { color: COLORS.primary },
-});
+      <Text className={variant === 'primary' ? 'text-white text-base font-bold' : 'text-app-primary-1 text-base font-bold'}>
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
