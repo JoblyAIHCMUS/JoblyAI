@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { LatestJobCard } from '../shared/LatestJobCard';
 import { useListJobs } from '../../../hooks/useListJobs';
 
@@ -29,10 +24,7 @@ export const LatestJobsSection = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          className="text-app-primary-1 my-8"
-        />
+        <ActivityIndicator size="large" className="text-app-primary-1 my-8" />
       ) : error ? (
         <View className="p-8 items-center justify-center">
           <Text className="text-app-red-3 mb-4">Failed to load jobs</Text>

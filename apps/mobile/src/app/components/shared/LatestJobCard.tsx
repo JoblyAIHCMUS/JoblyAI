@@ -33,7 +33,9 @@ export const LatestJobCard = ({
           <View className="w-12 h-12 bg-app-background-1 rounded-lg mr-4" />
         )}
         <View className="flex-1">
-          <Text className="text-base font-bold text-app-text-1 mb-1">{title}</Text>
+          <Text className="text-base font-bold text-app-text-1 mb-1">
+            {title}
+          </Text>
           <Text className="text-sm text-app-text-2 mb-2">
             {company} • {location}
           </Text>
