@@ -52,11 +52,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         render={({ field: { value, onChange, onBlur } }) => (
           <View className="gap-2">
             <Label
-              className={
+              className={`text-base ${
                 errors.companyName ? 'text-red-600 font-medium' : 'font-medium'
-              }
+              }`}
             >
-              Company Name *
+              Company Name <Text className="text-red-600">*</Text>
             </Label>
             <Input
               placeholder="Enter company name"
@@ -90,7 +90,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         name="website"
         render={({ field: { value, onChange, onBlur } }) => (
           <View className="gap-2">
-            <Label className="font-medium">Website (Optional)</Label>
+            <Label className="text-base font-medium">Website (Optional)</Label>
             <Input
               placeholder="e.g., example.com or https://example.com"
               value={value}
@@ -118,7 +118,9 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           const selectedScale = SCALES.find((s) => s.value === value);
           return (
             <View className="gap-2">
-              <Label className="font-medium">Company Size *</Label>
+              <Label className="text-base font-medium">
+                Company Size <Text className="text-red-600">*</Text>
+              </Label>
               <TouchableOpacity
                 onPress={() => setShowScaleModal(true)}
                 className={`flex-row items-center justify-between px-3 py-3 border rounded-lg bg-white ${
@@ -162,7 +164,9 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           const selectedIndustry = INDUSTRIES.find((i) => i.value === value);
           return (
             <View className="gap-2">
-              <Label className="font-medium">Industry *</Label>
+              <Label className="text-base font-medium">
+                Industry <Text className="text-red-600">*</Text>
+              </Label>
               <TouchableOpacity
                 onPress={() => setShowIndustryModal(true)}
                 className={`flex-row items-center justify-between px-3 py-3 border rounded-lg bg-white ${

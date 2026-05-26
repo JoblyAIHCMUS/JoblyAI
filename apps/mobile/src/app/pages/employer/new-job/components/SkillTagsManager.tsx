@@ -121,7 +121,9 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
 
   return (
     <View className="gap-3">
-      <Label className="font-medium">Required Skills (Optional)</Label>
+      <Label className="text-base font-medium">
+        Required Skills (Optional)
+      </Label>
 
       {!isAdding ? (
         <TouchableOpacity
@@ -137,7 +139,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
         <View className="gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
           {/* Skill Input with Suggestions */}
           <View>
-            <Label className="text-sm font-medium mb-1">Skill Name</Label>
+            <Label className="text-base font-medium mb-1">Skill Name</Label>
             <View className="relative">
               <Input
                 placeholder="Enter skill name"
@@ -174,7 +176,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
 
           {/* Importance Selector */}
           <View>
-            <Label className="text-sm font-medium mb-1">Importance</Label>
+            <Label className="text-base font-medium mb-1">Importance</Label>
             <TouchableOpacity
               onPress={() => setShowImportanceModal(true)}
               className="flex-row items-center justify-between px-4 py-3 rounded-lg border border-slate-200 bg-white"
@@ -200,7 +202,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
 
           {/* Min Years */}
           <View>
-            <Label className="text-sm font-medium mb-1">
+            <Label className="text-base font-medium mb-1">
               Min Years Experience
             </Label>
             <Input
