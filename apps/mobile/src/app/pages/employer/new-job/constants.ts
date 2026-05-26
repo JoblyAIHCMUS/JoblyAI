@@ -8,7 +8,6 @@ export const EMPLOYMENT_TYPES = [
   { value: 'PART_TIME', label: 'Part Time' },
   { value: 'CONTRACT', label: 'Contract' },
   { value: 'FREELANCE', label: 'Freelance' },
-  { value: 'TEMPORARY', label: 'Temporary' },
   { value: 'INTERNSHIP', label: 'Internship' },
 ] as const;
 
