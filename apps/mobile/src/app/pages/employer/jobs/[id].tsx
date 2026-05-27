@@ -30,6 +30,7 @@ import {
   formatDate,
   getCategoryColors,
 } from './constants';
+import { COLORS } from '../../../constants/theme';
 
 // ── Types ───────────────────────────────────────────────────────────────
 type TabName = 'Applicants' | 'Job Details' | 'Analytics';
@@ -138,7 +139,7 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
 function LoadingSkeleton() {
   return (
     <View className="flex-1 items-center justify-center px-6 py-16">
-      <ActivityIndicator size="large" color="#4F46E5" />
+      <ActivityIndicator size="large" color={COLORS.primary2} />
       <Text className="mt-4 text-base text-app-text-gray">Loading job details…</Text>
     </View>
   );
@@ -171,7 +172,7 @@ export default function JobDetailsScreen() {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={32} color="#0F172A" />
+          <ArrowLeft size={32} color={COLORS.brandDark} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -179,7 +180,7 @@ export default function JobDetailsScreen() {
           className="p-1"
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <MoreHorizontal size={32} color="#0F172A" />
+          <MoreHorizontal size={32} color={COLORS.brandDark} />
         </TouchableOpacity>
       </View>
 
@@ -193,7 +194,7 @@ export default function JobDetailsScreen() {
             <Text className="text-xl font-medium text-app-slate-1">
               {job.category?.name ?? '—'}
             </Text>
-            <Dot size={28} color="#0F172A" style={{ marginHorizontal: 4 }} />
+            <Dot size={28} color={COLORS.brandDark} style={{ marginHorizontal: 4 }} />
             <Text className="text-xl font-medium text-app-slate-1">
               {EMPLOYMENT_TYPE_LABELS[job.type] ?? job.type}
             </Text>
