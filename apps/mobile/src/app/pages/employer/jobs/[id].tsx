@@ -14,16 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import RenderHtml from 'react-native-render-html';
-import {
-  ArrowLeft,
-  Dot,
-  MoreHorizontal,
-  SquarePen,
-} from 'lucide-react-native';
+import { ArrowLeft, Dot, MoreHorizontal, SquarePen } from 'lucide-react-native';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import { useEmployerJobDetail } from '../../../../hooks/useEmployerJobDetail';
-import type { JobRequirement, RequirementImportance } from '../../../../types/job';
+import type {
+  JobRequirement,
+  RequirementImportance,
+} from '../../../../types/job';
 import {
   EMPLOYMENT_TYPE_LABELS,
   formatSalary,
@@ -52,7 +50,9 @@ function Divider() {
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <Text className="text-2xl font-semibold text-app-slate-1">{title}</Text>;
+  return (
+    <Text className="text-2xl font-semibold text-app-slate-1">{title}</Text>
+  );
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -89,12 +89,8 @@ function SkillPill({ skill }: { skill: JobRequirement }) {
       : 'Any experience';
 
   return (
-    <View
-      className="rounded-[5px] px-3 py-1.5 bg-app-indigo-soft"
-    >
-      <Text
-        className="text-sm font-semibold text-app-indigo-strong"
-      >
+    <View className="rounded-[5px] px-3 py-1.5 bg-app-indigo-soft">
+      <Text className="text-sm font-semibold text-app-indigo-strong">
         {skill.skillName} ({experienceText})
       </Text>
     </View>
@@ -104,8 +100,20 @@ function SkillPill({ skill }: { skill: JobRequirement }) {
 // ── Custom tag styles for RenderHtml ────────────────────────────────────
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
   body: { color: '#0F172A', fontSize: 15, lineHeight: 24 },
-  h2: { fontSize: 22, fontWeight: '700', marginTop: 24, marginBottom: 8, color: '#0F172A' },
-  h3: { fontSize: 18, fontWeight: '600', marginTop: 16, marginBottom: 6, color: '#0F172A' },
+  h2: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: 24,
+    marginBottom: 8,
+    color: '#0F172A',
+  },
+  h3: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 6,
+    color: '#0F172A',
+  },
   p: { marginTop: 8, marginBottom: 8 },
   ul: { paddingLeft: 8 },
   ol: { paddingLeft: 8 },
@@ -140,7 +148,9 @@ function LoadingSkeleton() {
   return (
     <View className="flex-1 items-center justify-center px-6 py-16">
       <ActivityIndicator size="large" color={COLORS.primary2} />
-      <Text className="mt-4 text-base text-app-text-gray">Loading job details…</Text>
+      <Text className="mt-4 text-base text-app-text-gray">
+        Loading job details…
+      </Text>
     </View>
   );
 }
@@ -194,7 +204,11 @@ export default function JobDetailsScreen() {
             <Text className="text-xl font-medium text-app-slate-1">
               {job.category?.name ?? '—'}
             </Text>
-            <Dot size={28} color={COLORS.brandDark} style={{ marginHorizontal: 4 }} />
+            <Dot
+              size={28}
+              color={COLORS.brandDark}
+              style={{ marginHorizontal: 4 }}
+            />
             <Text className="text-xl font-medium text-app-slate-1">
               {EMPLOYMENT_TYPE_LABELS[job.type] ?? job.type}
             </Text>
@@ -212,8 +226,13 @@ export default function JobDetailsScreen() {
 
           return isActive ? (
             <View key={tab} className="border-b-2 border-app-primary-2 pb-2">
-              <TouchableOpacity activeOpacity={0.85} onPress={() => setActiveTab(tab)}>
-                <Text className="text-app-primary-2 font-semibold text-lg">{tab}</Text>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text className="text-app-primary-2 font-semibold text-lg">
+                  {tab}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -223,7 +242,9 @@ export default function JobDetailsScreen() {
               onPress={() => setActiveTab(tab)}
               className="pb-2"
             >
-              <Text className="text-app-text-3 font-semibold text-lg">{tab}</Text>
+              <Text className="text-app-text-3 font-semibold text-lg">
+                {tab}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -279,7 +300,10 @@ export default function JobDetailsScreen() {
                 <View className="mt-4">
                   <RenderHtml
                     contentWidth={htmlContentWidth}
-                    source={{ html: job.description || '<p>No description provided.</p>' }}
+                    source={{
+                      html:
+                        job.description || '<p>No description provided.</p>',
+                    }}
                     tagsStyles={htmlTagStyles}
                   />
                 </View>
@@ -305,7 +329,11 @@ export default function JobDetailsScreen() {
                   />
                   <DetailRow
                     label="Salary"
-                    value={formatSalary(job.currency, job.salaryMin, job.salaryMax)}
+                    value={formatSalary(
+                      job.currency,
+                      job.salaryMin,
+                      job.salaryMax
+                    )}
                   />
                 </View>
               </View>
@@ -336,10 +364,10 @@ export default function JobDetailsScreen() {
                     {IMPORTANCE_GROUPS.filter(({ key }) =>
                       job.requirements.some((r) => r.importance === key)
                     ).map(({ key, label }) => (
-                       <View key={key}>
-                         <Text className="mb-1.5 text-xs font-medium text-app-text-3">
-                           {label}
-                         </Text>
+                      <View key={key}>
+                        <Text className="mb-1.5 text-xs font-medium text-app-text-3">
+                          {label}
+                        </Text>
                         <View className="flex-row flex-wrap gap-2">
                           {job.requirements
                             .filter((r) => r.importance === key)
@@ -356,7 +384,9 @@ export default function JobDetailsScreen() {
           )
         ) : (
           <View className="flex-1 items-center justify-center px-6">
-            <Text className="text-base text-app-text-gray">This tab is empty for now.</Text>
+            <Text className="text-base text-app-text-gray">
+              This tab is empty for now.
+            </Text>
           </View>
         )}
       </View>
