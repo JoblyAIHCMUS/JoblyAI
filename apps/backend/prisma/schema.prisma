@@ -119,6 +119,7 @@ model JobCategory {
   id   Int          @id @default(autoincrement())
   name String       @unique
   slug String       @unique
+  iconKey String?
   jobs JobPosting[]
 }
 

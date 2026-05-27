@@ -5,6 +5,7 @@ export type {
   RequirementImportance,
   JobCategory,
   JobPosting,
+  PopularJobCategory,
   PaginatedJobsResponse,
   ListJobsQuery,
   JobRequirementInput,
@@ -19,6 +20,7 @@ export {
   listJobs,
   getJobById,
   getJobsByCategory,
+  getPopularJobCategories,
 } from '@/api-client/jobs/public';
 
 // Employer endpoints (auth required)

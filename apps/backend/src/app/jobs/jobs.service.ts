@@ -495,7 +495,7 @@ export class JobsService {
   }
 
   async getCategories(): Promise<
-    Array<{ id: number; name: string; slug: string }>
+    Array<{ id: number; name: string; slug: string; iconKey: string | null }>
   > {
     const categories = await this.prisma.jobCategory.findMany({
       orderBy: { name: 'asc' },
@@ -523,6 +523,7 @@ export class JobsService {
         id: cat.id,
         name: cat.name,
         slug: cat.slug,
+        iconKey: cat.iconKey,
         jobCount: cat._count.jobs,
       }))
       .sort((a, b) => b.jobCount - a.jobCount)

@@ -40,6 +40,11 @@ export interface JobCategory {
   id: number;
   name: string;
   slug: string;
+  iconKey?: string | null;
+}
+
+export interface PopularJobCategory extends JobCategory {
+  jobCount: number;
 }
 
 export interface CompanyInfo {

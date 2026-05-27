@@ -11,6 +11,7 @@ export { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
 export { useEmployerJobs } from '@/api-hook/jobs/useEmployerJobs';
 export { useEmployerCompanyJobs } from '@/api-hook/jobs/useEmployerCompanyJobs';
 export { useCategories } from '@/api-hook/jobs/useCategories';
+export { usePopularCategories } from '@/api-hook/jobs/usePopularCategories';
 export { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 export {
   useJobViewsAnalytics,
