@@ -32,12 +32,12 @@ export function formatSalary(
   if (!hasMin && !hasMax) return 'Not specified';
 
   if (hasMin && hasMax) {
-    return `${symbol}${min!.toLocaleString()} - ${symbol}${max!.toLocaleString()} ${currency.toUpperCase()}`;
+    return `${symbol}${min?.toLocaleString()} - ${symbol}${max?.toLocaleString()} ${currency.toUpperCase()}`;
   }
   if (hasMin) {
-    return `From ${symbol}${min!.toLocaleString()} ${currency.toUpperCase()}`;
+    return `From ${symbol}${min?.toLocaleString()} ${currency.toUpperCase()}`;
   }
-  return `Up to ${symbol}${max!.toLocaleString()} ${currency.toUpperCase()}`;
+  return `Up to ${symbol}${max?.toLocaleString()} ${currency.toUpperCase()}`;
 }
 
 // ── Date formatting ─────────────────────────────────────────────────────
@@ -48,11 +48,6 @@ export function formatDate(dateStr: string): string {
     day: 'numeric',
   });
 }
-
-// ── Deterministic category colors ───────────────────────────────────────
-// Port of the web's FNV-1a hash + seeded random approach from
-// apps/web/src/features/employer/job-listing/detail/constants.ts
-// Uses raw hex values (no Tailwind classes) for React Native style props.
 
 interface CategoryColor {
   bg: string;
