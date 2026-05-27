@@ -57,9 +57,8 @@ export async function getEmployerJobById(
   id: number,
   options?: ApiOptions
 ): Promise<JobPosting> {
-  const response = await apiClient.get<JobPosting>(
-    `/jobs/employer/${id}`,
-    { signal: options?.signal }
-  );
+  const response = await apiClient.get<JobPosting>(`/jobs/employer/${id}`, {
+    signal: options?.signal,
+  });
   return response.data;
 }
