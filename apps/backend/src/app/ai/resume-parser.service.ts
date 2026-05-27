@@ -73,6 +73,7 @@ export class ResumeParserService {
         data,
         useSystemFonts: true,
         disableFontFace: true,
+        disableWorker: true,
       });
 
       const pdf = await loadingTask.promise;
