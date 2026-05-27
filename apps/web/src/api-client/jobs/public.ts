@@ -3,6 +3,7 @@ import {
   JobPosting,
   ListJobsQuery,
   PaginatedJobsResponse,
+  PopularJobCategory,
 } from '@/api-client/jobs/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -50,6 +51,21 @@ export async function getJobsByCategory(
   const response = await axios.get<JobPosting[]>(
     `${API_BASE_URL}/api/jobs/category/${categoryId}`,
     {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Get popular job categories with job counts
+ * Public endpoint - no authentication required
+ */
+export async function getPopularJobCategories(limit = 8): Promise<PopularJobCategory[]> {
+  const response = await axios.get<PopularJobCategory[]>(
+    `${API_BASE_URL}/api/jobs/categories/popular`,
+    {
+      params: { limit },
       withCredentials: true,
     }
   );

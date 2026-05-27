@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 interface FeaturedJob {
   title: string;
@@ -66,9 +67,12 @@ export default function FeaturedJobsSection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
             Featured <span className="text-indigo-600">jobs</span>
           </h2>
-          <button className="text-indigo-600 font-semibold flex items-center gap-2 hover:text-indigo-700 whitespace-nowrap">
+          <Link
+            href="/find-jobs"
+            className="text-indigo-600 font-semibold flex items-center gap-2 hover:text-indigo-700 whitespace-nowrap"
+          >
             Show all jobs <ArrowRight className="w-6 h-6" />
-          </button>
+          </Link>
         </div>
 
         {/* Mobile: Horizontal scroll */}

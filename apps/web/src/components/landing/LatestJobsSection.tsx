@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 interface LatestJob {
   title: string;
@@ -75,9 +76,12 @@ export default function LatestJobsSection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
             Latest <span className="text-indigo-600">jobs open</span>
           </h2>
-          <button className="text-indigo-600 font-semibold flex items-center gap-2 hover:text-indigo-700 whitespace-nowrap">
+          <Link
+            href="/find-jobs"
+            className="text-indigo-600 font-semibold flex items-center gap-2 hover:text-indigo-700 whitespace-nowrap"
+          >
             Show all jobs <ArrowRight className="w-6 h-6" />
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">

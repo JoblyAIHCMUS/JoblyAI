@@ -6,6 +6,7 @@ export type {
   FilterItem,
   FilterGroupData,
   JobCategory,
+  PopularJobCategory,
   CompanyInfo,
   JobPosting,
   JobRequirement,
