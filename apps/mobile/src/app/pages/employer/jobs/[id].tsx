@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -249,15 +250,17 @@ export default function JobDetailsScreen() {
               }}
             >
               {/* Card Header */}
-              <View className="rounded-2xl border border-app-border-light bg-white p-4">
+              <View className="rounded-2xl border border-app-border-2 bg-white p-4">
                 <View className="mb-6 flex-row items-start justify-between">
-                  <View
-                    className="h-[52px] w-[52px] items-center justify-center rounded-2xl bg-app-card-header"
-                  >
-                    <Text className="text-4xl font-bold text-white">
-                      {job.company?.name?.charAt(0)?.toUpperCase() ?? 'J'}
-                    </Text>
-                  </View>
+                  {job.company?.logoUrl ? (
+                    <Image
+                      source={{ uri: job.company.logoUrl }}
+                      className="h-[52px] w-[52px] rounded-2xl"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="h-[52px] w-[52px] rounded-2xl bg-app-gray-1" />
+                  )}
 
                   <TouchableOpacity activeOpacity={0.8} className="p-2">
                     <SquarePen size={28} color="#4F46E5" strokeWidth={2.2} />
