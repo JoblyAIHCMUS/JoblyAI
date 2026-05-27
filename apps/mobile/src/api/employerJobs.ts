@@ -52,3 +52,14 @@ export async function updateJobPostingStatus(
 export async function deleteJobPosting(id: number): Promise<void> {
   await apiClient.delete(`/jobs/${id}`);
 }
+
+export async function getEmployerJobById(
+  id: number,
+  options?: ApiOptions
+): Promise<JobPosting> {
+  const response = await apiClient.get<JobPosting>(
+    `/jobs/employer/${id}`,
+    { signal: options?.signal }
+  );
+  return response.data;
+}
