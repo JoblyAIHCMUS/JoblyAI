@@ -1,64 +1,63 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import RenderHtml from 'react-native-render-html';
 import {
   ArrowLeft,
-  CheckCircle2,
   Dot,
   MoreHorizontal,
   SquarePen,
 } from 'lucide-react-native';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
+import { useEmployerJobDetail } from '../../../../hooks/useEmployerJobDetail';
+import type { JobRequirement, RequirementImportance } from '../../../../types/job';
+import {
+  EMPLOYMENT_TYPE_LABELS,
+  formatSalary,
+  formatDate,
+  getCategoryColors,
+} from './constants';
 
+// ── Types ───────────────────────────────────────────────────────────────
 type TabName = 'Applicants' | 'Job Details' | 'Analytics';
 
 const tabs: TabName[] = ['Applicants', 'Job Details', 'Analytics'];
 
-const responsibilities = [
-  'Community engagement to ensure that is supported and actively represented online',
-  'Focus on social media content development and publication',
-  'Marketing and strategy support',
-  'Stay on top of trends on social media platforms, and suggest content ideas to the team',
-  'Engage with online communities',
+const IMPORTANCE_GROUPS: {
+  key: RequirementImportance;
+  label: string;
+}[] = [
+  { key: 'REQUIRED', label: 'Required' },
+  { key: 'PREFERRED', label: 'Preferred' },
+  { key: 'OPTIONAL', label: 'Nice to Have' },
 ];
 
-const whoYouAre = [
-  'You get energy from people and building the ideal work environment',
-  'You have a sense for beautiful spaces and office experiences',
-  'You are a confident office manager, ready for added responsibilities',
-  "You're detail-oriented and creative",
-  "You're a growth marketer and know how to run campaigns",
-];
-
-const niceToHaves = ['Fluent in English', 'Project management skills', 'Copy editing skills'];
-
+// ── Reusable Components ─────────────────────────────────────────────────
 function Divider() {
-  return <View className="my-5 h-px bg-[#dbe1ee]" />;
+  return <View className="my-5 h-px bg-app-border-light" />;
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <Text className="text-2xl font-semibold text-[#111827]">{title}</Text>;
-}
-
-function ChecklistItem({ children }: { children: string }) {
-  return (
-    <View className="mb-3 flex-row items-start">
-      <CheckCircle2 size={18} color="#22c55e" strokeWidth={2.2} style={{ marginTop: 2 }} />
-      <Text className="ml-3 flex-1 text-base leading-6 text-[#4b5563]">{children}</Text>
-    </View>
-  );
+  return <Text className="text-2xl font-semibold text-app-slate-1">{title}</Text>;
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="mb-4 flex-row items-center justify-between">
-      <Text className="text-base text-[#667085]">{label}</Text>
-      <Text className="text-base font-semibold text-[#111827]">{value}</Text>
+      <Text className="text-base text-app-text-3">{label}</Text>
+      <Text className="text-base font-semibold text-app-slate-1">{value}</Text>
     </View>
   );
 }
@@ -81,9 +80,81 @@ function Pill({
   );
 }
 
+function SkillPill({ skill }: { skill: JobRequirement }) {
+  const experienceText =
+    skill.minYearsExperience && skill.minYearsExperience > 0
+      ? `${skill.minYearsExperience}+ yrs`
+      : 'Any experience';
+
+  return (
+    <View
+      className="rounded-[5px] px-3 py-1.5 bg-app-indigo-bg"
+    >
+      <Text
+        className="text-sm font-semibold text-app-indigo-text"
+      >
+        {skill.skillName} ({experienceText})
+      </Text>
+    </View>
+  );
+}
+
+// ── Custom tag styles for RenderHtml ────────────────────────────────────
+const htmlTagStyles: Record<string, Record<string, unknown>> = {
+  body: { color: '#0F172A', fontSize: 15, lineHeight: 24 },
+  h2: { fontSize: 22, fontWeight: '700', marginTop: 24, marginBottom: 8, color: '#0F172A' },
+  h3: { fontSize: 18, fontWeight: '600', marginTop: 16, marginBottom: 6, color: '#0F172A' },
+  p: { marginTop: 8, marginBottom: 8 },
+  ul: { paddingLeft: 8 },
+  ol: { paddingLeft: 8 },
+  li: { marginBottom: 4 },
+  strong: { fontWeight: '700' },
+  em: { fontStyle: 'italic' },
+  blockquote: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#CBD5E1',
+    paddingLeft: 12,
+    fontStyle: 'italic',
+    color: '#475569',
+  },
+  code: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 14,
+  },
+  pre: {
+    backgroundColor: '#F1F5F9',
+    padding: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+};
+
+// ── Loading Skeleton ────────────────────────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <View className="flex-1 items-center justify-center px-6 py-16">
+      <ActivityIndicator size="large" color="#4F46E5" />
+      <Text className="mt-4 text-base text-app-text-gray">Loading job details…</Text>
+    </View>
+  );
+}
+
+// ── Main Screen ─────────────────────────────────────────────────────────
 export default function JobDetailsScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabName>('Job Details');
+
+  const numericId = id ? Number(id) : null;
+  const { data: job, isLoading, isError } = useEmployerJobDetail(numericId);
+
+  const { width: contentWidth } = useWindowDimensions();
+  // Subtract horizontal padding (16px * 2) + card padding (16px * 2)
+  const htmlContentWidth = contentWidth - 64;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -111,18 +182,29 @@ export default function JobDetailsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Title + Category/Type */}
       <View className="px-4 pb-3">
-        <Text className="text-2xl font-semibold text-[#0F172A]">
-          Social Media Assistant
+        <Text className="text-2xl font-semibold text-app-slate-1">
+          {job?.title ?? 'Loading…'}
         </Text>
-        <View className="mt-1 flex-row items-center">
-          <Text className="text-xl font-medium text-[#0F172A]">Design</Text>
-          <Dot size={28} color="#0F172A" style={{ marginHorizontal: 4 }} />
-          <Text className="text-xl font-medium text-[#0F172A]">Full-Time</Text>
-        </View>
+        {job && (
+          <View className="mt-1 flex-row items-center">
+            <Text className="text-xl font-medium text-app-slate-1">
+              {job.category?.name ?? '—'}
+            </Text>
+            <Dot size={28} color="#0F172A" style={{ marginHorizontal: 4 }} />
+            <Text className="text-xl font-medium text-app-slate-1">
+              {EMPLOYMENT_TYPE_LABELS[job.type] ?? job.type}
+            </Text>
+          </View>
+        )}
       </View>
 
-      <View className="flex-row justify-between border-b border-app-border-2 px-4" pointerEvents="box-none">
+      {/* Tabs */}
+      <View
+        className="flex-row justify-between border-b border-app-border-2 px-4"
+        pointerEvents="box-none"
+      >
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
 
@@ -145,114 +227,132 @@ export default function JobDetailsScreen() {
         })}
       </View>
 
+      {/* Tab Content */}
       <View className="flex-1 bg-white">
         {activeTab === 'Job Details' ? (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28 }}
-          >
-            <View className="rounded-2xl border border-[#dbe1ee] bg-white p-4">
-              <View className="mb-6 flex-row items-start justify-between">
-                <View
-                  className="h-[52px] w-[52px] items-center justify-center rounded-2xl"
-                  style={{ backgroundColor: '#5B5CE7' }}
-                >
-                  <Text className="text-4xl font-bold text-white">S</Text>
+          isLoading ? (
+            <LoadingSkeleton />
+          ) : isError || !job ? (
+            <View className="flex-1 items-center justify-center px-6">
+              <Text className="text-base text-app-red-1">
+                Failed to load job details. Please try again.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                paddingTop: 16,
+                paddingBottom: 28,
+              }}
+            >
+              {/* Card Header */}
+              <View className="rounded-2xl border border-app-border-light bg-white p-4">
+                <View className="mb-6 flex-row items-start justify-between">
+                  <View
+                    className="h-[52px] w-[52px] items-center justify-center rounded-2xl bg-app-card-header"
+                  >
+                    <Text className="text-4xl font-bold text-white">
+                      {job.company?.name?.charAt(0)?.toUpperCase() ?? 'J'}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity activeOpacity={0.8} className="p-2">
+                    <SquarePen size={28} color="#4F46E5" strokeWidth={2.2} />
+                  </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity activeOpacity={0.8} className="p-2">
-                  <SquarePen size={28} color="#4F46E5" strokeWidth={2.2} />
-                </TouchableOpacity>
+                <Text className="text-4xl font-semibold leading-tight text-app-dark-text">
+                  {job.title}
+                </Text>
               </View>
 
-              <Text className="text-4xl font-semibold leading-tight text-[#111827]">
-                Social Media Assistant
-              </Text>
-            </View>
-
-            <View className="mt-6">
-              <SectionTitle title="Description" />
-              <Text className="mt-4 text-base font-normal leading-6 text-[#0F172A]">
-                Stripe is looking for Social Media Marketing expert to help manage our online networks.
-                You will be responsible for monitoring our social media channels, creating content,
-                finding effective ways to engage the community and incentivize others to engage on
-                our channels.
-              </Text>
-            </View>
-
-            <Divider />
-
-            <View>
-              <SectionTitle title="Responsibilities" />
-              <View className="mt-4">
-                {responsibilities.map((item) => (
-                  <ChecklistItem key={item}>{item}</ChecklistItem>
-                ))}
+              {/* Description — rendered from HTML */}
+              <View className="mt-6">
+                <SectionTitle title="Description" />
+                <View className="mt-4">
+                  <RenderHtml
+                    contentWidth={htmlContentWidth}
+                    source={{ html: job.description || '<p>No description provided.</p>' }}
+                    tagsStyles={htmlTagStyles}
+                  />
+                </View>
               </View>
-            </View>
 
-            <Divider />
+              <Divider />
 
-            <View>
-              <SectionTitle title="Who You Are" />
-              <View className="mt-4">
-                {whoYouAre.map((item) => (
-                  <ChecklistItem key={item}>{item}</ChecklistItem>
-                ))}
+              {/* About this role */}
+              <View>
+                <SectionTitle title="About this role" />
+                <View className="mt-4">
+                  <DetailRow
+                    label="Job Posted On"
+                    value={formatDate(job.createdAt)}
+                  />
+                  <DetailRow
+                    label="Job Type"
+                    value={EMPLOYMENT_TYPE_LABELS[job.type] ?? job.type}
+                  />
+                  <DetailRow
+                    label="Location"
+                    value={job.remote ? 'Remote' : job.location ?? '—'}
+                  />
+                  <DetailRow
+                    label="Salary"
+                    value={formatSalary(job.currency, job.salaryMin, job.salaryMax)}
+                  />
+                </View>
               </View>
-            </View>
 
-            <Divider />
+              <Divider />
 
-            <View>
-              <SectionTitle title="Nice-To-Haves" />
-              <View className="mt-4">
-                {niceToHaves.map((item) => (
-                  <ChecklistItem key={item}>{item}</ChecklistItem>
-                ))}
+              {/* Category */}
+              <View>
+                <SectionTitle title="Category" />
+                <View className="mt-4 flex-row flex-wrap gap-2">
+                  {job.category && (
+                    <Pill
+                      label={job.category.name}
+                      backgroundColor={getCategoryColors(job.category.name).bg}
+                      color={getCategoryColors(job.category.name).text}
+                    />
+                  )}
+                </View>
               </View>
-            </View>
 
-            <Divider />
+              <Divider />
 
-            <View>
-              <SectionTitle title="About this role" />
-
-              <View className="mt-4">
-                <DetailRow label="Apply Before" value="July 31, 2021" />
-                <DetailRow label="Job Posted On" value="July 1, 2021" />
-                <DetailRow label="Job Type" value="Full-Time" />
-                <DetailRow label="Salary" value="$75k-$85k USD" />
-              </View>
-            </View>
-
-            <Divider />
-
-            <View>
-              <SectionTitle title="Categories" />
-              <View className="mt-4 flex-row flex-wrap gap-2">
-                <Pill label="Marketing" backgroundColor="#FFF2E5" color="#F97316" />
-                <Pill label="Design" backgroundColor="#DDFAF4" color="#10B981" />
-              </View>
-            </View>
-
-            <Divider />
-
-            <View>
-              <SectionTitle title="Required Skills" />
-              <View className="mt-4 flex-row flex-wrap gap-2">
-                {['Project Management', 'Copywriting', 'Social Media Marketing', 'English', 'Copy Editing'].map(
-                  (skill) => (
-                    <Pill key={skill} label={skill} backgroundColor="#EEEDFC" color="#4F46E5" />
-                  )
-                )}
-              </View>
-            </View>
-          </ScrollView>
-         ) : (
+              {/* Skills — grouped by importance */}
+              {job.requirements && job.requirements.length > 0 && (
+                <View>
+                  <SectionTitle title="Skills" />
+                  <View className="mt-4" style={{ gap: 16 }}>
+                    {IMPORTANCE_GROUPS.filter(({ key }) =>
+                      job.requirements.some((r) => r.importance === key)
+                    ).map(({ key, label }) => (
+                       <View key={key}>
+                         <Text className="mb-1.5 text-xs font-medium text-app-text-3">
+                           {label}
+                         </Text>
+                        <View className="flex-row flex-wrap gap-2">
+                          {job.requirements
+                            .filter((r) => r.importance === key)
+                            .map((skill) => (
+                              <SkillPill key={skill.skillId} skill={skill} />
+                            ))}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+          )
+        ) : (
           <View className="flex-1 items-center justify-center px-6">
-            <Text className="text-base text-[#667085]">This tab is empty for now.</Text>
+            <Text className="text-base text-app-text-gray">This tab is empty for now.</Text>
           </View>
         )}
       </View>
