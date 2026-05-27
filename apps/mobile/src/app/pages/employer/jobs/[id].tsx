@@ -89,10 +89,10 @@ function SkillPill({ skill }: { skill: JobRequirement }) {
 
   return (
     <View
-      className="rounded-[5px] px-3 py-1.5 bg-app-indigo-bg"
+      className="rounded-[5px] px-3 py-1.5 bg-app-indigo-soft"
     >
       <Text
-        className="text-sm font-semibold text-app-indigo-text"
+        className="text-sm font-semibold text-app-indigo-strong"
       >
         {skill.skillName} ({experienceText})
       </Text>
