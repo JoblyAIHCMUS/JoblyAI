@@ -183,7 +183,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             <View className="w-10 h-10 items-center justify-center rounded-full bg-[#4F46E5]">
               <View className="w-4 h-4 rounded-full bg-white" />
             </View>
-            <Text className="text-2xl font-extrabold tracking-tight text-[#111827]">
+            <Text className="text-2xl font-extrabold text-[#111827]">
               JoblyAI
             </Text>
           </View>

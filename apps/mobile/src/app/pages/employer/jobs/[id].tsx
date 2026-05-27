@@ -8,16 +8,9 @@ import { StatusBar } from 'expo-status-bar';
 import {
   ArrowLeft,
   CheckCircle2,
-  Coffee,
   Dot,
-  HeartHandshake,
-  Mountain,
   MoreHorizontal,
-  Palmtree,
   SquarePen,
-  Stethoscope,
-  Train,
-  Video,
 } from 'lucide-react-native';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
@@ -44,57 +37,12 @@ const whoYouAre = [
 
 const niceToHaves = ['Fluent in English', 'Project management skills', 'Copy editing skills'];
 
-const benefits = [
-  {
-    icon: Stethoscope,
-    title: 'Full Healthcare',
-    description:
-      'We believe in thriving communities and that starts with our team being happy and healthy.',
-  },
-  {
-    icon: Palmtree,
-    title: 'Unlimited Vacation',
-    description:
-      'We believe you should have a flexible schedule that makes space for family, wellness, and fun.',
-  },
-  {
-    icon: Video,
-    title: 'Skill Development',
-    description:
-      "We believe in always learning and leveling up our skills. Whether it's a conference or online course.",
-  },
-  {
-    icon: Mountain,
-    title: 'Team Summits',
-    description:
-      'Every 6 months we have a full team summit where we have fun, reflect, and plan for the upcoming quarter.',
-  },
-  {
-    icon: Coffee,
-    title: 'Remote Working',
-    description:
-      'You know how you perform your best. Work from home, coffee shop or anywhere when you feel like it.',
-  },
-  {
-    icon: Train,
-    title: 'Commuter Benefits',
-    description:
-      "We're grateful for all the time and energy each team member puts into getting to work every day.",
-  },
-  {
-    icon: HeartHandshake,
-    title: 'We give back.',
-    description:
-      'We anonymously match any donation our employees make (up to $/€ 600) so they can support the organizations they care about most-times two.',
-  },
-];
-
 function Divider() {
   return <View className="my-5 h-px bg-[#dbe1ee]" />;
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <Text className="text-2xl font-semibold tracking-[-0.4px] text-[#111827]">{title}</Text>;
+  return <Text className="text-2xl font-semibold text-[#111827]">{title}</Text>;
 }
 
 function ChecklistItem({ children }: { children: string }) {
@@ -133,28 +81,6 @@ function Pill({
   );
 }
 
-function BenefitItem({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
-  title: string;
-  description: string;
-}) {
-  return (
-    <View className="mb-5">
-      <View className="mb-2 flex-row items-center">
-        <Icon size={20} color="#4F46E5" strokeWidth={2.2} />
-        <Text className="ml-3 text-base font-bold tracking-[-0.2px] text-[#111827]">
-          {title}
-        </Text>
-      </View>
-      <Text className="text-base leading-6 text-[#4b5563]">{description}</Text>
-    </View>
-  );
-}
-
 export default function JobDetailsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabName>('Job Details');
@@ -186,7 +112,7 @@ export default function JobDetailsScreen() {
       </View>
 
       <View className="px-4 pb-3">
-        <Text className="text-2xl font-semibold tracking-[-0.7px] text-[#0F172A]">
+        <Text className="text-2xl font-semibold text-[#0F172A]">
           Social Media Assistant
         </Text>
         <View className="mt-1 flex-row items-center">
@@ -240,7 +166,7 @@ export default function JobDetailsScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-4xl font-semibold leading-tight tracking-tight text-[#111827]">
+              <Text className="text-4xl font-semibold leading-tight text-[#111827]">
                 Social Media Assistant
               </Text>
             </View>
@@ -293,15 +219,7 @@ export default function JobDetailsScreen() {
             <View>
               <SectionTitle title="About this role" />
 
-              <Text className="mt-4 text-base font-semibold text-[#111827]">
-                5 applied <Text className="font-normal text-[#667085]">of 10 capacity</Text>
-              </Text>
-
-              <View className="mt-3 h-2 overflow-hidden rounded-full bg-[#e6ebf2]">
-                <View className="h-full w-1/2 rounded-full bg-[#10b981]" />
-              </View>
-
-              <View className="mt-6">
+              <View className="mt-4">
                 <DetailRow label="Apply Before" value="July 31, 2021" />
                 <DetailRow label="Job Posted On" value="July 1, 2021" />
                 <DetailRow label="Job Type" value="Full-Time" />
@@ -329,26 +247,6 @@ export default function JobDetailsScreen() {
                     <Pill key={skill} label={skill} backgroundColor="#EEEDFC" color="#4F46E5" />
                   )
                 )}
-              </View>
-            </View>
-
-            <Divider />
-
-            <View>
-              <SectionTitle title="Perks & Benefits" />
-              <Text className="mt-2 text-base leading-6 text-[#4b5563]">
-                This job comes with several perks and benefits
-              </Text>
-
-              <View className="mt-5">
-                {benefits.map((benefit) => (
-                  <BenefitItem
-                    key={benefit.title}
-                    icon={benefit.icon}
-                    title={benefit.title}
-                    description={benefit.description}
-                  />
-                ))}
               </View>
             </View>
           </ScrollView>
