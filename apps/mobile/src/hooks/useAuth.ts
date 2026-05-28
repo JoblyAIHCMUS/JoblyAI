@@ -1,19 +1,29 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
+import { authClient } from '../lib/auth-client';
 import {
-  login as apiLogin,
-  signup as apiSignup,
-  sendOTP as apiSendOTP,
-  resetPassword as apiResetPassword,
-  logout as apiLogout,
   LoginPayload,
   SignupPayload,
   SendOTPPayload,
   ResetPasswordPayload,
   AuthResponse,
 } from '../api/auth';
+
+function getAuthErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export function useLogin() {
   const [loading, setLoading] = useState(false);
@@ -24,17 +34,20 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiLogin(payload);
-      setData(result);
-      return result;
-    } catch (err) {
-      let errorMessage = 'Login failed';
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      const { data, error } = await authClient.signIn.email({
+        email: payload.email,
+        password: payload.password,
+        rememberMe: payload.rememberMe,
+      });
+
+      if (error) {
+        throw error;
       }
-      const error = new Error(errorMessage);
+
+      setData(data as AuthResponse);
+      return data as AuthResponse;
+    } catch (err) {
+      const error = new Error(getAuthErrorMessage(err, 'Login failed'));
       setError(error);
       throw error;
     } finally {
@@ -54,17 +67,23 @@ export function useSignup() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiSignup(payload);
-      setData(result);
-      return result;
-    } catch (err) {
-      let errorMessage = 'Signup failed';
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      const { data, error } = await authClient.signUp.email({
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        role: payload.role,
+      });
+
+      if (error) {
+        throw error;
       }
-      const error = new Error(errorMessage);
+
+      setData(data as AuthResponse);
+      return data as AuthResponse;
+    } catch (err) {
+      const error = new Error(getAuthErrorMessage(err, 'Signup failed'));
       setError(error);
       throw error;
     } finally {
@@ -83,11 +102,18 @@ export function useSendOTP() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiSendOTP(payload);
-      return result;
+      const { data, error } = await authClient.emailOtp.sendVerificationOtp({
+        email: payload.email,
+        type: payload.type,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error('Failed to send OTP');
+      const error = new Error(getAuthErrorMessage(err, 'Failed to send OTP'));
       setError(error);
       throw error;
     } finally {
@@ -107,12 +133,22 @@ export function useResetPassword() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiResetPassword(payload);
-      setData(result);
-      return result;
+      const { data, error } = await authClient.emailOtp.resetPassword({
+        email: payload.email,
+        otp: payload.otp,
+        password: payload.password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setData(data as AuthResponse);
+      return data as AuthResponse;
     } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error('Password reset failed');
+      const error = new Error(
+        getAuthErrorMessage(err, 'Password reset failed')
+      );
       setError(error);
       throw error;
     } finally {
@@ -140,32 +176,22 @@ export function useLogout() {
     setError(null);
 
     try {
-      await apiLogout();
+      const { error } = await authClient.signOut();
+      if (error) {
+        throw error;
+      }
+
       clearSessionAndRedirect();
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
+      if (err && typeof err === 'object' && 'status' in err) {
+        const status = (err as { status?: number }).status;
+        if (status === 401) {
           clearSessionAndRedirect();
           return;
         }
-
-        if (!err.response) {
-          const networkError = new Error(
-            'Network Error: Cannot reach backend. Please ensure the backend server is running and accessible.'
-          );
-          setError(networkError);
-          throw networkError;
-        }
-
-        const errorMessage =
-          err.response.data?.message || err.message || 'Logout failed';
-        const logoutError = new Error(errorMessage);
-        setError(logoutError);
-        throw logoutError;
       }
 
-      const logoutError =
-        err instanceof Error ? err : new Error('Logout failed');
+      const logoutError = new Error(getAuthErrorMessage(err, 'Logout failed'));
       setError(logoutError);
       throw logoutError;
     } finally {
