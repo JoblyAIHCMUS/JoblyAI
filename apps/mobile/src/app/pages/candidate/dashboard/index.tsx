@@ -606,7 +606,12 @@ export default function CandidateDashboard() {
   }, [fetchApplications]);
 
   useEffect(() => {
-    if (isSessionPending || !user || applicationsLoading || applicationsResult) {
+    if (
+      isSessionPending ||
+      !user ||
+      applicationsLoading ||
+      applicationsResult
+    ) {
       return;
     }
 
