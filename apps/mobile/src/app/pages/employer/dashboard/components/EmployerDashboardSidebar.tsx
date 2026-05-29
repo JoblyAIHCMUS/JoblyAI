@@ -97,7 +97,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
     {
       name: 'Company Profile',
       icon: Building2,
-      path: '/pages/employer/profile',
+      path: '/pages/employer/company-profile',
     },
     {
       name: 'All Applicants',

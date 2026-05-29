@@ -11,6 +11,15 @@ export interface CreateCompanyPayload {
   logoUrl?: string;
 }
 
+export interface UpdateCompanyPayload {
+  name: string;
+  websiteUrl?: string;
+  sizeRange?: string;
+  industry?: string;
+  description?: string;
+  logoUrl?: string;
+}
+
 export interface AddCompanyEmployeePayload {
   email: string;
   role?: string;
@@ -22,6 +31,17 @@ export interface CompanyEmployeeMembership {
   employerId: string;
   role: string;
   assignedAt: string;
+}
+
+export interface CompanyEmployee {
+  membershipId: number;
+  employerId: string;
+  role: string;
+  assignedAt: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string | null;
 }
 
 export async function getCompanies(options?: ApiOptions): Promise<Company[]> {
@@ -49,6 +69,14 @@ export async function createCompany(
   return response.data;
 }
 
+export async function updateCompany(
+  id: number,
+  payload: UpdateCompanyPayload
+): Promise<Company> {
+  const response = await apiClient.put<Company>(`/company/${id}`, payload);
+  return response.data;
+}
+
 export async function addCompanyEmployee(
   companyId: number,
   payload: AddCompanyEmployeePayload
@@ -56,6 +84,15 @@ export async function addCompanyEmployee(
   const response = await apiClient.post<CompanyEmployeeMembership>(
     `/company/${companyId}/employees`,
     payload
+  );
+  return response.data;
+}
+
+export async function getCompanyEmployees(
+  companyId: number
+): Promise<CompanyEmployee[]> {
+  const response = await apiClient.get<CompanyEmployee[]>(
+    `/company/${companyId}/employees`
   );
   return response.data;
 }
@@ -73,4 +110,9 @@ export async function checkCompanyNameExists(name: string): Promise<boolean> {
     // If endpoint doesn't exist or fails, assume name is available
     return false;
   }
+}
+
+export async function getCompanyById(id: number): Promise<Company> {
+  const response = await apiClient.get<Company>(`/company/${id}`);
+  return response.data;
 }
