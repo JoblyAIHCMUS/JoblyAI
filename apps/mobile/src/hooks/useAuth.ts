@@ -168,6 +168,7 @@ export function useLogout() {
   const clearSessionAndRedirect = () => {
     queryClient.removeQueries({ queryKey: ['user'] });
     queryClient.removeQueries({ queryKey: ['employer-profile'] });
+    queryClient.removeQueries({ queryKey: ['candidate-profile'] });
     router.dismissTo('/');
   };
 
