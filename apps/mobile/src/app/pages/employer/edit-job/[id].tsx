@@ -15,6 +15,7 @@ import {
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
+import { ArrowLeft } from 'lucide-react-native';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
@@ -32,6 +33,7 @@ import type {
   RequirementImportance,
 } from '../../../../types/job';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
+import { COLORS } from '../../../constants/theme';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -380,7 +382,18 @@ export default function EmployerEditJobPage() {
         <View className="px-4 py-6">
           {/* Header */}
           <View className="mb-6">
-            <Text className="text-3xl font-bold text-slate-900">Edit Job</Text>
+            <View className="flex-row items-center gap-3 mb-2">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="p-1"
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <ArrowLeft size={28} color={COLORS.brandDark} strokeWidth={2} />
+              </TouchableOpacity>
+              <Text className="text-3xl font-bold text-slate-900">
+                Edit Job
+              </Text>
+            </View>
             <Text className="text-base text-slate-600 mt-2">
               Update the job posting details below.
             </Text>
