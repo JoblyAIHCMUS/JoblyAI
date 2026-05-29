@@ -20,4 +20,8 @@ export const COLORS = {
   footerBg: '#0F172A',
   footerText: '#64748B',
   error: '#EF4444',
+  slate400: '#94A3B8',
+  slate500: '#64748B',
+  slate900: '#0F172A',
+  blue100: '#DDD6FE',
 };
