@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, SquarePen } from 'lucide-react-native';
 
 // Components
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
@@ -128,15 +128,24 @@ export default function CompanyProfilePage() {
         showsVerticalScrollIndicator={false}
         className="flex-1 bg-white"
       >
-        {/* Back Button */}
-        <View className="flex-row items-center px-4 py-3">
+        {/* Back Button and Edit Button */}
+        <View className="flex-row items-center px-4 py-3 justify-between">
           <TouchableOpacity
             activeOpacity={0.8}
             className="p-1"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color={COLORS.brandDark} />
+            <ArrowLeft size={32} color={COLORS.brandDark} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            className="p-1"
+            onPress={() => {
+              router.push(`/pages/employer/edit-company`);
+            }}
+          >
+            <SquarePen size={32} color={COLORS.primary2} />
           </TouchableOpacity>
         </View>
 
