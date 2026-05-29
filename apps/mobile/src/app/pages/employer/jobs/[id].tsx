@@ -284,7 +284,13 @@ export default function JobDetailsScreen() {
                     <View className="h-[52px] w-[52px] rounded-2xl bg-app-gray-1" />
                   )}
 
-                  <TouchableOpacity activeOpacity={0.8} className="p-2">
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    className="p-2"
+                    onPress={() =>
+                      router.push(`/pages/employer/edit-job/${id}`)
+                    }
+                  >
                     <SquarePen size={28} color="#4F46E5" strokeWidth={2.2} />
                   </TouchableOpacity>
                 </View>
