@@ -47,7 +47,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
     setIsMenuOpen(false);
     router.push(`/pages/employer/jobs/${job.id}`);
   };
-  const handleEditJobPosting = () => console.log('Edit Job Posting:', job.id);
+  const handleEditJobPosting = () => {
+    setIsMenuOpen(false);
+    router.push(`/pages/employer/edit-job/${job.id}`);
+  };
 
   const handlePublishJobPosting = () => {
     setIsUpdating(true);

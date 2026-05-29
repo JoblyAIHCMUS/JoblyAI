@@ -109,3 +109,18 @@ export interface CreateJobPayload {
   companyId: number;
   requirements?: JobRequirementInput[];
 }
+
+export interface UpdateJobPayload {
+  title?: string;
+  description?: string;
+  location?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  currency?: string;
+  remote?: boolean;
+  type?: EmploymentType | EmploymentType[];
+  categoryId?: number;
+  companyId?: number;
+  requirements?: JobRequirementInput[];
+  status?: JobStatus;
+}
