@@ -16,6 +16,7 @@ import { useEmployerJobDetail } from '../../../../hooks/useEmployerJobDetail';
 import { EMPLOYMENT_TYPE_LABELS } from './constants';
 import { COLORS } from '../../../constants/theme';
 import JobDetailsTab from './components/JobDetailsTab';
+import ApplicantsTab from './components/ApplicantsTab';
 
 // ── Types ───────────────────────────────────────────────────────────────
 type TabName = 'Applicants' | 'Job Details' | 'Analytics';
@@ -115,7 +116,9 @@ export default function JobDetailsScreen() {
 
       {/* Tab Content */}
       <View className="flex-1 bg-white">
-        {activeTab === 'Job Details' ? (
+        {activeTab === 'Applicants' ? (
+          <ApplicantsTab />
+        ) : activeTab === 'Job Details' ? (
           <JobDetailsTab
             job={job}
             isLoading={isLoading}
