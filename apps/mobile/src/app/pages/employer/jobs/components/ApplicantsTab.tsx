@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { Search, Filter, Star } from 'lucide-react-native';
+import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, TextInput } from 'react-native';
+import { Search, Star, X } from 'lucide-react-native';
 
 export type ApplicantStatus = 'Inreview' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
 
@@ -21,6 +21,8 @@ interface ApplicantsTabProps {
   fetchNextPage: () => void;
   refetch: () => void;
   isRefetching: boolean;
+  searchQuery: string;
+  onSearchChange: (text: string) => void;
 }
 
 const getStatusColors = (status: ApplicantStatus) => {
@@ -63,17 +65,57 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   );
 }
 
-function ApplicantsHeader({ total, isLoading }: { total: number, isLoading: boolean }) {
+function ApplicantsHeader({
+  total,
+  isLoading,
+  searchQuery,
+  onSearchChange,
+}: {
+  total: number,
+  isLoading: boolean,
+  searchQuery: string,
+  onSearchChange: (text: string) => void,
+}) {
+  const [isSearching, setIsSearching] = useState(false);
+
+  if (isSearching) {
+    return (
+      <View className="flex-row items-center py-3 border-b border-app-border-light">
+        <View className="flex-1 flex-row items-center bg-app-background-1 rounded-lg px-3 py-2 mr-3">
+          <Search size={20} color="#64748B" />
+          <TextInput
+            className="flex-1 ml-2 text-base text-app-slate-1 p-0"
+            placeholder="Search applicants..."
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            autoFocus
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => onSearchChange('')}>
+              <X size={18} color="#64748B" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            setIsSearching(false);
+            onSearchChange('');
+          }}
+        >
+          <Text className="text-app-primary-1 font-semibold text-base">Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
       <Text className="text-xl font-bold text-app-slate-1">
         Applicants : {isLoading ? '...' : total}
       </Text>
       <View className="flex-row gap-4">
-        <TouchableOpacity>
-          <Filter size={24} color="#0F172A" />
-        </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsSearching(true)}>
           <Search size={24} color="#0F172A" />
         </TouchableOpacity>
       </View>
@@ -110,7 +152,9 @@ export default function ApplicantsTab({
   isFetchingNextPage,
   fetchNextPage,
   refetch,
-  isRefetching
+  isRefetching,
+  searchQuery,
+  onSearchChange
 }: ApplicantsTabProps) {
   
   const renderFooter = () => {
@@ -141,7 +185,12 @@ export default function ApplicantsTab({
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <ApplicantsHeader total={total} isLoading={isLoading} />
+            <ApplicantsHeader
+              total={total}
+              isLoading={isLoading}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
             <ViewToggle />
           </>
         }

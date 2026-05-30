@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -31,6 +31,19 @@ export default function JobDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabName>('Job Details');
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const numericId = id ? Number(id) : null;
   const { data: job, isLoading, isError } = useEmployerJobDetail(numericId);
   
@@ -42,7 +55,7 @@ export default function JobDetailsScreen() {
     isFetchingNextPage: isFetchingNextApplicationsPage,
     refetch: refetchApplications,
     isRefetching: isRefetchingApplications
-  } = useEmployerJobApplications(numericId || undefined);
+  } = useEmployerJobApplications(numericId || undefined, debouncedSearch);
 
   // Map backend ApplicationStatus to frontend ApplicantStatus
   const mapApplicationStatus = (status: ApplicationStatus): import('./components/ApplicantsTab').ApplicantStatus => {
@@ -173,6 +186,8 @@ export default function JobDetailsScreen() {
             fetchNextPage={fetchNextApplicationsPage}
             refetch={refetchApplications}
             isRefetching={isRefetchingApplications && !isFetchingNextApplicationsPage}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
         ) : activeTab === 'Job Details' ? (
           <JobDetailsTab

@@ -335,7 +335,7 @@ export class ApplicationsService {
     employerId: string,
     query: GetEmployerApplicationsQueryDTO
   ): Promise<PaginatedApplicationsResponse> {
-    const { page = 1, pageSize = 10, status, jobId } = query;
+    const { page = 1, pageSize = 10, status, jobId, search } = query;
     const skip = (page - 1) * pageSize;
 
     // Build where clause
@@ -345,6 +345,14 @@ export class ApplicationsService {
         ...(jobId && { id: jobId }),
       },
       ...(status && { status }),
+      ...(search && {
+        candidate: {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+      }),
     };
 
     const [total, applications] = await Promise.all([
