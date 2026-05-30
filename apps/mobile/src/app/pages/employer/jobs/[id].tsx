@@ -55,7 +55,7 @@ export default function JobDetailsScreen() {
     isFetchingNextPage: isFetchingNextApplicationsPage,
     refetch: refetchApplications,
     isRefetching: isRefetchingApplications
-  } = useEmployerJobApplications(numericId || undefined, debouncedSearch);
+  } = useEmployerJobApplications(numericId || undefined, debouncedSearch, 10);
 
   // Map backend ApplicationStatus to frontend ApplicantStatus
   const mapApplicationStatus = (status: ApplicationStatus): import('./components/ApplicantsTab').ApplicantStatus => {

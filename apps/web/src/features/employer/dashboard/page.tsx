@@ -42,7 +42,9 @@ export default function EmployerDashboardPage() {
   const [errorCounts, setErrorCounts] = useState<string | null>(null);
 
   // Hooks for data fetching
-  const { fetchApplications } = useListEmployerApplications();
+  const { fetchApplications } = useListEmployerApplications({
+    initialPageSize: 10,
+  });
   const { fetchChatSummary } = useGetChatSummary();
   const { fetchAnalytics: fetchViewsAnalytics } = useJobViewsAnalytics();
   const { fetchAnalytics: fetchAppsAnalytics } = useJobApplicationsAnalytics();
