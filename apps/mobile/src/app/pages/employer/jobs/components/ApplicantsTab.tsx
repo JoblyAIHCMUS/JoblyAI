@@ -82,7 +82,7 @@ function ViewToggle() {
   const [active, setActive] = useState<'Pipeline' | 'Table'>('Table');
   
   return (
-    <View className="flex-row bg-app-slate-gray rounded-lg p-1 my-4">
+    <View className="flex-row bg-app-background-1 rounded-lg p-1 my-4">
       <TouchableOpacity 
         className={`flex-1 py-2 items-center rounded-md ${active === 'Pipeline' ? 'bg-white shadow-sm' : ''}`}
         onPress={() => setActive('Pipeline')}
