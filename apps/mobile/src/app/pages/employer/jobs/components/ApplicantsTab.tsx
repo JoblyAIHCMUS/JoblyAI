@@ -189,7 +189,7 @@ export default function ApplicantsTab({
               total={total}
               isLoading={isLoading}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              onSearchChange={onSearchChange}
             />
             <ViewToggle />
           </>
