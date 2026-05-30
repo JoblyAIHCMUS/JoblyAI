@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Search, Filter, Star, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react-native';
+import { Search, Filter, Star, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 export type ApplicantStatus = 'Inreview' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
 
@@ -44,7 +44,7 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
           className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
         />
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-app-dark-text mb-1">{applicant.name}</Text>
+          <Text className="text-lg font-semibold text-app-slate-1 mb-1">{applicant.name}</Text>
           <View className="flex-row items-center border border-app-border-2 rounded-full px-2 py-0.5 self-start">
             <Star size={14} color="#FFB836" fill={applicant.rating > 0 ? "#FFB836" : "transparent"} />
             <Text className="text-sm text-app-text-3 font-medium ml-1">
@@ -115,14 +115,6 @@ function Pagination() {
         <TouchableOpacity>
           <ChevronRight size={20} color="#0F172A" />
         </TouchableOpacity>
-      </View>
-      <View className="flex-row items-center">
-        <Text className="text-app-text-3 font-medium mr-2">View</Text>
-        <View className="flex-row items-center border border-app-border-2 rounded px-2 py-1 bg-white">
-          <Text className="mr-2 text-app-dark-text font-medium">10</Text>
-          <ChevronDown size={16} color="#0F172A" />
-        </View>
-        <Text className="text-app-text-3 font-medium ml-2">Applicants per page</Text>
       </View>
     </View>
   );
