@@ -87,13 +87,13 @@ function ViewToggle() {
         className={`flex-1 py-2 items-center rounded-md ${active === 'Pipeline' ? 'bg-white shadow-sm' : ''}`}
         onPress={() => setActive('Pipeline')}
       >
-        <Text className="font-semibold text-app-primary-1">Pipeline View</Text>
+        <Text className="text-base font-semibold text-app-primary-1">Pipeline View</Text>
       </TouchableOpacity>
       <TouchableOpacity 
         className={`flex-1 py-2 items-center rounded-md ${active === 'Table' ? 'bg-white shadow-sm' : ''}`}
         onPress={() => setActive('Table')}
       >
-        <Text className="font-semibold text-app-primary-1">Table View</Text>
+        <Text className="text-base font-semibold text-app-primary-1">Table View</Text>
       </TouchableOpacity>
     </View>
   );
