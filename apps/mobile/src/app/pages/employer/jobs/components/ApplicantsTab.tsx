@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Search, Filter, Star, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { Search, Filter, Star } from 'lucide-react-native';
 
 export type ApplicantStatus = 'Inreview' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
 
@@ -12,16 +12,16 @@ export interface Applicant {
   status: ApplicantStatus;
 }
 
-const MOCK_APPLICANTS: Applicant[] = [
-  { id: '1', name: 'Jake Gyll', avatarUrl: 'https://i.pravatar.cc/150?u=jake', rating: 0.0, status: 'Inreview' },
-  { id: '2', name: 'Guy Hawkins', avatarUrl: 'https://i.pravatar.cc/150?u=guy', rating: 4.0, status: 'Inreview' },
-  { id: '3', name: 'Cyndy Lillibridge', avatarUrl: 'https://i.pravatar.cc/150?u=cyndy', rating: 4.2, status: 'Shortlisted' },
-  { id: '4', name: 'Leif Floyd', avatarUrl: 'https://i.pravatar.cc/150?u=leif', rating: 3.0, status: 'Declined' },
-  { id: '5', name: 'Jenny Wilson', avatarUrl: 'https://i.pravatar.cc/150?u=jenny', rating: 3.4, status: 'Declined' },
-  { id: '6', name: 'Jerome Bell', avatarUrl: 'https://i.pravatar.cc/150?u=jerome', rating: 4.3, status: 'Interviewed' },
-  { id: '7', name: 'Eleanor Pena', avatarUrl: 'https://i.pravatar.cc/150?u=eleanor', rating: 4.8, status: 'Hired' },
-  { id: '8', name: 'Darrell Steward', avatarUrl: 'https://i.pravatar.cc/150?u=darrell', rating: 4.76, status: 'Hired' },
-];
+interface ApplicantsTabProps {
+  applicants: Applicant[];
+  total: number;
+  isLoading: boolean;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+  refetch: () => void;
+  isRefetching: boolean;
+}
 
 const getStatusColors = (status: ApplicantStatus) => {
   switch (status) {
@@ -30,6 +30,7 @@ const getStatusColors = (status: ApplicantStatus) => {
     case 'Declined': return { border: 'border-app-red-1', text: 'text-app-red-1' };
     case 'Interviewed': return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
     case 'Hired': return { border: 'border-app-emerald-2', text: 'text-app-emerald-2' };
+    default: return { border: 'border-app-border-2', text: 'text-app-text-3' };
   }
 };
 
@@ -62,10 +63,12 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   );
 }
 
-function ApplicantsHeader({ total }: { total: number }) {
+function ApplicantsHeader({ total, isLoading }: { total: number, isLoading: boolean }) {
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
-      <Text className="text-xl font-bold text-app-slate-1">Applicants : {total}</Text>
+      <Text className="text-xl font-bold text-app-slate-1">
+        Applicants : {isLoading ? '...' : total}
+      </Text>
       <View className="flex-row gap-4">
         <TouchableOpacity>
           <Filter size={24} color="#0F172A" />
@@ -99,42 +102,65 @@ function ViewToggle() {
   );
 }
 
-function Pagination() {
-  return (
-    <View className="py-6 items-center">
-      <View className="flex-row items-center justify-center gap-4 mb-4">
-        <TouchableOpacity>
-          <ChevronLeft size={20} color="#0F172A" />
-        </TouchableOpacity>
-        <View className="w-10 h-10 bg-app-primary-2 rounded-lg items-center justify-center">
-          <Text className="text-white font-semibold">1</Text>
-        </View>
-        <TouchableOpacity className="w-10 h-10 items-center justify-center">
-          <Text className="text-app-text-3 font-semibold">2</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <ChevronRight size={20} color="#0F172A" />
-        </TouchableOpacity>
+export default function ApplicantsTab({
+  applicants,
+  total,
+  isLoading,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+  refetch,
+  isRefetching
+}: ApplicantsTabProps) {
+  
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color="#4640DE" />
       </View>
-    </View>
-  );
-}
+    );
+  };
 
-export default function ApplicantsTab() {
-  return (
-    <ScrollView 
-      className="flex-1 bg-white"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-    >
-      <ApplicantsHeader total={MOCK_APPLICANTS.length} />
-      <ViewToggle />
-      <View className="mt-2">
-        {MOCK_APPLICANTS.map((applicant) => (
-          <ApplicantListItem key={applicant.id} applicant={applicant} />
-        ))}
+  const renderEmpty = () => {
+    if (isLoading) return null; // Initial loading handled by header
+    return (
+      <View className="items-center py-10">
+        <Text className="text-base text-app-text-3">No applicants found.</Text>
       </View>
-      <Pagination />
-    </ScrollView>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-white">
+      <FlatList
+        data={applicants}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        renderItem={({ item }) => <ApplicantListItem applicant={item} />}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            <ApplicantsHeader total={total} isLoading={isLoading} />
+            <ViewToggle />
+          </>
+        }
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={['#4640DE']}
+          />
+        }
+      />
+    </View>
   );
 }

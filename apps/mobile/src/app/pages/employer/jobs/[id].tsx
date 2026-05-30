@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -13,10 +13,12 @@ import { ArrowLeft, Dot, MoreHorizontal } from 'lucide-react-native';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import { useEmployerJobDetail } from '../../../../hooks/useEmployerJobDetail';
+import { useEmployerJobApplications } from '../../../../hooks/useEmployerJobApplications';
 import { EMPLOYMENT_TYPE_LABELS } from './constants';
 import { COLORS } from '../../../constants/theme';
 import JobDetailsTab from './components/JobDetailsTab';
 import ApplicantsTab from './components/ApplicantsTab';
+import { ApplicationStatus } from '../../../../types/application';
 
 // ── Types ───────────────────────────────────────────────────────────────
 type TabName = 'Applicants' | 'Job Details' | 'Analytics';
@@ -31,6 +33,51 @@ export default function JobDetailsScreen() {
 
   const numericId = id ? Number(id) : null;
   const { data: job, isLoading, isError } = useEmployerJobDetail(numericId);
+  
+  const { 
+    data: applicationsData, 
+    isLoading: isApplicationsLoading,
+    fetchNextPage: fetchNextApplicationsPage,
+    hasNextPage: hasNextApplicationsPage,
+    isFetchingNextPage: isFetchingNextApplicationsPage,
+    refetch: refetchApplications,
+    isRefetching: isRefetchingApplications
+  } = useEmployerJobApplications(numericId || undefined);
+
+  // Map backend ApplicationStatus to frontend ApplicantStatus
+  const mapApplicationStatus = (status: ApplicationStatus) => {
+    switch (status) {
+      case 'APPLIED': return 'Inreview';
+      case 'INTERVIEW': return 'Interviewed';
+      case 'OFFER': return 'Shortlisted';
+      case 'REJECTED': return 'Declined';
+      case 'WITHDRAWN': return 'Declined';
+      default: return 'Inreview';
+    }
+  };
+
+  const mappedApplicants = useMemo(() => {
+    if (!applicationsData) return [];
+    
+    return applicationsData.pages.flatMap(page => 
+      page.applications.map(app => {
+        // Safe access for candidate mapping since backend types can sometimes be different from real data
+        const candidateData = (app as unknown as { candidate: { name?: string, email?: string, avatarUrl?: string } }).candidate;
+        const candidateName = candidateData?.name || candidateData?.email || `Candidate #${app.id}`;
+        const avatarUrl = candidateData?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.id}`;
+        
+        return {
+          id: String(app.id),
+          name: candidateName,
+          avatarUrl: avatarUrl,
+          rating: (app as unknown as { matchPercentage: number }).matchPercentage || 0,
+          status: mapApplicationStatus(app.status)
+        };
+      })
+    );
+  }, [applicationsData]);
+
+  const totalApplications = applicationsData?.pages[0]?.total || 0;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -117,7 +164,16 @@ export default function JobDetailsScreen() {
       {/* Tab Content */}
       <View className="flex-1 bg-white">
         {activeTab === 'Applicants' ? (
-          <ApplicantsTab />
+          <ApplicantsTab 
+            applicants={mappedApplicants}
+            total={totalApplications}
+            isLoading={isApplicationsLoading}
+            hasNextPage={hasNextApplicationsPage}
+            isFetchingNextPage={isFetchingNextApplicationsPage}
+            fetchNextPage={fetchNextApplicationsPage}
+            refetch={refetchApplications}
+            isRefetching={isRefetchingApplications && !isFetchingNextApplicationsPage}
+          />
         ) : activeTab === 'Job Details' ? (
           <JobDetailsTab
             job={job}
