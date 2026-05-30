@@ -51,6 +51,7 @@ export interface EmployerApplicationsQuery {
   status?: ApplicationStatus;
   page?: number;
   pageSize?: number;
+  search?: string;
 }
 
 export interface CandidateApplicationsQuery {

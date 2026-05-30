@@ -4,9 +4,9 @@ import { EmployerApplicationsQuery } from '../types/application';
 
 const PAGE_SIZE = 10;
 
-export function useEmployerJobApplications(jobId?: number) {
+export function useEmployerJobApplications(jobId?: number, searchQuery?: string) {
   return useInfiniteQuery({
-    queryKey: ['employer-applications', jobId],
+    queryKey: ['employer-applications', jobId, searchQuery],
     queryFn: async ({ pageParam = 1, signal }) => {
       if (!jobId) {
         return {
@@ -22,6 +22,7 @@ export function useEmployerJobApplications(jobId?: number) {
         jobId,
         page: pageParam,
         pageSize: PAGE_SIZE,
+        ...(searchQuery && { search: searchQuery })
       };
       
       // Pass signal for request cancellation if API supports it later
