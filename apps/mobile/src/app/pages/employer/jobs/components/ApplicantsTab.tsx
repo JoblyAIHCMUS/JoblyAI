@@ -79,7 +79,7 @@ function ApplicantsHeader({ total }: { total: number }) {
 }
 
 function ViewToggle() {
-  const [active, setActive] = useState<'Pipeline' | 'Table'>('Pipeline');
+  const [active, setActive] = useState<'Pipeline' | 'Table'>('Table');
   
   return (
     <View className="flex-row bg-app-slate-gray rounded-lg p-1 my-4">
