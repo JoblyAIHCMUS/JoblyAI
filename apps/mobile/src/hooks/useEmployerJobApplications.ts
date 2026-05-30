@@ -2,7 +2,11 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { listEmployerApplications } from '../api/application';
 import { EmployerApplicationsQuery } from '../types/application';
 
-export function useEmployerJobApplications(jobId?: number, searchQuery?: string, pageSize?: number) {
+export function useEmployerJobApplications(
+  jobId?: number,
+  searchQuery?: string,
+  pageSize?: number
+) {
   return useInfiniteQuery({
     queryKey: ['employer-applications', jobId, searchQuery, pageSize],
     queryFn: async ({ pageParam = 1 }) => {
@@ -15,14 +19,14 @@ export function useEmployerJobApplications(jobId?: number, searchQuery?: string,
           totalPages: 0,
         };
       }
-      
+
       const query: EmployerApplicationsQuery = {
         jobId,
         page: pageParam,
         ...(pageSize && { pageSize }),
-        ...(searchQuery && { search: searchQuery })
+        ...(searchQuery && { search: searchQuery }),
       };
-      
+
       // Pass signal for request cancellation if API supports it later
       return await listEmployerApplications(query);
     },
