@@ -60,12 +60,12 @@ export default function JobDetailsScreen() {
   // Map backend ApplicationStatus to frontend ApplicantStatus
   const mapApplicationStatus = (status: ApplicationStatus): import('./components/ApplicantsTab').ApplicantStatus => {
     switch (status) {
-      case 'APPLIED': return 'Inreview';
+      case 'APPLIED': return 'In-review';
       case 'INTERVIEW': return 'Interviewed';
       case 'OFFER': return 'Shortlisted';
       case 'REJECTED': return 'Declined';
       case 'WITHDRAWN': return 'Declined';
-      default: return 'Inreview';
+      default: return 'In-review';
     }
   };
 

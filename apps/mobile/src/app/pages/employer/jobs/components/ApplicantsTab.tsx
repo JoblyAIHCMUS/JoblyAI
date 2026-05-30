@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, TextInput } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
 
-export type ApplicantStatus = 'Inreview' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
+export type ApplicantStatus = 'In-review' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
 
 export interface Applicant {
   id: string;
@@ -27,7 +27,7 @@ interface ApplicantsTabProps {
 
 const getStatusColors = (status: ApplicantStatus) => {
   switch (status) {
-    case 'Inreview': return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
+    case 'In-review': return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
     case 'Shortlisted': return { border: 'border-app-primary-1', text: 'text-app-primary-1' };
     case 'Declined': return { border: 'border-app-red-1', text: 'text-app-red-1' };
     case 'Interviewed': return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
