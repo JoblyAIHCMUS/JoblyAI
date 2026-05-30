@@ -20,7 +20,7 @@ export function useListEmployerApplications(
     PaginatedApplicationsResponse['applications'] | null
   >(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(options?.initialPageSize || 10);
+  const [pageSize] = useState(options?.initialPageSize);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -32,7 +32,7 @@ export function useListEmployerApplications(
         const result = await listEmployerApplications({
           ...query,
           page,
-          pageSize,
+          ...(pageSize && { pageSize }),
         });
         setData(result.applications);
         setTotal(result.total);
