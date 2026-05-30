@@ -65,7 +65,7 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
 function ApplicantsHeader({ total }: { total: number }) {
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
-      <Text className="text-xl font-bold text-app-dark-text">Applicants : {total}</Text>
+      <Text className="text-xl font-bold text-app-slate-1">Applicants : {total}</Text>
       <View className="flex-row gap-4">
         <TouchableOpacity>
           <Filter size={24} color="#0F172A" />
