@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -46,45 +42,62 @@ export default function JobDetailsScreen() {
 
   const numericId = id ? Number(id) : null;
   const { data: job, isLoading, isError } = useEmployerJobDetail(numericId);
-  
-  const { 
-    data: applicationsData, 
+
+  const {
+    data: applicationsData,
     isLoading: isApplicationsLoading,
     fetchNextPage: fetchNextApplicationsPage,
     hasNextPage: hasNextApplicationsPage,
     isFetchingNextPage: isFetchingNextApplicationsPage,
     refetch: refetchApplications,
-    isRefetching: isRefetchingApplications
+    isRefetching: isRefetchingApplications,
   } = useEmployerJobApplications(numericId || undefined, debouncedSearch, 10);
 
   // Map backend ApplicationStatus to frontend ApplicantStatus
-  const mapApplicationStatus = (status: ApplicationStatus): import('./components/ApplicantsTab').ApplicantStatus => {
+  const mapApplicationStatus = (
+    status: ApplicationStatus
+  ): import('./components/ApplicantsTab').ApplicantStatus => {
     switch (status) {
-      case 'APPLIED': return 'In-review';
-      case 'INTERVIEW': return 'Interviewed';
-      case 'OFFER': return 'Shortlisted';
-      case 'REJECTED': return 'Declined';
-      case 'WITHDRAWN': return 'Declined';
-      default: return 'In-review';
+      case 'APPLIED':
+        return 'In-review';
+      case 'INTERVIEW':
+        return 'Interviewed';
+      case 'OFFER':
+        return 'Shortlisted';
+      case 'REJECTED':
+        return 'Declined';
+      case 'WITHDRAWN':
+        return 'Declined';
+      default:
+        return 'In-review';
     }
   };
 
   const mappedApplicants = useMemo(() => {
     if (!applicationsData) return [];
-    
-    return applicationsData.pages.flatMap(page => 
-      page.applications.map(app => {
+
+    return applicationsData.pages.flatMap((page) =>
+      page.applications.map((app) => {
         // Safe access for candidate mapping since backend types can sometimes be different from real data
-        const candidateData = (app as unknown as { candidate: { name?: string, email?: string, avatarUrl?: string } }).candidate;
-        const candidateName = candidateData?.name || candidateData?.email || `Candidate #${app.id}`;
-        const avatarUrl = candidateData?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.id}`;
-        
+        const candidateData = (
+          app as unknown as {
+            candidate: { name?: string; email?: string; avatarUrl?: string };
+          }
+        ).candidate;
+        const candidateName =
+          candidateData?.name || candidateData?.email || `Candidate #${app.id}`;
+        const avatarUrl =
+          candidateData?.avatarUrl ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.id}`;
+
         return {
           id: String(app.id),
           name: candidateName,
           avatarUrl: avatarUrl,
-          rating: (app as unknown as { matchPercentage: number }).matchPercentage || 0,
-          status: mapApplicationStatus(app.status)
+          rating:
+            (app as unknown as { matchPercentage: number }).matchPercentage ||
+            0,
+          status: mapApplicationStatus(app.status),
         };
       })
     );
@@ -177,7 +190,7 @@ export default function JobDetailsScreen() {
       {/* Tab Content */}
       <View className="flex-1 bg-white">
         {activeTab === 'Applicants' ? (
-          <ApplicantsTab 
+          <ApplicantsTab
             applicants={mappedApplicants}
             total={totalApplications}
             isLoading={isApplicationsLoading}
@@ -185,7 +198,9 @@ export default function JobDetailsScreen() {
             isFetchingNextPage={isFetchingNextApplicationsPage}
             fetchNextPage={fetchNextApplicationsPage}
             refetch={refetchApplications}
-            isRefetching={isRefetchingApplications && !isFetchingNextApplicationsPage}
+            isRefetching={
+              isRefetchingApplications && !isFetchingNextApplicationsPage
+            }
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />

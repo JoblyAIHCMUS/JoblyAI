@@ -12,7 +12,11 @@ import RenderHtml from 'react-native-render-html';
 import { SquarePen } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
-import type { JobPosting, JobRequirement, RequirementImportance } from '../../../../../types/job';
+import type {
+  JobPosting,
+  JobRequirement,
+  RequirementImportance,
+} from '../../../../../types/job';
 import {
   EMPLOYMENT_TYPE_LABELS,
   formatSalary,

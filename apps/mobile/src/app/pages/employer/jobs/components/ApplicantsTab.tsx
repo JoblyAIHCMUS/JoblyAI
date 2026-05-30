@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+  TextInput,
+} from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
 
-export type ApplicantStatus = 'In-review' | 'Shortlisted' | 'Declined' | 'Interviewed' | 'Hired';
+export type ApplicantStatus =
+  | 'In-review'
+  | 'Shortlisted'
+  | 'Declined'
+  | 'Interviewed'
+  | 'Hired';
 
 export interface Applicant {
   id: string;
@@ -27,36 +41,50 @@ interface ApplicantsTabProps {
 
 const getStatusColors = (status: ApplicantStatus) => {
   switch (status) {
-    case 'In-review': return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
-    case 'Shortlisted': return { border: 'border-app-primary-1', text: 'text-app-primary-1' };
-    case 'Declined': return { border: 'border-app-red-1', text: 'text-app-red-1' };
-    case 'Interviewed': return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
-    case 'Hired': return { border: 'border-app-emerald-2', text: 'text-app-emerald-2' };
-    default: return { border: 'border-app-border-2', text: 'text-app-text-3' };
+    case 'In-review':
+      return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
+    case 'Shortlisted':
+      return { border: 'border-app-primary-1', text: 'text-app-primary-1' };
+    case 'Declined':
+      return { border: 'border-app-red-1', text: 'text-app-red-1' };
+    case 'Interviewed':
+      return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
+    case 'Hired':
+      return { border: 'border-app-emerald-2', text: 'text-app-emerald-2' };
+    default:
+      return { border: 'border-app-border-2', text: 'text-app-text-3' };
   }
 };
 
 function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   const statusColors = getStatusColors(applicant.status);
-  
+
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
       <View className="flex-row items-center flex-1">
-        <Image 
-          source={{ uri: applicant.avatarUrl }} 
+        <Image
+          source={{ uri: applicant.avatarUrl }}
           className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
         />
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-app-slate-1 mb-1">{applicant.name}</Text>
+          <Text className="text-lg font-semibold text-app-slate-1 mb-1">
+            {applicant.name}
+          </Text>
           <View className="flex-row items-center border border-app-border-2 rounded-full px-2 py-0.5 self-start">
-            <Star size={14} color="#FFB836" fill={applicant.rating > 0 ? "#FFB836" : "transparent"} />
+            <Star
+              size={14}
+              color="#FFB836"
+              fill={applicant.rating > 0 ? '#FFB836' : 'transparent'}
+            />
             <Text className="text-sm text-app-text-3 font-medium ml-1">
               {applicant.rating.toFixed(1)}
             </Text>
           </View>
         </View>
       </View>
-      <View className={`border rounded-full px-4 py-1.5 ${statusColors.border}`}>
+      <View
+        className={`border rounded-full px-4 py-1.5 ${statusColors.border}`}
+      >
         <Text className={`text-sm font-semibold ${statusColors.text}`}>
           {applicant.status}
         </Text>
@@ -71,10 +99,10 @@ function ApplicantsHeader({
   searchQuery,
   onSearchChange,
 }: {
-  total: number,
-  isLoading: boolean,
-  searchQuery: string,
-  onSearchChange: (text: string) => void,
+  total: number;
+  isLoading: boolean;
+  searchQuery: string;
+  onSearchChange: (text: string) => void;
 }) {
   const [isSearching, setIsSearching] = useState(false);
 
@@ -103,7 +131,9 @@ function ApplicantsHeader({
             onSearchChange('');
           }}
         >
-          <Text className="text-app-primary-1 font-semibold text-base">Cancel</Text>
+          <Text className="text-app-primary-1 font-semibold text-base">
+            Cancel
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -125,20 +155,28 @@ function ApplicantsHeader({
 
 function ViewToggle() {
   const [active, setActive] = useState<'Pipeline' | 'Table'>('Table');
-  
+
   return (
     <View className="flex-row bg-app-background-1 rounded-lg p-1 my-4">
-      <TouchableOpacity 
-        className={`flex-1 py-2 items-center rounded-md ${active === 'Pipeline' ? 'bg-white shadow-sm' : ''}`}
+      <TouchableOpacity
+        className={`flex-1 py-2 items-center rounded-md ${
+          active === 'Pipeline' ? 'bg-white shadow-sm' : ''
+        }`}
         onPress={() => setActive('Pipeline')}
       >
-        <Text className="text-base font-semibold text-app-primary-1">Pipeline View</Text>
+        <Text className="text-base font-semibold text-app-primary-1">
+          Pipeline View
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity 
-        className={`flex-1 py-2 items-center rounded-md ${active === 'Table' ? 'bg-white shadow-sm' : ''}`}
+      <TouchableOpacity
+        className={`flex-1 py-2 items-center rounded-md ${
+          active === 'Table' ? 'bg-white shadow-sm' : ''
+        }`}
         onPress={() => setActive('Table')}
       >
-        <Text className="text-base font-semibold text-app-primary-1">Table View</Text>
+        <Text className="text-base font-semibold text-app-primary-1">
+          Table View
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -154,9 +192,8 @@ export default function ApplicantsTab({
   refetch,
   isRefetching,
   searchQuery,
-  onSearchChange
+  onSearchChange,
 }: ApplicantsTabProps) {
-  
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
     return (
