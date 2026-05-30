@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, IsEnum, Min } from 'class-validator';
+import { IsOptional, IsInt, IsEnum, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApplicationStatus } from '@prisma/client';
 
@@ -22,5 +22,9 @@ export class GetEmployerApplicationsQueryDTO {
   @IsInt()
   @Min(1)
   @Type(() => Number)
-  pageSize?: number = 10;
+  pageSize?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

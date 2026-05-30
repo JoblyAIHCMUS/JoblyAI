@@ -43,7 +43,7 @@ export default function JobListingDetailPage() {
     loading: applicationsLoading,
     error: applicationsError,
     data: applicationsData,
-  } = useListEmployerApplications();
+  } = useListEmployerApplications({ initialPageSize: 10 });
   const { shortlistApplication } = useShortlistApplication();
   const { rejectApplication } = useRejectApplication();
   const { moveToOffer } = useMoveToOfferApplication();
