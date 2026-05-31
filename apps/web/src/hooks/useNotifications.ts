@@ -7,6 +7,8 @@ import {
   useDeleteNotification
 } from '@/api-hook/notification';
 import { Notification } from '@/types/notification';
+import { useSocket } from '@/contexts/socket-provider';
+import { toast } from 'sonner';
 
 function formatNotificationTime(createdAt: string) {
   const createdAtDate = new Date(createdAt);
@@ -49,6 +51,7 @@ export function useNotifications() {
   const { markAsRead } = useMarkNotificationRead();
   const { markAllAsRead } = useMarkAllNotificationsRead();
   const { removeNotification } = useDeleteNotification();
+  const { onNewNotification } = useSocket();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -74,6 +77,14 @@ export function useNotifications() {
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
+
+  useEffect(() => {
+    const cleanup = onNewNotification((newNotification) => {
+      setNotifications((prev) => [newNotification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    });
+    return cleanup;
+  }, [onNewNotification]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
