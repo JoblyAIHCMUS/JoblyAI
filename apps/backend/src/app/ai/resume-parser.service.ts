@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import pdf from 'pdf-parse';
 import { AiProviderService } from './ai-provider.service';
 
 export interface ParsedResume {
@@ -65,31 +66,10 @@ export class ResumeParserService {
 
   async extractTextFromPdf(fileBuffer: Buffer): Promise<string> {
     try {
-      // Use the legacy CommonJS build which is more stable in Node environments
-      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.js');
+      // Use pdf-parse for simple and reliable text extraction in Node.js
+      const data = await pdf(fileBuffer);
 
-      const data = new Uint8Array(fileBuffer);
-      const loadingTask = pdfjs.getDocument({
-        data,
-        useSystemFonts: true,
-        disableFontFace: true,
-        disableWorker: true, // Use fake worker for text extraction in Node
-      });
-
-      const pdf = await loadingTask.promise;
-      this.logger.log(`PDF loaded. Number of pages: ${pdf.numPages}`);
-      let fullText = '';
-
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + '\n';
-      }
-
-      const cleanText = fullText.trim();
+      const cleanText = (data.text || '').trim();
       this.logger.log(
         `PDF extraction complete. Text length: ${cleanText.length}`
       );
@@ -102,7 +82,7 @@ export class ResumeParserService {
 
       return cleanText;
     } catch (error: any) {
-      this.logger.error(`Error parsing PDF with pdfjs-dist: ${error.message}`);
+      this.logger.error(`Error parsing PDF with pdf-parse: ${error.message}`);
       throw new Error('Failed to extract text from PDF');
     }
   }

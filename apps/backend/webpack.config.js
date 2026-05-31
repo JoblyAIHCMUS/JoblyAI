@@ -4,9 +4,6 @@ const webpack = require('webpack');
 
 module.exports = {
   ignoreWarnings: [/Failed to parse source map/, /google-logging-utils/],
-  externals: [
-    /^pdfjs-dist/, // Mark pdfjs-dist and its sub-paths as external
-  ],
   output: {
     path: join(__dirname, 'dist'),
     clean: true,
