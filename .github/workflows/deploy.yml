@@ -48,8 +48,9 @@ jobs:
             sleep 5
 
             # Chạy lệnh migration với đường dẫn prisma/schema.prisma
+            # Ghi đè PRISMA_QUERY_ENGINE_LIBRARY="" để sửa lỗi "can't be resolved"
             DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-            docker compose exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
+            docker compose exec -T -e DATABASE_URL="$DB_URL" -e PRISMA_QUERY_ENGINE_LIBRARY="" backend npx prisma migrate deploy --schema prisma/schema.prisma
 
             # 7. Khởi động nốt Frontend và Nginx
             docker compose up -d web nginx
