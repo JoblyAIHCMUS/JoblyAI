@@ -1,7 +1,9 @@
 'use client';
 import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import axios from 'axios';
+import { useEffect, useState, useMemo, useRef, Suspense, useCallback } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
@@ -33,262 +35,276 @@ function getEmploymentTypeFromLabel(
 }
 
 export default function FindJobsPage() {
+  return (
+    <Suspense fallback={<div>Loading tasks...</div>}>
+      <FindJobsPageContent />
+    </Suspense>
+  );
+}
+
+function FindJobsPageContent() {
   const { setTitle } = usePageTitle();
   const { categories } = useCategories();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParamsRef = useRef(searchParams);
+
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
 
   useEffect(() => {
     setTitle('Find Jobs');
   }, [setTitle]);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [location, setLocation] = useState('');
-  const [salaryMinFilter, setSalaryMinFilter] = useState(0);
-  const [salaryMaxFilter, setSalaryMaxFilter] = useState(SALARY_MAX_CAP);
+  // --- Derived State from URL (The Source of Truth) ---
+  const urlPage = Number(searchParams.get('page')) || 1;
+  const urlSort = (searchParams.get('sort') as SortOption) || 'MOST_RELEVANT';
+  const urlQ = searchParams.get('q') || '';
+  const urlLocation = searchParams.get('location') || '';
+  const urlMinSalary = Number(searchParams.get('minSalary')) || 0;
+  const urlMaxSalary = Number(searchParams.get('maxSalary')) || SALARY_MAX_CAP;
+  const urlCategories = useMemo(() => searchParams.getAll('categoryId'), [searchParams]);
+  const urlTypes = useMemo(() => searchParams.getAll('type'), [searchParams]);
+  const urlSkills = useMemo(() => searchParams.getAll('skill'), [searchParams]);
+
+  const checkedMap = useMemo(() => ({
+    'Categories': urlCategories,
+    'Type of Employment': urlTypes,
+    'Skills': urlSkills
+  }), [urlCategories, urlTypes, urlSkills]);
+
+  // --- Local States for Inputs (to allow typing/sliding without immediate URL lag) ---
+  const [localSearchTerm, setLocalSearchTerm] = useState(urlQ);
+  const [localLocation, setLocalLocation] = useState(urlLocation);
+  const [localSalaryMin, setLocalSalaryMin] = useState(urlMinSalary);
+  const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
+
+  // Sync local input state when URL changes (e.g. Back button)
+  useEffect(() => { setLocalSearchTerm(urlQ); }, [urlQ]);
+  useEffect(() => { setLocalLocation(urlLocation); }, [urlLocation]);
+  useEffect(() => { setLocalSalaryMin(urlMinSalary); }, [urlMinSalary]);
+  useEffect(() => { setLocalSalaryMax(urlMaxSalary); }, [urlMaxSalary]);
+
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSort, setSelectedSort] = useState<SortOption>('MOST_RELEVANT');
   const salaryFilterRef = useRef<{ reset: () => void } | null>(null);
-  const lastFetchedQuerySignatureRef = useRef('');
 
-  // Fetch skills based on search term - independent of pagination
+  // Fetch skills based on search term
   const { skills: filteredSkills, fetchSkills } = useSkillsFilter();
 
-  // Fetch skills when search term changes
   useEffect(() => {
-    if (searchTerm.trim()) {
-      fetchSkills(searchTerm);
-    } else {
-      // Clear skills if search term is empty
-      fetchSkills('');
-    }
-  }, [searchTerm]); // Removed fetchSkills from dependency - causes infinite loop
+    fetchSkills(localSearchTerm);
+  }, [localSearchTerm, fetchSkills]);
 
-  // Derive filterGroups from categories and fetched skills using useMemo
   const filterGroups = useMemo(() => {
     return INITIAL_FILTER_GROUPS.map((group) => {
       if (group.title === 'Categories') {
-        return {
-          ...group,
-          items: categories.map((cat) => ({ label: cat.name, value: cat.id })),
-        };
+        const sortedItems = categories
+          .map((cat) => ({ label: cat.name, value: cat.id }))
+          .sort((a, b) => {
+            const aSelected = urlCategories.includes(String(a.value));
+            const bSelected = urlCategories.includes(String(b.value));
+            if (aSelected && !bSelected) return -1;
+            if (!aSelected && bSelected) return 1;
+            return a.label.localeCompare(b.label);
+          });
+        return { ...group, items: sortedItems };
       }
       if (group.title === 'Skills') {
-        return {
-          ...group,
-          items: filteredSkills.map((skill) => ({ label: skill.name })),
-        };
+        const sortedItems = filteredSkills
+          .map((skill) => ({ label: skill.name }))
+          .sort((a, b) => {
+            const aSelected = urlSkills.includes(a.label);
+            const bSelected = urlSkills.includes(b.label);
+            if (aSelected && !bSelected) return -1;
+            if (!aSelected && bSelected) return 1;
+            return a.label.localeCompare(b.label);
+          });
+        return { ...group, items: sortedItems };
+      }
+      if (group.title === 'Type of Employment') {
+        const sortedItems = [...group.items].sort((a, b) => {
+          const aSelected = urlTypes.includes(a.label);
+          const bSelected = urlTypes.includes(b.label);
+          if (aSelected && !bSelected) return -1;
+          if (!aSelected && bSelected) return 1;
+          return 0;
+        });
+        return { ...group, items: sortedItems };
       }
       return group;
     });
-  }, [categories, filteredSkills]);
+  }, [categories, filteredSkills, urlCategories, urlTypes, urlSkills]);
 
-  // Initialize checkedMap based on filterGroups
-  const [checkedMap, setCheckedMap] = useState<Record<string, string[]>>(() => {
-    const map: Record<string, string[]> = {};
-    filterGroups.forEach((group) => {
-      map[group.title] = [];
+  // Helper to update URL
+  const updateURL = useCallback((params: Record<string, string | string[] | number | null>) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null || value === '' || value === undefined || (Array.isArray(value) && value.length === 0)) {
+        newParams.delete(key);
+      } else if (Array.isArray(value)) {
+        newParams.delete(key);
+        value.forEach((v) => newParams.append(key, String(v)));
+      } else {
+        newParams.set(key, String(value));
+      }
     });
-    return map;
-  });
+    // Always reset to page 1 when filters change (unless page is explicitly provided)
+    if (!('page' in params)) {
+      newParams.set('page', '1');
+    }
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
 
-  // Sync checkedMap when filterGroups changes (ensure all groups are present)
-  useEffect(() => {
-    setCheckedMap((prev) => {
-      const updated: Record<string, string[]> = {};
-      filterGroups.forEach((group) => {
-        // Keep existing checked items or initialize empty
-        updated[group.title] = prev[group.title] ?? [];
+  // --- Handlers ---
+  const handleToggle = (groupTitle: string, itemLabel: string, itemValue?: string | number) => {
+    const identifier = groupTitle === 'Categories' ? String(itemValue) : itemLabel;
+    const currentList = groupTitle === 'Categories' ? urlCategories : 
+                        groupTitle === 'Type of Employment' ? urlTypes : urlSkills;
+    
+    const nextList = currentList.includes(identifier)
+      ? currentList.filter(i => i !== identifier)
+      : [...currentList, identifier];
 
-        // For Categories, filter out IDs that no longer exist
-        if (group.title === 'Categories') {
-          const validIds = categories.map((cat) => cat.id);
-          updated[group.title] = (prev[group.title] ?? []).filter(
-            (id: string | number) => validIds.includes(Number(id))
-          );
-        }
-
-        // For Skills, filter out skills that no longer exist
-        if (group.title === 'Skills') {
-          const validSkillNames = filteredSkills.map((skill) => skill.name);
-          updated[group.title] = (prev[group.title] ?? []).filter((skillName) =>
-            validSkillNames.includes(skillName)
-          );
-        }
-      });
-      return updated;
-    });
-  }, [filterGroups, categories, filteredSkills]);
-
-  const handleToggle = (
-    groupTitle: string,
-    itemLabel: string,
-    itemValue?: string | number
-  ) => {
-    setCheckedMap((prev) => {
-      const current = prev[groupTitle] ?? [];
-      // For categories, use itemValue (ID); for others, use itemLabel
-      const identifier =
-        groupTitle === 'Categories' ? String(itemValue) : itemLabel;
-      const next = current.includes(identifier)
-        ? current.filter((label) => label !== identifier)
-        : [...current, identifier];
-      return {
-        ...prev,
-        [groupTitle]: next,
-      };
-    });
+    const paramKey = groupTitle === 'Categories' ? 'categoryId' : 
+                     groupTitle === 'Type of Employment' ? 'type' : 'skill';
+    
+    updateURL({ [paramKey]: nextList });
   };
 
-  const [debouncedCheckedMap, setDebouncedCheckedMap] = useState(checkedMap);
+  const handleSearchTermChange = (term: string) => {
+    setLocalSearchTerm(term);
+  };
+
+  const handleLocationChange = (loc: string) => {
+    setLocalLocation(loc);
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedCheckedMap(checkedMap), 300);
+    const timer = setTimeout(() => {
+      if (localSearchTerm !== urlQ) {
+        updateURL({ q: localSearchTerm });
+      }
+    }, 500);
     return () => clearTimeout(timer);
-  }, [checkedMap]);
+  }, [localSearchTerm, urlQ, updateURL]);
 
-  const { fetchJobs } = useListJobs();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localLocation !== urlLocation) {
+        updateURL({ location: localLocation });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localLocation, urlLocation, updateURL]);
 
   const handleSelectSort = (option: SortOption) => {
-    setCurrentPage(1);
-    setSelectedSort(option);
+    updateURL({ sort: option });
   };
 
   const handleSalaryChange = (min: number, max: number) => {
-    setSalaryMinFilter(min);
-    setSalaryMaxFilter(max);
-  };
-
-  const handleReset = () => {
-    setSearchTerm('');
-    setLocation('');
-    setCheckedMap((prev) => {
-      const newMap: Record<string, string[]> = {};
-      Object.keys(prev).forEach((key) => {
-        newMap[key] = [];
-      });
-      return newMap;
-    });
-    setSelectedSort('MOST_RELEVANT');
-    setSalaryMinFilter(0);
-    setSalaryMaxFilter(SALARY_MAX_CAP);
-    setCurrentPage(1);
-    salaryFilterRef.current?.reset();
+    setLocalSalaryMin(min);
+    setLocalSalaryMax(max);
   };
 
   useEffect(() => {
-    const querySignature = JSON.stringify({
-      searchTerm,
-      location,
-      salaryMinFilter,
-      salaryMaxFilter,
-      debouncedCheckedMap,
-      selectedSort,
-    });
+    const timer = setTimeout(() => {
+      if (localSalaryMin !== urlMinSalary || localSalaryMax !== urlMaxSalary) {
+        updateURL({ 
+          minSalary: localSalaryMin > 0 ? localSalaryMin : null, 
+          maxSalary: localSalaryMax < SALARY_MAX_CAP ? localSalaryMax : null 
+        });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSalaryMin, localSalaryMax, urlMinSalary, urlMaxSalary, updateURL]);
 
-    if (
-      currentPage > 1 &&
-      lastFetchedQuerySignatureRef.current !== querySignature
-    ) {
-      setCurrentPage(1);
-      return;
-    }
+  const setCurrentPage = (page: number) => {
+    updateURL({ page });
+  };
 
+  const handleReset = () => {
+    setLocalSearchTerm('');
+    setLocalLocation('');
+    setLocalSalaryMin(0);
+    setLocalSalaryMax(SALARY_MAX_CAP);
+    salaryFilterRef.current?.reset();
+    router.push(pathname);
+  };
+
+  const { fetchJobs } = useListJobs();
+
+  // --- Main Data Fetching Effect (Reactive to URL) ---
+  useEffect(() => {
     const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
-        const employmentSelection =
-          debouncedCheckedMap['Type of Employment'] ?? [];
-        const selectedEmploymentTypes = employmentSelection
+        const selectedEmploymentTypes = urlTypes
           .map((label) => getEmploymentTypeFromLabel(label))
           .filter((type): type is EmploymentType => type !== undefined);
-        const selectedSkills = debouncedCheckedMap['Skills'] ?? [];
-        const selectedCategoryIds =
-          debouncedCheckedMap['Categories']
-            ?.map((id) => Number(id))
-            .filter((id: number) => !!id) ?? [];
 
         const result = await fetchJobs(
           {
-            page: currentPage,
+            page: urlPage,
             pageSize: PAGE_SIZE,
-            sort: selectedSort,
-            q: searchTerm,
-            location,
-            type:
-              selectedEmploymentTypes.length > 0
-                ? selectedEmploymentTypes
-                : undefined,
-            categories:
-              selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-            salaryMin: salaryMinFilter > 0 ? salaryMinFilter : undefined,
-            salaryMax: salaryMaxFilter,
-            skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+            sort: urlSort,
+            q: urlQ,
+            location: urlLocation,
+            type: selectedEmploymentTypes.length > 0 ? selectedEmploymentTypes : undefined,
+            categories: urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
+            salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
+            salaryMax: urlMaxSalary,
+            skills: urlSkills.length > 0 ? urlSkills : undefined,
           },
-          {
-            signal: abortController.signal,
-          }
+          { signal: abortController.signal }
         );
 
         if (result) {
-          const nextTotalPages = Math.max(result.totalPages || 1, 1);
-
           setTotal(result.total);
-          setTotalPages(nextTotalPages);
-
-          if (currentPage > nextTotalPages) {
-            setCurrentPage(nextTotalPages);
-            return;
-          }
-
+          setTotalPages(Math.max(result.totalPages || 1, 1));
           setJobs(result.jobs);
-          lastFetchedQuerySignatureRef.current = querySignature;
         }
       } catch (error) {
-        const isAbortError =
-          (error instanceof DOMException && error.name === 'AbortError') ||
-          (typeof error === 'object' &&
-            error !== null &&
-            'name' in error &&
-            (error as { name?: string }).name === 'CanceledError');
-
-        if (!isAbortError) {
+        if (!axios.isCancel(error)) {
           console.error('[FindJobsPage] failed to fetch jobs:', error);
         }
       }
     };
 
     fetchData();
-
-    return () => {
-      abortController.abort();
-    };
+    return () => abortController.abort();
   }, [
-    currentPage,
-    selectedSort,
-    searchTerm,
-    location,
-    salaryMinFilter,
-    salaryMaxFilter,
-    debouncedCheckedMap,
+    urlPage,
+    urlSort,
+    urlQ,
+    urlLocation,
+    urlMinSalary,
+    urlMaxSalary,
+    urlCategories,
+    urlTypes,
+    urlSkills,
     fetchJobs,
   ]);
 
   return (
     <>
       <FindJobsHeroSection
-        setSearchTerm={setSearchTerm}
-        setLocation={setLocation}
+        searchTerm={localSearchTerm}
+        location={localLocation}
+        setSearchTerm={handleSearchTermChange}
+        setLocation={handleLocationChange}
       />
       <JobListSection
         jobs={jobs}
         total={total}
         totalPages={totalPages}
-        currentPage={currentPage}
+        currentPage={urlPage}
         setCurrentPage={setCurrentPage}
-        selectedSort={selectedSort}
+        selectedSort={urlSort}
         handleSelectSort={handleSelectSort}
         filterGroups={filterGroups}
         checkedMap={checkedMap}
@@ -296,6 +312,8 @@ export default function FindJobsPage() {
         onSalaryChange={handleSalaryChange}
         salaryFilterRef={salaryFilterRef}
         handleReset={handleReset}
+        salaryMin={localSalaryMin}
+        salaryMax={localSalaryMax}
       />
     </>
   );

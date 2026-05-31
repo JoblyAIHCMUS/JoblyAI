@@ -52,17 +52,24 @@ function CategoryCard({
   cat,
   active,
 }: {
-  cat: { name: string; jobCount: number; slug: string; iconKey?: string | null };
+  cat: {
+    id: string | number;
+    name: string;
+    jobCount: number;
+    slug: string;
+    iconKey?: string | null;
+  };
   active?: boolean;
 }) {
   const Icon = (cat.iconKey && iconMap[cat.iconKey]) || Briefcase;
 
   return (
-    <div
-      className={`p-6 md:p-8 rounded-lg border transition ${
+    <Link
+      href={`/find-jobs?categoryId=${cat.id}`}
+      className={`p-6 md:p-8 rounded-lg border transition block ${
         active
           ? 'bg-indigo-600 border-indigo-600 text-white'
-          : 'bg-white border-slate-200 text-slate-900 hover:shadow-lg'
+          : 'bg-white border-slate-200 text-slate-900 hover:shadow-lg hover:border-indigo-300'
       }`}
     >
       <div
@@ -79,7 +86,7 @@ function CategoryCard({
         </p>
         <ArrowRight className="w-6 h-6" />
       </div>
-    </div>
+    </Link>
   );
 }
 
