@@ -7,5 +7,6 @@ export * from './useCreateCompany';
 export * from './useAddCompanyEmployee';
 export * from './useSearchEmployers';
 export * from './useCreateJob';
+export * from './useUpdateJob';
 export * from './useSkillIds';
 export * from './useSearchSkills';

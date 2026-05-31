@@ -185,7 +185,7 @@ const CandidateDashboardSidebar = ({
               <View className="h-10 w-10 items-center justify-center rounded-full bg-[#4F46E5]">
                 <View className="h-5 w-5 rounded-full border-2 border-white" />
               </View>
-              <Text className="text-3xl font-extrabold tracking-tight text-[#111827]">
+              <Text className="text-3xl font-extrabold text-[#111827]">
                 JoblyAI
               </Text>
             </View>

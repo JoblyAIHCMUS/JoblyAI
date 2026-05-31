@@ -36,6 +36,7 @@ export const RichTextEditor = React.forwardRef<
   const [styleState, setStyleState] = useState<OnChangeStateEvent | null>(null);
   const hasInitialized = useRef(false);
   const initialContentRef = useRef(content);
+  const prevContentRef = useRef(content);
 
   React.useImperativeHandle(
     ref,
@@ -44,12 +45,27 @@ export const RichTextEditor = React.forwardRef<
 
   // Initialize content only once on mount
   React.useEffect(() => {
-    if (!hasInitialized.current && internalRef.current && content) {
-      // Store initial content
+    if (!hasInitialized.current && internalRef.current) {
       initialContentRef.current = content;
+      prevContentRef.current = content;
       hasInitialized.current = true;
     }
   });
+
+  // Update editor when content prop changes (e.g., when form is pre-filled)
+  React.useEffect(() => {
+    if (
+      hasInitialized.current &&
+      internalRef.current &&
+      content &&
+      content !== prevContentRef.current
+    ) {
+      prevContentRef.current = content;
+      // Use setHtml method to update the editor's content
+      // @ts-expect-error EnrichedTextInput API doesn't fully expose setHtml in types
+      internalRef.current?.setHtml?.(content);
+    }
+  }, [content]);
 
   const handleChangeHtml = (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => {
     onChange(e.nativeEvent.value);
@@ -214,7 +230,7 @@ export const RichTextEditor = React.forwardRef<
 
       <EnrichedTextInput
         ref={internalRef}
-        defaultValue={initialContentRef.current}
+        defaultValue={initialContentRef.current || ''}
         onChangeHtml={handleChangeHtml}
         onChangeState={handleChangeState}
         placeholder={placeholder}

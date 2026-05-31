@@ -37,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
           <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
             <Logo width={34} height={34} />
           </View>
-          <Text className="text-2xl font-black text-app-brand-text tracking-tight">
+          <Text className="text-2xl font-black text-app-brand-text">
             JoblyAI
           </Text>
         </View>

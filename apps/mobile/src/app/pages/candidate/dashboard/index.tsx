@@ -180,7 +180,7 @@ function StatCard({
             {loading ? (
               <ActivityIndicator color="#4640de" />
             ) : (
-              <Text className="text-5xl font-medium leading-none tracking-tight text-[#25324b]">
+              <Text className="text-5xl font-medium leading-none text-[#25324b]">
                 {value}
               </Text>
             )}
@@ -516,7 +516,7 @@ function RecentApplicationsSection({
                     style={{ backgroundColor: `${statusColor}14` }}
                   >
                     <Text
-                      className="text-xs font-bold uppercase tracking-wide"
+                      className="text-xs font-bold"
                       style={{ color: statusColor }}
                     >
                       {getStatusLabel(application.status)}
