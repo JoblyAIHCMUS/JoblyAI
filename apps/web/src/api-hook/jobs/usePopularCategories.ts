@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getPopularJobCategories, type PopularJobCategory } from '@/api-client/jobs';
+import {
+  getPopularJobCategories,
+  type PopularJobCategory,
+} from '@/api-client/jobs';
 
 /**
  * Hook for fetching popular job categories with counts

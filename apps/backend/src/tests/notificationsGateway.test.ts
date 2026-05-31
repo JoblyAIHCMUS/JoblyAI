@@ -47,7 +47,9 @@ describe('NotificationsGateway', () => {
 
   describe('handleConnection', () => {
     it('should join notification room if authenticated', async () => {
-      mockAuthService.validateToken.mockResolvedValue({ user: { id: 'user-1' } });
+      mockAuthService.validateToken.mockResolvedValue({
+        user: { id: 'user-1' },
+      });
 
       await gateway.handleConnection(mockSocket);
 
@@ -70,7 +72,10 @@ describe('NotificationsGateway', () => {
       gateway.sendNotification('user-1', notification);
 
       expect(mockServer.to).toHaveBeenCalledWith('notifications:user-1');
-      expect(mockServer.emit).toHaveBeenCalledWith('new_notification', notification);
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        'new_notification',
+        notification
+      );
     });
   });
 });

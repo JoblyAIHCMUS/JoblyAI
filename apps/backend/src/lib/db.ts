@@ -14,7 +14,8 @@ export const redis = new Redis(
 
 const scyllaHost = process.env.SCYLLA_HOST || 'localhost';
 const scyllaPort = process.env.SCYLLA_PORT || '9042';
-const scyllaContactPoint = process.env.CASSANDRA_CONTACT_POINT || `${scyllaHost}:${scyllaPort}`;
+const scyllaContactPoint =
+  process.env.CASSANDRA_CONTACT_POINT || `${scyllaHost}:${scyllaPort}`;
 
 export const scylla = new Client({
   contactPoints: [scyllaContactPoint],

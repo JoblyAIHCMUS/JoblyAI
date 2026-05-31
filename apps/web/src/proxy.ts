@@ -13,7 +13,11 @@ function getRole(request: NextRequest) {
   return request.cookies.get('user-role')?.value ?? null;
 }
 
-function getRoleBasedRedirect(pathname: string, role: string, request: NextRequest) {
+function getRoleBasedRedirect(
+  pathname: string,
+  role: string,
+  request: NextRequest
+) {
   // Handle /find-jobs
   if (pathname === '/find-jobs' || pathname.startsWith('/find-jobs/')) {
     if (role === 'candidate') {
@@ -26,13 +30,22 @@ function getRoleBasedRedirect(pathname: string, role: string, request: NextReque
   }
 
   // Handle /browse-companies
-  if (pathname === '/browse-companies' || pathname.startsWith('/browse-companies/')) {
+  if (
+    pathname === '/browse-companies' ||
+    pathname.startsWith('/browse-companies/')
+  ) {
     if (role === 'candidate') {
-      const newPath = pathname.replace('/browse-companies', '/candidate/browse-companies');
+      const newPath = pathname.replace(
+        '/browse-companies',
+        '/candidate/browse-companies'
+      );
       return NextResponse.redirect(new URL(newPath, request.url));
     }
     if (role === 'employer') {
-      const newPath = pathname.replace('/browse-companies', '/employer/browse-companies');
+      const newPath = pathname.replace(
+        '/browse-companies',
+        '/employer/browse-companies'
+      );
       return NextResponse.redirect(new URL(newPath, request.url));
     }
   }

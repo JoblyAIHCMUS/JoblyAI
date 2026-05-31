@@ -2,7 +2,14 @@
 import FindJobsHeroSection from '@/components/find-jobs/FindJobsHeroSection';
 import JobListSection from '@/components/find-jobs/JobListSection';
 import axios from 'axios';
-import { useEffect, useState, useMemo, useRef, Suspense, useCallback } from 'react';
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  Suspense,
+  useCallback,
+} from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { useCategories } from '@/api-hook/jobs/useCategories';
@@ -65,15 +72,21 @@ function FindJobsPageContent() {
   const urlLocation = searchParams.get('location') || '';
   const urlMinSalary = Number(searchParams.get('minSalary')) || 0;
   const urlMaxSalary = Number(searchParams.get('maxSalary')) || SALARY_MAX_CAP;
-  const urlCategories = useMemo(() => searchParams.getAll('categoryId'), [searchParams]);
+  const urlCategories = useMemo(
+    () => searchParams.getAll('categoryId'),
+    [searchParams]
+  );
   const urlTypes = useMemo(() => searchParams.getAll('type'), [searchParams]);
   const urlSkills = useMemo(() => searchParams.getAll('skill'), [searchParams]);
 
-  const checkedMap = useMemo(() => ({
-    'Categories': urlCategories,
-    'Type of Employment': urlTypes,
-    'Skills': urlSkills
-  }), [urlCategories, urlTypes, urlSkills]);
+  const checkedMap = useMemo(
+    () => ({
+      Categories: urlCategories,
+      'Type of Employment': urlTypes,
+      Skills: urlSkills,
+    }),
+    [urlCategories, urlTypes, urlSkills]
+  );
 
   // --- Local States for Inputs (to allow typing/sliding without immediate URL lag) ---
   const [localSearchTerm, setLocalSearchTerm] = useState(urlQ);
@@ -82,10 +95,18 @@ function FindJobsPageContent() {
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
 
   // Sync local input state when URL changes (e.g. Back button)
-  useEffect(() => { setLocalSearchTerm(urlQ); }, [urlQ]);
-  useEffect(() => { setLocalLocation(urlLocation); }, [urlLocation]);
-  useEffect(() => { setLocalSalaryMin(urlMinSalary); }, [urlMinSalary]);
-  useEffect(() => { setLocalSalaryMax(urlMaxSalary); }, [urlMaxSalary]);
+  useEffect(() => {
+    setLocalSearchTerm(urlQ);
+  }, [urlQ]);
+  useEffect(() => {
+    setLocalLocation(urlLocation);
+  }, [urlLocation]);
+  useEffect(() => {
+    setLocalSalaryMin(urlMinSalary);
+  }, [urlMinSalary]);
+  useEffect(() => {
+    setLocalSalaryMax(urlMaxSalary);
+  }, [urlMaxSalary]);
 
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [total, setTotal] = useState(0);
@@ -140,38 +161,59 @@ function FindJobsPageContent() {
   }, [categories, filteredSkills, urlCategories, urlTypes, urlSkills]);
 
   // Helper to update URL
-  const updateURL = useCallback((params: Record<string, string | string[] | number | null>) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    Object.entries(params).forEach(([key, value]) => {
-      if (value === null || value === '' || value === undefined || (Array.isArray(value) && value.length === 0)) {
-        newParams.delete(key);
-      } else if (Array.isArray(value)) {
-        newParams.delete(key);
-        value.forEach((v) => newParams.append(key, String(v)));
-      } else {
-        newParams.set(key, String(value));
+  const updateURL = useCallback(
+    (params: Record<string, string | string[] | number | null>) => {
+      const newParams = new URLSearchParams(searchParams.toString());
+      Object.entries(params).forEach(([key, value]) => {
+        if (
+          value === null ||
+          value === '' ||
+          value === undefined ||
+          (Array.isArray(value) && value.length === 0)
+        ) {
+          newParams.delete(key);
+        } else if (Array.isArray(value)) {
+          newParams.delete(key);
+          value.forEach((v) => newParams.append(key, String(v)));
+        } else {
+          newParams.set(key, String(value));
+        }
+      });
+      // Always reset to page 1 when filters change (unless page is explicitly provided)
+      if (!('page' in params)) {
+        newParams.set('page', '1');
       }
-    });
-    // Always reset to page 1 when filters change (unless page is explicitly provided)
-    if (!('page' in params)) {
-      newParams.set('page', '1');
-    }
-    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
-  }, [searchParams, router, pathname]);
+      router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
 
   // --- Handlers ---
-  const handleToggle = (groupTitle: string, itemLabel: string, itemValue?: string | number) => {
-    const identifier = groupTitle === 'Categories' ? String(itemValue) : itemLabel;
-    const currentList = groupTitle === 'Categories' ? urlCategories : 
-                        groupTitle === 'Type of Employment' ? urlTypes : urlSkills;
-    
+  const handleToggle = (
+    groupTitle: string,
+    itemLabel: string,
+    itemValue?: string | number
+  ) => {
+    const identifier =
+      groupTitle === 'Categories' ? String(itemValue) : itemLabel;
+    const currentList =
+      groupTitle === 'Categories'
+        ? urlCategories
+        : groupTitle === 'Type of Employment'
+        ? urlTypes
+        : urlSkills;
+
     const nextList = currentList.includes(identifier)
-      ? currentList.filter(i => i !== identifier)
+      ? currentList.filter((i) => i !== identifier)
       : [...currentList, identifier];
 
-    const paramKey = groupTitle === 'Categories' ? 'categoryId' : 
-                     groupTitle === 'Type of Employment' ? 'type' : 'skill';
-    
+    const paramKey =
+      groupTitle === 'Categories'
+        ? 'categoryId'
+        : groupTitle === 'Type of Employment'
+        ? 'type'
+        : 'skill';
+
     updateURL({ [paramKey]: nextList });
   };
 
@@ -213,9 +255,9 @@ function FindJobsPageContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSalaryMin !== urlMinSalary || localSalaryMax !== urlMaxSalary) {
-        updateURL({ 
-          minSalary: localSalaryMin > 0 ? localSalaryMin : null, 
-          maxSalary: localSalaryMax < SALARY_MAX_CAP ? localSalaryMax : null 
+        updateURL({
+          minSalary: localSalaryMin > 0 ? localSalaryMin : null,
+          maxSalary: localSalaryMax < SALARY_MAX_CAP ? localSalaryMax : null,
         });
       }
     }, 500);
@@ -254,8 +296,12 @@ function FindJobsPageContent() {
             sort: urlSort,
             q: urlQ,
             location: urlLocation,
-            type: selectedEmploymentTypes.length > 0 ? selectedEmploymentTypes : undefined,
-            categories: urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
+            type:
+              selectedEmploymentTypes.length > 0
+                ? selectedEmploymentTypes
+                : undefined,
+            categories:
+              urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
             salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
             salaryMax: urlMaxSalary,
             skills: urlSkills.length > 0 ? urlSkills : undefined,

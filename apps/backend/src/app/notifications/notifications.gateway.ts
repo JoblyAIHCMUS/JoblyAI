@@ -39,6 +39,8 @@ export class NotificationsGateway implements OnGatewayConnection {
   }
 
   sendNotification(userId: string, notification: any) {
-    this.server.to(`notifications:${userId}`).emit('new_notification', notification);
+    this.server
+      .to(`notifications:${userId}`)
+      .emit('new_notification', notification);
   }
 }

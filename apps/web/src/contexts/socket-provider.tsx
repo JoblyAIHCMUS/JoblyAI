@@ -23,7 +23,9 @@ interface SocketContextType {
   markAsRead: (recipientId: string) => Promise<void>;
   onNewMessage: (callback: (message: SocketChatMessage) => void) => () => void;
   onMessageRead: (callback: (friendId: string) => void) => () => void;
-  onNewNotification: (callback: (notification: Notification) => void) => () => void;
+  onNewNotification: (
+    callback: (notification: Notification) => void
+  ) => () => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);

@@ -61,7 +61,9 @@ export async function getJobsByCategory(
  * Get popular job categories with job counts
  * Public endpoint - no authentication required
  */
-export async function getPopularJobCategories(limit = 8): Promise<PopularJobCategory[]> {
+export async function getPopularJobCategories(
+  limit = 8
+): Promise<PopularJobCategory[]> {
   const response = await axios.get<PopularJobCategory[]>(
     `${API_BASE_URL}/api/jobs/categories/popular`,
     {

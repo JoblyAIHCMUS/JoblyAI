@@ -77,7 +77,9 @@ function CategoryCard({
           active ? 'bg-indigo-500' : 'bg-indigo-100'
         }`}
       >
-        <Icon className={`w-6 h-6 ${active ? 'text-white' : 'text-indigo-600'}`} />
+        <Icon
+          className={`w-6 h-6 ${active ? 'text-white' : 'text-indigo-600'}`}
+        />
       </div>
       <h3 className="text-xl md:text-2xl font-bold mb-4">{cat.name}</h3>
       <div className="flex items-center gap-3">

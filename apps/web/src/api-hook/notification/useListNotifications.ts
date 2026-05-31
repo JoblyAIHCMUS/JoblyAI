@@ -3,7 +3,10 @@ import { listNotifications, getUnreadCount } from '@/api-client/notification';
 import { Notification } from '@/types/notification';
 
 interface UseListNotificationsOptions {
-  onSuccess?: (data: { notifications: Notification[]; unreadCount: number }) => void;
+  onSuccess?: (data: {
+    notifications: Notification[];
+    unreadCount: number;
+  }) => void;
   onError?: (error: unknown) => void;
 }
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
 import { NotificationsGateway } from './notifications.gateway';
@@ -115,4 +119,3 @@ export class NotificationsService {
     };
   }
 }
-
