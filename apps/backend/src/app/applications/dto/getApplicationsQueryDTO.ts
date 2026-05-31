@@ -13,7 +13,7 @@ export class GetApplicationsQueryDTO {
   @IsInt()
   @Min(1)
   @Type(() => Number)
-  pageSize?: number = 10;
+  pageSize?: number;
 
   @IsOptional()
   @IsEnum(ApplicationStatus)

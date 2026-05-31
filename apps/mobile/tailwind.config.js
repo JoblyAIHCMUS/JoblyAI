@@ -82,6 +82,13 @@ module.exports = {
         'app-brand-text': '#121419',
         'app-background-2': '#F8F9FE',
         'app-red-3': '#FF4444',
+        'app-indigo-soft': '#E0E7FF',
+        'app-indigo-strong': '#4338CA',
+        'app-slate-gray': '#F1F5F9',
+        'app-text-gray': '#667085',
+        'app-card-header': '#5B5CE7',
+        'app-border-light': '#dbe1ee',
+        'app-dark-text': '#111827',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -176,8 +176,8 @@ export class ApplicationsService {
     candidateId: string,
     query: GetApplicationsQueryDTO
   ): Promise<PaginatedApplicationsResponse> {
-    const { page = 1, pageSize = 10, status } = query;
-    const skip = (page - 1) * pageSize;
+    const { page = 1, pageSize, status } = query;
+    const skip = pageSize ? (page - 1) * pageSize : 0;
 
     const where = {
       candidateId,
@@ -189,7 +189,7 @@ export class ApplicationsService {
       this.prisma.application.findMany({
         where,
         skip,
-        take: pageSize,
+        ...(pageSize && { take: pageSize }),
         orderBy: {
           createdAt: 'desc',
         },
@@ -227,8 +227,8 @@ export class ApplicationsService {
       applications: mappedApplications,
       total,
       page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      pageSize: pageSize || total,
+      totalPages: pageSize ? Math.ceil(total / pageSize) : 1,
     };
   }
 
@@ -335,8 +335,8 @@ export class ApplicationsService {
     employerId: string,
     query: GetEmployerApplicationsQueryDTO
   ): Promise<PaginatedApplicationsResponse> {
-    const { page = 1, pageSize = 10, status, jobId } = query;
-    const skip = (page - 1) * pageSize;
+    const { page = 1, pageSize, status, jobId, search } = query;
+    const skip = pageSize ? (page - 1) * pageSize : 0;
 
     // Build where clause
     const where: Prisma.ApplicationWhereInput = {
@@ -345,6 +345,14 @@ export class ApplicationsService {
         ...(jobId && { id: jobId }),
       },
       ...(status && { status }),
+      ...(search && {
+        candidate: {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+      }),
     };
 
     const [total, applications] = await Promise.all([
@@ -352,7 +360,7 @@ export class ApplicationsService {
       this.prisma.application.findMany({
         where,
         skip,
-        take: pageSize,
+        ...(pageSize && { take: pageSize }),
         orderBy: {
           createdAt: 'desc',
         },
@@ -397,8 +405,8 @@ export class ApplicationsService {
       applications: mappedApplications,
       total,
       page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      pageSize: pageSize || total,
+      totalPages: pageSize ? Math.ceil(total / pageSize) : 1,
     };
   }
 

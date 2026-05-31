@@ -1,5 +1,10 @@
 import { apiClient } from './config';
-import { PaginatedJobsResponse, JobPosting, JobStatus } from '../types/job';
+import {
+  PaginatedJobsResponse,
+  JobPosting,
+  JobStatus,
+  UpdateJobPayload,
+} from '../types/job';
 
 export interface ApiOptions {
   signal?: AbortSignal;
@@ -51,4 +56,28 @@ export async function updateJobPostingStatus(
 
 export async function deleteJobPosting(id: number): Promise<void> {
   await apiClient.delete(`/jobs/${id}`);
+}
+
+export async function getEmployerJobById(
+  id: number,
+  options?: ApiOptions
+): Promise<JobPosting> {
+  const response = await apiClient.get<JobPosting>(`/jobs/employer/${id}`, {
+    signal: options?.signal,
+  });
+  return response.data;
+}
+
+/**
+ * Update an existing job posting
+ * Requires authentication and ownership (employer/admin)
+ */
+export async function updateJobPosting(
+  id: number,
+  payload: UpdateJobPayload
+): Promise<JobPosting> {
+  const response = await apiClient.patch<JobPosting>(`/jobs/${id}`, payload, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return response.data;
 }
