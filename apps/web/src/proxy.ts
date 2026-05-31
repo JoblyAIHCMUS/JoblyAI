@@ -14,20 +14,27 @@ function getRole(request: NextRequest) {
 }
 
 function getRoleBasedRedirect(pathname: string, role: string, request: NextRequest) {
-  const publicRoleRedirects: Record<string, Record<string, string>> = {
-    '/find-jobs': {
-      candidate: '/candidate/find-jobs',
-      employer: '/employer/dashboard',
-    },
-    '/browse-companies': {
-      candidate: '/candidate/browse-companies',
-      employer: '/employer/browse-companies',
-    },
-  };
+  // Handle /find-jobs
+  if (pathname === '/find-jobs' || pathname.startsWith('/find-jobs/')) {
+    if (role === 'candidate') {
+      const newPath = pathname.replace('/find-jobs', '/candidate/find-jobs');
+      return NextResponse.redirect(new URL(newPath, request.url));
+    }
+    if (role === 'employer') {
+      return NextResponse.redirect(new URL('/employer/dashboard', request.url));
+    }
+  }
 
-  const redirectPath = publicRoleRedirects[pathname]?.[role];
-  if (redirectPath) {
-    return NextResponse.redirect(new URL(redirectPath, request.url));
+  // Handle /browse-companies
+  if (pathname === '/browse-companies' || pathname.startsWith('/browse-companies/')) {
+    if (role === 'candidate') {
+      const newPath = pathname.replace('/browse-companies', '/candidate/browse-companies');
+      return NextResponse.redirect(new URL(newPath, request.url));
+    }
+    if (role === 'employer') {
+      const newPath = pathname.replace('/browse-companies', '/employer/browse-companies');
+      return NextResponse.redirect(new URL(newPath, request.url));
+    }
   }
 
   return null;
@@ -128,7 +135,9 @@ export const config = {
     '/login',
     '/signup',
     '/find-jobs',
+    '/find-jobs/:path*',
     '/browse-companies',
+    '/browse-companies/:path*',
     '/candidate/:path*',
     '/employer/:path*',
   ],
