@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { join } from 'path';
 import { AiProviderService } from './ai-provider.service';
 
 export interface ParsedResume {
@@ -66,19 +65,15 @@ export class ResumeParserService {
 
   async extractTextFromPdf(fileBuffer: Buffer): Promise<string> {
     try {
-      // Use dynamic import for pdfjs-dist as it is an ESM module
-      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-
-      // Set worker source to the local file we copied during build
-      // In production, this file is in the same folder as main.js (dist/)
-      pdfjs.GlobalWorkerOptions.workerSrc = join(__dirname, 'pdf.worker.mjs');
+      // Use the legacy CommonJS build which is more stable in Node environments
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.js');
 
       const data = new Uint8Array(fileBuffer);
       const loadingTask = pdfjs.getDocument({
         data,
         useSystemFonts: true,
         disableFontFace: true,
-        disableWorker: true,
+        disableWorker: true, // Use fake worker for text extraction in Node
       });
 
       const pdf = await loadingTask.promise;

@@ -4,6 +4,9 @@ const webpack = require('webpack');
 
 module.exports = {
   ignoreWarnings: [/Failed to parse source map/, /google-logging-utils/],
+  externals: [
+    /^pdfjs-dist/, // Mark pdfjs-dist and its sub-paths as external
+  ],
   output: {
     path: join(__dirname, 'dist'),
     clean: true,
@@ -21,14 +24,7 @@ module.exports = {
       compiler: 'tsc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: [
-        './src/assets',
-        {
-          input: '../../node_modules/pdfjs-dist/legacy/build',
-          glob: 'pdf.worker.mjs',
-          output: '.',
-        },
-      ],
+      assets: ['./src/assets'],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: false,
