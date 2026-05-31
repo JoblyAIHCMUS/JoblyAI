@@ -3,11 +3,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { authClient } from '../lib/auth-client';
 import {
+  login as loginRequest,
+  signup as signupRequest,
   LoginPayload,
   SignupPayload,
   SendOTPPayload,
   ResetPasswordPayload,
   AuthResponse,
+  resetPassword as resetPasswordRequest,
+  sendOTP as sendOTPRequest,
 } from '../api/auth';
 
 function getAuthErrorMessage(error: unknown, fallback: string): string {
@@ -34,18 +38,10 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await authClient.signIn.email({
-        email: payload.email,
-        password: payload.password,
-        rememberMe: payload.rememberMe,
-      });
+      const data = await loginRequest(payload);
 
-      if (error) {
-        throw error;
-      }
-
-      setData(data as AuthResponse);
-      return data as AuthResponse;
+      setData(data);
+      return data;
     } catch (err) {
       const error = new Error(getAuthErrorMessage(err, 'Login failed'));
       setError(error);
@@ -67,21 +63,10 @@ export function useSignup() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await authClient.signUp.email({
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        role: payload.role,
-      });
+      const data = await signupRequest(payload);
 
-      if (error) {
-        throw error;
-      }
-
-      setData(data as AuthResponse);
-      return data as AuthResponse;
+      setData(data);
+      return data;
     } catch (err) {
       const error = new Error(getAuthErrorMessage(err, 'Signup failed'));
       setError(error);
@@ -102,16 +87,7 @@ export function useSendOTP() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await authClient.emailOtp.sendVerificationOtp({
-        email: payload.email,
-        type: payload.type,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
+      return await sendOTPRequest(payload);
     } catch (err) {
       const error = new Error(getAuthErrorMessage(err, 'Failed to send OTP'));
       setError(error);
@@ -133,18 +109,10 @@ export function useResetPassword() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await authClient.emailOtp.resetPassword({
-        email: payload.email,
-        otp: payload.otp,
-        password: payload.password,
-      });
+      const data = await resetPasswordRequest(payload);
 
-      if (error) {
-        throw error;
-      }
-
-      setData(data as AuthResponse);
-      return data as AuthResponse;
+      setData(data);
+      return data;
     } catch (err) {
       const error = new Error(
         getAuthErrorMessage(err, 'Password reset failed')
