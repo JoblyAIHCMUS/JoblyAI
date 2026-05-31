@@ -104,8 +104,15 @@ Tài liệu này cung cấp toàn bộ mã nguồn và hướng dẫn chi tiết
     - **Key pair (login):** Chọn `jobly-ec2-key` đã tạo ở trên.
     - **Network:** VPC: `jobly-vpc`. Subnet: **Public Subnet 1**.
     - **Auto-assign public IP:** Enable.
-    - **Security Group:** Tạo mới, đặt tên `jobly-ec2-sg`, mở cổng 22 (SSH), 80 (HTTP), 443 (HTTPS), 3000 (Backend API). * **Configure storage:** Chỉnh dung lượng thành **30 GB** (loại **gp3**). *Lưu ý: Mặc định 8GB là không đủ để lưu trữ các Docker Image (Scylla, Redis, Nginx...). AWS Free Tier miễn phí tối đa 30GB nên cứ tận dụng.\*4. **GẮN IAM ROLE CHO EC2:** Kéo xuống phần **Advanced details** -> Tìm dòng **IAM instance profile**: Click vào ô chọn và chọn cái `jobly-ec2-role` bạn vừa tạo ở Bước 2.
-4.  **User Data (Rất phần quan trọng):** Cuộn xuống dưới cùng phần Advanced details tìm khung User Data và dán đoạn bash script sau vào. Đoạn script này giúp EC2 tự động cài đặt Docker và Docker Compose ngay lần đầu (First Boot) khởi động máy:
+    - **Security Group:** Tạo mới, đặt tên `jobly-ec2-sg`, mở cổng 22 (SSH), 80 (HTTP), 443 (HTTPS), 3000 (Backend API).
+    - **Configure storage:** Chỉnh dung lượng thành **40 GB** (loại **gp3**). _Lưu ý: Monorepo và Docker chiếm rất nhiều dung lượng (Build cache, Layers). AWS Free Tier cho tối đa 30GB, nhưng bạn nên nâng lên 40GB (phí phát sinh rất nhỏ) để tránh lỗi "No space left on device" khi build._
+4.  **GẮN IAM ROLE CHO EC2:** Kéo xuống phần **Advanced details** -> Tìm dòng **IAM instance profile**: Click vào ô chọn và chọn cái `jobly-ec2-role` bạn vừa tạo ở Bước 2.
+5.  **MỞ RỘNG DUNG LƯỢNG (Nếu tăng volume sau khi tạo):** Nếu bạn nâng GB trên Console sau khi máy đã chạy, hãy chạy các lệnh sau để EC2 nhận dung lượng mới:
+    ```bash
+    sudo growpart /dev/nvme0n1 1
+    sudo resize2fs /dev/nvme0n1p1
+    ```
+6.  **User Data (Rất phần quan trọng):** Cuộn xuống dưới cùng phần Advanced details tìm khung User Data và dán đoạn bash script sau vào. Đoạn script này giúp EC2 tự động cài đặt Docker và Docker Compose ngay lần đầu (First Boot) khởi động máy:
     ```bash
     #!/bin/bash
     apt update
@@ -114,8 +121,8 @@ Tài liệu này cung cấp toàn bộ mã nguồn và hướng dẫn chi tiết
     systemctl enable docker
     usermod -aG docker ubuntu
     ```
-5.  Hoàn tất cấu hình, nhấn nút **Launch instance** màu cam ở góc phải màn hình.
-6.  **Cấp Elastic IP (EIP) - Phải làm sau khi EC2 đã tạo xong:**
+7.  Hoàn tất cấu hình, nhấn nút **Launch instance** màu cam ở góc phải màn hình.
+8.  **Cấp Elastic IP (EIP) - Phải làm sau khi EC2 đã tạo xong:**
     - Ở menu bên trái của màn hình EC2, kéo xuống mục **Network & Security** -> Chọn **Elastic IPs**.
     - Nhấn nút **Allocate Elastic IP address** ở góc phải trên cùng -> Nhấn **Allocate**.
     - Bạn sẽ thấy một dòng IP mới vừa được tạo. Click chọn nó.
@@ -153,7 +160,7 @@ Trước khi GitHub Action chạy, máy chủ EC2 cần được tạo sẵn fil
 
 _(Khắc phục lỗi Windows: Nếu bạn gõ lệnh ssh mà bị báo lỗi **WARNING: UNPROTECTED PRIVATE KEY FILE!**, hãy mở PowerShell và chạy lệnh sau để giới hạn quyền đọc file key lại: `icacls "jobly-ec2-key.pem" /inheritance:r /grant:r "$($env:USERNAME):(R)"` - sau đó SSH lại là được)._
 
-1. Mở Terminal máy tính, SSH vào EC2: `ssh -i "jobly-ec2-key.pem" ubuntu@<ELASTIC_IP_CỦA_EC2>`
+1. Mở Terminal máy tính, SSH vào EC2: `ssh -i "jobly-ec2-key.pem" ubuntu@13.213.198.93`
 2. Tạo thư mục và file `.env`:
    ```bash
    mkdir -p ~/joblyai/apps/backend
@@ -168,29 +175,81 @@ _(Khắc phục lỗi Windows: Nếu bạn gõ lệnh ssh mà bị báo lỗi **
    APP_URL=https://jobly.ai.vn
    WEB_URL=https://jobly.ai.vn
    NEXT_PUBLIC_API_URL=https://jobly.ai.vn
-
-   # Thay bằng endpoint của RDS
-   DATABASE_URL="postgresql://postgres:12345678@jobly-db.cn4qykaqe6n0.ap-southeast-1.rds.amazonaws.com:5432/postgres?schema=public"
    ```
-   # S3 (Xóa/Comment AWS_ACCESS_KEY_ID và SECRET vì EC2 đã dùng IAM Role)
-   AWS_REGION="ap-southeast-1"
-   S3_BUCKET_NAME="jobly-assets-storage"
 
-   # --- GIỮ NGUYÊN CÁC BIẾN NÀY (Vì chạy chung Docker Compose trên EC2) ---
-   REDIS_URL=redis://redis:6379
-   SCYLLA_HOST=scylla
-   PORT=3000
+# Thay bằng endpoint của RDS (SSL bắt buộc)
 
-   # --- ĐIỀN CÁC KEY BẢO MẬT CỦA BẠN VÀO ---
-   BETTER_AUTH_SECRET=<nhập_random_string_dài>
-   GEMINI_KEY=<gemini_apiKey_của_bạn>
-   GITHUB_CLIENT_ID=...
-   GOOGLE_CLIENT_ID=...
-   ```
+DATABASE_URL="postgresql://postgres:12345678@jobly-db.cn4qykaqe6n0.ap-southeast-1.rds.amazonaws.com:5432/postgres?schema=public&sslmode=verify-full&sslrootcert=/app/certs/rds-ca-bundle.pem"
+
+```
+# S3 (Xóa/Comment AWS_ACCESS_KEY_ID và SECRET vì EC2 đã dùng IAM Role)
+AWS_REGION="ap-southeast-1"
+S3_BUCKET_NAME="jobly-assets-storage"
+
+# --- GIỮ NGUYÊN CÁC BIẾN NÀY (Vì chạy chung Docker Compose trên EC2) ---
+REDIS_URL=redis://redis:6379
+SCYLLA_HOST=scylla
+PORT=3000
+
+# --- ĐIỀN CÁC KEY BẢO MẬT CỦA BẠN VÀO ---
+BETTER_AUTH_SECRET=<nhập_random_string_dài>
+GEMINI_KEY=<gemini_apiKey_của_bạn>
+GITHUB_CLIENT_ID=...
+GOOGLE_CLIENT_ID=...
+```
 
 4. Lưu và thoát (Nhấn `Ctrl+O`, `Enter`, `Ctrl+X`). Sau đó gõ `exit` để thoát khỏi EC2.
 
-### 2.2. Thiết lập Github Secrets
+5. **SSL cho RDS (bắt buộc nếu gặp lỗi P1011):**
+
+- Tải CA bundle trên EC2:
+  ```bash
+  mkdir -p ~/joblyai/certs
+  curl -o ~/joblyai/certs/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+  ```
+- Đảm bảo `docker-compose.yml` mount CA vào backend:
+  ```yaml
+  services:
+    backend:
+      volumes:
+        - ./certs/rds-ca-bundle.pem:/app/certs/rds-ca-bundle.pem:ro
+  ```
+
+6. **Lệnh docker (Vận hành trực tiếp trên EC2)**:
+
+- **Khởi động hệ thống:**
+  `docker-compose -f docker-compose.yml up -d`
+
+- **Dừng hệ thống:**
+  `docker-compose -f docker-compose.yml down`
+
+- **Build lại Backend (Sau khi sửa code):**
+  `docker-compose -f docker-compose.yml build backend && docker-compose -f docker-compose.yml up -d --no-deps backend`
+
+- **Dọn dẹp dung lượng (Khi bị lỗi "No space left on device"):**
+  `docker system prune -a -f && docker builder prune -a -f`
+
+- **Recreate toàn bộ (Xóa sạch và chạy lại từ đầu):**
+  `docker-compose -f docker-compose.yml down --remove-orphans && docker system prune -a -f && docker builder prune -a -f && docker-compose -f docker-compose.yml up -d`
+
+- **Xem log Backend:**
+  `docker-compose -f docker-compose.yml logs -f backend`
+
+### 2.2. Nạp dữ liệu hệ thống (Seeding Data)
+
+Sau khi hệ thống đã chạy và Database đã được migrate, bạn cần nạp danh mục ngành nghề và kỹ năng để ứng dụng hiển thị đầy đủ:
+
+```bash
+# 1. Lấy DATABASE_URL
+DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+
+# 2. Chạy seed hệ thống (Chỉ nạp Categories/Skills, không xóa dữ liệu)
+docker exec -it -u root backend_jobly sh -c "export DATABASE_URL='$DB_URL' && export SEED_MODE=system && export PRISMA_QUERY_ENGINE_LIBRARY='' && npx -y ts-node --transpile-only apps/backend/prisma/seed.ts"
+```
+
+---
+
+## 3. Thiết lập Github Secrets
 
 Trên trình duyệt, vào trang Github Repository của bạn -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret** để thêm 3 biến:
 
@@ -230,23 +289,27 @@ jobs:
             cd joblyai && git fetch origin main && git reset --hard origin/main
             [ -f "$HOME/env_backup" ] && mkdir -p apps/backend && mv "$HOME/env_backup" apps/backend/.env
 
-            # 2. Docker Compose (Siêu cuốn chiếu để tiết kiệm RAM)
+            # 2. SSL CA cho RDS (tránh lỗi self-signed certificate)
+            mkdir -p certs
+            curl -o certs/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
+            # 3. Docker Compose (Siêu cuốn chiếu để tiết kiệm RAM)
             DOCKER_COMPOSE_CMD="docker-compose"
             if ! command -v docker-compose &> /dev/null; then DOCKER_COMPOSE_CMD="docker compose"; fi
-            
+
             $DOCKER_COMPOSE_CMD down --remove-orphans
             docker system prune -a -f
-            
+
             $DOCKER_COMPOSE_CMD build backend
             $DOCKER_COMPOSE_CMD build web
             $DOCKER_COMPOSE_CMD up -d redis scylla
-            
+
             # Đợi Infra sẵn sàng
             sleep 30 
-            
+
             $DOCKER_COMPOSE_CMD up -d web backend nginx scylla-init
-            
-            # 3. Database Migration
+
+            # 4. Database Migration
             DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
             $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma@6.19.3 migrate deploy --schema apps/backend/prisma/schema.prisma
 ```
