@@ -134,7 +134,11 @@ function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
 
   return (
     <View className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
-      <Image source={{ uri: imageUri }} className="h-full w-full" resizeMode="cover" />
+      <Image
+        source={{ uri: imageUri }}
+        className="h-full w-full"
+        resizeMode="cover"
+      />
     </View>
   );
 }
@@ -228,7 +232,9 @@ export default function CandidatePublicProfileScreen() {
           </Text>
           <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
             {experience.companyName}
-            {experience.type ? ` • ${experience.type.replaceAll('_', ' ')}` : ''}
+            {experience.type
+              ? ` • ${experience.type.replaceAll('_', ' ')}`
+              : ''}
           </Text>
           <Text className="mt-1 text-sm text-[#6b7280]">
             {formatDateRange(experience.startDate, experience.endDate)}
@@ -261,8 +267,9 @@ export default function CandidatePublicProfileScreen() {
             {education.school}
           </Text>
           <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-            {[education.degree, education.fieldOfStudy].filter(Boolean).join(', ') ||
-              'Education'}
+            {[education.degree, education.fieldOfStudy]
+              .filter(Boolean)
+              .join(', ') || 'Education'}
           </Text>
           <Text className="mt-1 text-sm text-[#6b7280]">
             {formatDateRange(education.startDate, education.endDate)}
@@ -447,7 +454,9 @@ export default function CandidatePublicProfileScreen() {
 
           <Card className="px-3 py-2.5">
             {topExperiences.length === 0 ? (
-              <Text className="text-sm text-[#6b7280]">No experience added yet.</Text>
+              <Text className="text-sm text-[#6b7280]">
+                No experience added yet.
+              </Text>
             ) : (
               topExperiences.map((experience, index) => (
                 <View key={experience.id}>
@@ -460,9 +469,13 @@ export default function CandidatePublicProfileScreen() {
             )}
 
             {experiences.length > topExperiences.length && (
-              <TouchableOpacity activeOpacity={0.8} className="mt-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                className="mt-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-[#5758e7]">
-                  Show {experiences.length - topExperiences.length} more experiences
+                  Show {experiences.length - topExperiences.length} more
+                  experiences
                 </Text>
               </TouchableOpacity>
             )}
@@ -484,7 +497,9 @@ export default function CandidatePublicProfileScreen() {
 
           <Card className="px-3 py-2.5">
             {topEducations.length === 0 ? (
-              <Text className="text-sm text-[#6b7280]">No education added yet.</Text>
+              <Text className="text-sm text-[#6b7280]">
+                No education added yet.
+              </Text>
             ) : (
               topEducations.map((education, index) => (
                 <View key={education.id}>
@@ -497,9 +512,13 @@ export default function CandidatePublicProfileScreen() {
             )}
 
             {educations.length > topEducations.length && (
-              <TouchableOpacity activeOpacity={0.8} className="mt-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                className="mt-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-[#5758e7]">
-                  Show {educations.length - topEducations.length} more educations
+                  Show {educations.length - topEducations.length} more
+                  educations
                 </Text>
               </TouchableOpacity>
             )}
@@ -522,7 +541,9 @@ export default function CandidatePublicProfileScreen() {
           <Card className="px-3 py-2.5">
             <View className="flex-row flex-wrap gap-2">
               {skills.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">No skills added yet.</Text>
+                <Text className="text-sm text-[#6b7280]">
+                  No skills added yet.
+                </Text>
               ) : (
                 skills.map((skill) => (
                   <View
@@ -551,9 +572,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="text-xs font-medium text-[#556070]">
                   Email
                 </Text>
-                <Text className="mt-1 text-sm text-[#4e5cf0]">
-                  {email}
-                </Text>
+                <Text className="mt-1 text-sm text-[#4e5cf0]">{email}</Text>
               </View>
             </View>
 
@@ -565,9 +584,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="text-xs font-medium text-[#556070]">
                   Phone
                 </Text>
-                <Text className="mt-1 text-sm text-[#1f2937]">
-                  {phone}
-                </Text>
+                <Text className="mt-1 text-sm text-[#1f2937]">{phone}</Text>
               </View>
             </View>
           </Card>
