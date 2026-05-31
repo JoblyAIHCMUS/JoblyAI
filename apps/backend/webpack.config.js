@@ -21,7 +21,14 @@ module.exports = {
       compiler: 'tsc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: ['./src/assets'],
+      assets: [
+        './src/assets',
+        {
+          input: '../../node_modules/pdfjs-dist/legacy/build',
+          glob: 'pdf.worker.mjs',
+          output: '.',
+        },
+      ],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: false,

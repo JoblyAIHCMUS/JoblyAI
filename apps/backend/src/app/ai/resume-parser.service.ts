@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { join } from 'path';
 import { AiProviderService } from './ai-provider.service';
 
 export interface ParsedResume {
@@ -67,6 +68,10 @@ export class ResumeParserService {
     try {
       // Use dynamic import for pdfjs-dist as it is an ESM module
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+
+      // Set worker source to the local file we copied during build
+      // In production, this file is in the same folder as main.js (dist/)
+      pdfjs.GlobalWorkerOptions.workerSrc = join(__dirname, 'pdf.worker.mjs');
 
       const data = new Uint8Array(fileBuffer);
       const loadingTask = pdfjs.getDocument({
