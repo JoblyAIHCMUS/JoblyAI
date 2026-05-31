@@ -8,7 +8,6 @@ import {
 } from '@/api-hook/notification';
 import { Notification } from '@/types/notification';
 import { useSocket } from '@/contexts/socket-provider';
-import { toast } from 'sonner';
 
 function formatNotificationTime(createdAt: string) {
   const createdAtDate = new Date(createdAt);
