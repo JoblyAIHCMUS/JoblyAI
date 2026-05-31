@@ -1,50 +1,73 @@
 'use client';
 
 import * as Slider from '@radix-ui/react-slider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import { SALARY_MAX_CAP } from '@/features/find-jobs/constants';
 
-const SALARY_MAX = 200_000;
+const SalaryFilter = forwardRef(
+  (
+    {
+      onSalaryChange,
+      initialMin = 0,
+      initialMax = SALARY_MAX_CAP,
+    }: {
+      onSalaryChange?: (min: number, max: number) => void;
+      initialMin?: number;
+      initialMax?: number;
+    },
+    ref
+  ) => {
+    const [value, setValue] = useState([initialMin, initialMax]);
 
-export default function SalaryFilter({
-  onSalaryChange,
-}: {
-  onSalaryChange?: (min: number, max: number) => void;
-}) {
-  const [value, setValue] = useState([0, SALARY_MAX]);
+    useImperativeHandle(ref, () => ({
+      reset() {
+        setValue([0, SALARY_MAX_CAP]);
+      },
+    }));
 
-  // debounce giống bạn
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onSalaryChange?.(value[0], value[1]);
-    }, 300);
+    // Update internal value if initial values change (e.g. from URL sync back)
+    useEffect(() => {
+      setValue([initialMin, initialMax]);
+    }, [initialMin, initialMax]);
 
-    return () => clearTimeout(timer);
-  }, [value, onSalaryChange]);
+    // debounce
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        onSalaryChange?.(value[0], value[1]);
+      }, 300);
 
-  return (
-    <div className="flex flex-col gap-4 px-2 py-2 w-full">
-      <h3 className="text-base font-semibold text-slate-900">Salary (USD)</h3>
+      return () => clearTimeout(timer);
+    }, [value, onSalaryChange]);
 
-      <div className="flex justify-between text-sm text-slate-600">
-        <span>{value[0] / 1000}k</span>
-        <span>{value[1] / 1000}k</span>
+    return (
+      <div className="flex flex-col gap-4 px-2 py-2 w-full text-left">
+        <h3 className="text-base font-semibold text-slate-900">Salary (USD)</h3>
+
+        <div className="flex justify-between text-sm text-slate-600 font-medium mb-1">
+          <span>${value[0].toLocaleString()}</span>
+          <span>${value[1].toLocaleString()}</span>
+        </div>
+
+        <Slider.Root
+          value={value}
+          min={0}
+          max={SALARY_MAX_CAP}
+          step={100}
+          onValueChange={setValue}
+          className="relative flex items-center w-full h-10 select-none touch-none"
+        >
+          <Slider.Track className="bg-slate-200 relative grow h-2 rounded-full cursor-pointer">
+            <Slider.Range className="absolute bg-indigo-600 h-full rounded-full" />
+          </Slider.Track>
+
+          <Slider.Thumb className="block w-3 h-3 bg-white border-2 border-indigo-600 rounded-full shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all hover:scale-110" />
+          <Slider.Thumb className="block w-3 h-3 bg-white border-2 border-indigo-600 rounded-full shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all hover:scale-110" />
+        </Slider.Root>
       </div>
+    );
+  }
+);
 
-      <Slider.Root
-        value={value}
-        min={0}
-        max={SALARY_MAX}
-        step={1000}
-        onValueChange={setValue}
-        className="relative flex items-center w-full h-10"
-      >
-        <Slider.Track className="bg-slate-200 relative grow h-2 rounded-full">
-          <Slider.Range className="absolute bg-indigo-600 h-full rounded-full" />
-        </Slider.Track>
+SalaryFilter.displayName = 'SalaryFilter';
 
-        <Slider.Thumb className="block w-5 h-5 bg-white border border-indigo-600 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <Slider.Thumb className="block w-5 h-5 bg-white border border-indigo-600 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-      </Slider.Root>
-    </div>
-  );
-}
+export default SalaryFilter;
