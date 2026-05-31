@@ -38,7 +38,7 @@ services:
       - ./apps/backend/scylladb/schema.cql:/docker-entrypoint-initdb.d/schema.cql
     command: --smp 1 --memory 1G --overprovisioned 1 --api-address 0.0.0.0
     healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' || exit 1"]
+      test: ['CMD-SHELL', "cqlsh -e 'DESCRIBE KEYSPACES' || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 20

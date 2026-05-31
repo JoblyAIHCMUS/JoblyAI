@@ -1,20 +1,8 @@
 name: Deploy Fullstack JoblyAI to EC2
 
 on:
-  # push:
-  #   branches: [main]
-  workflow_dispatch:
-    inputs:
-      build_backend:
-        description: 'Build Backend?'
-        required: true
-        type: boolean
-        default: true
-      build_web:
-        description: 'Build Web?'
-        required: true
-        type: boolean
-        default: true
+  push:
+    branches: [main]
 
 jobs:
   deploy:
@@ -26,135 +14,45 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command_timeout: 30m
+          command_timeout: 40m
           script: |
-            # Enable immediate exit on any error
-            set -e
-            
-            # Determine what to build (support both auto-push and manual trigger)
-            # Use default values if triggered by push
-            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              BUILD_BACKEND=${{ github.event.inputs.build_backend }}
-              BUILD_WEB=${{ github.event.inputs.build_web }}
-            else
-              BUILD_BACKEND=true
-              BUILD_WEB=true
-            fi
-            
-            # 1. Change to home directory
             cd $HOME
-            
-            # 2. Backup .env file if it exists
-            if [ -f "joblyai/apps/backend/.env" ]; then
-              echo "--- Backing up .env file ---"
-              cp "joblyai/apps/backend/.env" "$HOME/backend_env_backup"
-            fi
-            
-            # 3. Clean and Clone if needed
+            # 1. Quản lý Source Code & Environment
+            [ -f "joblyai/apps/backend/.env" ] && cp "joblyai/apps/backend/.env" "$HOME/env_backup"
             if [ ! -d "joblyai/.git" ]; then
-              echo "--- Corrupted or missing directory, re-cloning ---"
-              rm -rf joblyai
-              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
+              rm -rf joblyai && git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
-            
-            # 4. Update source code
-            cd joblyai
-            echo "--- Updating source code ---"
-            git fetch origin main
-            git reset --hard origin/main
-            
-            # 5. Restore .env file
-            if [ -f "$HOME/backend_env_backup" ]; then
-              echo "--- Restoring .env file ---"
-              mkdir -p apps/backend
-              mv "$HOME/backend_env_backup" apps/backend/.env
-            fi
+            cd joblyai && git fetch origin main && git reset --hard origin/main
+            [ -f "$HOME/env_backup" ] && mkdir -p apps/backend && mv "$HOME/env_backup" apps/backend/.env
 
-            # 6. Ensure RDS CA bundle exists for SSL
-            echo "--- Ensuring RDS CA bundle ---"
+            # 2. Cập nhật CA cho RDS (SSL Connection)
             mkdir -p certs
-            curl -fsSL -o certs/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
-            
-            # 7. Ensure docker-compose is available and FORCE using only the main file
-            # This ignores docker-compose.override.yml which is for development only
-            DOCKER_COMPOSE_CMD="docker-compose -f docker-compose.yml"
-            if ! command -v docker-compose &> /dev/null; then
-                DOCKER_COMPOSE_CMD="docker compose -f docker-compose.yml"
-            fi
-            
-            # 8. SUPER-SEQUENTIAL DEPLOYMENT (Low RAM Optimization)
-            function print_logs_and_exit {
-                echo "--- DEPLOYMENT FAILED! Printing container logs ---"
-                $DOCKER_COMPOSE_CMD logs --tail=100 backend
-                $DOCKER_COMPOSE_CMD logs --tail=100 web
-                exit 1
-            }
-            
-            trap print_logs_and_exit ERR
+            curl -o certs/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
-            echo "--- [1/6] Stopping services & Cleaning disk ---"
-            $DOCKER_COMPOSE_CMD down --remove-orphans
-            
-            # Xóa các container, network và image thừa (không gắn thẻ)
-            # Giữ lại các Image cơ sở để không phải tải lại, nhưng xóa cache build cũ
+            # 3. Giải phóng dung lượng (Tránh lỗi ENOSPC)
+            docker builder prune -f
             docker image prune -f
-            docker builder prune -f --filter "until=24h"
-            
-            if [ "$BUILD_BACKEND" = "true" ]; then
-              echo "--- [2/6] Building Backend ---"
-              $DOCKER_COMPOSE_CMD build backend
-            else
-              echo "--- Skipping Backend Build ---"
-            fi
-            
-            if [ "$BUILD_WEB" = "true" ]; then
-              echo "--- [3/6] Building Frontend ---"
-              $DOCKER_COMPOSE_CMD build web
-            else
-              echo "--- Skipping Web Build ---"
-            fi
-            
-            echo "--- [4/6] Starting Infrastructure (Redis, Scylla) ---"
-            $DOCKER_COMPOSE_CMD up -d redis scylla
-            
-            echo "--- [5/6] Waiting for Infrastructure to be healthy ---"
-            for i in {1..40}; do
-              if docker ps | grep scylla_jobly | grep -q "(healthy)"; then
-                echo "Infrastructure is healthy!"
-                break
-              fi
-              echo "Waiting for Scylla... ($((i*5))s)"
-              sleep 5
-            done
-            
-            echo "--- [6/6] Starting Apps (Web, Backend, Nginx) ---"
-            $DOCKER_COMPOSE_CMD up -d web backend nginx scylla-init
-            
-            # 9. Wait for Backend healthy before Migration
-            echo "--- Waiting for Backend to be healthy ---"
-            for i in {1..40}; do
-              CONTAINER_INFO=$(docker inspect --format='{{.State.Status}} {{.State.Health.Status}}' backend_jobly 2>/dev/null || echo "notfound")
-              if [[ "$CONTAINER_INFO" == *"healthy"* ]]; then
-                echo "Backend is healthy!"
-                break
-              fi
-              
-              if [[ "$CONTAINER_INFO" == "restarting"* ]] || [[ "$CONTAINER_INFO" == "exited"* ]]; then
-                echo "Backend error log:"
-                docker logs --tail=20 backend_jobly
-              fi
-              
-              sleep 5
-            done
-            
-            # 10. Database Migration
-            if [ "$BUILD_BACKEND" = "true" ]; then
-              echo "--- Running Database Migrations ---"
-              DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
-              
-              # Based on debug logs, the file is at /app/apps/backend/prisma/schema.prisma
-              $DOCKER_COMPOSE_CMD exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema /app/apps/backend/prisma/schema.prisma
-            fi
-            
-            echo "--- DEPLOYMENT COMPLETED SUCCESSFULLY ---"
-            docker ps
+
+            # 4. Build cuốn chiếu để tiết kiệm RAM EC2
+            docker compose build backend
+            docker compose build web
+
+            # 5. Khởi động các dịch vụ hạ tầng
+            docker compose up -d redis scylla scylla-init
+
+            # 6. Database Migration (Sử dụng đường dẫn đã kiểm chứng)
+            # Khởi động backend tạm thời để chạy migration
+            docker compose up -d backend
+
+            # Đợi 5s cho backend ổn định
+            sleep 5
+
+            # Chạy lệnh migration với đường dẫn prisma/schema.prisma
+            DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+            docker compose exec -T -e DATABASE_URL="$DB_URL" backend npx prisma migrate deploy --schema prisma/schema.prisma
+
+            # 7. Khởi động nốt Frontend và Nginx
+            docker compose up -d web nginx
+
+            # 8. Dọn dẹp các layer rác sau khi thành công
+            docker system prune -f
