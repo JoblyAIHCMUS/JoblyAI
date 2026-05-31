@@ -13,12 +13,7 @@ export default function BrowseCompaniesCompanyProfilePage({
 }: {
   companyId: string;
 }) {
-  const {
-    fetchCompany,
-    loading,
-    error,
-    data: company,
-  } = useGetCompany();
+  const { fetchCompany, loading, error, data: company } = useGetCompany();
 
   useEffect(() => {
     void fetchCompany(Number(companyId));

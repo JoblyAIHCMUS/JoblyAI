@@ -1,10 +1,10 @@
 import { UIEvent, useEffect, useRef, useState, useCallback } from 'react';
 
-import { 
+import {
   useListNotifications,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
-  useDeleteNotification
+  useDeleteNotification,
 } from '@/api-hook/notification';
 import { Notification } from '@/types/notification';
 import { useSocket } from '@/contexts/socket-provider';
@@ -142,9 +142,7 @@ export function useNotifications() {
   const handleDeleteNotification = async (id: number) => {
     try {
       const result = await removeNotification(id);
-      setNotifications((prev) =>
-        prev.filter((n) => n.id !== result.deletedId)
-      );
+      setNotifications((prev) => prev.filter((n) => n.id !== result.deletedId));
       setUnreadCount(result.unreadCount);
     } catch (error) {
       console.error('Failed to delete notification:', error);

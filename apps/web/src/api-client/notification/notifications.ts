@@ -42,5 +42,3 @@ export async function deleteNotification(
   );
   return response.data;
 }
-
-

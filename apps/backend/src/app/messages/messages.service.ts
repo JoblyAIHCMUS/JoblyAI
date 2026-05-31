@@ -65,7 +65,6 @@ export class MessagesService {
         create: { ...recipientData, ...updatePayload },
       }),
     ]);
-
   }
 
   async markAsRead(senderId: string, recipientId: string): Promise<void> {

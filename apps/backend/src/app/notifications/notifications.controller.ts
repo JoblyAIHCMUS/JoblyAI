@@ -36,10 +36,7 @@ export class NotificationsController {
 
   @Patch(':id/read')
   @ApiOperation({ summary: 'Mark a specific notification as read' })
-  async markAsRead(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number
-  ) {
+  async markAsRead(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     const userId = req.user.id;
     return this.notificationsService.markAsRead(userId, id);
   }
@@ -61,4 +58,3 @@ export class NotificationsController {
     return this.notificationsService.deleteNotification(userId, id);
   }
 }
-

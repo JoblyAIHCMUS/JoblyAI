@@ -16,6 +16,8 @@ describe('NotificationsService', () => {
       findMany: vi.fn(),
       count: vi.fn(),
       updateMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
   };
 
@@ -56,7 +58,12 @@ describe('NotificationsService', () => {
         metadata: { key: 'value' },
       };
 
-      const mockNotification = { id: 1, ...dto, isRead: false, createdAt: new Date() };
+      const mockNotification = {
+        id: 1,
+        ...dto,
+        isRead: false,
+        createdAt: new Date(),
+      };
       mockPrisma.notification.create.mockResolvedValue(mockNotification);
 
       const result = await service.createNotification(dto);
@@ -64,7 +71,10 @@ describe('NotificationsService', () => {
       expect(prisma.notification.create).toHaveBeenCalledWith({
         data: dto,
       });
-      expect(gateway.sendNotification).toHaveBeenCalledWith('user-1', mockNotification);
+      expect(gateway.sendNotification).toHaveBeenCalledWith(
+        'user-1',
+        mockNotification
+      );
       expect(result).toEqual(mockNotification);
     });
   });
@@ -100,14 +110,55 @@ describe('NotificationsService', () => {
 
   describe('markAsRead', () => {
     it('should mark notification as read', async () => {
-      mockPrisma.notification.updateMany.mockResolvedValue({ count: 1 });
+      const mockNotification = { id: 1, recipientId: 'user-1', isRead: false };
+      const updatedNotification = { ...mockNotification, isRead: true };
 
-      await service.markAsRead('user-1', 1);
+      mockPrisma.notification.findUnique.mockResolvedValue(mockNotification);
+      mockPrisma.notification.update.mockResolvedValue(updatedNotification);
+      mockPrisma.notification.count.mockResolvedValue(2);
 
-      expect(prisma.notification.updateMany).toHaveBeenCalledWith({
-        where: { id: 1, recipientId: 'user-1' },
+      const result = await service.markAsRead('user-1', 1);
+
+      expect(prisma.notification.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(prisma.notification.update).toHaveBeenCalledWith({
+        where: { id: 1 },
         data: { isRead: true },
       });
+      expect(result.notification).toEqual(updatedNotification);
+      expect(result.unreadCount).toBe(2);
+    });
+
+    it('should throw NotFoundException if notification does not exist', async () => {
+      mockPrisma.notification.findUnique.mockResolvedValue(null);
+
+      await expect(service.markAsRead('user-1', 1)).rejects.toThrow();
+    });
+
+    it('should throw ForbiddenException if notification belongs to another user', async () => {
+      mockPrisma.notification.findUnique.mockResolvedValue({
+        id: 1,
+        recipientId: 'other-user',
+      });
+
+      await expect(service.markAsRead('user-1', 1)).rejects.toThrow();
+    });
+  });
+
+  describe('markAllAsRead', () => {
+    it('should mark all notifications as read for a user', async () => {
+      mockPrisma.notification.updateMany.mockResolvedValue({ count: 5 });
+      mockPrisma.notification.count.mockResolvedValue(0);
+
+      const result = await service.markAllAsRead('user-1');
+
+      expect(prisma.notification.updateMany).toHaveBeenCalledWith({
+        where: { recipientId: 'user-1', isRead: false },
+        data: { isRead: true },
+      });
+      expect(result.updatedCount).toBe(5);
+      expect(result.unreadCount).toBe(0);
     });
   });
 });
