@@ -70,6 +70,13 @@ export function useUnreadMessagesDot(): UseUnreadMessagesDotReturn {
         '[useUnreadMessagesDot] onNewMessage fired, setting hasUnreadMessages=true'
       );
       setHasUnreadMessages(true);
+
+      // Refetch summaries to update the sidebar with the latest message and unread status
+      if (user?.id) {
+        fetchChatSummary(user.id).catch(() => {
+          /* fail silently */
+        });
+      }
     });
     return () => {
       off?.();
