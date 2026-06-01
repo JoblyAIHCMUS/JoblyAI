@@ -43,6 +43,8 @@ export function CandidateProfileProvider({
   const lastFetchedIdRef = useRef<string | null>(null);
   const isRequestInFlightRef = useRef(false);
 
+  const dataRef = useRef<CandidateProfileResponse | null>(null);
+
   const fetchCandidateProfile = useCallback(
     async (
       options?: {
@@ -61,7 +63,7 @@ export function CandidateProfileProvider({
         console.log(
           '[CandidateProfileContext] Skipping fetch - already in flight or same ID'
         );
-        return data; // Return current data instead of null to prevent state clearing
+        return dataRef.current;
       }
 
       isRequestInFlightRef.current = true;
@@ -78,6 +80,7 @@ export function CandidateProfileProvider({
         // Ensure we are setting a NEW object reference to trigger re-renders
         const newResult = { ...result };
         setData(newResult);
+        dataRef.current = newResult;
         options?.onSuccess?.(newResult);
         return newResult;
       } catch (err: unknown) {
@@ -89,7 +92,7 @@ export function CandidateProfileProvider({
         setLoading(false);
       }
     },
-    [data]
+    []
   );
 
   // Memoize context value to prevent unnecessary provider updates

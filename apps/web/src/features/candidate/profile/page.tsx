@@ -86,7 +86,25 @@ const CandidateProfilePage = () => {
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
   const [processingTasks, setProcessingTasks] = useState<
     Record<number, { parsing: boolean; scoring: boolean }>
-  >({});
+  >(() => {
+    // Lazy initialization from sessionStorage to persist across tab switches
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('jobly_ai_tasks');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('[CandidateProfilePage] Failed to parse saved AI tasks:', e);
+        }
+      }
+    }
+    return {};
+  });
+
+  // Persist processing tasks to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('jobly_ai_tasks', JSON.stringify(processingTasks));
+  }, [processingTasks]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
@@ -137,6 +155,55 @@ const CandidateProfilePage = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [processingTasks, isSyncing]);
 
+  // Reconcile processingTasks with actual profile data
+  // This is a safety net in case we missed a socket event while on another tab
+  useEffect(() => {
+    if (!profile?.resumes) return;
+
+    let hasChanges = false;
+    const nextTasks = { ...processingTasks };
+
+    profile.resumes.forEach((resume) => {
+      const task = nextTasks[resume.id] as any;
+      if (!task) return;
+
+      const GRACE_PERIOD = 30000; // 30 seconds
+      const now = Date.now();
+
+      // If resume already has parsedText, it's no longer parsing
+      // ONLY if the task is older than the grace period (to avoid stale data from re-fetch)
+      if (
+        resume.parsedText &&
+        task.parsing &&
+        (!task.parsingStartTime || now - task.parsingStartTime > GRACE_PERIOD)
+      ) {
+        task.parsing = false;
+        hasChanges = true;
+      }
+
+      // If resume already has aiScore, it's no longer scoring
+      if (
+        resume.aiScore !== null &&
+        task.scoring &&
+        (!task.scoringStartTime || now - task.scoringStartTime > GRACE_PERIOD)
+      ) {
+        task.scoring = false;
+        hasChanges = true;
+      }
+
+      // Clean up empty tasks
+      if (!task.parsing && !task.scoring) {
+        delete nextTasks[resume.id];
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      console.log('[CandidateProfilePage] Reconciling AI tasks with profile data');
+      setProcessingTasks(nextTasks);
+    }
+  }, [profile?.resumes, processingTasks]);
+
   useEffect(() => {
     const handleOpenSyncModal = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -171,8 +238,22 @@ const CandidateProfilePage = () => {
         [resumeId]: {
           ...(prev[resumeId] || { scoring: false }),
           parsing: true,
+          parsingStartTime: Date.now(),
         },
       }));
+
+      // Locally clear parsedText to avoid reconciliation logic prematurely turning off the spinner
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resumes: prev.resumes?.map((r) =>
+            r.id === resumeId
+              ? { ...r, parsedText: null, isSyncedToProfile: false }
+              : r
+          ),
+        };
+      });
 
       toast.info('AI is extracting data from your resume...', {
         id: `ai-processing-${resumeId}`,
@@ -213,8 +294,20 @@ const CandidateProfilePage = () => {
         [resumeId]: {
           ...(prev[resumeId] || { parsing: false }),
           scoring: true,
+          scoringStartTime: Date.now(),
         },
       }));
+
+      // Locally clear score to avoid reconciliation logic prematurely turning off the spinner
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resumes: prev.resumes?.map((r) =>
+            r.id === resumeId ? { ...r, aiScore: null, aiFeedback: null } : r
+          ),
+        };
+      });
 
       toast.info('AI is scoring your resume...', {
         id: `ai-processing-${resumeId}`,
@@ -251,20 +344,27 @@ const CandidateProfilePage = () => {
       );
 
       setProcessingTasks((prev) => {
-        const current = prev[resumeId] || { parsing: false, scoring: false };
-        const next = { ...current };
-        if (type === 'ai-parsed-success') next.parsing = false;
-        if (type === 'ai-scored-success') next.scoring = false;
-
-        // If all tasks for this resume are done, dismiss the processing toast
-        if (!next.parsing && !next.scoring) {
-          toast.dismiss(`ai-processing-${resumeId}`);
+        const next = { ...prev };
+        const current = next[resumeId] || { parsing: false, scoring: false };
+        
+        if (type === 'ai-parsed-success') {
+          next[resumeId] = { ...current, parsing: false };
+        }
+        if (type === 'ai-scored-success') {
+          next[resumeId] = { ...current, scoring: false };
         }
 
-        return { ...prev, [resumeId]: next };
+        // Re-calculate after update
+        const updated = next[resumeId];
+        if (updated && !updated.parsing && !updated.scoring) {
+          toast.dismiss(`ai-processing-${resumeId}`);
+          delete next[resumeId];
+        }
+
+        return next;
       });
 
-      fetchCandidateProfile();
+      fetchCandidateProfile({ forceRefresh: true });
     };
 
     window.addEventListener('OPEN_CV_SYNC_MODAL', handleOpenSyncModal);
@@ -394,7 +494,12 @@ const CandidateProfilePage = () => {
 
       setProcessingTasks((prev) => ({
         ...prev,
-        [resumeData.id]: { parsing: true, scoring: true },
+        [resumeData.id]: { 
+          parsing: true, 
+          scoring: true,
+          parsingStartTime: Date.now(),
+          scoringStartTime: Date.now()
+        },
       }));
 
       const newResume = {
@@ -420,6 +525,9 @@ const CandidateProfilePage = () => {
       setSelectedResumeId(resumeData.id);
       cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
+
+      // CRITICAL: Force refresh context so other tabs/pages see the new resume immediately
+      fetchCandidateProfile({ forceRefresh: true });
     },
     onError: (err: unknown) => {
       const errorMsg =
@@ -704,7 +812,9 @@ const CandidateProfilePage = () => {
 
   useEffect(() => {
     setTitle('Profile');
-  }, [setTitle]);
+    // Ensure we have fresh data on mount to avoid stale context issues
+    fetchCandidateProfile({ forceRefresh: true });
+  }, [setTitle, fetchCandidateProfile]);
 
   useEffect(() => {
     setProfile(candidateProfile || null);

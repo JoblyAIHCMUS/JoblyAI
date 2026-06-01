@@ -81,14 +81,10 @@ const CV = forwardRef<CVRef, CVProps>(
     const { createDownloadUrl } = useCreateDownloadUrl();
 
     // Any AI task in progress makes the whole CV section "busy" for general actions (like upload)
-    const isAnyAiProcessing = Object.values(processingTasks).some(
-      (t) => t.parsing || t.scoring
-    );
     const isBusy =
       isUploading ||
       isUpdating ||
       isDeleting ||
-      isAnyAiProcessing ||
       !!deletingResumeId;
 
     const resumeCount = resumes?.length || 0;
@@ -333,9 +329,8 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          isBusy ||
-                          processingTasks[resume.id]?.parsing ||
-                          processingTasks[resume.id]?.scoring
+                          (!resume.parsedText && isBusy) ||
+                          (processingTasks[resume.id]?.parsing && !resume.parsedText)
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -364,7 +359,9 @@ const CV = forwardRef<CVRef, CVProps>(
                             )}
                           />
                         )}
-                        {resume.isSyncedToProfile
+                        {processingTasks[resume.id]?.parsing
+                          ? 'Extracting...'
+                          : resume.isSyncedToProfile
                           ? 'View Sync'
                           : resume.parsedText
                           ? 'Review & Sync'
@@ -394,15 +391,16 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          isBusy ||
-                          processingTasks[resume.id]?.parsing ||
-                          processingTasks[resume.id]?.scoring
+                          (!(resume.aiScore !== undefined && resume.aiScore !== null) &&
+                            isBusy) ||
+                          (processingTasks[resume.id]?.scoring &&
+                            !(resume.aiScore !== undefined && resume.aiScore !== null))
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
                           resume.aiScore !== undefined &&
                             resume.aiScore !== null
-                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-blue-100' // Consistent hover
                             : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
                         )}
                         aria-label="Score Resume"
@@ -418,7 +416,10 @@ const CV = forwardRef<CVRef, CVProps>(
                         ) : (
                           <Wand2 size={14} />
                         )}
-                        {resume.aiScore !== undefined && resume.aiScore !== null
+                        {processingTasks[resume.id]?.scoring
+                          ? 'Scoring...'
+                          : resume.aiScore !== undefined &&
+                            resume.aiScore !== null
                           ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
                           : 'Score Resume'}
                       </button>
