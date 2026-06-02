@@ -13,6 +13,7 @@ import {
 } from '../../../components/shared/GoogleAuthButton';
 import { useLogin } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
+import { authClient } from '../../../../lib/auth-client';
 
 import { Eye, EyeOff, Check } from 'lucide-react-native';
 
@@ -22,6 +23,39 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: session } = await authClient.getSession();
+      const role = session?.user?.role;
+
+      if (role === 'employer') {
+        router.replace('/pages/employer/dashboard');
+      } else if (role === 'candidate') {
+        router.replace('/pages/candidate/dashboard');
+      } else {
+        router.replace('/');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Google Sign-In Failed',
+        text2:
+          error instanceof Error
+            ? error.message
+            : 'Unable to complete Google sign-in',
+      });
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim()) {
@@ -43,7 +77,7 @@ const LoginPage = () => {
     }
 
     try {
-      const result = await login({ email, password });
+      const result = await login({ email, password, rememberMe });
       Toast.show({
         type: 'success',
         text1: 'Success',
@@ -84,7 +118,10 @@ const LoginPage = () => {
 
         {/* Google Login */}
         <View className="px-6 text-indigo-700">
-          <GoogleAuthButton label="Log in with Google" />
+          <GoogleAuthButton
+            label="Log in with Google"
+            onPress={handleGoogleLogin}
+          />
         </View>
 
         <View className="px-6">

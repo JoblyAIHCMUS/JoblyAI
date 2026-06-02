@@ -1,7 +1,15 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
 
@@ -10,6 +18,12 @@ import {
   TwitterIcon,
 } from '../../../components/shared/svgs/Icons';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
+import type {
+  CandidateEducation,
+  CandidateExperience,
+  CandidateProfileResponse,
+} from '../../../../types/candidate';
 
 function HeaderIcon({
   children,
@@ -115,11 +129,13 @@ function SimplePlus() {
   );
 }
 
-function AvatarPhoto() {
+function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
+  const imageUri = avatarUrl?.trim() || 'https://i.pravatar.cc/240?img=12';
+
   return (
     <View className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
       <Image
-        source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
+        source={{ uri: imageUri }}
         className="h-full w-full"
         resizeMode="cover"
       />
@@ -135,8 +151,156 @@ function SectionAction() {
   );
 }
 
+function formatDate(value?: string): string {
+  if (!value) return '';
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatDateRange(startDate?: string, endDate?: string): string {
+  const start = formatDate(startDate);
+  const end = endDate ? formatDate(endDate) : 'Present';
+
+  if (!start && !endDate) return 'Date not specified';
+  if (!start) return end;
+  return `${start} - ${end}`;
+}
+
+function getDisplayName(profile?: CandidateProfileResponse): string {
+  if (!profile) return 'Candidate';
+
+  const full = profile.name?.trim();
+  if (full) return full;
+
+  const name = [profile.firstName, profile.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  if (name) return name;
+
+  return 'Candidate';
+}
+
 export default function CandidatePublicProfileScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const {
+    data: profile,
+    isPending,
+    isFetching,
+    error,
+    refetch,
+  } = useGetCandidateProfile();
+
+  const displayName = useMemo(() => getDisplayName(profile), [profile]);
+  const headline = profile?.about?.title?.trim() || 'Candidate';
+  const location = profile?.location?.trim() || 'Location not specified';
+  const aboutText =
+    profile?.about?.bio?.trim() ||
+    'Complete your profile in the web app to add your professional summary.';
+  const experiences = profile?.experiences ?? [];
+  const educations = profile?.educations ?? [];
+  const skills = profile?.skills ?? [];
+  const email = profile?.email || 'Not provided';
+  const phone = profile?.phoneNumber?.trim() || 'Not provided';
+
+  const socials = profile?.socials ?? [];
+  const instagram = socials.find((social) =>
+    social.platform.toLowerCase().includes('instagram')
+  );
+  const twitter = socials.find((social) =>
+    social.platform.toLowerCase().includes('twitter')
+  );
+
+  const topExperiences = experiences.slice(0, 3);
+  const topEducations = educations.slice(0, 3);
+
+  const renderExperience = (experience: CandidateExperience) => {
+    return (
+      <View key={experience.id} className="flex-row gap-3 pb-2.5">
+        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#1d9bf0]">
+          <TwitterIcon />
+        </View>
+        <View className="flex-1">
+          <Text className="text-base font-bold tracking-tight text-[#1f2535]">
+            {experience.jobTitle}
+          </Text>
+          <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
+            {experience.companyName}
+            {experience.type
+              ? ` • ${experience.type.replaceAll('_', ' ')}`
+              : ''}
+          </Text>
+          <Text className="mt-1 text-sm text-[#6b7280]">
+            {formatDateRange(experience.startDate, experience.endDate)}
+          </Text>
+          {!!experience.location && (
+            <Text className="mt-0.5 text-sm text-[#6b7280]">
+              {experience.location}
+            </Text>
+          )}
+          {!!experience.description && (
+            <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
+              {experience.description}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  const renderEducation = (education: CandidateEducation) => {
+    return (
+      <View key={education.id} className="flex-row gap-3 pb-2.5">
+        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#981b1e]">
+          <Text className="text-xs font-bold text-white">
+            {education.school.slice(0, 2).toUpperCase()}
+          </Text>
+        </View>
+        <View className="flex-1">
+          <Text className="text-base font-bold tracking-[-0.2px] text-[#1f2535]">
+            {education.school}
+          </Text>
+          <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
+            {[education.degree, education.fieldOfStudy]
+              .filter(Boolean)
+              .join(', ') || 'Education'}
+          </Text>
+          <Text className="mt-1 text-sm text-[#6b7280]">
+            {formatDateRange(education.startDate, education.endDate)}
+          </Text>
+          {!!education.description && (
+            <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
+              {education.description}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  if (isPending && !profile) {
+    return (
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={['top', 'left', 'right']}
+      >
+        <Stack.Screen options={{ headerShown: false }} />
+        <StatusBar style="dark" />
+        <View className="flex-1 items-center justify-center gap-3">
+          <ActivityIndicator size="large" color="#4f46e5" />
+          <Text className="text-sm font-medium text-[#4c5466]">
+            Loading your profile...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -146,6 +310,14 @@ export default function CandidatePublicProfileScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={() => {
+              void refetch();
+            }}
+          />
+        }
       >
         <View className="px-3 pt-1">
           <View className="flex-row items-center justify-between pb-3">
@@ -175,7 +347,7 @@ export default function CandidatePublicProfileScreen() {
         <View className="px-3">
           <View className="relative pt-14">
             <View className="absolute left-1/2 top-0 z-30 -ml-14">
-              <AvatarPhoto />
+              <AvatarPhoto avatarUrl={profile?.avatarUrl} />
             </View>
 
             <Card className="overflow-hidden">
@@ -196,24 +368,38 @@ export default function CandidatePublicProfileScreen() {
 
               <View className="items-start px-3 pb-3 pt-18">
                 <Text className="text-2xl font-bold tracking-tight text-[#20263a]">
-                  Jake Gyll
+                  {displayName}
                 </Text>
                 <Text className="mt-1 text-sm font-medium text-[#6c7281]">
-                  Product Designer at Twitter
+                  {headline}
                 </Text>
 
                 <View className="mt-1.5 flex-row items-center gap-2">
                   <SimpleLocation />
                   <Text className="text-sm font-medium text-[#5f6575]">
-                    Manchester, UK
+                    {location}
                   </Text>
                 </View>
 
-                <View className="mt-2 rounded-sm bg-[#d1f6ef] px-3 py-2">
+                <View
+                  className={`mt-2 rounded-sm px-3 py-2 ${
+                    profile?.openForOpportunities
+                      ? 'bg-[#d1f6ef]'
+                      : 'bg-[#f3f4f6]'
+                  }`}
+                >
                   <View className="flex-row items-center justify-center gap-2">
                     <SimpleFlag />
-                    <Text className="text-sm font-medium tracking-wide text-[#11a7a2]">
-                      OPEN FOR OPPORTUNITIES
+                    <Text
+                      className={`text-sm font-medium tracking-wide ${
+                        profile?.openForOpportunities
+                          ? 'text-[#11a7a2]'
+                          : 'text-[#6b7280]'
+                      }`}
+                    >
+                      {profile?.openForOpportunities
+                        ? 'OPEN FOR OPPORTUNITIES'
+                        : 'NOT OPEN TO NEW OPPORTUNITIES'}
                     </Text>
                   </View>
                 </View>
@@ -221,9 +407,12 @@ export default function CandidatePublicProfileScreen() {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   className="mt-2.5 h-9 w-full items-center justify-center rounded-sm border border-[#d7ddfb] bg-white"
+                  onPress={() => {
+                    void refetch();
+                  }}
                 >
                   <Text className="text-sm font-semibold text-[#5758e7]">
-                    Edit Profile
+                    Refresh Profile
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -231,19 +420,21 @@ export default function CandidatePublicProfileScreen() {
           </View>
         </View>
 
+        {error && (
+          <View className="mt-4 px-3">
+            <Card className="px-3 py-2.5 bg-[#fef2f2] border-[#fecaca]">
+              <Text className="text-sm text-[#b91c1c]">
+                Failed to load profile from backend. Pull down to retry.
+              </Text>
+            </Card>
+          </View>
+        )}
+
         <View className="mt-5 px-3">
           <SectionHeader title="About Me" action={<SectionAction />} />
           <Card className="px-3 py-2.5">
             <Text className="text-sm leading-5 tracking-tight text-[#4c5466]">
-              I&apos;m a product designer + filmmaker currently working remotely
-              at Twitter from beautiful Manchester, United Kingdom. I&apos;m
-              passionate about designing digital products that have a positive
-              impact on the world.
-            </Text>
-            <Text className="mt-2.5 text-sm leading-5 tracking-tight text-[#4c5466]">
-              For 10 years, I&apos;ve specialised in interface, experience &
-              interaction design as well as working in user research and product
-              strategy for product agencies, big tech companies & start-ups.
+              {aboutText}
             </Text>
           </Card>
         </View>
@@ -262,70 +453,32 @@ export default function CandidatePublicProfileScreen() {
           />
 
           <Card className="px-3 py-2.5">
-            <View className="flex-row gap-3 pb-2.5">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-[#1d9bf0]">
-                <TwitterIcon />
-              </View>
-              <View className="flex-1">
-                <Text className="text-base font-bold tracking-tight text-[#1f2535]">
-                  Product Designer
-                </Text>
-                <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-                  Twitter • Full-Time
-                </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">
-                  Jun 2019 - Present
-                </Text>
-                <Text className="mt-0.5 text-sm text-[#6b7280]">
-                  Manchester, UK
-                </Text>
-                <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
-                  Created and executed social media plan for 10 brands utilizing
-                  multiple features and content types to increase brand
-                  outreach, engagement, and leads.
-                </Text>
-              </View>
-            </View>
-
-            <View className="my-2.5 h-px bg-[#dfe3f1]" />
-
-            <View className="flex-row gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-white">
-                <Text className="text-2xl font-black tracking-tight text-[#111111]">
-                  g
-                </Text>
-              </View>
-              <View className="flex-1">
-                <View className="absolute right-0 top-0">
-                  <SectionAction />
-                </View>
-                <Text className="text-base font-bold tracking-tight text-[#1f2535]">
-                  Growth Marketing Designer
-                </Text>
-                <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-                  GoDaddy • Full-Time
-                </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">
-                  Jun 2011 - May 2019
-                </Text>
-                <Text className="mt-0.5 text-sm text-[#6b7280]">
-                  Manchester, UK
-                </Text>
-                <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
-                  Developed digital marketing strategies, activation plans,
-                  proposals, contests and promotions for client initiatives.
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="mt-2.5 items-center"
-            >
-              <Text className="text-xs font-bold text-[#5758e7]">
-                Show 3 more experiences
+            {topExperiences.length === 0 ? (
+              <Text className="text-sm text-[#6b7280]">
+                No experience added yet.
               </Text>
-            </TouchableOpacity>
+            ) : (
+              topExperiences.map((experience, index) => (
+                <View key={experience.id}>
+                  {renderExperience(experience)}
+                  {index < topExperiences.length - 1 && (
+                    <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                  )}
+                </View>
+              ))
+            )}
+
+            {experiences.length > topExperiences.length && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                className="mt-2.5 items-center"
+              >
+                <Text className="text-xs font-bold text-[#5758e7]">
+                  Show {experiences.length - topExperiences.length} more
+                  experiences
+                </Text>
+              </TouchableOpacity>
+            )}
           </Card>
         </View>
 
@@ -343,59 +496,32 @@ export default function CandidatePublicProfileScreen() {
           />
 
           <Card className="px-3 py-2.5">
-            <View className="flex-row gap-3 pb-2.5">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-[#981b1e]">
-                <Text className="text-xs font-bold text-white">HARVARD</Text>
-              </View>
-              <View className="flex-1">
-                <View className="absolute right-0 top-0">
-                  <SectionAction />
-                </View>
-                <Text className="text-base font-bold tracking-[-0.2px] text-[#1f2535]">
-                  Harvard University
-                </Text>
-                <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-                  Postgraduate degree, Applied Psychology
-                </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">2010 - 2012</Text>
-                <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
-                  As an Applied Psychologist in the field of Consumer and
-                  Society, I am specialized in creating business opportunities
-                  by observing, analysing, researching and changing behaviour.
-                </Text>
-              </View>
-            </View>
-
-            <View className="my-2.5 h-px bg-[#dfe3f1]" />
-
-            <View className="flex-row gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-[#0d2f64]">
-                <Text className="text-xs font-bold tracking-wide text-white">
-                  TORONTO
-                </Text>
-              </View>
-              <View className="flex-1">
-                <View className="absolute right-0 top-0">
-                  <SectionAction />
-                </View>
-                <Text className="text-base font-bold tracking-[-0.2px] text-[#1f2535]">
-                  University of Toronto
-                </Text>
-                <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-                  Bachelor of Arts, Visual Communication
-                </Text>
-                <Text className="mt-1 text-sm text-[#6b7280]">2005 - 2009</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="mt-2.5 items-center"
-            >
-              <Text className="text-xs font-bold text-[#5758e7]">
-                Show 2 more educations
+            {topEducations.length === 0 ? (
+              <Text className="text-sm text-[#6b7280]">
+                No education added yet.
               </Text>
-            </TouchableOpacity>
+            ) : (
+              topEducations.map((education, index) => (
+                <View key={education.id}>
+                  {renderEducation(education)}
+                  {index < topEducations.length - 1 && (
+                    <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                  )}
+                </View>
+              ))
+            )}
+
+            {educations.length > topEducations.length && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                className="mt-2.5 items-center"
+              >
+                <Text className="text-xs font-bold text-[#5758e7]">
+                  Show {educations.length - topEducations.length} more
+                  educations
+                </Text>
+              </TouchableOpacity>
+            )}
           </Card>
         </View>
 
@@ -414,22 +540,22 @@ export default function CandidatePublicProfileScreen() {
 
           <Card className="px-3 py-2.5">
             <View className="flex-row flex-wrap gap-2">
-              {[
-                'Communication',
-                'Analytics',
-                'Facebook Ads',
-                'Content Planning',
-                'Community Manager',
-              ].map((skill) => (
-                <View
-                  key={skill}
-                  className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
-                >
-                  <Text className="text-xs font-medium text-[#4e5cf0]">
-                    {skill}
-                  </Text>
-                </View>
-              ))}
+              {skills.length === 0 ? (
+                <Text className="text-sm text-[#6b7280]">
+                  No skills added yet.
+                </Text>
+              ) : (
+                skills.map((skill) => (
+                  <View
+                    key={skill.id}
+                    className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
+                  >
+                    <Text className="text-xs font-medium text-[#4e5cf0]">
+                      {skill.name}
+                    </Text>
+                  </View>
+                ))
+              )}
             </View>
           </Card>
         </View>
@@ -446,9 +572,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="text-xs font-medium text-[#556070]">
                   Email
                 </Text>
-                <Text className="mt-1 text-sm text-[#4e5cf0]">
-                  jakegyll@email.com
-                </Text>
+                <Text className="mt-1 text-sm text-[#4e5cf0]">{email}</Text>
               </View>
             </View>
 
@@ -460,9 +584,7 @@ export default function CandidatePublicProfileScreen() {
                 <Text className="text-xs font-medium text-[#556070]">
                   Phone
                 </Text>
-                <Text className="mt-1 text-sm text-[#1f2937]">
-                  +44 1245 572 135
-                </Text>
+                <Text className="mt-1 text-sm text-[#1f2937]">{phone}</Text>
               </View>
             </View>
           </Card>
@@ -478,7 +600,7 @@ export default function CandidatePublicProfileScreen() {
                   Instagram
                 </Text>
                 <Text className="mt-1 text-sm text-[#4e5cf0]">
-                  instagram.com/jakegyll
+                  {instagram?.url || 'Not added'}
                 </Text>
               </View>
             </View>
@@ -492,7 +614,7 @@ export default function CandidatePublicProfileScreen() {
                   Twitter
                 </Text>
                 <Text className="mt-1 text-sm text-[#4e5cf0]">
-                  twitter.com/jakegyll
+                  {twitter?.url || 'Not added'}
                 </Text>
               </View>
             </View>

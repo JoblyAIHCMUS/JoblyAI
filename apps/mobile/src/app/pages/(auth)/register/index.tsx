@@ -14,6 +14,7 @@ import {
 import { useSignup } from '../../../../hooks/useAuth';
 import { router } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { authClient } from '../../../../lib/auth-client';
 
 type UserType = 'job-seeker' | 'employer';
 
@@ -27,6 +28,39 @@ const RegisterPage = () => {
   const [userType, setUserType] = useState<UserType>('job-seeker');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleGoogleSignup = async () => {
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: session } = await authClient.getSession();
+      const role = session?.user?.role;
+
+      if (role === 'employer') {
+        router.replace('/pages/employer/dashboard');
+      } else if (role === 'candidate') {
+        router.replace('/pages/candidate/dashboard');
+      } else {
+        router.replace('/');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Google Sign-Up Failed',
+        text2:
+          error instanceof Error
+            ? error.message
+            : 'Unable to complete Google sign-up',
+      });
+    }
+  };
 
   const handleSignup = async () => {
     if (!firstName.trim()) {
@@ -147,7 +181,10 @@ const RegisterPage = () => {
 
         {/* Google Signup */}
         <View className="px-6 text-indigo-700">
-          <GoogleAuthButton label="Sign Up with Google" />
+          <GoogleAuthButton
+            label="Sign Up with Google"
+            onPress={handleGoogleSignup}
+          />
         </View>
 
         <View className="px-6">

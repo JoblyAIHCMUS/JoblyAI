@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../api/config';
-import axios from 'axios';
+import { authClient } from '../lib/auth-client';
 
 export type User = {
   id: string;
@@ -14,26 +12,13 @@ export type User = {
 };
 
 export function useUser() {
-  return useQuery<User | null, Error>({
-    queryKey: ['user'],
-    queryFn: async ({ signal }) => {
-      try {
-        const response = await apiClient.get<User>('/user/me', { signal });
-        return response.data;
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-          return null;
-        }
-        throw error;
-      }
-    },
-    retry: (failureCount, error) => {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        return false;
-      }
-      return failureCount < 1;
-    },
-  });
+  const session = authClient.useSession();
+
+  return {
+    ...session,
+    data: session.data?.user as User | null | undefined,
+    session: session.data ?? null,
+  };
 }
 
 /**

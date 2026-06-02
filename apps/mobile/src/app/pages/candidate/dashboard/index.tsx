@@ -543,7 +543,7 @@ function RecentApplicationsSection({
 }
 
 export default function CandidateDashboard() {
-  const { data: user } = useUser();
+  const { data: user, isPending: isSessionPending } = useUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -573,10 +573,6 @@ export default function CandidateDashboard() {
       ),
     [allApplications, currentWeekRange.end, currentWeekRange.start]
   );
-
-  useEffect(() => {
-    console.log('Sidebar isOpen:', isSidebarOpen);
-  }, [isSidebarOpen]);
 
   const recentApplications = useMemo(
     () =>
@@ -610,10 +606,23 @@ export default function CandidateDashboard() {
   }, [fetchApplications]);
 
   useEffect(() => {
-    if (!applicationsResult && !applicationsLoading) {
-      void fetchApplications({ pageSize: 100 });
+    if (
+      isSessionPending ||
+      !user ||
+      applicationsLoading ||
+      applicationsResult
+    ) {
+      return;
     }
-  }, [applicationsLoading, applicationsResult, fetchApplications]);
+
+    void fetchApplications({ pageSize: 100 });
+  }, [
+    applicationsLoading,
+    applicationsResult,
+    fetchApplications,
+    isSessionPending,
+    user,
+  ]);
 
   return (
     <SafeAreaView
