@@ -4,7 +4,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
-  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
   MoreHorizontal,
   Eye,
   ChevronRight,
@@ -15,7 +16,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,29 +40,6 @@ export { nextStageMap };
 
 export const columns: ColumnDef<AllApplication>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    meta: { className: 'text-center' },
-  },
-  {
     accessorKey: 'name',
     header: ({ column }) => (
       <Button
@@ -70,7 +47,12 @@ export const columns: ColumnDef<AllApplication>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Name
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     sortingFn: (rowA, rowB) => {
@@ -109,7 +91,12 @@ export const columns: ColumnDef<AllApplication>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Applied Role
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => row.getValue<string>('appliedRole'),
@@ -123,7 +110,12 @@ export const columns: ColumnDef<AllApplication>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Applied Date
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => formatDate(row.getValue<string>('appliedDate')),
@@ -137,7 +129,12 @@ export const columns: ColumnDef<AllApplication>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Score
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => (
@@ -155,7 +152,12 @@ export const columns: ColumnDef<AllApplication>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Hiring Stage
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     sortingFn: (rowA, rowB) => {
