@@ -3,6 +3,7 @@ import { apiClient } from './config';
 export interface LoginPayload {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface SignupPayload {

@@ -1,14 +1,6 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
-
-// Handle Expo environment variables and Android emulator networking
-const baseUrl =
-  Platform.OS === 'android'
-    ? process.env.EXPO_PUBLIC_API_URL?.replace('localhost', '10.0.2.2') ||
-      'http://10.0.2.2:3000/api'
-    : process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
-
-export const API_BASE_URL = baseUrl;
+import { authClient } from '../lib/auth-client';
+import { API_BASE_URL } from '../lib/api-base';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -16,4 +8,20 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Needed for cookie-based auth
+});
+
+apiClient.interceptors.request.use(async (config) => {
+  const cookies = authClient.getCookie();
+
+  if (cookies) {
+    config.headers = config.headers ?? {};
+
+    if (typeof config.headers.set === 'function') {
+      config.headers.set('Cookie', cookies);
+    } else {
+      config.headers.Cookie = cookies;
+    }
+  }
+
+  return config;
 });
