@@ -15,6 +15,7 @@ import { ApplicationHistoryRow } from '@/components/candidate/applicationHistory
 import { ApplicationFilter, ApplicationItem } from '@/types/candidate';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
 import { useInitializeConversation } from '@/api-hook/messages';
+import { useWithdrawApplication } from '@/api-hook/application';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';
 import { useDashboardInsights } from './hooks/useDashboardInsights';
@@ -47,7 +48,10 @@ export default function CandidateDashboardPage() {
     filteredApplications,
     statusMeta,
     filterMeta,
+    reloadApplications,
   } = useCandidateDashboard();
+
+  const { withdrawApplication } = useWithdrawApplication();
 
   const recentApplications = useMemo(
     () => filteredApplications.slice(0, 10),
@@ -87,6 +91,33 @@ export default function CandidateDashboardPage() {
     } catch (error) {
       console.error('Error initiating conversation:', error);
       // Error toast is already shown via the hook's onError callback
+    }
+  };
+
+  const handleMoreActionSelect = async (
+    option: string,
+    item: ApplicationItem
+  ) => {
+    if (option !== 'Withdraw application') {
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to withdraw this application?')) {
+      return;
+    }
+
+    const applicationId = Number(item.id);
+    if (Number.isNaN(applicationId)) {
+      return;
+    }
+
+    try {
+      await withdrawApplication(applicationId);
+      reloadApplications();
+      toast.success('Successfully withdrawn application');
+    } catch (error) {
+      console.error('[CandidateDashboardPage] Withdraw failed', { error });
+      toast.error('Failed to withdraw application. Please try again.');
     }
   };
 
@@ -176,6 +207,7 @@ export default function CandidateDashboardPage() {
                 index={index}
                 tinted={tinted}
                 statusMeta={statusMeta}
+                onMoreActionSelect={handleMoreActionSelect}
                 onMessageRecruiter={handleMessageRecruiter}
               />
             )}

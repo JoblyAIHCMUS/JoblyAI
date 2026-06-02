@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 
@@ -7,6 +7,7 @@ import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
 import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
 import { formatCreatedAtForDisplay } from '@/lib/candidateDate';
 import { getInitials } from '@/lib/utils';
+import { isClosedApplicationStatus } from '@/lib/candidateStatus';
 
 type ApplicationHistoryRowProps = {
   item: ApplicationItem;
@@ -91,7 +92,11 @@ function MoreActionsMenu({
             <button
               key={option}
               type="button"
-              className="block w-full rounded px-3 py-2 text-left text-sm text-[#25324b] hover:bg-[#f8f8fd]"
+              className={`block w-full rounded px-3 py-2 text-left text-sm hover:bg-[#f8f8fd] ${
+                option === 'Withdraw application'
+                  ? 'text-[#ff6550] hover:bg-[#fff1f0]'
+                  : 'text-[#25324b]'
+              }`}
               onClick={() => {
                 onSelect?.(option, item);
                 setIsOpen(false);
@@ -120,6 +125,21 @@ export function ApplicationHistoryRow({
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
 
+  // Filter out "Withdraw application" if the job is already closed or candidate was rejected/offered
+  const filteredOptions = useMemo(() => {
+    if (moreActionOptions !== DEFAULT_MORE_ACTION_OPTIONS) {
+      return moreActionOptions;
+    }
+
+    if (isClosedApplicationStatus(item.status)) {
+      return DEFAULT_MORE_ACTION_OPTIONS.filter(
+        (opt) => opt !== 'Withdraw application'
+      );
+    }
+
+    return DEFAULT_MORE_ACTION_OPTIONS;
+  }, [item.status, moreActionOptions]);
+
   const handleRowClick = () => {
     // If the job is closed (deleted), navigating might lead to a 404.
     // However, we allow navigation so the user can see the 404/Not Found page
@@ -131,7 +151,9 @@ export function ApplicationHistoryRow({
     option: string,
     currentItem: ApplicationItem
   ) => {
-    if (option === 'Message recruiter' && onMessageRecruiter) {
+    if (option === 'View details') {
+      router.push(`/candidate/find-jobs/${currentItem.jobId}`);
+    } else if (option === 'Message recruiter' && onMessageRecruiter) {
       onMessageRecruiter(currentItem);
     }
     onMoreActionSelect?.(option, currentItem);
@@ -177,7 +199,7 @@ export function ApplicationHistoryRow({
             <div onClick={(e) => e.stopPropagation()}>
               <MoreActionsMenu
                 item={item}
-                options={moreActionOptions}
+                options={filteredOptions}
                 onSelect={handleMoreActionSelect}
               />
             </div>
@@ -241,7 +263,7 @@ export function ApplicationHistoryRow({
           <div onClick={(e) => e.stopPropagation()}>
             <MoreActionsMenu
               item={item}
-              options={moreActionOptions}
+              options={filteredOptions}
               onSelect={handleMoreActionSelect}
             />
           </div>

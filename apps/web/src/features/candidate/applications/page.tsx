@@ -105,6 +105,10 @@ export default function CandidateApplicationsPage() {
       return;
     }
 
+    if (!window.confirm('Are you sure you want to withdraw this application?')) {
+      return;
+    }
+
     const applicationId = Number(item.id);
     if (Number.isNaN(applicationId)) {
       return;
@@ -113,8 +117,10 @@ export default function CandidateApplicationsPage() {
     try {
       await withdrawApplication(applicationId);
       reloadApplications();
+      toast.success('Successfully withdrawn application');
     } catch (error) {
       console.error('[CandidateApplicationsPage] Withdraw failed', { error });
+      toast.error('Failed to withdraw application. Please try again.');
     }
   };
 

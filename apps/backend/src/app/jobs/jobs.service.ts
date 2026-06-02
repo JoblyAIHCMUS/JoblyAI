@@ -494,6 +494,49 @@ export class JobsService {
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
+  async getSimilarJobs(
+    id: number,
+    limit = 6
+  ): Promise<JobPostingInterface[]> {
+    const job = await this.prisma.jobPosting.findUnique({
+      where: { id },
+      select: { categoryId: true, title: true }
+    });
+
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+
+    // Basic similarity: same category
+    // Advance implementation would use vector search or at least keyword matching
+    const similarJobs = await this.prisma.jobPosting.findMany({
+      where: {
+        categoryId: job.categoryId,
+        id: { not: id },
+        status: 'OPEN',
+        deletedAt: null,
+      },
+      include: {
+        category: true,
+        company: true,
+        requirements: {
+          include: {
+            skill: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return similarJobs.map((job) => this.mapToJobResponse(job));
+  }
+
   async getCategories(): Promise<
     Array<{ id: number; name: string; slug: string; iconKey: string | null }>
   > {

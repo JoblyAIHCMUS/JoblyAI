@@ -199,4 +199,12 @@ export class JobsController {
   async getJobsByCategoryId(@Param('id', ParseIntPipe) categoryId: number) {
     return this.jobsService.getJobsByCategoryId(categoryId);
   }
+
+  @Get(':id/similar')
+  async getSimilarJobs(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+  ) {
+    return this.jobsService.getSimilarJobs(id, limit);
+  }
 }

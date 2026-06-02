@@ -21,6 +21,7 @@ export {
   getJobById,
   getJobsByCategory,
   getPopularJobCategories,
+  getSimilarJobs,
 } from '@/api-client/jobs/public';
 
 // Employer endpoints (auth required)
