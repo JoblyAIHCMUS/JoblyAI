@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
-import type { ApplicationTab } from '../types';
+import type { ApplicationTab } from '../../dashboard/types';
 
 interface ApplicationsEmptyStateProps {
   activeTab: ApplicationTab;

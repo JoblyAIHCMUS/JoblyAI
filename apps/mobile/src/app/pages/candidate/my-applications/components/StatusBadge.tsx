@@ -2,36 +2,36 @@ import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
-import type { ApplicationStatus } from '../types';
+import type { ApplicationStatus } from '../../dashboard/types';
 
 const STATUS_META: Record<
   ApplicationStatus,
   { label: string; containerClassName: string; textClassName: string }
 > = {
-  IN_REVIEW: {
-    label: 'In Review',
+  APPLIED: {
+    label: 'Applied',
     containerClassName: 'bg-app-indigo-soft',
     textClassName: 'text-app-indigo-strong',
   },
-  INTERVIEWING: {
-    label: 'Interviewing',
+  INTERVIEW: {
+    label: 'Interview',
     containerClassName: 'bg-app-amber-1/20',
     textClassName: 'text-app-orange-1',
   },
-  OFFERED: {
-    label: 'Offered',
+  OFFER: {
+    label: 'Offer',
     containerClassName: 'bg-app-emerald-1',
     textClassName: 'text-app-emerald-2',
-  },
-  HIRED: {
-    label: 'Hired',
-    containerClassName: 'bg-app-background-1',
-    textClassName: 'text-app-primary-2',
   },
   REJECTED: {
     label: 'Rejected',
     containerClassName: 'bg-app-red-1/10',
     textClassName: 'text-app-red-2',
+  },
+  WITHDRAWN: {
+    label: 'Withdrawn',
+    containerClassName: 'bg-app-background-2',
+    textClassName: 'text-app-text-5',
   },
 };
 

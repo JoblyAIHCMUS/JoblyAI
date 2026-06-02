@@ -4,26 +4,55 @@ import { View } from 'react-native';
 import { Text } from '../../../../../components/ui/text';
 
 import { StatusBadge } from './StatusBadge';
-import type { ApplicationItem } from '../types';
-import { formatLongDate, getInitials } from '../utils';
+import type { ApplicationItem } from '../../dashboard/types';
+import { formatLongDate, getInitials } from '../../dashboard/utils';
+
+const LOGO_COLORS = [
+  { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  { bg: 'bg-amber-100', text: 'text-amber-700' },
+  { bg: 'bg-rose-100', text: 'text-rose-700' },
+  { bg: 'bg-sky-100', text: 'text-sky-700' },
+  { bg: 'bg-violet-100', text: 'text-violet-700' },
+  { bg: 'bg-teal-100', text: 'text-teal-700' },
+  { bg: 'bg-orange-100', text: 'text-orange-700' },
+];
+
+function getLogoColors(company: string) {
+  let hash = 0;
+  for (let i = 0; i < company.length; i++) {
+    hash = company.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return LOGO_COLORS[Math.abs(hash) % LOGO_COLORS.length];
+}
 
 interface ApplicationCardProps {
   application: ApplicationItem;
 }
 
 export function ApplicationCard({ application }: ApplicationCardProps) {
+  const colors = getLogoColors(application.company);
+
   return (
     <View className="rounded-2xl border border-app-border-light bg-white px-4 py-4 shadow-sm shadow-black/5">
       <View className="flex-row items-start gap-3">
-        <View
-          className={`h-12 w-12 items-center justify-center rounded-2xl ${application.logoBackgroundClassName}`}
-        >
-          <Text
-            className={`text-sm font-extrabold tracking-wide ${application.logoTextClassName}`}
+        {application.logoUrl ? (
+          <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-2xl">
+            <Text className="text-sm font-extrabold text-app-text-4">
+              {getInitials(application.company)}
+            </Text>
+          </View>
+        ) : (
+          <View
+            className={`h-12 w-12 items-center justify-center rounded-2xl ${colors.bg}`}
           >
-            {getInitials(application.company)}
-          </Text>
-        </View>
+            <Text
+              className={`text-sm font-extrabold tracking-wide ${colors.text}`}
+            >
+              {getInitials(application.company)}
+            </Text>
+          </View>
+        )}
 
         <View className="flex-1 gap-1">
           <Text className="text-[17px] font-bold leading-6 text-app-text-4" numberOfLines={2}>

@@ -9,8 +9,8 @@ import {
   formatInputDate,
   getDateRangeForPreset,
   parseDateInput,
-} from '../utils';
-import type { DatePreset, DateRangeInput } from '../types';
+} from '../../dashboard/utils';
+import type { DatePreset, DateRangeInput } from '../../dashboard/types';
 
 const QUICK_PRESETS: Array<{ key: DatePreset; label: string }> = [
   { key: 'TODAY', label: 'Today' },

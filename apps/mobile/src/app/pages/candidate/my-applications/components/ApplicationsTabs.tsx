@@ -2,11 +2,25 @@ import { ScrollView, Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
-import {
-  APPLICATION_TAB_LABELS,
-  APPLICATION_TABS,
-} from '../data/mockApplications';
-import type { ApplicationTab } from '../types';
+import type { ApplicationTab } from '../../dashboard/types';
+
+export const APPLICATION_TABS: ApplicationTab[] = [
+  'ALL',
+  'APPLIED',
+  'INTERVIEW',
+  'OFFER',
+  'REJECTED',
+  'WITHDRAWN',
+];
+
+export const APPLICATION_TAB_LABELS: Record<ApplicationTab, string> = {
+  ALL: 'All',
+  APPLIED: 'Applied',
+  INTERVIEW: 'Interview',
+  OFFER: 'Offer',
+  REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn',
+};
 
 interface ApplicationsTabsProps {
   activeTab: ApplicationTab;

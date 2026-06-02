@@ -1,31 +1,46 @@
-import { useCallback, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-
-import { ApplicationsEmptyState } from './ApplicationsEmptyState';
-import { ApplicationsFilterSheet } from './ApplicationsFilterSheet';
-import { ApplicationsHeader } from './ApplicationsHeader';
-import { ApplicationsTabs } from './ApplicationsTabs';
-import { ApplicationCard } from './ApplicationCard';
-import { FeatureBanner } from './FeatureBanner';
-import { SearchFilterBar } from './SearchFilterBar';
-import CandidateDashboardSidebar from './CandidateDashboardSidebar';
-import { Text } from '@/components/ui/text';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 import { Stack } from 'expo-router';
 
-import { MOCK_APPLICATIONS, APPLICATION_TABS } from '../data/mockApplications';
-import type { ApplicationTab, DatePreset } from '../types';
+import { ApplicationsEmptyState } from './components/ApplicationsEmptyState';
+import { ApplicationsFilterSheet } from './components/ApplicationsFilterSheet';
+import { ApplicationsHeader } from './components/ApplicationsHeader';
+import {
+  ApplicationsTabs,
+  APPLICATION_TABS,
+} from './components/ApplicationsTabs';
+import { ApplicationCard } from './components/ApplicationCard';
+import { FeatureBanner } from './components/FeatureBanner';
+import { SearchFilterBar } from './components/SearchFilterBar';
+import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { Text } from '@/components/ui/text';
+
+import { useListCandidateApplications } from '../../../../hooks/useListCandidateApplications';
+import type { CandidateApplicationRecord } from '../../../../types/application';
+import type { ApplicationItem, ApplicationTab, DatePreset } from '../dashboard/types';
 import {
   createDefaultDateRange,
   formatDateRangeLabel,
-  formatInputDate,
   getDateRangeForPreset,
   isWithinDateRange,
   parseDateInput,
   toDateRangeInput,
-} from '../utils';
-import { getGreetingName, useUser } from '../../../../../hooks/useUser';
+} from '../dashboard/utils';
+import { getGreetingName, useUser } from '../../../../hooks/useUser';
 
-export function MyApplicationsScreen() {
+function mapApplicationRecord(record: CandidateApplicationRecord): ApplicationItem {
+  return {
+    id: String(record.id),
+    title: record.job.title,
+    company: record.job.companyName ?? 'Unknown company',
+    location: record.job.location ?? (record.job.remote ? 'Remote' : 'Unknown'),
+    appliedAt: new Date(record.createdAt),
+    status: record.status,
+    logoUrl: record.job.companyLogoUrl ?? undefined,
+  };
+}
+
+export default function MyApplicationsPage() {
   const { data: user } = useUser();
   const firstName = getGreetingName(user) || 'Do';
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -37,6 +52,31 @@ export function MyApplicationsScreen() {
   const [appliedDateRange, setAppliedDateRange] = useState(createDefaultDateRange());
   const [draftDateRange, setDraftDateRange] = useState(toDateRangeInput(createDefaultDateRange()));
 
+  const { fetchApplications, loading, error } = useListCandidateApplications();
+  const [applications, setApplications] = useState<ApplicationItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const result = await fetchApplications();
+        if (!cancelled && result) {
+          setApplications(result.applications.map(mapApplicationRecord));
+        }
+      } catch {
+        if (!cancelled) {
+          setApplications([]);
+        }
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchApplications]);
+
   const greeting = new Date().getHours() < 12
     ? 'Good morning'
     : new Date().getHours() < 18
@@ -46,7 +86,7 @@ export function MyApplicationsScreen() {
   const filteredApplications = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return MOCK_APPLICATIONS.filter((application) => {
+    return applications.filter((application) => {
       const matchesTab = activeTab === 'ALL' ? true : application.status === activeTab;
       const matchesDate = isWithinDateRange(application.appliedAt, appliedDateRange);
       const matchesSearch = normalizedQuery
@@ -58,19 +98,19 @@ export function MyApplicationsScreen() {
 
       return matchesTab && matchesDate && matchesSearch;
     });
-  }, [activeTab, appliedDateRange, searchQuery]);
+  }, [activeTab, appliedDateRange, searchQuery, applications]);
 
   const tabCounts = useMemo(() => {
     return APPLICATION_TABS.reduce<Record<ApplicationTab, number>>(
       (counts, tab) => {
         if (tab === 'ALL') {
-          counts.ALL = MOCK_APPLICATIONS.filter((application) =>
+          counts.ALL = applications.filter((application) =>
             isWithinDateRange(application.appliedAt, appliedDateRange)
           ).length;
           return counts;
         }
 
-        counts[tab] = MOCK_APPLICATIONS.filter(
+        counts[tab] = applications.filter(
           (application) =>
             application.status === tab &&
             isWithinDateRange(application.appliedAt, appliedDateRange)
@@ -80,14 +120,14 @@ export function MyApplicationsScreen() {
       },
       {
         ALL: 0,
-        IN_REVIEW: 0,
-        INTERVIEWING: 0,
-        OFFERED: 0,
-        HIRED: 0,
+        APPLIED: 0,
+        INTERVIEW: 0,
+        OFFER: 0,
         REJECTED: 0,
+        WITHDRAWN: 0,
       }
     );
-  }, [appliedDateRange]);
+  }, [appliedDateRange, applications]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -199,10 +239,25 @@ export function MyApplicationsScreen() {
             </View>
           }
           ListEmptyComponent={
-            <ApplicationsEmptyState
-              activeTab={activeTab}
-              searchQuery={searchQuery}
-            />
+            loading ? (
+              <View className="items-center py-12">
+                <ActivityIndicator size="large" color="#6366f1" />
+                <Text className="mt-3 text-sm text-app-text-5">
+                  Loading applications...
+                </Text>
+              </View>
+            ) : error ? (
+              <View className="items-center py-12">
+                <Text className="text-sm text-app-red-2">
+                  Failed to load applications. Please try again.
+                </Text>
+              </View>
+            ) : (
+              <ApplicationsEmptyState
+                activeTab={activeTab}
+                searchQuery={searchQuery}
+              />
+            )
           }
         />
 
@@ -224,7 +279,7 @@ export function MyApplicationsScreen() {
         <CandidateDashboardSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          currentPath="/pages/candidate/dashboard"
+          currentPath="/pages/candidate/dashboard/my-applications"
         />
       </View>
     </>
