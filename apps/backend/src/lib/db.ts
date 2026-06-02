@@ -11,8 +11,14 @@ export const prisma = new PrismaClient({ adapter });
 export const redis = new Redis(
   process.env.REDIS_URL || 'redis://localhost:6379'
 );
+
+const scyllaHost = process.env.SCYLLA_HOST || 'localhost';
+const scyllaPort = process.env.SCYLLA_PORT || '9042';
+const scyllaContactPoint =
+  process.env.CASSANDRA_CONTACT_POINT || `${scyllaHost}:${scyllaPort}`;
+
 export const scylla = new Client({
-  contactPoints: [process.env.CASSANDRA_CONTACT_POINT || 'localhost:9042'],
-  localDataCenter: 'datacenter1',
-  keyspace: 'chat_app',
+  contactPoints: [scyllaContactPoint],
+  localDataCenter: process.env.SCYLLA_DATACENTER || 'datacenter1',
+  keyspace: process.env.SCYLLA_KEYSPACE || 'chat_app',
 });

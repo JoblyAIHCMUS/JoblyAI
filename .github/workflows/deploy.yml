@@ -1,11 +1,15 @@
-name: Deploy Backend JoblyAI to EC2
+name: Deploy Fullstack JoblyAI to EC2
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    branches:
+      - main
+    types: [closed]
 
 jobs:
-  deploy-backend:
+  deploy:
+    # Chỉ chạy khi PR được MERGE thành công và nguồn (head) là từ branch 'develop'
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2 via SSH
@@ -14,17 +18,46 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-
+          command_timeout: 40m
           script: |
-            # 1. Clone git repository
-            cd ~/joblyai || (git clone https://github.com/${{ github.repository }}.git ~/joblyai && cd ~/joblyai)
-            git pull origin main
+            cd $HOME
+            # 1. Quản lý Source Code & Environment
+            [ -f "joblyai/apps/backend/.env" ] && cp "joblyai/apps/backend/.env" "$HOME/env_backup"
+            if [ ! -d "joblyai/.git" ]; then
+              rm -rf joblyai && git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
+            fi
+            cd joblyai && git fetch origin main && git reset --hard origin/main
+            [ -f "$HOME/env_backup" ] && mkdir -p apps/backend && mv "$HOME/env_backup" apps/backend/.env
 
-            # 2. Run Docker compose
-            docker-compose -f docker-compose.yml up -d --build backend nginx redis scylla scylla-init
+            # 2. Cập nhật CA cho RDS (SSL Connection)
+            mkdir -p certs
+            curl -o certs/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
-            # 3. Clean RAM
+            # 3. Giải phóng dung lượng (Tránh lỗi ENOSPC)
+            docker builder prune -f
             docker image prune -f
 
-            # 4. Database (Prisma Migrate)
-            docker-compose exec -T -T backend npx prisma migrate deploy
+            # 4. Build cuốn chiếu để tiết kiệm RAM EC2
+            docker compose build backend
+            docker compose build web
+
+            # 5. Khởi động các dịch vụ hạ tầng
+            docker compose up -d redis scylla scylla-init
+
+            # 6. Database Migration (Sử dụng đường dẫn đã kiểm chứng)
+            # Khởi động backend tạm thời để chạy migration
+            docker compose up -d backend
+
+            # Đợi 5s cho backend ổn định
+            sleep 5
+
+            # Chạy lệnh migration với đường dẫn prisma/schema.prisma
+            # Ghi đè PRISMA_QUERY_ENGINE_LIBRARY="" để sửa lỗi "can't be resolved"
+            DB_URL=$(grep "^DATABASE_URL=" apps/backend/.env | head -1 | sed 's/DATABASE_URL=//' | sed 's/"//g' | sed "s/'//g")
+            docker compose exec -T -e DATABASE_URL="$DB_URL" -e PRISMA_QUERY_ENGINE_LIBRARY="" backend npx prisma migrate deploy --schema prisma/schema.prisma
+
+            # 7. Khởi động nốt Frontend và Nginx
+            docker compose up -d web nginx
+
+            # 8. Dọn dẹp các layer rác sau khi thành công
+            docker system prune -f

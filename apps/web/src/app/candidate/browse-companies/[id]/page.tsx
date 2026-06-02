@@ -3,9 +3,9 @@ import BrowseCompaniesCompanyProfilePage from '@/features/browse-companies/compa
 export default async function BrowseCompaniesCompanyDetailRoute({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { slug } = await params;
+  const { id } = await params;
 
-  return <BrowseCompaniesCompanyProfilePage companySlug={slug} />;
+  return <BrowseCompaniesCompanyProfilePage companyId={id} />;
 }

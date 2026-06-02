@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { types } from 'cassandra-driver';
 import { MessagesService } from '../app/messages/messages.service';
+import { NotificationsService } from '../app/notifications/notifications.service';
 
 // ============ Mock Data ============
 const mockUser1 = {
@@ -57,6 +58,11 @@ const mockPrisma = vi.hoisted(() => ({
   },
 }));
 
+// ============ Mock Notifications Service ============
+const mockNotificationsService = vi.hoisted(() => ({
+  createNotification: vi.fn(),
+}));
+
 describe('MessagesService', () => {
   let service: MessagesService;
 
@@ -72,11 +78,20 @@ describe('MessagesService', () => {
           provide: 'PRISMA_CLIENT',
           useValue: mockPrisma,
         },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
       ],
     }).compile();
 
     service = module.get<MessagesService>(MessagesService);
     vi.clearAllMocks();
+
+    // Manually assign dependencies as standard injection might fail in some test environments
+    (service as any).scylla = mockScylla;
+    (service as any).prisma = mockPrisma;
+    (service as any).notificationsService = mockNotificationsService;
   });
 
   describe('sendMessage', () => {

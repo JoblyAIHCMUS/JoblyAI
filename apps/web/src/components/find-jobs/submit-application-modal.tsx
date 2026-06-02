@@ -165,7 +165,7 @@ export const SubmitApplicationModal = ({
   const { submitApplication, loading: applicationLoading } =
     useCreateApplication({
       onSuccess: (data) => {
-        const successMsg = `Application submitted successfully for job ID ${data.jobId}`;
+        const successMsg = `Application submitted successfully for job`;
         setApplicationSubmitSuccess(successMsg);
         onSuccess?.(successMsg);
         reset();

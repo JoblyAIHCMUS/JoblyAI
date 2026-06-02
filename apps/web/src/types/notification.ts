@@ -1,7 +1,23 @@
 export interface Notification {
   id: number;
   title: string;
+  content: string;
   createdAt: string;
-  unread: boolean;
-  href: string;
+  isRead: boolean;
+  link: string | null;
+}
+
+export interface MarkNotificationAsReadResponse {
+  notification: Notification;
+  unreadCount: number;
+}
+
+export interface MarkAllNotificationsAsReadResponse {
+  updatedCount: number;
+  unreadCount: number;
+}
+
+export interface DeleteNotificationResponse {
+  deletedId: number;
+  unreadCount: number;
 }

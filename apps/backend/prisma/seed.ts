@@ -67,42 +67,57 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 async function main() {
-  console.log('Cleaning up existing data...');
+  const seedMode = process.env.SEED_MODE || 'development';
+  console.log(`Starting seeding in ${seedMode} mode...`);
 
-  // Delete all data in reverse order of foreign key dependencies
-  await prisma.application.deleteMany({});
-  await prisma.jobRequirement.deleteMany({});
-  await prisma.jobPosting.deleteMany({});
-  await prisma.employer.deleteMany({});
-  await prisma.company.deleteMany({});
-  await prisma.resume.deleteMany({});
-  await prisma.verification.deleteMany({});
-  await prisma.session.deleteMany({});
-  await prisma.account.deleteMany({});
-  await prisma.user.deleteMany({});
-  await prisma.jobCategory.deleteMany({});
-  await prisma.skill.deleteMany({});
+  if (seedMode === 'development') {
+    console.log('Cleaning up existing data...');
+    // Delete all data in reverse order of foreign key dependencies
+    await prisma.application.deleteMany({});
+    await prisma.jobRequirement.deleteMany({});
+    await prisma.jobPosting.deleteMany({});
+    await prisma.employer.deleteMany({});
+    await prisma.company.deleteMany({});
+    await prisma.resume.deleteMany({});
+    await prisma.verification.deleteMany({});
+    await prisma.session.deleteMany({});
+    await prisma.account.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.jobCategory.deleteMany({});
+    await prisma.skill.deleteMany({});
+    console.log('Data cleaned up successfully');
+  }
 
-  console.log('Data cleaned up successfully');
-
-  console.log('Seeding database with test data...');
+  // --- SYSTEM DATA (Always seed using upsert) ---
+  console.log('Seeding system data (Job Categories & Skills)...');
 
   // Create job categories
-  console.log('Creating job categories...');
-  const categories = await prisma.jobCategory.createMany({
-    data: jobCategories,
-  });
-  console.log(`Created ${categories.count} job categories`);
+  for (const category of jobCategories) {
+    await prisma.jobCategory.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category,
+    });
+  }
+  console.log(`Synced ${jobCategories.length} job categories`);
 
   // Create skills
-  console.log('Creating skills...');
-  const skills = await prisma.skill.createMany({
-    data: Skill.map((s) => ({ name: s.name })),
-  });
-  console.log(`Created ${skills.count} skills`);
+  for (const skill of Skill) {
+    await prisma.skill.upsert({
+      where: { name: skill.name },
+      update: {},
+      create: { name: skill.name },
+    });
+  }
+  console.log(`Synced ${Skill.length} skills`);
 
-  // Create test users with accounts (for Better-auth email/password login)
-  console.log('Creating users and accounts...');
+  if (seedMode === 'system') {
+    console.log('System data seeding completed successfully!');
+    return;
+  }
+
+  // --- MOCK DATA (Only for development) ---
+  console.log('Seeding database with mock test data...');
   const hashedPassword = await hashPassword('TestPass123!');
 
   const usersData = users.map((u) => ({

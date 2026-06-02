@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApplicationsService } from '../app/applications/applications.service';
+import { NotificationsService } from '../app/notifications/notifications.service';
 
 // Mock ApplicationStatus enum from Prisma
 export enum ApplicationStatus {
@@ -112,6 +113,11 @@ const mockPrisma = vi.hoisted(() => ({
   },
 }));
 
+// Mock Notifications Service
+const mockNotificationsService = vi.hoisted(() => ({
+  createNotification: vi.fn(),
+}));
+
 describe('ApplicationsService', () => {
   let service: ApplicationsService;
 
@@ -123,11 +129,19 @@ describe('ApplicationsService', () => {
           provide: 'PRISMA_CLIENT',
           useValue: mockPrisma,
         },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
       ],
     }).compile();
 
     service = module.get<ApplicationsService>(ApplicationsService);
     vi.clearAllMocks();
+
+    // Manually assign dependencies as standard injection might fail in some test environments
+    (service as any).prisma = mockPrisma;
+    (service as any).notificationsService = mockNotificationsService;
   });
 
   describe('createApplication', () => {

@@ -24,6 +24,8 @@ interface JobListSectionProps {
   onSalaryChange: (min: number, max: number) => void;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
+  salaryMin?: number;
+  salaryMax?: number;
 }
 
 function getSORT_LABEL(option: SortOption): string {
@@ -57,6 +59,8 @@ export default function JobListSection({
   onSalaryChange,
   salaryFilterRef,
   handleReset,
+  salaryMin,
+  salaryMax,
 }: JobListSectionProps) {
   const { pages, goPrev, goNext } = usePagination(
     currentPage,
@@ -114,7 +118,12 @@ export default function JobListSection({
           >
             Reset Filters
           </button>
-          <SalaryFilter onSalaryChange={onSalaryChange} />
+          <SalaryFilter
+            ref={salaryFilterRef}
+            onSalaryChange={onSalaryChange}
+            initialMin={salaryMin}
+            initialMax={salaryMax}
+          />
           {filterGroups.map((group: FilterGroupData) => (
             <FilterGroup
               key={group.title}
@@ -291,7 +300,12 @@ export default function JobListSection({
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-3">
-                <SalaryFilter onSalaryChange={onSalaryChange} />
+                <SalaryFilter
+                  ref={salaryFilterRef}
+                  onSalaryChange={onSalaryChange}
+                  initialMin={salaryMin}
+                  initialMax={salaryMax}
+                />
                 <button
                   type="button"
                   onClick={handleReset}

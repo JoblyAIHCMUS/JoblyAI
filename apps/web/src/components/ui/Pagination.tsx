@@ -37,35 +37,25 @@ export default function Pagination({
       </button>
       {pages.map((page, idx) => {
         if (typeof page === 'number') {
-          // Lazy render: chỉ render các trang gần currentPage hoặc đầu/cuối
-          if (
-            page === 1 ||
-            page === totalPages ||
-            Math.abs(page - currentPage) <= 2
-          ) {
-            return (
-              <button
-                key={`page-${page}`}
-                className={`px-2 py-1 rounded font-medium ${
-                  page === currentPage
-                    ? 'bg-indigo-600 text-white'
-                    : 'hover:bg-slate-100 text-slate-700'
-                }`}
-                onClick={() => onPageChange(page)}
-                aria-current={page === currentPage ? 'page' : undefined}
-                aria-label={
-                  page === currentPage
-                    ? `Current page, page ${page}`
-                    : `Go to page ${page}`
-                }
-              >
-                {page}
-              </button>
-            );
-          } else {
-            // Không render các trang quá xa (lazy)
-            return null;
-          }
+          return (
+            <button
+              key={`page-${page}`}
+              className={`px-2 py-1 rounded font-medium ${
+                page === currentPage
+                  ? 'bg-indigo-600 text-white'
+                  : 'hover:bg-slate-100 text-slate-700'
+              }`}
+              onClick={() => onPageChange(page)}
+              aria-current={page === currentPage ? 'page' : undefined}
+              aria-label={
+                page === currentPage
+                  ? `Current page, page ${page}`
+                  : `Go to page ${page}`
+              }
+            >
+              {page}
+            </button>
+          );
         } else {
           // Tối ưu key cho dấu ...
           const ellipsisKey = `ellipsis-${idx}-${

@@ -6,23 +6,18 @@ import CompanyTeamSection from '@/components/company-profile/CompanyTeamSection'
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
 import { companyProfileService } from '../../../services/companyProfileService';
 import { useEffect } from 'react';
-import { useGetCompanyBySlug } from '@/api-hook/company/useGetCompanyBySlug';
+import { useGetCompany } from '@/api-hook/company/useGetCompany';
 
 export default function BrowseCompaniesCompanyProfilePage({
-  companySlug,
+  companyId,
 }: {
-  companySlug: string;
+  companyId: string;
 }) {
-  const {
-    fetchCompanyBySlug,
-    loading,
-    error,
-    data: company,
-  } = useGetCompanyBySlug();
+  const { fetchCompany, loading, error, data: company } = useGetCompany();
 
   useEffect(() => {
-    void fetchCompanyBySlug(companySlug);
-  }, [companySlug, fetchCompanyBySlug]);
+    void fetchCompany(Number(companyId));
+  }, [companyId, fetchCompany]);
 
   const displayCompany = company
     ? companyProfileService.getCompanyProfile(company)

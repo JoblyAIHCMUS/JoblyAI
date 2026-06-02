@@ -14,6 +14,7 @@ import {
   Application,
   PaginatedApplicationsResponse,
 } from './applications.interface';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
@@ -43,7 +44,10 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
 
 @Injectable()
 export class ApplicationsService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly notificationsService: NotificationsService
+  ) {}
 
   async createApplication(
     candidateId: string,
@@ -81,6 +85,31 @@ export class ApplicationsService {
       },
     });
 
+    let application;
+    const include = {
+      job: {
+        include: {
+          category: true,
+          company: true,
+          postedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      resume: {
+        select: {
+          id: true,
+          fileKey: true,
+          aiScore: true,
+          isDefault: true,
+        },
+      },
+    };
+
     if (existingApplication) {
       const activeStatuses: ApplicationStatus[] = [
         ApplicationStatus.APPLIED,
@@ -98,7 +127,7 @@ export class ApplicationsService {
 
       // Only WITHDRAWN can re-apply - update existing record
       if (existingApplication.status === ApplicationStatus.WITHDRAWN) {
-        const application = await this.prisma.application.update({
+        application = await this.prisma.application.update({
           where: { id: existingApplication.id },
           data: {
             status: ApplicationStatus.APPLIED,
@@ -107,66 +136,44 @@ export class ApplicationsService {
             aiFeedback: Prisma.JsonNull,
             updatedAt: new Date(),
           },
-          include: {
-            job: {
-              include: {
-                category: true,
-                company: true,
-                postedBy: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-            resume: {
-              select: {
-                id: true,
-                fileKey: true,
-                aiScore: true,
-                isDefault: true,
-              },
-            },
-          },
+          include,
         });
-
-        return this.mapToApplicationResponse(application);
       }
+    } else {
+      // Create new application
+      application = await this.prisma.application.create({
+        data: {
+          jobId: dto.jobId,
+          candidateId,
+          resumeId: dto.resumeId,
+          status: ApplicationStatus.APPLIED,
+        },
+        include,
+      });
     }
 
-    // Create new application
-    const application = await this.prisma.application.create({
-      data: {
-        jobId: dto.jobId,
-        candidateId,
-        resumeId: dto.resumeId,
-        status: ApplicationStatus.APPLIED,
-      },
-      include: {
-        job: {
-          include: {
-            category: true,
-            company: true,
-            postedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        resume: {
-          select: {
-            id: true,
-            fileKey: true,
-            aiScore: true,
-            isDefault: true,
-          },
-        },
-      },
+    if (!application) {
+      throw new BadRequestException('Could not process application');
+    }
+
+    // Notify job poster (Employer)
+    await this.notificationsService.createNotification({
+      recipientId: job.postedById,
+      type: 'NEW_APPLICATION',
+      title: 'New Job Application',
+      content: `A new candidate has applied for your job: ${job.title}`,
+      link: `/employer/all-applications/${application.id}`,
+      metadata: { applicationId: application.id, jobId: job.id },
+    });
+
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: candidateId,
+      type: 'APPLICATION_SUBMITTED',
+      title: 'Application Submitted',
+      content: `You have successfully applied for ${job.title}`,
+      link: `/candidate/find-jobs/${job.id}`,
+      metadata: { applicationId: application.id, jobId: job.id },
     });
 
     return this.mapToApplicationResponse(application);
@@ -472,6 +479,16 @@ export class ApplicationsService {
       },
     });
 
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: updatedApplication.candidateId,
+      type: 'APPLICATION_STATUS_UPDATE',
+      title: 'Application Status Updated',
+      content: `Your application for ${updatedApplication.job.title} has been moved to INTERVIEW.`,
+      link: `/candidate/find-jobs/${updatedApplication.job.id}`,
+      metadata: { applicationId: updatedApplication.id, status: 'INTERVIEW' },
+    });
+
     return this.mapToApplicationResponse(updatedApplication);
   }
 
@@ -549,6 +566,16 @@ export class ApplicationsService {
       },
     });
 
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: updatedApplication.candidateId,
+      type: 'APPLICATION_REJECTED',
+      title: 'Application Update',
+      content: `Your application for ${updatedApplication.job.title} has been rejected.`,
+      link: `/candidate/find-jobs/${updatedApplication.job.id}`,
+      metadata: { applicationId: updatedApplication.id, status: 'REJECTED' },
+    });
+
     return this.mapToApplicationResponse(updatedApplication);
   }
 
@@ -612,6 +639,16 @@ export class ApplicationsService {
           },
         },
       },
+    });
+
+    // Notify candidate
+    await this.notificationsService.createNotification({
+      recipientId: updatedApplication.candidateId,
+      type: 'APPLICATION_STATUS_UPDATE',
+      title: 'Job Offer Received',
+      content: `Congratulations! You have received an offer for ${updatedApplication.job.title}.`,
+      link: `/candidate/find-jobs/${updatedApplication.job.id}`,
+      metadata: { applicationId: updatedApplication.id, status: 'OFFER' },
     });
 
     return this.mapToApplicationResponse(updatedApplication);

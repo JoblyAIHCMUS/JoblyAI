@@ -2,6 +2,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormField } from './FormField';
+import { authClient } from '@/lib/auth-client';
+import {
+  validatePassword,
+  PASSWORD_REQUIREMENTS_TEXT,
+} from '@/lib/password-validation';
+import { toast } from 'sonner';
 
 export default function ChangePasswordForm() {
   const [oldPassword, setOldPassword] = useState('');
@@ -10,19 +16,14 @@ export default function ChangePasswordForm() {
   const [oldError, setOldError] = useState('');
   const [newError, setNewError] = useState('');
   const [confirmError, setConfirmError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const validatePassword = (pw: string) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
-      pw
-    );
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setOldError('');
     setNewError('');
     setConfirmError('');
-    setSuccess('');
+
     let valid = true;
     if (!oldPassword.trim()) {
       setOldError('Old password is required');
@@ -32,9 +33,7 @@ export default function ChangePasswordForm() {
       setNewError('New password is required');
       valid = false;
     } else if (!validatePassword(newPassword)) {
-      setNewError(
-        'Password must be at least 8 characters, include upper, lower, number, special character'
-      );
+      setNewError(PASSWORD_REQUIREMENTS_TEXT);
       valid = false;
     }
     if (!confirmPassword.trim()) {
@@ -44,12 +43,42 @@ export default function ChangePasswordForm() {
       setConfirmError('Passwords do not match');
       valid = false;
     }
+
     if (!valid) return;
-    // TODO: Call API to change password
-    setSuccess('Password changed successfully!');
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+
+    setIsLoading(true);
+    try {
+      const { error } = await authClient.changePassword({
+        newPassword: newPassword,
+        currentPassword: oldPassword,
+        revokeOtherSessions: true,
+      });
+
+      if (error) {
+        if (
+          error.status === 401 ||
+          error.message?.toLowerCase().includes('current password') ||
+          error.code?.toLowerCase().includes('invalid_password')
+        ) {
+          setOldError('Incorrect current password');
+        } else {
+          toast.error(
+            error.message || 'Failed to change password. Please try again.'
+          );
+        }
+        return;
+      }
+
+      toast.success('Password changed successfully!');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      toast.error('An unexpected error occurred. Please try again.');
+      console.error('Password change error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,6 +92,7 @@ export default function ChangePasswordForm() {
         placeholder="Enter your old password"
         isRequired
         width="full"
+        disabled={isLoading}
       />
       <FormField
         label="New Password"
@@ -73,6 +103,7 @@ export default function ChangePasswordForm() {
         placeholder="Enter your new password"
         isRequired
         width="full"
+        disabled={isLoading}
       />
       <FormField
         label="Confirm New Password"
@@ -83,14 +114,15 @@ export default function ChangePasswordForm() {
         placeholder="Re-enter your new password"
         isRequired
         width="full"
+        disabled={isLoading}
       />
-      {success && <span className="text-sm text-green-600">{success}</span>}
       <Button
         type="button"
         onClick={handleSubmit}
-        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca']"
+        disabled={isLoading}
+        className="self-start px-6 py-3 bg-[var(--bg-accent-solid,#4f46e5)] rounded-[5px] text-white font-semibold text-base font-['Lexend_Deca'] transition-opacity disabled:opacity-50"
       >
-        Change Password
+        {isLoading ? 'Changing Password...' : 'Change Password'}
       </Button>
     </div>
   );

@@ -10,7 +10,9 @@ import {
 } from 'react';
 import { Socket } from 'socket.io-client';
 import { useMessagesSocket } from '@/hooks/useMessagesSocket';
+import { useNotificationsSocket } from '@/hooks/useNotificationsSocket';
 import { SocketChatMessage } from '@/api-client/messages';
+import { Notification } from '@/types/notification';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -21,6 +23,9 @@ interface SocketContextType {
   markAsRead: (recipientId: string) => Promise<void>;
   onNewMessage: (callback: (message: SocketChatMessage) => void) => () => void;
   onMessageRead: (callback: (friendId: string) => void) => () => void;
+  onNewNotification: (
+    callback: (notification: Notification) => void
+  ) => () => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -31,10 +36,12 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
  */
 export function SocketProvider({ children }: { children: ReactNode }) {
   const socketReturn = useMessagesSocket();
+  const notificationSocketReturn = useNotificationsSocket();
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   // Support multiple subscribers
   const messageCallbacksRef = useRef(new Set<(m: SocketChatMessage) => void>());
   const readCallbacksRef = useRef(new Set<(id: string) => void>());
+  const notificationCallbacksRef = useRef(new Set<(n: Notification) => void>());
 
   // Register callbacks from useMessagesSocket
   useEffect(() => {
@@ -68,6 +75,22 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     });
   }, [socketReturn]);
 
+  // Register notifications
+  useEffect(() => {
+    notificationSocketReturn.onNewNotification((notification) => {
+      notificationCallbacksRef.current.forEach((cb) => {
+        try {
+          cb(notification);
+        } catch (err) {
+          console.error(
+            'SocketProvider subscriber error (new_notification)',
+            err
+          );
+        }
+      });
+    });
+  }, [notificationSocketReturn]);
+
   // Context value with callback registration functions
   const value: SocketContextType = {
     socket: socketReturn.socket,
@@ -86,6 +109,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       readCallbacksRef.current.add(callback);
       return () => {
         readCallbacksRef.current.delete(callback);
+      };
+    },
+    onNewNotification: (callback) => {
+      notificationCallbacksRef.current.add(callback);
+      return () => {
+        notificationCallbacksRef.current.delete(callback);
       };
     },
   };
