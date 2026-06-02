@@ -7,7 +7,7 @@ interface UseSimilarJobsOptions {
 }
 
 /**
- * Hook for fetching similar jobs for a given job ID
+ * Hook for fetching similar jobs based on different criteria
  */
 export function useSimilarJobs(options?: UseSimilarJobsOptions) {
   const [loading, setLoading] = useState(false);
@@ -15,11 +15,16 @@ export function useSimilarJobs(options?: UseSimilarJobsOptions) {
   const [data, setData] = useState<JobPosting[]>([]);
 
   const fetchSimilarJobs = useCallback(
-    async (id: number, limit?: number) => {
+    async (params: {
+      jobId?: number;
+      companyId?: number;
+      location?: string;
+      limit?: number;
+    }) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await getSimilarJobs(id, limit);
+        const result = await getSimilarJobs(params);
         setData(result);
         options?.onSuccess?.(result);
         return result;
@@ -31,7 +36,7 @@ export function useSimilarJobs(options?: UseSimilarJobsOptions) {
         setLoading(false);
       }
     },
-    []
+    [options]
   );
 
   return { fetchSimilarJobs, loading, error, data };

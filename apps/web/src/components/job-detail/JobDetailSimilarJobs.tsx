@@ -58,13 +58,17 @@ function SimilarJobCard({ job }: { job: JobPosting }) {
 
 export default function JobDetailSimilarJobs({
   jobId,
+  companyId,
+  location,
   title = 'Similar Jobs',
   limit = 6,
   href = '/find-jobs',
   ctaLabel = 'Show all jobs',
   className,
 }: {
-  jobId: number;
+  jobId?: number;
+  companyId?: number;
+  location?: string;
   title?: string;
   limit?: number;
   href?: string;
@@ -74,15 +78,18 @@ export default function JobDetailSimilarJobs({
   const { fetchSimilarJobs, data: similarJobs, loading } = useSimilarJobs();
 
   useEffect(() => {
-    if (jobId) {
-      fetchSimilarJobs(jobId, limit);
+    if (jobId || companyId || location) {
+      void fetchSimilarJobs({ jobId, companyId, location, limit });
     }
-  }, [jobId, limit, fetchSimilarJobs]);
+  }, [jobId, companyId, location, limit, fetchSimilarJobs]);
 
   if (loading) {
     return (
       <section
-        className={cn('border-t border-slate-100 bg-white py-[72px]', className)}
+        className={cn(
+          'border-t border-slate-100 bg-white py-[72px]',
+          className
+        )}
       >
         <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse flex items-center justify-between mb-10">

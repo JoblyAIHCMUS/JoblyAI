@@ -105,7 +105,9 @@ export default function CandidateApplicationsPage() {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to withdraw this application?')) {
+    if (
+      !window.confirm('Are you sure you want to withdraw this application?')
+    ) {
       return;
     }
 

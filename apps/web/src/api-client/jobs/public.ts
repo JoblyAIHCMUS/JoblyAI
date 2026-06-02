@@ -58,17 +58,19 @@ export async function getJobsByCategory(
 }
 
 /**
- * Get similar jobs for a specific job
+ * Get similar/related jobs based on job ID, company ID, or location
  * Public endpoint - no authentication required
  */
-export async function getSimilarJobs(
-  id: number,
-  limit = 6
-): Promise<JobPosting[]> {
+export async function getSimilarJobs(params: {
+  jobId?: number;
+  companyId?: number;
+  location?: string;
+  limit?: number;
+}): Promise<JobPosting[]> {
   const response = await axios.get<JobPosting[]>(
-    `${API_BASE_URL}/api/jobs/${id}/similar`,
+    `${API_BASE_URL}/api/jobs/similar`,
     {
-      params: { limit },
+      params,
       withCredentials: true,
     }
   );

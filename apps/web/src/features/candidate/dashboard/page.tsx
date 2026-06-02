@@ -102,7 +102,9 @@ export default function CandidateDashboardPage() {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to withdraw this application?')) {
+    if (
+      !window.confirm('Are you sure you want to withdraw this application?')
+    ) {
       return;
     }
 

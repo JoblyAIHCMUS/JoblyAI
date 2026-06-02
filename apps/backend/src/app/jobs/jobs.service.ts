@@ -494,28 +494,36 @@ export class JobsService {
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
-  async getSimilarJobs(
-    id: number,
-    limit = 6
-  ): Promise<JobPostingInterface[]> {
-    const job = await this.prisma.jobPosting.findUnique({
-      where: { id },
-      select: { categoryId: true, title: true }
-    });
+  async getSimilarJobs(params: {
+    jobId?: number;
+    companyId?: number;
+    location?: string;
+    limit?: number;
+  }): Promise<JobPostingInterface[]> {
+    const { jobId, companyId, location, limit = 6 } = params;
 
-    if (!job) {
-      throw new NotFoundException(`Job with ID ${id} not found`);
+    const whereClause: Prisma.JobPostingWhereInput = {
+      status: 'OPEN',
+      deletedAt: null,
+    };
+
+    if (jobId) {
+      const job = await this.prisma.jobPosting.findUnique({
+        where: { id: jobId },
+        select: { categoryId: true },
+      });
+      if (job) {
+        whereClause.categoryId = job.categoryId;
+        whereClause.id = { not: jobId };
+      }
+    } else if (companyId) {
+      whereClause.companyId = companyId;
+    } else if (location) {
+      whereClause.location = { contains: location, mode: 'insensitive' };
     }
 
-    // Basic similarity: same category
-    // Advance implementation would use vector search or at least keyword matching
-    const similarJobs = await this.prisma.jobPosting.findMany({
-      where: {
-        categoryId: job.categoryId,
-        id: { not: id },
-        status: 'OPEN',
-        deletedAt: null,
-      },
+    const jobs = await this.prisma.jobPosting.findMany({
+      where: whereClause,
       include: {
         category: true,
         company: true,
@@ -534,7 +542,7 @@ export class JobsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return similarJobs.map((job) => this.mapToJobResponse(job));
+    return jobs.map((job) => this.mapToJobResponse(job));
   }
 
   async getCategories(): Promise<
