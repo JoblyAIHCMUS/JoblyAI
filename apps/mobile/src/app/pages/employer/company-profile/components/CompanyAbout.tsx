@@ -59,7 +59,7 @@ export function CompanyAbout({ description }: CompanyAboutProps) {
   if (!description) {
     return (
       <View className="px-4 pb-8">
-        <Text className="text-slate-500 text-center">
+        <Text className="text-sm text-slate-500 text-center">
           No company description available.
         </Text>
       </View>
