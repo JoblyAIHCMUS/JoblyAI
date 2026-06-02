@@ -6,13 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput } from '../../../components/shared/TextInput';
 import { Button } from '../../../../components/ui/button';
 import { Text } from '../../../../components/ui/text';
-import { useSendOTP, useResetPassword } from '../../../../hooks/useAuth';
+import { useResetPassword } from '../../../../hooks/useAuth';
+import { authClient } from '../../../../lib/auth-client';
 
 import { Eye, EyeOff, Check, ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 const ForgotPasswordPage = () => {
-  const { sendOTP, loading: otpLoading, error: otpError } = useSendOTP();
   const {
     resetPassword,
     loading: resetLoading,
@@ -43,7 +43,14 @@ const ForgotPasswordPage = () => {
     }
 
     try {
-      await sendOTP({ email, type: 'forget-password' });
+      const { error } = await authClient.emailOtp.requestPasswordReset({
+        email,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setOtpSent(true);
       setResendTimer(60);
       setOtp('');

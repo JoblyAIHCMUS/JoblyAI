@@ -13,46 +13,6 @@ function getRole(request: NextRequest) {
   return request.cookies.get('user-role')?.value ?? null;
 }
 
-function getRoleBasedRedirect(
-  pathname: string,
-  role: string,
-  request: NextRequest
-) {
-  // Handle /find-jobs
-  if (pathname === '/find-jobs' || pathname.startsWith('/find-jobs/')) {
-    if (role === 'candidate') {
-      const newPath = pathname.replace('/find-jobs', '/candidate/find-jobs');
-      return NextResponse.redirect(new URL(newPath, request.url));
-    }
-    if (role === 'employer') {
-      return NextResponse.redirect(new URL('/employer/dashboard', request.url));
-    }
-  }
-
-  // Handle /browse-companies
-  if (
-    pathname === '/browse-companies' ||
-    pathname.startsWith('/browse-companies/')
-  ) {
-    if (role === 'candidate') {
-      const newPath = pathname.replace(
-        '/browse-companies',
-        '/candidate/browse-companies'
-      );
-      return NextResponse.redirect(new URL(newPath, request.url));
-    }
-    if (role === 'employer') {
-      const newPath = pathname.replace(
-        '/browse-companies',
-        '/employer/browse-companies'
-      );
-      return NextResponse.redirect(new URL(newPath, request.url));
-    }
-  }
-
-  return null;
-}
-
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -118,12 +78,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // ===== PUBLIC ROUTES REDIRECT BY ROLE =====
-  if (authenticated && role) {
-    const redirectResponse = getRoleBasedRedirect(pathname, role, request);
-    if (redirectResponse) return redirectResponse;
-  }
-
   // ===== GUEST-ONLY ROUTES =====
   if (authenticated && (pathname === '/login' || pathname === '/signup')) {
     if (role === 'candidate') {
@@ -143,15 +97,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/login',
-    '/signup',
-    '/find-jobs',
-    '/find-jobs/:path*',
-    '/browse-companies',
-    '/browse-companies/:path*',
-    '/candidate/:path*',
-    '/employer/:path*',
-  ],
+  matcher: ['/', '/login', '/signup', '/candidate/:path*', '/employer/:path*'],
 };

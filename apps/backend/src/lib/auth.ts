@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { expo } from '@better-auth/expo';
 import { admin } from 'better-auth/plugins';
 import { emailOTP } from 'better-auth/plugins';
 import { prisma, redis } from './db';
@@ -63,6 +64,11 @@ export const auth = betterAuth({
   trustedOrigins: [
     process.env.APP_URL || 'http://localhost:3000',
     process.env.WEB_URL || 'http://localhost:5173',
+    'jobly://',
+    'jobly://*',
+    ...(process.env.NODE_ENV === 'development'
+      ? ['exp://', 'exp://**', 'exp://192.168.*.*:*/**']
+      : []),
     'postman://token',
     'postman://auth',
     'postman://collection',
@@ -73,6 +79,7 @@ export const auth = betterAuth({
     'super-secret-better-auth-key-change-in-production',
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   plugins: [
+    expo(),
     admin({
       defaultRole: 'candidate',
       adminRoles: ['admin', 'superAdmin'],
