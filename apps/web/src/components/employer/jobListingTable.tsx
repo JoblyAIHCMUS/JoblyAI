@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import {
-  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
   MoreHorizontal,
   Eye,
   Pencil,
@@ -17,7 +18,6 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,29 +105,6 @@ function mapJobPostingToListing(job: JobPosting): JobListing {
 
 export const columns: ColumnDef<JobListing>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    meta: { className: 'text-center px-0 sm:px-2' },
-  },
-  {
     accessorKey: 'title',
     header: ({ column }) => (
       <Button
@@ -135,7 +112,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Title
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => (
@@ -156,7 +138,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Status
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => {
@@ -177,7 +164,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Date Posted
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => formatDate(row.getValue<string>('datePosted')),
@@ -191,7 +183,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Date Updated
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => formatDate(row.getValue<string>('dateUpdated')),
@@ -205,7 +202,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Job Type
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => {
@@ -226,7 +228,12 @@ export const columns: ColumnDef<JobListing>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Applicants
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === 'asc' && (
+          <ChevronUp className="ml-2 h-4 w-4" />
+        )}
+        {column.getIsSorted() === 'desc' && (
+          <ChevronDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => (
