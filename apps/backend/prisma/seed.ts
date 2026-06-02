@@ -521,8 +521,8 @@ async function main() {
   console.log('Database seeding completed successfully!');
   console.log(`
 Summary:
-- Job Categories: ${categories.count}
-- Skills: ${skills.count}
+- Job Categories: ${allCategories.length}
+- Skills: ${allSkills.length}
 - Users: ${usersData.length} (with credential accounts)
   * Candidates: ${jobSeekers.length}
   * Employers: ${employers.length}
