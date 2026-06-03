@@ -8,18 +8,18 @@ interface CompanyAboutProps {
 
 // Custom tag styles for RenderHtml (matching web and job details page)
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
-  body: { color: '#0F172A', fontSize: 15, lineHeight: 24 },
+  body: { color: '#0F172A', fontSize: 16, lineHeight: 20 },
   h2: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '700',
     marginTop: 24,
     marginBottom: 8,
     color: '#0F172A',
   },
   h3: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 6,
     color: '#0F172A',
   },
@@ -68,7 +68,7 @@ export function CompanyAbout({ description }: CompanyAboutProps) {
 
   return (
     <View className="px-4 pb-8">
-      <Text className="text-xl font-bold text-slate-900 mb-4">About</Text>
+      <Text className="text-2xl font-bold text-slate-900 mb-4">About</Text>
       <View className="bg-slate-50 rounded-lg p-4">
         <RenderHtml
           contentWidth={htmlContentWidth}
