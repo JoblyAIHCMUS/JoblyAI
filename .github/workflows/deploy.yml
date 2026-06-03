@@ -5,11 +5,17 @@ on:
     branches:
       - main
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
 
 jobs:
   deploy:
-    # Chỉ chạy khi PR được MERGE thành công và nguồn (head) là từ branch 'develop'
-    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop'
+    # Chạy khi PR được MERGE thành công HOẶC khi được trigger manually
+    if: (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2 via SSH
@@ -21,12 +27,18 @@ jobs:
           command_timeout: 40m
           script: |
             cd $HOME
+            # Lấy tên branch từ input (nếu có) hoặc từ ref mặc định
+            DEPLOY_BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
+            echo "Deploying branch: $DEPLOY_BRANCH"
+
             # 1. Quản lý Source Code & Environment
             [ -f "joblyai/apps/backend/.env" ] && cp "joblyai/apps/backend/.env" "$HOME/env_backup"
             if [ ! -d "joblyai/.git" ]; then
               rm -rf joblyai && git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git joblyai
             fi
-            cd joblyai && git fetch origin main && git reset --hard origin/main
+            cd joblyai 
+            git fetch origin $DEPLOY_BRANCH
+            git reset --hard origin/$DEPLOY_BRANCH
             [ -f "$HOME/env_backup" ] && mkdir -p apps/backend && mv "$HOME/env_backup" apps/backend/.env
 
             # 2. Cập nhật CA cho RDS (SSL Connection)
