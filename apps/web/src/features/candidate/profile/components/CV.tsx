@@ -80,22 +80,45 @@ const CV = forwardRef<CVRef, CVProps>(
 
     const { createDownloadUrl } = useCreateDownloadUrl();
 
-    // Any AI task in progress makes the whole CV section "busy" for general actions (like upload)
-    const isBusy =
+    // Structural actions that should block most other things
+    const isActionInProgress =
       isUploading ||
       isUpdating ||
       isDeleting ||
       !!deletingResumeId;
 
+    // AI tasks in progress
+    const hasActiveTasks = Object.values(processingTasks).some(
+      (t) => t.parsing || t.scoring
+    );
+
+    // Busy state for global actions (like upload)
+    const isBusy = isActionInProgress || hasActiveTasks;
+
     const resumeCount = resumes?.length || 0;
     const isAtMax = resumeCount >= maxResumes;
-    const sortedResumes = [...resumes].sort(
+
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        console.log('[CV Component State]', {
+          isActionInProgress,
+          hasActiveTasks,
+          isBusy,
+          isAtMax,
+          disabled,
+          resumeCount,
+          processingTasks: JSON.stringify(processingTasks)
+        });
+      }
+    }, [isActionInProgress, hasActiveTasks, isBusy, isAtMax, disabled, resumeCount, processingTasks]);
+
+    const sortedResumes = resumes ? [...resumes].sort(
       (a, b) => Number(!!b.isDefault) - Number(!!a.isDefault)
-    );
+    ) : [];
     const defaultResume =
-      resumes.find((resume) => resume.id === selectedResumeId) ||
-      resumes.find((resume) => resume.isDefault) ||
-      resumes[0];
+      resumes?.find((resume) => resume.id === selectedResumeId) ||
+      resumes?.find((resume) => resume.isDefault) ||
+      resumes?.[0];
     const previewResume =
       resumes.find((resume) => resume.id === previewResumeId) || defaultResume;
 
@@ -329,7 +352,7 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          (!resume.parsedText && isBusy) ||
+                          isActionInProgress || 
                           (processingTasks[resume.id]?.parsing && !resume.parsedText)
                         }
                         className={cn(
@@ -391,8 +414,7 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          (!(resume.aiScore !== undefined && resume.aiScore !== null) &&
-                            isBusy) ||
+                          isActionInProgress || 
                           (processingTasks[resume.id]?.scoring &&
                             !(resume.aiScore !== undefined && resume.aiScore !== null))
                         }
@@ -427,7 +449,7 @@ const CV = forwardRef<CVRef, CVProps>(
                       <button
                         type="button"
                         onClick={() => handleOpenDefaultConfirm(resume.id)}
-                        disabled={resume.isDefault || isBusy}
+                        disabled={resume.isDefault || isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
                         className={cn(
                           'h-9 w-9 flex items-center justify-center rounded-md border transition-colors',
                           resume.isDefault
@@ -442,12 +464,18 @@ const CV = forwardRef<CVRef, CVProps>(
                       <button
                         type="button"
                         onClick={() => onDeleteResume?.(resume.id)}
-                        disabled={isBusy || deletingResumeId === resume.id}
+                        disabled={
+                          deletingResumeId === resume.id || 
+                          processingTasks[resume.id]?.parsing || 
+                          processingTasks[resume.id]?.scoring ||
+                          isUpdating ||
+                          isDeleting
+                        }
                         className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        {deletingResumeId === resume.id ? (
+                        {deletingResumeId === resume.id || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
                         ) : (
                           <Trash2 size={16} className="text-red-600" />

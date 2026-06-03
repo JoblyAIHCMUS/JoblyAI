@@ -7,6 +7,7 @@ import { ResumeScoringService } from '../resume-scoring.service';
 import { S3Service } from '../../s3/s3.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Processor('resume-scoring')
 export class ScoringProcessor extends WorkerHost {
@@ -17,6 +18,7 @@ export class ScoringProcessor extends WorkerHost {
     private readonly parserService: ResumeParserService,
     private readonly scoringService: ResumeScoringService,
     private readonly s3Service: S3Service,
+    private readonly notificationsService: NotificationsService,
     @InjectPrisma() private readonly prisma: PrismaClient
   ) {
     super();
@@ -78,8 +80,22 @@ export class ScoringProcessor extends WorkerHost {
         `Updated database for resume ${resumeId} with score ${finalScore}`
       );
 
-      // Emit notification
+      // Emit real-time notification via Socket.io
       this.aiGateway.notifyUser(candidateId, 'RESUME_SCORED', { resumeId });
+
+      // Create persistent notification in database
+      try {
+        await this.notificationsService.createNotification({
+          recipientId: candidateId,
+          type: 'AI_RESUME_SCORED',
+          title: 'AI Scoring Complete',
+          content: 'Your CV has been evaluated with a strategic score. View feedback now.',
+          link: `/candidate/profile?openFeedbackModal=${resumeId}`,
+          metadata: { resumeId, score: finalScore },
+        });
+      } catch (notifyError: any) {
+        this.logger.error(`Failed to create persistent notification: ${notifyError.message}`);
+      }
 
       return { success: true, resumeId };
     } catch (error: any) {

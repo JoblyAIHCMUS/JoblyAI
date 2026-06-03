@@ -85,14 +85,20 @@ const CandidateProfilePage = () => {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
   const [processingTasks, setProcessingTasks] = useState<
-    Record<number, { parsing: boolean; scoring: boolean }>
+    Record<number, { parsing: boolean; scoring: boolean; parsingStartTime?: number; scoringStartTime?: number }>
   >(() => {
     // Lazy initialization from sessionStorage to persist across tab switches
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem('jobly_ai_tasks');
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          // Convert string keys back to numbers if they were serialized as strings
+          const rehydrated: Record<number, any> = {};
+          Object.keys(parsed).forEach(key => {
+            rehydrated[Number(key)] = parsed[key];
+          });
+          return rehydrated;
         } catch (e) {
           console.error('[CandidateProfilePage] Failed to parse saved AI tasks:', e);
         }
@@ -158,48 +164,81 @@ const CandidateProfilePage = () => {
   // Reconcile processingTasks with actual profile data
   // This is a safety net in case we missed a socket event while on another tab
   useEffect(() => {
-    if (!profile?.resumes) return;
-
+    // If we have no profile yet, or it's loading, don't clear anything yet
+    // But if we have an empty resumes list, we should check if tasks are stale
+    const resumes = profile?.resumes || [];
+    const resumeIds = new Set(resumes.map((r) => r.id));
+    
     let hasChanges = false;
     const nextTasks = { ...processingTasks };
+    const now = Date.now();
+    const GRACE_PERIOD = 30000; // 30 seconds for data to reflect after event
+    const TIMEOUT_PERIOD = 300000; // 5 minutes absolute timeout for any task
 
-    profile.resumes.forEach((resume) => {
-      const task = nextTasks[resume.id] as any;
+    // Check all current tasks
+    Object.keys(nextTasks).forEach((idStr) => {
+      const id = parseInt(idStr);
+      const task = nextTasks[id] as any;
       if (!task) return;
 
-      const GRACE_PERIOD = 30000; // 30 seconds
-      const now = Date.now();
+      const resume = resumes.find((r) => r.id === id);
 
-      // If resume already has parsedText, it's no longer parsing
-      // ONLY if the task is older than the grace period (to avoid stale data from re-fetch)
-      if (
-        resume.parsedText &&
-        task.parsing &&
-        (!task.parsingStartTime || now - task.parsingStartTime > GRACE_PERIOD)
-      ) {
-        task.parsing = false;
-        hasChanges = true;
+      // Scenario 1: Resume no longer exists (deleted)
+      // ONLY check this if profile data has actually been loaded
+      if (profile && !resumeIds.has(id)) {
+        // If it's a very new task, maybe the resume list hasn't updated yet
+        const startTime = Math.min(task.parsingStartTime || now, task.scoringStartTime || now);
+        if (now - startTime > 15000) { // Increased to 15 seconds grace
+          console.log(`[CandidateProfilePage] 🧹 Clearing task for non-existent resume ${id}`);
+          delete nextTasks[id];
+          hasChanges = true;
+          return;
+        }
       }
 
-      // If resume already has aiScore, it's no longer scoring
-      if (
-        resume.aiScore !== null &&
-        task.scoring &&
-        (!task.scoringStartTime || now - task.scoringStartTime > GRACE_PERIOD)
-      ) {
-        task.scoring = false;
+      // Scenario 2: Data already reflects completion
+      if (resume) {
+        // If resume already has parsedText, it's no longer parsing
+        if (
+          resume.parsedText &&
+          task.parsing &&
+          (!task.parsingStartTime || now - task.parsingStartTime > GRACE_PERIOD)
+        ) {
+          console.log(`[CandidateProfilePage] 🧹 Task completed: parsing for ${id}`);
+          task.parsing = false;
+          hasChanges = true;
+        }
+
+        // If resume already has aiScore, it's no longer scoring
+        if (
+          resume.aiScore !== null &&
+          task.scoring &&
+          (!task.scoringStartTime || now - task.scoringStartTime > GRACE_PERIOD)
+        ) {
+          console.log(`[CandidateProfilePage] 🧹 Task completed: scoring for ${id}`);
+          task.scoring = false;
+          hasChanges = true;
+        }
+      }
+
+      // Scenario 3: Absolute timeout (backend/socket failure)
+      const startTime = Math.min(task.parsingStartTime || now, task.scoringStartTime || now);
+      if (now - startTime > TIMEOUT_PERIOD) {
+        console.warn(`[CandidateProfilePage] ⚠️ Task for resume ${id} timed out after 5 mins`);
+        delete nextTasks[id];
         hasChanges = true;
+        return;
       }
 
       // Clean up empty tasks
       if (!task.parsing && !task.scoring) {
-        delete nextTasks[resume.id];
+        delete nextTasks[id];
         hasChanges = true;
       }
     });
 
     if (hasChanges) {
-      console.log('[CandidateProfilePage] Reconciling AI tasks with profile data');
+      console.log('[CandidateProfilePage] 🔄 Reconciled AI tasks updated');
       setProcessingTasks(nextTasks);
     }
   }, [profile?.resumes, processingTasks]);
@@ -340,30 +379,35 @@ const CandidateProfilePage = () => {
       const type = e.type;
 
       console.log(
-        `[CandidateProfilePage] AI processing finished: ${type} for resume ${resumeId}`
+        `[CandidateProfilePage] 🏁 AI processing finished event received: ${type} for resume ${resumeId}`
       );
 
       setProcessingTasks((prev) => {
         const next = { ...prev };
-        const current = next[resumeId] || { parsing: false, scoring: false };
+        const rid = Number(resumeId);
+        const current = next[rid] || { parsing: false, scoring: false };
         
         if (type === 'ai-parsed-success') {
-          next[resumeId] = { ...current, parsing: false };
+          console.log(`[CandidateProfilePage] Setting parsing=false for resume ${rid}`);
+          next[rid] = { ...current, parsing: false };
         }
         if (type === 'ai-scored-success') {
-          next[resumeId] = { ...current, scoring: false };
+          console.log(`[CandidateProfilePage] Setting scoring=false for resume ${rid}`);
+          next[rid] = { ...current, scoring: false };
         }
 
         // Re-calculate after update
-        const updated = next[resumeId];
+        const updated = next[rid];
         if (updated && !updated.parsing && !updated.scoring) {
-          toast.dismiss(`ai-processing-${resumeId}`);
-          delete next[resumeId];
+          console.log(`[CandidateProfilePage] Task complete for resume ${rid}, dismissing toast and deleting task state`);
+          toast.dismiss(`ai-processing-${rid}`);
+          delete next[rid];
         }
 
         return next;
       });
 
+      console.log('[CandidateProfilePage] Refreshing profile data...');
       fetchCandidateProfile({ forceRefresh: true });
     };
 
@@ -391,15 +435,14 @@ const CandidateProfilePage = () => {
     if (!activeResumeId || !profile) return;
 
     const resume = profile.resumes?.find((r) => r.id === activeResumeId);
-    if (!resume || !resume.parsedText) return;
+    if (!resume || !resume.parsedText) {
+      console.warn('[CandidateProfilePage] Cannot sync: Resume or parsedText missing', { activeResumeId, resume });
+      return;
+    }
 
+    console.log('[CandidateProfilePage] 🔄 Starting sync for resume:', activeResumeId);
     setIsSyncing(true);
     try {
-      console.log(
-        '[CandidateProfilePage] Committing resume merge for:',
-        activeResumeId
-      );
-
       // Use modifiedDraftData if provided, otherwise fallback to original parsedText
       const dataToSync =
         modifiedDraftData ||
@@ -408,12 +451,15 @@ const CandidateProfilePage = () => {
           : resume.parsedText);
 
       await commitResumeMerge(activeResumeId, dataToSync);
+      console.log('[CandidateProfilePage] ✅ Sync API call successful');
 
       // CRITICAL: Force refresh data BEFORE closing modal
       const updatedProfile = await fetchCandidateProfile({
         forceRefresh: true,
       });
+      
       if (updatedProfile) {
+        console.log('[CandidateProfilePage] 📥 Profile refreshed after sync');
         setProfile({ ...updatedProfile });
       }
 
@@ -421,9 +467,10 @@ const CandidateProfilePage = () => {
       setSyncModalOpen(false);
       window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (error) {
-      console.error('[CandidateProfilePage] Failed to sync profile:', error);
+      console.error('[CandidateProfilePage] ❌ Failed to sync profile:', error);
       toast.error('Failed to sync profile');
     } finally {
+      console.log('[CandidateProfilePage] 🏁 Sync process finished, setting isSyncing=false');
       setIsSyncing(false);
     }
   };

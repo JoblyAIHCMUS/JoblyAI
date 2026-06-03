@@ -11,11 +11,13 @@ import { ProfileSyncService } from './profile-sync.service';
 import { ResumeListener } from './listeners/resume.listener';
 import { S3Module } from '../s3/s3.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     S3Module,
     AuthModule,
+    NotificationsModule,
     BullModule.registerQueue(
       { name: 'resume-extraction' },
       { name: 'resume-scoring' }
