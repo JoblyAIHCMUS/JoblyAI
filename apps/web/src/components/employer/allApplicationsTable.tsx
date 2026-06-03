@@ -378,20 +378,15 @@ export default function AllApplicationsTable({
               >
                 Previous
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .slice(Math.max(0, currentPage - 2), currentPage + 1)
-                .map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handlePageChange(page)}
-                    disabled={loading}
-                    className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-                  >
-                    {page}
-                  </Button>
-                ))}
+              <Button
+                key={currentPage}
+                variant="default"
+                size="sm"
+                disabled={true}
+                className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                {currentPage}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
