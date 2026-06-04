@@ -15,11 +15,16 @@ interface PipelineCardProps {
   isUpdating?: boolean;
 }
 
-export function PipelineCard({ applicant, onUpdateStage, isUpdating = false }: PipelineCardProps) {
+export function PipelineCard({
+  applicant,
+  onUpdateStage,
+  isUpdating = false,
+}: PipelineCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isStageModalOpen, setIsStageModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [pendingNewStage, setPendingNewStage] = useState<ApplicantStatus | null>(null);
+  const [pendingNewStage, setPendingNewStage] =
+    useState<ApplicantStatus | null>(null);
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const [triggerPosition, setTriggerPosition] = useState({
     x: 0,
@@ -96,44 +101,45 @@ export function PipelineCard({ applicant, onUpdateStage, isUpdating = false }: P
               {applicant.name}
             </Text>
           </View>
-          
-          {applicant.status !== 'Rejected' && applicant.status !== 'Withdrawn' && (
-            <TouchableOpacity
-              ref={moreButtonRef}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              onPress={handleMenuPress}
-              className="ml-2"
-            >
-              <MoreHorizontal size={20} color="#64748B" />
-            </TouchableOpacity>
-          )}
+
+          {applicant.status !== 'Rejected' &&
+            applicant.status !== 'Withdrawn' && (
+              <TouchableOpacity
+                ref={moreButtonRef}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={handleMenuPress}
+                className="ml-2"
+              >
+                <MoreHorizontal size={20} color="#64748B" />
+              </TouchableOpacity>
+            )}
         </View>
 
-      <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="mb-1 text-xs font-medium text-app-text-3">
-            Applied on
-          </Text>
-          <Text className="text-sm font-semibold text-app-slate-1">
-            {formatDate(applicant.appliedDate)}
-          </Text>
-        </View>
-        <View className="items-end">
-          <Text className="mb-1 text-xs font-medium text-app-text-3">
-            Score
-          </Text>
-          <View className="flex-row items-center">
-            <Star
-              size={14}
-              color={applicant.rating > 0 ? '#FFB836' : '#111827'}
-              fill={applicant.rating > 0 ? '#FFB836' : 'transparent'}
-            />
-            <Text className="ml-1 text-sm font-semibold text-app-slate-1">
-              {applicant.rating.toFixed(1)}
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="mb-1 text-xs font-medium text-app-text-3">
+              Applied on
+            </Text>
+            <Text className="text-sm font-semibold text-app-slate-1">
+              {formatDate(applicant.appliedDate)}
             </Text>
           </View>
+          <View className="items-end">
+            <Text className="mb-1 text-xs font-medium text-app-text-3">
+              Score
+            </Text>
+            <View className="flex-row items-center">
+              <Star
+                size={14}
+                color={applicant.rating > 0 ? '#FFB836' : '#111827'}
+                fill={applicant.rating > 0 ? '#FFB836' : 'transparent'}
+              />
+              <Text className="ml-1 text-sm font-semibold text-app-slate-1">
+                {applicant.rating.toFixed(1)}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
       </View>
 
       <PipelineCardMenu

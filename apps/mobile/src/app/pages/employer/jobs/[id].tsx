@@ -103,7 +103,8 @@ export default function JobDetailsScreen() {
             (app as unknown as { matchPercentage: number }).matchPercentage ||
             0,
           status: mapApplicationStatus(app.status),
-          appliedDate: (app as unknown as { createdAt?: string }).createdAt ??
+          appliedDate:
+            (app as unknown as { createdAt?: string }).createdAt ??
             new Date().toISOString(),
         };
       })
@@ -116,21 +117,35 @@ export default function JobDetailsScreen() {
   const rejectMutation = useRejectApplication();
   const moveToOfferMutation = useMoveToOfferApplication();
 
-  const isUpdating = shortlistMutation.isPending || rejectMutation.isPending || moveToOfferMutation.isPending;
+  const isUpdating =
+    shortlistMutation.isPending ||
+    rejectMutation.isPending ||
+    moveToOfferMutation.isPending;
 
   // Map frontend status to current backend status for this applicant
-  const getBackendStatus = (frontendStatus: import('./components/ApplicantsTab').ApplicantStatus): string => {
+  const getBackendStatus = (
+    frontendStatus: import('./components/ApplicantsTab').ApplicantStatus
+  ): string => {
     switch (frontendStatus) {
-      case 'In-review': return 'APPLIED';
-      case 'Interviewed': return 'INTERVIEW';
-      case 'Hired': return 'OFFER';
-      case 'Rejected': return 'REJECTED';
-      case 'Withdrawn': return 'WITHDRAWN';
-      default: return 'APPLIED';
+      case 'In-review':
+        return 'APPLIED';
+      case 'Interviewed':
+        return 'INTERVIEW';
+      case 'Hired':
+        return 'OFFER';
+      case 'Rejected':
+        return 'REJECTED';
+      case 'Withdrawn':
+        return 'WITHDRAWN';
+      default:
+        return 'APPLIED';
     }
   };
 
-  const handleUpdateStage = (applicantId: string, newStage: import('./components/ApplicantsTab').ApplicantStatus) => {
+  const handleUpdateStage = (
+    applicantId: string,
+    newStage: import('./components/ApplicantsTab').ApplicantStatus
+  ) => {
     const targetBackendStatus = getBackendStatus(newStage);
 
     if (targetBackendStatus === 'INTERVIEW') {
@@ -138,7 +153,10 @@ export default function JobDetailsScreen() {
     } else if (targetBackendStatus === 'OFFER') {
       moveToOfferMutation.mutate(applicantId);
     } else if (targetBackendStatus === 'REJECTED') {
-      rejectMutation.mutate({ applicationId: applicantId, feedback: 'Rejected via pipeline' });
+      rejectMutation.mutate({
+        applicationId: applicantId,
+        feedback: 'Rejected via pipeline',
+      });
     }
   };
 

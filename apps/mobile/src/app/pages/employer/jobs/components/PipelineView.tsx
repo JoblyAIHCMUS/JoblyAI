@@ -10,7 +10,11 @@ interface PipelineViewProps {
   isUpdating?: boolean;
 }
 
-export function PipelineView({ applicants, onUpdateStage, isUpdating }: PipelineViewProps) {
+export function PipelineView({
+  applicants,
+  onUpdateStage,
+  isUpdating,
+}: PipelineViewProps) {
   const { width } = useWindowDimensions();
 
   const groupedApplicants = useMemo(() => {
@@ -49,7 +53,9 @@ export function PipelineView({ applicants, onUpdateStage, isUpdating }: Pipeline
 
     return columns.map((col) => ({
       ...col,
-      items: applicants.filter((applicant) => applicant.status === col.apiStatus),
+      items: applicants.filter(
+        (applicant) => applicant.status === col.apiStatus
+      ),
     }));
   }, [applicants]);
 

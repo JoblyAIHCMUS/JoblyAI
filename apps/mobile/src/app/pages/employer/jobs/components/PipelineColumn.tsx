@@ -45,7 +45,12 @@ export function PipelineColumn({
 
         <View className="mx-2 mb-2">
           {applicants.map((applicant) => (
-            <PipelineCard key={applicant.id} applicant={applicant} onUpdateStage={onUpdateStage} isUpdating={isUpdating} />
+            <PipelineCard
+              key={applicant.id}
+              applicant={applicant}
+              onUpdateStage={onUpdateStage}
+              isUpdating={isUpdating}
+            />
           ))}
         </View>
       </View>

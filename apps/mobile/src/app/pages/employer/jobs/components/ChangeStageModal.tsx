@@ -13,10 +13,10 @@ interface ChangeStageModalProps {
 // Valid forward transitions only (can only move forward, not backward)
 const VALID_TRANSITIONS: Record<ApplicantStatus, ApplicantStatus[]> = {
   'In-review': ['Interviewed', 'Rejected'],
-  'Interviewed': ['Hired', 'Rejected'],
-  'Hired': ['Rejected'],
-  'Rejected': [],
-  'Withdrawn': [],
+  Interviewed: ['Hired', 'Rejected'],
+  Hired: ['Rejected'],
+  Rejected: [],
+  Withdrawn: [],
 };
 
 export const ChangeStageModal: React.FC<ChangeStageModalProps> = ({

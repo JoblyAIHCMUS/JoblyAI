@@ -1,4 +1,8 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   listEmployerApplications,
   shortlistApplication,
@@ -78,7 +82,8 @@ export function useMoveToOfferApplication() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (applicationId: string) => moveToOfferApplication(applicationId),
+    mutationFn: (applicationId: string) =>
+      moveToOfferApplication(applicationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employer-applications'] });
     },

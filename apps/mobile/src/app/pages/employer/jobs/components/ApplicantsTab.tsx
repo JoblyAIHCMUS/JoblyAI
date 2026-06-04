@@ -63,7 +63,9 @@ const getStatusColors = (status: ApplicantStatus) => {
 
 function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   const statusColors = getStatusColors(applicant.status);
-  const isSvg = applicant.avatarUrl?.includes('.svg') || applicant.avatarUrl?.includes('/svg');
+  const isSvg =
+    applicant.avatarUrl?.includes('.svg') ||
+    applicant.avatarUrl?.includes('/svg');
 
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
@@ -278,7 +280,11 @@ export default function ApplicantsTab({
             />
             <ViewToggle active={activeView} setActive={setActiveView} />
           </View>
-          <PipelineView applicants={applicants} onUpdateStage={onUpdateStage} isUpdating={isUpdating} />
+          <PipelineView
+            applicants={applicants}
+            onUpdateStage={onUpdateStage}
+            isUpdating={isUpdating}
+          />
         </View>
       )}
     </View>
