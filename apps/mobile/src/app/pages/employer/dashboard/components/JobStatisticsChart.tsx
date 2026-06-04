@@ -51,13 +51,6 @@ export const JobStatisticsChart = ({
     month: 'Year',
   };
 
-  const periodLabel =
-    groupBy === 'day'
-      ? 'Past 7 days'
-      : groupBy === 'week'
-      ? 'Past 4 weeks'
-      : 'Past 12 months';
-
   const options: { label: string; value: 'day' | 'week' | 'month' }[] = [
     { label: 'Week', value: 'day' },
     { label: 'Month', value: 'week' },
@@ -72,14 +65,12 @@ export const JobStatisticsChart = ({
   return (
     <View className="px-4 py-8">
       {/* Header and Tabs */}
-      <View className="flex-row justify-between mb-6" pointerEvents="box-none">
+      <View className="flex-row justify-between items-center mb-6" pointerEvents="box-none">
         <View>
           <Text className="text-2xl font-bold text-gray-900">
             Job statistics
           </Text>
-          <Text className="text-[#475569] text-base">
-            Showing Job statistic ({periodLabel})
-          </Text>
+
         </View>
         <View className="relative">
           <TouchableOpacity
