@@ -7,9 +7,10 @@ import { PipelineColumn } from './PipelineColumn';
 interface PipelineViewProps {
   applicants: Applicant[];
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
+  isUpdating?: boolean;
 }
 
-export function PipelineView({ applicants, onUpdateStage }: PipelineViewProps) {
+export function PipelineView({ applicants, onUpdateStage, isUpdating }: PipelineViewProps) {
   const { width } = useWindowDimensions();
 
   const groupedApplicants = useMemo(() => {
@@ -73,6 +74,7 @@ export function PipelineView({ applicants, onUpdateStage }: PipelineViewProps) {
             borderColor={col.border}
             dotColor={col.dot}
             onUpdateStage={onUpdateStage}
+            isUpdating={isUpdating}
           />
         ))}
       </View>

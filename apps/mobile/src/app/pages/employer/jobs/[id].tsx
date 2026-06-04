@@ -116,6 +116,8 @@ export default function JobDetailsScreen() {
   const rejectMutation = useRejectApplication();
   const moveToOfferMutation = useMoveToOfferApplication();
 
+  const isUpdating = shortlistMutation.isPending || rejectMutation.isPending || moveToOfferMutation.isPending;
+
   // Map frontend status to current backend status for this applicant
   const getBackendStatus = (frontendStatus: import('./components/ApplicantsTab').ApplicantStatus): string => {
     switch (frontendStatus) {
@@ -239,6 +241,7 @@ export default function JobDetailsScreen() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onUpdateStage={handleUpdateStage}
+            isUpdating={isUpdating}
           />
         ) : activeTab === 'Job Details' ? (
           <JobDetailsTab

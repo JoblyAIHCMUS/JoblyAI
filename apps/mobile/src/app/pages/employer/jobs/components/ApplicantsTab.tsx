@@ -41,6 +41,7 @@ interface ApplicantsTabProps {
   searchQuery: string;
   onSearchChange: (text: string) => void;
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
+  isUpdating?: boolean;
 }
 
 const getStatusColors = (status: ApplicantStatus) => {
@@ -209,6 +210,7 @@ export default function ApplicantsTab({
   searchQuery,
   onSearchChange,
   onUpdateStage,
+  isUpdating,
 }: ApplicantsTabProps) {
   const [activeView, setActiveView] = useState<'Pipeline' | 'Table'>('Table');
   const renderFooter = () => {
@@ -276,7 +278,7 @@ export default function ApplicantsTab({
             />
             <ViewToggle active={activeView} setActive={setActiveView} />
           </View>
-          <PipelineView applicants={applicants} onUpdateStage={onUpdateStage} />
+          <PipelineView applicants={applicants} onUpdateStage={onUpdateStage} isUpdating={isUpdating} />
         </View>
       )}
     </View>

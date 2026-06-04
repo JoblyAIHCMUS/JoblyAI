@@ -9,6 +9,7 @@ interface PipelineColumnProps {
   borderColor: string;
   dotColor: string;
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
+  isUpdating?: boolean;
 }
 
 export function PipelineColumn({
@@ -17,6 +18,7 @@ export function PipelineColumn({
   borderColor,
   dotColor,
   onUpdateStage,
+  isUpdating,
 }: PipelineColumnProps) {
   const { width } = useWindowDimensions();
 
@@ -43,7 +45,7 @@ export function PipelineColumn({
 
         <View className="mx-2 mb-2">
           {applicants.map((applicant) => (
-            <PipelineCard key={applicant.id} applicant={applicant} onUpdateStage={onUpdateStage} />
+            <PipelineCard key={applicant.id} applicant={applicant} onUpdateStage={onUpdateStage} isUpdating={isUpdating} />
           ))}
         </View>
       </View>

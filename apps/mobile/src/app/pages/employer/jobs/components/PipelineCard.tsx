@@ -7,15 +7,19 @@ import { formatDate } from '../../../../../utils/date';
 import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineCardMenu } from './PipelineCardMenu';
 import { ChangeStageModal } from './ChangeStageModal';
+import { ConfirmStageChangeModal } from '../../../../../components/ConfirmStageChangeModal';
 
 interface PipelineCardProps {
   applicant: Applicant;
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
+  isUpdating?: boolean;
 }
 
-export function PipelineCard({ applicant, onUpdateStage }: PipelineCardProps) {
+export function PipelineCard({ applicant, onUpdateStage, isUpdating = false }: PipelineCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isStageModalOpen, setIsStageModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [pendingNewStage, setPendingNewStage] = useState<ApplicantStatus | null>(null);
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const [triggerPosition, setTriggerPosition] = useState({
     x: 0,
@@ -54,11 +58,23 @@ export function PipelineCard({ applicant, onUpdateStage }: PipelineCardProps) {
     setIsStageModalOpen(true);
   };
 
-  const handleConfirmStage = (newStage: ApplicantStatus) => {
+  const handleSelectStage = (newStage: ApplicantStatus) => {
     setIsStageModalOpen(false);
-    if (onUpdateStage) {
-      onUpdateStage(applicant.id, newStage);
+    setPendingNewStage(newStage);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmStageChange = () => {
+    if (pendingNewStage && onUpdateStage) {
+      onUpdateStage(applicant.id, pendingNewStage);
+      setIsConfirmModalOpen(false);
+      setPendingNewStage(null);
     }
+  };
+
+  const handleCancelConfirm = () => {
+    setIsConfirmModalOpen(false);
+    setPendingNewStage(null);
   };
 
   return (
@@ -133,7 +149,17 @@ export function PipelineCard({ applicant, onUpdateStage }: PipelineCardProps) {
         onClose={() => setIsStageModalOpen(false)}
         applicantName={applicant.name}
         currentStage={applicant.status}
-        onConfirm={handleConfirmStage}
+        onConfirm={handleSelectStage}
+      />
+
+      <ConfirmStageChangeModal
+        isVisible={isConfirmModalOpen}
+        applicantName={applicant.name}
+        currentStage={applicant.status}
+        newStage={pendingNewStage || applicant.status}
+        onCancel={handleCancelConfirm}
+        onConfirm={handleConfirmStageChange}
+        isUpdating={isUpdating}
       />
     </>
   );
