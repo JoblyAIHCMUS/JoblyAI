@@ -15,8 +15,8 @@ import { PipelineView } from './PipelineView';
 
 export type ApplicantStatus =
   | 'In-review'
-  | 'Shortlisted'
-  | 'Declined'
+  | 'Rejected'
+  | 'Withdrawn'
   | 'Interviewed'
   | 'Hired';
 
@@ -40,16 +40,17 @@ interface ApplicantsTabProps {
   isRefetching: boolean;
   searchQuery: string;
   onSearchChange: (text: string) => void;
+  onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
 }
 
 const getStatusColors = (status: ApplicantStatus) => {
   switch (status) {
     case 'In-review':
       return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
-    case 'Shortlisted':
-      return { border: 'border-app-primary-1', text: 'text-app-primary-1' };
-    case 'Declined':
+    case 'Rejected':
       return { border: 'border-app-red-1', text: 'text-app-red-1' };
+    case 'Withdrawn':
+      return { border: 'border-app-gray-3', text: 'text-app-gray-3' };
     case 'Interviewed':
       return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
     case 'Hired':
@@ -207,6 +208,7 @@ export default function ApplicantsTab({
   isRefetching,
   searchQuery,
   onSearchChange,
+  onUpdateStage,
 }: ApplicantsTabProps) {
   const [activeView, setActiveView] = useState<'Pipeline' | 'Table'>('Table');
   const renderFooter = () => {
@@ -274,7 +276,7 @@ export default function ApplicantsTab({
             />
             <ViewToggle active={activeView} setActive={setActiveView} />
           </View>
-          <PipelineView applicants={applicants} />
+          <PipelineView applicants={applicants} onUpdateStage={onUpdateStage} />
         </View>
       )}
     </View>

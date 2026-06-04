@@ -9,7 +9,12 @@ import { ArrowLeft, Dot, MoreHorizontal } from 'lucide-react-native';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import { useEmployerJobDetail } from '../../../../hooks/useEmployerJobDetail';
-import { useEmployerJobApplications } from '../../../../hooks/useEmployerJobApplications';
+import {
+  useEmployerJobApplications,
+  useShortlistApplication,
+  useRejectApplication,
+  useMoveToOfferApplication,
+} from '../../../../hooks/useEmployerJobApplications';
 import { EMPLOYMENT_TYPE_LABELS } from './constants';
 import { COLORS } from '../../../constants/theme';
 import JobDetailsTab from './components/JobDetailsTab';
@@ -63,11 +68,11 @@ export default function JobDetailsScreen() {
       case 'INTERVIEW':
         return 'Interviewed';
       case 'OFFER':
-        return 'Shortlisted';
+        return 'Hired';
       case 'REJECTED':
-        return 'Declined';
+        return 'Rejected';
       case 'WITHDRAWN':
-        return 'Declined';
+        return 'Withdrawn';
       default:
         return 'In-review';
     }
@@ -106,6 +111,34 @@ export default function JobDetailsScreen() {
   }, [applicationsData]);
 
   const totalApplications = applicationsData?.pages[0]?.total || 0;
+
+  const shortlistMutation = useShortlistApplication();
+  const rejectMutation = useRejectApplication();
+  const moveToOfferMutation = useMoveToOfferApplication();
+
+  // Map frontend status to current backend status for this applicant
+  const getBackendStatus = (frontendStatus: import('./components/ApplicantsTab').ApplicantStatus): string => {
+    switch (frontendStatus) {
+      case 'In-review': return 'APPLIED';
+      case 'Interviewed': return 'INTERVIEW';
+      case 'Hired': return 'OFFER';
+      case 'Rejected': return 'REJECTED';
+      case 'Withdrawn': return 'WITHDRAWN';
+      default: return 'APPLIED';
+    }
+  };
+
+  const handleUpdateStage = (applicantId: string, newStage: import('./components/ApplicantsTab').ApplicantStatus) => {
+    const targetBackendStatus = getBackendStatus(newStage);
+
+    if (targetBackendStatus === 'INTERVIEW') {
+      shortlistMutation.mutate(applicantId);
+    } else if (targetBackendStatus === 'OFFER') {
+      moveToOfferMutation.mutate(applicantId);
+    } else if (targetBackendStatus === 'REJECTED') {
+      rejectMutation.mutate({ applicationId: applicantId, feedback: 'Rejected via pipeline' });
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -205,6 +238,7 @@ export default function JobDetailsScreen() {
             }
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            onUpdateStage={handleUpdateStage}
           />
         ) : activeTab === 'Job Details' ? (
           <JobDetailsTab

@@ -1,14 +1,15 @@
 import React, { useMemo } from 'react';
 import { ScrollView, useWindowDimensions, View } from 'react-native';
 
-import { Applicant } from './ApplicantsTab';
+import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineColumn } from './PipelineColumn';
 
 interface PipelineViewProps {
   applicants: Applicant[];
+  onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
 }
 
-export function PipelineView({ applicants }: PipelineViewProps) {
+export function PipelineView({ applicants, onUpdateStage }: PipelineViewProps) {
   const { width } = useWindowDimensions();
 
   const groupedApplicants = useMemo(() => {
@@ -18,12 +19,6 @@ export function PipelineView({ applicants }: PipelineViewProps) {
         apiStatus: 'In-review',
         border: 'border-app-yellow-1',
         dot: 'bg-app-yellow-1',
-      },
-      {
-        id: 'Shortlisted',
-        apiStatus: 'Shortlisted',
-        border: 'border-app-indigo-1',
-        dot: 'bg-app-indigo-1',
       },
       {
         id: 'Interview',
@@ -38,10 +33,16 @@ export function PipelineView({ applicants }: PipelineViewProps) {
         dot: 'bg-app-teal-1',
       },
       {
-        id: 'Declined',
-        apiStatus: 'Declined',
+        id: 'Rejected',
+        apiStatus: 'Rejected',
         border: 'border-app-red-1',
         dot: 'bg-app-red-1',
+      },
+      {
+        id: 'Withdrawn',
+        apiStatus: 'Withdrawn',
+        border: 'border-app-gray-3',
+        dot: 'bg-app-gray-3',
       },
     ] as const;
 
@@ -71,6 +72,7 @@ export function PipelineView({ applicants }: PipelineViewProps) {
             applicants={col.items}
             borderColor={col.border}
             dotColor={col.dot}
+            onUpdateStage={onUpdateStage}
           />
         ))}
       </View>

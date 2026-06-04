@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
-import { Applicant } from './ApplicantsTab';
+import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineCard } from './PipelineCard';
 
 interface PipelineColumnProps {
@@ -8,6 +8,7 @@ interface PipelineColumnProps {
   applicants: Applicant[];
   borderColor: string;
   dotColor: string;
+  onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
 }
 
 export function PipelineColumn({
@@ -15,6 +16,7 @@ export function PipelineColumn({
   applicants,
   borderColor,
   dotColor,
+  onUpdateStage,
 }: PipelineColumnProps) {
   const { width } = useWindowDimensions();
 
@@ -41,7 +43,7 @@ export function PipelineColumn({
 
         <View className="mx-2 mb-2">
           {applicants.map((applicant) => (
-            <PipelineCard key={applicant.id} applicant={applicant} />
+            <PipelineCard key={applicant.id} applicant={applicant} onUpdateStage={onUpdateStage} />
           ))}
         </View>
       </View>

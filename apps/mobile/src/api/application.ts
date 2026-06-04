@@ -34,3 +34,32 @@ export async function listCandidateApplications(
 
   return response.data;
 }
+
+export async function shortlistApplication(
+  applicationId: string | number
+): Promise<void> {
+  const response = await apiClient.patch(
+    `/employers/applications/${applicationId}/shortlist`
+  );
+  return response.data;
+}
+
+export async function rejectApplication(
+  applicationId: string | number,
+  feedback: string
+): Promise<void> {
+  const response = await apiClient.patch(
+    `/employers/applications/${applicationId}/reject`,
+    { feedback }
+  );
+  return response.data;
+}
+
+export async function moveToOfferApplication(
+  applicationId: string | number
+): Promise<void> {
+  const response = await apiClient.patch(
+    `/employers/applications/${applicationId}/offer`
+  );
+  return response.data;
+}

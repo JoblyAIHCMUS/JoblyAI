@@ -87,6 +87,7 @@ module.exports = {
         'app-slate-gray': '#F1F5F9',
         'app-text-gray': '#667085',
         'app-card-header': '#5B5CE7',
+        'app-gray-3': '#6B7280',
         'app-border-light': '#dbe1ee',
         'app-dark-text': '#111827',
       },

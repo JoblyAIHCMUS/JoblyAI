@@ -1,5 +1,10 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { listEmployerApplications } from '../api/application';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  listEmployerApplications,
+  shortlistApplication,
+  rejectApplication,
+  moveToOfferApplication,
+} from '../api/application';
 import { EmployerApplicationsQuery } from '../types/application';
 
 export function useEmployerJobApplications(
@@ -38,5 +43,44 @@ export function useEmployerJobApplications(
     },
     initialPageParam: 1,
     enabled: !!jobId,
+  });
+}
+
+export function useShortlistApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (applicationId: string) => shortlistApplication(applicationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employer-applications'] });
+    },
+  });
+}
+
+export function useRejectApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      applicationId,
+      feedback,
+    }: {
+      applicationId: string;
+      feedback: string;
+    }) => rejectApplication(applicationId, feedback),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employer-applications'] });
+    },
+  });
+}
+
+export function useMoveToOfferApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (applicationId: string) => moveToOfferApplication(applicationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employer-applications'] });
+    },
   });
 }
