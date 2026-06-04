@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
 
 import { Applicant } from './ApplicantsTab';
 import { PipelineColumn } from './PipelineColumn';
@@ -9,6 +9,8 @@ interface PipelineViewProps {
 }
 
 export function PipelineView({ applicants }: PipelineViewProps) {
+  const { width } = useWindowDimensions();
+
   const groupedApplicants = useMemo(() => {
     const columns = [
       {
@@ -49,12 +51,17 @@ export function PipelineView({ applicants }: PipelineViewProps) {
     }));
   }, [applicants]);
 
+  // Column width is screen width - 32px, plus 16px total horizontal margin (mx-2)
+  const snapInterval = width - 16;
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 16 }}
       className="flex-1"
+      snapToInterval={snapInterval}
+      decelerationRate="fast"
     >
       <View className="flex-row items-start">
         {groupedApplicants.map((col) => (
