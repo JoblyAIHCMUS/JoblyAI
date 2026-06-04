@@ -10,11 +10,13 @@ import {
   TextInput,
 } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
+import { SvgUri } from 'react-native-svg';
+import { PipelineView } from './PipelineView';
 
 export type ApplicantStatus =
   | 'In-review'
-  | 'Shortlisted'
-  | 'Declined'
+  | 'Rejected'
+  | 'Withdrawn'
   | 'Interviewed'
   | 'Hired';
 
@@ -24,6 +26,7 @@ export interface Applicant {
   avatarUrl: string;
   rating: number;
   status: ApplicantStatus;
+  appliedDate: string;
 }
 
 interface ApplicantsTabProps {
@@ -37,16 +40,18 @@ interface ApplicantsTabProps {
   isRefetching: boolean;
   searchQuery: string;
   onSearchChange: (text: string) => void;
+  onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
+  isUpdating?: boolean;
 }
 
 const getStatusColors = (status: ApplicantStatus) => {
   switch (status) {
     case 'In-review':
       return { border: 'border-app-orange-1', text: 'text-app-orange-1' };
-    case 'Shortlisted':
-      return { border: 'border-app-primary-1', text: 'text-app-primary-1' };
-    case 'Declined':
+    case 'Rejected':
       return { border: 'border-app-red-1', text: 'text-app-red-1' };
+    case 'Withdrawn':
+      return { border: 'border-app-gray-3', text: 'text-app-gray-3' };
     case 'Interviewed':
       return { border: 'border-app-secondary-2', text: 'text-app-secondary-2' };
     case 'Hired':
@@ -58,14 +63,23 @@ const getStatusColors = (status: ApplicantStatus) => {
 
 function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   const statusColors = getStatusColors(applicant.status);
+  const isSvg =
+    applicant.avatarUrl?.includes('.svg') ||
+    applicant.avatarUrl?.includes('/svg');
 
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
       <View className="flex-row items-center flex-1">
-        <Image
-          source={{ uri: applicant.avatarUrl }}
-          className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
-        />
+        {isSvg ? (
+          <View className="w-14 h-14 rounded-full mr-4 bg-app-gray-1 overflow-hidden">
+            <SvgUri width="100%" height="100%" uri={applicant.avatarUrl} />
+          </View>
+        ) : (
+          <Image
+            source={{ uri: applicant.avatarUrl }}
+            className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
+          />
+        )}
         <View className="flex-1">
           <Text className="text-lg font-semibold text-app-slate-1 mb-1">
             {applicant.name}
@@ -153,9 +167,13 @@ function ApplicantsHeader({
   );
 }
 
-function ViewToggle() {
-  const [active, setActive] = useState<'Pipeline' | 'Table'>('Table');
-
+function ViewToggle({
+  active,
+  setActive,
+}: {
+  active: 'Pipeline' | 'Table';
+  setActive: (val: 'Pipeline' | 'Table') => void;
+}) {
   return (
     <View className="flex-row bg-app-background-1 rounded-lg p-1 my-4">
       <TouchableOpacity
@@ -193,7 +211,10 @@ export default function ApplicantsTab({
   isRefetching,
   searchQuery,
   onSearchChange,
+  onUpdateStage,
+  isUpdating,
 }: ApplicantsTabProps) {
+  const [activeView, setActiveView] = useState<'Pipeline' | 'Table'>('Table');
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
     return (
@@ -214,39 +235,58 @@ export default function ApplicantsTab({
 
   return (
     <View className="flex-1 bg-white">
-      <FlatList
-        data={applicants}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={({ item }) => <ApplicantListItem applicant={item} />}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
+      {activeView === 'Table' ? (
+        <FlatList
+          data={applicants}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => <ApplicantListItem applicant={item} />}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              <ApplicantsHeader
+                total={total}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+              />
+              <ViewToggle active={activeView} setActive={setActiveView} />
+            </>
+          }
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              colors={['#4640DE']}
+            />
+          }
+        />
+      ) : (
+        <View className="flex-1">
+          <View className="px-4">
             <ApplicantsHeader
               total={total}
               isLoading={isLoading}
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
             />
-            <ViewToggle />
-          </>
-        }
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={renderEmpty}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            colors={['#4640DE']}
+            <ViewToggle active={activeView} setActive={setActiveView} />
+          </View>
+          <PipelineView
+            applicants={applicants}
+            onUpdateStage={onUpdateStage}
+            isUpdating={isUpdating}
           />
-        }
-      />
+        </View>
+      )}
     </View>
   );
 }
