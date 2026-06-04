@@ -1,7 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { MoreHorizontal } from 'lucide-react-native';
-
+import { Text, useWindowDimensions, View } from 'react-native';
 import { Applicant } from './ApplicantsTab';
 import { PipelineCard } from './PipelineCard';
 
@@ -38,12 +36,6 @@ export function PipelineColumn({
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MoreHorizontal size={20} color="#64748B" />
-            </TouchableOpacity>
           </View>
         </View>
 
