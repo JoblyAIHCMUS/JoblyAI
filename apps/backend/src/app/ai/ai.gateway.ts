@@ -38,8 +38,10 @@ export class AiGateway implements OnGatewayConnection {
       await client.join(userId);
       this.logger.log(`User ${userId} joined AI room ${userId}`);
     } else {
-      this.logger.warn(`Unauthenticated client ${client.id} rejected by AI Gateway`);
-      // Optional: client.disconnect(); 
+      this.logger.warn(
+        `Unauthenticated client ${client.id} rejected by AI Gateway`
+      );
+      // Optional: client.disconnect();
       // We don't necessarily want to disconnect here if they are connected for other things
     }
   }
@@ -47,9 +49,9 @@ export class AiGateway implements OnGatewayConnection {
   notifyUser(userId: string, event: string, payload: any) {
     const eventName = `${event}_${userId}`;
     this.logger.log(`Emitting event: ${eventName} to user ${userId}`);
-    
+
     // We emit to the specific user's room for security and efficiency
-    // We keep the dynamic event name for backward compatibility with frontend, 
+    // We keep the dynamic event name for backward compatibility with frontend,
     // but target the specific user's room.
     this.server.to(userId).emit(eventName, payload);
   }

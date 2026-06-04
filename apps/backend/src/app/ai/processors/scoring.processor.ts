@@ -89,12 +89,15 @@ export class ScoringProcessor extends WorkerHost {
           recipientId: candidateId,
           type: 'AI_RESUME_SCORED',
           title: 'AI Scoring Complete',
-          content: 'Your CV has been evaluated with a strategic score. View feedback now.',
+          content:
+            'Your CV has been evaluated with a strategic score. View feedback now.',
           link: `/candidate/profile?openFeedbackModal=${resumeId}`,
           metadata: { resumeId, score: finalScore },
         });
       } catch (notifyError: any) {
-        this.logger.error(`Failed to create persistent notification: ${notifyError.message}`);
+        this.logger.error(
+          `Failed to create persistent notification: ${notifyError.message}`
+        );
       }
 
       return { success: true, resumeId };

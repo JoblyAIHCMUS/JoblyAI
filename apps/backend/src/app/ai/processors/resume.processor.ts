@@ -111,12 +111,15 @@ export class ResumeProcessor extends WorkerHost {
           recipientId: candidateId,
           type: 'AI_RESUME_PARSED',
           title: 'Resume Parsed',
-          content: 'AI has finished reading your CV. Review and sync to your profile now.',
+          content:
+            'AI has finished reading your CV. Review and sync to your profile now.',
           link: `/candidate/profile?openSyncModal=${resumeId}`,
           metadata: { resumeId },
         });
       } catch (notifyError: any) {
-        this.logger.error(`Failed to create persistent notification: ${notifyError.message}`);
+        this.logger.error(
+          `Failed to create persistent notification: ${notifyError.message}`
+        );
       }
 
       return { success: true, resumeId };

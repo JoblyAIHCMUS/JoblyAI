@@ -82,10 +82,7 @@ const CV = forwardRef<CVRef, CVProps>(
 
     // Structural actions that should block most other things
     const isActionInProgress =
-      isUploading ||
-      isUpdating ||
-      isDeleting ||
-      !!deletingResumeId;
+      isUploading || isUpdating || isDeleting || !!deletingResumeId;
 
     // AI tasks in progress
     const hasActiveTasks = Object.values(processingTasks).some(
@@ -107,14 +104,24 @@ const CV = forwardRef<CVRef, CVProps>(
           isAtMax,
           disabled,
           resumeCount,
-          processingTasks: JSON.stringify(processingTasks)
+          processingTasks: JSON.stringify(processingTasks),
         });
       }
-    }, [isActionInProgress, hasActiveTasks, isBusy, isAtMax, disabled, resumeCount, processingTasks]);
+    }, [
+      isActionInProgress,
+      hasActiveTasks,
+      isBusy,
+      isAtMax,
+      disabled,
+      resumeCount,
+      processingTasks,
+    ]);
 
-    const sortedResumes = resumes ? [...resumes].sort(
-      (a, b) => Number(!!b.isDefault) - Number(!!a.isDefault)
-    ) : [];
+    const sortedResumes = resumes
+      ? [...resumes].sort(
+          (a, b) => Number(!!b.isDefault) - Number(!!a.isDefault)
+        )
+      : [];
     const defaultResume =
       resumes?.find((resume) => resume.id === selectedResumeId) ||
       resumes?.find((resume) => resume.isDefault) ||
@@ -352,8 +359,9 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          isActionInProgress || 
-                          (processingTasks[resume.id]?.parsing && !resume.parsedText)
+                          isActionInProgress ||
+                          (processingTasks[resume.id]?.parsing &&
+                            !resume.parsedText)
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -414,9 +422,12 @@ const CV = forwardRef<CVRef, CVProps>(
                           }
                         }}
                         disabled={
-                          isActionInProgress || 
+                          isActionInProgress ||
                           (processingTasks[resume.id]?.scoring &&
-                            !(resume.aiScore !== undefined && resume.aiScore !== null))
+                            !(
+                              resume.aiScore !== undefined &&
+                              resume.aiScore !== null
+                            ))
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -449,7 +460,12 @@ const CV = forwardRef<CVRef, CVProps>(
                       <button
                         type="button"
                         onClick={() => handleOpenDefaultConfirm(resume.id)}
-                        disabled={resume.isDefault || isBusy || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring}
+                        disabled={
+                          resume.isDefault ||
+                          isBusy ||
+                          processingTasks[resume.id]?.parsing ||
+                          processingTasks[resume.id]?.scoring
+                        }
                         className={cn(
                           'h-9 w-9 flex items-center justify-center rounded-md border transition-colors',
                           resume.isDefault
@@ -465,8 +481,8 @@ const CV = forwardRef<CVRef, CVProps>(
                         type="button"
                         onClick={() => onDeleteResume?.(resume.id)}
                         disabled={
-                          deletingResumeId === resume.id || 
-                          processingTasks[resume.id]?.parsing || 
+                          deletingResumeId === resume.id ||
+                          processingTasks[resume.id]?.parsing ||
                           processingTasks[resume.id]?.scoring ||
                           isUpdating ||
                           isDeleting
@@ -475,7 +491,9 @@ const CV = forwardRef<CVRef, CVProps>(
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        {deletingResumeId === resume.id || processingTasks[resume.id]?.parsing || processingTasks[resume.id]?.scoring ? (
+                        {deletingResumeId === resume.id ||
+                        processingTasks[resume.id]?.parsing ||
+                        processingTasks[resume.id]?.scoring ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
                         ) : (
                           <Trash2 size={16} className="text-red-600" />
