@@ -98,6 +98,8 @@ export default function JobDetailsScreen() {
             (app as unknown as { matchPercentage: number }).matchPercentage ||
             0,
           status: mapApplicationStatus(app.status),
+          appliedDate: (app as unknown as { createdAt?: string }).createdAt ??
+            new Date().toISOString(),
         };
       })
     );

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
 import { SvgUri } from 'react-native-svg';
+import { PipelineView } from './PipelineView';
 
 export type ApplicantStatus =
   | 'In-review'
@@ -25,6 +26,7 @@ export interface Applicant {
   avatarUrl: string;
   rating: number;
   status: ApplicantStatus;
+  appliedDate: string;
 }
 
 interface ApplicantsTabProps {
@@ -161,9 +163,13 @@ function ApplicantsHeader({
   );
 }
 
-function ViewToggle() {
-  const [active, setActive] = useState<'Pipeline' | 'Table'>('Table');
-
+function ViewToggle({
+  active,
+  setActive,
+}: {
+  active: 'Pipeline' | 'Table';
+  setActive: (val: 'Pipeline' | 'Table') => void;
+}) {
   return (
     <View className="flex-row bg-app-background-1 rounded-lg p-1 my-4">
       <TouchableOpacity
@@ -202,6 +208,7 @@ export default function ApplicantsTab({
   searchQuery,
   onSearchChange,
 }: ApplicantsTabProps) {
+  const [activeView, setActiveView] = useState<'Pipeline' | 'Table'>('Table');
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
     return (
@@ -222,39 +229,54 @@ export default function ApplicantsTab({
 
   return (
     <View className="flex-1 bg-white">
-      <FlatList
-        data={applicants}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={({ item }) => <ApplicantListItem applicant={item} />}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
+      {activeView === 'Table' ? (
+        <FlatList
+          data={applicants}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => <ApplicantListItem applicant={item} />}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              <ApplicantsHeader
+                total={total}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+              />
+              <ViewToggle active={activeView} setActive={setActiveView} />
+            </>
+          }
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              colors={['#4640DE']}
+            />
+          }
+        />
+      ) : (
+        <View className="flex-1">
+          <View className="px-4">
             <ApplicantsHeader
               total={total}
               isLoading={isLoading}
               searchQuery={searchQuery}
               onSearchChange={onSearchChange}
             />
-            <ViewToggle />
-          </>
-        }
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={renderEmpty}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            colors={['#4640DE']}
-          />
-        }
-      />
+            <ViewToggle active={activeView} setActive={setActiveView} />
+          </View>
+          <PipelineView applicants={applicants} />
+        </View>
+      )}
     </View>
   );
 }
