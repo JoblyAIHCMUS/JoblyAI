@@ -12,6 +12,10 @@ import { BarChart } from 'react-native-gifted-charts';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatsDataSet } from '../utils/statsAggregation';
 
+type TabName = 'Overview' | 'Jobs View' | 'Jobs Applied';
+
+const tabs: TabName[] = ['Overview', 'Jobs View', 'Jobs Applied'];
+
 interface JobStatisticsChartProps {
   data?: StatsDataSet;
   loading?: boolean;
@@ -26,6 +30,21 @@ export const JobStatisticsChart = ({
   onGroupByChange,
 }: JobStatisticsChartProps) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabName>('Overview');
+
+  const displayData: StatsDataSet =
+    activeTab === 'Overview'
+      ? data
+      : data.map((item) => {
+          const zeroColor = activeTab === 'Jobs View' ? '#A855F7' : '#F59E0B';
+          return {
+            ...item,
+            stacks: item.stacks.map((stack) =>
+              stack.color === zeroColor ? { ...stack, value: 0 } : stack
+            ),
+          };
+        });
+
   const screenWidth = Dimensions.get('window').width;
   const CHART_WIDTH = screenWidth - 32;
   const CHART_HEIGHT = 220;
@@ -33,7 +52,7 @@ export const JobStatisticsChart = ({
   // Calculate max value dynamically or use a default
   const MAX_VALUE =
     Math.max(
-      ...data.flatMap((item) =>
+      ...displayData.flatMap((item) =>
         item.stacks.reduce((acc, stack) => acc + stack.value, 0)
       ),
       10 // Minimum max value to prevent issues
@@ -126,17 +145,32 @@ export const JobStatisticsChart = ({
         className="flex-row justify-between border-b border-gray-200 mb-8"
         pointerEvents="box-none"
       >
-        <View className="border-b-2 border-indigo-600 pb-2">
-          <Text className="text-indigo-600 font-semibold text-lg">
-            Overview
-          </Text>
-        </View>
-        <Text className="text-[#475569] pb-2 font-semibold text-lg">
-          Jobs View
-        </Text>
-        <Text className="text-[#475569] pb-2 font-semibold text-lg">
-          Jobs Applied
-        </Text>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab;
+          return isActive ? (
+            <View key={tab} className="border-b-2 border-indigo-600 pb-2">
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text className="text-indigo-600 font-semibold text-lg">
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              key={tab}
+              activeOpacity={0.85}
+              onPress={() => setActiveTab(tab)}
+              className="pb-2"
+            >
+              <Text className="text-[#475569] font-semibold text-lg">
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <View className="relative min-h-[220px] justify-center">
@@ -144,7 +178,7 @@ export const JobStatisticsChart = ({
           <ActivityIndicator size="large" color="#4F46E5" />
         ) : data.length > 0 ? (
           <BarChart
-            stackData={data}
+            stackData={displayData}
             width={CHART_WIDTH}
             height={CHART_HEIGHT}
             barWidth={BAR_WIDTH}
@@ -175,14 +209,18 @@ export const JobStatisticsChart = ({
         )}
 
         <View className="flex-row mt-6 gap-x-6" pointerEvents="box-none">
-          <View className="flex-row items-center gap-x-2">
-            <View className="w-4 h-4 rounded bg-amber-500" />
-            <Text className="text-[#475569] text-base">Job View</Text>
-          </View>
-          <View className="flex-row items-center gap-x-2">
-            <View className="w-4 h-4 rounded bg-purple-500" />
-            <Text className="text-[#475569] text-base">Job Applied</Text>
-          </View>
+          {activeTab !== 'Jobs Applied' && (
+            <View className="flex-row items-center gap-x-2">
+              <View className="w-4 h-4 rounded bg-amber-500" />
+              <Text className="text-[#475569] text-base">Job View</Text>
+            </View>
+          )}
+          {activeTab !== 'Jobs View' && (
+            <View className="flex-row items-center gap-x-2">
+              <View className="w-4 h-4 rounded bg-purple-500" />
+              <Text className="text-[#475569] text-base">Job Applied</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>
