@@ -35,6 +35,23 @@ export function aggregateAnalyticsData(
     { jobViews: number; jobApplications: number }
   >();
 
+  const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+  const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
+  const cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    const key = formatPeriodKey(cursor, groupBy);
+    if (!periodMap.has(key)) {
+      periodMap.set(key, { jobViews: 0, jobApplications: 0 });
+    }
+    if (groupBy === 'day') {
+      cursor.setDate(cursor.getDate() + 1);
+    } else if (groupBy === 'week') {
+      cursor.setDate(cursor.getDate() + 7);
+    } else {
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+  }
+
   // Add view data
   viewsData.forEach(({ period, viewCount }) => {
     if (!periodMap.has(period)) {
@@ -58,7 +75,9 @@ export function aggregateAnalyticsData(
   });
 
   // Sort periods chronologically
-  const sortedPeriods = Array.from(periodMap.keys()).sort();
+  const sortedPeriods = Array.from(periodMap.keys()).sort((a, b) => {
+    return a.localeCompare(b);
+  });
 
   // Create data points
   const chartData = sortedPeriods
@@ -127,9 +146,26 @@ export function aggregateAnalyticsData(
   };
 }
 
-/**
- * Format a period string into a readable label for display
- */
+function formatPeriodKey(
+  date: Date,
+  groupBy: 'day' | 'week' | 'month'
+): string {
+  if (groupBy === 'month') {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}`;
+  }
+  if (groupBy === 'week') {
+    // Compute Sunday of this week to match backend's Sunday-based period keys
+    const dayOfWeek = date.getDay();
+    const sunday = new Date(date);
+    sunday.setDate(date.getDate() - dayOfWeek);
+    return sunday.toISOString().split('T')[0];
+  }
+  return date.toISOString().split('T')[0];
+}
+
 function formatPeriodLabel(
   period: string,
   groupBy: 'day' | 'week' | 'month',
@@ -155,17 +191,33 @@ export function getDateRangeForPeriods(
   groupBy: 'day' | 'week' | 'month',
   periods = 7
 ): [Date, Date] {
-  const endDate = new Date();
-  const startDate = new Date();
+  const today = new Date();
 
   if (groupBy === 'day') {
-    startDate.setDate(endDate.getDate() - (periods - 1));
-  } else if (groupBy === 'week') {
-    startDate.setDate(endDate.getDate() - (periods - 1) * 7);
-  } else {
-    // month
-    startDate.setMonth(endDate.getMonth() - (periods - 1));
-  }
+    // endDate = today
+    const endDate = new Date(today);
 
-  return [startDate, endDate];
+    // Start = endDate minus (periods - 1) days
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - (periods - 1));
+
+    return [startDate, endDate];
+  } else if (groupBy === 'week') {
+    // endDate = today
+    const endDate = new Date(today);
+
+    // Start = endDate minus (periods - 1) weeks
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - (periods - 1) * 7);
+
+    return [startDate, endDate];
+  } else {
+    // month - endDate = today, start = today minus (periods - 1) months
+    const endDate = new Date(today);
+
+    const startDate = new Date(today);
+    startDate.setMonth(today.getMonth() - (periods - 1));
+
+    return [startDate, endDate];
+  }
 }
