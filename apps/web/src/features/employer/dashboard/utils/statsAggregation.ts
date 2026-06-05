@@ -176,17 +176,23 @@ export function getDateRangeForPeriods(
   groupBy: 'day' | 'week' | 'month',
   periods = 7
 ): [Date, Date] {
-  const endDate = new Date();
-  const startDate = new Date();
+  const today = new Date();
 
   if (groupBy === 'day') {
+    const endDate = new Date(today);
+    const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (periods - 1));
+    return [startDate, endDate];
   } else if (groupBy === 'week') {
+    const endDate = new Date(today);
+    const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (periods - 1) * 7);
+    return [startDate, endDate];
   } else {
     // month
-    startDate.setMonth(endDate.getMonth() - (periods - 1));
+    const endDate = new Date(today);
+    const startDate = new Date(today);
+    startDate.setMonth(today.getMonth() - (periods - 1));
+    return [startDate, endDate];
   }
-
-  return [startDate, endDate];
 }
