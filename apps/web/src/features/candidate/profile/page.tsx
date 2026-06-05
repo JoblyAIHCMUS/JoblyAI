@@ -85,8 +85,43 @@ const CandidateProfilePage = () => {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
   const [processingTasks, setProcessingTasks] = useState<
-    Record<number, { parsing: boolean; scoring: boolean }>
-  >({});
+    Record<
+      number,
+      {
+        parsing: boolean;
+        scoring: boolean;
+        parsingStartTime?: number;
+        scoringStartTime?: number;
+      }
+    >
+  >(() => {
+    // Lazy initialization from sessionStorage to persist across tab switches
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('jobly_ai_tasks');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Convert string keys back to numbers if they were serialized as strings
+          const rehydrated: Record<number, any> = {};
+          Object.keys(parsed).forEach((key) => {
+            rehydrated[Number(key)] = parsed[key];
+          });
+          return rehydrated;
+        } catch (e) {
+          console.error(
+            '[CandidateProfilePage] Failed to parse saved AI tasks:',
+            e
+          );
+        }
+      }
+    }
+    return {};
+  });
+
+  // Persist processing tasks to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('jobly_ai_tasks', JSON.stringify(processingTasks));
+  }, [processingTasks]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
   const cvRef = useRef<CVRef>(null);
@@ -137,6 +172,103 @@ const CandidateProfilePage = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [processingTasks, isSyncing]);
 
+  // Reconcile processingTasks with actual profile data
+  // This is a safety net in case we missed a socket event while on another tab
+  useEffect(() => {
+    // If we have no profile yet, or it's loading, don't clear anything yet
+    // But if we have an empty resumes list, we should check if tasks are stale
+    const resumes = profile?.resumes || [];
+    const resumeIds = new Set(resumes.map((r) => r.id));
+
+    let hasChanges = false;
+    const nextTasks = { ...processingTasks };
+    const now = Date.now();
+    const GRACE_PERIOD = 30000; // 30 seconds for data to reflect after event
+    const TIMEOUT_PERIOD = 300000; // 5 minutes absolute timeout for any task
+
+    // Check all current tasks
+    Object.keys(nextTasks).forEach((idStr) => {
+      const id = parseInt(idStr);
+      const task = nextTasks[id] as any;
+      if (!task) return;
+
+      const resume = resumes.find((r) => r.id === id);
+
+      // Scenario 1: Resume no longer exists (deleted)
+      // ONLY check this if profile data has actually been loaded
+      if (profile && !resumeIds.has(id)) {
+        // If it's a very new task, maybe the resume list hasn't updated yet
+        const startTime = Math.min(
+          task.parsingStartTime || now,
+          task.scoringStartTime || now
+        );
+        if (now - startTime > 15000) {
+          // Increased to 15 seconds grace
+          console.log(
+            `[CandidateProfilePage] 🧹 Clearing task for non-existent resume ${id}`
+          );
+          delete nextTasks[id];
+          hasChanges = true;
+          return;
+        }
+      }
+
+      // Scenario 2: Data already reflects completion
+      if (resume) {
+        // If resume already has parsedText, it's no longer parsing
+        if (
+          resume.parsedText &&
+          task.parsing &&
+          (!task.parsingStartTime || now - task.parsingStartTime > GRACE_PERIOD)
+        ) {
+          console.log(
+            `[CandidateProfilePage] 🧹 Task completed: parsing for ${id}`
+          );
+          task.parsing = false;
+          hasChanges = true;
+        }
+
+        // If resume already has aiScore, it's no longer scoring
+        if (
+          resume.aiScore !== null &&
+          task.scoring &&
+          (!task.scoringStartTime || now - task.scoringStartTime > GRACE_PERIOD)
+        ) {
+          console.log(
+            `[CandidateProfilePage] 🧹 Task completed: scoring for ${id}`
+          );
+          task.scoring = false;
+          hasChanges = true;
+        }
+      }
+
+      // Scenario 3: Absolute timeout (backend/socket failure)
+      const startTime = Math.min(
+        task.parsingStartTime || now,
+        task.scoringStartTime || now
+      );
+      if (now - startTime > TIMEOUT_PERIOD) {
+        console.warn(
+          `[CandidateProfilePage] ⚠️ Task for resume ${id} timed out after 5 mins`
+        );
+        delete nextTasks[id];
+        hasChanges = true;
+        return;
+      }
+
+      // Clean up empty tasks
+      if (!task.parsing && !task.scoring) {
+        delete nextTasks[id];
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      console.log('[CandidateProfilePage] 🔄 Reconciled AI tasks updated');
+      setProcessingTasks(nextTasks);
+    }
+  }, [profile?.resumes, processingTasks]);
+
   useEffect(() => {
     const handleOpenSyncModal = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -171,8 +303,22 @@ const CandidateProfilePage = () => {
         [resumeId]: {
           ...(prev[resumeId] || { scoring: false }),
           parsing: true,
+          parsingStartTime: Date.now(),
         },
       }));
+
+      // Locally clear parsedText to avoid reconciliation logic prematurely turning off the spinner
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resumes: prev.resumes?.map((r) =>
+            r.id === resumeId
+              ? { ...r, parsedText: null, isSyncedToProfile: false }
+              : r
+          ),
+        };
+      });
 
       toast.info('AI is extracting data from your resume...', {
         id: `ai-processing-${resumeId}`,
@@ -213,8 +359,20 @@ const CandidateProfilePage = () => {
         [resumeId]: {
           ...(prev[resumeId] || { parsing: false }),
           scoring: true,
+          scoringStartTime: Date.now(),
         },
       }));
+
+      // Locally clear score to avoid reconciliation logic prematurely turning off the spinner
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resumes: prev.resumes?.map((r) =>
+            r.id === resumeId ? { ...r, aiScore: null, aiFeedback: null } : r
+          ),
+        };
+      });
 
       toast.info('AI is scoring your resume...', {
         id: `ai-processing-${resumeId}`,
@@ -247,24 +405,42 @@ const CandidateProfilePage = () => {
       const type = e.type;
 
       console.log(
-        `[CandidateProfilePage] AI processing finished: ${type} for resume ${resumeId}`
+        `[CandidateProfilePage] 🏁 AI processing finished event received: ${type} for resume ${resumeId}`
       );
 
       setProcessingTasks((prev) => {
-        const current = prev[resumeId] || { parsing: false, scoring: false };
-        const next = { ...current };
-        if (type === 'ai-parsed-success') next.parsing = false;
-        if (type === 'ai-scored-success') next.scoring = false;
+        const next = { ...prev };
+        const rid = Number(resumeId);
+        const current = next[rid] || { parsing: false, scoring: false };
 
-        // If all tasks for this resume are done, dismiss the processing toast
-        if (!next.parsing && !next.scoring) {
-          toast.dismiss(`ai-processing-${resumeId}`);
+        if (type === 'ai-parsed-success') {
+          console.log(
+            `[CandidateProfilePage] Setting parsing=false for resume ${rid}`
+          );
+          next[rid] = { ...current, parsing: false };
+        }
+        if (type === 'ai-scored-success') {
+          console.log(
+            `[CandidateProfilePage] Setting scoring=false for resume ${rid}`
+          );
+          next[rid] = { ...current, scoring: false };
         }
 
-        return { ...prev, [resumeId]: next };
+        // Re-calculate after update
+        const updated = next[rid];
+        if (updated && !updated.parsing && !updated.scoring) {
+          console.log(
+            `[CandidateProfilePage] Task complete for resume ${rid}, dismissing toast and deleting task state`
+          );
+          toast.dismiss(`ai-processing-${rid}`);
+          delete next[rid];
+        }
+
+        return next;
       });
 
-      fetchCandidateProfile();
+      console.log('[CandidateProfilePage] Refreshing profile data...');
+      fetchCandidateProfile({ forceRefresh: true });
     };
 
     window.addEventListener('OPEN_CV_SYNC_MODAL', handleOpenSyncModal);
@@ -291,15 +467,20 @@ const CandidateProfilePage = () => {
     if (!activeResumeId || !profile) return;
 
     const resume = profile.resumes?.find((r) => r.id === activeResumeId);
-    if (!resume || !resume.parsedText) return;
+    if (!resume || !resume.parsedText) {
+      console.warn(
+        '[CandidateProfilePage] Cannot sync: Resume or parsedText missing',
+        { activeResumeId, resume }
+      );
+      return;
+    }
 
+    console.log(
+      '[CandidateProfilePage] 🔄 Starting sync for resume:',
+      activeResumeId
+    );
     setIsSyncing(true);
     try {
-      console.log(
-        '[CandidateProfilePage] Committing resume merge for:',
-        activeResumeId
-      );
-
       // Use modifiedDraftData if provided, otherwise fallback to original parsedText
       const dataToSync =
         modifiedDraftData ||
@@ -308,12 +489,15 @@ const CandidateProfilePage = () => {
           : resume.parsedText);
 
       await commitResumeMerge(activeResumeId, dataToSync);
+      console.log('[CandidateProfilePage] ✅ Sync API call successful');
 
       // CRITICAL: Force refresh data BEFORE closing modal
       const updatedProfile = await fetchCandidateProfile({
         forceRefresh: true,
       });
+
       if (updatedProfile) {
+        console.log('[CandidateProfilePage] 📥 Profile refreshed after sync');
         setProfile({ ...updatedProfile });
       }
 
@@ -321,9 +505,12 @@ const CandidateProfilePage = () => {
       setSyncModalOpen(false);
       window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (error) {
-      console.error('[CandidateProfilePage] Failed to sync profile:', error);
+      console.error('[CandidateProfilePage] ❌ Failed to sync profile:', error);
       toast.error('Failed to sync profile');
     } finally {
+      console.log(
+        '[CandidateProfilePage] 🏁 Sync process finished, setting isSyncing=false'
+      );
       setIsSyncing(false);
     }
   };
@@ -394,7 +581,12 @@ const CandidateProfilePage = () => {
 
       setProcessingTasks((prev) => ({
         ...prev,
-        [resumeData.id]: { parsing: true, scoring: true },
+        [resumeData.id]: {
+          parsing: true,
+          scoring: true,
+          parsingStartTime: Date.now(),
+          scoringStartTime: Date.now(),
+        },
       }));
 
       const newResume = {
@@ -420,6 +612,9 @@ const CandidateProfilePage = () => {
       setSelectedResumeId(resumeData.id);
       cvRef.current?.refreshUrl(resumeData.fileKey);
       setUploadErrorMsg(null);
+
+      // CRITICAL: Force refresh context so other tabs/pages see the new resume immediately
+      fetchCandidateProfile({ forceRefresh: true });
     },
     onError: (err: unknown) => {
       const errorMsg =
@@ -704,7 +899,9 @@ const CandidateProfilePage = () => {
 
   useEffect(() => {
     setTitle('Profile');
-  }, [setTitle]);
+    // Ensure we have fresh data on mount to avoid stale context issues
+    fetchCandidateProfile({ forceRefresh: true });
+  }, [setTitle, fetchCandidateProfile]);
 
   useEffect(() => {
     setProfile(candidateProfile || null);
