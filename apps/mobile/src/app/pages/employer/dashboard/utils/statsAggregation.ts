@@ -52,7 +52,6 @@ export function aggregateAnalyticsData(
     }
   }
 
-
   // Add view data
   viewsData.forEach(({ period, viewCount }) => {
     if (!periodMap.has(period)) {
@@ -79,7 +78,6 @@ export function aggregateAnalyticsData(
   const sortedPeriods = Array.from(periodMap.keys()).sort((a, b) => {
     return a.localeCompare(b);
   });
-
 
   // Create data points
   const chartData = sortedPeriods
@@ -148,10 +146,15 @@ export function aggregateAnalyticsData(
   };
 }
 
-
-function formatPeriodKey(date: Date, groupBy: 'day' | 'week' | 'month'): string {
+function formatPeriodKey(
+  date: Date,
+  groupBy: 'day' | 'week' | 'month'
+): string {
   if (groupBy === 'month') {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}`;
   }
   if (groupBy === 'week') {
     // Compute Sunday of this week to match backend's Sunday-based period keys

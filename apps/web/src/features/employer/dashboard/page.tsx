@@ -100,25 +100,17 @@ export default function EmployerDashboardPage() {
       // Month-level data: past 12 months (for "Year" time mode)
       const [monthStart, monthEnd] = getDateRangeForPeriods('month', 12);
 
-      const [
-        dayViews,
-        dayApps,
-        weekViews,
-        weekApps,
-        monthViews,
-        monthApps,
-      ] = await Promise.all([
-        fetchViewsAnalytics(dayStart, dayEnd, 'day'),
-        fetchAppsAnalytics(dayStart, dayEnd, 'day'),
-        fetchViewsAnalytics(weekStart, weekEnd, 'week'),
-        fetchAppsAnalytics(weekStart, weekEnd, 'week'),
-        fetchViewsAnalytics(monthStart, monthEnd, 'month'),
-        fetchAppsAnalytics(monthStart, monthEnd, 'month'),
-      ]);
+      const [dayViews, dayApps, weekViews, weekApps, monthViews, monthApps] =
+        await Promise.all([
+          fetchViewsAnalytics(dayStart, dayEnd, 'day'),
+          fetchAppsAnalytics(dayStart, dayEnd, 'day'),
+          fetchViewsAnalytics(weekStart, weekEnd, 'week'),
+          fetchAppsAnalytics(weekStart, weekEnd, 'week'),
+          fetchViewsAnalytics(monthStart, monthEnd, 'month'),
+          fetchAppsAnalytics(monthStart, monthEnd, 'month'),
+        ]);
 
-      setWeekData(
-        aggregateAnalyticsData(dayViews || [], dayApps || [], 'day')
-      );
+      setWeekData(aggregateAnalyticsData(dayViews || [], dayApps || [], 'day'));
       setMonthData(
         aggregateAnalyticsData(weekViews || [], weekApps || [], 'week')
       );

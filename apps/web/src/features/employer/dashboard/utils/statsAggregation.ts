@@ -202,9 +202,15 @@ export function getDateRangeForPeriods(
   }
 }
 
-function formatPeriodKey(date: Date, groupBy: 'day' | 'week' | 'month'): string {
+function formatPeriodKey(
+  date: Date,
+  groupBy: 'day' | 'week' | 'month'
+): string {
   if (groupBy === 'month') {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}`;
   }
   if (groupBy === 'week') {
     // Snap to Sunday of this week to match backend's Sunday-based period keys.

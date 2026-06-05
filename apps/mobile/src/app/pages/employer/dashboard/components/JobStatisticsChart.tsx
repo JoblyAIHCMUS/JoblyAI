@@ -84,12 +84,14 @@ export const JobStatisticsChart = ({
   return (
     <View className="px-4 py-8">
       {/* Header and Tabs */}
-      <View className="flex-row justify-between items-center mb-6" pointerEvents="box-none">
+      <View
+        className="flex-row justify-between items-center mb-6"
+        pointerEvents="box-none"
+      >
         <View>
           <Text className="text-2xl font-bold text-gray-900">
             Job statistics
           </Text>
-
         </View>
         <View className="relative">
           <TouchableOpacity
