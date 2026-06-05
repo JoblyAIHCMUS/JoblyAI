@@ -35,7 +35,9 @@ export default function EmployerDashboardPage() {
   // State for dynamic data
   const [candidateCount, setCandidateCount] = useState(0);
   const [messageCount, setMessageCount] = useState(0);
-  const [statsData, setStatsData] = useState<StatsDataSet | null>(null);
+  const [weekData, setWeekData] = useState<StatsDataSet | null>(null);
+  const [monthData, setMonthData] = useState<StatsDataSet | null>(null);
+  const [yearData, setYearData] = useState<StatsDataSet | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [errorStats, setErrorStats] = useState<string | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -82,7 +84,7 @@ export default function EmployerDashboardPage() {
   }, [user?.id, fetchApplications, fetchChatSummary]);
 
   /**
-   * Fetch and aggregate analytics data
+   * Fetch and aggregate analytics data for all three time modes in parallel
    */
   const fetchAnalyticsData = useCallback(async () => {
     if (!user?.id) return;
@@ -91,22 +93,38 @@ export default function EmployerDashboardPage() {
     setErrorStats(null);
 
     try {
-      // Get date range for last 7 days
-      const [startDate, endDate] = getDateRangeForPeriods('day', 7);
+      // Day-level data: past 7 days (for "Week" time mode)
+      const [dayStart, dayEnd] = getDateRangeForPeriods('day', 7);
+      // Week-level data: past 4 weeks (for "Month" time mode)
+      const [weekStart, weekEnd] = getDateRangeForPeriods('week', 4);
+      // Month-level data: past 12 months (for "Year" time mode)
+      const [monthStart, monthEnd] = getDateRangeForPeriods('month', 12);
 
-      // Fetch both views and applications analytics
-      const [viewsData, appsData] = await Promise.all([
-        fetchViewsAnalytics(startDate, endDate, 'day'),
-        fetchAppsAnalytics(startDate, endDate, 'day'),
+      const [
+        dayViews,
+        dayApps,
+        weekViews,
+        weekApps,
+        monthViews,
+        monthApps,
+      ] = await Promise.all([
+        fetchViewsAnalytics(dayStart, dayEnd, 'day'),
+        fetchAppsAnalytics(dayStart, dayEnd, 'day'),
+        fetchViewsAnalytics(weekStart, weekEnd, 'week'),
+        fetchAppsAnalytics(weekStart, weekEnd, 'week'),
+        fetchViewsAnalytics(monthStart, monthEnd, 'month'),
+        fetchAppsAnalytics(monthStart, monthEnd, 'month'),
       ]);
 
-      // Aggregate into StatsDataSet format
-      const aggregated = aggregateAnalyticsData(
-        viewsData || [],
-        appsData || [],
-        'day'
+      setWeekData(
+        aggregateAnalyticsData(dayViews || [], dayApps || [], 'day')
       );
-      setStatsData(aggregated);
+      setMonthData(
+        aggregateAnalyticsData(weekViews || [], weekApps || [], 'week')
+      );
+      setYearData(
+        aggregateAnalyticsData(monthViews || [], monthApps || [], 'month')
+      );
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
       setErrorStats('Failed to load statistics');
@@ -168,11 +186,11 @@ export default function EmployerDashboardPage() {
       </div>
 
       {/* Stats Panel */}
-      {statsData ? (
+      {weekData && monthData && yearData ? (
         <DashboardStatsPanel
-          weekData={statsData}
-          monthData={statsData}
-          yearData={statsData}
+          weekData={weekData}
+          monthData={monthData}
+          yearData={yearData}
           className="mt-4 sm:mt-6 md:mt-8"
           isLoading={loadingStats}
           onRefresh={fetchAnalyticsData}

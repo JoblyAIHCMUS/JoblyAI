@@ -19,6 +19,23 @@ export function aggregateAnalyticsData(
     { jobViews: number; jobApplications: number }
   >();
 
+  const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+  const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
+  const cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    const key = formatPeriodKey(cursor, groupBy);
+    if (!periodMap.has(key)) {
+      periodMap.set(key, { jobViews: 0, jobApplications: 0 });
+    }
+    if (groupBy === 'day') {
+      cursor.setDate(cursor.getDate() + 1);
+    } else if (groupBy === 'week') {
+      cursor.setDate(cursor.getDate() + 7);
+    } else {
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+  }
+
   // Add view data
   viewsData.forEach(({ period, viewCount }) => {
     if (!periodMap.has(period)) {
@@ -42,21 +59,9 @@ export function aggregateAnalyticsData(
   });
 
   // Sort periods chronologically
-  const sortedPeriods = Array.from(periodMap.keys()).sort();
-
-  // If no data, return empty dataset with current period label
-  if (sortedPeriods.length === 0) {
-    return {
-      data: [],
-      periodLabel: getPeriodLabel(new Date(), groupBy),
-      summary: {
-        totalJobViews: 0,
-        totalJobApplications: 0,
-        jobViewsDiff: 0,
-        jobApplicationsDiff: 0,
-      },
-    };
-  }
+  const sortedPeriods = Array.from(periodMap.keys()).sort((a, b) =>
+    a.localeCompare(b)
+  );
 
   // Create data points
   const data = sortedPeriods
@@ -195,4 +200,18 @@ export function getDateRangeForPeriods(
     startDate.setMonth(today.getMonth() - (periods - 1));
     return [startDate, endDate];
   }
+}
+
+function formatPeriodKey(date: Date, groupBy: 'day' | 'week' | 'month'): string {
+  if (groupBy === 'month') {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+  if (groupBy === 'week') {
+    // Snap to Sunday of this week to match backend's Sunday-based period keys.
+    const dayOfWeek = date.getDay();
+    const sunday = new Date(date);
+    sunday.setDate(date.getDate() - dayOfWeek);
+    return sunday.toISOString().split('T')[0];
+  }
+  return date.toISOString().split('T')[0];
 }
