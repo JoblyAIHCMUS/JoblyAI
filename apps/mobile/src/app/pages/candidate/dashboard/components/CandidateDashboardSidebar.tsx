@@ -86,7 +86,7 @@ const CandidateDashboardSidebar = ({
     { name: 'Dashboard', icon: Home, path: '/pages/candidate/dashboard' },
     { name: 'Messages', icon: MessageSquare, badge: 1 },
     { name: 'My Applications', icon: FileText },
-    { name: 'Find Jobs', icon: Search, path: '/' },
+    { name: 'Find Jobs', icon: Search, path: '/pages/candidate/find-jobs' },
     { name: 'Browse Companies', icon: Building2, path: '/' },
     {
       name: 'My Public Profile',

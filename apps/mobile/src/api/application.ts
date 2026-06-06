@@ -63,3 +63,16 @@ export async function moveToOfferApplication(
   );
   return response.data;
 }
+
+export async function createApplication(
+  jobId: number,
+  resumeId: number,
+  options?: ApiOptions
+): Promise<any> {
+  const response = await apiClient.post(
+    '/applications',
+    { jobId, resumeId },
+    { signal: options?.signal }
+  );
+  return response.data;
+}
