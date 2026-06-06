@@ -21,7 +21,8 @@ export const candidateProfiles = [
         startDate: new Date('2012-09-01'),
         endDate: new Date('2016-06-30'),
         grade: '3.8/4.0',
-        description: 'Graduated with honors and focused on web engineering and distributed systems.',
+        description:
+          'Graduated with honors and focused on web engineering and distributed systems.',
       },
     ],
     experiences: [
@@ -100,7 +101,8 @@ export const candidateProfiles = [
         startDate: new Date('2015-09-01'),
         endDate: new Date('2017-06-30'),
         grade: '3.7/4.0',
-        description: 'Completed graduate coursework in backend systems, databases, and software architecture.',
+        description:
+          'Completed graduate coursework in backend systems, databases, and software architecture.',
       },
     ],
     experiences: [
@@ -169,7 +171,8 @@ export const candidateProfiles = [
         startDate: new Date('2020-09-01'),
         endDate: new Date('2022-06-30'),
         grade: '3.6/4.0',
-        description: 'Built several web application projects using JavaScript, React, and Express.',
+        description:
+          'Built several web application projects using JavaScript, React, and Express.',
       },
     ],
     experiences: [
@@ -228,7 +231,8 @@ export const candidateProfiles = [
         startDate: new Date('2018-09-01'),
         endDate: new Date('2022-06-30'),
         grade: '3.5/4.0',
-        description: 'Focused on cloud computing, Linux administration, and software deployment.',
+        description:
+          'Focused on cloud computing, Linux administration, and software deployment.',
       },
     ],
     experiences: [
@@ -298,7 +302,8 @@ export const candidateProfiles = [
         startDate: new Date('2012-09-01'),
         endDate: new Date('2018-06-30'),
         grade: 'Distinction',
-        description: 'Research focused on statistical modeling, machine learning, and applied data analysis.',
+        description:
+          'Research focused on statistical modeling, machine learning, and applied data analysis.',
       },
     ],
     experiences: [
@@ -367,7 +372,8 @@ export const candidateProfiles = [
         startDate: new Date('2004-09-01'),
         endDate: new Date('2006-06-30'),
         grade: '3.8/4.0',
-        description: 'Studied distributed systems, database internals, and scalable backend architecture.',
+        description:
+          'Studied distributed systems, database internals, and scalable backend architecture.',
       },
     ],
     experiences: [
@@ -447,7 +453,8 @@ export const candidateProfiles = [
         startDate: new Date('2019-09-01'),
         endDate: new Date('2023-06-30'),
         grade: '3.7/4.0',
-        description: 'Specialized in interface design, user research, and visual communication.',
+        description:
+          'Specialized in interface design, user research, and visual communication.',
       },
     ],
     experiences: [
@@ -525,7 +532,8 @@ export const candidateProfiles = [
         startDate: new Date('2015-09-01'),
         endDate: new Date('2019-06-30'),
         grade: '3.5/4.0',
-        description: 'Completed coursework in software testing, database systems, and web application development.',
+        description:
+          'Completed coursework in software testing, database systems, and web application development.',
       },
     ],
     experiences: [
@@ -604,7 +612,8 @@ export const candidateProfiles = [
         startDate: new Date('2014-09-01'),
         endDate: new Date('2018-06-30'),
         grade: '3.6/4.0',
-        description: 'Built several native mobile projects and studied mobile UX patterns.',
+        description:
+          'Built several native mobile projects and studied mobile UX patterns.',
       },
     ],
     experiences: [
@@ -630,7 +639,11 @@ export const candidateProfiles = [
     ],
     skills: [
       { name: 'Swift', level: CandidateSkillLevel.MASTER, years: 4 },
-      { name: 'Objective-C', level: CandidateSkillLevel.INTERMEDIATE, years: 2 },
+      {
+        name: 'Objective-C',
+        level: CandidateSkillLevel.INTERMEDIATE,
+        years: 2,
+      },
       { name: 'Xcode', level: CandidateSkillLevel.MASTER, years: 4 },
     ],
     contacts: [

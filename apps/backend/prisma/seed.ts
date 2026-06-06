@@ -241,7 +241,9 @@ async function main() {
 
       // Avoid duplicates
       const uniqueSkillData = Array.from(
-        new Map(skillData.map((s) => [`${s.candidateId}-${s.skillId}`, s])).values()
+        new Map(
+          skillData.map((s) => [`${s.candidateId}-${s.skillId}`, s])
+        ).values()
       );
 
       if (uniqueSkillData.length > 0) {
@@ -363,7 +365,10 @@ async function main() {
   );
 
   // Deduplicate job requirements based on the unique constraint [jobPostingId, skillId]
-  const uniqueJobRequirementsMap = new Map<string, typeof jobRequirementsDataRaw[0]>();
+  const uniqueJobRequirementsMap = new Map<
+    string,
+    (typeof jobRequirementsDataRaw)[0]
+  >();
   jobRequirementsDataRaw.forEach((req) => {
     const key = `${req.jobPostingId}-${req.skillId}`;
     if (!uniqueJobRequirementsMap.has(key)) {
@@ -372,7 +377,8 @@ async function main() {
   });
 
   const jobRequirementsData = Array.from(uniqueJobRequirementsMap.values());
-  const removedCount = jobRequirementsDataRaw.length - jobRequirementsData.length;
+  const removedCount =
+    jobRequirementsDataRaw.length - jobRequirementsData.length;
 
   if (removedCount > 0) {
     console.log(`Removed ${removedCount} duplicate job requirements.`);
