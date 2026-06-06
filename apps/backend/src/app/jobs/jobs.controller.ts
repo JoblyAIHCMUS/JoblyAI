@@ -143,6 +143,22 @@ export class JobsController {
     return this.jobsService.createJob(createJobDto, userId);
   }
 
+  @Get('similar')
+  async getSimilarJobs(
+    @Query('jobId', new ParseIntPipe({ optional: true })) jobId?: number,
+    @Query('companyId', new ParseIntPipe({ optional: true }))
+    companyId?: number,
+    @Query('location') location?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+  ) {
+    return this.jobsService.getSimilarJobs({
+      jobId,
+      companyId,
+      location,
+      limit,
+    });
+  }
+
   @Get(':id')
   async getJobById(@Param('id', ParseIntPipe) id: number) {
     const job = await this.jobsService.getJobById(id);

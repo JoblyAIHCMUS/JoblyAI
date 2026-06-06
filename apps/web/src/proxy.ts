@@ -78,6 +78,34 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // ===== HANDLE PUBLIC ROUTES FOR LOGGED-IN USERS =====
+  if (authenticated) {
+    if (role === 'employer') {
+      if (
+        pathname.startsWith('/find-jobs') ||
+        pathname.startsWith('/browse-companies')
+      ) {
+        return NextResponse.redirect(
+          new URL('/employer/dashboard', request.url)
+        );
+        // hoặc return new NextResponse(null, { status: 404 });
+      }
+    }
+    if (role === 'candidate') {
+      if (pathname.startsWith('/find-jobs')) {
+        const newPath = pathname.replace('/find-jobs', '/candidate/find-jobs');
+        return NextResponse.redirect(new URL(newPath, request.url));
+      }
+      if (pathname.startsWith('/browse-companies')) {
+        const newPath = pathname.replace(
+          '/browse-companies',
+          '/candidate/browse-companies'
+        );
+        return NextResponse.redirect(new URL(newPath, request.url));
+      }
+    }
+  }
+
   // ===== GUEST-ONLY ROUTES =====
   if (authenticated && (pathname === '/login' || pathname === '/signup')) {
     if (role === 'candidate') {
@@ -97,5 +125,13 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/signup', '/candidate/:path*', '/employer/:path*'],
+  matcher: [
+    '/',
+    '/login',
+    '/signup',
+    '/candidate/:path*',
+    '/employer/:path*',
+    '/find-jobs/:path*',
+    '/browse-companies/:path*',
+  ],
 };

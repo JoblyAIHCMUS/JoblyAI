@@ -1,40 +1,53 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { similarJobService } from '@/services/similarJobService';
-import type { SimilarJob } from '@/types/similarJob';
+import { useSimilarJobs } from '@/api-hook/jobs';
+import type { JobPosting } from '@/types/job';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/contexts/role-context';
 
-function SimilarJobCard({ job }: { job: SimilarJob }) {
+function SimilarJobCard({ job }: { job: JobPosting }) {
   const role = useRole();
   const jobHref =
     role === 'candidate'
       ? `/candidate/find-jobs/${job.id}`
       : `/find-jobs/${job.id}`;
 
+  const companyInitial = job.company.name.charAt(0);
+
   return (
     <Link href={jobHref} className="block">
-      <article className="flex items-start gap-4 p-5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all">
-        <div
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900 ${job.logoColor}`}
-        >
-          {job.logo}
-        </div>
+      <article className="flex items-start gap-4 p-5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all h-full">
+        {job.company.logoUrl ? (
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
+            <Image
+              src={job.company.logoUrl}
+              alt={job.company.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-lg font-semibold text-slate-900">
+            {companyInitial}
+          </div>
+        )}
         <div className="min-w-0">
           <h3 className="text-lg font-semibold leading-6 text-slate-900 truncate">
             {job.title}
           </h3>
           <p className="text-sm text-slate-500 mt-0.5">
-            {job.company} &bull; {job.location}
+            {job.company.name} &bull; {job.location || 'Remote'}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
-              {job.type}
+              {job.type.replace('_', ' ')}
             </span>
-            <span className="rounded-full border border-orange-300 px-3 py-1 text-xs font-medium text-orange-500">
-              {job.tag}
+            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+              {job.category.name}
             </span>
           </div>
         </div>
@@ -44,19 +57,58 @@ function SimilarJobCard({ job }: { job: SimilarJob }) {
 }
 
 export default function JobDetailSimilarJobs({
+  jobId,
+  companyId,
+  location,
   title = 'Similar Jobs',
-  jobs,
+  limit = 6,
   href = '/find-jobs',
   ctaLabel = 'Show all jobs',
   className,
 }: {
+  jobId?: number;
+  companyId?: number;
+  location?: string;
   title?: string;
-  jobs?: SimilarJob[];
+  limit?: number;
   href?: string;
   ctaLabel?: string;
   className?: string;
 }) {
-  const similarJobs = jobs ?? similarJobService.getSimilarJobs();
+  const { fetchSimilarJobs, data: similarJobs, loading } = useSimilarJobs();
+
+  useEffect(() => {
+    if (jobId || companyId || location) {
+      void fetchSimilarJobs({ jobId, companyId, location, limit });
+    }
+  }, [jobId, companyId, location, limit, fetchSimilarJobs]);
+
+  if (loading) {
+    return (
+      <section
+        className={cn(
+          'border-t border-slate-100 bg-white py-[72px]',
+          className
+        )}
+      >
+        <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse flex items-center justify-between mb-10">
+            <div className="h-10 w-48 bg-slate-200 rounded"></div>
+            <div className="h-6 w-24 bg-slate-200 rounded"></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-32 bg-slate-100 rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (similarJobs.length === 0) {
+    return null;
+  }
 
   return (
     <section

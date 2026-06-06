@@ -58,6 +58,26 @@ export async function getJobsByCategory(
 }
 
 /**
+ * Get similar/related jobs based on job ID, company ID, or location
+ * Public endpoint - no authentication required
+ */
+export async function getSimilarJobs(params: {
+  jobId?: number;
+  companyId?: number;
+  location?: string;
+  limit?: number;
+}): Promise<JobPosting[]> {
+  const response = await axios.get<JobPosting[]>(
+    `${API_BASE_URL}/api/jobs/similar`,
+    {
+      params,
+      withCredentials: true,
+    }
+  );
+  return response.data;
+}
+
+/**
  * Get popular job categories with job counts
  * Public endpoint - no authentication required
  */

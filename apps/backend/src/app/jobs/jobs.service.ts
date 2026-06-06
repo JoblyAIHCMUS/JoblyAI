@@ -494,6 +494,57 @@ export class JobsService {
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
+  async getSimilarJobs(params: {
+    jobId?: number;
+    companyId?: number;
+    location?: string;
+    limit?: number;
+  }): Promise<JobPostingInterface[]> {
+    const { jobId, companyId, location, limit = 6 } = params;
+
+    const whereClause: Prisma.JobPostingWhereInput = {
+      status: 'OPEN',
+      deletedAt: null,
+    };
+
+    if (jobId) {
+      const job = await this.prisma.jobPosting.findUnique({
+        where: { id: jobId },
+        select: { categoryId: true },
+      });
+      if (job) {
+        whereClause.categoryId = job.categoryId;
+        whereClause.id = { not: jobId };
+      }
+    } else if (companyId) {
+      whereClause.companyId = companyId;
+    } else if (location) {
+      whereClause.location = { contains: location, mode: 'insensitive' };
+    }
+
+    const jobs = await this.prisma.jobPosting.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        company: true,
+        requirements: {
+          include: {
+            skill: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return jobs.map((job) => this.mapToJobResponse(job));
+  }
+
   async getCategories(): Promise<
     Array<{ id: number; name: string; slug: string; iconKey: string | null }>
   > {
