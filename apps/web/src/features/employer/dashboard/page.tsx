@@ -93,12 +93,12 @@ export default function EmployerDashboardPage() {
     setErrorStats(null);
 
     try {
-      // Day-level data: past 7 days (for "Week" time mode)
-      const [dayStart, dayEnd] = getDateRangeForPeriods('day', 7);
-      // Week-level data: past 4 weeks (for "Month" time mode)
-      const [weekStart, weekEnd] = getDateRangeForPeriods('week', 4);
-      // Month-level data: past 12 months (for "Year" time mode)
-      const [monthStart, monthEnd] = getDateRangeForPeriods('month', 12);
+      // Day-level data: past 14 days (7 charted + 7 baseline) for "Week" mode
+      const [dayStart, dayEnd] = getDateRangeForPeriods('day', 14);
+      // Week-level data: past 8 weeks (4 charted + 4 baseline) for "Month" mode
+      const [weekStart, weekEnd] = getDateRangeForPeriods('week', 8);
+      // Month-level data: past 24 months (12 charted + 12 baseline) for "Year" mode
+      const [monthStart, monthEnd] = getDateRangeForPeriods('month', 24);
 
       const [dayViews, dayApps, weekViews, weekApps, monthViews, monthApps] =
         await Promise.all([
@@ -110,12 +110,14 @@ export default function EmployerDashboardPage() {
           fetchAppsAnalytics(monthStart, monthEnd, 'month'),
         ]);
 
-      setWeekData(aggregateAnalyticsData(dayViews || [], dayApps || [], 'day'));
+      setWeekData(
+        aggregateAnalyticsData(dayViews || [], dayApps || [], 'day', 7)
+      );
       setMonthData(
-        aggregateAnalyticsData(weekViews || [], weekApps || [], 'week')
+        aggregateAnalyticsData(weekViews || [], weekApps || [], 'week', 4)
       );
       setYearData(
-        aggregateAnalyticsData(monthViews || [], monthApps || [], 'month')
+        aggregateAnalyticsData(monthViews || [], monthApps || [], 'month', 12)
       );
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
