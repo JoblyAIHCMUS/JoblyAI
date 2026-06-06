@@ -332,6 +332,7 @@ export class CandidatesService {
 
     const data: Prisma.EducationUpdateInput = {
       ...rest,
+      sourceCvIds: [], // Manual edit clears AI source tracking
       ...(startDate === undefined
         ? {}
         : { startDate: this.toPrismaDateTime(startDate, 'startDate') }),
@@ -342,9 +343,26 @@ export class CandidatesService {
           }),
     };
 
-    return this.prismaClient.education.update({
-      where: { id },
-      data,
+    return this.prismaClient.$transaction(async (tx) => {
+      const updated = await tx.education.update({
+        where: { id },
+        data,
+      });
+
+      // Clear stale vector embedding
+      await tx.$executeRawUnsafe(
+        `UPDATE "Education" SET embedding = NULL WHERE id = $1`,
+        id
+      );
+
+      return updated;
+    }).then((updated) => {
+      this.eventEmitter.emit('profile.item.updated', {
+        model: 'Education',
+        id: updated.id,
+        content: `${updated.school} | ${updated.degree} | ${updated.fieldOfStudy}`,
+      });
+      return updated;
     });
   }
 
@@ -422,6 +440,7 @@ export class CandidatesService {
 
     const data: Prisma.ExperienceUpdateInput = {
       ...rest,
+      sourceCvIds: [], // Manual edit clears AI source tracking
       ...(startDate === undefined
         ? {}
         : { startDate: this.toPrismaDateTime(startDate, 'startDate') }),
@@ -432,9 +451,26 @@ export class CandidatesService {
           }),
     };
 
-    return this.prismaClient.experience.update({
-      where: { id },
-      data,
+    return this.prismaClient.$transaction(async (tx) => {
+      const updated = await tx.experience.update({
+        where: { id },
+        data,
+      });
+
+      // Clear stale vector embedding
+      await tx.$executeRawUnsafe(
+        `UPDATE "Experience" SET embedding = NULL WHERE id = $1`,
+        id
+      );
+
+      return updated;
+    }).then((updated) => {
+      this.eventEmitter.emit('profile.item.updated', {
+        model: 'Experience',
+        id: updated.id,
+        content: `${updated.companyName} | ${updated.jobTitle} | ${updated.description}`,
+      });
+      return updated;
     });
   }
 
@@ -664,6 +700,7 @@ export class CandidatesService {
 
     const data: Prisma.CertificateUpdateInput = {
       ...rest,
+      sourceCvIds: [], // Manual edit clears AI source tracking
       ...(issueDate === undefined
         ? {}
         : { issueDate: this.toPrismaDateTime(issueDate, 'issueDate') }),
@@ -674,9 +711,26 @@ export class CandidatesService {
           }),
     };
 
-    return this.prismaClient.certificate.update({
-      where: { id },
-      data,
+    return this.prismaClient.$transaction(async (tx) => {
+      const updated = await tx.certificate.update({
+        where: { id },
+        data,
+      });
+
+      // Clear stale vector embedding
+      await tx.$executeRawUnsafe(
+        `UPDATE "Certificate" SET embedding = NULL WHERE id = $1`,
+        id
+      );
+
+      return updated;
+    }).then((updated) => {
+      this.eventEmitter.emit('profile.item.updated', {
+        model: 'Certificate',
+        id: updated.id,
+        content: `${updated.name} | ${updated.issuer}`,
+      });
+      return updated;
     });
   }
 
@@ -785,13 +839,30 @@ export class CandidatesService {
       );
     }
 
-    return this.prismaClient.candidateDescription.update({
-      where: { id },
-      data: {
-        ...data,
-        rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
-        rawTitles: {},
-      },
+    return this.prismaClient.$transaction(async (tx) => {
+      const updated = await tx.candidateDescription.update({
+        where: { id },
+        data: {
+          ...data,
+          rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
+          rawTitles: {},
+        },
+      });
+
+      // Clear stale vector embedding
+      await tx.$executeRawUnsafe(
+        `UPDATE "CandidateDescription" SET embedding = NULL WHERE id = $1`,
+        id
+      );
+
+      return updated;
+    }).then((updated) => {
+      this.eventEmitter.emit('profile.item.updated', {
+        model: 'CandidateDescription',
+        id: updated.id,
+        content: updated.bio || '',
+      });
+      return updated;
     });
   }
 
@@ -891,31 +962,47 @@ export class CandidatesService {
         : await this.resolveSkillIdFromInput({ skillId, title });
 
     try {
-      const updatedSkill = await this.prismaClient.candidateSkill.update({
-        where: { id },
-        data: {
-          ...(resolvedSkillId === undefined
-            ? {}
-            : {
-                skill: {
-                  connect: { id: resolvedSkillId },
-                },
-              }),
-          ...(level === undefined ? {} : { level }),
-          ...(years === undefined ? {} : { years }),
-        },
-        include: {
-          skill: true,
-        },
-      });
+      return this.prismaClient.$transaction(async (tx) => {
+        const updatedSkill = await tx.candidateSkill.update({
+          where: { id },
+          data: {
+            sourceCvIds: [], // Manual edit clears AI source tracking
+            ...(resolvedSkillId === undefined
+              ? {}
+              : {
+                  skill: {
+                    connect: { id: resolvedSkillId },
+                  },
+                }),
+            ...(level === undefined ? {} : { level }),
+            ...(years === undefined ? {} : { years }),
+          },
+          include: {
+            skill: true,
+          },
+        });
 
-      return {
-        id: updatedSkill.id,
-        skillId: updatedSkill.skillId,
-        title: updatedSkill.skill.name,
-        level: updatedSkill.level ?? undefined,
-        years: updatedSkill.years ?? undefined,
-      };
+        // Clear stale vector embedding
+        await tx.$executeRawUnsafe(
+          `UPDATE "CandidateSkill" SET embedding = NULL WHERE id = $1`,
+          id
+        );
+
+        return {
+          id: updatedSkill.id,
+          skillId: updatedSkill.skillId,
+          title: updatedSkill.skill.name,
+          level: updatedSkill.level ?? undefined,
+          years: updatedSkill.years ?? undefined,
+        };
+      }).then((result) => {
+        this.eventEmitter.emit('profile.item.updated', {
+          model: 'CandidateSkill',
+          id: result.id,
+          content: result.title,
+        });
+        return result;
+      });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -979,7 +1066,10 @@ export class CandidatesService {
 
     return this.prismaClient.candidateContact.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        sourceCvIds: [], // Manual edit clears AI source tracking
+      },
     });
   }
 
@@ -1032,7 +1122,10 @@ export class CandidatesService {
 
     return this.prismaClient.candidateSocial.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        sourceCvIds: [], // Manual edit clears AI source tracking
+      },
     });
   }
 
