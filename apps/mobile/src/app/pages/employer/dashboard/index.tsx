@@ -48,10 +48,7 @@ export default function EmployerDashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      const [startDate, endDate] = getDateRangeForPeriods(
-        groupBy,
-        periods * 2
-      );
+      const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods * 2);
 
       // Fetch profile first to get the user ID for chat summary
       const { data: employerProfile } = await fetchEmployerProfile();

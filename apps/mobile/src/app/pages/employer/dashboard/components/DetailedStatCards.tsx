@@ -34,11 +34,7 @@ export const DetailedStatCards = ({
     const hasDiff = diff !== null;
     const diffValue = hasDiff ? (diff as number) : 0;
     const isPositive = hasDiff && diffValue >= 0;
-    const diffColor = !hasDiff
-      ? '#94A3B8'
-      : isPositive
-      ? '#22C55E'
-      : '#EC4899';
+    const diffColor = !hasDiff ? '#94A3B8' : isPositive ? '#22C55E' : '#EC4899';
 
     return (
       <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm flex-row justify-between items-center">
@@ -72,9 +68,7 @@ export const DetailedStatCards = ({
                 </>
               )}
               {!loading && !hasDiff && (
-                <Text className="text-app-text-5 text-base ml-1">
-                  —
-                </Text>
+                <Text className="text-app-text-5 text-base ml-1">—</Text>
               )}
             </View>
           </View>
