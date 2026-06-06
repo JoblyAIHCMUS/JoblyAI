@@ -36,7 +36,7 @@ export class GetJobsQueryDTO {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationName?: string;
 
   @IsOptional()
   @Transform(({ value }) => {

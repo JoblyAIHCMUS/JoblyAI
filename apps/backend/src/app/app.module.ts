@@ -17,6 +17,7 @@ import { CompanyModule } from './company/company.module';
 import { SkillsModule } from './skills/skills.module';
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { LocationsModule } from './locations/locations.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     CompanyModule,
     SkillsModule,
     AiModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

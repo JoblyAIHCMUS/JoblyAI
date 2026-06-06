@@ -42,7 +42,7 @@ export class JobsService {
       pageSize = 10,
       q,
       sort,
-      location,
+      locationName,
       remote,
       type,
       salaryMin,
@@ -64,14 +64,12 @@ export class JobsService {
     }
 
     if (q) {
-      whereClause.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-      ];
+      whereClause.title = { search: q };
+      whereClause.description = { search: q };
     }
 
-    if (location) {
-      whereClause.location = { contains: location, mode: 'insensitive' };
+    if (locationName) {
+      whereClause.locationName = { search: locationName };
     }
 
     if (remote !== undefined) whereClause.remote = remote;

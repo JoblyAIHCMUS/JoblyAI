@@ -33,7 +33,15 @@ export class CreateJobDTO {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
   @IsNumber()

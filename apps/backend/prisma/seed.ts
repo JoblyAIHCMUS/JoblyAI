@@ -324,7 +324,9 @@ async function main() {
         data: {
           title: job.title,
           description: job.description,
-          location: job.location,
+          locationName: job.location,
+          latitude: null,
+          longitude: null,
           remote: job.remote,
           type: job.type as EmploymentType,
           status: job.status as JobStatus,

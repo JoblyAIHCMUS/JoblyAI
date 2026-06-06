@@ -134,7 +134,9 @@ model JobPosting {
   id          Int            @id @default(autoincrement())
   title       String
   description String
-  location    String?
+  locationName String?
+  latitude    Float?
+  longitude   Float?
   salaryMin   Decimal?
   salaryMax   Decimal?
   currency    String?        @default("USD")
