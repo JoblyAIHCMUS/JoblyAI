@@ -12,10 +12,9 @@ import type { JobPosting } from '../../../../../types/job';
 interface JobCardProps {
   job: JobPosting;
   onPress?: () => void;
-  onApplyPress?: () => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onPress, onApplyPress }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width - 32, 380);
 
@@ -137,7 +136,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, onApplyPress }) => {
       {/* Apply button */}
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={onApplyPress}
         className="rounded-lg bg-[#4f46e5] py-3"
       >
         <Text className="text-center font-semibold text-white">Apply</Text>

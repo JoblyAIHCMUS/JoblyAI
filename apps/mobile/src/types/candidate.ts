@@ -44,25 +44,6 @@ export interface CandidateSocial {
   username?: string;
 }
 
-export interface CandidateResume {
-  id: number;
-  fileName: string;
-  fileUrl: string;
-  fileType: string;
-  fileSize: number;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateResumePayload {
-  fileKey: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  isDefault?: boolean;
-}
-
 export interface CandidateProfileResponse {
   id: string;
   name?: string;

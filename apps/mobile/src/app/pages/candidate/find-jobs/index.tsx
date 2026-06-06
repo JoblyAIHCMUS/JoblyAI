@@ -19,10 +19,7 @@ import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
 import SortDropdown from './components/SortDropdown';
 import FilterPanel from './components/FilterPanel';
-import SubmitApplicationModal from './components/SubmitApplicationModal';
-
 import type {
-  JobPosting,
   ListJobsQuery,
   SortOption,
   EmploymentType,
@@ -34,9 +31,6 @@ const SALARY_MAX_CAP = 500000;
 function FindJobsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const [applicationModalOpen, setApplicationModalOpen] = useState(false);
-  const [selectedJobForApplication, setSelectedJobForApplication] =
-    useState<JobPosting | null>(null);
 
   // State for search and filter
   const [urlPage, setUrlPage] = useState(1);
@@ -170,16 +164,6 @@ function FindJobsPage() {
     setUrlPage(1);
   };
 
-  const handleOpenApplicationModal = (job: JobPosting) => {
-    setSelectedJobForApplication(job);
-    setApplicationModalOpen(true);
-  };
-
-  const handleCloseApplicationModal = () => {
-    setApplicationModalOpen(false);
-    setSelectedJobForApplication(null);
-  };
-
   const handlePageChange = (page: number) => {
     setUrlPage(page);
   };
@@ -278,10 +262,7 @@ function FindJobsPage() {
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => (
                 <View className="px-4">
-                  <JobCard
-                    job={item}
-                    onApplyPress={() => handleOpenApplicationModal(item)}
-                  />
+                  <JobCard job={item} />
                 </View>
               )}
               contentContainerStyle={{
@@ -387,42 +368,6 @@ function FindJobsPage() {
         }}
         onReset={handleReset}
       />
-
-      {/* Application Modal */}
-      {selectedJobForApplication && (
-        <SubmitApplicationModal
-          isOpen={applicationModalOpen}
-          onClose={handleCloseApplicationModal}
-          job={selectedJobForApplication}
-          onSuccess={() => {
-            // Refresh jobs list after application
-            const selectedEmploymentTypes = urlTypes
-              .map((type) => type)
-              .filter((type): type is EmploymentType => type !== undefined);
-
-            const query: ListJobsQuery = {
-              page: urlPage,
-              pageSize: PAGE_SIZE,
-              sort: urlSort,
-              q: urlQ || undefined,
-              location: urlLocation || undefined,
-              type:
-                selectedEmploymentTypes.length > 0
-                  ? selectedEmploymentTypes
-                  : undefined,
-              categories:
-                urlCategories.length > 0
-                  ? urlCategories.map((c) => Number(c))
-                  : undefined,
-              salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-              salaryMax:
-                urlMaxSalary < SALARY_MAX_CAP ? urlMaxSalary : undefined,
-              skills: urlSkills.length > 0 ? urlSkills : undefined,
-            };
-            fetchJobs(query);
-          }}
-        />
-      )}
     </>
   );
 }
