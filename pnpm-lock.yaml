@@ -461,6 +461,9 @@ importers:
       '@ptomasroos/react-native-multi-slider':
         specifier: ^2.2.2
         version: 2.2.2(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+      '@react-native-documents/picker':
+        specifier: ^12.0.1
+        version: 12.0.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       '@rn-primitives/label':
         specifier: ^1.4.0
         version: 1.4.0(@types/react-dom@19.1.0(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react-native-web@0.21.2(encoding@0.1.13)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -539,9 +542,6 @@ importers:
       react-native:
         specifier: 0.81.5
         version: 0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0)
-      react-native-document-picker:
-        specifier: ^9.3.1
-        version: 9.3.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       react-native-enriched:
         specifier: ^0.7.0
         version: 0.7.0(@floating-ui/dom@1.7.6)(@types/react-dom@19.1.0(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -7154,6 +7154,15 @@ packages:
       }
     engines: { node: '>=18' }
     hasBin: true
+
+  '@react-native-documents/picker@12.0.1':
+    resolution:
+      {
+        integrity: sha512-vpJKb4t/5bnxe9+gQl+plJfKrrIsmYwANGhNH2B9E1dS1+6FDBzg4Dwmcq4ueaGfkRKEPJ606mJttVEH1ZKZaA==,
+      }
+    peerDependencies:
+      react: 19.1.0
+      react-native: '>=0.79.0'
 
   '@react-native/assets-registry@0.81.5':
     resolution:
@@ -20026,20 +20035,6 @@ packages:
       react-native-svg:
         optional: true
 
-  react-native-document-picker@9.3.1:
-    resolution:
-      {
-        integrity: sha512-Vcofv9wfB0j67zawFjfq9WQPMMzXxOZL9kBmvWDpjVuEcVK73ndRmlXHlkeFl5ZHVsv4Zb6oZYhqm9u5omJOPA==,
-      }
-    deprecated: the package was renamed, follow migration instructions at https://shorturl.at/QYT4t
-    peerDependencies:
-      react: 19.1.0
-      react-native: '*'
-      react-native-windows: '*'
-    peerDependenciesMeta:
-      react-native-windows:
-        optional: true
-
   react-native-enriched@0.7.0:
     resolution:
       {
@@ -29889,6 +29884,11 @@ snapshots:
       - typescript
       - utf-8-validate
 
+  '@react-native-documents/picker@12.0.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0)
+
   '@react-native/assets-registry@0.81.5': {}
 
   '@react-native/babel-plugin-codegen@0.79.7(@babel/core@7.29.0)':
@@ -32774,7 +32774,7 @@ snapshots:
       dotenv: 16.6.1
       exsolve: 1.0.8
       giget: 2.0.0
-      jiti: 2.4.2
+      jiti: 2.7.0
       ohash: 2.0.11
       pathe: 2.0.3
       perfect-debounce: 1.0.0
@@ -39342,12 +39342,6 @@ snapshots:
       react-native-svg: 15.12.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
-
-  react-native-document-picker@9.3.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0):
-    dependencies:
-      invariant: 2.2.4
-      react: 19.1.0
-      react-native: 0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0)
 
   react-native-enriched@0.7.0(@floating-ui/dom@1.7.6)(@types/react-dom@19.1.0(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.0))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0):
     dependencies:
