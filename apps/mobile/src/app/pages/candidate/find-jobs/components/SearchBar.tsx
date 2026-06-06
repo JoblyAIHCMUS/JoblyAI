@@ -3,7 +3,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
 } from 'react-native';
 import { Search, X } from 'lucide-react-native';
 
@@ -22,12 +21,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onLocationChange,
   onSearch,
 }) => {
-  const { width } = useWindowDimensions();
 
   return (
     <View className="bg-white px-4 py-4">
       {/* Job title search */}
-      <View className="mb-3 flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3">
+      <View className="mb-3 flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-1">
         <Search size={20} color="#9ca3af" strokeWidth={2} />
         <TextInput
           className="flex-1 ml-3 text-base text-[#111827]"
@@ -45,7 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       </View>
 
       {/* Location search */}
-      <View className="flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3">
+      <View className="flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-1">
         <Search size={20} color="#9ca3af" strokeWidth={2} />
         <TextInput
           className="flex-1 ml-3 text-base text-[#111827]"

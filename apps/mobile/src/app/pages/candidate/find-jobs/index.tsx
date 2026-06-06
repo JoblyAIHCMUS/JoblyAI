@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { Menu } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useListJobs, useCategories, useSkillsFilter } from '../../../../hooks';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
@@ -29,6 +29,7 @@ const PAGE_SIZE = 10;
 const SALARY_MAX_CAP = 500000;
 
 function FindJobsPage() {
+  const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
@@ -225,7 +226,7 @@ function FindJobsPage() {
           {/* Results count */}
           <View className="px-4 py-2">
             <Text className="text-sm text-[#6b7280]">
-              Showing {jobs.length} of {total} jobs
+              {total} jobs found
             </Text>
           </View>
 
@@ -282,7 +283,10 @@ function FindJobsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && jobs.length > 0 && (
-            <View className="border-t border-[#e5e7eb] bg-white px-4 py-3">
+            <View
+              className="border-t border-[#e5e7eb] bg-white px-4 py-3"
+              style={{ paddingBottom: 12 + insets.bottom }}
+            >
               <View className="flex-row items-center justify-between">
                 <TouchableOpacity
                   onPress={() => handlePageChange(Math.max(1, urlPage - 1))}

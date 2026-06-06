@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  useWindowDimensions,
 } from 'react-native';
 import { MapPin, Briefcase, DollarSign } from 'lucide-react-native';
 import type { JobPosting } from '../../../../../types/job';
@@ -15,8 +14,6 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
-  const { width } = useWindowDimensions();
-  const cardWidth = Math.min(width - 32, 380);
 
   const employmentTypeLabel =
     {
@@ -52,7 +49,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
       activeOpacity={0.75}
       onPress={onPress}
       className="mb-4 rounded-2xl border border-[#e5e7eb] bg-white px-4 py-4 shadow-sm"
-      style={{ width: cardWidth }}
     >
       {/* Header with logo and info */}
       <View className="mb-3 flex-row items-start justify-between">
