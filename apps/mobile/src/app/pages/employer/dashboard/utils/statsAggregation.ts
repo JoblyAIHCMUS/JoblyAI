@@ -6,8 +6,8 @@ import {
 export interface StatsSummary {
   totalJobViews: number;
   totalJobApplications: number;
-  jobViewsDiff: number;
-  jobApplicationsDiff: number;
+  jobViewsDiff: number | null;
+  jobApplicationsDiff: number | null;
   periodLabel: string;
 }
 
@@ -27,7 +27,8 @@ export interface AnalyticsResult {
 export function aggregateAnalyticsData(
   viewsData: JobViewAnalytics[] = [],
   applicationsData: JobApplicationAnalytics[] = [],
-  groupBy: 'day' | 'week' | 'month' = 'day'
+  groupBy: 'day' | 'week' | 'month' = 'day',
+  comparisonWindow: number
 ): AnalyticsResult {
   // Create a map of periods to aggregate data
   const periodMap = new Map<
@@ -35,7 +36,7 @@ export function aggregateAnalyticsData(
     { jobViews: number; jobApplications: number }
   >();
 
-  const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+  const periods = comparisonWindow * 2;
   const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
   const cursor = new Date(startDate);
   while (cursor <= endDate) {
@@ -95,37 +96,33 @@ export function aggregateAnalyticsData(
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  const totalJobViews = chartData.reduce(
-    (sum, dataPoint) => sum + dataPoint.stacks[1].value,
-    0
+  const chartPoints = chartData.slice(-comparisonWindow);
+  const previousPoints = chartData.slice(0, comparisonWindow);
+
+  const sumViews = (pts: typeof chartData) =>
+    pts.reduce((s, p) => s + p.stacks[1].value, 0);
+  const sumApplications = (pts: typeof chartData) =>
+    pts.reduce((s, p) => s + p.stacks[0].value, 0);
+
+  const currentViews = sumViews(chartPoints);
+  const currentApplications = sumApplications(chartPoints);
+  const previousViews = sumViews(previousPoints);
+  const previousApplications = sumApplications(previousPoints);
+
+  const totalJobViews = currentViews;
+  const totalJobApplications = currentApplications;
+
+  const computeDiff = (current: number, previous: number): number | null => {
+    if (previous > 0) return ((current - previous) / previous) * 100;
+    if (current > 0) return null;
+    return 0;
+  };
+
+  const jobViewsDiff = computeDiff(currentViews, previousViews);
+  const jobApplicationsDiff = computeDiff(
+    currentApplications,
+    previousApplications
   );
-  const totalJobApplications = chartData.reduce(
-    (sum, dataPoint) => sum + dataPoint.stacks[0].value,
-    0
-  );
-
-  let jobViewsDiff = 0;
-  let jobApplicationsDiff = 0;
-
-  if (chartData.length >= 2) {
-    const lastDataPoint = chartData[chartData.length - 1];
-    const previousDataPoint = chartData[chartData.length - 2];
-
-    const lastViews = lastDataPoint.stacks[1].value;
-    const previousViews = previousDataPoint.stacks[1].value;
-    const lastApplications = lastDataPoint.stacks[0].value;
-    const previousApplications = previousDataPoint.stacks[0].value;
-
-    if (previousViews > 0) {
-      jobViewsDiff = ((lastViews - previousViews) / previousViews) * 100;
-    }
-
-    if (previousApplications > 0) {
-      jobApplicationsDiff =
-        ((lastApplications - previousApplications) / previousApplications) *
-        100;
-    }
-  }
 
   const periodLabel =
     groupBy === 'day'
@@ -135,12 +132,16 @@ export function aggregateAnalyticsData(
       : 'This Year';
 
   return {
-    chartData,
+    chartData: chartPoints,
     summary: {
       totalJobViews,
       totalJobApplications,
-      jobViewsDiff: Math.round(jobViewsDiff * 10) / 10,
-      jobApplicationsDiff: Math.round(jobApplicationsDiff * 10) / 10,
+      jobViewsDiff:
+        jobViewsDiff === null ? null : Math.round(jobViewsDiff * 10) / 10,
+      jobApplicationsDiff:
+        jobApplicationsDiff === null
+          ? null
+          : Math.round(jobApplicationsDiff * 10) / 10,
       periodLabel,
     },
   };

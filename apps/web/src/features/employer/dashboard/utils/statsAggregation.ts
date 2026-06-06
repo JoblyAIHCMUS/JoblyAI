@@ -1,4 +1,7 @@
-import type { StatsDataSet } from '@/components/employer/dashboardStatsPanel';
+import type {
+  StatsDataSet,
+  StatsDataPoint,
+} from '@/components/employer/dashboardStatsPanel';
 import type {
   JobViewAnalytics,
   JobApplicationAnalytics,
@@ -11,7 +14,8 @@ import type {
 export function aggregateAnalyticsData(
   viewsData: JobViewAnalytics[] = [],
   applicationsData: JobApplicationAnalytics[] = [],
-  groupBy: 'day' | 'week' | 'month' = 'day'
+  groupBy: 'day' | 'week' | 'month' = 'day',
+  comparisonWindow: number
 ): StatsDataSet {
   // Create a map of periods to aggregate data
   const periodMap = new Map<
@@ -19,8 +23,10 @@ export function aggregateAnalyticsData(
     { jobViews: number; jobApplications: number }
   >();
 
-  const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
-  const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
+  const [startDate, endDate] = getDateRangeForPeriods(
+    groupBy,
+    comparisonWindow * 2
+  );
   const cursor = new Date(startDate);
   while (cursor <= endDate) {
     const key = formatPeriodKey(cursor, groupBy);
@@ -81,44 +87,55 @@ export function aggregateAnalyticsData(
       jobApplications: values.jobApplications,
     }));
 
-  // Calculate totals and trends
-  const totalJobViews = data.reduce((sum, d) => sum + d.jobViews, 0);
-  const totalJobApplications = data.reduce(
-    (sum, d) => sum + d.jobApplications,
-    0
+  // Slice the full sorted list into a "previous" half and a "current" half.
+  // - previousPoints: oldest N periods (the comparison baseline)
+  // - chartPoints:    newest N periods (what the chart and totals reflect)
+  const chartPoints = data.slice(-comparisonWindow);
+  const previousPoints = data.slice(0, comparisonWindow);
+
+  const sumViews = (pts: StatsDataPoint[]) =>
+    pts.reduce((s, p) => s + p.jobViews, 0);
+  const sumApplications = (pts: StatsDataPoint[]) =>
+    pts.reduce((s, p) => s + p.jobApplications, 0);
+
+  const currentViews = sumViews(chartPoints);
+  const currentApplications = sumApplications(chartPoints);
+  const previousViews = sumViews(previousPoints);
+  const previousApplications = sumApplications(previousPoints);
+
+  const totalJobViews = currentViews;
+  const totalJobApplications = currentApplications;
+
+  // null  → no comparable baseline (previous === 0 and current > 0)
+  // 0     → no activity in either half
+  // number → standard period-over-period change, rounded to 1 dp
+  const computeDiff = (current: number, previous: number): number | null => {
+    if (previous > 0) return ((current - previous) / previous) * 100;
+    if (current > 0) return null;
+    return 0;
+  };
+
+  const jobViewsDiff = computeDiff(currentViews, previousViews);
+  const jobApplicationsDiff = computeDiff(
+    currentApplications,
+    previousApplications
   );
-
-  // Calculate percentage differences vs previous period
-  let jobViewsDiff = 0;
-  let jobApplicationsDiff = 0;
-
-  if (data.length >= 2) {
-    const lastPeriodViews = data[data.length - 1].jobViews;
-    const prevPeriodViews = data[data.length - 2].jobViews;
-    const lastPeriodApps = data[data.length - 1].jobApplications;
-    const prevPeriodApps = data[data.length - 2].jobApplications;
-
-    if (prevPeriodViews > 0) {
-      jobViewsDiff =
-        ((lastPeriodViews - prevPeriodViews) / prevPeriodViews) * 100;
-    }
-    if (prevPeriodApps > 0) {
-      jobApplicationsDiff =
-        ((lastPeriodApps - prevPeriodApps) / prevPeriodApps) * 100;
-    }
-  }
 
   // Determine period label (e.g., "Jul 19-25", "Jul 2026", "2026")
   const periodLabel = getPeriodLabel(new Date(), groupBy);
 
   return {
-    data,
+    data: chartPoints,
     periodLabel,
     summary: {
       totalJobViews,
       totalJobApplications,
-      jobViewsDiff: Math.round(jobViewsDiff * 10) / 10,
-      jobApplicationsDiff: Math.round(jobApplicationsDiff * 10) / 10,
+      jobViewsDiff:
+        jobViewsDiff === null ? null : Math.round(jobViewsDiff * 10) / 10,
+      jobApplicationsDiff:
+        jobApplicationsDiff === null
+          ? null
+          : Math.round(jobApplicationsDiff * 10) / 10,
     },
   };
 }
