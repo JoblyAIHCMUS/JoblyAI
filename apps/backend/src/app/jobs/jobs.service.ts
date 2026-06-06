@@ -35,7 +35,7 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
 export class JobsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async getsPaginatedJobsPostings(

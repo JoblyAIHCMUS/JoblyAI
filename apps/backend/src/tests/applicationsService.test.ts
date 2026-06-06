@@ -845,36 +845,61 @@ describe('ApplicationsService', () => {
   describe('createApplication - job.viewed emission', () => {
     it('emits job.viewed once when creating a new application', async () => {
       const mockApp = createMockApplication();
-      mockPrisma.jobPosting.findUnique.mockResolvedValue({ id: 1, status: 'OPEN' });
-      mockPrisma.resume.findUnique.mockResolvedValue({ id: 1, candidateId: 'candidate-123' });
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
       mockPrisma.application.findFirst.mockResolvedValue(null);
       mockPrisma.application.create.mockResolvedValue(mockApp);
 
-      await service.createApplication('candidate-123', { jobId: 1, resumeId: 1 });
+      await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
 
       expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', { jobId: 1 });
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', {
+        jobId: 1,
+      });
     });
 
     it('emits job.viewed once when re-activating a WITHDRAWN application', async () => {
       const mockApp = createMockApplication();
-      mockPrisma.jobPosting.findUnique.mockResolvedValue({ id: 1, status: 'OPEN' });
-      mockPrisma.resume.findUnique.mockResolvedValue({ id: 1, candidateId: 'candidate-123' });
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
       mockPrisma.application.findFirst.mockResolvedValue({
         id: 1,
         status: 'WITHDRAWN',
       });
       mockPrisma.application.update.mockResolvedValue(mockApp);
 
-      await service.createApplication('candidate-123', { jobId: 1, resumeId: 1 });
+      await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
 
       expect(mockPrisma.application.update).toHaveBeenCalled();
       expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', { jobId: 1 });
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', {
+        jobId: 1,
+      });
     });
 
     it('does not emit when the job is not OPEN', async () => {
-      mockPrisma.jobPosting.findUnique.mockResolvedValue({ id: 1, status: 'CLOSED' });
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'CLOSED',
+      });
 
       await expect(
         service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
@@ -892,8 +917,14 @@ describe('ApplicationsService', () => {
     });
 
     it('does not emit when the resume does not belong to the candidate', async () => {
-      mockPrisma.jobPosting.findUnique.mockResolvedValue({ id: 1, status: 'OPEN' });
-      mockPrisma.resume.findUnique.mockResolvedValue({ id: 1, candidateId: 'someone-else' });
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'someone-else',
+      });
 
       await expect(
         service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
@@ -902,8 +933,14 @@ describe('ApplicationsService', () => {
     });
 
     it('does not emit when an active application already exists', async () => {
-      mockPrisma.jobPosting.findUnique.mockResolvedValue({ id: 1, status: 'OPEN' });
-      mockPrisma.resume.findUnique.mockResolvedValue({ id: 1, candidateId: 'candidate-123' });
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
       mockPrisma.application.findFirst.mockResolvedValue({
         id: 1,
         status: 'APPLIED',

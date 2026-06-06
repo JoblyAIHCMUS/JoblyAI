@@ -74,14 +74,19 @@ describe('JobViewBatcher', () => {
     };
     mockPrisma.jobView.createMany
       .mockImplementationOnce(
-        () => new Promise<{ count: number }>((res) => { resolveFirst = res; })
+        () =>
+          new Promise<{ count: number }>((res) => {
+            resolveFirst = res;
+          })
       )
       .mockResolvedValueOnce({ count: 0 });
 
     batcher.add(1);
     await vi.advanceTimersByTimeAsync(250);
     expect(mockPrisma.jobView.createMany).toHaveBeenCalledTimes(1);
-    expect(mockPrisma.jobView.createMany.mock.calls[0][0].data).toEqual([{ jobId: 1 }]);
+    expect(mockPrisma.jobView.createMany.mock.calls[0][0].data).toEqual([
+      { jobId: 1 },
+    ]);
 
     batcher.add(2);
     batcher.add(3);

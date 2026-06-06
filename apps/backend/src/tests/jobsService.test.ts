@@ -587,9 +587,15 @@ describe('JobsService', () => {
 
       expect(result.jobs).toHaveLength(3);
       expect(mockEventEmitter.emit).toHaveBeenCalledTimes(3);
-      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(1, 'job.viewed', { jobId: 1 });
-      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(2, 'job.viewed', { jobId: 2 });
-      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(3, 'job.viewed', { jobId: 3 });
+      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(1, 'job.viewed', {
+        jobId: 1,
+      });
+      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(2, 'job.viewed', {
+        jobId: 2,
+      });
+      expect(mockEventEmitter.emit).toHaveBeenNthCalledWith(3, 'job.viewed', {
+        jobId: 3,
+      });
     });
 
     it('does not emit when the result set is empty', async () => {

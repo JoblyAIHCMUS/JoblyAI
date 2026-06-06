@@ -48,7 +48,7 @@ export class ApplicationsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly notificationsService: NotificationsService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async createApplication(
