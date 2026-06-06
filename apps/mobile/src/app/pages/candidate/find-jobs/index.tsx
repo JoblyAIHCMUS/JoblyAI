@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { Menu } from 'lucide-react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 import { useListJobs, useCategories, useSkillsFilter } from '../../../../hooks';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
@@ -225,9 +228,7 @@ function FindJobsPage() {
 
           {/* Results count */}
           <View className="px-4 py-2">
-            <Text className="text-sm text-[#6b7280]">
-              {total} jobs found
-            </Text>
+            <Text className="text-sm text-[#6b7280]">{total} jobs found</Text>
           </View>
 
           {/* Jobs List */}

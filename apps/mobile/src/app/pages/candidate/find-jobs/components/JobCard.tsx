@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { MapPin, Briefcase, DollarSign } from 'lucide-react-native';
 import type { JobPosting } from '../../../../../types/job';
 
@@ -14,7 +9,6 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
-
   const employmentTypeLabel =
     {
       FULL_TIME: 'Full-time',

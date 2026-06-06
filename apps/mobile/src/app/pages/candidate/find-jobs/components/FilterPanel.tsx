@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { X } from 'lucide-react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import type { JobCategory, EmploymentType } from '../../../../../types/job';
@@ -43,9 +50,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const [localSalaryMin, setLocalSalaryMin] = useState(salaryMin);
   const [localSalaryMax, setLocalSalaryMax] = useState(salaryMax);
+  const { width } = useWindowDimensions();
 
   const handleSalarySubmit = () => {
     onSalaryChange(localSalaryMin, localSalaryMax);
+  };
+
+  const handleSalaryChangeFinish = (values: number[]) => {
+    setLocalSalaryMin(values[0]);
+    setLocalSalaryMax(values[1]);
+    onSalaryChange(values[0], values[1]);
   };
 
   const toggleType = (type: EmploymentType) => {
@@ -72,12 +86,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={onClose}
-        className="flex-1 bg-black/30"
-      >
-        <View className="absolute bottom-0 left-0 right-0 max-h-[85%] rounded-t-3xl bg-white">
+      <View className="flex-1" pointerEvents="box-none">
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onClose}
+          className="flex-1 bg-black/30"
+        />
+        <View
+          className="absolute bottom-0 left-0 right-0 max-h-[85%] rounded-t-3xl bg-white"
+          pointerEvents="box-none"
+        >
           {/* Header */}
           <View className="flex-row items-center justify-between border-b border-[#e5e7eb] px-4 py-4">
             <Text className="text-xl font-bold text-[#111827]">Filters</Text>
@@ -96,16 +114,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               <Text className="mb-4 text-lg font-semibold text-[#111827]">
                 Salary Range
               </Text>
-              <View className="mb-4">
+              <View className="mb-4 flex-row items-center justify-center">
                 <MultiSlider
                   values={[localSalaryMin, localSalaryMax]}
                   onValuesChange={(values) => {
                     setLocalSalaryMin(values[0]);
                     setLocalSalaryMax(values[1]);
                   }}
+                  onValuesChangeFinish={handleSalaryChangeFinish}
                   min={0}
                   max={SALARY_MAX_CAP}
                   step={10000}
+                  sliderLength={width - 120}
                   trackStyle={{
                     height: 4,
                     backgroundColor: '#e5e7eb',
@@ -122,8 +142,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     borderColor: 'white',
                   }}
                   pressedMarkerStyle={{
-                    height: 22,
-                    width: 22,
+                    height: 24,
+                    width: 24,
                     borderRadius: 11,
                     backgroundColor: '#4f46e5',
                     borderWidth: 3,
@@ -142,7 +162,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </View>
               <TouchableOpacity
                 onPress={handleSalarySubmit}
-                className="mt-4 rounded-lg bg-[#4f46e5] py-2"
+                className="mt-4 rounded-lg bg-[#4f46e5] py-3"
               >
                 <Text className="text-center font-semibold text-white">
                   Apply Salary Range
@@ -162,7 +182,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   className="mb-3 flex-row items-center gap-3 py-2"
                 >
                   <View
-                    className={`h-5 w-5 rounded border-2 ${
+                    className={`h-5 w-5 items-center justify-center rounded border-2 ${
                       selectedTypes.includes(type.value)
                         ? 'border-[#4f46e5] bg-[#4f46e5]'
                         : 'border-[#d1d5db] bg-white'
@@ -192,7 +212,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     className="mb-3 flex-row items-center gap-3 py-2"
                   >
                     <View
-                      className={`h-5 w-5 rounded border-2 ${
+                      className={`h-5 w-5 items-center justify-center rounded border-2 ${
                         selectedCategories.includes(String(category.id))
                           ? 'border-[#4f46e5] bg-[#4f46e5]'
                           : 'border-[#d1d5db] bg-white'
@@ -232,7 +252,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };

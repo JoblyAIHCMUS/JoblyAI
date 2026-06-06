@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Search, X } from 'lucide-react-native';
 
 interface SearchBarProps {
@@ -21,7 +17,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onLocationChange,
   onSearch,
 }) => {
-
   return (
     <View className="bg-white px-4 py-4">
       {/* Job title search */}

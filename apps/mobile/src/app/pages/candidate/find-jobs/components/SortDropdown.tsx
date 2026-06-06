@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import type { SortOption } from '../../../../../types/job';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SortDropdownProps {
   selectedSort: SortOption;
@@ -21,7 +22,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
   onSortChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const insets = useSafeAreaInsets();
   const selectedLabel =
     SORT_OPTIONS.find((opt) => opt.value === selectedSort)?.label ||
     'Most Relevant';
@@ -45,12 +46,16 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
         transparent={true}
         onRequestClose={() => setIsOpen(false)}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setIsOpen(false)}
-          className="flex-1 bg-black/30"
-        >
-          <View className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-white">
+        <View className="flex-1" pointerEvents="box-none">
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setIsOpen(false)}
+            className="flex-1 bg-black/30"
+          />
+          <View
+            className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-white"
+            pointerEvents="box-none"
+          >
             <View className="border-b border-[#e5e7eb] px-4 py-4">
               <Text className="text-lg font-semibold text-[#111827]">
                 Sort by
@@ -60,6 +65,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
             <FlatList
               data={SORT_OPTIONS}
               keyExtractor={(item) => item.value}
+              style={{ paddingBottom: 12 + insets.bottom }}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
@@ -84,7 +90,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
               scrollEnabled={false}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </>
   );
