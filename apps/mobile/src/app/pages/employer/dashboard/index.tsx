@@ -44,10 +44,14 @@ export default function EmployerDashboard() {
   } = useJobAnalytics();
   const { refetch: fetchEmployerProfile } = useGetEmployerProfile();
 
+  const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
+
   const loadData = useCallback(async () => {
     try {
-      const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
-      const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods);
+      const [startDate, endDate] = getDateRangeForPeriods(
+        groupBy,
+        periods * 2
+      );
 
       // Fetch profile first to get the user ID for chat summary
       const { data: employerProfile } = await fetchEmployerProfile();
@@ -101,7 +105,12 @@ export default function EmployerDashboard() {
       };
     }
 
-    return aggregateAnalyticsData(viewsData || [], appsData || [], groupBy);
+    return aggregateAnalyticsData(
+      viewsData || [],
+      appsData || [],
+      groupBy,
+      periods
+    );
   }, [viewsData, appsData, groupBy]);
 
   const isLoadingSummary = applicationsLoading || chatsLoading;
