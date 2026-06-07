@@ -668,9 +668,7 @@ describe('JobsService', () => {
       );
 
       expect(result.totalViews).toBe(17);
-      expect(result.series).toEqual([
-        { period: '2026-06-02', viewCount: 1 },
-      ]);
+      expect(result.series).toEqual([{ period: '2026-06-02', viewCount: 1 }]);
     });
 
     it('returns empty result with zero counts for a job with no views', async () => {
