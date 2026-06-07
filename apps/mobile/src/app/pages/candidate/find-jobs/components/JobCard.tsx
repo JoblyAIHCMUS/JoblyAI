@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { MapPin, Briefcase, DollarSign } from 'lucide-react-native';
+import { COLORS } from '../../../../constants/theme';
 import type { JobPosting } from '../../../../../types/job';
 
 interface JobCardProps {
@@ -20,12 +21,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
   const employmentTypeColor =
     {
-      FULL_TIME: '#10b981',
-      PART_TIME: '#3b82f6',
-      INTERNSHIP: '#f59e0b',
-      CONTRACT: '#8b5cf6',
-      FREELANCE: '#ec4899',
-    }[job.type] || '#6b7280';
+      FULL_TIME: COLORS.typeFullTime,
+      PART_TIME: COLORS.typePartTime,
+      INTERNSHIP: COLORS.typeInternship,
+      CONTRACT: COLORS.typeContract,
+      FREELANCE: COLORS.typeFreelance,
+    }[job.type] || COLORS.gray3;
 
   const salaryRange =
     job.salaryMin || job.salaryMax
@@ -42,7 +43,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     <TouchableOpacity
       activeOpacity={0.75}
       onPress={onPress}
-      className="mb-4 rounded-2xl border border-[#e5e7eb] bg-white px-4 py-4 shadow-sm"
+      className="mb-4 rounded-2xl border border-app-gray-1 bg-white px-4 py-4 shadow-sm"
     >
       {/* Header with logo and info */}
       <View className="mb-3 flex-row items-start justify-between">
@@ -55,25 +56,25 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                 resizeMode="cover"
               />
             ) : (
-              <View className="h-10 w-10 items-center justify-center rounded-lg bg-[#e5e7eb]">
-                <Briefcase size={20} color="#6b7280" />
+              <View className="h-10 w-10 items-center justify-center rounded-lg bg-app-gray-1">
+                <Briefcase size={20} color={COLORS.gray3} />
               </View>
             )}
             <View className="flex-1">
               <Text
-                className="text-sm font-semibold text-[#111827]"
+                className="text-base font-semibold text-primary"
                 numberOfLines={1}
               >
                 {job.company.name || 'Company'}
               </Text>
-              <Text className="text-xs text-[#6b7280]">
+              <Text className="text-xs text-app-gray-3">
                 {job.category.name}
               </Text>
             </View>
           </View>
 
           <Text
-            className="text-base font-bold text-[#111827]"
+            className="text-base font-bold text-app-dark-text"
             numberOfLines={2}
           >
             {job.title}
@@ -86,22 +87,22 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
         {/* Location */}
         {job.location && (
           <View className="flex-row items-center gap-2">
-            <MapPin size={16} color="#6b7280" strokeWidth={2} />
-            <Text className="text-sm text-[#6b7280]">{job.location}</Text>
+            <MapPin size={16} color={COLORS.gray3} strokeWidth={2} />
+            <Text className="text-sm text-app-gray-3">{job.location}</Text>
             {job.remote && (
-              <Text className="text-sm text-[#4f46e5]">• Remote</Text>
+              <Text className="text-sm text-app-primary-2">• Remote</Text>
             )}
           </View>
         )}
 
         {/* Salary */}
         <View className="flex-row items-center gap-2">
-          <DollarSign size={16} color="#6b7280" strokeWidth={2} />
-          <Text className="text-sm text-[#6b7280]">{salaryRange}</Text>
+          <DollarSign size={16} color={COLORS.gray3} strokeWidth={2} />
+          <Text className="text-sm text-app-gray-3">{salaryRange}</Text>
         </View>
 
-        {/* Employment type */}
-        <View className="flex-row items-center gap-2">
+        {/* Employment type and category */}
+        <View className="flex-row flex-wrap items-center gap-2">
           <View
             className="rounded-full px-2 py-1"
             style={{ backgroundColor: `${employmentTypeColor}20` }}
@@ -113,12 +114,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
               {employmentTypeLabel}
             </Text>
           </View>
+          <View className="rounded-full border border-app-primary-2 px-2 py-1">
+            <Text className="text-xs font-semibold text-app-primary-2">
+              {job.category.name}
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Description preview */}
       {job.description && (
-        <Text className="mb-3 text-sm text-[#6b7280]" numberOfLines={2}>
+        <Text className="mb-3 text-sm text-app-gray-3" numberOfLines={2}>
           {job.description.replace(/<[^>]*>/g, '')}
         </Text>
       )}
@@ -126,7 +132,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
       {/* Apply button */}
       <TouchableOpacity
         activeOpacity={0.8}
-        className="rounded-lg bg-[#4f46e5] py-3"
+        className="rounded-lg bg-app-primary-2 py-3"
       >
         <Text className="text-center font-semibold text-white">Apply</Text>
       </TouchableOpacity>

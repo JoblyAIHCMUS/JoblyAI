@@ -7,8 +7,10 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import { COLORS } from '../../../../constants/theme';
 import type { JobCategory, EmploymentType } from '../../../../../types/job';
 
 interface FilterPanelProps {
@@ -77,6 +79,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     onCategoryChange(updated);
   };
 
+  const insets = useSafeAreaInsets();
+
   if (!isOpen) return null;
 
   return (
@@ -95,12 +99,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         <View
           className="absolute bottom-0 left-0 right-0 max-h-[85%] rounded-t-3xl bg-white"
           pointerEvents="box-none"
+          style={{ paddingBottom: 12 + insets.bottom }}
         >
           {/* Header */}
-          <View className="flex-row items-center justify-between border-b border-[#e5e7eb] px-4 py-4">
-            <Text className="text-xl font-bold text-[#111827]">Filters</Text>
+          <View className="flex-row items-center justify-between border-b border-app-gray-1 px-4 py-4">
+            <Text className="text-xl font-bold text-app-dark-text">
+              Filters
+            </Text>
             <TouchableOpacity onPress={onClose}>
-              <X size={24} color="#111827" strokeWidth={2} />
+              <X size={24} color={COLORS.darkText} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
@@ -110,8 +117,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             nestedScrollEnabled={true}
           >
             {/* Salary Range */}
-            <View className="border-b border-[#e5e7eb] px-4 py-4">
-              <Text className="mb-4 text-lg font-semibold text-[#111827]">
+            <View className="border-b border-app-gray-1 px-4 py-4">
+              <Text className="mb-4 text-lg font-semibold text-app-dark-text">
                 Salary Range
               </Text>
               <View className="mb-4 flex-row items-center justify-center">
@@ -128,41 +135,41 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   sliderLength={width - 120}
                   trackStyle={{
                     height: 4,
-                    backgroundColor: '#e5e7eb',
+                    backgroundColor: COLORS.gray1,
                   }}
                   selectedStyle={{
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: COLORS.primary2,
                   }}
                   markerStyle={{
                     height: 20,
                     width: 20,
                     borderRadius: 10,
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: COLORS.primary2,
                     borderWidth: 3,
-                    borderColor: 'white',
+                    borderColor: COLORS.white,
                   }}
                   pressedMarkerStyle={{
                     height: 24,
                     width: 24,
                     borderRadius: 11,
-                    backgroundColor: '#4f46e5',
+                    backgroundColor: COLORS.primary2,
                     borderWidth: 3,
-                    borderColor: 'white',
+                    borderColor: COLORS.white,
                   }}
                   containerStyle={{ width: '100%' }}
                 />
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   ${(localSalaryMin / 1000).toFixed(0)}k
                 </Text>
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   ${(localSalaryMax / 1000).toFixed(0)}k
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={handleSalarySubmit}
-                className="mt-4 rounded-lg bg-[#4f46e5] py-3"
+                className="mt-4 rounded-lg bg-app-primary-2 py-3"
               >
                 <Text className="text-center font-semibold text-white">
                   Apply Salary Range
@@ -171,8 +178,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </View>
 
             {/* Employment Type */}
-            <View className="border-b border-[#e5e7eb] px-4 py-4">
-              <Text className="mb-3 text-lg font-semibold text-[#111827]">
+            <View className="border-b border-app-gray-1 px-4 py-4">
+              <Text className="mb-3 text-lg font-semibold text-app-dark-text">
                 Employment Type
               </Text>
               {EMPLOYMENT_TYPES.map((type) => (
@@ -184,15 +191,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <View
                     className={`h-5 w-5 items-center justify-center rounded border-2 ${
                       selectedTypes.includes(type.value)
-                        ? 'border-[#4f46e5] bg-[#4f46e5]'
-                        : 'border-[#d1d5db] bg-white'
+                        ? 'border-app-primary-2 bg-app-primary-2'
+                        : 'border-app-border-unchecked bg-white'
                     }`}
                   >
                     {selectedTypes.includes(type.value) && (
                       <Text className="text-xs font-bold text-white">✓</Text>
                     )}
                   </View>
-                  <Text className="flex-1 text-base text-[#374151]">
+                  <Text className="flex-1 text-base text-app-gray-2">
                     {type.label}
                   </Text>
                 </TouchableOpacity>
@@ -202,7 +209,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Categories */}
             {categories.length > 0 && (
               <View className="px-4 py-4">
-                <Text className="mb-3 text-lg font-semibold text-[#111827]">
+                <Text className="mb-3 text-lg font-semibold text-app-dark-text">
                   Job Category
                 </Text>
                 {categories.map((category) => (
@@ -214,15 +221,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     <View
                       className={`h-5 w-5 items-center justify-center rounded border-2 ${
                         selectedCategories.includes(String(category.id))
-                          ? 'border-[#4f46e5] bg-[#4f46e5]'
-                          : 'border-[#d1d5db] bg-white'
+                          ? 'border-app-primary-2 bg-app-primary-2'
+                          : 'border-app-border-unchecked bg-white'
                       }`}
                     >
                       {selectedCategories.includes(String(category.id)) && (
                         <Text className="text-xs font-bold text-white">✓</Text>
                       )}
                     </View>
-                    <Text className="flex-1 text-base text-[#374151]">
+                    <Text className="flex-1 text-base text-app-gray-2">
                       {category.name}
                     </Text>
                   </TouchableOpacity>
@@ -232,21 +239,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </ScrollView>
 
           {/* Footer buttons */}
-          <View className="flex-row gap-3 border-t border-[#e5e7eb] px-4 py-4">
+          <View className="flex-row gap-3 border-t border-app-gray-1 px-4 py-4">
             <TouchableOpacity
               onPress={() => {
                 onReset();
                 onClose();
               }}
-              className="flex-1 rounded-lg border border-[#e5e7eb] bg-white py-3"
+              className="flex-1 rounded-lg border border-app-gray-1 bg-white py-3"
             >
-              <Text className="text-center font-semibold text-[#374151]">
+              <Text className="text-center font-semibold text-app-gray-2">
                 Reset
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
-              className="flex-1 rounded-lg bg-[#4f46e5] py-3"
+              className="flex-1 rounded-lg bg-app-primary-2 py-3"
             >
               <Text className="text-center font-semibold text-white">Done</Text>
             </TouchableOpacity>

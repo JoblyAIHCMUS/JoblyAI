@@ -17,6 +17,7 @@ import {
 } from 'react-native-safe-area-context';
 
 import { useListJobs, useCategories, useSkillsFilter } from '../../../../hooks';
+import { COLORS } from '../../../constants/theme';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
 import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
@@ -188,14 +189,14 @@ function FindJobsPage() {
 
         <View className="flex-1">
           {/* Top Bar */}
-          <View className="flex-row items-center justify-between border-b border-[#e5e7eb] bg-white px-4 py-4">
+          <View className="flex-row items-center justify-between border-b border-app-gray-1 bg-white px-4 py-4">
             <TouchableOpacity
               onPress={() => setSidebarOpen(true)}
               className="h-10 w-10 items-center justify-center"
             >
-              <Menu size={24} color="#111827" strokeWidth={2} />
+              <Menu size={24} color={COLORS.darkText} strokeWidth={2} />
             </TouchableOpacity>
-            <Text className="flex-1 ml-3 text-lg font-bold text-[#111827]">
+            <Text className="flex-1 ml-3 text-lg font-bold text-app-dark-text">
               Find Jobs
             </Text>
           </View>
@@ -212,9 +213,9 @@ function FindJobsPage() {
           <View className="flex-row gap-2 px-4 py-3">
             <TouchableOpacity
               onPress={() => setFilterPanelOpen(true)}
-              className="flex-1 rounded-lg border border-[#e5e7eb] bg-white px-4 py-3"
+              className="flex-1 rounded-lg border border-app-gray-1 bg-white px-4 py-3"
             >
-              <Text className="text-center text-sm font-semibold text-[#111827]">
+              <Text className="text-center text-sm font-semibold text-app-dark-text">
                 Filters
               </Text>
             </TouchableOpacity>
@@ -228,14 +229,14 @@ function FindJobsPage() {
 
           {/* Results count */}
           <View className="px-4 py-2">
-            <Text className="text-sm text-[#6b7280]">{total} jobs found</Text>
+            <Text className="text-sm text-app-gray-3">{total} jobs found</Text>
           </View>
 
           {/* Jobs List */}
           {loadingJobs && jobs.length === 0 ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#4f46e5" />
-              <Text className="mt-4 text-sm text-[#6b7280]">
+              <ActivityIndicator size="large" color={COLORS.primary2} />
+              <Text className="mt-4 text-sm text-app-gray-3">
                 Loading jobs...
               </Text>
             </View>
@@ -248,12 +249,12 @@ function FindJobsPage() {
                 alignItems: 'center',
               }}
             >
-              <Text className="text-center text-lg text-[#111827]">
+              <Text className="text-center text-lg text-app-dark-text">
                 No jobs found
               </Text>
               <TouchableOpacity
                 onPress={handleReset}
-                className="mt-4 rounded-lg bg-[#4f46e5] px-6 py-3"
+                className="mt-4 rounded-lg bg-app-primary-2 px-6 py-3"
               >
                 <Text className="font-semibold text-white">Reset Filters</Text>
               </TouchableOpacity>
@@ -275,7 +276,7 @@ function FindJobsPage() {
               ListFooterComponent={
                 loadingJobs ? (
                   <View className="py-4">
-                    <ActivityIndicator size="small" color="#4f46e5" />
+                    <ActivityIndicator size="small" color={COLORS.primary2} />
                   </View>
                 ) : null
               }
@@ -285,7 +286,7 @@ function FindJobsPage() {
           {/* Pagination */}
           {totalPages > 1 && jobs.length > 0 && (
             <View
-              className="border-t border-[#e5e7eb] bg-white px-4 py-3"
+              className="border-t border-app-gray-1 bg-white px-4 py-3"
               style={{ paddingBottom: 12 + insets.bottom }}
             >
               <View className="flex-row items-center justify-between">
@@ -293,12 +294,12 @@ function FindJobsPage() {
                   onPress={() => handlePageChange(Math.max(1, urlPage - 1))}
                   disabled={urlPage === 1}
                   className={`rounded px-3 py-2 ${
-                    urlPage === 1 ? 'bg-[#f3f4f6]' : 'bg-[#4f46e5]'
+                    urlPage === 1 ? 'bg-app-bg-disabled' : 'bg-app-primary-2'
                   }`}
                 >
                   <Text
                     className={`font-semibold ${
-                      urlPage === 1 ? 'text-[#9ca3af]' : 'text-white'
+                      urlPage === 1 ? 'text-app-text-placeholder' : 'text-white'
                     }`}
                   >
                     Previous
@@ -313,14 +314,16 @@ function FindJobsPage() {
                         key={pageNum}
                         onPress={() => handlePageChange(pageNum)}
                         className={`rounded px-3 py-2 ${
-                          urlPage === pageNum ? 'bg-[#4f46e5]' : 'bg-[#f3f4f6]'
+                          urlPage === pageNum
+                            ? 'bg-app-primary-2'
+                            : 'bg-app-bg-disabled'
                         }`}
                       >
                         <Text
                           className={`font-semibold ${
                             urlPage === pageNum
                               ? 'text-white'
-                              : 'text-[#374151]'
+                              : 'text-app-gray-2'
                           }`}
                         >
                           {pageNum}
@@ -336,12 +339,16 @@ function FindJobsPage() {
                   }
                   disabled={urlPage === totalPages}
                   className={`rounded px-3 py-2 ${
-                    urlPage === totalPages ? 'bg-[#f3f4f6]' : 'bg-[#4f46e5]'
+                    urlPage === totalPages
+                      ? 'bg-app-bg-disabled'
+                      : 'bg-app-primary-2'
                   }`}
                 >
                   <Text
                     className={`font-semibold ${
-                      urlPage === totalPages ? 'text-[#9ca3af]' : 'text-white'
+                      urlPage === totalPages
+                        ? 'text-app-text-placeholder'
+                        : 'text-white'
                     }`}
                   >
                     Next

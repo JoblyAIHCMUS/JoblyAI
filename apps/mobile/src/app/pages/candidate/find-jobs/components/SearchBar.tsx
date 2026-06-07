@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Search, X } from 'lucide-react-native';
+import { COLORS } from '../../../../../constants/theme';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -19,38 +20,36 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   return (
     <View className="bg-white px-4 py-4">
-      {/* Job title search */}
-      <View className="mb-3 flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-1">
-        <Search size={20} color="#9ca3af" strokeWidth={2} />
+      <View className="mb-3 flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-4 py-1">
+        <Search size={20} color={COLORS.textPlaceholder} strokeWidth={2} />
         <TextInput
-          className="flex-1 ml-3 text-base text-[#111827]"
+          className="flex-1 ml-3 text-base text-app-dark-text"
           placeholder="Job title or keyword"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={COLORS.textPlaceholder}
           value={searchTerm}
           onChangeText={onSearchTermChange}
           editable={true}
         />
         {searchTerm && (
           <TouchableOpacity onPress={() => onSearchTermChange('')}>
-            <X size={18} color="#9ca3af" strokeWidth={2} />
+            <X size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Location search */}
-      <View className="flex-row items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-1">
-        <Search size={20} color="#9ca3af" strokeWidth={2} />
+      <View className="flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-4 py-1">
+        <Search size={20} color={COLORS.textPlaceholder} strokeWidth={2} />
         <TextInput
-          className="flex-1 ml-3 text-base text-[#111827]"
+          className="flex-1 ml-3 text-base text-app-dark-text"
           placeholder="City or location"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={COLORS.textPlaceholder}
           value={location}
           onChangeText={onLocationChange}
           editable={true}
         />
         {location && (
           <TouchableOpacity onPress={() => onLocationChange('')}>
-            <X size={18} color="#9ca3af" strokeWidth={2} />
+            <X size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>
         )}
       </View>
