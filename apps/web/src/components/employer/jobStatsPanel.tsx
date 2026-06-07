@@ -1,82 +1,88 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { Eye, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { JobListingDetail } from '@/features/employer/job-listing/detail/data';
 
 const chartConfig = {
   views: {
     label: 'Views',
-    color: 'hsl(var(--chart-1))',
-  },
-  applications: {
-    label: 'Applications',
-    color: 'hsl(var(--chart-2))',
+    color: '#14b8a6',
   },
 } satisfies ChartConfig;
 
-const MONTH_LABELS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+function generateMockViewsData(mode: 'week' | 'month' | 'year') {
+  const data: { label: string; views: number }[] = [];
 
-function buildChartData(job: JobListingDetail) {
-  const [startYear, startMonth] = job.datePosted.split('-').map(Number) as [
-    number,
-    number
-  ];
-
-  // Count applications per YYYY-MM
-  const appsByMonth = new Map<string, number>();
-  for (const applicant of job.applicants) {
-    const key = applicant.appliedDate.slice(0, 7); // "YYYY-MM"
-    appsByMonth.set(key, (appsByMonth.get(key) ?? 0) + 1);
-  }
-
-  const data: { month: string; views: number; applications: number }[] = [];
-
-  let year = startYear;
-  let month = startMonth;
-
-  for (let i = 0; i < job.monthlyViews.length; i++) {
-    const key = `${year}-${String(month).padStart(2, '0')}`;
-    const label = `${MONTH_LABELS[month - 1]} ${year}`;
-
-    data.push({
-      month: label,
-      views: job.monthlyViews[i],
-      applications: appsByMonth.get(key) ?? 0,
-    });
-
-    month++;
-    if (month > 12) {
-      month = 1;
-      year++;
+  if (mode === 'week') {
+    const start = new Date();
+    start.setDate(start.getDate() - 6);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      data.push({
+        label: `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`,
+        views: Math.floor(Math.random() * (600 - 100 + 1)) + 100,
+      });
+    }
+  } else if (mode === 'month') {
+    const start = new Date();
+    start.setDate(start.getDate() - 29);
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      data.push({
+        label: `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`,
+        views: Math.floor(Math.random() * (1000 - 200 + 1)) + 200,
+      });
+    }
+  } else if (mode === 'year') {
+    const start = new Date();
+    start.setMonth(start.getMonth() - 11);
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(start);
+      d.setMonth(d.getMonth() + i);
+      data.push({
+        label: d.toLocaleString('default', {
+          month: 'short',
+          year: 'numeric',
+        }),
+        views: Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000,
+      });
     }
   }
 
   return data;
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: { value: number }[] }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#475569] text-white px-4 py-3 rounded-md shadow-lg relative translate-y-4">
+        <div className="flex items-center gap-2 mb-1 text-sm font-medium">
+          <div className="w-2 h-2 rounded-full bg-teal-500" />
+          <span>Views</span>
+        </div>
+        <div className="text-xl font-bold">{payload[0].value}</div>
+      </div>
+    );
+  }
+  return null;
 }
 
 function SummaryCard({
@@ -97,9 +103,7 @@ function SummaryCard({
           <span className="label-label-2-medium text-muted-foreground text-sm sm:text-base font-semibold">
             {title}
           </span>
-          <div
-            className={cn('rounded-full p-2 flex-shrink-0', iconBg)}
-          >
+          <div className={cn('rounded-full p-2 flex-shrink-0', iconBg)}>
             <Icon className="h-5 w-5 text-white" />
           </div>
         </div>
@@ -112,7 +116,8 @@ function SummaryCard({
 }
 
 export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
-  const chartData = useMemo(() => buildChartData(job), [job]);
+  const [timeMode, setTimeMode] = useState<'week' | 'month' | 'year'>('week');
+  const chartData = useMemo(() => generateMockViewsData(timeMode), [timeMode]);
 
   const totalApplications = job.applicants.length;
   const totalViews = job.monthlyViews.reduce((sum, views) => sum + views, 0);
@@ -137,53 +142,80 @@ export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
 
       {/* Chart card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="heading-h6-semi-bold">
-            Views &amp; Applications Over Time
+        <CardHeader className="flex flex-row items-center justify-between pb-8">
+          <CardTitle className="text-xl font-bold">
+            Job Listing View stats
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Monthly statistics since {job.datePosted}
-          </p>
+          <div className="w-[180px]">
+            <Select
+              value={timeMode}
+              onValueChange={(val: 'week' | 'month' | 'year') =>
+                setTimeMode(val)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Last 7 days</SelectItem>
+                <SelectItem value="month">Last 30 days</SelectItem>
+                <SelectItem value="year">This year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[350px] w-full"
           >
-          <LineChart
-            data={chartData}
-            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              interval={Math.max(0, Math.ceil(chartData.length / 10) - 1)}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              width={40}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Line
-              type="monotone"
-              dataKey="views"
-              stroke="var(--color-views)"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="applications"
-              stroke="var(--color-applications)"
-              strokeWidth={2}
-              dot={false}
-            />
+            <LineChart
+              data={chartData}
+              margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray="6 6"
+                stroke="#e2e8f0"
+              />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={16}
+                tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
+                interval="preserveStartEnd"
+                minTickGap={30}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={16}
+                tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
+                width={60}
+                domain={[0, 'auto']}
+              />
+              <ChartTooltip
+                content={<CustomTooltip />}
+                cursor={{
+                  stroke: '#cbd5e1',
+                  strokeWidth: 1,
+                  strokeDasharray: '4 4',
+                }}
+              />
+              <Line
+                type="natural"
+                dataKey="views"
+                stroke="#14b8a6"
+                strokeWidth={3}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: '#14b8a6',
+                  stroke: 'white',
+                  strokeWidth: 2,
+                }}
+              />
             </LineChart>
           </ChartContainer>
         </CardContent>
