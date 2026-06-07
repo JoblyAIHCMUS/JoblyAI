@@ -9,6 +9,7 @@ interface Company {
   description?: string | null;
   industry?: string | null;
   sizeRange?: string | null;
+  adminId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -61,6 +62,8 @@ export class QueryResponseEmployerDto {
   bannedReason?: string;
   @Expose()
   banExpires?: Date;
+  @Expose()
+  isAdmin!: boolean;
 
   @Expose({ name: 'fullName' })
   get fullName(): string {

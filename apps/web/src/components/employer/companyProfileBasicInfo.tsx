@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Users, Building2 } from 'lucide-react';
@@ -5,6 +7,7 @@ import {
   SCALE_LABELS,
   INDUSTRY_LABELS,
 } from '../../features/employer/company-profile/constants';
+import { toast } from 'sonner';
 import * as React from 'react';
 
 export interface CompanyProfileBasicInfoProps {
@@ -13,6 +16,7 @@ export interface CompanyProfileBasicInfoProps {
   websiteUrl: string;
   scale: string;
   industry: string;
+  isAdmin?: boolean;
 }
 
 export function CompanyProfileBasicInfo({
@@ -21,7 +25,14 @@ export function CompanyProfileBasicInfo({
   websiteUrl,
   scale,
   industry,
+  isAdmin = true,
 }: CompanyProfileBasicInfoProps) {
+  const handleEditClick = () => {
+    if (!isAdmin) {
+      toast.error('Only the company admin can edit the company profile.');
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6 md:gap-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 md:gap-8 min-w-0 flex-1">
@@ -56,7 +67,7 @@ export function CompanyProfileBasicInfo({
             {/* Employees */}
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:w-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
                 <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
@@ -70,7 +81,7 @@ export function CompanyProfileBasicInfo({
             {/* Industry */}
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
-                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:w-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
                 <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
@@ -85,15 +96,25 @@ export function CompanyProfileBasicInfo({
         </div>
       </div>
       <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
-        <Link href="/employer/company-profile/edit" passHref>
+        {isAdmin ? (
+          <Link href="/employer/company-profile/edit" passHref>
+            <Button
+              asChild
+              variant="outline"
+              className="gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+            >
+              <span>Profile Settings</span>
+            </Button>
+          </Link>
+        ) : (
           <Button
-            asChild
             variant="outline"
             className="gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+            onClick={handleEditClick}
           >
             <span>Profile Settings</span>
           </Button>
-        </Link>
+        )}
       </div>
     </div>
   );

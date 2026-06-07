@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
+import { COLORS } from '../../../../constants/theme';
 import type { SortOption } from '../../../../../types/job';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,12 +33,12 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setIsOpen(true)}
-        className="flex-row items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white px-4 py-3"
+        className="flex-row items-center gap-2 rounded-lg border border-app-gray-1 bg-white px-4 py-3"
       >
-        <Text className="flex-1 text-sm font-semibold text-[#111827]">
+        <Text className="flex-1 text-sm font-semibold text-app-dark-text">
           {selectedLabel}
         </Text>
-        <ChevronDown size={18} color="#6b7280" strokeWidth={2} />
+        <ChevronDown size={18} color={COLORS.gray3} strokeWidth={2} />
       </TouchableOpacity>
 
       <Modal
@@ -56,8 +57,8 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
             className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-white"
             pointerEvents="box-none"
           >
-            <View className="border-b border-[#e5e7eb] px-4 py-4">
-              <Text className="text-lg font-semibold text-[#111827]">
+            <View className="border-b border-app-gray-1 px-4 py-4">
+              <Text className="text-lg font-semibold text-app-dark-text">
                 Sort by
               </Text>
             </View>
@@ -72,15 +73,15 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
                     onSortChange(item.value);
                     setIsOpen(false);
                   }}
-                  className={`border-b border-[#f3f4f6] px-4 py-4 ${
-                    selectedSort === item.value ? 'bg-[#f0f1ff]' : ''
+                  className={`border-b border-app-bg-disabled px-4 py-4 ${
+                    selectedSort === item.value ? 'bg-app-bg-selected' : ''
                   }`}
                 >
                   <Text
                     className={`text-base ${
                       selectedSort === item.value
-                        ? 'font-semibold text-[#4f46e5]'
-                        : 'text-[#374151]'
+                        ? 'font-semibold text-app-primary-2'
+                        : 'text-app-gray-2'
                     }`}
                   >
                     {item.label}
