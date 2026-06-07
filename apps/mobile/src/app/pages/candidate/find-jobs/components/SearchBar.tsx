@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Search, X } from 'lucide-react-native';
-import { COLORS } from '../../../../../constants/theme';
+import { COLORS } from '../../../../constants/theme';
 
 interface SearchBarProps {
   searchTerm: string;
