@@ -676,6 +676,54 @@ export class JobsService {
   }
 
   /**
+   * Get aggregated job view statistics for a single job (chart + total)
+   * @param jobId The job to scope to
+   * @param startDate Start of the date range (inclusive)
+   * @param endDate End of the date range (inclusive)
+   * @param groupBy How to group the series: 'day' | 'week' | 'month'
+   * @returns totalViews (all-time) and a series bucketed in [startDate, endDate]
+   */
+  async getJobViewsAnalyticsForJob(
+    jobId: number,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Promise<{
+    totalViews: number;
+    series: Array<{ period: string; viewCount: number }>;
+  }> {
+    const [rawViews, totalViews] = await Promise.all([
+      this.prisma.jobView.findMany({
+        where: { jobId, viewedAt: { gte: startDate, lte: endDate } },
+        select: { jobId: true, viewedAt: true },
+      }),
+      this.prisma.jobView.count({ where: { jobId } }),
+    ]);
+
+    const grouped = new Map<string, number>();
+    rawViews.forEach(({ viewedAt }) => {
+      let periodKey: string;
+      if (groupBy === 'month') {
+        periodKey = viewedAt.toISOString().substring(0, 7);
+      } else if (groupBy === 'week') {
+        const date = new Date(viewedAt);
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        periodKey = weekStart.toISOString().split('T')[0];
+      } else {
+        periodKey = viewedAt.toISOString().split('T')[0];
+      }
+      grouped.set(periodKey, (grouped.get(periodKey) || 0) + 1);
+    });
+
+    const series = Array.from(grouped.entries())
+      .map(([period, viewCount]) => ({ period, viewCount }))
+      .sort((a, b) => a.period.localeCompare(b.period));
+
+    return { totalViews, series };
+  }
+
+  /**
    * Get aggregated job view statistics for an employer (total views by job/period)
    * Useful for dashboard showing overall trends
    */
