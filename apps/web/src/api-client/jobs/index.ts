@@ -39,4 +39,8 @@ export {
 export {
   getJobViewsAnalytics,
   getJobApplicationsAnalytics,
+  getJobViewsAnalyticsForJob,
 } from '@/api-client/jobs/analytics';
+
+// Analytics types
+export type { JobViewsAnalyticsResponse } from '@/api-client/jobs/analytics';
