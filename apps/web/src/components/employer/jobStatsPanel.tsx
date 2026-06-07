@@ -51,15 +51,7 @@ function getRange(mode: TimeMode): {
     start.setHours(0, 0, 0, 0);
     return { start, end, groupBy: 'day' };
   }
-  const start = new Date(
-    end.getFullYear(),
-    end.getMonth() - 11,
-    1,
-    0,
-    0,
-    0,
-    0
-  );
+  const start = new Date(end.getFullYear(), end.getMonth() - 11, 1, 0, 0, 0, 0);
   return { start, end, groupBy: 'month' };
 }
 
@@ -161,8 +153,7 @@ export default function JobStatsPanel({
   job: JobListingDetail;
 }) {
   const [timeMode, setTimeMode] = useState<TimeMode>('week');
-  const { fetchAnalytics, loading, error, data } =
-    useJobViewsAnalyticsForJob();
+  const { fetchAnalytics, loading, error, data } = useJobViewsAnalyticsForJob();
 
   useEffect(() => {
     const { start, end, groupBy } = getRange(timeMode);
