@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { Eye, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useJobViewsAnalyticsForJob } from '@/api-hook/jobs/useJobViewsAnalyticsForJob';
 import type { JobListingDetail } from '@/features/employer/job-listing/detail/data';
+
+type TimeMode = 'week' | 'month' | 'year';
 
 const chartConfig = {
   views: {
@@ -26,51 +31,84 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function generateMockViewsData(mode: 'week' | 'month' | 'year') {
-  const data: { label: string; views: number }[] = [];
+function getRange(mode: TimeMode): {
+  start: Date;
+  end: Date;
+  groupBy: 'day' | 'month';
+} {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
 
   if (mode === 'week') {
-    const start = new Date();
+    const start = new Date(end);
     start.setDate(start.getDate() - 6);
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      data.push({
-        label: `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`,
-        views: Math.floor(Math.random() * (600 - 100 + 1)) + 100,
-      });
-    }
-  } else if (mode === 'month') {
-    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return { start, end, groupBy: 'day' };
+  }
+  if (mode === 'month') {
+    const start = new Date(end);
     start.setDate(start.getDate() - 29);
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      data.push({
-        label: `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`,
-        views: Math.floor(Math.random() * (1000 - 200 + 1)) + 200,
+    start.setHours(0, 0, 0, 0);
+    return { start, end, groupBy: 'day' };
+  }
+  const start = new Date(
+    end.getFullYear(),
+    end.getMonth() - 11,
+    1,
+    0,
+    0,
+    0,
+    0
+  );
+  return { start, end, groupBy: 'month' };
+}
+
+function buildChartData(
+  series: Array<{ period: string; viewCount: number }>,
+  mode: TimeMode
+): Array<{ label: string; views: number }> {
+  const { start, end, groupBy } = getRange(mode);
+  const byPeriod = new Map(series.map((s) => [s.period, s.viewCount]));
+  const out: Array<{ label: string; views: number }> = [];
+
+  if (groupBy === 'day') {
+    const cursor = new Date(start);
+    while (cursor.getTime() <= end.getTime()) {
+      const key = cursor.toISOString().split('T')[0];
+      out.push({
+        label: `${cursor.getDate()} ${cursor.toLocaleString('default', {
+          month: 'short',
+        })}`,
+        views: byPeriod.get(key) ?? 0,
       });
+      cursor.setDate(cursor.getDate() + 1);
     }
-  } else if (mode === 'year') {
-    const start = new Date();
-    start.setMonth(start.getMonth() - 11);
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(start);
-      d.setMonth(d.getMonth() + i);
-      data.push({
-        label: d.toLocaleString('default', {
+  } else {
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    const last = new Date(end.getFullYear(), end.getMonth(), 1);
+    while (cursor.getTime() <= last.getTime()) {
+      const key = cursor.toISOString().substring(0, 7);
+      out.push({
+        label: cursor.toLocaleString('default', {
           month: 'short',
           year: 'numeric',
         }),
-        views: Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000,
+        views: byPeriod.get(key) ?? 0,
       });
+      cursor.setMonth(cursor.getMonth() + 1);
     }
   }
 
-  return data;
+  return out;
 }
 
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: { value: number }[] }) {
+function CustomTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { value: number }[];
+}) {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[#475569] text-white px-4 py-3 rounded-md shadow-lg relative translate-y-4">
@@ -115,16 +153,37 @@ function SummaryCard({
   );
 }
 
-export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
-  const [timeMode, setTimeMode] = useState<'week' | 'month' | 'year'>('week');
-  const chartData = useMemo(() => generateMockViewsData(timeMode), [timeMode]);
+export default function JobStatsPanel({
+  jobId,
+  job,
+}: {
+  jobId: number;
+  job: JobListingDetail;
+}) {
+  const [timeMode, setTimeMode] = useState<TimeMode>('week');
+  const { fetchAnalytics, loading, error, data } =
+    useJobViewsAnalyticsForJob();
+
+  useEffect(() => {
+    const { start, end, groupBy } = getRange(timeMode);
+    fetchAnalytics(jobId, start, end, groupBy).catch(() => {
+      // Error is captured in hook state via `error`; nothing to do here.
+      // On rapid period switches the last-resolved response wins, which
+      // matches the existing convention in sibling hooks (see
+      // useEmployerJobDetail.ts).
+    });
+  }, [jobId, timeMode, fetchAnalytics]);
+
+  const chartData = useMemo(
+    () => (data ? buildChartData(data.series, timeMode) : []),
+    [data, timeMode]
+  );
 
   const totalApplications = job.applicants.length;
-  const totalViews = job.monthlyViews.reduce((sum, views) => sum + views, 0);
+  const totalViews = data?.totalViews ?? 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Top summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <SummaryCard
           title="Total Views"
@@ -140,7 +199,6 @@ export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
         />
       </div>
 
-      {/* Chart card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-8">
           <CardTitle className="text-xl font-bold">
@@ -149,9 +207,7 @@ export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
           <div className="w-[180px]">
             <Select
               value={timeMode}
-              onValueChange={(val: 'week' | 'month' | 'year') =>
-                setTimeMode(val)
-              }
+              onValueChange={(val: TimeMode) => setTimeMode(val)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select timeframe" />
@@ -165,59 +221,79 @@ export default function JobStatsPanel({ job }: { job: JobListingDetail }) {
           </div>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[350px] w-full"
-          >
-            <LineChart
-              data={chartData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+          {loading && <Skeleton className="h-[350px] w-full" />}
+          {!loading && error != null && (
+            <div className="h-[350px] w-full flex flex-col items-center justify-center gap-3 text-center">
+              <p className="text-sm text-muted-foreground">
+                Couldn't load view stats.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const { start, end, groupBy } = getRange(timeMode);
+                  void fetchAnalytics(jobId, start, end, groupBy);
+                }}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+          {!loading && error == null && data && (
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[350px] w-full"
             >
-              <CartesianGrid
-                vertical={false}
-                strokeDasharray="6 6"
-                stroke="#e2e8f0"
-              />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={16}
-                tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
-                interval="preserveStartEnd"
-                minTickGap={30}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={16}
-                tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
-                width={60}
-                domain={[0, 'auto']}
-              />
-              <ChartTooltip
-                content={<CustomTooltip />}
-                cursor={{
-                  stroke: '#cbd5e1',
-                  strokeWidth: 1,
-                  strokeDasharray: '4 4',
-                }}
-              />
-              <Line
-                type="natural"
-                dataKey="views"
-                stroke="#14b8a6"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{
-                  r: 6,
-                  fill: '#14b8a6',
-                  stroke: 'white',
-                  strokeWidth: 2,
-                }}
-              />
-            </LineChart>
-          </ChartContainer>
+              <LineChart
+                data={chartData}
+                margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+              >
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="6 6"
+                  stroke="#e2e8f0"
+                />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={16}
+                  tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
+                  interval="preserveStartEnd"
+                  minTickGap={30}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={16}
+                  tick={{ fill: '#475569', fontSize: 14, fontWeight: 500 }}
+                  width={60}
+                  domain={[0, 'auto']}
+                />
+                <ChartTooltip
+                  content={<CustomTooltip />}
+                  cursor={{
+                    stroke: '#cbd5e1',
+                    strokeWidth: 1,
+                    strokeDasharray: '4 4',
+                  }}
+                />
+                <Line
+                  type="natural"
+                  dataKey="views"
+                  stroke="#14b8a6"
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{
+                    r: 6,
+                    fill: '#14b8a6',
+                    stroke: 'white',
+                    strokeWidth: 2,
+                  }}
+                />
+              </LineChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
     </div>
