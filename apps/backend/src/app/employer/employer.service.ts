@@ -215,10 +215,15 @@ export class EmployerService {
         banned: data.banned ?? false,
         banExpires: data.banExpires ?? undefined,
         bannedReason: data.banReason ?? '',
+        isAdmin: false,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
     }
+
+    const isAdmin =
+      data.employer.company?.adminId != null &&
+      data.employer.company.adminId === data.employer.id;
 
     return {
       id: data.id,
@@ -235,6 +240,7 @@ export class EmployerService {
       banned: data.banned ?? false,
       banExpires: data.banExpires ?? undefined,
       bannedReason: data.banReason ?? '',
+      isAdmin,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };

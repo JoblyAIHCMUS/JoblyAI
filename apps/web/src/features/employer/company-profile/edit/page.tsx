@@ -385,6 +385,16 @@ export default function EmployerCompanyProfileEditPage() {
       </div>
     );
   }
+  if (employer && !employer.isAdmin) {
+    return (
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 flex flex-col items-center justify-center min-h-[400px]">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">403</h1>
+        <p className="text-slate-600 text-sm sm:text-base">
+          You do not have permission to access this page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">

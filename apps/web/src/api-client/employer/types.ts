@@ -6,6 +6,7 @@ export interface EmployerCompany {
   description?: string | null;
   industry?: string | null;
   sizeRange?: string | null;
+  adminId?: number | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -24,6 +25,7 @@ export interface EmployerProfileResponse {
   fullName: string;
   role?: string;
   company?: EmployerCompany;
+  isAdmin: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   banned: boolean;
