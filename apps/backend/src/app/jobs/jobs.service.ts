@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
@@ -32,7 +33,10 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
 
 @Injectable()
 export class JobsService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async getsPaginatedJobsPostings(
     query: GetJobsQueryDTO
@@ -156,6 +160,14 @@ export class JobsService {
     ]);
 
     const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
+
+    for (const job of mappedJobs) {
+      try {
+        this.eventEmitter.emit('job.viewed', { jobId: job.id });
+      } catch (error) {
+        console.error(`Failed to emit job.viewed for job ${job.id}:`, error);
+      }
+    }
 
     return {
       jobs: mappedJobs,
