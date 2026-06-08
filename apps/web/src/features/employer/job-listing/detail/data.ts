@@ -41,6 +41,4 @@ export interface JobListingDetail {
   dateClosed: string | null;
   description: string;
   applicants: Applicant[];
-  /** Monthly view counts starting from the posting month (index 0 = posting month). */
-  monthlyViews: number[];
 }

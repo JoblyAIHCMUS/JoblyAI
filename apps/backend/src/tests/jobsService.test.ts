@@ -54,6 +54,10 @@ const mockPrisma = vi.hoisted(() => ({
   application: {
     updateMany: vi.fn(),
   },
+  jobView: {
+    findMany: vi.fn(),
+    count: vi.fn(),
+  },
   $transaction: vi.fn(),
 }));
 
@@ -614,6 +618,108 @@ describe('JobsService', () => {
       const result = await service.getsPaginatedJobsPostings(baseQuery);
 
       expect(result.jobs).toHaveLength(1);
+    });
+  });
+
+  describe('getJobViewsAnalyticsForJob', () => {
+    const start = new Date('2026-06-01T00:00:00.000');
+    const end = new Date('2026-06-07T23:59:59.999');
+
+    it('returns totalViews and a series bucketed by day for the job', async () => {
+      mockPrisma.jobView.findMany.mockResolvedValue([
+        { jobId: 42, viewedAt: new Date('2026-06-02T10:00:00.000') },
+        { jobId: 42, viewedAt: new Date('2026-06-02T15:00:00.000') },
+        { jobId: 42, viewedAt: new Date('2026-06-05T09:00:00.000') },
+      ]);
+      mockPrisma.jobView.count.mockResolvedValue(3);
+
+      const result = await service.getJobViewsAnalyticsForJob(
+        42,
+        start,
+        end,
+        'day'
+      );
+
+      expect(mockPrisma.jobView.findMany).toHaveBeenCalledWith({
+        where: { jobId: 42, viewedAt: { gte: start, lte: end } },
+        select: { jobId: true, viewedAt: true },
+      });
+      expect(mockPrisma.jobView.count).toHaveBeenCalledWith({
+        where: { jobId: 42 },
+      });
+      expect(result.totalViews).toBe(3);
+      expect(result.series).toEqual([
+        { period: '2026-06-02', viewCount: 2 },
+        { period: '2026-06-05', viewCount: 1 },
+      ]);
+    });
+
+    it('totalViews includes views outside the [start, end] range', async () => {
+      mockPrisma.jobView.findMany.mockResolvedValue([
+        { jobId: 7, viewedAt: new Date('2026-06-02T10:00:00.000') },
+      ]);
+      mockPrisma.jobView.count.mockResolvedValue(17);
+
+      const result = await service.getJobViewsAnalyticsForJob(
+        7,
+        start,
+        end,
+        'day'
+      );
+
+      expect(result.totalViews).toBe(17);
+      expect(result.series).toEqual([{ period: '2026-06-02', viewCount: 1 }]);
+    });
+
+    it('returns empty result with zero counts for a job with no views', async () => {
+      mockPrisma.jobView.findMany.mockResolvedValue([]);
+      mockPrisma.jobView.count.mockResolvedValue(0);
+
+      const result = await service.getJobViewsAnalyticsForJob(
+        99,
+        start,
+        end,
+        'day'
+      );
+
+      expect(result.totalViews).toBe(0);
+      expect(result.series).toEqual([]);
+    });
+
+    it('returns empty result for an unknown jobId', async () => {
+      mockPrisma.jobView.findMany.mockResolvedValue([]);
+      mockPrisma.jobView.count.mockResolvedValue(0);
+
+      const result = await service.getJobViewsAnalyticsForJob(
+        999999,
+        start,
+        end,
+        'day'
+      );
+
+      expect(result.totalViews).toBe(0);
+      expect(result.series).toEqual([]);
+    });
+
+    it('buckets by month when groupBy is month', async () => {
+      mockPrisma.jobView.findMany.mockResolvedValue([
+        { jobId: 1, viewedAt: new Date('2026-01-15T10:00:00.000') },
+        { jobId: 1, viewedAt: new Date('2026-01-20T10:00:00.000') },
+        { jobId: 1, viewedAt: new Date('2026-03-05T10:00:00.000') },
+      ]);
+      mockPrisma.jobView.count.mockResolvedValue(3);
+
+      const result = await service.getJobViewsAnalyticsForJob(
+        1,
+        start,
+        end,
+        'month'
+      );
+
+      expect(result.series).toEqual([
+        { period: '2026-01', viewCount: 2 },
+        { period: '2026-03', viewCount: 1 },
+      ]);
     });
   });
 });

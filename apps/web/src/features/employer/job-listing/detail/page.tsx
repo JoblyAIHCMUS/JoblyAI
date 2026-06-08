@@ -437,7 +437,7 @@ export default function JobListingDetailPage() {
           </TabsContent>
 
           <TabsContent value="stats" className="mt-4 sm:mt-6">
-            <JobStatsPanel job={job} />
+            <JobStatsPanel jobId={parseInt(id as string, 10)} job={job} />
           </TabsContent>
         </Tabs>
       </div>

@@ -105,6 +105,5 @@ export function mapJobPostingToListingDetail(
     dateClosed: null, // Backend doesn't track closure date yet
     description: jobPosting.description,
     applicants: [], // Will be fetched separately in Phase 2
-    monthlyViews: [], // Will be fetched from analytics endpoint in Phase 2
   };
 }
