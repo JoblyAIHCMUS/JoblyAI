@@ -52,8 +52,14 @@ export default function EditExperienceModal({
         jobTitle: jobTitle.trim(),
         companyName: companyName.trim(),
         type: employmentType,
-        startDate: startDate ? `${startDate}T00:00:00.000Z` : new Date().toISOString(),
-        endDate: isCurrent ? undefined : endDate ? `${endDate}T00:00:00.000Z` : undefined,
+        startDate: startDate
+          ? `${startDate}T00:00:00.000Z`
+          : new Date().toISOString(),
+        endDate: isCurrent
+          ? undefined
+          : endDate
+          ? `${endDate}T00:00:00.000Z`
+          : undefined,
         location: location.trim() || undefined,
         description: description.trim() || undefined,
       });
@@ -67,7 +73,8 @@ export default function EditExperienceModal({
   }
 
   const selectedTypeLabel =
-    EMPLOYMENT_TYPES.find((t) => t.value === employmentType)?.label || 'Full-time';
+    EMPLOYMENT_TYPES.find((t) => t.value === employmentType)?.label ||
+    'Full-time';
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -103,7 +110,9 @@ export default function EditExperienceModal({
               onPress={() => setShowTypePicker(!showTypePicker)}
               className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5"
             >
-              <Text className="text-sm text-[#374151]">{selectedTypeLabel}</Text>
+              <Text className="text-sm text-[#374151]">
+                {selectedTypeLabel}
+              </Text>
             </TouchableOpacity>
             {showTypePicker && (
               <View className="mb-4 rounded-lg border border-[#d1d5db] bg-white">
@@ -165,7 +174,9 @@ export default function EditExperienceModal({
                 trackColor={{ false: '#d1d5db', true: '#818cf8' }}
                 thumbColor={isCurrent ? '#5758e7' : '#f4f3f4'}
               />
-              <Text className="text-sm text-[#374151]">I currently work here</Text>
+              <Text className="text-sm text-[#374151]">
+                I currently work here
+              </Text>
             </View>
 
             <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
@@ -195,7 +206,9 @@ export default function EditExperienceModal({
                 onPress={onClose}
                 className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">Cancel</Text>
+                <Text className="text-sm font-semibold text-[#374151]">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
@@ -205,7 +218,9 @@ export default function EditExperienceModal({
                 {saving ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text className="text-sm font-semibold text-white">Save Changes</Text>
+                  <Text className="text-sm font-semibold text-white">
+                    Save Changes
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

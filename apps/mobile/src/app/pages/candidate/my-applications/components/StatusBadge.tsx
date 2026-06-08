@@ -43,7 +43,9 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const meta = STATUS_META[status];
 
   return (
-    <View className={`self-start rounded-full px-3 py-1.5 ${meta.containerClassName}`}>
+    <View
+      className={`self-start rounded-full px-3 py-1.5 ${meta.containerClassName}`}
+    >
       <Text className={`text-xs font-bold ${meta.textClassName}`}>
         {meta.label}
       </Text>

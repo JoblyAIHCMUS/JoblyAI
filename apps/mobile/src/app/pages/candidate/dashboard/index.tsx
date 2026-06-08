@@ -24,7 +24,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useListCandidateApplications } from '../../../../hooks/useListCandidateApplications';
-import { getGreetingName, useUser } from '../../../../hooks/useUser';
+import { getFullName, useUser } from '../../../../hooks/useUser';
+import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import type { CandidateApplicationRecord } from '../../../../types/application';
 import CandidateDashboardSidebar from './components/CandidateDashboardSidebar';
 
@@ -544,12 +545,17 @@ function RecentApplicationsSection({
 
 export default function CandidateDashboard() {
   const { data: user, isPending: isSessionPending } = useUser();
+  const { data: profile } = useGetCandidateProfile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentWeekRange = useMemo(() => getCurrentWeekRange(), []);
   const greeting = getGreeting();
-  const firstName = getGreetingName(user);
+  const firstName =
+    profile?.firstName ||
+    profile?.name?.split(' ')[0] ||
+    getFullName(user).split(' ')[0] ||
+    '';
   const dateRangeLabel = currentWeekRange.label;
   const {
     data: applicationsResult,

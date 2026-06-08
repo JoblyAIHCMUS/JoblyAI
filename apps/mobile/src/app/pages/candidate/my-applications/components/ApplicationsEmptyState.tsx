@@ -17,8 +17,8 @@ export function ApplicationsEmptyState({
   const message = searchQuery.trim()
     ? `No applications match “${searchQuery.trim()}”.`
     : activeTab === 'ALL'
-      ? 'No applications found for this period.'
-      : `No ${activeTab.toLowerCase().replace('_', ' ')} applications found.`;
+    ? 'No applications found for this period.'
+    : `No ${activeTab.toLowerCase().replace('_', ' ')} applications found.`;
 
   return (
     <View className="mt-3 rounded-2xl border border-app-border-light bg-app-neutral-1 px-6 py-12">

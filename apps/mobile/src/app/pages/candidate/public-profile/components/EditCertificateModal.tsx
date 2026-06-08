@@ -32,7 +32,10 @@ export default function EditCertificateModal({
 
   async function handleSave() {
     if (!name.trim() || !issuer.trim()) {
-      Alert.alert('Validation', 'Certificate name and issuing organization are required.');
+      Alert.alert(
+        'Validation',
+        'Certificate name and issuing organization are required.'
+      );
       return;
     }
 
@@ -41,8 +44,11 @@ export default function EditCertificateModal({
       await createCertificate({
         name: name.trim(),
         issuer: issuer.trim(),
-        issueDate: issueDate ? `${issueDate}T00:00:00.000Z` : new Date().toISOString(),
-        expiryDate: hasExpiry && expiryDate ? `${expiryDate}T00:00:00.000Z` : undefined,
+        issueDate: issueDate
+          ? `${issueDate}T00:00:00.000Z`
+          : new Date().toISOString(),
+        expiryDate:
+          hasExpiry && expiryDate ? `${expiryDate}T00:00:00.000Z` : undefined,
         credentialId: credentialId.trim() || undefined,
         url: url.trim() || undefined,
       });
@@ -115,7 +121,9 @@ export default function EditCertificateModal({
                 trackColor={{ false: '#d1d5db', true: '#818cf8' }}
                 thumbColor={hasExpiry ? '#5758e7' : '#f4f3f4'}
               />
-              <Text className="text-sm text-[#374151]">This credential has an expiration date</Text>
+              <Text className="text-sm text-[#374151]">
+                This credential has an expiration date
+              </Text>
             </View>
 
             <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
@@ -145,7 +153,9 @@ export default function EditCertificateModal({
                 onPress={onClose}
                 className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">Cancel</Text>
+                <Text className="text-sm font-semibold text-[#374151]">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
@@ -155,7 +165,9 @@ export default function EditCertificateModal({
                 {saving ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text className="text-sm font-semibold text-white">Save Certificate</Text>
+                  <Text className="text-sm font-semibold text-white">
+                    Save Certificate
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

@@ -62,31 +62,65 @@ export default function EditProfileModal({
           <Text className="mb-2 text-lg font-semibold">Edit Profile</Text>
 
           <Text className="text-xs font-medium text-[#556070]">Full name</Text>
-          <TextInput value={name} onChangeText={setName} className="mb-2 rounded border px-3 py-2" />
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            className="mb-2 rounded border px-3 py-2"
+          />
 
           <Text className="text-xs font-medium text-[#556070]">Headline</Text>
-          <TextInput value={headline} onChangeText={setHeadline} className="mb-2 rounded border px-3 py-2" />
+          <TextInput
+            value={headline}
+            onChangeText={setHeadline}
+            className="mb-2 rounded border px-3 py-2"
+          />
 
           <Text className="text-xs font-medium text-[#556070]">Location</Text>
-          <TextInput value={location} onChangeText={setLocation} className="mb-2 rounded border px-3 py-2" />
+          <TextInput
+            value={location}
+            onChangeText={setLocation}
+            className="mb-2 rounded border px-3 py-2"
+          />
 
           <Text className="text-xs font-medium text-[#556070]">Phone</Text>
-          <TextInput value={phone} onChangeText={setPhone} className="mb-2 rounded border px-3 py-2" />
+          <TextInput
+            value={phone}
+            onChangeText={setPhone}
+            className="mb-2 rounded border px-3 py-2"
+          />
 
           <Text className="text-xs font-medium text-[#556070]">Email</Text>
-          <TextInput value={email} onChangeText={setEmail} className="mb-2 rounded border px-3 py-2" />
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            className="mb-2 rounded border px-3 py-2"
+          />
 
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-sm">Open for opportunities</Text>
-            <Switch value={openForOpportunities} onValueChange={setOpenForOpportunities} />
+            <Switch
+              value={openForOpportunities}
+              onValueChange={setOpenForOpportunities}
+            />
           </View>
 
           <View className="flex-row justify-end gap-2">
-            <TouchableOpacity onPress={onClose} className="mr-2 items-center justify-center rounded bg-gray-200 px-4 py-2">
+            <TouchableOpacity
+              onPress={onClose}
+              className="mr-2 items-center justify-center rounded bg-gray-200 px-4 py-2"
+            >
               <Text>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSave} disabled={saving} className="items-center justify-center rounded bg-[#5758e7] px-4 py-2">
-              {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white">Save</Text>}
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              className="items-center justify-center rounded bg-[#5758e7] px-4 py-2"
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white">Save</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>

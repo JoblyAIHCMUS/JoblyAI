@@ -14,6 +14,13 @@ export interface UpdateAboutPayload {
   title?: string;
 }
 
+export async function createCandidateAbout(
+  payload: Omit<UpdateAboutPayload, 'id'>
+): Promise<{ id: number; bio?: string; title?: string }> {
+  const response = await apiClient.post('/candidate/me/about', payload);
+  return response.data;
+}
+
 export async function updateCandidateAbout(
   payload: UpdateAboutPayload
 ): Promise<{ id: number; bio?: string; title?: string }> {
@@ -31,7 +38,8 @@ export interface CreateExperiencePayload {
   type?: string;
 }
 
-export interface UpdateExperiencePayload extends Partial<CreateExperiencePayload> {
+export interface UpdateExperiencePayload
+  extends Partial<CreateExperiencePayload> {
   id: number;
 }
 
@@ -50,7 +58,9 @@ export async function updateExperience(
 }
 
 export async function deleteExperience(experienceId: number): Promise<string> {
-  const response = await apiClient.delete(`/candidate/me/experience/${experienceId}`);
+  const response = await apiClient.delete(
+    `/candidate/me/experience/${experienceId}`
+  );
   return response.data;
 }
 
@@ -64,7 +74,8 @@ export interface CreateEducationPayload {
   description?: string;
 }
 
-export interface UpdateEducationPayload extends Partial<CreateEducationPayload> {
+export interface UpdateEducationPayload
+  extends Partial<CreateEducationPayload> {
   id: number;
 }
 
@@ -83,7 +94,9 @@ export async function updateEducation(
 }
 
 export async function deleteEducation(educationId: number): Promise<string> {
-  const response = await apiClient.delete(`/candidate/me/education/${educationId}`);
+  const response = await apiClient.delete(
+    `/candidate/me/education/${educationId}`
+  );
   return response.data;
 }
 
@@ -113,7 +126,8 @@ export interface CreateCertificatePayload {
   url?: string;
 }
 
-export interface UpdateCertificatePayload extends Partial<CreateCertificatePayload> {
+export interface UpdateCertificatePayload
+  extends Partial<CreateCertificatePayload> {
   id: number;
 }
 
@@ -127,12 +141,19 @@ export async function createCertificate(
 export async function updateCertificate(
   payload: UpdateCertificatePayload
 ): Promise<any> {
-  const response = await apiClient.patch('/candidate/me/certification', payload);
+  const response = await apiClient.patch(
+    '/candidate/me/certification',
+    payload
+  );
   return response.data;
 }
 
-export async function deleteCertificate(certificateId: number): Promise<string> {
-  const response = await apiClient.delete(`/candidate/me/certification/${certificateId}`);
+export async function deleteCertificate(
+  certificateId: number
+): Promise<string> {
+  const response = await apiClient.delete(
+    `/candidate/me/certification/${certificateId}`
+  );
   return response.data;
 }
 

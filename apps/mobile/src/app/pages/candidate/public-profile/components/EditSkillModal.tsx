@@ -95,7 +95,8 @@ export default function EditSkillModal({
               {!loading && results.length === 0 && (
                 <View className="px-3 py-3">
                   <Text className="text-sm text-[#6b7280]">
-                    No matching skills found. Press Save to add "{skillName.trim()}".
+                    No matching skills found. Press Save to add "
+                    {skillName.trim()}".
                   </Text>
                 </View>
               )}
@@ -120,7 +121,9 @@ export default function EditSkillModal({
               onPress={onClose}
               className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
             >
-              <Text className="text-sm font-semibold text-[#374151]">Cancel</Text>
+              <Text className="text-sm font-semibold text-[#374151]">
+                Cancel
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => void handleSave()}

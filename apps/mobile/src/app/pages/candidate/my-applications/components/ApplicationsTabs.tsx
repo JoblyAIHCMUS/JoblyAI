@@ -2,31 +2,19 @@ import { ScrollView, Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
-import type { ApplicationTab } from '../../dashboard/types';
-
-export const APPLICATION_TABS: ApplicationTab[] = [
-  'ALL',
-  'APPLIED',
-  'INTERVIEW',
-  'OFFER',
-  'REJECTED',
-  'WITHDRAWN',
-];
-
-export const APPLICATION_TAB_LABELS: Record<ApplicationTab, string> = {
-  ALL: 'All',
-  APPLIED: 'Applied',
-  INTERVIEW: 'Interview',
-  OFFER: 'Offer',
-  REJECTED: 'Rejected',
-  WITHDRAWN: 'Withdrawn',
-};
+type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
 
 interface ApplicationsTabsProps {
-  activeTab: ApplicationTab;
-  counts: Record<ApplicationTab, number>;
-  onTabChange: (nextTab: ApplicationTab) => void;
+  activeTab: ApplicationFilterTab;
+  counts: Record<ApplicationFilterTab, number>;
+  onTabChange: (nextTab: ApplicationFilterTab) => void;
 }
+
+const FILTER_TABS: Array<{ key: ApplicationFilterTab; label: string }> = [
+  { key: 'ALL', label: 'All' },
+  { key: 'ACTIVE', label: 'In Review' },
+  { key: 'CLOSED', label: 'Closed' },
+];
 
 export function ApplicationsTabs({
   activeTab,
@@ -39,12 +27,12 @@ export function ApplicationsTabs({
       showsHorizontalScrollIndicator={false}
       contentContainerClassName="gap-2 pb-1"
     >
-      {APPLICATION_TABS.map((tab) => {
-        const isActive = tab === activeTab;
+      {FILTER_TABS.map((tab) => {
+        const isActive = tab.key === activeTab;
 
         return (
           <Pressable
-            key={tab}
+            key={tab.key}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             className={`flex-row items-center gap-2 rounded-full border px-4 py-2.5 ${
@@ -52,14 +40,14 @@ export function ApplicationsTabs({
                 ? 'border-app-indigo-soft bg-app-indigo-soft'
                 : 'border-app-border-light bg-white'
             }`}
-            onPress={() => onTabChange(tab)}
+            onPress={() => onTabChange(tab.key)}
           >
             <Text
               className={`text-sm font-semibold ${
                 isActive ? 'text-app-indigo-strong' : 'text-app-text-5'
               }`}
             >
-              {APPLICATION_TAB_LABELS[tab]}
+              {tab.label}
             </Text>
 
             <View
@@ -72,7 +60,7 @@ export function ApplicationsTabs({
                   isActive ? 'text-app-indigo-strong' : 'text-app-text-5'
                 }`}
               >
-                {counts[tab]}
+                {counts[tab.key]}
               </Text>
             </View>
           </Pressable>

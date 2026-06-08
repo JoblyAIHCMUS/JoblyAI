@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
+import { BadgeCheck, Mail, Menu, Pencil, Phone } from 'lucide-react-native';
 
 import {
   InstagramIcon,
@@ -82,16 +82,6 @@ function Card({
   );
 }
 
-function SimpleMenu() {
-  return (
-    <View className="items-center justify-center">
-      <View className="h-px w-4 rounded-full bg-[#1f2937]" />
-      <View className="mt-1 h-px w-4 rounded-full bg-[#1f2937]" />
-      <View className="mt-1 h-px w-4 rounded-full bg-[#1f2937]" />
-    </View>
-  );
-}
-
 function SimpleHome() {
   return <View className="h-3 w-3 rounded-sm border border-[#1f2937]" />;
 }
@@ -134,7 +124,6 @@ function SimplePlus() {
     </View>
   );
 }
-
 
 function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
   const imageUri = avatarUrl?.trim() || 'https://i.pravatar.cc/240?img=12';
@@ -265,7 +254,10 @@ export default function CandidatePublicProfileScreen() {
             </Text>
             {!!experience.type && (
               <>
-                <Text className="text-sm text-[#6b7280]"> · {formatEmploymentType(experience.type)}</Text>
+                <Text className="text-sm text-[#6b7280]">
+                  {' '}
+                  · {formatEmploymentType(experience.type)}
+                </Text>
               </>
             )}
           </View>
@@ -307,7 +299,10 @@ export default function CandidatePublicProfileScreen() {
             </Text>
             {!!education.grade && (
               <>
-                <Text className="text-sm text-[#6b7280]"> · GPA: {education.grade}</Text>
+                <Text className="text-sm text-[#6b7280]">
+                  {' '}
+                  · GPA: {education.grade}
+                </Text>
               </>
             )}
           </View>
@@ -363,7 +358,7 @@ export default function CandidatePublicProfileScreen() {
           <View className="flex-row items-center justify-between pb-3">
             <View className="flex-row items-center gap-3">
               <HeaderIcon onPress={() => setIsSidebarOpen(true)}>
-                <SimpleMenu />
+                <Menu size={22} color="#25324b" />
               </HeaderIcon>
               <Text className="text-2xl font-semibold tracking-[-0.3px] text-[#111827]">
                 My Profile

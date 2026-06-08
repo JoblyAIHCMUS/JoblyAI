@@ -78,8 +78,14 @@ export default function EditEducationModal({
         school: school.trim(),
         degree: degree || undefined,
         fieldOfStudy: fieldOfStudy.trim() || undefined,
-        startDate: startDate ? `${startDate}T00:00:00.000Z` : new Date().toISOString(),
-        endDate: isCurrent ? undefined : endDate ? `${endDate}T00:00:00.000Z` : undefined,
+        startDate: startDate
+          ? `${startDate}T00:00:00.000Z`
+          : new Date().toISOString(),
+        endDate: isCurrent
+          ? undefined
+          : endDate
+          ? `${endDate}T00:00:00.000Z`
+          : undefined,
         grade: normalizedGpa || undefined,
         description: description.trim() || undefined,
       });
@@ -119,7 +125,9 @@ export default function EditEducationModal({
               onPress={() => setShowDegreePicker(!showDegreePicker)}
               className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5"
             >
-              <Text className="text-sm text-[#374151]">{selectedDegreeLabel}</Text>
+              <Text className="text-sm text-[#374151]">
+                {selectedDegreeLabel}
+              </Text>
             </TouchableOpacity>
             {showDegreePicker && (
               <View className="mb-4 rounded-lg border border-[#d1d5db] bg-white">
@@ -191,7 +199,9 @@ export default function EditEducationModal({
                 trackColor={{ false: '#d1d5db', true: '#818cf8' }}
                 thumbColor={isCurrent ? '#5758e7' : '#f4f3f4'}
               />
-              <Text className="text-sm text-[#374151]">Currently studying here</Text>
+              <Text className="text-sm text-[#374151]">
+                Currently studying here
+              </Text>
             </View>
 
             <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
@@ -227,7 +237,9 @@ export default function EditEducationModal({
                 onPress={onClose}
                 className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">Cancel</Text>
+                <Text className="text-sm font-semibold text-[#374151]">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}

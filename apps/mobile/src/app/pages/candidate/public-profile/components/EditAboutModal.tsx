@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -8,7 +8,10 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { updateCandidateAbout } from '../../../../../api/candidate';
+import {
+  createCandidateAbout,
+  updateCandidateAbout,
+} from '../../../../../api/candidate';
 
 export default function EditAboutModal({
   visible,
@@ -26,10 +29,20 @@ export default function EditAboutModal({
   const [bio, setBio] = useState(initialBio || '');
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (visible) {
+      setBio(initialBio || '');
+    }
+  }, [visible, initialBio]);
+
   async function handleSave() {
     try {
       setSaving(true);
-      await updateCandidateAbout({ id: aboutId, bio });
+      if (aboutId) {
+        await updateCandidateAbout({ id: aboutId, bio });
+      } else {
+        await createCandidateAbout({ bio });
+      }
       onSaved?.();
       onClose();
     } catch (err) {
