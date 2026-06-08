@@ -215,7 +215,15 @@ export class JobsService {
       },
     });
 
-    return this.mapToJobResponse(createdJob);
+    const mapped = this.mapToJobResponse(createdJob);
+
+    // Emit event to generate embedding in background
+    this.eventEmitter.emit('job.posting.updated', {
+      id: mapped.id,
+      content: this.buildJobEmbeddingContent(mapped),
+    });
+
+    return mapped;
   }
 
   async getJobById(id: number): Promise<JobPostingInterface> {
@@ -475,7 +483,27 @@ export class JobsService {
       },
     });
 
-    return this.mapToJobResponse(updatedJob);
+    const mapped = this.mapToJobResponse(updatedJob);
+
+    // Emit event to regenerate embedding in background
+    this.eventEmitter.emit('job.posting.updated', {
+      id: mapped.id,
+      content: this.buildJobEmbeddingContent(mapped),
+    });
+
+    return mapped;
+  }
+
+  /**
+   * Builds a semantic content string for job embedding
+   */
+  private buildJobEmbeddingContent(job: JobPostingInterface): string {
+    const skills = job.requirements.map((r) => r.skillName).join(', ');
+    return `Title: ${job.title} | Category: ${job.category?.name || ''} | Type: ${
+      job.type
+    } | Location: ${job.location || 'Remote'} | Description: ${
+      job.description
+    } | Requirements: ${skills}`;
   }
 
   async getJobsByCategoryId(

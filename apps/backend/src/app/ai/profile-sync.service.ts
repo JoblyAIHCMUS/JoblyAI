@@ -19,44 +19,25 @@ export class ProfileSyncService {
     id: number;
     content: string;
   }) {
-    // Check if content is effectively empty (ignore separators and whitespace)
-    const actualContent = payload.content.replace(/[|]/g, '').trim();
+    // ... existing logic ...
+  }
 
-    if (!actualContent) {
-      this.logger.log(
-        `Content for ${payload.model} ID ${payload.id} is empty. Ensuring embedding is NULL.`
-      );
-      try {
-        await this.prisma.$executeRawUnsafe(
-          `UPDATE "${payload.model}" SET embedding = NULL WHERE id = $1`,
-          payload.id
-        );
-      } catch (error) {
-        this.logger.error(
-          `Failed to clear embedding for empty ${payload.model} ID ${payload.id}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-      }
-      return;
-    }
-
-    this.logger.log(
-      `Regenerating embedding for ${payload.model} ID ${payload.id} (Background)`
-    );
+  @OnEvent('job.posting.updated')
+  async handleJobPostingUpdated(payload: { id: number; content: string }) {
+    this.logger.log(`Regenerating embedding for Job ID ${payload.id} (Background)`);
     try {
       const embedding = await this.aiProvider.generateEmbedding(payload.content);
       if (embedding && embedding.length > 0) {
         const vStr = `[${embedding.join(',')}]`;
         await this.prisma.$executeRawUnsafe(
-          `UPDATE "${payload.model}" SET embedding = $1::vector WHERE id = $2`,
+          `UPDATE "JobPosting" SET embedding = $1::vector WHERE id = $2`,
           vStr,
           payload.id
         );
       }
     } catch (error) {
       this.logger.error(
-        `Failed to regenerate embedding for ${payload.model} ID ${payload.id}: ${
+        `Failed to regenerate embedding for Job ID ${payload.id}: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
