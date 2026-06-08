@@ -11,3 +11,5 @@ export * from './useUpdateJob';
 export * from './useSkillIds';
 export * from './useSearchSkills';
 export * from './useSkillsFilter';
+export * from './useRecommendedCompanies';
+export * from './useGetCompany';

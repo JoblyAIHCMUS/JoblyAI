@@ -116,3 +116,34 @@ export async function getCompanyById(id: number): Promise<Company> {
   const response = await apiClient.get<Company>(`/company/${id}`);
   return response.data;
 }
+
+export interface RecommendedCompany {
+  id: string;
+  name: string;
+  jobs: number;
+  description: string;
+  logo: {
+    imageUrl: string;
+    alt: string;
+    rounded: string;
+  };
+  tag: {
+    id: string;
+    label: string;
+    tone: string;
+  };
+}
+
+export async function getRecommendedCompanies(
+  limit: number,
+  options?: ApiOptions
+): Promise<RecommendedCompany[]> {
+  const response = await apiClient.get<RecommendedCompany[]>(
+    '/company/recommended',
+    {
+      params: { limit },
+      signal: options?.signal,
+    }
+  );
+  return response.data;
+}

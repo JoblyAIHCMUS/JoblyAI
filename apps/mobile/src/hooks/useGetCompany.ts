@@ -1,17 +1,25 @@
-import { useQuery } from '@tanstack/react-query';
-import { getCompanyById } from '../api/company';
-import type { Company } from '../types/company';
+import { useState, useEffect, useCallback } from 'react';
+import { getCompanyById, type Company } from '../api/company';
 
-export function useGetCompany(id?: number | null) {
-  return useQuery<Company, Error>({
-    queryKey: ['company', id],
-    queryFn: async () => {
-      if (!id) {
-        throw new Error('Company ID is required');
-      }
-      return await getCompanyById(id);
-    },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+export function useGetCompany() {
+  const [data, setData] = useState<Company | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchCompany = useCallback(async (id: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getCompanyById(id);
+      setData(result);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch company')
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { data, loading, error, fetchCompany };
 }
