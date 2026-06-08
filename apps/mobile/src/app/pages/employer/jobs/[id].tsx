@@ -19,6 +19,7 @@ import { EMPLOYMENT_TYPE_LABELS } from './constants';
 import { COLORS } from '../../../constants/theme';
 import JobDetailsTab from './components/JobDetailsTab';
 import ApplicantsTab from './components/ApplicantsTab';
+import JobAnalyticsTab from './components/JobAnalyticsTab';
 import { ApplicationStatus } from '../../../../types/application';
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -269,11 +270,10 @@ export default function JobDetailsScreen() {
             jobId={id}
           />
         ) : (
-          <View className="flex-1 items-center justify-center px-6">
-            <Text className="text-base text-app-text-gray">
-              This tab is empty for now.
-            </Text>
-          </View>
+          <JobAnalyticsTab
+            jobId={numericId!}
+            totalApplications={totalApplications}
+          />
         )}
       </View>
     </SafeAreaView>
