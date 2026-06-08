@@ -16,11 +16,13 @@ import {
   Star,
   Wand2,
   Code2,
+  BriefcaseBusiness,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
 import type { CandidateResume } from '@/types/candidate';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -67,6 +69,7 @@ const CV = forwardRef<CVRef, CVProps>(
     }: CVProps,
     ref
   ) => {
+    const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragActive, setDragActive] = useState(false);
     const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
@@ -455,6 +458,22 @@ const CV = forwardRef<CVRef, CVProps>(
                             resume.aiScore !== null
                           ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
                           : 'Score Resume'}
+                      </button>
+
+                      {/* Find Jobs Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/candidate/find-jobs?resumeId=${resume.id}`);
+                        }}
+                        disabled={isBusy}
+                        className="h-9 px-3 flex items-center justify-center gap-2 rounded-md border border-accent-primary bg-white text-accent-primary hover:bg-[color:var(--bg-accent-primary)] transition-colors text-xs font-semibold"
+                        aria-label="Find Jobs for Resume"
+                        title="Find Jobs matching this Resume"
+                      >
+                        <BriefcaseBusiness size={14} />
+                        Find Jobs
                       </button>
 
                       <button
