@@ -49,7 +49,7 @@ function buildChartData(
   start: Date,
   end: Date,
   groupBy: 'day' | 'month'
-): { value: number; label: string }[] {
+): { value: number; label?: string }[] {
   const byPeriod = new Map(series.map((s) => [s.period, s.viewCount]));
   const out: { value: number; label: string }[] = [];
 
@@ -81,7 +81,14 @@ function buildChartData(
     }
   }
 
-  return out;
+  const labelStep = Math.max(1, Math.floor(out.length / 6));
+  return out.map((item, index) => ({
+    ...item,
+    label:
+      index % labelStep === 0 || index === out.length - 1
+        ? item.label
+        : undefined,
+  }));
 }
 
 export default function JobAnalyticsTab({
