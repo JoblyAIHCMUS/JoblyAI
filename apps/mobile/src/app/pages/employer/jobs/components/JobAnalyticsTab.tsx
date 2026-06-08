@@ -40,7 +40,7 @@ function getRange(mode: TimeMode): {
     start.setHours(0, 0, 0, 0);
     return { start, end, groupBy: 'day' };
   }
-  const start = new Date(end.getFullYear(), 0, 1, 0, 0, 0, 0);
+  const start = new Date(end.getFullYear(), end.getMonth() - 11, 1, 0, 0, 0, 0);
   return { start, end, groupBy: 'month' };
 }
 
@@ -48,7 +48,8 @@ function buildChartData(
   series: { period: string; viewCount: number }[],
   start: Date,
   end: Date,
-  groupBy: 'day' | 'month'
+  groupBy: 'day' | 'month',
+  mode: TimeMode
 ): { value: number; label?: string }[] {
   const byPeriod = new Map(series.map((s) => [s.period, s.viewCount]));
   const out: { value: number; label: string }[] = [];
@@ -81,7 +82,7 @@ function buildChartData(
     }
   }
 
-  const labelStep = Math.max(1, Math.floor(out.length / 6));
+  const labelStep = mode === 'year' ? 4 : Math.max(1, Math.floor(out.length / 6));
   return out.map((item, index) => ({
     ...item,
     label:
@@ -107,16 +108,17 @@ export default function JobAnalyticsTab({
   );
 
   const chartData = useMemo(
-    () => (data ? buildChartData(data.series, start, end, groupBy) : []),
-    [data, start, end, groupBy]
+    () => (data ? buildChartData(data.series, start, end, groupBy, timeMode) : []),
+    [data, start, end, groupBy, timeMode]
   );
 
   const maxValue = Math.max(...chartData.map((d) => d.value), 10) * 1.2;
   const screenWidth = Dimensions.get('window').width;
-  const CHART_WIDTH = screenWidth - 32 - 40;
+  const Y_AXIS_LABEL_WIDTH = 34; // Space allocated for Y-axis text
+  const CHART_WIDTH = screenWidth - 32 - 40 - Y_AXIS_LABEL_WIDTH;
 
   // Calculate spacing to leave room at the edges for text labels
-  const initialSpacing = 20;
+  const initialSpacing = 25;
   const endSpacing = 25;
   const spacing =
     chartData.length > 1
@@ -261,6 +263,7 @@ export default function JobAnalyticsTab({
             <LineChart
               data={chartData}
               width={CHART_WIDTH}
+              yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
               height={220}
               spacing={spacing}
               initialSpacing={initialSpacing}
@@ -275,18 +278,34 @@ export default function JobAnalyticsTab({
               dataPointsColor="#F59E0B"
               dataPointsWidth={2}
               hideRules
-              hideYAxisText
               xAxisThickness={0}
               yAxisThickness={0}
-              xAxisLabelTextStyle={{
-                color: '#475569',
-                fontSize: 12,
-                marginTop: 4,
-              }}
+              xAxisLabelTextStyle={
+                timeMode === 'month' 
+                  ? {
+                      color: '#475569',
+                      fontSize: 12,
+                      marginTop: 4,
+                      width: 60,
+                      marginLeft: -25,
+                      textAlign: 'center',
+                    }
+                : timeMode === 'year'
+                  ? {
+                      color: '#475569',
+                      fontSize: 12,
+                      marginTop: 4,
+                      width: 60,
+                      marginLeft: -20,
+                      textAlign: 'center',
+                    }
+                  : { color: '#475569', fontSize: 12 }
+              }
               yAxisTextStyle={{ color: '#475569', fontSize: 12 }}
               noOfSections={4}
               maxValue={Math.ceil(maxValue)}
               isAnimated
+              labelsExtraHeight={30}
             />
           )}
         </View>
