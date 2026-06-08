@@ -14,6 +14,13 @@ export interface UpdateAboutPayload {
   title?: string;
 }
 
+export async function createCandidateAbout(
+  payload: Omit<UpdateAboutPayload, 'id'>
+): Promise<{ id: number; bio?: string; title?: string }> {
+  const response = await apiClient.post('/candidate/me/about', payload);
+  return response.data;
+}
+
 export async function updateCandidateAbout(
   payload: UpdateAboutPayload
 ): Promise<{ id: number; bio?: string; title?: string }> {

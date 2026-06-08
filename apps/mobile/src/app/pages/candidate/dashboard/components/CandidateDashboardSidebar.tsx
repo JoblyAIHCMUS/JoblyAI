@@ -31,6 +31,7 @@ import {
 import { router } from 'expo-router';
 
 import { getGreetingName, useUser } from '../../../../../hooks/useUser';
+import { useGetCandidateProfile } from '../../../../../hooks/useGetCandidateProfile';
 import { useLogout } from '../../../../../hooks/useAuth';
 
 interface CandidateDashboardSidebarProps {
@@ -48,6 +49,7 @@ const CandidateDashboardSidebar = ({
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width || -500);
   const { data: user } = useUser();
+  const { data: profile } = useGetCandidateProfile();
   const { logout, loading: isLoggingOut } = useLogout();
 
   const widthRef = useRef(width);
@@ -146,13 +148,15 @@ const CandidateDashboardSidebar = ({
 
   if (!isVisible) return null;
 
-  const firstName = getGreetingName(user);
+  const firstName = profile?.firstName || profile?.name?.split(' ')[0] || getGreetingName(user);
   const fullName =
-    user?.name?.trim() ||
+    profile?.name?.trim() ||
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim() ||
     [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() ||
+    user?.name?.trim() ||
     firstName;
   const avatarInitials = fullName.slice(0, 2).toUpperCase();
-  const avatarUrl = user?.avatarUrl?.trim();
+  const avatarUrl = profile?.avatarUrl?.trim() || user?.avatarUrl?.trim();
 
   return (
     <Animated.View

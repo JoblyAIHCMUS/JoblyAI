@@ -34,3 +34,10 @@ export async function listCandidateApplications(
 
   return response.data;
 }
+
+export async function withdrawCandidateApplication(
+  applicationId: number
+): Promise<any> {
+  const response = await apiClient.patch(`/applications/${applicationId}`);
+  return response.data;
+}

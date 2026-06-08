@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
+import { BadgeCheck, Mail, Menu, Pencil, Phone } from 'lucide-react-native';
 
 import {
   InstagramIcon,
@@ -78,16 +78,6 @@ function Card({
       className={`rounded-xl border border-[#dbe1ee] bg-white ${className}`}
     >
       {children}
-    </View>
-  );
-}
-
-function SimpleMenu() {
-  return (
-    <View className="items-center justify-center">
-      <View className="h-px w-4 rounded-full bg-[#1f2937]" />
-      <View className="mt-1 h-px w-4 rounded-full bg-[#1f2937]" />
-      <View className="mt-1 h-px w-4 rounded-full bg-[#1f2937]" />
     </View>
   );
 }
@@ -363,7 +353,7 @@ export default function CandidatePublicProfileScreen() {
           <View className="flex-row items-center justify-between pb-3">
             <View className="flex-row items-center gap-3">
               <HeaderIcon onPress={() => setIsSidebarOpen(true)}>
-                <SimpleMenu />
+                <Menu size={22} color="#25324b" />
               </HeaderIcon>
               <Text className="text-2xl font-semibold tracking-[-0.3px] text-[#111827]">
                 My Profile

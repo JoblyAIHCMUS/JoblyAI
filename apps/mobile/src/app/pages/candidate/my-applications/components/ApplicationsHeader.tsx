@@ -1,5 +1,6 @@
 import { Bell, Menu } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
 
@@ -9,8 +10,13 @@ interface ApplicationsHeaderProps {
 }
 
 export function ApplicationsHeader({ title, onMenuPress }: ApplicationsHeaderProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="border-b border-app-border-3 bg-white px-4 py-3">
+    <View
+      className="border-b border-app-border-3 bg-white px-4"
+      style={{ paddingTop: insets.top + 8, paddingBottom: 12 }}
+    >
       <View className="flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
