@@ -1,4 +1,7 @@
-import type { StatsDataSet } from '@/components/employer/dashboardStatsPanel';
+import type {
+  StatsDataSet,
+  StatsDataPoint,
+} from '@/components/employer/dashboardStatsPanel';
 import type {
   JobViewAnalytics,
   JobApplicationAnalytics,
@@ -11,13 +14,33 @@ import type {
 export function aggregateAnalyticsData(
   viewsData: JobViewAnalytics[] = [],
   applicationsData: JobApplicationAnalytics[] = [],
-  groupBy: 'day' | 'week' | 'month' = 'day'
+  groupBy: 'day' | 'week' | 'month' = 'day',
+  comparisonWindow: number
 ): StatsDataSet {
   // Create a map of periods to aggregate data
   const periodMap = new Map<
     string,
     { jobViews: number; jobApplications: number }
   >();
+
+  const [startDate, endDate] = getDateRangeForPeriods(
+    groupBy,
+    comparisonWindow * 2
+  );
+  const cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    const key = formatPeriodKey(cursor, groupBy);
+    if (!periodMap.has(key)) {
+      periodMap.set(key, { jobViews: 0, jobApplications: 0 });
+    }
+    if (groupBy === 'day') {
+      cursor.setDate(cursor.getDate() + 1);
+    } else if (groupBy === 'week') {
+      cursor.setDate(cursor.getDate() + 7);
+    } else {
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+  }
 
   // Add view data
   viewsData.forEach(({ period, viewCount }) => {
@@ -42,21 +65,9 @@ export function aggregateAnalyticsData(
   });
 
   // Sort periods chronologically
-  const sortedPeriods = Array.from(periodMap.keys()).sort();
-
-  // If no data, return empty dataset with current period label
-  if (sortedPeriods.length === 0) {
-    return {
-      data: [],
-      periodLabel: getPeriodLabel(new Date(), groupBy),
-      summary: {
-        totalJobViews: 0,
-        totalJobApplications: 0,
-        jobViewsDiff: 0,
-        jobApplicationsDiff: 0,
-      },
-    };
-  }
+  const sortedPeriods = Array.from(periodMap.keys()).sort((a, b) =>
+    a.localeCompare(b)
+  );
 
   // Create data points
   const data = sortedPeriods
@@ -76,44 +87,55 @@ export function aggregateAnalyticsData(
       jobApplications: values.jobApplications,
     }));
 
-  // Calculate totals and trends
-  const totalJobViews = data.reduce((sum, d) => sum + d.jobViews, 0);
-  const totalJobApplications = data.reduce(
-    (sum, d) => sum + d.jobApplications,
-    0
+  // Slice the full sorted list into a "previous" half and a "current" half.
+  // - previousPoints: oldest N periods (the comparison baseline)
+  // - chartPoints:    newest N periods (what the chart and totals reflect)
+  const chartPoints = data.slice(-comparisonWindow);
+  const previousPoints = data.slice(0, comparisonWindow);
+
+  const sumViews = (pts: StatsDataPoint[]) =>
+    pts.reduce((s, p) => s + p.jobViews, 0);
+  const sumApplications = (pts: StatsDataPoint[]) =>
+    pts.reduce((s, p) => s + p.jobApplications, 0);
+
+  const currentViews = sumViews(chartPoints);
+  const currentApplications = sumApplications(chartPoints);
+  const previousViews = sumViews(previousPoints);
+  const previousApplications = sumApplications(previousPoints);
+
+  const totalJobViews = currentViews;
+  const totalJobApplications = currentApplications;
+
+  // null  → no comparable baseline (previous === 0 and current > 0)
+  // 0     → no activity in either half
+  // number → standard period-over-period change, rounded to 1 dp
+  const computeDiff = (current: number, previous: number): number | null => {
+    if (previous > 0) return ((current - previous) / previous) * 100;
+    if (current > 0) return null;
+    return 0;
+  };
+
+  const jobViewsDiff = computeDiff(currentViews, previousViews);
+  const jobApplicationsDiff = computeDiff(
+    currentApplications,
+    previousApplications
   );
-
-  // Calculate percentage differences vs previous period
-  let jobViewsDiff = 0;
-  let jobApplicationsDiff = 0;
-
-  if (data.length >= 2) {
-    const lastPeriodViews = data[data.length - 1].jobViews;
-    const prevPeriodViews = data[data.length - 2].jobViews;
-    const lastPeriodApps = data[data.length - 1].jobApplications;
-    const prevPeriodApps = data[data.length - 2].jobApplications;
-
-    if (prevPeriodViews > 0) {
-      jobViewsDiff =
-        ((lastPeriodViews - prevPeriodViews) / prevPeriodViews) * 100;
-    }
-    if (prevPeriodApps > 0) {
-      jobApplicationsDiff =
-        ((lastPeriodApps - prevPeriodApps) / prevPeriodApps) * 100;
-    }
-  }
 
   // Determine period label (e.g., "Jul 19-25", "Jul 2026", "2026")
   const periodLabel = getPeriodLabel(new Date(), groupBy);
 
   return {
-    data,
+    data: chartPoints,
     periodLabel,
     summary: {
       totalJobViews,
       totalJobApplications,
-      jobViewsDiff: Math.round(jobViewsDiff * 10) / 10,
-      jobApplicationsDiff: Math.round(jobApplicationsDiff * 10) / 10,
+      jobViewsDiff:
+        jobViewsDiff === null ? null : Math.round(jobViewsDiff * 10) / 10,
+      jobApplicationsDiff:
+        jobApplicationsDiff === null
+          ? null
+          : Math.round(jobApplicationsDiff * 10) / 10,
     },
   };
 }
@@ -176,17 +198,43 @@ export function getDateRangeForPeriods(
   groupBy: 'day' | 'week' | 'month',
   periods = 7
 ): [Date, Date] {
-  const endDate = new Date();
-  const startDate = new Date();
+  const today = new Date();
 
   if (groupBy === 'day') {
+    const endDate = new Date(today);
+    const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (periods - 1));
+    return [startDate, endDate];
   } else if (groupBy === 'week') {
+    const endDate = new Date(today);
+    const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (periods - 1) * 7);
+    return [startDate, endDate];
   } else {
     // month
-    startDate.setMonth(endDate.getMonth() - (periods - 1));
+    const endDate = new Date(today);
+    const startDate = new Date(today);
+    startDate.setMonth(today.getMonth() - (periods - 1));
+    return [startDate, endDate];
   }
+}
 
-  return [startDate, endDate];
+function formatPeriodKey(
+  date: Date,
+  groupBy: 'day' | 'week' | 'month'
+): string {
+  if (groupBy === 'month') {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}`;
+  }
+  if (groupBy === 'week') {
+    // Snap to Sunday of this week to match backend's Sunday-based period keys.
+    const dayOfWeek = date.getDay();
+    const sunday = new Date(date);
+    sunday.setDate(date.getDate() - dayOfWeek);
+    return sunday.toISOString().split('T')[0];
+  }
+  return date.toISOString().split('T')[0];
 }

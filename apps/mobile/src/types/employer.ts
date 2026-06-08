@@ -6,4 +6,5 @@ export interface EmployerProfileResponse {
   email: string;
   avatarUrl?: string;
   company?: Company;
+  isCompanyAdmin: boolean;
 }

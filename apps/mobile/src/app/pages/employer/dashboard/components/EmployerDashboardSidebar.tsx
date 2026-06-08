@@ -44,8 +44,10 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const translateX = useSharedValue(-width);
   const router = useRouter();
   const pathname = usePathname();
-  const { data: employerProfile } = useGetEmployerProfile();
+  const { data: employerProfile, isPending, error } = useGetEmployerProfile();
   const { logout, loading: isLoggingOut } = useLogout();
+  const company = employerProfile?.company;
+  const isUnaffiliated = !company && !isPending && !error;
   const avatarUrl = employerProfile?.avatarUrl?.trim();
   const isSvgAvatar =
     !!avatarUrl &&
@@ -301,11 +303,22 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
         <View className="px-6 pb-8 pt-4">
           <Link href="/pages/employer/new-job" asChild>
             <TouchableOpacity
-              className="flex-row items-center justify-center rounded-xl bg-[#4F46E5] py-4"
-              activeOpacity={0.9}
+              className={`flex-row items-center justify-center rounded-xl py-4 ${
+                isUnaffiliated ? 'bg-slate-300' : 'bg-[#4F46E5]'
+              }`}
+              activeOpacity={isUnaffiliated ? 1 : 0.9}
+              disabled={isUnaffiliated}
             >
-              <Plus size={22} color="#ffffff" strokeWidth={2.5} />
-              <Text className="ml-2 text-[18px] font-bold text-white">
+              <Plus
+                size={22}
+                color={isUnaffiliated ? '#9CA3AF' : '#ffffff'}
+                strokeWidth={2.5}
+              />
+              <Text
+                className={`ml-2 text-[18px] font-bold ${
+                  isUnaffiliated ? 'text-slate-500' : 'text-white'
+                }`}
+              >
                 Post a job
               </Text>
             </TouchableOpacity>

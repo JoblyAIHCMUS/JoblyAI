@@ -4,7 +4,6 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { StatsSummary } from '../utils/statsAggregation';
 
-type MaterialIconName = ComponentProps<typeof MaterialIcons>['name'];
 type FeatherIconName = ComponentProps<typeof Feather>['name'];
 
 interface DetailedStatCardsProps {
@@ -27,16 +26,15 @@ export const DetailedStatCards = ({
   const renderStatCard = (
     title: string,
     total: number,
-    diff: number,
+    diff: number | null,
     periodLabel: string,
     icon: FeatherIconName,
     iconBg: string
   ) => {
-    const isPositive = diff >= 0;
-    const diffColor = isPositive ? '#22C55E' : '#EC4899';
-    const arrowIcon: MaterialIconName = isPositive
-      ? 'arrow-drop-up'
-      : 'arrow-drop-down';
+    const hasDiff = diff !== null;
+    const diffValue = hasDiff ? (diff as number) : 0;
+    const isPositive = hasDiff && diffValue >= 0;
+    const diffColor = !hasDiff ? '#94A3B8' : isPositive ? '#22C55E' : '#EC4899';
 
     return (
       <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm flex-row justify-between items-center">
@@ -54,16 +52,23 @@ export const DetailedStatCards = ({
             )}
             <View className="flex-row items-center gap-x-1">
               <Text className="text-app-text-5 text-base">{periodLabel}</Text>
-              {!loading && (
+              {!loading && hasDiff && (
                 <>
                   <Text
                     style={{ color: diffColor }}
                     className="font-medium ml-1"
                   >
-                    {Math.abs(diff)}%
+                    {Math.abs(diffValue)}%
                   </Text>
-                  <MaterialIcons name={arrowIcon} size={28} color={diffColor} />
+                  <MaterialIcons
+                    name={isPositive ? 'arrow-drop-up' : 'arrow-drop-down'}
+                    size={28}
+                    color={diffColor}
+                  />
                 </>
+              )}
+              {!loading && !hasDiff && (
+                <Text className="text-app-text-5 text-base ml-1">—</Text>
               )}
             </View>
           </View>
@@ -80,7 +85,7 @@ export const DetailedStatCards = ({
   return (
     <View className="px-4 gap-y-4">
       {renderStatCard(
-        'Job Views',
+        'Jobs View',
         resolvedSummary.totalJobViews,
         resolvedSummary.jobViewsDiff,
         resolvedSummary.periodLabel,
@@ -89,7 +94,7 @@ export const DetailedStatCards = ({
       )}
 
       {renderStatCard(
-        'Job Applied',
+        'Jobs Applied',
         resolvedSummary.totalJobApplications,
         resolvedSummary.jobApplicationsDiff,
         resolvedSummary.periodLabel,

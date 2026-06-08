@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaClient, ApplicationStatus, Prisma } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { CreateApplicationDTO } from './dto/createApplicationDTO';
@@ -46,7 +47,8 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
 export class ApplicationsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly notificationsService: NotificationsService
+    private readonly notificationsService: NotificationsService,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async createApplication(
@@ -154,6 +156,12 @@ export class ApplicationsService {
 
     if (!application) {
       throw new BadRequestException('Could not process application');
+    }
+
+    try {
+      this.eventEmitter.emit('job.viewed', { jobId: job.id });
+    } catch (error) {
+      console.error(`Failed to emit job.viewed for job ${job.id}:`, error);
     }
 
     // Notify job poster (Employer)

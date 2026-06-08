@@ -180,7 +180,7 @@ export default function JobDetailPage() {
         photos={pageData.companyPhotos}
         companyUrl={pageData.companyPageUrl}
       />
-      <JobDetailSimilarJobs />
+      <JobDetailSimilarJobs jobId={pageData.jobId} />
     </div>
   );
 }
