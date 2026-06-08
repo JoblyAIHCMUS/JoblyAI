@@ -18,10 +18,16 @@ import {
   TwitterIcon,
 } from '../../../components/shared/svgs/Icons';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import EditAboutModal from './components/EditAboutModal';
+import EditExperienceModal from './components/EditExperienceModal';
+import EditEducationModal from './components/EditEducationModal';
+import EditCertificateModal from './components/EditCertificateModal';
+import EditSkillModal from './components/EditSkillModal';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import type {
   CandidateEducation,
   CandidateExperience,
+  CandidateCertificate,
   CandidateProfileResponse,
 } from '../../../../types/candidate';
 
@@ -129,6 +135,7 @@ function SimplePlus() {
   );
 }
 
+
 function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
   const imageUri = avatarUrl?.trim() || 'https://i.pravatar.cc/240?img=12';
 
@@ -143,9 +150,9 @@ function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
   );
 }
 
-function SectionAction() {
+function SectionAction({ onPress }: { onPress?: () => void }) {
   return (
-    <HeaderIcon>
+    <HeaderIcon onPress={onPress}>
       <SimpleEdit />
     </HeaderIcon>
   );
@@ -189,6 +196,11 @@ function getDisplayName(profile?: CandidateProfileResponse): string {
 
 export default function CandidatePublicProfileScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isEditAboutOpen, setIsEditAboutOpen] = useState(false);
+  const [isAddExperienceOpen, setIsAddExperienceOpen] = useState(false);
+  const [isAddEducationOpen, setIsAddEducationOpen] = useState(false);
+  const [isAddCertificateOpen, setIsAddCertificateOpen] = useState(false);
+  const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
   const {
     data: profile,
     isPending,
@@ -205,6 +217,7 @@ export default function CandidatePublicProfileScreen() {
     'Complete your profile in the web app to add your professional summary.';
   const experiences = profile?.experiences ?? [];
   const educations = profile?.educations ?? [];
+  const certificates = profile?.certificates ?? [];
   const skills = profile?.skills ?? [];
   const email = profile?.email || 'Not provided';
   const phone = profile?.phoneNumber?.trim() || 'Not provided';
@@ -220,6 +233,22 @@ export default function CandidatePublicProfileScreen() {
   const topExperiences = experiences.slice(0, 3);
   const topEducations = educations.slice(0, 3);
 
+  const formatEmploymentType = (type?: string): string => {
+    if (!type) return '';
+    const map: Record<string, string> = {
+      FULL_TIME: 'Full-time',
+      PART_TIME: 'Part-time',
+      CONTRACT: 'Contract',
+      INTERNSHIP: 'Internship',
+      FREELANCE: 'Freelance',
+      ONSITE: 'Onsite',
+      REMOTE: 'Remote',
+      HYBRID: 'Hybrid',
+      OTHER: 'Other',
+    };
+    return map[type] || type.replace(/_/g, ' ').toLowerCase();
+  };
+
   const renderExperience = (experience: CandidateExperience) => {
     return (
       <View key={experience.id} className="flex-row gap-3 pb-2.5">
@@ -230,12 +259,16 @@ export default function CandidatePublicProfileScreen() {
           <Text className="text-base font-bold tracking-tight text-[#1f2535]">
             {experience.jobTitle}
           </Text>
-          <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-            {experience.companyName}
-            {experience.type
-              ? ` • ${experience.type.replaceAll('_', ' ')}`
-              : ''}
-          </Text>
+          <View className="mt-1 flex-row items-center gap-1">
+            <Text className="text-sm font-semibold text-[#4d5465]">
+              {experience.companyName}
+            </Text>
+            {!!experience.type && (
+              <>
+                <Text className="text-sm text-[#6b7280]"> · {formatEmploymentType(experience.type)}</Text>
+              </>
+            )}
+          </View>
           <Text className="mt-1 text-sm text-[#6b7280]">
             {formatDateRange(experience.startDate, experience.endDate)}
           </Text>
@@ -266,11 +299,18 @@ export default function CandidatePublicProfileScreen() {
           <Text className="text-base font-bold tracking-[-0.2px] text-[#1f2535]">
             {education.school}
           </Text>
-          <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
-            {[education.degree, education.fieldOfStudy]
-              .filter(Boolean)
-              .join(', ') || 'Education'}
-          </Text>
+          <View className="mt-1 flex-row items-center gap-1">
+            <Text className="text-sm font-semibold text-[#4d5465]">
+              {[education.degree, education.fieldOfStudy]
+                .filter(Boolean)
+                .join(', ') || 'Education'}
+            </Text>
+            {!!education.grade && (
+              <>
+                <Text className="text-sm text-[#6b7280]"> · GPA: {education.grade}</Text>
+              </>
+            )}
+          </View>
           <Text className="mt-1 text-sm text-[#6b7280]">
             {formatDateRange(education.startDate, education.endDate)}
           </Text>
@@ -361,6 +401,7 @@ export default function CandidatePublicProfileScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   className="absolute right-3 top-2.5 h-7 w-7 items-center justify-center rounded-sm border border-white/60 bg-transparent"
+                  onPress={() => setIsEditAboutOpen(true)}
                 >
                   <SimpleEdit />
                 </TouchableOpacity>
@@ -431,7 +472,10 @@ export default function CandidatePublicProfileScreen() {
         )}
 
         <View className="mt-5 px-3">
-          <SectionHeader title="About Me" action={<SectionAction />} />
+          <SectionHeader
+            title="About Me"
+            action={<SectionAction onPress={() => setIsEditAboutOpen(true)} />}
+          />
           <Card className="px-3 py-2.5">
             <Text className="text-sm leading-5 tracking-tight text-[#4c5466]">
               {aboutText}
@@ -444,7 +488,7 @@ export default function CandidatePublicProfileScreen() {
             title="Experiences"
             action={
               <View className="flex-row items-center gap-2">
-                <HeaderIcon>
+                <HeaderIcon onPress={() => setIsAddExperienceOpen(true)}>
                   <SimplePlus />
                 </HeaderIcon>
                 <SectionAction />
@@ -487,7 +531,7 @@ export default function CandidatePublicProfileScreen() {
             title="Educations"
             action={
               <View className="flex-row items-center gap-2">
-                <HeaderIcon>
+                <HeaderIcon onPress={() => setIsAddEducationOpen(true)}>
                   <SimplePlus />
                 </HeaderIcon>
                 <SectionAction />
@@ -527,13 +571,67 @@ export default function CandidatePublicProfileScreen() {
 
         <View className="mt-5 px-3">
           <SectionHeader
+            title="Certifications & Licenses"
+            action={
+              <View className="flex-row items-center gap-2">
+                <HeaderIcon onPress={() => setIsAddCertificateOpen(true)}>
+                  <SimplePlus />
+                </HeaderIcon>
+              </View>
+            }
+          />
+
+          <Card className="px-3 py-2.5">
+            {certificates.length === 0 ? (
+              <Text className="text-sm text-[#6b7280]">
+                No certifications added yet.
+              </Text>
+            ) : (
+              certificates.slice(0, 3).map((cert, index) => (
+                <View key={cert.id}>
+                  <View className="flex-row items-start gap-3 pb-2.5">
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-[#3b82f6]">
+                      <Text className="text-xs font-bold text-white">
+                        {cert.name.slice(0, 2).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-bold tracking-tight text-[#1f2535]">
+                        {cert.name}
+                      </Text>
+                      <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
+                        {cert.issuer}
+                      </Text>
+                      <Text className="mt-1 text-sm text-[#6b7280]">
+                        Issued {formatDate(cert.issueDate)}
+                        {cert.expiryDate
+                          ? ` · Expires ${formatDate(cert.expiryDate)}`
+                          : ''}
+                      </Text>
+                      {!!cert.credentialId && (
+                        <Text className="mt-1 text-xs text-[#9ca3af]">
+                          ID: {cert.credentialId}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                  {index < Math.min(certificates.length, 3) - 1 && (
+                    <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                  )}
+                </View>
+              ))
+            )}
+          </Card>
+        </View>
+
+        <View className="mt-5 px-3">
+          <SectionHeader
             title="Skills"
             action={
               <View className="flex-row items-center gap-2">
-                <HeaderIcon>
+                <HeaderIcon onPress={() => setIsAddSkillOpen(true)}>
                   <SimplePlus />
                 </HeaderIcon>
-                <SectionAction />
               </View>
             }
           />
@@ -551,7 +649,7 @@ export default function CandidatePublicProfileScreen() {
                     className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
                   >
                     <Text className="text-xs font-medium text-[#4e5cf0]">
-                      {skill.name}
+                      {skill.name || skill.title || 'Skill'}
                     </Text>
                   </View>
                 ))
@@ -626,6 +724,43 @@ export default function CandidatePublicProfileScreen() {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         currentPath="/pages/candidate/public-profile"
+      />
+      <EditAboutModal
+        visible={isEditAboutOpen}
+        onClose={() => setIsEditAboutOpen(false)}
+        aboutId={profile?.about?.id}
+        initialBio={profile?.about?.bio}
+        onSaved={() => {
+          void refetch();
+        }}
+      />
+      <EditExperienceModal
+        visible={isAddExperienceOpen}
+        onClose={() => setIsAddExperienceOpen(false)}
+        onSaved={() => {
+          void refetch();
+        }}
+      />
+      <EditEducationModal
+        visible={isAddEducationOpen}
+        onClose={() => setIsAddEducationOpen(false)}
+        onSaved={() => {
+          void refetch();
+        }}
+      />
+      <EditCertificateModal
+        visible={isAddCertificateOpen}
+        onClose={() => setIsAddCertificateOpen(false)}
+        onSaved={() => {
+          void refetch();
+        }}
+      />
+      <EditSkillModal
+        visible={isAddSkillOpen}
+        onClose={() => setIsAddSkillOpen(false)}
+        onSaved={() => {
+          void refetch();
+        }}
       />
     </SafeAreaView>
   );

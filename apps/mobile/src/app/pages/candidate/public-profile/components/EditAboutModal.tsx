@@ -1,0 +1,84 @@
+import React, { useState } from 'react';
+import {
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
+import { updateCandidateAbout } from '../../../../../api/candidate';
+
+export default function EditAboutModal({
+  visible,
+  onClose,
+  aboutId,
+  initialBio,
+  onSaved,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  aboutId?: number;
+  initialBio?: string;
+  onSaved?: () => void;
+}) {
+  const [bio, setBio] = useState(initialBio || '');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    try {
+      setSaving(true);
+      await updateCandidateAbout({ id: aboutId, bio });
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      Alert.alert('Save failed', 'Could not save your about section.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View className="flex-1 items-center justify-center bg-black/40 px-6">
+        <View className="w-full rounded-lg bg-white p-4">
+          <Text className="mb-4 text-lg font-semibold">About Me</Text>
+
+          <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            Biography
+          </Text>
+          <TextInput
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Tell us about yourself..."
+            multiline
+            numberOfLines={6}
+            className="mb-4 h-40 rounded border border-[#d1d5db] px-3 py-2.5 text-sm"
+          />
+
+          <View className="flex-row justify-end gap-2">
+            <TouchableOpacity
+              onPress={onClose}
+              className="mr-2 items-center justify-center rounded border border-[#d1d5db] bg-white px-4 py-2"
+            >
+              <Text className="text-[#374151]">Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              className="items-center justify-center rounded bg-[#5758e7] px-4 py-2"
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white">Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
