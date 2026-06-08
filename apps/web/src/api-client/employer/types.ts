@@ -25,7 +25,7 @@ export interface EmployerProfileResponse {
   fullName: string;
   role?: string;
   company?: EmployerCompany;
-  isAdmin: boolean;
+  isCompanyAdmin: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   banned: boolean;
