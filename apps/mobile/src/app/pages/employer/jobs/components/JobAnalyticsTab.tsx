@@ -82,7 +82,8 @@ function buildChartData(
     }
   }
 
-  const labelStep = mode === 'year' ? 4 : Math.max(1, Math.floor(out.length / 6));
+  const labelStep =
+    mode === 'year' ? 4 : Math.max(1, Math.floor(out.length / 6));
   return out.map((item, index) => ({
     ...item,
     label:
@@ -108,7 +109,8 @@ export default function JobAnalyticsTab({
   );
 
   const chartData = useMemo(
-    () => (data ? buildChartData(data.series, start, end, groupBy, timeMode) : []),
+    () =>
+      data ? buildChartData(data.series, start, end, groupBy, timeMode) : [],
     [data, start, end, groupBy, timeMode]
   );
 
@@ -281,7 +283,7 @@ export default function JobAnalyticsTab({
               xAxisThickness={0}
               yAxisThickness={0}
               xAxisLabelTextStyle={
-                timeMode === 'month' 
+                timeMode === 'month'
                   ? {
                       color: '#475569',
                       fontSize: 12,
@@ -290,7 +292,7 @@ export default function JobAnalyticsTab({
                       marginLeft: -25,
                       textAlign: 'center',
                     }
-                : timeMode === 'year'
+                  : timeMode === 'year'
                   ? {
                       color: '#475569',
                       fontSize: 12,
