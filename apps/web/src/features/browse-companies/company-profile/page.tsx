@@ -52,7 +52,11 @@ export default function BrowseCompaniesCompanyProfilePage({
       <CompanyDetailHero company={displayCompany} />
       <CompanyOverviewSection company={displayCompany} />
       <CompanyTeamSection company={displayCompany} />
-      <JobDetailSimilarJobs title="Open Jobs" jobs={displayCompany.openJobs} />
+      <JobDetailSimilarJobs
+        title="Open Jobs"
+        companyId={Number(companyId)}
+        limit={4}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ interface Company {
   description?: string | null;
   industry?: string | null;
   sizeRange?: string | null;
+  adminId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +50,9 @@ export class QueryResponseEmployerDto {
 
   @Expose()
   company?: Company | null;
+
+  @Expose()
+  isCompanyAdmin!: boolean;
 
   @Expose()
   createdAt?: Date;

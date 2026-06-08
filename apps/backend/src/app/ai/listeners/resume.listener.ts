@@ -24,16 +24,36 @@ export class ResumeListener {
     );
 
     // Add to extraction queue
-    await this.extractionQueue.add('extract', {
-      resumeId: payload.resumeId,
-      candidateId: payload.candidateId,
-    });
+    await this.extractionQueue.add(
+      'extract',
+      {
+        resumeId: payload.resumeId,
+        candidateId: payload.candidateId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
 
     // Add to scoring queue (optional: could wait for extraction to finish first)
-    await this.scoringQueue.add('score', {
-      resumeId: payload.resumeId,
-      candidateId: payload.candidateId,
-    });
+    await this.scoringQueue.add(
+      'score',
+      {
+        resumeId: payload.resumeId,
+        candidateId: payload.candidateId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
   }
 
   @OnEvent('resume.deleted')

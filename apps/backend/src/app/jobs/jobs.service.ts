@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EmploymentType, Prisma, PrismaClient } from '@prisma/client';
 import {
   JobPosting as JobPostingInterface,
@@ -32,7 +33,10 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
 
 @Injectable()
 export class JobsService {
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async getsPaginatedJobsPostings(
     query: GetJobsQueryDTO
@@ -156,6 +160,14 @@ export class JobsService {
     ]);
 
     const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
+
+    for (const job of mappedJobs) {
+      try {
+        this.eventEmitter.emit('job.viewed', { jobId: job.id });
+      } catch (error) {
+        console.error(`Failed to emit job.viewed for job ${job.id}:`, error);
+      }
+    }
 
     return {
       jobs: mappedJobs,
@@ -494,6 +506,57 @@ export class JobsService {
     return jobs.map((job) => this.mapToJobResponse(job));
   }
 
+  async getSimilarJobs(params: {
+    jobId?: number;
+    companyId?: number;
+    location?: string;
+    limit?: number;
+  }): Promise<JobPostingInterface[]> {
+    const { jobId, companyId, location, limit = 6 } = params;
+
+    const whereClause: Prisma.JobPostingWhereInput = {
+      status: 'OPEN',
+      deletedAt: null,
+    };
+
+    if (jobId) {
+      const job = await this.prisma.jobPosting.findUnique({
+        where: { id: jobId },
+        select: { categoryId: true },
+      });
+      if (job) {
+        whereClause.categoryId = job.categoryId;
+        whereClause.id = { not: jobId };
+      }
+    } else if (companyId) {
+      whereClause.companyId = companyId;
+    } else if (location) {
+      whereClause.location = { contains: location, mode: 'insensitive' };
+    }
+
+    const jobs = await this.prisma.jobPosting.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        company: true,
+        requirements: {
+          include: {
+            skill: true,
+          },
+        },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return jobs.map((job) => this.mapToJobResponse(job));
+  }
+
   async getCategories(): Promise<
     Array<{ id: number; name: string; slug: string; iconKey: string | null }>
   > {
@@ -610,6 +673,54 @@ export class JobsService {
     });
 
     return result.sort((a, b) => a.period.localeCompare(b.period));
+  }
+
+  /**
+   * Get aggregated job view statistics for a single job (chart + total)
+   * @param jobId The job to scope to
+   * @param startDate Start of the date range (inclusive)
+   * @param endDate End of the date range (inclusive)
+   * @param groupBy How to group the series: 'day' | 'week' | 'month'
+   * @returns totalViews (all-time) and a series bucketed in [startDate, endDate]
+   */
+  async getJobViewsAnalyticsForJob(
+    jobId: number,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Promise<{
+    totalViews: number;
+    series: Array<{ period: string; viewCount: number }>;
+  }> {
+    const [rawViews, totalViews] = await Promise.all([
+      this.prisma.jobView.findMany({
+        where: { jobId, viewedAt: { gte: startDate, lte: endDate } },
+        select: { jobId: true, viewedAt: true },
+      }),
+      this.prisma.jobView.count({ where: { jobId } }),
+    ]);
+
+    const grouped = new Map<string, number>();
+    rawViews.forEach(({ viewedAt }) => {
+      let periodKey: string;
+      if (groupBy === 'month') {
+        periodKey = viewedAt.toISOString().substring(0, 7);
+      } else if (groupBy === 'week') {
+        const date = new Date(viewedAt);
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        periodKey = weekStart.toISOString().split('T')[0];
+      } else {
+        periodKey = viewedAt.toISOString().split('T')[0];
+      }
+      grouped.set(periodKey, (grouped.get(periodKey) || 0) + 1);
+    });
+
+    const series = Array.from(grouped.entries())
+      .map(([period, viewCount]) => ({ period, viewCount }))
+      .sort((a, b) => a.period.localeCompare(b.period));
+
+    return { totalViews, series };
   }
 
   /**

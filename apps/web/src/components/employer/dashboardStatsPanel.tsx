@@ -38,8 +38,8 @@ export interface StatsDataPoint {
 export interface StatsSummary {
   totalJobViews: number;
   totalJobApplications: number;
-  jobViewsDiff: number; // percentage change vs previous period
-  jobApplicationsDiff: number; // percentage change vs previous period
+  jobViewsDiff: number | null; // null = no comparable baseline
+  jobApplicationsDiff: number | null; // null = no comparable baseline
 }
 
 export interface StatsDataSet {
@@ -87,12 +87,14 @@ function SummaryCard({
 }: {
   title: string;
   total: number;
-  diff: number;
+  diff: number | null;
   periodLabel: string;
   icon: LucideIcon;
   iconBg: string;
 }) {
-  const isPositive = diff >= 0;
+  const hasDiff = diff !== null;
+  const diffValue = hasDiff ? (diff as number) : 0;
+  const isPositive = hasDiff && diffValue >= 0;
 
   return (
     <Card className="flex-1 shadow-none">
@@ -112,19 +114,25 @@ function SummaryCard({
         </span>
         <div className="flex items-center gap-0.5 sm:gap-1 text-xs">
           <span className="text-muted-foreground truncate">{periodLabel}</span>
-          <span
-            className={cn(
-              'inline-flex items-center gap-0.5 font-medium flex-shrink-0',
-              isPositive ? 'text-emerald-500' : 'text-red-500'
-            )}
-          >
-            {isPositive ? (
-              <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            ) : (
-              <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            )}
-            {Math.abs(diff).toFixed(1)}%
-          </span>
+          {hasDiff ? (
+            <span
+              className={cn(
+                'inline-flex items-center gap-0.5 font-medium flex-shrink-0',
+                isPositive ? 'text-emerald-500' : 'text-red-500'
+              )}
+            >
+              {isPositive ? (
+                <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              ) : (
+                <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              )}
+              {Math.abs(diffValue).toFixed(1)}%
+            </span>
+          ) : (
+            <span className="inline-flex items-center font-medium flex-shrink-0 text-slate-400">
+              —
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>

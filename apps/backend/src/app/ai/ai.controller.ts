@@ -15,6 +15,8 @@ import { ProfileSyncService } from './profile-sync.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { AuthGuard } from '../auth/auth.guard';
+import { InjectPrisma } from '../decorators/inject.decorator';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 @Controller('ai')
 export class AiController {
@@ -25,7 +27,8 @@ export class AiController {
     private readonly scoringService: ResumeScoringService,
     private readonly profileSyncService: ProfileSyncService,
     @InjectQueue('resume-extraction') private readonly extractionQueue: Queue,
-    @InjectQueue('resume-scoring') private readonly scoringQueue: Queue
+    @InjectQueue('resume-scoring') private readonly scoringQueue: Queue,
+    @InjectPrisma() private readonly prisma: PrismaClient
   ) {}
 
   @Post('commit-merge')
@@ -79,15 +82,46 @@ export class AiController {
       `Manually triggering full analysis for resume ${body.resumeId} by user ${userId}`
     );
 
-    await this.extractionQueue.add('extract', {
-      resumeId: body.resumeId,
-      candidateId: userId,
+    // Clear old AI data first to ensure UI loading states work correctly for re-analysis
+    await this.prisma.resume.update({
+      where: { id: body.resumeId, candidateId: userId },
+      data: {
+        parsedText: null,
+        aiScore: null,
+        aiFeedback: Prisma.DbNull,
+        isSyncedToProfile: false,
+      },
     });
 
-    await this.scoringQueue.add('score', {
-      resumeId: body.resumeId,
-      candidateId: userId,
-    });
+    await this.extractionQueue.add(
+      'extract',
+      {
+        resumeId: body.resumeId,
+        candidateId: userId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
+
+    await this.scoringQueue.add(
+      'score',
+      {
+        resumeId: body.resumeId,
+        candidateId: userId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
 
     return { success: true, message: 'Analysis triggered' };
   }
@@ -100,10 +134,26 @@ export class AiController {
       `Manually triggering parse for resume ${body.resumeId} by user ${userId}`
     );
 
-    await this.extractionQueue.add('extract', {
-      resumeId: body.resumeId,
-      candidateId: userId,
+    // Clear old parsed data first to avoid UI reconciliation issues
+    await this.prisma.resume.update({
+      where: { id: body.resumeId, candidateId: userId },
+      data: { parsedText: null, isSyncedToProfile: false },
     });
+
+    await this.extractionQueue.add(
+      'extract',
+      {
+        resumeId: body.resumeId,
+        candidateId: userId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
 
     return { success: true, message: 'Parse triggered' };
   }
@@ -117,10 +167,26 @@ export class AiController {
     );
 
     try {
-      await this.scoringQueue.add('score', {
-        resumeId: body.resumeId,
-        candidateId: userId,
+      // Clear old scoring data first to avoid UI reconciliation issues
+      await this.prisma.resume.update({
+        where: { id: body.resumeId, candidateId: userId },
+        data: { aiScore: null, aiFeedback: Prisma.DbNull },
       });
+
+      await this.scoringQueue.add(
+        'score',
+        {
+          resumeId: body.resumeId,
+          candidateId: userId,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        }
+      );
       this.logger.log(
         `[BullMQ] Successfully added score job for resume ${body.resumeId}`
       );

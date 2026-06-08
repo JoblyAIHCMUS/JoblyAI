@@ -7,6 +7,7 @@ import { S3Service } from '../app/s3/s3.service';
 const mockPrisma = vi.hoisted(() => ({
   user: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
   },
   $queryRaw: vi.fn(),
   $transaction: vi.fn(),
@@ -223,6 +224,73 @@ describe('EmployerService', () => {
           avatarUrl: 'https://example.com/a.png',
         },
       ]);
+    });
+  });
+
+  describe('getProfileDetails', () => {
+    const baseUser = {
+      id: 'user-1',
+      firstName: 'Jane',
+      lastName: 'Admin',
+      email: 'jane@company.com',
+      emailVerified: true,
+      banned: false,
+      banExpires: null,
+      banReason: null,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    };
+
+    beforeEach(() => {
+      mockPrisma.$queryRaw.mockResolvedValue([]);
+    });
+
+    it('should mark the profile as company admin when membership matches company adminId', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        employer: {
+          id: 10,
+          company: {
+            id: 1,
+            name: 'Acme',
+            adminId: 10,
+          },
+        },
+      });
+
+      const result = await service.getProfileDetails('user-1');
+
+      expect(result.isCompanyAdmin).toBe(true);
+    });
+
+    it('should mark the profile as non-admin when membership does not match company adminId', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        employer: {
+          id: 11,
+          company: {
+            id: 1,
+            name: 'Acme',
+            adminId: 10,
+          },
+        },
+      });
+
+      const result = await service.getProfileDetails('user-1');
+
+      expect(result.isCompanyAdmin).toBe(false);
+    });
+
+    it('should mark the profile as non-admin when no employer company exists', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        employer: null,
+      });
+
+      const result = await service.getProfileDetails('user-1');
+
+      expect(result.company).toBeNull();
+      expect(result.isCompanyAdmin).toBe(false);
     });
   });
 });
