@@ -296,8 +296,16 @@ async function main() {
   // Ensure employers are linked to companies before posting jobs
   console.log('Ensuring employers are linked to companies...');
   const employerRecords: Employer[] = [];
+  const companyAdminIds = new Set(
+    companies
+      .filter((company) => company.adminId !== null)
+      .map((company) => company.id)
+  );
+
   for (let i = 0; i < employers.length; i++) {
     const user = employers[i];
+    const company = companies[i % companies.length];
+    const shouldMakeAdmin = !companyAdminIds.has(company.id);
     let record = await prisma.employer.findUnique({
       where: { employerId: user.id },
     });
@@ -306,12 +314,29 @@ async function main() {
       record = await prisma.employer.create({
         data: {
           employerId: user.id,
-          companyId: companies[i % companies.length].id,
-          role: 'employer',
+          companyId: company.id,
+          role: shouldMakeAdmin ? 'admin' : 'employer',
           assignedAt: new Date(),
         },
       });
+    } else if (shouldMakeAdmin) {
+      record = await prisma.employer.update({
+        where: { id: record.id },
+        data: {
+          companyId: company.id,
+          role: 'admin',
+        },
+      });
     }
+
+    if (shouldMakeAdmin) {
+      await prisma.company.update({
+        where: { id: company.id },
+        data: { adminId: record.id },
+      });
+      companyAdminIds.add(company.id);
+    }
+
     employerRecords.push(record);
   }
 

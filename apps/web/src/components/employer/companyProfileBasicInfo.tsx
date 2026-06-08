@@ -7,8 +7,6 @@ import {
   SCALE_LABELS,
   INDUSTRY_LABELS,
 } from '../../features/employer/company-profile/constants';
-import { toast } from 'sonner';
-import * as React from 'react';
 
 export interface CompanyProfileBasicInfoProps {
   name: string;
@@ -16,7 +14,7 @@ export interface CompanyProfileBasicInfoProps {
   websiteUrl: string;
   scale: string;
   industry: string;
-  isAdmin?: boolean;
+  isCompanyAdmin?: boolean;
 }
 
 export function CompanyProfileBasicInfo({
@@ -25,14 +23,8 @@ export function CompanyProfileBasicInfo({
   websiteUrl,
   scale,
   industry,
-  isAdmin = true,
+  isCompanyAdmin = false,
 }: CompanyProfileBasicInfoProps) {
-  const handleEditClick = () => {
-    if (!isAdmin) {
-      toast.error('Only the company admin can edit the company profile.');
-    }
-  };
-
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6 md:gap-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 md:gap-8 min-w-0 flex-1">
@@ -95,8 +87,8 @@ export function CompanyProfileBasicInfo({
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
-        {isAdmin ? (
+      {isCompanyAdmin && (
+        <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
           <Link href="/employer/company-profile/edit" passHref>
             <Button
               asChild
@@ -106,16 +98,8 @@ export function CompanyProfileBasicInfo({
               <span>Profile Settings</span>
             </Button>
           </Link>
-        ) : (
-          <Button
-            variant="outline"
-            className="gap-2 h-9 sm:h-10 text-xs sm:text-sm"
-            onClick={handleEditClick}
-          >
-            <span>Profile Settings</span>
-          </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

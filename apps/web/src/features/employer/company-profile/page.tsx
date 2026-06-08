@@ -66,7 +66,7 @@ export default function EmployerCompanyProfilePage() {
           websiteUrl={company.websiteUrl || ''}
           scale={company.sizeRange || ''}
           industry={company.industry || ''}
-          isAdmin={employer?.isAdmin ?? false}
+          isCompanyAdmin={employer?.isCompanyAdmin ?? false}
         />
         <Separator className="my-0" />
         <CompanyProfileAbout description={company.description || ''} />

@@ -52,6 +52,9 @@ export class QueryResponseEmployerDto {
   company?: Company | null;
 
   @Expose()
+  isCompanyAdmin!: boolean;
+
+  @Expose()
   createdAt?: Date;
 
   @Expose()
@@ -62,8 +65,6 @@ export class QueryResponseEmployerDto {
   bannedReason?: string;
   @Expose()
   banExpires?: Date;
-  @Expose()
-  isAdmin!: boolean;
 
   @Expose({ name: 'fullName' })
   get fullName(): string {

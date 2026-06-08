@@ -110,6 +110,7 @@ export default function EmployerCompanyProfileEditPage() {
   const { uploadToPresignedUrl, loading: loadingUpload } =
     useUploadToPresignedUrl();
   const [logoFileKey, setLogoFileKey] = useState<string | null>(null);
+  const hasShownAccessDeniedToast = useRef(false);
 
   // Logo confirmation state
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
@@ -157,15 +158,29 @@ export default function EmployerCompanyProfileEditPage() {
   }, []);
 
   useEffect(() => {
-    if (employer?.company?.id) {
-      setHasLoadedEmployees(false);
-      setCompanyId(employer.company.id);
-      fetchCompany(employer.company.id);
-      void fetchCompanyEmployees(employer.company.id).finally(() => {
-        setHasLoadedEmployees(true);
-      });
+    if (!employer?.company?.id) {
+      return;
     }
-  }, [employer, fetchCompany, fetchCompanyEmployees]);
+
+    if (!employer.isCompanyAdmin) {
+      setCompanyId(null);
+
+      if (!hasShownAccessDeniedToast.current) {
+        hasShownAccessDeniedToast.current = true;
+        toast.error('Only the company admin can edit the company profile.');
+      }
+
+      router.replace('/employer/company-profile');
+      return;
+    }
+
+    setHasLoadedEmployees(false);
+    setCompanyId(employer.company.id);
+    fetchCompany(employer.company.id);
+    void fetchCompanyEmployees(employer.company.id).finally(() => {
+      setHasLoadedEmployees(true);
+    });
+  }, [employer, fetchCompany, fetchCompanyEmployees, router]);
 
   useEffect(() => {
     if (companyEmployees.length > 0) {
@@ -371,6 +386,13 @@ export default function EmployerCompanyProfileEditPage() {
       </div>
     );
   }
+  if (employer?.company && !employer.isCompanyAdmin) {
+    return (
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
+        Only the company admin can edit the company profile.
+      </div>
+    );
+  }
   if (companyId && errorCompany) {
     return (
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 text-red-600">
@@ -385,7 +407,7 @@ export default function EmployerCompanyProfileEditPage() {
       </div>
     );
   }
-  if (employer && !employer.isAdmin) {
+  if (employer && !employer.isCompanyAdmin) {
     return (
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 flex flex-col items-center justify-center min-h-[400px]">
         <h1 className="text-4xl font-bold text-slate-900 mb-2">403</h1>
