@@ -43,6 +43,9 @@ RUN pnpm --filter @jobly/backend deploy --prod --legacy /deployed && \
 RUN cd /deployed && \
     PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x npx prisma generate
 
+# Prisma runtime looks next to the bundled app when webpack bundles @prisma/client.
+RUN find /deployed/node_modules -name 'libquery_engine-*.so.node' -exec cp {} /deployed/ \;
+
 RUN chown -R node:node /deployed
 
 
