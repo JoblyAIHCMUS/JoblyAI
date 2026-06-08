@@ -84,10 +84,17 @@ export interface PaginatedJobsResponse {
 export interface ListJobsQuery {
   page?: number;
   pageSize?: number;
-  search?: string;
-  categoryId?: number;
+  sort?: SortOption;
+  q?: string;
+  location?: string;
   type?: EmploymentType[];
   remote?: boolean;
+  salaryMin?: number;
+  salaryMax?: number;
+  skills?: string[];
+  categoryId?: number | number[];
+  categories?: number[];
+  status?: JobStatus[];
 }
 
 export interface JobRequirementInput {

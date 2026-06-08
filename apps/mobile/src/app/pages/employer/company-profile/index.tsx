@@ -136,7 +136,7 @@ export default function CompanyProfilePage() {
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={32} color={COLORS.brandDark} />
+            <ArrowLeft size={24} color={COLORS.brandDark} />
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -145,7 +145,7 @@ export default function CompanyProfilePage() {
               router.push(`/pages/employer/edit-company`);
             }}
           >
-            <SquarePen size={32} color={COLORS.primary2} />
+            <SquarePen size={24} color={COLORS.primary2} />
           </TouchableOpacity>
         </View>
 

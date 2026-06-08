@@ -483,6 +483,7 @@ export class CandidatesService {
           const created = await tx.resume.create({
             data: {
               ...createDto,
+              isSyncedToProfile: false, // Ensure new resumes are NOT marked as synced by default
               candidate: {
                 connect: { id: userId },
               },

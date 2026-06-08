@@ -31,7 +31,7 @@ export function CompanyBasicInfo({ company }: CompanyBasicInfoProps) {
 
         {/* Company Name */}
         <View>
-          <Text className="text-2xl font-bold text-slate-900">
+          <Text className="text-3xl font-bold text-slate-900">
             {company.name}
           </Text>
         </View>
@@ -44,7 +44,10 @@ export function CompanyBasicInfo({ company }: CompanyBasicInfoProps) {
               // In a real app, open the URL using Linking.openURL
             }}
           >
-            <Text className="text-blue-600 text-sm" numberOfLines={1}>
+            <Text
+              className="text-base text-blue-600 text-base"
+              numberOfLines={1}
+            >
               {company.websiteUrl}
             </Text>
           </TouchableOpacity>
@@ -66,12 +69,12 @@ export function CompanyBasicInfo({ company }: CompanyBasicInfoProps) {
               </View>
               <View className="flex-1">
                 <Text
-                  className="text-xs font-medium text-slate-500"
+                  className="text-base font-medium text-slate-500"
                   style={{ color: COLORS.slate500 }}
                 >
                   Employees
                 </Text>
-                <Text className="text-sm font-semibold text-slate-900">
+                <Text className="text-lg font-semibold text-slate-900">
                   {SCALE_LABELS[company.sizeRange] || company.sizeRange}
                 </Text>
               </View>
@@ -92,12 +95,12 @@ export function CompanyBasicInfo({ company }: CompanyBasicInfoProps) {
               </View>
               <View className="flex-1">
                 <Text
-                  className="text-xs font-medium text-slate-500"
+                  className="text-base font-medium text-slate-500"
                   style={{ color: COLORS.slate500 }}
                 >
                   Industry
                 </Text>
-                <Text className="text-sm font-semibold text-slate-900">
+                <Text className="text-lg font-semibold text-slate-900">
                   {INDUSTRY_LABELS[company.industry] || company.industry}
                 </Text>
               </View>

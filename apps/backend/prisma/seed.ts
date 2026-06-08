@@ -14,6 +14,7 @@ import { users } from './data/User';
 import { resumeMetadata } from './data/resumemetadata';
 import { company } from './data/Company';
 import { jobPosting } from './data/JobPosting';
+import { candidateProfiles } from './data/CandidateProfile';
 
 const prisma = new PrismaClient();
 
@@ -79,6 +80,13 @@ async function main() {
     await prisma.employer.deleteMany({});
     await prisma.company.deleteMany({});
     await prisma.resume.deleteMany({});
+    await prisma.candidateSocial.deleteMany({});
+    await prisma.candidateContact.deleteMany({});
+    await prisma.candidateSkill.deleteMany({});
+    await prisma.candidateDescription.deleteMany({});
+    await prisma.certificate.deleteMany({});
+    await prisma.experience.deleteMany({});
+    await prisma.education.deleteMany({});
     await prisma.verification.deleteMany({});
     await prisma.session.deleteMany({});
     await prisma.account.deleteMany({});
@@ -129,7 +137,7 @@ async function main() {
     lastName: u.lastName,
     avatarUrl: u.avatarUrl,
     phoneNumber: u.phoneNumber,
-    dateOfBirth: new Date(u.dateOfBirth),
+    dateOfBirth: u.dateOfBirth ? new Date(u.dateOfBirth) : null,
     gender: u.gender as Gender,
   }));
   // Create each user with their account
@@ -160,6 +168,114 @@ async function main() {
   const allCategories = await prisma.jobCategory.findMany();
   const allSkills = await prisma.skill.findMany();
 
+  // Create candidate profiles
+  console.log('Creating candidate profiles...');
+  const candidateUsers = allUsers.filter((u) => u.role === 'candidate');
+  const userMap = new Map(candidateUsers.map((u) => [u.email, u.id]));
+  const skillMap = new Map(allSkills.map((s) => [s.name, s.id]));
+
+  for (const profile of candidateProfiles) {
+    const candidateId = userMap.get(profile.email);
+    if (!candidateId) {
+      console.warn(`Could not find candidate with email: ${profile.email}`);
+      continue;
+    }
+
+    // Create CandidateDescription
+    if (profile.description) {
+      await prisma.candidateDescription.create({
+        data: {
+          candidateId,
+          ...profile.description,
+        },
+      });
+    }
+
+    // Create Education
+    if (profile.education && profile.education.length > 0) {
+      await prisma.education.createMany({
+        data: profile.education.map((edu) => ({
+          candidateId,
+          ...edu,
+        })),
+      });
+    }
+
+    // Create Experience
+    if (profile.experiences && profile.experiences.length > 0) {
+      await prisma.experience.createMany({
+        data: profile.experiences.map((exp) => ({
+          candidateId,
+          ...exp,
+        })),
+      });
+    }
+
+    // Create Certificate
+    if (profile.certificates && profile.certificates.length > 0) {
+      await prisma.certificate.createMany({
+        data: profile.certificates.map((cert) => ({
+          candidateId,
+          ...cert,
+        })),
+      });
+    }
+
+    // Create CandidateSkill
+    if (profile.skills && profile.skills.length > 0) {
+      const skillData = profile.skills
+        .map((skill) => {
+          const skillId = skillMap.get(skill.name);
+          if (!skillId) {
+            console.warn(`Skill not found: ${skill.name}`);
+            return null;
+          }
+          return {
+            candidateId,
+            skillId,
+            level: skill.level,
+            years: skill.years,
+          };
+        })
+        .filter((s) => s !== null);
+
+      // Avoid duplicates
+      const uniqueSkillData = Array.from(
+        new Map(
+          skillData.map((s) => [`${s.candidateId}-${s.skillId}`, s])
+        ).values()
+      );
+
+      if (uniqueSkillData.length > 0) {
+        await prisma.candidateSkill.createMany({
+          data: uniqueSkillData,
+          skipDuplicates: true, // Failsafe
+        });
+      }
+    }
+
+    // Create CandidateContact
+    if (profile.contacts && profile.contacts.length > 0) {
+      await prisma.candidateContact.createMany({
+        data: profile.contacts.map((contact) => ({
+          candidateId,
+          ...contact,
+        })),
+      });
+    }
+
+    // Create CandidateSocial
+    if (profile.socials && profile.socials.length > 0) {
+      await prisma.candidateSocial.createMany({
+        data: profile.socials.map((social) => ({
+          candidateId,
+          ...social,
+        })),
+      });
+    }
+  }
+  console.log('Finished creating candidate profiles.');
+
   // Create companies
   console.log('Creating companies...');
   const nextCompanySlug = createUniqueSlugFactory();
@@ -180,8 +296,16 @@ async function main() {
   // Ensure employers are linked to companies before posting jobs
   console.log('Ensuring employers are linked to companies...');
   const employerRecords: Employer[] = [];
+  const companyAdminIds = new Set(
+    companies
+      .filter((company) => company.adminId !== null)
+      .map((company) => company.id)
+  );
+
   for (let i = 0; i < employers.length; i++) {
     const user = employers[i];
+    const company = companies[i % companies.length];
+    const shouldMakeAdmin = !companyAdminIds.has(company.id);
     let record = await prisma.employer.findUnique({
       where: { employerId: user.id },
     });
@@ -190,12 +314,29 @@ async function main() {
       record = await prisma.employer.create({
         data: {
           employerId: user.id,
-          companyId: companies[i % companies.length].id,
-          role: 'employer',
+          companyId: company.id,
+          role: shouldMakeAdmin ? 'admin' : 'employer',
           assignedAt: new Date(),
         },
       });
+    } else if (shouldMakeAdmin) {
+      record = await prisma.employer.update({
+        where: { id: record.id },
+        data: {
+          companyId: company.id,
+          role: 'admin',
+        },
+      });
     }
+
+    if (shouldMakeAdmin) {
+      await prisma.company.update({
+        where: { id: company.id },
+        data: { adminId: record.id },
+      });
+      companyAdminIds.add(company.id);
+    }
+
     employerRecords.push(record);
   }
 
@@ -231,7 +372,6 @@ async function main() {
   console.log('Creating job requirements...');
 
   // Create a Map for faster skill lookups
-  const skillMap = new Map(allSkills.map((s) => [s.name, s.id]));
   const getSkillId = (name: string): number => {
     const id = skillMap.get(name);
     if (id === undefined) {
@@ -240,7 +380,7 @@ async function main() {
     return id;
   };
 
-  const jobRequirementsData = jobPosting.flatMap((job, jobIndex) =>
+  const jobRequirementsDataRaw = jobPosting.flatMap((job, jobIndex) =>
     job.jobRequirements.map((requirement) => ({
       jobPostingId: createdJobPostings[jobIndex].id,
       skillId: getSkillId(requirement.skillName.name),
@@ -249,27 +389,29 @@ async function main() {
     }))
   );
 
-  const groups = new Map();
-
-  jobRequirementsData.forEach((item) => {
-    const key = `${item.jobPostingId}-${item.skillId}`;
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
+  // Deduplicate job requirements based on the unique constraint [jobPostingId, skillId]
+  const uniqueJobRequirementsMap = new Map<
+    string,
+    (typeof jobRequirementsDataRaw)[0]
+  >();
+  jobRequirementsDataRaw.forEach((req) => {
+    const key = `${req.jobPostingId}-${req.skillId}`;
+    if (!uniqueJobRequirementsMap.has(key)) {
+      uniqueJobRequirementsMap.set(key, req);
     }
-
-    groups.get(key).push(item);
   });
 
-  for (const [key, list] of groups) {
-    if (list.length > 1) {
-      console.log('🔴 DUPLICATE GROUP:', key);
-      console.log(list);
-    }
+  const jobRequirementsData = Array.from(uniqueJobRequirementsMap.values());
+  const removedCount =
+    jobRequirementsDataRaw.length - jobRequirementsData.length;
+
+  if (removedCount > 0) {
+    console.log(`Removed ${removedCount} duplicate job requirements.`);
   }
 
   const jobRequirements = await prisma.jobRequirement.createMany({
     data: jobRequirementsData,
+    skipDuplicates: true, // As a fallback
   });
   console.log(`Created ${jobRequirements.count} job requirements`);
 

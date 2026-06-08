@@ -21,9 +21,6 @@
     "test:ui": "pnpm -w vitest --ui --config apps/backend/vitest.config.ts",
     "test:cov": "pnpm -w vitest run --coverage --config apps/backend/vitest.config.ts"
   },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
-  },
   "nx": {
     "targets": {
       "build": {

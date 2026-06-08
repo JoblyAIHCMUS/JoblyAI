@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -141,6 +142,63 @@ export class JobsController {
   ) {
     const userId = request.user.id;
     return this.jobsService.createJob(createJobDto, userId);
+  }
+
+  @Get('similar')
+  async getSimilarJobs(
+    @Query('jobId', new ParseIntPipe({ optional: true })) jobId?: number,
+    @Query('companyId', new ParseIntPipe({ optional: true }))
+    companyId?: number,
+    @Query('location') location?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+  ) {
+    return this.jobsService.getSimilarJobs({
+      jobId,
+      companyId,
+      location,
+      limit,
+    });
+  }
+
+  @Get(':id/analytics/views')
+  @UseGuards(AuthGuard)
+  async getJobViewsAnalyticsForJob(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'day'
+  ) {
+    const userId = request.user.id;
+    const userRole = request.user.role;
+
+    const job = await this.jobsService.getJobByIdForEmployer(
+      id,
+      userId,
+      userRole
+    );
+    if (!job) {
+      throw new NotFoundException(`Job ${id} not found`);
+    }
+
+    let end: Date;
+    let start: Date;
+    if (endDate) {
+      const [y, m, d] = endDate.split('-').map(Number);
+      end = new Date(y, m - 1, d, 23, 59, 59, 999);
+    } else {
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    }
+    if (startDate) {
+      const [y, m, d] = startDate.split('-').map(Number);
+      start = new Date(y, m - 1, d, 0, 0, 0, 0);
+    } else {
+      start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+      start.setHours(0, 0, 0, 0);
+    }
+
+    return this.jobsService.getJobViewsAnalyticsForJob(id, start, end, groupBy);
   }
 
   @Get(':id')

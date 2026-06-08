@@ -1,5 +1,6 @@
 export { useListJobs } from '@/api-hook/jobs/useListJobs';
 export { useJobDetail } from '@/api-hook/jobs/useJobDetail';
+export { useSimilarJobs } from '@/api-hook/jobs/useSimilarJobs';
 export { useEmployerJobDetail } from '@/api-hook/jobs/useEmployerJobDetail';
 export { useCreateJob } from '@/api-hook/jobs/useCreateJob';
 export { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';

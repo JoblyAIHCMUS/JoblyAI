@@ -21,6 +21,7 @@ export {
   getJobById,
   getJobsByCategory,
   getPopularJobCategories,
+  getSimilarJobs,
 } from '@/api-client/jobs/public';
 
 // Employer endpoints (auth required)
@@ -38,4 +39,8 @@ export {
 export {
   getJobViewsAnalytics,
   getJobApplicationsAnalytics,
+  getJobViewsAnalyticsForJob,
 } from '@/api-client/jobs/analytics';
+
+// Analytics types
+export type { JobViewsAnalyticsResponse } from '@/api-client/jobs/analytics';

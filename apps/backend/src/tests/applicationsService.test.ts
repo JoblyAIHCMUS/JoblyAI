@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationsService } from '../app/applications/applications.service';
 import { NotificationsService } from '../app/notifications/notifications.service';
 
@@ -118,6 +119,11 @@ const mockNotificationsService = vi.hoisted(() => ({
   createNotification: vi.fn(),
 }));
 
+// Mock EventEmitter
+const mockEventEmitter = vi.hoisted(() => ({
+  emit: vi.fn(),
+}));
+
 describe('ApplicationsService', () => {
   let service: ApplicationsService;
 
@@ -133,6 +139,10 @@ describe('ApplicationsService', () => {
           provide: NotificationsService,
           useValue: mockNotificationsService,
         },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter,
+        },
       ],
     }).compile();
 
@@ -142,6 +152,7 @@ describe('ApplicationsService', () => {
     // Manually assign dependencies as standard injection might fail in some test environments
     (service as any).prisma = mockPrisma;
     (service as any).notificationsService = mockNotificationsService;
+    (service as any).eventEmitter = mockEventEmitter;
   });
 
   describe('createApplication', () => {
@@ -828,6 +839,117 @@ describe('ApplicationsService', () => {
       await expect(
         service.moveToOfferApplication('employer-123', 1)
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('createApplication - job.viewed emission', () => {
+    it('emits job.viewed once when creating a new application', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue(null);
+      mockPrisma.application.create.mockResolvedValue(mockApp);
+
+      await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
+
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', {
+        jobId: 1,
+      });
+    });
+
+    it('emits job.viewed once when re-activating a WITHDRAWN application', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue({
+        id: 1,
+        status: 'WITHDRAWN',
+      });
+      mockPrisma.application.update.mockResolvedValue(mockApp);
+
+      await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
+
+      expect(mockPrisma.application.update).toHaveBeenCalled();
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('job.viewed', {
+        jobId: 1,
+      });
+    });
+
+    it('does not emit when the job is not OPEN', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'CLOSED',
+      });
+
+      await expect(
+        service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('does not emit when the job is not found', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('does not emit when the resume does not belong to the candidate', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'someone-else',
+      });
+
+      await expect(
+        service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('does not emit when an active application already exists', async () => {
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue({
+        id: 1,
+        status: 'APPLIED',
+      });
+
+      await expect(
+        service.createApplication('candidate-123', { jobId: 1, resumeId: 1 })
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
   });
 });
