@@ -111,9 +111,10 @@ export default function JobAnalyticsTab({
   // Calculate spacing to leave room at the edges for text labels
   const initialSpacing = 20;
   const endSpacing = 25;
-  const spacing = chartData.length > 1
-    ? (CHART_WIDTH - initialSpacing - endSpacing) / (chartData.length - 1)
-    : 0;
+  const spacing =
+    chartData.length > 1
+      ? (CHART_WIDTH - initialSpacing - endSpacing) / (chartData.length - 1)
+      : 0;
 
   const groupByLabels: Record<TimeMode, string> = {
     week: 'Week',
@@ -155,12 +156,25 @@ export default function JobAnalyticsTab({
   );
 
   return (
-    <ScrollView className="flex-1" contentContainerClassName="px-4 py-8 gap-y-6">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="px-4 py-8 gap-y-6"
+    >
       <Text className="text-2xl font-bold text-gray-900">Job Analytics</Text>
 
       {/* Stat cards */}
-      {renderStatCard('Total Views', data?.totalViews ?? 0, 'eye', 'bg-app-amber-2')}
-      {renderStatCard('Total Applied', totalApplications, 'clipboard', 'bg-app-purple-1')}
+      {renderStatCard(
+        'Total Views',
+        data?.totalViews ?? 0,
+        'eye',
+        'bg-app-amber-2'
+      )}
+      {renderStatCard(
+        'Total Applied',
+        totalApplications,
+        'clipboard',
+        'bg-app-purple-1'
+      )}
 
       {/* Chart card */}
       <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm">
@@ -226,9 +240,7 @@ export default function JobAnalyticsTab({
             <ActivityIndicator size="large" color="#4F46E5" />
           ) : isError ? (
             <View className="items-center justify-center h-[220px] gap-y-2">
-              <Text className="text-app-text-5">
-                Couldn't load view stats.
-              </Text>
+              <Text className="text-app-text-5">Couldn't load view stats.</Text>
               <TouchableOpacity
                 onPress={() => {
                   void refetch();

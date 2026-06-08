@@ -17,7 +17,9 @@ export function useJobViewsAnalyticsForJob(
       groupBy,
     ],
     queryFn: ({ signal }) =>
-      getJobViewsAnalyticsForJob(jobId!, startDate, endDate, groupBy, { signal }),
+      getJobViewsAnalyticsForJob(jobId!, startDate, endDate, groupBy, {
+        signal,
+      }),
     enabled: jobId !== null && !Number.isNaN(jobId),
   });
 }
