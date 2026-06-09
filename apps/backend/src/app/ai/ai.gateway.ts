@@ -29,9 +29,7 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (session?.user?.id) {
       const userId = String(session.user.id);
       await client.join(userId);
-      this.logger.log(
-        `User ${userId} joined AI room (client ${client.id})`
-      );
+      this.logger.log(`User ${userId} joined AI room (client ${client.id})`);
     } else {
       this.logger.warn(
         `Unauthenticated AI WS connection rejected (client ${client.id})`

@@ -51,9 +51,7 @@ export class JoblyIoAdapter extends IoAdapter {
       ...options,
       cors: {
         origin:
-          process.env.NODE_ENV === 'production'
-            ? corsOrigins
-            : corsOrigins,
+          process.env.NODE_ENV === 'production' ? corsOrigins : corsOrigins,
         credentials: true,
         methods: ['GET', 'POST'],
       },
