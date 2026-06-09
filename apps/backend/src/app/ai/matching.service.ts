@@ -7,9 +7,20 @@ import { GetJobsQueryDTO } from '../jobs/dto/getJobsQueryDTO';
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
 
+  // Vietnamese accent mapping for manual unaccenting in SQL
+  private readonly VN_ACCENTS_SEARCH = 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴĐ';
+  private readonly VN_ACCENTS_REPLACE = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD';
+
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
   ) {}
+
+  /**
+   * Helper to wrap a SQL expression with Vietnamese unaccenting logic
+   */
+  private wrapUnaccent(expression: string): string {
+    return `translate(${expression}, '${this.VN_ACCENTS_SEARCH}', '${this.VN_ACCENTS_REPLACE}')`;
+  }
 
   /**
    * Finds jobs that match a specific resume using vector similarity, with filters
@@ -48,13 +59,17 @@ export class MatchingService {
     let paramIndex = 4;
 
     if (query.q) {
-      whereClause += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+      // Apply unaccenting to both q and the title/description
+      const unaccentQ = this.wrapUnaccent(`$${paramIndex}`);
+      whereClause += ` AND (${this.wrapUnaccent('title')} ILIKE ${unaccentQ} OR ${this.wrapUnaccent('description')} ILIKE ${unaccentQ})`;
       params.push(`%${query.q}%`);
       paramIndex++;
     }
 
     if (query.location) {
-      whereClause += ` AND location ILIKE $${paramIndex}`;
+      // Apply manual unaccenting to location search
+      const unaccentLocation = this.wrapUnaccent(`$${paramIndex}`);
+      whereClause += ` AND ${this.wrapUnaccent('location')} ILIKE ${unaccentLocation}`;
       params.push(`%${query.location}%`);
       paramIndex++;
     }
@@ -83,12 +98,14 @@ export class MatchingService {
       paramIndex++;
     }
 
-    // Location priority logic: jobs matching the location exactly or partially come first
+    // Sort by distance (pgvector)
     let orderBy = `distance ASC`;
     if (query.location) {
       const locationParamIndex = params.findIndex(p => typeof p === 'string' && query.location && p.includes(query.location)) + 1;
       if (locationParamIndex > 0) {
-        orderBy = `(CASE WHEN location ILIKE $${locationParamIndex} THEN 0 ELSE 1 END), distance ASC`;
+        // Prioritize exact/partial location matches (case-insensitive + unaccented)
+        const unaccentLocationSort = this.wrapUnaccent(`$${locationParamIndex}`);
+        orderBy = `(CASE WHEN ${this.wrapUnaccent('location')} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
       }
     }
 
