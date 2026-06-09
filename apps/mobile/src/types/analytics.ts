@@ -9,3 +9,8 @@ export interface JobApplicationAnalytics {
   applicationCount: number;
   approvedCount: number;
 }
+
+export interface JobViewsAnalyticsResponse {
+  totalViews: number;
+  series: { period: string; viewCount: number }[];
+}
