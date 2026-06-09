@@ -293,33 +293,37 @@ function FindJobsPageContent() {
 
     const fetchData = async () => {
       try {
+        const selectedEmploymentTypes = urlTypes
+          .map((label) => getEmploymentTypeFromLabel(label))
+          .filter((type): type is EmploymentType => type !== undefined);
+
+        const queryParams = {
+          page: urlPage,
+          pageSize: PAGE_SIZE,
+          sort: urlSort,
+          q: urlQ,
+          location: urlLocation,
+          type:
+            selectedEmploymentTypes.length > 0
+              ? selectedEmploymentTypes
+              : undefined,
+          categories:
+            urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
+          salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
+          salaryMax: urlMaxSalary,
+          skills: urlSkills.length > 0 ? urlSkills : undefined,
+        };
+
         let result;
         if (urlResumeId) {
-          result = await fetchRecommendations(Number(urlResumeId), 10);
-        } else {
-          const selectedEmploymentTypes = urlTypes
-            .map((label) => getEmploymentTypeFromLabel(label))
-            .filter((type): type is EmploymentType => type !== undefined);
-
-          result = await fetchJobs(
-            {
-              page: urlPage,
-              pageSize: PAGE_SIZE,
-              sort: urlSort,
-              q: urlQ,
-              location: urlLocation,
-              type:
-                selectedEmploymentTypes.length > 0
-                  ? selectedEmploymentTypes
-                  : undefined,
-              categories:
-                urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
-              salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-              salaryMax: urlMaxSalary,
-              skills: urlSkills.length > 0 ? urlSkills : undefined,
-            },
-            { signal: abortController.signal }
+          result = await fetchRecommendations(
+            Number(urlResumeId),
+            queryParams
           );
+        } else {
+          result = await fetchJobs(queryParams, {
+            signal: abortController.signal,
+          });
         }
 
         if (result) {

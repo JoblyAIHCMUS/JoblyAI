@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getResumeRecommendations } from '@/api-client/matching';
-import { PaginatedJobsResponse } from '@/api-client/jobs/types';
+import { PaginatedJobsResponse, ListJobsQuery } from '@/api-client/jobs/types';
 
 interface UseRecommendJobsOptions {
   onSuccess?: (data: PaginatedJobsResponse) => void;
@@ -16,11 +16,11 @@ export function useRecommendJobs(options?: UseRecommendJobsOptions) {
   const [data, setData] = useState<PaginatedJobsResponse | null>(null);
 
   const fetchRecommendations = useCallback(
-    async (resumeId: number, limit?: number) => {
+    async (resumeId: number, query?: ListJobsQuery) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await getResumeRecommendations(resumeId, limit);
+        const result = await getResumeRecommendations(resumeId, query);
         setData(result);
         options?.onSuccess?.(result);
         return result;

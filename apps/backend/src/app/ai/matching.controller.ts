@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { MatchingService } from './matching.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { GetJobsQueryDTO } from '../jobs/dto/getJobsQueryDTO';
 
 @Controller('matching')
 export class MatchingController {
@@ -17,8 +18,8 @@ export class MatchingController {
   @UseGuards(AuthGuard)
   async getRecommendations(
     @Param('id', ParseIntPipe) resumeId: number,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+    @Query() query: GetJobsQueryDTO
   ) {
-    return this.matchingService.findJobsForResume(resumeId, limit || 10);
+    return this.matchingService.findJobsForResume(resumeId, query);
   }
 }
