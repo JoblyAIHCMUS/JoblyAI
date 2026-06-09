@@ -16,6 +16,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed:embeddings": "ts-node src/scripts/seed-embeddings.ts",
+    "seed:mock-apps": "ts-node src/scripts/seed-mock-applications.ts",
     "lint": "eslint .",
     "test": "pnpm -w vitest run --config apps/backend/vitest.config.ts",
     "test:watch": "pnpm -w vitest --config apps/backend/vitest.config.ts",

@@ -15,6 +15,9 @@ import { S3Module } from '../s3/s3.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
+import { JobProcessor } from './processors/job.processor';
+import { JobListener } from './listeners/job.listener';
+
 @Module({
   imports: [
     S3Module,
@@ -22,7 +25,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
     BullModule.registerQueue(
       { name: 'resume-extraction' },
-      { name: 'resume-scoring' }
+      { name: 'resume-scoring' },
+      { name: 'job-embedding' }
     ),
   ],
   controllers: [AiController, MatchingController],
@@ -30,12 +34,14 @@ import { NotificationsModule } from '../notifications/notifications.module';
     AiGateway,
     ResumeProcessor,
     ScoringProcessor,
+    JobProcessor,
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
     ProfileSyncService,
     MatchingService,
     ResumeListener,
+    JobListener,
   ],
   exports: [
     AiGateway,

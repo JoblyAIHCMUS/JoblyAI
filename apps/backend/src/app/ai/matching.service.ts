@@ -16,6 +16,30 @@ export class MatchingService {
   ) {}
 
   /**
+   * Calculates the semantic match percentage between a resume and a job posting
+   */
+  async calculateMatchPercentage(resumeId: number, jobId: number): Promise<number | null> {
+    try {
+      const result: any[] = await this.prisma.$queryRawUnsafe(`
+        SELECT 1 - (r.embedding <=> j.embedding) as similarity
+        FROM "resume" r
+        JOIN "JobPosting" j ON j.id = $2
+        WHERE r.id = $1
+          AND r.embedding IS NOT NULL 
+          AND j.embedding IS NOT NULL
+      `, resumeId, jobId);
+
+      if (result && result.length > 0 && result[0].similarity !== null) {
+        return parseFloat((Math.max(0, result[0].similarity) * 100).toFixed(2));
+      }
+      return null;
+    } catch (error: any) {
+      this.logger.error(`Failed to calculate match percentage for resume ${resumeId} and job ${jobId}`, error.stack);
+      return null;
+    }
+  }
+
+  /**
    * Helper to wrap a SQL expression with Vietnamese unaccenting logic
    */
   private wrapUnaccent(expression: string): string {
@@ -155,7 +179,7 @@ export class MatchingService {
         
         return {
           ...this.mapToJobResponse(jobDetail),
-          matchScore: Math.max(0, 1 - mj.distance),
+          matchPercentage: parseFloat((Math.max(0, 1 - mj.distance) * 100).toFixed(2)),
         };
       })
       .filter(Boolean);
@@ -166,6 +190,196 @@ export class MatchingService {
       page,
       pageSize: limit,
       totalPages
+    };
+  }
+
+  /**
+   * Calculates and updates the match percentage for a specific application
+   */
+  async calculateApplicationScore(applicationId: number): Promise<number | null> {
+    this.logger.log(`Calculating percentage for application ID: ${applicationId}`);
+    
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, jobId: true, resumeId: true },
+    });
+
+    if (!application) {
+      this.logger.warn(`Application ${applicationId} not found for percentage calculation`);
+      return null;
+    }
+
+    // Check if both have embeddings first for better logging
+    const [job, resume] = await Promise.all([
+      this.prisma.$queryRawUnsafe(`SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "JobPosting" WHERE id = $1`, application.jobId),
+      this.prisma.$queryRawUnsafe(`SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "resume" WHERE id = $1`, application.resumeId)
+    ]);
+
+    const jobHasEmbedding = (job as any[])?.[0]?.hasEmbedding;
+    const resumeHasEmbedding = (resume as any[])?.[0]?.hasEmbedding;
+
+    if (!jobHasEmbedding || !resumeHasEmbedding) {
+      this.logger.warn(`Missing embeddings for Application ${applicationId}: Job=${!!jobHasEmbedding}, Resume=${!!resumeHasEmbedding}`);
+      return null;
+    }
+
+    const percentage = await this.calculateMatchPercentage(application.resumeId, application.jobId);
+    
+    if (percentage !== null) {
+      await this.prisma.application.update({
+        where: { id: applicationId },
+        data: { matchPercentage: percentage },
+      });
+      this.logger.log(`Successfully updated Application ${applicationId} with percentage: ${percentage}%`);
+      return percentage;
+    }
+
+    this.logger.warn(`Percentage calculation returned null for Application ${applicationId}`);
+    return null;
+  }
+
+  /**
+   * Recalculates match percentages for all applicants of a specific job
+   * Useful when a Job Description is updated or for manual refresh
+   */
+  async reRankApplicants(jobId: number): Promise<{ updatedCount: number }> {
+    this.logger.log(`Re-ranking all applicants for job ID: ${jobId}`);
+
+    const results: any[] = await this.prisma.$queryRawUnsafe(`
+      SELECT 
+        a.id as app_id,
+        1 - (r.embedding <=> j.embedding) as score
+      FROM "application" a
+      JOIN "resume" r ON a."resumeId" = r.id
+      JOIN "JobPosting" j ON a."jobId" = j.id
+      WHERE a."jobId" = $1 
+        AND r.embedding IS NOT NULL 
+        AND j.embedding IS NOT NULL
+    `, jobId);
+
+    if (results.length === 0) {
+      return { updatedCount: 0 };
+    }
+
+    // Perform updates in a transaction or parallel
+    const updatePromises = results.map((res) =>
+      this.prisma.application.update({
+        where: { id: res.app_id },
+        data: { 
+          matchPercentage: res.score !== null ? parseFloat((Math.max(0, res.score) * 100).toFixed(2)) : null 
+        },
+      })
+    );
+
+    await Promise.all(updatePromises);
+    
+    return { updatedCount: results.length };
+  }
+
+  /**
+   * Finds the best matching candidates for a specific job posting using vector similarity.
+   * This is the inverse of findJobsForResume.
+   */
+  async findMatchingCandidatesForJob(jobId: number, query: any) {
+    const limit = query.pageSize || 10;
+    const page = query.page || 1;
+    const offset = (page - 1) * limit;
+
+    this.logger.log(`Finding matching candidates for job ID: ${jobId}`);
+
+    // 1. Get the Job embedding
+    const jobResults: any[] = await this.prisma.$queryRawUnsafe(
+      `SELECT embedding FROM "JobPosting" WHERE id = $1`,
+      jobId
+    );
+
+    if (!jobResults.length || !jobResults[0].embedding) {
+      throw new NotFoundException(`Job ${jobId} has no embedding. Matching cannot be performed.`);
+    }
+
+    const jobVector = jobResults[0].embedding;
+
+    // 2. Search for resumes matching this job vector
+    // We only take the LATEST resume per candidate to avoid duplicates in the list
+    const candidates: any[] = await this.prisma.$queryRawUnsafe(
+      `
+      WITH RankedResumes AS (
+        SELECT 
+          r.id as resume_id,
+          r."candidateId",
+          1 - (r.embedding <=> $1::vector) as similarity,
+          ROW_NUMBER() OVER(PARTITION BY r."candidateId" ORDER BY r."createdAt" DESC) as rn
+        FROM "resume" r
+        WHERE r.embedding IS NOT NULL
+      )
+      SELECT resume_id, "candidateId", similarity, count(*) OVER() AS full_count
+      FROM RankedResumes
+      WHERE rn = 1
+      ORDER BY similarity DESC
+      LIMIT $2 OFFSET $3
+      `,
+      jobVector,
+      limit,
+      offset
+    );
+
+    if (candidates.length === 0) {
+      return { candidates: [], total: 0, page, pageSize: limit, totalPages: 0 };
+    }
+
+    const total = parseInt(candidates[0].full_count, 10);
+    const candidateIds = candidates.map(c => c.candidateId);
+
+    // 3. Fetch detailed profiles
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: candidateIds } },
+      include: {
+        candidateDescription: true,
+        candidateSkills: { include: { skill: true } },
+        experiences: { orderBy: { startDate: 'desc' }, take: 2 },
+        education: { orderBy: { startDate: 'desc' }, take: 1 },
+      }
+    });
+
+    // 4. Check application status for each candidate on THIS job
+    const applications = await this.prisma.application.findMany({
+      where: {
+        jobId: jobId,
+        candidateId: { in: candidateIds }
+      },
+      select: { candidateId: true, status: true, id: true }
+    });
+
+    const result = candidates.map(c => {
+      const user = users.find(u => u.id === c.candidateId);
+      const application = applications.find(a => a.candidateId === c.candidateId);
+      
+      return {
+        id: user?.id,
+        name: user?.name,
+        email: user?.email,
+        avatarUrl: user?.avatarUrl,
+        title: user?.candidateDescription?.title,
+        bio: user?.candidateDescription?.bio,
+        skills: user?.candidateSkills.map(s => s.skill.name),
+        topExperiences: user?.experiences.map(e => ({
+          companyName: e.companyName,
+          jobTitle: e.jobTitle,
+          duration: `${e.startDate.getFullYear()} - ${e.endDate ? e.endDate.getFullYear() : 'Present'}`
+        })),
+        matchPercentage: Math.max(0, c.similarity * 100),
+        applicationStatus: application?.status || null,
+        applicationId: application?.id || null,
+        resumeId: c.resume_id
+      };
+    });
+
+    return {
+      candidates: result,
+      total,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit)
     };
   }
 

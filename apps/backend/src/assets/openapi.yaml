@@ -1002,7 +1002,7 @@ components:
       properties:
         jobId:
           type: string
-        matchScore:
+        matchPercentage:
           type: number
         reasons:
           type: array

@@ -74,7 +74,7 @@ export default function JobListingEditPage() {
   const { submitUpdate, loading: submitLoading } = useUpdateJob({
     onSuccess: () => {
       toast.success('Job updated successfully!');
-      router.replace(`/employer/job-listing/${id}`);
+      router.replace('/employer/job-listing');
     },
     onError: () => {
       toast.error('Failed to update job. Please try again.');

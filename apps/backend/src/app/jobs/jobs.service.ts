@@ -483,6 +483,13 @@ export class JobsService {
       },
     });
 
+    // Reset match percentages for all applications since requirements/details changed
+    // This provides visual feedback to the user that scores are being recalculated
+    await this.prisma.application.updateMany({
+      where: { jobId: id },
+      data: { matchPercentage: null },
+    });
+
     const mapped = this.mapToJobResponse(updatedJob);
 
     // Emit event to regenerate embedding in background

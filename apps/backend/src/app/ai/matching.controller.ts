@@ -22,4 +22,21 @@ export class MatchingController {
   ) {
     return this.matchingService.findJobsForResume(resumeId, query);
   }
+
+  @Get('job/:id/rerank')
+  @UseGuards(AuthGuard)
+  async reRank(
+    @Param('id', ParseIntPipe) jobId: number
+  ) {
+    return this.matchingService.reRankApplicants(jobId);
+  }
+
+  @Get('job/:id/matches')
+  @UseGuards(AuthGuard)
+  async getJobMatches(
+    @Param('id', ParseIntPipe) jobId: number,
+    @Query() query: any
+  ) {
+    return this.matchingService.findMatchingCandidatesForJob(jobId, query);
+  }
 }
