@@ -8,6 +8,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { EmployerTopBar } from '@/components/employer/employerTopBar';
 import { EmployerProfileProvider } from '@/api-hook/employer';
 import type { ReactNode } from 'react';
+import { getPostAuthRedirect } from '@/lib/utils';
 
 interface EmployerLayoutProps {
   children: ReactNode;
@@ -18,12 +19,18 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
   const { data: user, isLoading, isError } = useUser();
 
   useEffect(() => {
-    if (isLoading) return;
+    // Redirect based on auth state
+    if (!isLoading) {
+      // If error occurred during auth check, redirect to login
+      if (isError) {
+        router.push('/login');
+        return;
+      }
 
-    if (isError) {
-      router.push('/login');
-      return;
-    }
+      if (user?.emailVerified === false) {
+        router.push(getPostAuthRedirect(user, '/employer'));
+        return;
+      }
 
     if (!user) {
       router.push('/login');
@@ -66,7 +73,8 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     );
   }
 
-  if (user && user.role === 'employer') {
+  // If user passed authorization checks, render the employer dashboard
+  if (user && user.emailVerified !== false && user.role === 'employer') {
     return (
       <EmployerProfileProvider>
         <SidebarProvider>

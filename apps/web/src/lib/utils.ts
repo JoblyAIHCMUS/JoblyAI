@@ -65,6 +65,33 @@ export function sanitizeRedirectPath(redirectTo?: string | null): string {
   return rawValue;
 }
 
+export function getRoleHomePath(role?: string): string {
+  if (role === 'employer') {
+    return '/employer';
+  }
+
+  if (role === 'candidate') {
+    return '/candidate';
+  }
+
+  return '/';
+}
+
+export function getPostAuthRedirect(
+  user: { emailVerified?: boolean; role?: string },
+  redirectTo?: string | null
+): string {
+  const safeRedirect = sanitizeRedirectPath(redirectTo);
+  const target =
+    safeRedirect !== '/' ? safeRedirect : getRoleHomePath(user.role);
+
+  if (user.emailVerified === false) {
+    return `/verify-email?redirect=${encodeURIComponent(target)}`;
+  }
+
+  return target;
+}
+
 export function getInitials(name: string): string {
   return name
     .split(' ')

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { getPostAuthRedirect } from '@/lib/utils';
 
 const signupSchema = z
   .object({
@@ -58,8 +59,8 @@ export function SignupForm() {
         role: roleMap[userType],
       },
       {
-        onSuccess: () => {
-          router.push('/login');
+        onSuccess: (user) => {
+          router.push(getPostAuthRedirect(user));
         },
       }
     );

@@ -1,9 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useUser } from './useUser';
 import type { AppRole } from '@/contexts/role-context';
+import { getPostAuthRedirect } from '@/lib/utils';
 
 interface ProtectionConfig {
   requiredRoles?: AppRole[];
@@ -12,22 +13,7 @@ interface ProtectionConfig {
 }
 
 /**
- * Hook to protect routes based on user authentication and role
- * Returns authorization state to control UI rendering
- *
- * @param config - Configuration for route protection
- *
- * @example
- * // In a protected layout:
- * const { isLoading, isAuthorized } = useRouteProtection();
- *
- * // Return null while loading to prevent UI flicker
- * if (isLoading) return null;
- *
- * // Only render if authorized
- * if (!isAuthorized) return null;
- *
- * return <ProtectedContent />;
+ * Hook to protect routes based on authentication, email verification, and role.
  */
 export function useRouteProtection(config: ProtectionConfig = {}) {
   const {
@@ -37,29 +23,32 @@ export function useRouteProtection(config: ProtectionConfig = {}) {
   } = config;
 
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: user, isLoading } = useUser();
 
   useEffect(() => {
-    // Don't redirect while loading
     if (isLoading) return;
 
-    // Check if user is unauthenticated
     if (!user) {
-      // Guest trying to access protected route - redirect to login
       router.push(redirectTo);
       return;
     }
 
-    // User is authenticated, check role
-    if (!user.role) {
-      return; // hoặc redirect
+    if (user.emailVerified === false) {
+      const queryString = searchParams?.toString();
+      const currentPath = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(getPostAuthRedirect(user, currentPath));
+      return;
     }
 
-    // Check if user has required role
+    if (!user.role) {
+      return;
+    }
+
     const isAuthorized = requiredRoles.includes(user.role as AppRole);
 
     if (!isAuthorized) {
-      // User is authenticated but lacks required role - redirect
       router.push(unauthorizedRedirectTo);
     }
   }, [
@@ -68,13 +57,15 @@ export function useRouteProtection(config: ProtectionConfig = {}) {
     requiredRoles,
     redirectTo,
     unauthorizedRedirectTo,
+    pathname,
+    searchParams,
     router,
   ]);
 
-  // Determine if user is authorized
   const isAuthorized =
     !isLoading &&
     user &&
+    user.emailVerified !== false &&
     requiredRoles.includes((user.role || 'candidate') as AppRole);
 
   return { isLoading, isAuthorized };

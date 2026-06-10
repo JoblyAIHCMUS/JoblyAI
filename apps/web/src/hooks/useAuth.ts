@@ -52,7 +52,6 @@ export function useLogin() {
 
 export function useSignup() {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
     mutationFn: async (credentials: SignupCredentials) => {
@@ -79,7 +78,6 @@ export function useSignup() {
     onSuccess: (user) => {
       // OPTIMIZATION: Manually set cache
       queryClient.setQueryData(['user'], user);
-      router.push('/dashboard');
     },
   });
 }

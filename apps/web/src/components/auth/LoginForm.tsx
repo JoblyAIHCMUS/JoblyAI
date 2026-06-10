@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { sanitizeRedirectPath } from '@/lib/utils';
+import { getPostAuthRedirect } from '@/lib/utils';
 
 const loginSchema = z.object({
   email: z.email('Invalid email address'),
@@ -37,22 +37,7 @@ export function LoginForm() {
         onSuccess: (user) => {
           // Check for redirect parameter from URL query string
           const redirectParam = searchParams?.get('redirect');
-          const safeRedirect = sanitizeRedirectPath(redirectParam);
-
-          // If redirect param is provided and valid, use it
-          if (redirectParam && safeRedirect !== '/') {
-            router.push(safeRedirect);
-            return;
-          }
-
-          // Otherwise, use role-based redirect
-          const target =
-            user.role === 'employer'
-              ? '/employer'
-              : user.role === 'candidate'
-              ? '/candidate'
-              : '/';
-          router.push(target);
+          router.push(getPostAuthRedirect(user, redirectParam));
         },
       }
     );
