@@ -279,10 +279,7 @@ export default function BrowseCompaniesPage() {
     : 'Based on your profile, company preferences, and recent activity';
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={['top', 'left', 'right']}
-    >
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <CandidateDashboardSidebar
@@ -356,7 +353,9 @@ export default function BrowseCompaniesPage() {
           </View>
 
           <View className="mt-4 flex-row flex-wrap justify-center gap-1">
-            <Text className="text-base leading-6 text-[#64748b]">Popular :</Text>
+            <Text className="text-base leading-6 text-[#64748b]">
+              Popular :
+            </Text>
             {POPULAR_SEARCHES.map((value) => (
               <TouchableOpacity
                 key={value}
@@ -469,9 +468,7 @@ export default function BrowseCompaniesPage() {
             >
               <Text
                 className={`font-semibold ${
-                  currentPage === 1
-                    ? 'text-app-text-placeholder'
-                    : 'text-white'
+                  currentPage === 1 ? 'text-app-text-placeholder' : 'text-white'
                 }`}
               >
                 Previous
