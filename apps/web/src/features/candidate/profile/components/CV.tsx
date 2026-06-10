@@ -427,10 +427,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         disabled={
                           isActionInProgress ||
                           (processingTasks[resume.id]?.scoring &&
-                            !(
-                              resume.aiScore !== undefined &&
-                              resume.aiScore !== null
-                            ))
+                            resume.aiScore === null)
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -447,12 +444,14 @@ const CV = forwardRef<CVRef, CVProps>(
                             : 'Score with AI'
                         }
                       >
-                        {processingTasks[resume.id]?.scoring ? (
+                        {processingTasks[resume.id]?.scoring &&
+                        resume.aiScore === null ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Wand2 size={14} />
                         )}
-                        {processingTasks[resume.id]?.scoring
+                        {processingTasks[resume.id]?.scoring &&
+                        resume.aiScore === null
                           ? 'Scoring...'
                           : resume.aiScore !== undefined &&
                             resume.aiScore !== null
@@ -506,13 +505,11 @@ const CV = forwardRef<CVRef, CVProps>(
                           isUpdating ||
                           isDeleting
                         }
-                        className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
+                        className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        {deletingResumeId === resume.id ||
-                        processingTasks[resume.id]?.parsing ||
-                        processingTasks[resume.id]?.scoring ? (
+                        {deletingResumeId === resume.id ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
                         ) : (
                           <Trash2 size={16} className="text-red-600" />
