@@ -79,7 +79,7 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
           <EmployerSidebar />
           <main className="w-full flex flex-col h-screen lg:h-screen overflow-hidden bg-white">
             <EmployerTopBar />
-            <div className="flex-1 overflow-auto hidden-scrollbar">
+            <div className="flex-1 flex flex-col overflow-auto hidden-scrollbar">
               {children}
             </div>
           </main>

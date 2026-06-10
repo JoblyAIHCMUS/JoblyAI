@@ -26,7 +26,9 @@ function CandidateLayoutContent({ children }: { children: ReactNode }) {
       <CandidateSidebar />
       <main className="flex h-screen w-full flex-col overflow-hidden bg-white">
         <CandidateTopBar />
-        <div className="flex-1 overflow-auto hidden-scrollbar">{children}</div>
+        <div className="flex-1 flex flex-col overflow-auto hidden-scrollbar">
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );
