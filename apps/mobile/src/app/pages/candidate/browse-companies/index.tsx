@@ -23,6 +23,25 @@ import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboar
 
 const POPULAR_SEARCHES = ['Design', 'Engineering', 'Marketing', 'Finance'];
 const PAGE_SIZE = 6;
+const COMPANY_SIZE_FILTERS = [
+  'All',
+  'Startup',
+  'Small',
+  'Medium',
+  'Large',
+] as const;
+
+type CompanySizeFilter = (typeof COMPANY_SIZE_FILTERS)[number];
+
+const COMPANY_SIZE_RANGE_MAP: Record<
+  Exclude<CompanySizeFilter, 'All'>,
+  string[]
+> = {
+  Startup: ['1-10', '1-50'],
+  Small: ['11-50', '51-200'],
+  Medium: ['201-500', '501-1000'],
+  Large: ['1000+', '1001+'],
+};
 
 function getCompanyInitials(name: string): string {
   return name
@@ -36,6 +55,58 @@ function getCompanyInitials(name: string): string {
 
 function getIndustry(company: Company): string {
   return company.industry?.trim() || 'Technology';
+}
+
+function normalizeSizeRange(sizeRange: string): string {
+  return sizeRange.replace(/\s+/g, '').replace(/,/g, '');
+}
+
+function getCompanySizeGroup(company: Company): CompanySizeFilter | null {
+  const normalizedSizeRange = normalizeSizeRange(company.sizeRange ?? '');
+
+  if (!normalizedSizeRange) {
+    return null;
+  }
+
+  const explicitGroup = (
+    Object.entries(COMPANY_SIZE_RANGE_MAP) as Array<
+      [Exclude<CompanySizeFilter, 'All'>, string[]]
+    >
+  ).find(([, ranges]) => ranges.includes(normalizedSizeRange))?.[0];
+
+  if (explicitGroup) {
+    return explicitGroup;
+  }
+
+  const rangeMatch = normalizedSizeRange.match(/^(\d+)-(\d+)$/);
+  if (rangeMatch) {
+    const [, minValue, maxValue] = rangeMatch;
+    const min = Number(minValue);
+    const max = Number(maxValue);
+
+    if (min >= 1 && max <= 50) {
+      return 'Startup';
+    }
+
+    if (min >= 11 && max <= 200) {
+      return 'Small';
+    }
+
+    if (min >= 201 && max <= 1000) {
+      return 'Medium';
+    }
+
+    if (min >= 1000) {
+      return 'Large';
+    }
+  }
+
+  const plusMatch = normalizedSizeRange.match(/^(\d+)\+$/);
+  if (plusMatch && Number(plusMatch[1]) >= 1000) {
+    return 'Large';
+  }
+
+  return null;
 }
 
 function getShortDescription(company: Company): string {
@@ -121,18 +192,11 @@ export default function BrowseCompaniesPage() {
   const [localLocation, setLocalLocation] = useState('');
   const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [appliedLocation, setAppliedLocation] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('All');
+  const [selectedCompanySize, setSelectedCompanySize] =
+    useState<CompanySizeFilter>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const { companies, loading, error, refetch } = useCompanies();
-
-  const industries = useMemo(() => {
-    const uniqueIndustries = Array.from(
-      new Set(companies.map((company) => getIndustry(company)))
-    ).sort((left, right) => left.localeCompare(right));
-
-    return ['All', ...uniqueIndustries];
-  }, [companies]);
 
   const filteredCompanies = useMemo(() => {
     const normalizedSearch = appliedSearchTerm.trim().toLowerCase();
@@ -140,8 +204,9 @@ export default function BrowseCompaniesPage() {
 
     return companies.filter((company) => {
       const industry = getIndustry(company);
-      const matchesIndustry =
-        selectedIndustry === 'All' || industry === selectedIndustry;
+      const matchesCompanySize =
+        selectedCompanySize === 'All' ||
+        getCompanySizeGroup(company) === selectedCompanySize;
       const searchableText = [
         company.name,
         industry,
@@ -155,9 +220,9 @@ export default function BrowseCompaniesPage() {
       const matchesLocation =
         !normalizedLocation || searchableText.includes(normalizedLocation);
 
-      return matchesIndustry && matchesSearch && matchesLocation;
+      return matchesCompanySize && matchesSearch && matchesLocation;
     });
-  }, [appliedLocation, appliedSearchTerm, companies, selectedIndustry]);
+  }, [appliedLocation, appliedSearchTerm, companies, selectedCompanySize]);
 
   const totalPages = Math.max(
     1,
@@ -171,7 +236,7 @@ export default function BrowseCompaniesPage() {
 
   useEffect(
     () => setCurrentPage(1),
-    [appliedLocation, appliedSearchTerm, selectedIndustry]
+    [appliedLocation, appliedSearchTerm, selectedCompanySize]
   );
 
   useEffect(() => {
@@ -317,39 +382,37 @@ export default function BrowseCompaniesPage() {
             {companiesSectionDescription}
           </Text>
 
-          {industries.length > 1 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-4 mt-6"
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-            >
-              {industries.map((industry) => {
-                const active = selectedIndustry === industry;
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="-mx-4 mt-6"
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+          >
+            {COMPANY_SIZE_FILTERS.map((companySize) => {
+              const active = selectedCompanySize === companySize;
 
-                return (
-                  <TouchableOpacity
-                    key={industry}
-                    activeOpacity={0.8}
-                    onPress={() => setSelectedIndustry(industry)}
-                    className={`rounded-full border px-4 py-2 ${
-                      active
-                        ? 'border-[#4f46e5] bg-[#eef0ff]'
-                        : 'border-[#d6ddeb] bg-white'
+              return (
+                <TouchableOpacity
+                  key={companySize}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedCompanySize(companySize)}
+                  className={`rounded-full border px-4 py-2 ${
+                    active
+                      ? 'border-[#4f46e5] bg-[#eef0ff]'
+                      : 'border-[#d6ddeb] bg-white'
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      active ? 'text-[#4f46e5]' : 'text-[#64748b]'
                     }`}
                   >
-                    <Text
-                      className={`text-sm font-semibold ${
-                        active ? 'text-[#4f46e5]' : 'text-[#64748b]'
-                      }`}
-                    >
-                      {industry}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          ) : null}
+                    {companySize}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           <View className="mt-6 flex-row items-center gap-3">
             <View className="h-12 w-12 items-center justify-center rounded-full bg-[#eef0ff]">
