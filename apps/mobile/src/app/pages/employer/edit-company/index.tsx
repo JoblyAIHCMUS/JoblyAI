@@ -46,7 +46,12 @@ export default function EmployerEditCompanyPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
   const [companyId, setCompanyId] = useState<number | null>(null);
 
-  const { data: currentUser } = useGetEmployerProfile();
+  const { data: currentUser, isPending: loadingEmployer } =
+    useGetEmployerProfile();
+
+  const hasShownAccessDeniedToast = useRef(false);
+
+  const isCompanyAdmin = currentUser?.isCompanyAdmin ?? false;
 
   const {
     data: company,
@@ -75,6 +80,23 @@ export default function EmployerEditCompanyPage() {
       router.back();
     }
   }, [currentUser, router]);
+
+  // Redirect non-admin employer users back to the company profile page
+  useEffect(() => {
+    if (loadingEmployer) return;
+    if (!currentUser) return;
+    if (currentUser.isCompanyAdmin) return;
+
+    if (!hasShownAccessDeniedToast.current) {
+      hasShownAccessDeniedToast.current = true;
+      Toast.show({
+        type: 'error',
+        text1: 'Access denied',
+        text2: 'Only the company admin can edit the company profile.',
+      });
+    }
+    router.replace('/pages/employer/company-profile');
+  }, [currentUser, loadingEmployer, router]);
 
   const {
     control,
@@ -280,6 +302,17 @@ export default function EmployerEditCompanyPage() {
     return (
       <SafeAreaView className="flex-1 bg-white flex items-center justify-center">
         <ActivityIndicator size="large" color="#4F46E5" />
+      </SafeAreaView>
+    );
+  }
+
+  if (currentUser && !isCompanyAdmin) {
+    return (
+      <SafeAreaView className="flex-1 bg-white flex items-center justify-center px-6">
+        <Text className="text-4xl font-bold text-slate-900 mb-2">403</Text>
+        <Text className="text-slate-600 text-center text-base">
+          You do not have permission to access this page.
+        </Text>
       </SafeAreaView>
     );
   }

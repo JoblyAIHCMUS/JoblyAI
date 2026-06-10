@@ -46,6 +46,8 @@ export default function CompanyProfilePage() {
   const isLoading =
     employerLoading || (employer?.company?.id && companyLoading);
 
+  const isCompanyAdmin = employer?.isCompanyAdmin ?? false;
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -138,15 +140,17 @@ export default function CompanyProfilePage() {
           >
             <ArrowLeft size={24} color={COLORS.brandDark} />
           </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            className="p-1"
-            onPress={() => {
-              router.push(`/pages/employer/edit-company`);
-            }}
-          >
-            <SquarePen size={24} color={COLORS.primary2} />
-          </TouchableOpacity>
+          {isCompanyAdmin && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              className="p-1"
+              onPress={() => {
+                router.push(`/pages/employer/edit-company`);
+              }}
+            >
+              <SquarePen size={24} color={COLORS.primary2} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Company Basic Info */}
