@@ -506,11 +506,11 @@ export class JobsService {
    */
   private buildJobEmbeddingContent(job: JobPostingInterface): string {
     const skills = job.requirements.map((r) => r.skillName).join(', ');
-    return `Title: ${job.title} | Category: ${job.category?.name || ''} | Type: ${
-      job.type
-    } | Location: ${job.location || 'Remote'} | Description: ${
-      job.description
-    } | Requirements: ${skills}`;
+    return `Title: ${job.title} | Category: ${
+      job.category?.name || ''
+    } | Type: ${job.type} | Location: ${
+      job.location || 'Remote'
+    } | Description: ${job.description} | Requirements: ${skills}`;
   }
 
   async getJobsByCategoryId(

@@ -211,7 +211,8 @@ export function ApplicationHistoryRow({
             <p className="break-words font-[family-name:var(--family-primary)] text-[clamp(1.125rem,4.8vw,1.25rem)] font-semibold leading-6 text-[#25324b]">
               {item.title}
             </p>
-            {item.matchPercentage !== undefined && item.matchPercentage !== null ? (
+            {item.matchPercentage !== undefined &&
+            item.matchPercentage !== null ? (
               <div
                 className={cn(
                   'flex items-center gap-1 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold',
@@ -227,7 +228,7 @@ export function ApplicationHistoryRow({
                 {Math.round(item.matchPercentage)}%
               </div>
             ) : (
-              <div 
+              <div
                 className="flex items-center gap-1 shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
                 title="AI is calculating your match score..."
               >
@@ -274,8 +275,11 @@ export function ApplicationHistoryRow({
         </div>
 
         <div className="flex flex-col min-w-0">
-          <p className="truncate text-base text-[#25324b] font-medium">{item.title}</p>
-          {item.matchPercentage !== undefined && item.matchPercentage !== null ? (
+          <p className="truncate text-base text-[#25324b] font-medium">
+            {item.title}
+          </p>
+          {item.matchPercentage !== undefined &&
+          item.matchPercentage !== null ? (
             <div
               className={cn(
                 'mt-1 flex items-center gap-1 w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold',
@@ -291,7 +295,7 @@ export function ApplicationHistoryRow({
               {Math.round(item.matchPercentage)}% Match
             </div>
           ) : (
-            <div 
+            <div
               className="mt-1 flex items-center gap-1 w-fit rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
               title="AI is calculating your match score..."
             >

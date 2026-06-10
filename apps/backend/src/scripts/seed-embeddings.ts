@@ -35,16 +35,23 @@ async function generateEmbedding(text: string): Promise<number[]> {
 
     return result.embeddings[0].values || [];
   } catch (error: any) {
-    console.error(`Embedding error for text "${text.substring(0, 30)}...":`, error.message);
+    console.error(
+      `Embedding error for text "${text.substring(0, 30)}...":`,
+      error.message
+    );
     return [];
   }
 }
 
-async function updateEmbedding(modelName: string, id: number | string, embedding: number[]) {
+async function updateEmbedding(
+  modelName: string,
+  id: number | string,
+  embedding: number[]
+) {
   if (embedding.length === 0) return;
   const vStr = `[${embedding.join(',')}]`;
   const idColumn = typeof id === 'string' ? '"candidateId"' : 'id';
-  
+
   await prisma.$executeRawUnsafe(
     `UPDATE "${modelName}" SET embedding = $1::vector WHERE ${idColumn} = $2`,
     vStr,
@@ -59,12 +66,12 @@ async function processJobs() {
     where: { deletedAt: null },
     include: {
       category: true,
-      requirements: { 
-        include: { 
-          skill: true 
-        } 
-      }
-    }
+      requirements: {
+        include: {
+          skill: true,
+        },
+      },
+    },
   });
 
   // Filter jobs that don't have embeddings (using any cast to access the field)
@@ -73,8 +80,12 @@ async function processJobs() {
   console.log(`Found ${jobsToProcess.length} jobs to embed.`);
   for (const job of jobsToProcess) {
     const skills = job.requirements.map((r: any) => r.skill.name).join(', ');
-    const content = `Title: ${job.title} | Category: ${job.category?.name || ''} | Type: ${job.type} | Location: ${job.location || 'Remote'} | Description: ${job.description} | Requirements: ${skills}`;
-    
+    const content = `Title: ${job.title} | Category: ${
+      job.category?.name || ''
+    } | Type: ${job.type} | Location: ${
+      job.location || 'Remote'
+    } | Description: ${job.description} | Requirements: ${skills}`;
+
     const emb = await generateEmbedding(content);
     if (emb.length > 0) {
       await updateEmbedding('JobPosting', job.id, emb);

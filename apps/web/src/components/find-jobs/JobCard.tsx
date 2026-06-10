@@ -170,22 +170,25 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
               <h3 className="heading-h6-semi-bold text-slate-900">
                 {job.title}
               </h3>
-              {job.matchPercentage !== undefined && job.matchPercentage !== null && (
-                <div
-                  className={cn(
-                    'px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1',
-                    job.matchPercentage >= 80
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : job.matchPercentage >= 50
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-slate-50 text-slate-600 border-slate-200'
-                  )}
-                  title={`AI Match Score: ${Math.round(job.matchPercentage)}%`}
-                >
-                  <Star size={10} className="fill-current" />
-                  {Math.round(job.matchPercentage)}% Match
-                </div>
-              )}
+              {job.matchPercentage !== undefined &&
+                job.matchPercentage !== null && (
+                  <div
+                    className={cn(
+                      'px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1',
+                      job.matchPercentage >= 80
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : job.matchPercentage >= 50
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : 'bg-slate-50 text-slate-600 border-slate-200'
+                    )}
+                    title={`AI Match Score: ${Math.round(
+                      job.matchPercentage
+                    )}%`}
+                  >
+                    <Star size={10} className="fill-current" />
+                    {Math.round(job.matchPercentage)}% Match
+                  </div>
+                )}
             </div>
             <p className="body-body-1-regular mt-1 text-slate-600">
               {job.location

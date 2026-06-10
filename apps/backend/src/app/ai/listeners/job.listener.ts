@@ -7,15 +7,10 @@ import { Queue } from 'bullmq';
 export class JobListener {
   private readonly logger = new Logger(JobListener.name);
 
-  constructor(
-    @InjectQueue('job-embedding') private readonly jobQueue: Queue,
-  ) {}
+  constructor(@InjectQueue('job-embedding') private readonly jobQueue: Queue) {}
 
   @OnEvent('job.posting.updated')
-  async handleJobUpdated(payload: {
-    id: number;
-    content: string;
-  }) {
+  async handleJobUpdated(payload: { id: number; content: string }) {
     this.logger.log(
       `Job updated event received for ID: ${payload.id}. Adding to embedding queue...`
     );

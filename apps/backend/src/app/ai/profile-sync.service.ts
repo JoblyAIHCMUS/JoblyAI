@@ -24,9 +24,13 @@ export class ProfileSyncService {
 
   @OnEvent('job.posting.updated')
   async handleJobPostingUpdated(payload: { id: number; content: string }) {
-    this.logger.log(`Regenerating embedding for Job ID ${payload.id} (Background)`);
+    this.logger.log(
+      `Regenerating embedding for Job ID ${payload.id} (Background)`
+    );
     try {
-      const embedding = await this.aiProvider.generateEmbedding(payload.content);
+      const embedding = await this.aiProvider.generateEmbedding(
+        payload.content
+      );
       if (embedding && embedding.length > 0) {
         const vStr = `[${embedding.join(',')}]`;
         await this.prisma.$executeRawUnsafe(

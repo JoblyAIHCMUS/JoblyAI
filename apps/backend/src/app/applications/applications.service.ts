@@ -27,8 +27,8 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
         company: true;
         postedBy: {
           select: {
-            id: true,
-            name: true,
+            id: true;
+            name: true;
             email: true;
           };
         };
@@ -38,7 +38,7 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
       select: {
         id: true;
         fileKey: true;
-        aiScore: true,
+        aiScore: true;
         isDefault: true;
       };
     };
@@ -53,7 +53,6 @@ export class ApplicationsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly matchingService: MatchingService
   ) {}
-
 
   async createApplication(
     candidateId: string,
@@ -174,7 +173,10 @@ export class ApplicationsService {
         application = updatedApp;
       }
     } catch (error) {
-      console.error(`Failed to auto-calculate match score for application ${application.id}:`, error);
+      console.error(
+        `Failed to auto-calculate match score for application ${application.id}:`,
+        error
+      );
     }
 
     try {

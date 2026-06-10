@@ -34,7 +34,8 @@ function mapApiResponseToApplications(
         application.candidateId
       )}`,
       appliedDate: application.createdAt.split('T')[0],
-      score: application.matchPercentage !== null ? application.matchPercentage : 0,
+      score:
+        application.matchPercentage !== null ? application.matchPercentage : 0,
       hiringStage: mapApplicationStatusToHiringStage(application.status),
       appliedRole: application.job.title,
     };

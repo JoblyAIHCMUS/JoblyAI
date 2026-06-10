@@ -434,8 +434,8 @@ const CandidateProfilePage = () => {
 
       // Luôn đóng toast của resume đó khi có bất kỳ sự kiện thành công nào nếu nó không còn parsing/scoring tương ứng
       if (type === 'ai-scored-success' || type === 'ai-parsed-success') {
-         // Force dismiss after a short delay to ensure UI transition
-         setTimeout(() => toast.dismiss(`ai-processing-${rid}`), 500);
+        // Force dismiss after a short delay to ensure UI transition
+        setTimeout(() => toast.dismiss(`ai-processing-${rid}`), 500);
       }
 
       console.log('[CandidateProfilePage] Refreshing profile data...');

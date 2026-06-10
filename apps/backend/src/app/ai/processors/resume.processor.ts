@@ -98,27 +98,37 @@ export class ResumeProcessor extends WorkerHost {
           // NEW: Find all applications that use this resume and update their match scores
           const applications = await this.prisma.application.findMany({
             where: { resumeId: resumeId },
-            select: { id: true, jobId: true }
+            select: { id: true, jobId: true },
           });
 
           if (applications.length > 0) {
-            this.logger.log(`Updating match scores for ${applications.length} applications using resume ${resumeId}`);
-            
-            // We can't use MatchingService easily here due to circular deps sometimes, 
+            this.logger.log(
+              `Updating match scores for ${applications.length} applications using resume ${resumeId}`
+            );
+
+            // We can't use MatchingService easily here due to circular deps sometimes,
             // but we can call the SQL logic directly or just let the system handle it.
             // Let's use a simple loop for now.
             for (const app of applications) {
-              const [sim]: any[] = await this.prisma.$queryRawUnsafe(`
+              const [sim]: any[] = await this.prisma.$queryRawUnsafe(
+                `
                 SELECT 1 - (r.embedding <=> j.embedding) as similarity
                 FROM "resume" r
                 JOIN "JobPosting" j ON j.id = $2
                 WHERE r.id = $1 AND r.embedding IS NOT NULL AND j.embedding IS NOT NULL
-              `, resumeId, app.jobId);
+              `,
+                resumeId,
+                app.jobId
+              );
 
               if (sim && sim.similarity !== null) {
                 await this.prisma.application.update({
                   where: { id: app.id },
-                  data: { matchPercentage: parseFloat((Math.max(0, sim.similarity) * 100).toFixed(2)) }
+                  data: {
+                    matchPercentage: parseFloat(
+                      (Math.max(0, sim.similarity) * 100).toFixed(2)
+                    ),
+                  },
                 });
               }
             }

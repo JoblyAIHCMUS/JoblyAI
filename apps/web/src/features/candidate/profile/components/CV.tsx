@@ -464,7 +464,9 @@ const CV = forwardRef<CVRef, CVProps>(
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/candidate/find-jobs?resumeId=${resume.id}`);
+                          router.push(
+                            `/candidate/find-jobs?resumeId=${resume.id}`
+                          );
                         }}
                         disabled={isBusy}
                         className="h-9 px-3 flex items-center justify-center gap-2 rounded-md border border-accent-primary bg-white text-accent-primary hover:bg-[color:var(--bg-accent-primary)] transition-colors text-xs font-semibold"

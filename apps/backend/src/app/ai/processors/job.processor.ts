@@ -41,24 +41,34 @@ export class JobProcessor extends WorkerHost {
       // 3. Update match scores for all applications of this job
       const applications = await this.prisma.application.findMany({
         where: { jobId: jobId },
-        select: { id: true, resumeId: true }
+        select: { id: true, resumeId: true },
       });
 
       if (applications.length > 0) {
-        this.logger.log(`Recalculating match scores for ${applications.length} applications for job ${jobId}`);
-        
+        this.logger.log(
+          `Recalculating match scores for ${applications.length} applications for job ${jobId}`
+        );
+
         for (const app of applications) {
-          const [sim]: any[] = await this.prisma.$queryRawUnsafe(`
+          const [sim]: any[] = await this.prisma.$queryRawUnsafe(
+            `
             SELECT 1 - (r.embedding <=> j.embedding) as similarity
             FROM "resume" r
             JOIN "JobPosting" j ON j.id = $2
             WHERE r.id = $1 AND r.embedding IS NOT NULL AND j.embedding IS NOT NULL
-          `, app.resumeId, jobId);
+          `,
+            app.resumeId,
+            jobId
+          );
 
           if (sim && sim.similarity !== null) {
             await this.prisma.application.update({
               where: { id: app.id },
-              data: { matchPercentage: parseFloat((Math.max(0, sim.similarity) * 100).toFixed(2)) }
+              data: {
+                matchPercentage: parseFloat(
+                  (Math.max(0, sim.similarity) * 100).toFixed(2)
+                ),
+              },
             });
           }
         }
@@ -66,7 +76,9 @@ export class JobProcessor extends WorkerHost {
 
       return { success: true, jobId };
     } catch (error: any) {
-      this.logger.error(`Failed to process job embedding ${jobId}: ${error.message}`);
+      this.logger.error(
+        `Failed to process job embedding ${jobId}: ${error.message}`
+      );
       throw error;
     }
   }

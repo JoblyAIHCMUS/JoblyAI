@@ -127,15 +127,18 @@ export const columns: ColumnDef<Applicant>[] = [
           </span>
         );
       }
-      
-      const badgeClass = score >= 80 
-        ? 'bg-green-100 text-green-700' 
-        : score >= 50 
-        ? 'bg-blue-100 text-blue-700' 
-        : 'bg-slate-100 text-slate-700';
-      
+
+      const badgeClass =
+        score >= 80
+          ? 'bg-green-100 text-green-700'
+          : score >= 50
+          ? 'bg-blue-100 text-blue-700'
+          : 'bg-slate-100 text-slate-700';
+
       return (
-        <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}`}>
+        <span
+          className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
+        >
           {Math.round(score)}%
         </span>
       );

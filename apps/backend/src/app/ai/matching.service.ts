@@ -8,33 +8,43 @@ export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
 
   // Vietnamese accent mapping for manual unaccenting in SQL
-  private readonly VN_ACCENTS_SEARCH = 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴĐ';
-  private readonly VN_ACCENTS_REPLACE = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD';
+  private readonly VN_ACCENTS_SEARCH =
+    'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴĐ';
+  private readonly VN_ACCENTS_REPLACE =
+    'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD';
 
-  constructor(
-    @InjectPrisma() private readonly prisma: PrismaClient,
-  ) {}
+  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
 
   /**
    * Calculates the semantic match percentage between a resume and a job posting
    */
-  async calculateMatchPercentage(resumeId: number, jobId: number): Promise<number | null> {
+  async calculateMatchPercentage(
+    resumeId: number,
+    jobId: number
+  ): Promise<number | null> {
     try {
-      const result: any[] = await this.prisma.$queryRawUnsafe(`
+      const result: any[] = await this.prisma.$queryRawUnsafe(
+        `
         SELECT 1 - (r.embedding <=> j.embedding) as similarity
         FROM "resume" r
         JOIN "JobPosting" j ON j.id = $2
         WHERE r.id = $1
           AND r.embedding IS NOT NULL 
           AND j.embedding IS NOT NULL
-      `, resumeId, jobId);
+      `,
+        resumeId,
+        jobId
+      );
 
       if (result && result.length > 0 && result[0].similarity !== null) {
         return parseFloat((Math.max(0, result[0].similarity) * 100).toFixed(2));
       }
       return null;
     } catch (error: any) {
-      this.logger.error(`Failed to calculate match percentage for resume ${resumeId} and job ${jobId}`, error.stack);
+      this.logger.error(
+        `Failed to calculate match percentage for resume ${resumeId} and job ${jobId}`,
+        error.stack
+      );
       return null;
     }
   }
@@ -54,7 +64,9 @@ export class MatchingService {
     const page = query.page || 1;
     const offset = (page - 1) * limit;
 
-    this.logger.log(`Finding filtered job recommendations for resume ID: ${resumeId}`);
+    this.logger.log(
+      `Finding filtered job recommendations for resume ID: ${resumeId}`
+    );
 
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
@@ -71,7 +83,9 @@ export class MatchingService {
     );
 
     if (!resumeWithVector.length || !resumeWithVector[0].embedding) {
-      this.logger.warn(`Resume ${resumeId} has no embedding. Recommendations cannot be generated.`);
+      this.logger.warn(
+        `Resume ${resumeId} has no embedding. Recommendations cannot be generated.`
+      );
       return { jobs: [], total: 0, page, pageSize: limit, totalPages: 0 };
     }
 
@@ -85,7 +99,11 @@ export class MatchingService {
     if (query.q) {
       // Apply unaccenting to both q and the title/description
       const unaccentQ = this.wrapUnaccent(`$${paramIndex}`);
-      whereClause += ` AND (${this.wrapUnaccent('title')} ILIKE ${unaccentQ} OR ${this.wrapUnaccent('description')} ILIKE ${unaccentQ})`;
+      whereClause += ` AND (${this.wrapUnaccent(
+        'title'
+      )} ILIKE ${unaccentQ} OR ${this.wrapUnaccent(
+        'description'
+      )} ILIKE ${unaccentQ})`;
       params.push(`%${query.q}%`);
       paramIndex++;
     }
@@ -93,7 +111,9 @@ export class MatchingService {
     if (query.location) {
       // Apply manual unaccenting to location search
       const unaccentLocation = this.wrapUnaccent(`$${paramIndex}`);
-      whereClause += ` AND ${this.wrapUnaccent('location')} ILIKE ${unaccentLocation}`;
+      whereClause += ` AND ${this.wrapUnaccent(
+        'location'
+      )} ILIKE ${unaccentLocation}`;
       params.push(`%${query.location}%`);
       paramIndex++;
     }
@@ -125,11 +145,21 @@ export class MatchingService {
     // Sort by distance (pgvector)
     let orderBy = `distance ASC`;
     if (query.location) {
-      const locationParamIndex = params.findIndex(p => typeof p === 'string' && query.location && p.includes(query.location)) + 1;
+      const locationParamIndex =
+        params.findIndex(
+          (p) =>
+            typeof p === 'string' &&
+            query.location &&
+            p.includes(query.location)
+        ) + 1;
       if (locationParamIndex > 0) {
         // Prioritize exact/partial location matches (case-insensitive + unaccented)
-        const unaccentLocationSort = this.wrapUnaccent(`$${locationParamIndex}`);
-        orderBy = `(CASE WHEN ${this.wrapUnaccent('location')} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
+        const unaccentLocationSort = this.wrapUnaccent(
+          `$${locationParamIndex}`
+        );
+        orderBy = `(CASE WHEN ${this.wrapUnaccent(
+          'location'
+        )} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
       }
     }
 
@@ -176,10 +206,12 @@ export class MatchingService {
       .map((mj) => {
         const jobDetail = jobs.find((j) => j.id === mj.id);
         if (!jobDetail) return null;
-        
+
         return {
           ...this.mapToJobResponse(jobDetail),
-          matchPercentage: parseFloat((Math.max(0, 1 - mj.distance) * 100).toFixed(2)),
+          matchPercentage: parseFloat(
+            (Math.max(0, 1 - mj.distance) * 100).toFixed(2)
+          ),
         };
       })
       .filter(Boolean);
@@ -189,52 +221,73 @@ export class MatchingService {
       total,
       page,
       pageSize: limit,
-      totalPages
+      totalPages,
     };
   }
 
   /**
    * Calculates and updates the match percentage for a specific application
    */
-  async calculateApplicationScore(applicationId: number): Promise<number | null> {
-    this.logger.log(`Calculating percentage for application ID: ${applicationId}`);
-    
+  async calculateApplicationScore(
+    applicationId: number
+  ): Promise<number | null> {
+    this.logger.log(
+      `Calculating percentage for application ID: ${applicationId}`
+    );
+
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       select: { id: true, jobId: true, resumeId: true },
     });
 
     if (!application) {
-      this.logger.warn(`Application ${applicationId} not found for percentage calculation`);
+      this.logger.warn(
+        `Application ${applicationId} not found for percentage calculation`
+      );
       return null;
     }
 
     // Check if both have embeddings first for better logging
     const [job, resume] = await Promise.all([
-      this.prisma.$queryRawUnsafe(`SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "JobPosting" WHERE id = $1`, application.jobId),
-      this.prisma.$queryRawUnsafe(`SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "resume" WHERE id = $1`, application.resumeId)
+      this.prisma.$queryRawUnsafe(
+        `SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "JobPosting" WHERE id = $1`,
+        application.jobId
+      ),
+      this.prisma.$queryRawUnsafe(
+        `SELECT id, (embedding IS NOT NULL) as "hasEmbedding" FROM "resume" WHERE id = $1`,
+        application.resumeId
+      ),
     ]);
 
     const jobHasEmbedding = (job as any[])?.[0]?.hasEmbedding;
     const resumeHasEmbedding = (resume as any[])?.[0]?.hasEmbedding;
 
     if (!jobHasEmbedding || !resumeHasEmbedding) {
-      this.logger.warn(`Missing embeddings for Application ${applicationId}: Job=${!!jobHasEmbedding}, Resume=${!!resumeHasEmbedding}`);
+      this.logger.warn(
+        `Missing embeddings for Application ${applicationId}: Job=${!!jobHasEmbedding}, Resume=${!!resumeHasEmbedding}`
+      );
       return null;
     }
 
-    const percentage = await this.calculateMatchPercentage(application.resumeId, application.jobId);
-    
+    const percentage = await this.calculateMatchPercentage(
+      application.resumeId,
+      application.jobId
+    );
+
     if (percentage !== null) {
       await this.prisma.application.update({
         where: { id: applicationId },
         data: { matchPercentage: percentage },
       });
-      this.logger.log(`Successfully updated Application ${applicationId} with percentage: ${percentage}%`);
+      this.logger.log(
+        `Successfully updated Application ${applicationId} with percentage: ${percentage}%`
+      );
       return percentage;
     }
 
-    this.logger.warn(`Percentage calculation returned null for Application ${applicationId}`);
+    this.logger.warn(
+      `Percentage calculation returned null for Application ${applicationId}`
+    );
     return null;
   }
 
@@ -245,7 +298,8 @@ export class MatchingService {
   async reRankApplicants(jobId: number): Promise<{ updatedCount: number }> {
     this.logger.log(`Re-ranking all applicants for job ID: ${jobId}`);
 
-    const results: any[] = await this.prisma.$queryRawUnsafe(`
+    const results: any[] = await this.prisma.$queryRawUnsafe(
+      `
       SELECT 
         a.id as app_id,
         1 - (r.embedding <=> j.embedding) as score
@@ -255,7 +309,9 @@ export class MatchingService {
       WHERE a."jobId" = $1 
         AND r.embedding IS NOT NULL 
         AND j.embedding IS NOT NULL
-    `, jobId);
+    `,
+      jobId
+    );
 
     if (results.length === 0) {
       return { updatedCount: 0 };
@@ -265,14 +321,17 @@ export class MatchingService {
     const updatePromises = results.map((res) =>
       this.prisma.application.update({
         where: { id: res.app_id },
-        data: { 
-          matchPercentage: res.score !== null ? parseFloat((Math.max(0, res.score) * 100).toFixed(2)) : null 
+        data: {
+          matchPercentage:
+            res.score !== null
+              ? parseFloat((Math.max(0, res.score) * 100).toFixed(2))
+              : null,
         },
       })
     );
 
     await Promise.all(updatePromises);
-    
+
     return { updatedCount: results.length };
   }
 
@@ -294,7 +353,9 @@ export class MatchingService {
     );
 
     if (!jobResults.length || !jobResults[0].embedding) {
-      throw new NotFoundException(`Job ${jobId} has no embedding. Matching cannot be performed.`);
+      throw new NotFoundException(
+        `Job ${jobId} has no embedding. Matching cannot be performed.`
+      );
     }
 
     const jobVector = jobResults[0].embedding;
@@ -328,7 +389,7 @@ export class MatchingService {
     }
 
     const total = parseInt(candidates[0].full_count, 10);
-    const candidateIds = candidates.map(c => c.candidateId);
+    const candidateIds = candidates.map((c) => c.candidateId);
 
     // 3. Fetch detailed profiles
     const users = await this.prisma.user.findMany({
@@ -338,22 +399,24 @@ export class MatchingService {
         candidateSkills: { include: { skill: true } },
         experiences: { orderBy: { startDate: 'desc' }, take: 2 },
         education: { orderBy: { startDate: 'desc' }, take: 1 },
-      }
+      },
     });
 
     // 4. Check application status for each candidate on THIS job
     const applications = await this.prisma.application.findMany({
       where: {
         jobId: jobId,
-        candidateId: { in: candidateIds }
+        candidateId: { in: candidateIds },
       },
-      select: { candidateId: true, status: true, id: true }
+      select: { candidateId: true, status: true, id: true },
     });
 
-    const result = candidates.map(c => {
-      const user = users.find(u => u.id === c.candidateId);
-      const application = applications.find(a => a.candidateId === c.candidateId);
-      
+    const result = candidates.map((c) => {
+      const user = users.find((u) => u.id === c.candidateId);
+      const application = applications.find(
+        (a) => a.candidateId === c.candidateId
+      );
+
       return {
         id: user?.id,
         name: user?.name,
@@ -361,16 +424,18 @@ export class MatchingService {
         avatarUrl: user?.avatarUrl,
         title: user?.candidateDescription?.title,
         bio: user?.candidateDescription?.bio,
-        skills: user?.candidateSkills.map(s => s.skill.name),
-        topExperiences: user?.experiences.map(e => ({
+        skills: user?.candidateSkills.map((s) => s.skill.name),
+        topExperiences: user?.experiences.map((e) => ({
           companyName: e.companyName,
           jobTitle: e.jobTitle,
-          duration: `${e.startDate.getFullYear()} - ${e.endDate ? e.endDate.getFullYear() : 'Present'}`
+          duration: `${e.startDate.getFullYear()} - ${
+            e.endDate ? e.endDate.getFullYear() : 'Present'
+          }`,
         })),
         matchPercentage: Math.max(0, c.similarity * 100),
         applicationStatus: application?.status || null,
         applicationId: application?.id || null,
-        resumeId: c.resume_id
+        resumeId: c.resume_id,
       };
     });
 
@@ -379,7 +444,7 @@ export class MatchingService {
       total,
       page,
       pageSize: limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 

@@ -21,7 +21,11 @@ interface JobListSectionProps {
   handleSelectSort: (option: SortOption) => void;
   filterGroups: FilterGroupData[];
   checkedMap: Record<string, string[]>;
-  handleToggle: (groupTitle: string, itemLabel: string, itemValue?: string | number) => void;
+  handleToggle: (
+    groupTitle: string,
+    itemLabel: string,
+    itemValue?: string | number
+  ) => void;
   onSalaryChange: (min: number, max: number) => void;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;

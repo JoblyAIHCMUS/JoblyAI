@@ -316,10 +316,7 @@ function FindJobsPageContent() {
 
         let result;
         if (urlResumeId) {
-          result = await fetchRecommendations(
-            Number(urlResumeId),
-            queryParams
-          );
+          result = await fetchRecommendations(Number(urlResumeId), queryParams);
         } else {
           result = await fetchJobs(queryParams, {
             signal: abortController.signal,
@@ -372,11 +369,16 @@ function FindJobsPageContent() {
                 <BriefcaseBusiness size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Recommended for you</h2>
-                <p className="text-slate-600 text-sm">We've analyzed your resume and found these matching opportunities.</p>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Recommended for you
+                </h2>
+                <p className="text-slate-600 text-sm">
+                  We've analyzed your resume and found these matching
+                  opportunities.
+                </p>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleReset}
               className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
             >

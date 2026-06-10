@@ -25,9 +25,7 @@ export class MatchingController {
 
   @Get('job/:id/rerank')
   @UseGuards(AuthGuard)
-  async reRank(
-    @Param('id', ParseIntPipe) jobId: number
-  ) {
+  async reRank(@Param('id', ParseIntPipe) jobId: number) {
     return this.matchingService.reRankApplicants(jobId);
   }
 

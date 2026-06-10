@@ -14,7 +14,10 @@ const SCRYPT_CONFIG = { N: 16384, r: 16, p: 1, dkLen: 64 };
 async function hashPassword(password: string): Promise<string> {
   const salt = Buffer.from(randomBytes(16)).toString('hex');
   const key = await scryptAsync(password.normalize('NFKC'), salt, {
-    N: SCRYPT_CONFIG.N, p: SCRYPT_CONFIG.p, r: SCRYPT_CONFIG.r, dkLen: SCRYPT_CONFIG.dkLen,
+    N: SCRYPT_CONFIG.N,
+    p: SCRYPT_CONFIG.p,
+    r: SCRYPT_CONFIG.r,
+    dkLen: SCRYPT_CONFIG.dkLen,
     maxmem: 128 * SCRYPT_CONFIG.N * SCRYPT_CONFIG.r * 2,
   });
   return `${salt}:${Buffer.from(key).toString('hex')}`;
@@ -35,17 +38,23 @@ async function main() {
   );
 
   if (!jobs || jobs.length === 0) {
-    console.error('❌ No Job Posting with embedding found. Please run pnpm run seed:embeddings first.');
+    console.error(
+      '❌ No Job Posting with embedding found. Please run pnpm run seed:embeddings first.'
+    );
     process.exit(1);
   }
 
   const job = jobs[0];
   console.log(`Using Job: "${job.title}" (ID: ${job.id})`);
-  
+
   // Convert embedding to array if it's coming back as a string or special object from pgvector
   let jobEmbedding: number[];
   if (typeof job.embedding === 'string') {
-    jobEmbedding = job.embedding.replace('[', '').replace(']', '').split(',').map(Number);
+    jobEmbedding = job.embedding
+      .replace('[', '')
+      .replace(']', '')
+      .split(',')
+      .map(Number);
   } else {
     jobEmbedding = job.embedding;
   }
@@ -54,7 +63,7 @@ async function main() {
 
   // 2. Create 15 Mock Candidates
   console.log('Creating 15 mock candidates and applications...');
-  
+
   for (let i = 1; i <= 15; i++) {
     const timestamp = Date.now();
     const email = `mock.candidate.${timestamp}.${i}@example.com`;
@@ -76,7 +85,7 @@ async function main() {
         accountId: email,
         providerId: 'credential',
         password: hashedPassword,
-      }
+      },
     });
 
     // Create Resume
@@ -104,12 +113,16 @@ async function main() {
     );
 
     // 3. Calculate actual similarity using SQL
-    const [similarityResult]: any[] = await prisma.$queryRawUnsafe(`
+    const [similarityResult]: any[] = await prisma.$queryRawUnsafe(
+      `
       SELECT 1 - (r.embedding <=> j.embedding) as similarity
       FROM "resume" r
       JOIN "JobPosting" j ON j.id = $2
       WHERE r.id = $1
-    `, resume.id, job.id);
+    `,
+      resume.id,
+      job.id
+    );
 
     const matchPercentageRaw = similarityResult?.similarity || 0;
 
@@ -122,14 +135,26 @@ async function main() {
         status: ApplicationStatus.APPLIED,
         matchPercentage: parseFloat((matchPercentageRaw * 100).toFixed(2)),
         aiFeedback: {
-          strengths: ["Strong match based on mock vector", "Good experience alignment"],
-          gaps: noise > 0.3 ? ["Missing some specific niche skills", "Experience duration might be short"] : [],
-          conclusion: "This is a generated mock application for testing purposes."
-        }
+          strengths: [
+            'Strong match based on mock vector',
+            'Good experience alignment',
+          ],
+          gaps:
+            noise > 0.3
+              ? [
+                  'Missing some specific niche skills',
+                  'Experience duration might be short',
+                ]
+              : [],
+          conclusion:
+            'This is a generated mock application for testing purposes.',
+        },
       },
     });
 
-    console.log(`  ✅ [${i}/15] Created App for ${name}: Match ${application.matchPercentage}%`);
+    console.log(
+      `  ✅ [${i}/15] Created App for ${name}: Match ${application.matchPercentage}%`
+    );
   }
 
   console.log('\n✨ Seeding finished successfully!');
