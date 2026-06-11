@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -20,14 +26,26 @@ export default function MessagesScreen() {
   const [initialLoading, setInitialLoading] = useState(true);
   const hasFetchedRef = useRef(false);
 
-  const { data: employerProfile, isLoading: profileLoading, refetch: fetchProfile } = useGetEmployerProfile();
-  const { fetchChatSummary, data: chatSummary, loading, error } = useGetChatSummary();
+  const {
+    data: employerProfile,
+    isLoading: profileLoading,
+    refetch: fetchProfile,
+  } = useGetEmployerProfile();
+  const {
+    fetchChatSummary,
+    data: chatSummary,
+    loading,
+    error,
+  } = useGetChatSummary();
 
   const userId = employerProfile?.id;
 
-  const loadMessages = useCallback(async (uid: string) => {
-    await fetchChatSummary(uid);
-  }, [fetchChatSummary]);
+  const loadMessages = useCallback(
+    async (uid: string) => {
+      await fetchChatSummary(uid);
+    },
+    [fetchChatSummary]
+  );
 
   useEffect(() => {
     if (!userId || hasFetchedRef.current) return;
@@ -89,7 +107,9 @@ export default function MessagesScreen() {
     if (error && !chatSummary) {
       return (
         <MessagesError
-          message={error instanceof Error ? error.message : 'Something went wrong'}
+          message={
+            error instanceof Error ? error.message : 'Something went wrong'
+          }
           onRetry={() => userId && loadMessages(userId)}
         />
       );
