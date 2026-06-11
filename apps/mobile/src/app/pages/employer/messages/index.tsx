@@ -1,22 +1,62 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
 import MessagesSearchBar from './components/MessagesSearchBar';
 import MessageListItem from './components/MessageListItem';
-import { mockChatSummary } from './data/mockData';
+import MessagesLoading from './components/MessagesLoading';
+import MessagesError from './components/MessagesError';
 import { mapChatSummaryToConversation } from './utils';
 import { Conversation } from './types';
+import { useGetChatSummary } from '../../../../hooks/useGetChatSummary';
+import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 
 export default function MessagesScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const hasFetchedRef = useRef(false);
+
+  const { data: employerProfile, isLoading: profileLoading, refetch: fetchProfile } = useGetEmployerProfile();
+  const { fetchChatSummary, data: chatSummary, loading, error } = useGetChatSummary();
+
+  const userId = employerProfile?.id;
+
+  const loadMessages = useCallback(async (uid: string) => {
+    await fetchChatSummary(uid);
+  }, [fetchChatSummary]);
+
+  useEffect(() => {
+    if (!userId || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    loadMessages(userId);
+  }, [userId, loadMessages]);
+
+  useEffect(() => {
+    if (!profileLoading && userId) {
+      setInitialLoading(false);
+    }
+  }, [profileLoading, userId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const { data: profile } = await fetchProfile();
+      if (profile?.id) {
+        await loadMessages(profile.id);
+      }
+    } catch {
+      // silently swallow — previous data stays visible
+    }
+    setRefreshing(false);
+  }, [loadMessages, fetchProfile]);
 
   const conversations = useMemo(
-    () => mockChatSummary.map(mapChatSummaryToConversation),
-    []
+    () => (chatSummary || []).map(mapChatSummaryToConversation),
+    [chatSummary]
   );
 
   const filteredConversations = useMemo(() => {
@@ -41,11 +81,21 @@ export default function MessagesScreen() {
     </View>
   );
 
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
+  const renderContent = () => {
+    if (initialLoading || (profileLoading && !userId)) {
+      return <MessagesLoading />;
+    }
 
+    if (error && !chatSummary) {
+      return (
+        <MessagesError
+          message={error instanceof Error ? error.message : 'Something went wrong'}
+          onRetry={() => userId && loadMessages(userId)}
+        />
+      );
+    }
+
+    return (
       <FlatList
         data={filteredConversations}
         keyExtractor={(item) => item.chatId}
@@ -57,6 +107,9 @@ export default function MessagesScreen() {
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListHeaderComponent={
           <>
             <Text className="text-2xl font-semibold text-app-text-4 mb-4 mt-2">
@@ -72,6 +125,15 @@ export default function MessagesScreen() {
         }
         ListEmptyComponent={renderEmpty}
       />
+    );
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
+
+      {renderContent()}
 
       <EmployerDashboardSidebar
         isOpen={isSidebarOpen}
