@@ -12,9 +12,11 @@ import {
 } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
+import { useRecommendJobs } from '@/api-hook/jobs/useRecommendJobs';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 import { usePageTitle } from '@/contexts/page-title-context';
+import { BriefcaseBusiness } from 'lucide-react';
 import type { EmploymentType, JobPosting, SortOption } from '@/types/job';
 import {
   SALARY_MAX_CAP,
@@ -69,6 +71,7 @@ function FindJobsPageContent() {
   const urlPage = Number(searchParams.get('page')) || 1;
   const urlSort = (searchParams.get('sort') as SortOption) || 'MOST_RELEVANT';
   const urlQ = searchParams.get('q') || '';
+  const urlResumeId = searchParams.get('resumeId');
   const urlLocation = searchParams.get('location') || '';
   const urlMinSalary = Number(searchParams.get('minSalary')) || 0;
   const urlMaxSalary = Number(searchParams.get('maxSalary')) || SALARY_MAX_CAP;
@@ -274,10 +277,15 @@ function FindJobsPageContent() {
     setLocalSalaryMin(0);
     setLocalSalaryMax(SALARY_MAX_CAP);
     salaryFilterRef.current?.reset();
+    // Redirect to the base path to clear all query params including resumeId
     router.push(pathname);
   };
 
-  const { fetchJobs } = useListJobs();
+  const { fetchJobs, loading: searchLoading } = useListJobs();
+  const { fetchRecommendations, loading: recommendationsLoading } =
+    useRecommendJobs();
+
+  const loading = searchLoading || recommendationsLoading;
 
   // --- Main Data Fetching Effect (Reactive to URL) ---
   useEffect(() => {
@@ -289,25 +297,31 @@ function FindJobsPageContent() {
           .map((label) => getEmploymentTypeFromLabel(label))
           .filter((type): type is EmploymentType => type !== undefined);
 
-        const result = await fetchJobs(
-          {
-            page: urlPage,
-            pageSize: PAGE_SIZE,
-            sort: urlSort,
-            q: urlQ,
-            location: urlLocation,
-            type:
-              selectedEmploymentTypes.length > 0
-                ? selectedEmploymentTypes
-                : undefined,
-            categories:
-              urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
-            salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-            salaryMax: urlMaxSalary,
-            skills: urlSkills.length > 0 ? urlSkills : undefined,
-          },
-          { signal: abortController.signal }
-        );
+        const queryParams = {
+          page: urlPage,
+          pageSize: PAGE_SIZE,
+          sort: urlSort,
+          q: urlQ,
+          location: urlLocation,
+          type:
+            selectedEmploymentTypes.length > 0
+              ? selectedEmploymentTypes
+              : undefined,
+          categories:
+            urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
+          salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
+          salaryMax: urlMaxSalary,
+          skills: urlSkills.length > 0 ? urlSkills : undefined,
+        };
+
+        let result;
+        if (urlResumeId) {
+          result = await fetchRecommendations(Number(urlResumeId), queryParams);
+        } else {
+          result = await fetchJobs(queryParams, {
+            signal: abortController.signal,
+          });
+        }
 
         if (result) {
           setTotal(result.total);
@@ -327,6 +341,7 @@ function FindJobsPageContent() {
     urlPage,
     urlSort,
     urlQ,
+    urlResumeId,
     urlLocation,
     urlMinSalary,
     urlMaxSalary,
@@ -334,6 +349,7 @@ function FindJobsPageContent() {
     urlTypes,
     urlSkills,
     fetchJobs,
+    fetchRecommendations,
   ]);
 
   return (
@@ -344,8 +360,37 @@ function FindJobsPageContent() {
         setSearchTerm={handleSearchTermChange}
         setLocation={handleLocationChange}
       />
+
+      {urlResumeId && (
+        <div className="container mx-auto px-4 mt-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-600 p-3 rounded-lg text-white shadow-md">
+                <BriefcaseBusiness size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Recommended for you
+                </h2>
+                <p className="text-slate-600 text-sm">
+                  We've analyzed your resume and found these matching
+                  opportunities.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleReset}
+              className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+            >
+              Clear Recommendations
+            </button>
+          </div>
+        </div>
+      )}
+
       <JobListSection
         jobs={jobs}
+        isLoading={loading}
         total={total}
         totalPages={totalPages}
         currentPage={urlPage}

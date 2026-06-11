@@ -141,7 +141,7 @@ model JobPosting {
   status      JobStatus      @default(DRAFT)
   remote      Boolean        @default(false)
   type        EmploymentType @default(FULL_TIME)
-  embedding   Unsupported("vector(3072)")?
+  embedding   Unsupported("vector(768)")?
 
   postedById String
   postedBy   User   @relation(fields: [postedById], references: [id])
@@ -186,7 +186,7 @@ model Education {
   grade        String?
   description  String?
   sourceCvIds  Int[]
-  embedding    Unsupported("vector(3072)")?
+  embedding    Unsupported("vector(768)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -207,7 +207,7 @@ model Experience {
   description String?
   type        CandidateExperienceType?
   sourceCvIds Int[]
-  embedding   Unsupported("vector(3072)")?
+  embedding   Unsupported("vector(768)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -224,7 +224,7 @@ model CandidateDescription {
   bio             String?                     @db.Text
   rawDescriptions Json?
   rawTitles       Json?
-  embedding       Unsupported("vector(3072)")?
+  embedding       Unsupported("vector(768)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -242,7 +242,7 @@ model CandidateSkill {
   level       CandidateSkillLevel?
   years       Int?
   sourceCvIds Int[]
-  embedding   Unsupported("vector(3072)")?
+  embedding   Unsupported("vector(768)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -296,7 +296,7 @@ model Certificate {
   credentialId String?
   url          String?
   sourceCvIds  Int[]
-  embedding    Unsupported("vector(3072)")?
+  embedding    Unsupported("vector(768)")?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -368,7 +368,7 @@ model Resume {
   aiFeedback        Json?
   isSyncedToProfile Boolean       @default(true)
   isDefault         Boolean       @default(false)
-  embedding         Unsupported("vector(3072)")?
+  embedding         Unsupported("vector(768)")?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   applications      Application[]
@@ -491,4 +491,17 @@ enum Degree {
   MASTER
   PHD
   OTHER
+}
+
+model PotentialMatchCache {
+  id          Int      @id @default(autoincrement())
+  jobId       Int
+  candidateId String
+  insight     Json
+  createdAt   DateTime @default(now())
+
+  @@unique([jobId, candidateId])
+  @@index([jobId])
+  @@index([candidateId])
+  @@map("potential_match_cache")
 }

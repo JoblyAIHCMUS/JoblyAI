@@ -90,6 +90,7 @@ export class AiProviderService {
         // Standard task types for best quality
         config: {
           taskType: 'RETRIEVAL_DOCUMENT',
+          outputDimensionality: 768,
         },
       });
 

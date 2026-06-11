@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ParsedResume } from './resume-parser.service';
 import { AiProviderService } from './ai-provider.service';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProfileSyncService {
@@ -11,6 +12,41 @@ export class ProfileSyncService {
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     private readonly aiProvider: AiProviderService
   ) {}
+
+  @OnEvent('profile.item.updated')
+  async handleItemUpdated(payload: {
+    model: string;
+    id: number;
+    content: string;
+  }) {
+    // ... existing logic ...
+  }
+
+  @OnEvent('job.posting.updated')
+  async handleJobPostingUpdated(payload: { id: number; content: string }) {
+    this.logger.log(
+      `Regenerating embedding for Job ID ${payload.id} (Background)`
+    );
+    try {
+      const embedding = await this.aiProvider.generateEmbedding(
+        payload.content
+      );
+      if (embedding && embedding.length > 0) {
+        const vStr = `[${embedding.join(',')}]`;
+        await this.prisma.$executeRawUnsafe(
+          `UPDATE "JobPosting" SET embedding = $1::vector WHERE id = $2`,
+          vStr,
+          payload.id
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to regenerate embedding for Job ID ${payload.id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
 
   private normalize(str: string): string {
     return str ? str.trim().toLowerCase() : '';

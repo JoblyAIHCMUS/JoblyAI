@@ -80,6 +80,7 @@ function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
       ? 'closed'
       : mapApiStatusToCandidateStatus(record.status),
     recruiterId: record.job.postedBy.id,
+    matchPercentage: record.matchPercentage,
   };
 }
 

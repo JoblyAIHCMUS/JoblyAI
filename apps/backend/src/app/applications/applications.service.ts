@@ -17,6 +17,8 @@ import {
 } from './applications.interface';
 import { NotificationsService } from '../notifications/notifications.service';
 
+import { MatchingService } from '../ai/matching.service';
+
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
     job: {
@@ -48,7 +50,8 @@ export class ApplicationsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly notificationsService: NotificationsService,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly matchingService: MatchingService
   ) {}
 
   async createApplication(
@@ -156,6 +159,24 @@ export class ApplicationsService {
 
     if (!application) {
       throw new BadRequestException('Could not process application');
+    }
+
+    // Automatically calculate match score if embeddings exist
+    try {
+      await this.matchingService.calculateApplicationScore(application.id);
+      // Reload application to get the updated matchPercentage
+      const updatedApp = await this.prisma.application.findUnique({
+        where: { id: application.id },
+        include,
+      });
+      if (updatedApp) {
+        application = updatedApp;
+      }
+    } catch (error) {
+      console.error(
+        `Failed to auto-calculate match score for application ${application.id}:`,
+        error
+      );
     }
 
     try {
