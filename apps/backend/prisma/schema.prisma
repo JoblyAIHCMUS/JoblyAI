@@ -44,6 +44,7 @@ model User {
   participating        Conversation[]        @relation("ParticipantInConversations")
   applications         Application[]
   notifications        Notification[]
+  pushNotificationTokens PushNotificationToken[]
 
   @@map("user")
 }
@@ -392,6 +393,20 @@ model Notification {
   @@index([recipientId])
   @@index([isRead])
   @@map("notification")
+}
+
+model PushNotificationToken {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String?
+  deviceId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("push_notification_token")
 }
 
 model Application {

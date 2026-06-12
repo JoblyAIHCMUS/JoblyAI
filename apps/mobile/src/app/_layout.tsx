@@ -22,6 +22,8 @@ import { NAV_THEME } from '../lib/theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authClient } from '../lib/auth-client';
 import '../global.css';
+import { usePushNotifications } from '../hooks/usePushNotifications';
+import { useUser } from '../hooks/useUser';
 
 const PUBLIC_ENTRY_ROUTES = new Set([
   '/',
@@ -116,6 +118,14 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   return children;
 }
 
+function PushNotificationRegistrar() {
+  const { data: user } = useUser();
+
+  usePushNotifications(user);
+
+  return null;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -141,6 +151,7 @@ export default function AppLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={theme}>
         <SessionResumeGate>
+          <PushNotificationRegistrar />
           <StatusBar style={currentColorScheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }} />
           <PortalHost />

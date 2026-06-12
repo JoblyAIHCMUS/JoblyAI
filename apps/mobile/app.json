@@ -37,7 +37,22 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-router"
-    ]
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#4f46e5",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "147380f9-26dc-407b-b0da-6fd55683a253"
+      }
+    },
+    "owner": "pihogan"
   }
 }

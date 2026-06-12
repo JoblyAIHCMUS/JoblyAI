@@ -157,3 +157,8 @@ cache/
 .nx/polygraph
 .claude/worktrees
 .claude/settings.local.json
+
+apps/mobile/credentials.json
+apps/mobile/google-services.json
+apps/mobile/*firebase-adminsdk*.json
+apps/mobile/*service-account*.json

@@ -1,5 +1,23 @@
 import { pool, adapter, prisma, redis, scylla } from '../../lib/db';
-import { Global, Module } from '@nestjs/common';
+import { Global, Logger, Module } from '@nestjs/common';
+
+const isScyllaEnabled = !['false', '0', 'off', 'no'].includes(
+  String(process.env.SCYLLA_ENABLED ?? 'true').toLowerCase()
+);
+
+const disabledScyllaClient = {
+  async connect() {
+    Logger.warn(
+      'ScyllaDB is disabled. Message/chat features that use ScyllaDB will be unavailable.',
+      'DatabaseModule'
+    );
+  },
+  async execute() {
+    throw new Error(
+      'ScyllaDB is disabled. Set SCYLLA_ENABLED=true and configure SCYLLA_HOST to enable message/chat features.'
+    );
+  },
+};
 
 export const DatabaseProviders = [
   {
@@ -36,8 +54,12 @@ export const DatabaseProviders = [
   },
   {
     provide: 'SCYLLA_CLIENT',
-    useValue: scylla,
     useFactory: async () => {
+      if (!isScyllaEnabled) {
+        await disabledScyllaClient.connect();
+        return disabledScyllaClient;
+      }
+
       await scylla.connect();
       return scylla;
     },

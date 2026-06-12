@@ -3,7 +3,9 @@ import {
   Get,
   Patch,
   Delete,
+  Body,
   Param,
+  Post,
   ParseIntPipe,
   Req,
   UseGuards,
@@ -11,6 +13,10 @@ import {
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
+import {
+  RegisterPushTokenDTO,
+  UnregisterPushTokenDTO,
+} from './dto/push-token.dto';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -32,6 +38,26 @@ export class NotificationsController {
   async getUnreadCount(@Req() req: any) {
     const userId = req.user.id;
     return { count: await this.notificationsService.getUnreadCount(userId) };
+  }
+
+  @Post('push-token')
+  @ApiOperation({ summary: 'Register push token for current device' })
+  async registerPushToken(
+    @Req() req: any,
+    @Body() dto: RegisterPushTokenDTO
+  ) {
+    const userId = req.user.id;
+    return this.notificationsService.registerPushToken(userId, dto);
+  }
+
+  @Delete('push-token')
+  @ApiOperation({ summary: 'Unregister push token for current device' })
+  async unregisterPushToken(
+    @Req() req: any,
+    @Body() dto: UnregisterPushTokenDTO
+  ) {
+    const userId = req.user.id;
+    return this.notificationsService.unregisterPushToken(userId, dto.token);
   }
 
   @Patch(':id/read')
