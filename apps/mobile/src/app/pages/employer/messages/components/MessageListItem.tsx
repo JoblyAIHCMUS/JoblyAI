@@ -7,11 +7,13 @@ import { formatTimestamp } from '../utils';
 interface MessageListItemProps {
   conversation: Conversation;
   onPress?: (conversation: Conversation) => void;
+  isUnread: boolean;
 }
 
 const MessageListItem: React.FC<MessageListItemProps> = ({
   conversation,
   onPress,
+  isUnread,
 }) => {
   const renderAvatar = () => {
     const avatarUrl = conversation.avatar;
@@ -54,11 +56,19 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       activeOpacity={0.7}
       onPress={() => onPress?.(conversation)}
     >
-      {renderAvatar()}
+      <View className="relative">
+        {renderAvatar()}
+        {isUnread && (
+          <View
+            testID="unread-dot"
+            className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white"
+          />
+        )}
+      </View>
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between">
           <Text
-            className="text-base font-semibold text-app-slate-1"
+            className={`text-base font-semibold text-app-slate-1 ${isUnread ? 'font-bold' : ''}`}
             numberOfLines={1}
           >
             {conversation.name}

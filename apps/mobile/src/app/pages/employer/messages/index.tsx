@@ -100,6 +100,7 @@ export default function MessagesScreen() {
           <MessageListItem
             conversation={item}
             onPress={handleConversationPress}
+            isUnread={item.unread}
           />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
