@@ -17,7 +17,6 @@ type MessageReadListener = (d: MessageReadEvent) => void;
 
 export interface SocketContextValue {
   socket: Socket;
-  isConnected: () => boolean;
   sendMessage: (recipientId: string, text: string, ack: (r: SendMessageAck) => void) => void;
   markAsRead: (friendId: string, ack: (r: MarkReadAck) => void) => void;
   onNewMessage: (cb: NewMessageListener) => () => void;
@@ -81,7 +80,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   const value: SocketContextValue = {
     socket,
-    isConnected: () => socket.connected,
     sendMessage: emitSendMessage,
     markAsRead: emitMarkRead,
     onNewMessage: (cb) => {

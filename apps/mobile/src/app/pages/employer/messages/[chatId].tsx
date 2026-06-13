@@ -19,7 +19,6 @@ import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSummaryLoaded';
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
-import { useSocket } from '../../../../contexts/SocketProvider';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { withDateSeparators } from './utils';
 
@@ -62,18 +61,13 @@ export default function ChatScreen() {
     userId,
   });
 
-  // 6. Connection state for the header dot
-  const { isConnected } = useSocket();
-
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
         <ChatHeader
           name={summary?.participantName ?? 'Chat'}
-          role={summary?.participantRole ?? null}
           avatar={summary?.participantAvatar ?? null}
-          isOnline={isConnected()}
           onBack={() => router.back()}
         />
         <ChatLoading />
@@ -87,9 +81,7 @@ export default function ChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <ChatHeader
           name={summary?.participantName ?? 'Chat'}
-          role={summary?.participantRole ?? null}
           avatar={summary?.participantAvatar ?? null}
-          isOnline={isConnected()}
           onBack={() => router.back()}
         />
         <ChatError
@@ -108,9 +100,7 @@ export default function ChatScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ChatHeader
         name={summary?.participantName ?? 'Chat'}
-        role={summary?.participantRole ?? null}
         avatar={summary?.participantAvatar ?? null}
-        isOnline={isConnected()}
         onBack={() => router.back()}
       />
       <KeyboardAvoidingView
