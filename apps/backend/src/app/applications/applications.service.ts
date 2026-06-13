@@ -16,6 +16,7 @@ import {
   PaginatedApplicationsResponse,
 } from './applications.interface';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notification-type.enum';
 
 import { MatchingService } from '../ai/matching.service';
 
@@ -188,7 +189,7 @@ export class ApplicationsService {
     await this.notificationsService.createNotifications([
       {
         recipientId: job.postedById,
-        type: 'NEW_APPLICATION',
+        type: NotificationType.NEW_APPLICATION,
         title: 'New Job Application',
         content: `A new candidate has applied for your job: ${job.title}`,
         link: `/employer/all-applications/${application.id}`,
@@ -196,7 +197,7 @@ export class ApplicationsService {
       },
       {
         recipientId: candidateId,
-        type: 'APPLICATION_SUBMITTED',
+        type: NotificationType.APPLICATION_SUBMITTED,
         title: 'Application Submitted',
         content: `You have successfully applied for ${job.title}`,
         link: `/candidate/find-jobs/${job.id}`,
@@ -510,7 +511,7 @@ export class ApplicationsService {
     // Notify candidate
     await this.notificationsService.createNotification({
       recipientId: updatedApplication.candidateId,
-      type: 'APPLICATION_STATUS_UPDATE',
+      type: NotificationType.APPLICATION_STATUS_UPDATE,
       title: 'Application Status Updated',
       content: `Your application for ${updatedApplication.job.title} has been moved to INTERVIEW.`,
       link: `/candidate/find-jobs/${updatedApplication.job.id}`,
@@ -597,7 +598,7 @@ export class ApplicationsService {
     // Notify candidate
     await this.notificationsService.createNotification({
       recipientId: updatedApplication.candidateId,
-      type: 'APPLICATION_REJECTED',
+      type: NotificationType.APPLICATION_REJECTED,
       title: 'Application Update',
       content: `Your application for ${updatedApplication.job.title} has been rejected.`,
       link: `/candidate/find-jobs/${updatedApplication.job.id}`,
@@ -672,7 +673,7 @@ export class ApplicationsService {
     // Notify candidate
     await this.notificationsService.createNotification({
       recipientId: updatedApplication.candidateId,
-      type: 'APPLICATION_STATUS_UPDATE',
+      type: NotificationType.APPLICATION_STATUS_UPDATE,
       title: 'Job Offer Received',
       content: `Congratulations! You have received an offer for ${updatedApplication.job.title}.`,
       link: `/candidate/find-jobs/${updatedApplication.job.id}`,

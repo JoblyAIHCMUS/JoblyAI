@@ -4,6 +4,7 @@ import { NotificationsService } from '../app/notifications/notifications.service
 import { NotificationsGateway } from '../app/notifications/notifications.gateway';
 import { PrismaClient } from '@prisma/client';
 import { CreateNotificationDTO } from '../app/notifications/dto/create-notification.dto';
+import { NotificationType } from '../app/notifications/notification-type.enum';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
@@ -62,7 +63,7 @@ describe('NotificationsService', () => {
     it('should create a notification and push it via gateway', async () => {
       const dto: CreateNotificationDTO = {
         recipientId: 'user-1',
-        type: 'TEST_TYPE',
+        type: NotificationType.NEW_JOB,
         title: 'Test Title',
         content: 'Test Content',
         link: '/test',
@@ -92,7 +93,7 @@ describe('NotificationsService', () => {
     it('should create a notification without pushing when the matching setting is disabled', async () => {
       const dto: CreateNotificationDTO = {
         recipientId: 'user-1',
-        type: 'APPLICATION_STATUS_UPDATE',
+        type: NotificationType.APPLICATION_STATUS_UPDATE,
         title: 'Application updated',
         content: 'Your application status changed',
         link: '/candidate/applications',
@@ -134,21 +135,21 @@ describe('NotificationsService', () => {
       const dtos: CreateNotificationDTO[] = [
         {
           recipientId: 'employer-1',
-          type: 'NEW_APPLICATION',
+          type: NotificationType.NEW_APPLICATION,
           title: 'New Job Application',
           content: 'A new candidate has applied',
           link: '/employer/all-applications/1',
         },
         {
           recipientId: 'candidate-1',
-          type: 'APPLICATION_SUBMITTED',
+          type: NotificationType.APPLICATION_SUBMITTED,
           title: 'Application Submitted',
           content: 'You have successfully applied',
           link: '/candidate/find-jobs/1',
         },
         {
           recipientId: 'candidate-1',
-          type: 'APPLICATION_STATUS_UPDATE',
+          type: NotificationType.APPLICATION_STATUS_UPDATE,
           title: 'Application Status Updated',
           content: 'Your status changed',
           link: '/candidate/find-jobs/1',

@@ -8,6 +8,7 @@ import { PrismaClient } from '@prisma/client';
 import { NotificationsGateway } from './notifications.gateway';
 import { CreateNotificationDTO } from './dto/create-notification.dto';
 import { UpdateNotificationSettingsDTO } from './dto/update-notification-settings.dto';
+import { NotificationType } from './notification-type.enum';
 
 type NotificationPreferenceKey = 'applications' | 'jobs' | 'recommendations';
 
@@ -24,25 +25,25 @@ type NotificationSettingsFlags = {
   recommendationsEnabled: boolean;
 };
 
-const APPLICATION_NOTIFICATION_TYPES = new Set([
-  'NEW_APPLICATION',
-  'APPLICATION_SUBMITTED',
-  'APPLICATION_STATUS_UPDATE',
-  'APPLICATION_REJECTED',
+const APPLICATION_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.NEW_APPLICATION,
+  NotificationType.APPLICATION_SUBMITTED,
+  NotificationType.APPLICATION_STATUS_UPDATE,
+  NotificationType.APPLICATION_REJECTED,
 ]);
 
-const JOB_NOTIFICATION_TYPES = new Set([
-  'NEW_JOB',
-  'JOB_MATCH',
-  'JOB_RECOMMENDATION',
-  'SAVED_JOB_UPDATE',
+const JOB_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.NEW_JOB,
+  NotificationType.JOB_MATCH,
+  NotificationType.JOB_RECOMMENDATION,
+  NotificationType.SAVED_JOB_UPDATE,
 ]);
 
-const RECOMMENDATION_NOTIFICATION_TYPES = new Set([
-  'AI_RESUME_PARSED',
-  'AI_RESUME_SCORED',
-  'RECOMMENDATION',
-  'PERSONALIZED_RECOMMENDATION',
+const RECOMMENDATION_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.AI_RESUME_PARSED,
+  NotificationType.AI_RESUME_SCORED,
+  NotificationType.RECOMMENDATION,
+  NotificationType.PERSONALIZED_RECOMMENDATION,
 ]);
 
 @Injectable()
@@ -241,7 +242,10 @@ export class NotificationsService {
     });
   }
 
-  private async shouldSendRealtimeNotification(userId: string, type: string) {
+  private async shouldSendRealtimeNotification(
+    userId: string,
+    type: NotificationType
+  ) {
     const preferenceKey = this.getPreferenceKeyForType(type);
 
     if (!preferenceKey) {
@@ -282,7 +286,7 @@ export class NotificationsService {
   }
 
   private shouldSendRealtimeNotificationFromSettings(
-    type: string,
+    type: NotificationType,
     settings?: NotificationSettingsFlags
   ) {
     const preferenceKey = this.getPreferenceKeyForType(type);
@@ -314,7 +318,7 @@ export class NotificationsService {
   }
 
   private getPreferenceKeyForType(
-    type: string
+    type: NotificationType
   ): NotificationPreferenceKey | null {
     if (APPLICATION_NOTIFICATION_TYPES.has(type)) {
       return 'applications';
