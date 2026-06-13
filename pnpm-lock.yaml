@@ -36,7 +36,6 @@ overrides:
   next: '>=16.2.3'
   tmp: '>=0.2.6'
   esbuild: '>=0.28.1'
-  esbuild: '>=0.28.1'
 
 importers:
   .:
