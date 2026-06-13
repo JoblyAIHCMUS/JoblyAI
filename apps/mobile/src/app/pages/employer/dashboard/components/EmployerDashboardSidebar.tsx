@@ -32,6 +32,7 @@ import { usePathname, useRouter, Link } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
 import { useLogout } from '../../../../../hooks/useAuth';
+import { useUnreadDot } from '../../../../../hooks/messaging/useUnreadDot';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const { data: employerProfile, isPending, error } = useGetEmployerProfile();
   const { logout, loading: isLoggingOut } = useLogout();
+  const hasUnreadMessages = useUnreadDot();
   const company = employerProfile?.company;
   const isUnaffiliated = !company && !isPending && !error;
   const avatarUrl = employerProfile?.avatarUrl?.trim();
@@ -94,7 +96,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
       name: 'Messages',
       icon: MessageSquare,
       path: '/pages/employer/messages',
-      badge: 1,
+      badge: hasUnreadMessages,
     },
     {
       name: 'Company Profile',
@@ -229,11 +231,10 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                 </Text>
 
                 {item.badge && (
-                  <View className="ml-auto h-10 min-w-10 items-center justify-center rounded-full bg-[#4F46E5] px-2">
-                    <Text className="text-white text-sm font-bold">
-                      {item.badge}
-                    </Text>
-                  </View>
+                  <View
+                    testID="sidebar-unread-dot"
+                    className="ml-auto h-2.5 w-2.5 rounded-full bg-app-primary"
+                  />
                 )}
               </TouchableOpacity>
             );
