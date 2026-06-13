@@ -12,8 +12,8 @@ import {
 import { Search, Star, X, MessageCircle } from 'lucide-react-native';
 import { SvgUri } from 'react-native-svg';
 import { PipelineView } from './PipelineView';
-import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
-import { useMessageCandidate } from '../../../../hooks/messaging/useMessageCandidate';
+import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
+import { useMessageCandidate } from '../../../../../hooks/messaging/useMessageCandidate';
 
 export type ApplicantStatus =
   | 'In-review'
