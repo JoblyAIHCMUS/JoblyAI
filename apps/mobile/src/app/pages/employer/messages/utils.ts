@@ -56,26 +56,35 @@ function sameDay(a: Date, b: Date): boolean {
 
 function getDateLabel(d: Date): string {
   const today = new Date();
-  if (sameDay(d, today)) return 'Today';
+  today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (sameDay(d, yesterday)) return 'Yesterday';
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  yesterday.setDate(yesterday.getDate() - 1);
+  const messageDate = new Date(d);
+  messageDate.setHours(0, 0, 0, 0);
+  if (messageDate.getTime() === today.getTime()) return 'Today';
+  if (messageDate.getTime() === yesterday.getTime()) return 'Yesterday';
+  return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function withDateSeparators(messages: ChatMessage[]): Message[] {
+export function withDateSeparators(
+  messages: ChatMessage[],
+  currentUserId: string
+): Message[] {
   if (messages.length === 0) return [];
-  return messages.map((m, i) => {
+
+  const sorted = [...messages].sort(
+    (a, b) =>
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+
+  return sorted.map((m, i) => {
     const ts = new Date(m.timestamp);
-    const prev = i > 0 ? new Date(messages[i - 1].timestamp) : null;
-    const showDateSeparator = !prev || !sameDay(prev, ts);
-    const base = mapChatHistoryToMessage(m, '');
+    const prev = i > 0 ? sorted[i - 1] : null;
+    const showDateSeparator = !prev || !sameDay(new Date(prev.timestamp), ts);
     return {
-      ...base,
+      ...m,
+      timestamp: ts,
+      isSent: m.senderId === currentUserId,
       showDateSeparator,
       dateLabel: showDateSeparator ? getDateLabel(ts) : undefined,
     };
