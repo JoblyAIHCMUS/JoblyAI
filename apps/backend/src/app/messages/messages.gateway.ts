@@ -69,18 +69,31 @@ export class MessagesGateway
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() dto: SendMessageDTO
-  ) {
+  ): Promise<
+    | { status: 'ok'; messageId: string; timestamp: string }
+    | { status: 'error'; error: string }
+  > {
     const senderId = client.data.userId as string;
+    try {
+      const { messageId, timestamp } = await this.messagesService.sendMessage(
+        senderId,
+        dto
+      );
+      const chatId = MessagesService.getChatId(senderId, dto.recipientId);
+      const payload = { chatId, messageId, senderId, content: dto.text, timestamp };
 
-    await this.messagesService.sendMessage(senderId, dto);
+      // Recipient (existing behavior)
+      this.server.to(dto.recipientId).emit('new_message', payload);
 
-    this.server.to(dto.recipientId).emit('new_message', {
-      senderId,
-      content: dto.text,
-      timestamp: new Date(),
-    });
+      // Sender (NEW) — multi-device sync. Same payload; the client de-dupes
+      // by messageId so a sender with the chat open on this device won't see
+      // a duplicate of the optimistic message they just sent.
+      this.server.to(senderId).emit('new_message', payload);
 
-    return { status: 'ok' };
+      return { status: 'ok', messageId, timestamp };
+    } catch (e) {
+      return { status: 'error', error: (e as Error).message };
+    }
   }
 
   @SubscribeMessage('mark_read')

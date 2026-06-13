@@ -245,6 +245,10 @@ describe('MessagesGateway', () => {
       const senderId = mockUser1.id;
       const recipientId = mockUser2.id;
       const messageText = 'Hello there!';
+      const serviceResult = {
+        messageId: 'timeuuid-abc',
+        timestamp: new Date('2026-06-13T10:00:00Z').toISOString(),
+      };
 
       const client = createMockSocket(senderId);
       const dto = {
@@ -252,7 +256,7 @@ describe('MessagesGateway', () => {
         text: messageText,
       };
 
-      mockMessagesService.sendMessage.mockResolvedValue(undefined);
+      mockMessagesService.sendMessage.mockResolvedValue(serviceResult);
 
       // Act
       const result = await gateway.handleSendMessage(
@@ -268,13 +272,20 @@ describe('MessagesGateway', () => {
 
       // Verify the server emitted to the recipient's room
       expect(mockServer._toMock).toHaveBeenCalledWith(recipientId);
-      expect(mockServer._emitMock).toHaveBeenCalledWith('new_message', {
-        senderId,
-        content: messageText,
-        timestamp: expect.any(Date),
-      });
+      expect(mockServer._emitMock).toHaveBeenCalledWith(
+        'new_message',
+        expect.objectContaining({
+          senderId,
+          content: messageText,
+          messageId: serviceResult.messageId,
+        })
+      );
 
-      expect(result).toEqual({ status: 'ok' });
+      expect(result).toEqual({
+        status: 'ok',
+        messageId: serviceResult.messageId,
+        timestamp: serviceResult.timestamp,
+      });
     });
 
     it('should use the sender ID from socket data', async () => {
@@ -288,7 +299,10 @@ describe('MessagesGateway', () => {
         text: 'Message from user 2',
       };
 
-      mockMessagesService.sendMessage.mockResolvedValue(undefined);
+      mockMessagesService.sendMessage.mockResolvedValue({
+        messageId: 'm1',
+        timestamp: new Date().toISOString(),
+      });
 
       // Act
       await gateway.handleSendMessage(client as unknown as Socket, dto);
@@ -306,7 +320,7 @@ describe('MessagesGateway', () => {
       );
     });
 
-    it('should handle service errors when sending message', async () => {
+    it('should return { status: "error" } when the service throws', async () => {
       // Arrange
       const client = createMockSocket(mockUser1.id);
       const dto = {
@@ -314,13 +328,22 @@ describe('MessagesGateway', () => {
         text: 'Test message',
       };
 
-      const error = new Error('Failed to save message');
-      mockMessagesService.sendMessage.mockRejectedValue(error);
+      mockMessagesService.sendMessage.mockRejectedValue(
+        new Error('Failed to save message')
+      );
 
-      // Act & Assert
-      await expect(
-        gateway.handleSendMessage(client as unknown as Socket, dto)
-      ).rejects.toThrow('Failed to save message');
+      // Act
+      const result = await gateway.handleSendMessage(
+        client as unknown as Socket,
+        dto
+      );
+
+      // Assert
+      expect(result).toEqual({
+        status: 'error',
+        error: 'Failed to save message',
+      });
+      expect(mockServer._emitMock).not.toHaveBeenCalled();
     });
 
     it('should still emit event even if service succeeds', async () => {
@@ -334,13 +357,15 @@ describe('MessagesGateway', () => {
         text: 'Important message',
       };
 
-      mockMessagesService.sendMessage.mockResolvedValue(undefined);
+      mockMessagesService.sendMessage.mockResolvedValue({
+        messageId: 'm1',
+        timestamp: new Date().toISOString(),
+      });
 
       // Act
       await gateway.handleSendMessage(client as unknown as Socket, dto);
 
       // Assert - Socket.IO emit should happen after service call succeeds
-      // Fix: Access invocationCallOrder correctly via .mock property
       const serviceCallOrder =
         mockMessagesService.sendMessage.mock.invocationCallOrder[0];
       const emitCallOrder = mockServer._toMock.mock.invocationCallOrder[0];
@@ -352,6 +377,10 @@ describe('MessagesGateway', () => {
       const senderId = mockUser1.id;
       const recipientId = mockUser2.id;
       const messageText = 'Structured message';
+      const serviceResult = {
+        messageId: 'timeuuid-xyz',
+        timestamp: new Date('2026-06-13T11:00:00Z').toISOString(),
+      };
 
       const client = createMockSocket(senderId);
       const dto = {
@@ -359,7 +388,7 @@ describe('MessagesGateway', () => {
         text: messageText,
       };
 
-      mockMessagesService.sendMessage.mockResolvedValue(undefined);
+      mockMessagesService.sendMessage.mockResolvedValue(serviceResult);
 
       // Act
       await gateway.handleSendMessage(client as unknown as Socket, dto);
@@ -369,8 +398,77 @@ describe('MessagesGateway', () => {
       expect(emitCall[0]).toBe('new_message');
       expect(emitCall[1]).toHaveProperty('senderId', senderId);
       expect(emitCall[1]).toHaveProperty('content', messageText);
-      expect(emitCall[1]).toHaveProperty('timestamp');
-      expect(emitCall[1].timestamp).toBeInstanceOf(Date);
+      expect(emitCall[1]).toHaveProperty('chatId');
+      expect(emitCall[1]).toHaveProperty('messageId', serviceResult.messageId);
+      expect(emitCall[1]).toHaveProperty('timestamp', serviceResult.timestamp);
+    });
+  });
+
+  describe('handleSendMessage (mobile-friendly ack + sender-self-echo)', () => {
+    it('returns { status: "ok", messageId, timestamp } in the ack', async () => {
+      const senderId = mockUser1.id;
+      const recipientId = mockUser2.id;
+      const client = createMockSocket(senderId);
+      const dto = { recipientId, text: 'hello' };
+
+      mockMessagesService.sendMessage.mockResolvedValue({
+        messageId: 'timeuuid-abc',
+        timestamp: '2026-06-13T10:00:00.000Z',
+      });
+
+      const result = await gateway.handleSendMessage(
+        client as unknown as Socket,
+        dto
+      );
+
+      expect(result).toEqual({
+        status: 'ok',
+        messageId: 'timeuuid-abc',
+        timestamp: '2026-06-13T10:00:00.000Z',
+      });
+    });
+
+    it('emits new_message to BOTH the recipient and the sender with chatId and messageId', async () => {
+      const senderId = mockUser1.id;
+      const recipientId = mockUser2.id;
+      const client = createMockSocket(senderId);
+      const dto = { recipientId, text: 'hello' };
+
+      mockMessagesService.sendMessage.mockResolvedValue({
+        messageId: 'timeuuid-abc',
+        timestamp: '2026-06-13T10:00:00.000Z',
+      });
+
+      await gateway.handleSendMessage(client as unknown as Socket, dto);
+
+      // Two room emits: one to recipient, one to sender
+      expect(mockServer._toMock).toHaveBeenCalledWith(recipientId);
+      expect(mockServer._toMock).toHaveBeenCalledWith(senderId);
+      expect(mockServer._emitMock).toHaveBeenCalledWith(
+        'new_message',
+        expect.objectContaining({
+          chatId: expect.stringMatching(/^user\d+:user\d+$/),
+          messageId: 'timeuuid-abc',
+          senderId,
+          content: 'hello',
+        })
+      );
+      // Both emits should carry the SAME payload
+      expect(mockServer._emitMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns { status: "error", error } when the service throws', async () => {
+      const client = createMockSocket(mockUser1.id);
+      const dto = { recipientId: mockUser2.id, text: 'hello' };
+      mockMessagesService.sendMessage.mockRejectedValue(new Error('db down'));
+
+      const result = await gateway.handleSendMessage(
+        client as unknown as Socket,
+        dto
+      );
+
+      expect(result).toEqual({ status: 'error', error: 'db down' });
+      expect(mockServer._emitMock).not.toHaveBeenCalled();
     });
   });
 
@@ -514,7 +612,10 @@ describe('MessagesGateway', () => {
       const senderSocket = createMockSocket(senderId);
       const recipientSocket = createMockSocket(recipientId);
 
-      mockMessagesService.sendMessage.mockResolvedValue(undefined);
+      mockMessagesService.sendMessage.mockResolvedValue({
+        messageId: 'm1',
+        timestamp: new Date().toISOString(),
+      });
       mockMessagesService.markAsRead.mockResolvedValue(undefined);
 
       // Act - Send message
@@ -539,11 +640,12 @@ describe('MessagesGateway', () => {
       expect(mockMessagesService.sendMessage).toHaveBeenCalled();
       expect(mockMessagesService.markAsRead).toHaveBeenCalled();
 
-      // Verify both events were emitted
-      // First emit is from handleSendMessage: server.to(recipientId)
+      // First two emits are from handleSendMessage: server.to(recipientId), then server.to(senderId)
       expect(mockServer._toMock).toHaveBeenNthCalledWith(1, recipientId);
-      // Second and third emits are from handleMarkRead: server.to(recipientId) then server.to(senderId)
-      expect(mockServer._toMock).toHaveBeenNthCalledWith(3, senderId);
+      expect(mockServer._toMock).toHaveBeenNthCalledWith(2, senderId);
+      // Third and fourth emits are from handleMarkRead: server.to(userId=recipientId), then server.to(friendId=senderId)
+      expect(mockServer._toMock).toHaveBeenNthCalledWith(3, recipientId);
+      expect(mockServer._toMock).toHaveBeenNthCalledWith(4, senderId);
     });
   });
 });

@@ -12,11 +12,14 @@ export class MessagesService {
     @InjectPrisma() private readonly prisma: PrismaClient
   ) {}
 
-  private static getChatId(userA: string, userB: string): string {
+  static getChatId(userA: string, userB: string): string {
     return [userA, userB].sort().join(':');
   }
 
-  async sendMessage(senderId: string, dto: SendMessageDTO): Promise<void> {
+  async sendMessage(
+    senderId: string,
+    dto: SendMessageDTO
+  ): Promise<{ messageId: string; timestamp: string }> {
     const chatId = MessagesService.getChatId(senderId, dto.recipientId);
     const messageId = types.TimeUuid.now();
 
@@ -65,6 +68,8 @@ export class MessagesService {
         create: { ...recipientData, ...updatePayload },
       }),
     ]);
+
+    return { messageId: messageId.toString(), timestamp: new Date().toISOString() };
   }
 
   async markAsRead(senderId: string, recipientId: string): Promise<void> {
