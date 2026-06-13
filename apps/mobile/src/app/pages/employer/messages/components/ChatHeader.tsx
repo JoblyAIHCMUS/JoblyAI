@@ -2,17 +2,19 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import Avatar from '../../../../components/Avatar';
+import Avatar from '../../../../../components/Avatar';
 
 interface ChatHeaderProps {
   name: string;
   avatar: string | null;
+  role?: string | null;
   onBack: () => void;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
   name,
   avatar,
+  role,
   onBack,
 }) => {
   return (
@@ -39,6 +41,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           >
             {name}
           </Text>
+          {role ? (
+            <Text className="text-xs text-app-slate-3" numberOfLines={1}>
+              {role}
+            </Text>
+          ) : null}
         </View>
       </View>
     </SafeAreaView>
