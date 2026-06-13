@@ -81,6 +81,7 @@ export interface JobPosting {
   status: JobStatus;
   createdAt: Date;
   updatedAt: Date;
+  matchPercentage?: number;
 }
 
 export interface PaginatedJobsResponse {

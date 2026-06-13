@@ -34,7 +34,8 @@ function mapApiResponseToApplications(
         application.candidateId
       )}`,
       appliedDate: application.createdAt.split('T')[0],
-      score: 0, // TODO: Placeholder, as score is not available in the API response (AI not implemented yet)
+      score:
+        application.matchPercentage !== null ? application.matchPercentage : 0,
       hiringStage: mapApplicationStatusToHiringStage(application.status),
       appliedRole: application.job.title,
     };

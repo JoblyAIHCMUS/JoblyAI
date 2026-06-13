@@ -118,11 +118,31 @@ export const columns: ColumnDef<Applicant>[] = [
         )}
       </Button>
     ),
-    cell: ({ row }) => (
-      <span className="body-body-1-medium">
-        {row.getValue<number>('score').toFixed(1)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const score = row.getValue<number>('score');
+      if (score === null || score === undefined || score === 0) {
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+            AI Calculating...
+          </span>
+        );
+      }
+
+      const badgeClass =
+        score >= 80
+          ? 'bg-green-100 text-green-700'
+          : score >= 50
+          ? 'bg-blue-100 text-blue-700'
+          : 'bg-slate-100 text-slate-700';
+
+      return (
+        <span
+          className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
+        >
+          {Math.round(score)}%
+        </span>
+      );
+    },
   },
   {
     accessorKey: 'hiringStage',

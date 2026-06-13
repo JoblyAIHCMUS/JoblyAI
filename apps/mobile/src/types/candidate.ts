@@ -22,12 +22,24 @@ export interface CandidateEducation {
   fieldOfStudy?: string;
   startDate: string;
   endDate?: string;
+  grade?: string;
   description?: string;
+}
+
+export interface CandidateCertificate {
+  id: number;
+  name: string;
+  issuer: string;
+  issueDate: string;
+  expiryDate?: string;
+  credentialId?: string;
+  url?: string;
 }
 
 export interface CandidateSkill {
   id: number;
   name: string;
+  title?: string;
 }
 
 export interface CandidateContact {
@@ -57,6 +69,7 @@ export interface CandidateProfileResponse {
   about?: CandidateAbout;
   experiences?: CandidateExperience[];
   educations?: CandidateEducation[];
+  certificates?: CandidateCertificate[];
   skills?: CandidateSkill[];
   contacts?: CandidateContact[];
   socials?: CandidateSocial[];

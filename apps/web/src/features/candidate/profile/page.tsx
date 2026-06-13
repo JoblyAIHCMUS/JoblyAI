@@ -403,34 +403,27 @@ const CandidateProfilePage = () => {
       const customEvent = e as CustomEvent;
       const { resumeId } = customEvent.detail;
       const type = e.type;
+      const rid = Number(resumeId);
 
       console.log(
-        `[CandidateProfilePage] 🏁 AI processing finished event received: ${type} for resume ${resumeId}`
+        `[CandidateProfilePage] 🏁 AI processing finished event received: ${type} for resume ${rid}`
       );
 
       setProcessingTasks((prev) => {
         const next = { ...prev };
-        const rid = Number(resumeId);
         const current = next[rid] || { parsing: false, scoring: false };
 
         if (type === 'ai-parsed-success') {
-          console.log(
-            `[CandidateProfilePage] Setting parsing=false for resume ${rid}`
-          );
           next[rid] = { ...current, parsing: false };
-        }
-        if (type === 'ai-scored-success') {
-          console.log(
-            `[CandidateProfilePage] Setting scoring=false for resume ${rid}`
-          );
+        } else if (type === 'ai-scored-success') {
           next[rid] = { ...current, scoring: false };
         }
 
-        // Re-calculate after update
+        // Nếu cả hai tác vụ đã xong, hoặc tác vụ cụ thể vừa xong không còn cái nào khác đang chạy
         const updated = next[rid];
         if (updated && !updated.parsing && !updated.scoring) {
           console.log(
-            `[CandidateProfilePage] Task complete for resume ${rid}, dismissing toast and deleting task state`
+            `[CandidateProfilePage] Task complete for resume ${rid}, dismissing toast`
           );
           toast.dismiss(`ai-processing-${rid}`);
           delete next[rid];
@@ -438,6 +431,12 @@ const CandidateProfilePage = () => {
 
         return next;
       });
+
+      // Luôn đóng toast của resume đó khi có bất kỳ sự kiện thành công nào nếu nó không còn parsing/scoring tương ứng
+      if (type === 'ai-scored-success' || type === 'ai-parsed-success') {
+        // Force dismiss after a short delay to ensure UI transition
+        setTimeout(() => toast.dismiss(`ai-processing-${rid}`), 500);
+      }
 
       console.log('[CandidateProfilePage] Refreshing profile data...');
       fetchCandidateProfile({ forceRefresh: true });

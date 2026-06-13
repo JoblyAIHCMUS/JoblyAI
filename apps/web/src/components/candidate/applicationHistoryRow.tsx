@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Star } from 'lucide-react';
 
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
 import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
 import { formatCreatedAtForDisplay } from '@/lib/candidateDate';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import { isClosedApplicationStatus } from '@/lib/candidateStatus';
 
 type ApplicationHistoryRowProps = {
@@ -207,9 +207,35 @@ export function ApplicationHistoryRow({
         </div>
 
         <div className="min-w-0">
-          <p className="break-words font-[family-name:var(--family-primary)] text-[clamp(1.125rem,4.8vw,1.25rem)] font-semibold leading-6 text-[#25324b]">
-            {item.title}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="break-words font-[family-name:var(--family-primary)] text-[clamp(1.125rem,4.8vw,1.25rem)] font-semibold leading-6 text-[#25324b]">
+              {item.title}
+            </p>
+            {item.matchPercentage !== undefined &&
+            item.matchPercentage !== null ? (
+              <div
+                className={cn(
+                  'flex items-center gap-1 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold',
+                  item.matchPercentage >= 80
+                    ? 'border-green-200 bg-green-50 text-green-700'
+                    : item.matchPercentage >= 50
+                    ? 'border-blue-200 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-600'
+                )}
+                title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
+              >
+                <Star size={10} className="fill-current" />
+                {Math.round(item.matchPercentage)}%
+              </div>
+            ) : (
+              <div
+                className="flex items-center gap-1 shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
+                title="AI is calculating your match score..."
+              >
+                AI Processing...
+              </div>
+            )}
+          </div>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm leading-6 text-[#515b6f] sm:text-base">
             <span className="break-words">{item.company}</span>
             <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
@@ -248,7 +274,35 @@ export function ApplicationHistoryRow({
           </p>
         </div>
 
-        <p className="truncate text-base text-[#25324b]">{item.title}</p>
+        <div className="flex flex-col min-w-0">
+          <p className="truncate text-base text-[#25324b] font-medium">
+            {item.title}
+          </p>
+          {item.matchPercentage !== undefined &&
+          item.matchPercentage !== null ? (
+            <div
+              className={cn(
+                'mt-1 flex items-center gap-1 w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold',
+                item.matchPercentage >= 80
+                  ? 'border-green-200 bg-green-50 text-green-700'
+                  : item.matchPercentage >= 50
+                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  : 'border-slate-200 bg-slate-50 text-slate-600'
+              )}
+              title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
+            >
+              <Star size={10} className="fill-current" />
+              {Math.round(item.matchPercentage)}% Match
+            </div>
+          ) : (
+            <div
+              className="mt-1 flex items-center gap-1 w-fit rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
+              title="AI is calculating your match score..."
+            >
+              AI Processing...
+            </div>
+          )}
+        </div>
         <p className="text-base text-[#25324b]">{displayCreatedAt}</p>
 
         <div>

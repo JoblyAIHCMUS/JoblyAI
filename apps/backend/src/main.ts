@@ -6,6 +6,7 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
 import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './app/common/filter/http-exceptions.filter';
+import { JoblyIoAdapter } from './app/common/adapter/jobly-io.adapter';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
@@ -51,6 +52,10 @@ async function bootstrap() {
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  const ioAdapter = new JoblyIoAdapter(app);
+  await ioAdapter.connectToRedis();
+  app.useWebSocketAdapter(ioAdapter);
 
   app.useGlobalPipes(
     new ValidationPipe({

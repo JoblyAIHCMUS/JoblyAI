@@ -16,11 +16,13 @@ import {
   Star,
   Wand2,
   Code2,
+  BriefcaseBusiness,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateDownloadUrl } from '@/api-hook/s3';
 import type { CandidateResume } from '@/types/candidate';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -67,6 +69,7 @@ const CV = forwardRef<CVRef, CVProps>(
     }: CVProps,
     ref
   ) => {
+    const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragActive, setDragActive] = useState(false);
     const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
@@ -424,10 +427,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         disabled={
                           isActionInProgress ||
                           (processingTasks[resume.id]?.scoring &&
-                            !(
-                              resume.aiScore !== undefined &&
-                              resume.aiScore !== null
-                            ))
+                            resume.aiScore === null)
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -444,17 +444,37 @@ const CV = forwardRef<CVRef, CVProps>(
                             : 'Score with AI'
                         }
                       >
-                        {processingTasks[resume.id]?.scoring ? (
+                        {processingTasks[resume.id]?.scoring &&
+                        resume.aiScore === null ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Wand2 size={14} />
                         )}
-                        {processingTasks[resume.id]?.scoring
+                        {processingTasks[resume.id]?.scoring &&
+                        resume.aiScore === null
                           ? 'Scoring...'
                           : resume.aiScore !== undefined &&
                             resume.aiScore !== null
                           ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
                           : 'Score Resume'}
+                      </button>
+
+                      {/* Find Jobs Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/candidate/find-jobs?resumeId=${resume.id}`
+                          );
+                        }}
+                        disabled={isBusy}
+                        className="h-9 px-3 flex items-center justify-center gap-2 rounded-md border border-accent-primary bg-white text-accent-primary hover:bg-[color:var(--bg-accent-primary)] transition-colors text-xs font-semibold"
+                        aria-label="Find Jobs for Resume"
+                        title="Find Jobs matching this Resume"
+                      >
+                        <BriefcaseBusiness size={14} />
+                        Find Jobs
                       </button>
 
                       <button
@@ -487,13 +507,11 @@ const CV = forwardRef<CVRef, CVProps>(
                           isUpdating ||
                           isDeleting
                         }
-                        className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors"
+                        className="h-9 w-9 flex items-center justify-center rounded-md border border-[color:var(--border-primary)] text-red-600 hover:bg-[color:var(--bg-tertiary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Delete CV"
                         title="Delete"
                       >
-                        {deletingResumeId === resume.id ||
-                        processingTasks[resume.id]?.parsing ||
-                        processingTasks[resume.id]?.scoring ? (
+                        {deletingResumeId === resume.id ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600" />
                         ) : (
                           <Trash2 size={16} className="text-red-600" />

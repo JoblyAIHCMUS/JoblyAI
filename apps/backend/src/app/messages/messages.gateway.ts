@@ -2,29 +2,26 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { SendMessageDTO } from './dto/sendMessageDTO';
-import { UsePipes, ValidationPipe } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 import { AuthService } from '../auth/auth.service';
+import { WsAllExceptionsFilter } from '../common/filter/ws-exceptions.filter';
 
-@WebSocketGateway({
-  cors: {
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST'],
-    allowEIO3: true,
-  },
-})
-export class MessagesGateway implements OnGatewayConnection {
+@UseFilters(WsAllExceptionsFilter)
+@WebSocketGateway()
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() server!: Server;
+  private readonly logger = new Logger(MessagesGateway.name);
 
   constructor(
     private readonly messagesService: MessagesService,
@@ -42,14 +39,29 @@ export class MessagesGateway implements OnGatewayConnection {
       const userId = String(session.user.id);
       client.data.userId = userId;
       await client.join(userId);
-      console.log(`User ${userId} is now online and joined room ${userId}`);
+      this.logger.log(`User ${userId} is now online and joined room ${userId}`);
     } else {
-      console.log('Unauthenticated websocket connection rejected');
+      this.logger.warn(
+        `Unauthenticated WS connection rejected (client ${client.id})`
+      );
       client.disconnect();
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  handleDisconnect(client: Socket) {
+    const userId = client.data.userId as string | undefined;
+    if (userId) {
+      this.logger.log(`User ${userId} disconnected (client ${client.id})`);
+    } else {
+      this.logger.log(`Unauthenticated client ${client.id} disconnected`);
+    }
+  }
+
+  @UsePipes(
+    new ValidationPipe({
+      exceptionFactory: (errors) => new WsException(errors),
+    })
+  )
   @SubscribeMessage('send_message')
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
@@ -59,7 +71,6 @@ export class MessagesGateway implements OnGatewayConnection {
 
     await this.messagesService.sendMessage(senderId, dto);
 
-    // 2. Real-time Push: Emit only to the recipient's private room
     this.server.to(dto.recipientId).emit('new_message', {
       senderId,
       content: dto.text,
@@ -77,11 +88,7 @@ export class MessagesGateway implements OnGatewayConnection {
     const userId = client.data.userId as string;
     await this.messagesService.markAsRead(userId, data.friendId);
 
-    // Notify the current user (sender) that the chat is now marked as read
-    // This allows the sidebar to refresh and remove the notification dot
     this.server.to(userId).emit('message_read', { friendId: data.friendId });
-
-    // Also notify the friend that the current user read the message
     this.server.to(data.friendId).emit('message_read', { by: userId });
   }
 }

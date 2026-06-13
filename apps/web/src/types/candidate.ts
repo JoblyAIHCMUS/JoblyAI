@@ -21,6 +21,7 @@ export type ApplicationItem = {
   createdAt: string;
   status: ApplicationStatus;
   recruiterId: string;
+  matchPercentage?: number | null;
 };
 
 export type ApplicationStatusMeta = Record<

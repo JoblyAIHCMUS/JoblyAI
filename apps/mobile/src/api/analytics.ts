@@ -1,5 +1,9 @@
 import { apiClient } from './config';
-import { JobViewAnalytics, JobApplicationAnalytics } from '../types/analytics';
+import {
+  JobViewAnalytics,
+  JobApplicationAnalytics,
+  type JobViewsAnalyticsResponse,
+} from '../types/analytics';
 
 export async function getJobViewsAnalytics(
   startDate?: Date,
@@ -31,6 +35,23 @@ export async function getJobApplicationsAnalytics(
   const response = await apiClient.get<JobApplicationAnalytics[]>(
     '/jobs/analytics/applications',
     { params }
+  );
+  return response.data;
+}
+
+export async function getJobViewsAnalyticsForJob(
+  jobId: number,
+  startDate?: Date,
+  endDate?: Date,
+  groupBy: 'day' | 'week' | 'month' = 'day',
+  options?: { signal?: AbortSignal }
+): Promise<JobViewsAnalyticsResponse> {
+  const params: Record<string, string> = { groupBy };
+  if (startDate) params.startDate = startDate.toISOString().split('T')[0];
+  if (endDate) params.endDate = endDate.toISOString().split('T')[0];
+  const response = await apiClient.get<JobViewsAnalyticsResponse>(
+    `/jobs/${jobId}/analytics/views`,
+    { params, signal: options?.signal }
   );
   return response.data;
 }

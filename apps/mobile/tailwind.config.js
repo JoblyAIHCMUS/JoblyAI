@@ -75,6 +75,7 @@ module.exports = {
         'app-indigo-1': '#6366F1',
         'app-orange-1': '#EA580C',
         'app-slate-2': '#E2E8F0',
+        'app-slate-3': '#94A3B8',
         'app-red-2': '#DC2626',
         'app-gray-1': '#E5E7EB',
         'app-gray-2': '#374151',

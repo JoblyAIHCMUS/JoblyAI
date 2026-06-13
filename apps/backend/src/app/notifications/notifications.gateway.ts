@@ -1,24 +1,21 @@
 import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayConnection,
 } from '@nestjs/websockets';
+import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { AuthService } from '../auth/auth.service';
+import { WsAllExceptionsFilter } from '../common/filter/ws-exceptions.filter';
 
-@WebSocketGateway({
-  cors: {
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST'],
-    allowEIO3: true,
-  },
-})
-export class NotificationsGateway implements OnGatewayConnection {
+@UseFilters(WsAllExceptionsFilter)
+@WebSocketGateway()
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() server!: Server;
+  private readonly logger = new Logger(NotificationsGateway.name);
 
   constructor(private readonly authService: AuthService) {}
 
@@ -32,13 +29,22 @@ export class NotificationsGateway implements OnGatewayConnection {
     if (session?.user?.id) {
       const userId = String(session.user.id);
       await client.join(`notifications:${userId}`);
-      console.log(`User ${userId} joined notification room`);
+      this.logger.log(
+        `User ${userId} joined notification room (client ${client.id})`
+      );
     } else {
+      this.logger.warn(
+        `Unauthenticated notification WS connection rejected (client ${client.id})`
+      );
       client.disconnect();
     }
   }
 
-  sendNotification(userId: string, notification: any) {
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Notification client ${client.id} disconnected`);
+  }
+
+  sendNotification(userId: string, notification: unknown) {
     this.server
       .to(`notifications:${userId}`)
       .emit('new_notification', notification);

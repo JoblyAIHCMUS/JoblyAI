@@ -285,7 +285,7 @@ export default function EmployerMessagesPage() {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white">
+    <div className="w-full flex-1 flex flex-col bg-white overflow-hidden">
       {/* Desktop layout: side by side */}
       <div className="hidden lg:flex w-full h-full gap-0 overflow-hidden bg-white flex-1">
         <ConversationSidebar

@@ -4,9 +4,10 @@ import { ApplicationsService } from './applications.service';
 import { EmployersApplicationsController } from './employers-applications.controller';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [AuthModule, NotificationsModule],
+  imports: [AuthModule, NotificationsModule, AiModule],
   controllers: [ApplicationsController, EmployersApplicationsController],
   providers: [ApplicationsService],
   exports: [ApplicationsService],

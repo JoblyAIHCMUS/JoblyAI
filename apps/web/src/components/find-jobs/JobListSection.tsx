@@ -12,6 +12,7 @@ import { useState, Ref, useRef, useEffect } from 'react';
 
 interface JobListSectionProps {
   jobs: JobPosting[];
+  isLoading?: boolean;
   total: number;
   totalPages: number;
   currentPage: number;
@@ -20,7 +21,11 @@ interface JobListSectionProps {
   handleSelectSort: (option: SortOption) => void;
   filterGroups: FilterGroupData[];
   checkedMap: Record<string, string[]>;
-  handleToggle: (groupTitle: string, itemLabel: string) => void;
+  handleToggle: (
+    groupTitle: string,
+    itemLabel: string,
+    itemValue?: string | number
+  ) => void;
   onSalaryChange: (min: number, max: number) => void;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
@@ -47,6 +52,7 @@ function getSORT_LABEL(option: SortOption): string {
 
 export default function JobListSection({
   jobs,
+  isLoading = false,
   total,
   totalPages,
   currentPage,
@@ -249,7 +255,14 @@ export default function JobListSection({
                 : 'flex flex-col gap-3'
             }
           >
-            {jobs.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[120px] w-full animate-pulse rounded-lg bg-slate-100"
+                />
+              ))
+            ) : jobs.length === 0 ? (
               <div className="text-center text-slate-500 py-8">
                 No jobs found.
               </div>
