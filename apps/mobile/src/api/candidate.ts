@@ -179,3 +179,18 @@ export async function deleteCandidateSkill(skillId: number): Promise<string> {
   const response = await apiClient.delete(`/candidate/me/skills/${skillId}`);
   return response.data;
 }
+
+/**
+ * Fetch a candidate's full profile by their user id.
+ * Mirrors apps/web/src/api-client/candidate/profile.ts::getCandidateProfileById.
+ * Used by the employer applicant-detail screen to load arbitrary applicants
+ * (the existing getCandidateProfile only loads the logged-in user).
+ */
+export async function getCandidateProfileById(
+  candidateId: string
+): Promise<CandidateProfileResponse> {
+  const response = await apiClient.get<CandidateProfileResponse>(
+    `/candidate/${candidateId}`
+  );
+  return response.data;
+}
