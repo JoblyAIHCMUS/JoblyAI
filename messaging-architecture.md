@@ -495,7 +495,7 @@ The topbar notification **bell** with a numeric `99+` badge is a separate, indep
 1. `useLocalSearchParams<{ chatId }>()` reads the chatId from the route
 2. `useChatSummary(userId)` looks up the conversation metadata from the cache; `useEnsureSummaryLoaded` refetches the summary once if the chatId is missing (cold-cache deeplink)
 3. `useChatHistory(chatId, participantId)` (infinite query, but server pagination is stubbed — returns the first 50 messages)
-4. Pages flattened + decorated with `withDateSeparators` (date labels: Today / Yesterday / MMM D, YYYY)
+4. Pages flattened + sorted ASCENDING by timestamp, then decorated with `withDateSeparators` (date labels: Today / Yesterday / MMM D — no year). Sort is done client-side because the backend `getChatHistory` endpoint has no `ORDER BY`; the client-side sort masks the symptom but the server still returns rows in arbitrary order.
 5. **`useMarkAsReadOnFocus`** (debounced 500ms) fires `mark_read` on mount + on `AppState→active` while the screen is open
 6. **`useSendMessage`** mutation: optimistic insert with `local-{uuid}` → emit over WS → on ack, swap `localId` → real `messageId`; on ack error or 10-second timeout, roll back + show toast
 7. WS `new_message` events handled by `SocketProvider` (NOT by this screen): the cache is updated with de-dup, and React Query re-renders this screen automatically. Sender-self-echo is dropped at the cache layer.
@@ -787,7 +787,7 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 |------|------|
 | `app/_layout.tsx` | Root layout; mounts `<SocketProvider>` inside `<QueryClientProvider>` (uses the shared `queryClient` from `lib/query-client.ts`); `<Toast />` mounted at top offset 60 |
 | `app/pages/employer/messages/index.tsx` | Conversation list screen; uses `useChatSummary`; tap → `router.push` to chat detail |
-| `app/pages/employer/messages/[chatId].tsx` | **NEW** chat detail screen with header, inverted `FlatList` of `MessageBubble`s, `MessageInput`; wires `useChatSummary`, `useChatHistory`, `useSendMessage`, `useMarkAsReadOnFocus`, `useEnsureSummaryLoaded`, `useSocket` |
+| `app/pages/employer/messages/[chatId].tsx` | **NEW** chat detail screen with header, `FlatList` of `MessageBubble`s (data sorted ASCENDING — oldest at top), `useEffect`-based auto-scroll-to-bottom on `[messages.length]`, `MessageInput`; wires `useChatSummary`, `useChatHistory`, `useSendMessage`, `useMarkAsReadOnFocus`, `useEnsureSummaryLoaded`, `useSocket`; passes `userId` into `withDateSeparators` so `isSent` is pre-computed |
 | `app/pages/employer/messages/components/MessagesSearchBar.tsx` | Search input |
 | `app/pages/employer/messages/components/MessageListItem.tsx` | Conversation row; **NEW** `isUnread` prop, blue dot (testID `unread-dot`) |
 | `app/pages/employer/messages/components/MessagesLoading.tsx` | Centered spinner |
@@ -972,6 +972,7 @@ Documented for future work — not blockers, but worth tracking.
 - **Latent `LIMIT 1` ordering bug in `messages.service.ts:146-150`.** The `SELECT message_id, sender_id FROM messages WHERE chat_id = ? LIMIT 1` query has no `ORDER BY`. ScyllaDB's clustering order is **ascending** on `message_id` (TimeUuid), so the first row returned is the **oldest** in the partition, not the latest. The subsequent comparison to `last_read` (`hasUnread = messageTimestamp > lastReadTimestamp`, line 173) can therefore evaluate against a stale message. Fix: add `ORDER BY message_id DESC LIMIT 1` (or use a different query shape that picks the latest).
 - **Inconsistent room naming.** `messages.gateway.ts:42` and `ai.gateway.ts:31` use `userId` directly as the room name; `notifications.gateway.ts:31` uses `notifications:${userId}`. Works today but blocks any future "broadcast to a user's every device" feature.
 - **`getChatHistory` has no cursor pagination.** The mobile `useChatHistory` hook is built with `useInfiniteQuery` (for forward compatibility) but the server returns the first 50 messages on every call. Adding cursor support requires backend work.
+- **`getChatHistory` has no `ORDER BY` clause.** The `SELECT * FROM messages WHERE chat_id = ? LIMIT ?` query in `messages.service.ts:232-274` returns rows in arbitrary order, so the mobile chat screen's own sent messages can render off-screen or be de-duped by `keyExtractor` collisions when combined with an inverted `FlatList`. The mobile `withDateSeparators` now sorts ASCENDING client-side, which masks the symptom. The web happens to render correctly today because of `keyExtractor` dedup luck, but the right fix is to add `ORDER BY message_id ASC` (or `DESC`) to the server query.
 - **Notifications + AI gateways do not yet accept `handshake.auth.cookie`.** Only `messages.gateway.ts` was updated for RN cookie-merge in this iteration. A mobile client trying to consume notifications or AI events would fail to authenticate. (Out of scope for this PR; tracked as a follow-up.)
 
 ### Mobile (apps/mobile)
