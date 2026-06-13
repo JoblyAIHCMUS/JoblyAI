@@ -4,12 +4,9 @@ import {
   BriefcaseBusiness,
   Building2,
   ChevronRight,
-  Globe2,
   LockKeyhole,
   LogOut,
-  Mail,
   Menu,
-  Moon,
   ShieldCheck,
   Smartphone,
   User,
@@ -40,10 +37,7 @@ type IconComponent = ComponentType<{
 
 type PreferenceKey =
   | 'pushNotifications'
-  | 'emailDigest'
-  | 'profileVisible'
-  | 'jobAlerts'
-  | 'darkMode';
+  | 'jobAlerts';
 
 type PreferenceItem = {
   key: PreferenceKey;
@@ -90,28 +84,10 @@ const PREFERENCES: PreferenceItem[] = [
     icon: Bell,
   },
   {
-    key: 'emailDigest',
-    label: 'Email digest',
-    description: 'Get a weekly summary in your inbox.',
-    icon: Mail,
-  },
-  {
-    key: 'profileVisible',
-    label: 'Profile visibility',
-    description: 'Allow relevant people to discover your profile.',
-    icon: Globe2,
-  },
-  {
     key: 'jobAlerts',
     label: 'Job alerts',
     description: 'Notify you when strong matches are available.',
     icon: BriefcaseBusiness,
-  },
-  {
-    key: 'darkMode',
-    label: 'Dark mode',
-    description: 'Preview a darker interface preference.',
-    icon: Moon,
   },
 ];
 
@@ -208,10 +184,7 @@ export default function SettingsScreen({
   const [preferences, setPreferences] = useState<Record<PreferenceKey, boolean>>(
     {
       pushNotifications: true,
-      emailDigest: true,
-      profileVisible: true,
       jobAlerts: role === 'candidate',
-      darkMode: false,
     }
   );
 
