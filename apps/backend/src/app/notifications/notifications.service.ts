@@ -126,8 +126,7 @@ export class NotificationsService {
           data.applications ?? DEFAULT_NOTIFICATION_SETTINGS.applications,
         jobsEnabled: data.jobs ?? DEFAULT_NOTIFICATION_SETTINGS.jobs,
         recommendationsEnabled:
-          data.recommendations ??
-          DEFAULT_NOTIFICATION_SETTINGS.recommendations,
+          data.recommendations ?? DEFAULT_NOTIFICATION_SETTINGS.recommendations,
       },
       update: {
         ...(data.applications !== undefined && {

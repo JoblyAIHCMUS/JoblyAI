@@ -129,10 +129,7 @@ export default function CandidateSettingsPage() {
     } catch (error) {
       setNotificationSettings(previousSettings);
       toast.error(
-        formatErrorForDisplay(
-          error,
-          'Failed to update notification settings'
-        )
+        formatErrorForDisplay(error, 'Failed to update notification settings')
       );
     }
   };
@@ -180,10 +177,7 @@ export default function CandidateSettingsPage() {
         setNotificationSettings(settings);
       } catch (error) {
         toast.error(
-          formatErrorForDisplay(
-            error,
-            'Failed to load notification settings'
-          )
+          formatErrorForDisplay(error, 'Failed to load notification settings')
         );
       }
     };
