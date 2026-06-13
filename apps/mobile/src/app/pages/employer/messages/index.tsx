@@ -40,7 +40,7 @@ export default function MessagesScreen() {
 
   const handleConversationPress = useCallback((conv: Conversation) => {
     router.push({
-      pathname: '/employer/messages/[chatId]',
+      pathname: '/pages/employer/messages/[chatId]',
       params: { chatId: conv.chatId },
     });
   }, []);

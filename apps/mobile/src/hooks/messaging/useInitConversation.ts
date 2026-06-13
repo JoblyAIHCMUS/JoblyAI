@@ -14,7 +14,7 @@ export function useInitConversation(opts: Options) {
     onSuccess: ({ chatId }) => {
       queryClient.invalidateQueries({ queryKey: ['chat-summary', opts.userId] });
       router.push({
-        pathname: '/employer/messages/[chatId]',
+        pathname: '/pages/employer/messages/[chatId]',
         params: { chatId },
       });
     },
