@@ -220,7 +220,10 @@ describe('MessagesGateway', () => {
       // Arrange
       const client = {
         handshake: {
-          headers: { cookie: 'session=browser-cookie' } as Record<string, string | string[]>,
+          headers: { cookie: 'session=browser-cookie' } as Record<
+            string,
+            string | string[]
+          >,
           auth: { cookie: 'session=rn-cookie' },
         },
         data: {} as Record<string, unknown>,
@@ -602,10 +605,9 @@ describe('MessagesGateway', () => {
         '2026-06-13T10:00:00.000Z'
       );
 
-      const result = await gateway.handleMarkRead(
-        client as unknown as Socket,
-        { friendId }
-      );
+      const result = await gateway.handleMarkRead(client as unknown as Socket, {
+        friendId,
+      });
 
       expect(result).toEqual({
         status: 'ok',
@@ -617,10 +619,9 @@ describe('MessagesGateway', () => {
       const client = createMockSocket(mockUser1.id);
       mockMessagesService.markAsRead.mockRejectedValue(new Error('boom'));
 
-      const result = await gateway.handleMarkRead(
-        client as unknown as Socket,
-        { friendId: mockUser2.id }
-      );
+      const result = await gateway.handleMarkRead(client as unknown as Socket, {
+        friendId: mockUser2.id,
+      });
 
       expect(result).toEqual({ status: 'error', error: 'boom' });
       expect(mockServer._emitMock).not.toHaveBeenCalled();

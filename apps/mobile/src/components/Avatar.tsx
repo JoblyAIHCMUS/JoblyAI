@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, Image, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { SvgUri } from 'react-native-svg';
 
 interface AvatarProps {
@@ -30,7 +36,9 @@ const Avatar: React.FC<AvatarProps> = ({
   if (!url) {
     return (
       <View
-        className={`rounded-full bg-app-border-3 items-center justify-center ${className ?? ''}`}
+        className={`rounded-full bg-app-border-3 items-center justify-center ${
+          className ?? ''
+        }`}
         style={[sizeStyle, style]}
       >
         <Text className="text-base font-semibold text-app-slate-3">
@@ -43,7 +51,9 @@ const Avatar: React.FC<AvatarProps> = ({
   if (isSvgUrl(url)) {
     return (
       <View
-        className={`rounded-full overflow-hidden bg-app-border-3 ${className ?? ''}`}
+        className={`rounded-full overflow-hidden bg-app-border-3 ${
+          className ?? ''
+        }`}
         style={[sizeStyle, style]}
       >
         <SvgUri uri={url} width="100%" height="100%" />

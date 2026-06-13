@@ -5,8 +5,5 @@ import { useGetEmployerProfile } from '../useGetEmployerProfile';
 export function useUnreadDot(): boolean {
   const { data: profile } = useGetEmployerProfile();
   const { data: summaries } = useChatSummary(profile?.id);
-  return useMemo(
-    () => (summaries ?? []).some((s) => s.hasUnread),
-    [summaries]
-  );
+  return useMemo(() => (summaries ?? []).some((s) => s.hasUnread), [summaries]);
 }

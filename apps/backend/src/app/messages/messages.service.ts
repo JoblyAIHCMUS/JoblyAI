@@ -69,7 +69,10 @@ export class MessagesService {
       }),
     ]);
 
-    return { messageId: messageId.toString(), timestamp: new Date().toISOString() };
+    return {
+      messageId: messageId.toString(),
+      timestamp: new Date().toISOString(),
+    };
   }
 
   async markAsRead(senderId: string, recipientId: string): Promise<string> {

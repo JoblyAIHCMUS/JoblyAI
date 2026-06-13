@@ -77,7 +77,9 @@ export default function MessagesScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
         <MessagesError
-          message={error instanceof Error ? error.message : 'Something went wrong'}
+          message={
+            error instanceof Error ? error.message : 'Something went wrong'
+          }
           onRetry={onRefresh}
         />
         <EmployerDashboardSidebar

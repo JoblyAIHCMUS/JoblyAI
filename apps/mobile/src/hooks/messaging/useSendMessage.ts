@@ -20,11 +20,7 @@ export function useSendMessage(opts: UseSendMessageOptions) {
   const localIdRef = useRef<string>('');
   const lastTextRef = useRef<string>('');
 
-  return useMutation<
-    { messageId: string; timestamp: string },
-    Error,
-    string
-  >({
+  return useMutation<{ messageId: string; timestamp: string }, Error, string>({
     mutationFn: async (text: string) => {
       const localId = `local-${uuid()}`;
       localIdRef.current = localId;

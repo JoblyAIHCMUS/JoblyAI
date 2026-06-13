@@ -1,26 +1,37 @@
-import type { ChatSummary, ChatMessage, NewMessageEvent } from '../types/message';
+import type {
+  ChatSummary,
+  ChatMessage,
+  NewMessageEvent,
+} from '../types/message';
 import type { InfiniteData } from '@tanstack/react-query';
 
 export function applyNewMessageToSummary(
   old: ChatSummary[] | undefined,
-  msg: NewMessageEvent,
+  msg: NewMessageEvent
 ): ChatSummary[] {
   if (!old) return [];
   const next = old.map((c) =>
     c.participantId === msg.senderId
-      ? { ...c, latestMessage: msg.content, lastMessageAt: msg.timestamp, hasUnread: true }
-      : c,
+      ? {
+          ...c,
+          latestMessage: msg.content,
+          lastMessageAt: msg.timestamp,
+          hasUnread: true,
+        }
+      : c
   );
   return [...next].sort((a, b) => {
     if (a.participantId === msg.senderId) return -1;
     if (b.participantId === msg.senderId) return 1;
-    return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+    return (
+      new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+    );
   });
 }
 
 export function applyNewMessageToHistory(
   old: InfiniteData<ChatMessage[]> | undefined,
-  msg: NewMessageEvent,
+  msg: NewMessageEvent
 ): InfiniteData<ChatMessage[]> | undefined {
   if (!old || old.pages.length === 0) return old;
   const first = old.pages[0];
@@ -33,7 +44,7 @@ export function applyNewMessageToHistory(
       m.messageId.startsWith('local-') &&
       m.senderId === msg.senderId &&
       m.content === msg.content &&
-      Math.abs(new Date(m.timestamp).getTime() - msgTime) < 5_000,
+      Math.abs(new Date(m.timestamp).getTime() - msgTime) < 5_000
   );
   const realMessage: ChatMessage = {
     messageId: msg.messageId,
@@ -43,7 +54,10 @@ export function applyNewMessageToHistory(
   };
   if (localIdx >= 0) {
     const cleaned = first.filter((_, i) => i !== localIdx);
-    return { ...old, pages: [[...cleaned, realMessage], ...old.pages.slice(1)] };
+    return {
+      ...old,
+      pages: [[...cleaned, realMessage], ...old.pages.slice(1)],
+    };
   }
   return { ...old, pages: [[...first, realMessage], ...old.pages.slice(1)] };
 }

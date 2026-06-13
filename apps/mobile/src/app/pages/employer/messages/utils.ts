@@ -63,7 +63,10 @@ function getDateLabel(d: Date): string {
   messageDate.setHours(0, 0, 0, 0);
   if (messageDate.getTime() === today.getTime()) return 'Today';
   if (messageDate.getTime() === yesterday.getTime()) return 'Yesterday';
-  return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return messageDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export function withDateSeparators(
@@ -73,8 +76,7 @@ export function withDateSeparators(
   if (messages.length === 0) return [];
 
   const sorted = [...messages].sort(
-    (a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
 
   return sorted.map((m, i) => {

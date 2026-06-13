@@ -33,7 +33,9 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between">
           <Text
-            className={`text-base font-semibold text-app-slate-1 ${isUnread ? 'font-bold' : ''}`}
+            className={`text-base font-semibold text-app-slate-1 ${
+              isUnread ? 'font-bold' : ''
+            }`}
             numberOfLines={1}
           >
             {conversation.name}

@@ -2,8 +2,15 @@ import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
-import { getOrCreateSocket, emitSendMessage, emitMarkRead } from '../hooks/useMessagesSocket';
-import { applyNewMessageToSummary, applyNewMessageToHistory } from './cacheUpdaters';
+import {
+  getOrCreateSocket,
+  emitSendMessage,
+  emitMarkRead,
+} from '../hooks/useMessagesSocket';
+import {
+  applyNewMessageToSummary,
+  applyNewMessageToHistory,
+} from './cacheUpdaters';
 import type {
   ChatSummary,
   MarkReadAck,
@@ -17,7 +24,11 @@ type MessageReadListener = (d: MessageReadEvent) => void;
 
 export interface SocketContextValue {
   socket: Socket;
-  sendMessage: (recipientId: string, text: string, ack: (r: SendMessageAck) => void) => void;
+  sendMessage: (
+    recipientId: string,
+    text: string,
+    ack: (r: SendMessageAck) => void
+  ) => void;
   markAsRead: (friendId: string, ack: (r: MarkReadAck) => void) => void;
   onNewMessage: (cb: NewMessageListener) => () => void;
   onMessageRead: (cb: MessageReadListener) => () => void;
@@ -35,7 +46,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const onNewMessage = (msg: NewMessageEvent) => {
       newMessageListeners.current.forEach((cb) => {
-        try { cb(msg); } catch (e) { console.error('[ws] subscriber error', e); }
+        try {
+          cb(msg);
+        } catch (e) {
+          console.error('[ws] subscriber error', e);
+        }
       });
       // 2. Update the chat-summary cache for every known userId that has
       //    this conversation in their cache. We can't know the current
@@ -43,17 +58,24 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       //    cache entries that contain the sender.
       queryClient.setQueriesData<ChatSummary[] | undefined>(
         { queryKey: ['chat-summary'] },
-        (old) => applyNewMessageToSummary(old, msg),
+        (old) => applyNewMessageToSummary(old, msg)
       );
       // 3. Append to chat-history cache (with de-dup)
       queryClient.setQueryData(['chat-history', msg.chatId], (old: unknown) =>
-        applyNewMessageToHistory(old as Parameters<typeof applyNewMessageToHistory>[0], msg),
+        applyNewMessageToHistory(
+          old as Parameters<typeof applyNewMessageToHistory>[0],
+          msg
+        )
       );
     };
 
     const onMessageRead = (data: MessageReadEvent) => {
       messageReadListeners.current.forEach((cb) => {
-        try { cb(data); } catch (e) { console.error('[ws] subscriber error', e); }
+        try {
+          cb(data);
+        } catch (e) {
+          console.error('[ws] subscriber error', e);
+        }
       });
       // Listeners (useUnreadDot subscribers) are responsible for invalidating
       // ['chat-summary', userId] themselves, because we don't know the
@@ -84,15 +106,21 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     markAsRead: emitMarkRead,
     onNewMessage: (cb) => {
       newMessageListeners.current.add(cb);
-      return () => { newMessageListeners.current.delete(cb); };
+      return () => {
+        newMessageListeners.current.delete(cb);
+      };
     },
     onMessageRead: (cb) => {
       messageReadListeners.current.add(cb);
-      return () => { messageReadListeners.current.delete(cb); };
+      return () => {
+        messageReadListeners.current.delete(cb);
+      };
     },
   };
 
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+  return (
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
+  );
 }
 
 export function useSocket(): SocketContextValue {

@@ -33,7 +33,9 @@ export class MessagesGateway
     // React Native clients send the session via socket `auth` instead of
     // the upgrade headers. Merge it so authService.validateToken can find it.
     // The Cookie header (if present) takes precedence — it's what browsers send.
-    const authCookie = (client.handshake.auth as { cookie?: string } | undefined)?.cookie;
+    const authCookie = (
+      client.handshake.auth as { cookie?: string } | undefined
+    )?.cookie;
     if (authCookie && !headers.cookie) headers.cookie = authCookie;
 
     const session = await this.authService.validateToken(headers);
@@ -80,7 +82,13 @@ export class MessagesGateway
         dto
       );
       const chatId = MessagesService.getChatId(senderId, dto.recipientId);
-      const payload = { chatId, messageId, senderId, content: dto.text, timestamp };
+      const payload = {
+        chatId,
+        messageId,
+        senderId,
+        content: dto.text,
+        timestamp,
+      };
 
       // Recipient (existing behavior)
       this.server.to(dto.recipientId).emit('new_message', payload);

@@ -8,14 +8,24 @@ export async function getChatSummary(userId: string): Promise<ChatSummary[]> {
   return response.data;
 }
 
-export async function getChatHistory(friendId: string, limit = 50): Promise<ChatHistoryResponse> {
-  const response = await apiClient.get<ChatHistoryResponse>(`/chats/history/${friendId}`, {
-    params: { limit },
-  });
+export async function getChatHistory(
+  friendId: string,
+  limit = 50
+): Promise<ChatHistoryResponse> {
+  const response = await apiClient.get<ChatHistoryResponse>(
+    `/chats/history/${friendId}`,
+    {
+      params: { limit },
+    }
+  );
   return response.data;
 }
 
-export async function initConversation(friendId: string): Promise<{ chatId: string }> {
-  const response = await apiClient.post<{ chatId: string }>(`/chats/init/${friendId}`);
+export async function initConversation(
+  friendId: string
+): Promise<{ chatId: string }> {
+  const response = await apiClient.post<{ chatId: string }>(
+    `/chats/init/${friendId}`
+  );
   return response.data;
 }

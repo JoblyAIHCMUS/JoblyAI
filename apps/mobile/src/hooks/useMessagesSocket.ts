@@ -47,14 +47,14 @@ export function _resetSocketForTests(): void {
 export function emitSendMessage(
   recipientId: string,
   text: string,
-  ack: (response: SendMessageAck) => void,
+  ack: (response: SendMessageAck) => void
 ): void {
   getOrCreateSocket().emit('send_message', { recipientId, text }, ack);
 }
 
 export function emitMarkRead(
   friendId: string,
-  ack: (response: MarkReadAck) => void,
+  ack: (response: MarkReadAck) => void
 ): void {
   getOrCreateSocket().emit('mark_read', { friendId }, ack);
 }

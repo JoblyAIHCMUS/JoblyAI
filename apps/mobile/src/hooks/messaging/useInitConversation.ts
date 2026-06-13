@@ -12,7 +12,9 @@ export function useInitConversation(opts: Options) {
   return useMutation<{ chatId: string }, Error, void>({
     mutationFn: () => initConversation(opts.friendId),
     onSuccess: ({ chatId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-summary', opts.userId] });
+      queryClient.invalidateQueries({
+        queryKey: ['chat-summary', opts.userId],
+      });
       router.push({
         pathname: '/pages/employer/messages/[chatId]',
         params: { chatId },

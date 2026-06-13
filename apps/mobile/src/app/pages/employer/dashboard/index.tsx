@@ -58,11 +58,7 @@ export default function EmployerDashboard() {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
-  }, [
-    fetchApplications,
-    fetchAnalytics,
-    groupBy,
-  ]);
+  }, [fetchApplications, fetchAnalytics, groupBy]);
 
   useEffect(() => {
     loadData();
