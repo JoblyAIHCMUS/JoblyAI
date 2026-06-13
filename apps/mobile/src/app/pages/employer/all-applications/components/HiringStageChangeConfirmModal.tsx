@@ -40,7 +40,12 @@ export const HiringStageChangeConfirmModal: React.FC<
   const isAdvance = actionType === 'advance';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
       <View className="flex-1 bg-black/30 justify-center items-center px-4">
         <View className="bg-white rounded-3xl w-full max-w-sm px-6 py-8 shadow-lg items-center">
           <View
@@ -50,14 +55,24 @@ export const HiringStageChangeConfirmModal: React.FC<
             }}
           >
             {isAdvance ? (
-              <CheckCircle2 size={24} color={COLORS.tagGreenText} strokeWidth={2} />
+              <CheckCircle2
+                size={24}
+                color={COLORS.tagGreenText}
+                strokeWidth={2}
+              />
             ) : (
-              <AlertCircle size={24} color={COLORS.tagRedText} strokeWidth={2} />
+              <AlertCircle
+                size={24}
+                color={COLORS.tagRedText}
+                strokeWidth={2}
+              />
             )}
           </View>
 
           <Text className="text-lg font-semibold text-app-dark-text mb-2 text-center">
-            {isAdvance ? `Advance to ${nextStage ?? 'next stage'}?` : 'Reject Applicant?'}
+            {isAdvance
+              ? `Advance to ${nextStage ?? 'next stage'}?`
+              : 'Reject Applicant?'}
           </Text>
 
           <Text className="text-sm text-app-gray-3 mb-6 text-center">
@@ -75,7 +90,9 @@ export const HiringStageChangeConfirmModal: React.FC<
               className="flex-1 py-2 rounded-lg border border-app-border-2 bg-white"
               activeOpacity={0.7}
             >
-              <Text className="text-center text-app-slate-1 font-medium">Cancel</Text>
+              <Text className="text-center text-app-slate-1 font-medium">
+                Cancel
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity

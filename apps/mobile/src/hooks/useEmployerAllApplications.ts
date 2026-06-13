@@ -4,7 +4,9 @@ import { PaginatedApplicationsResponse } from '../types/application';
 
 const DEFAULT_PAGE_SIZE = 20;
 
-export function useEmployerAllApplications(pageSize: number = DEFAULT_PAGE_SIZE) {
+export function useEmployerAllApplications(
+  pageSize: number = DEFAULT_PAGE_SIZE
+) {
   return useInfiniteQuery<PaginatedApplicationsResponse, Error>({
     queryKey: ['employer-applications', 'all', pageSize],
     queryFn: async ({ pageParam }) => {

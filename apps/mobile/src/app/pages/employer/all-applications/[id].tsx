@@ -25,7 +25,9 @@ export default function AllApplicationsDetailPage() {
   }>(['employer-applications', 'all', 20]);
 
   if (cached) {
-    const all = cached.pages.flatMap((p) => mapApiResponseToApplications(p.applications));
+    const all = cached.pages.flatMap((p) =>
+      mapApiResponseToApplications(p.applications)
+    );
     const found = all.find((a) => a.id === id);
     if (found) {
       applicantName = found.name;
@@ -55,7 +57,9 @@ export default function AllApplicationsDetailPage() {
           {applicantName ?? `Application #${id}`}
         </Text>
         {appliedRole && (
-          <Text className="text-base text-app-text-3 mt-1">Applied for: {appliedRole}</Text>
+          <Text className="text-base text-app-text-3 mt-1">
+            Applied for: {appliedRole}
+          </Text>
         )}
         {hiringStage && (
           <View

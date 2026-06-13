@@ -1,4 +1,7 @@
-import { ApplicationStatus, PaginatedApplicationsResponse } from '../../../../types/application';
+import {
+  ApplicationStatus,
+  PaginatedApplicationsResponse,
+} from '../../../../types/application';
 import { AllApplication, HiringStage } from './types';
 
 /**
@@ -47,12 +50,13 @@ export function mapApiResponseToApplications(
   applications: PaginatedApplicationsResponse['applications']
 ): AllApplication[] {
   return applications.map((app) => {
-    const enriched = app as PaginatedApplicationsResponse['applications'][number] & {
-      candidateId?: string;
-      job?: { title?: string };
-      candidate?: { name?: string | null; email?: string };
-      matchPercentage?: number | null;
-    };
+    const enriched =
+      app as PaginatedApplicationsResponse['applications'][number] & {
+        candidateId?: string;
+        job?: { title?: string };
+        candidate?: { name?: string | null; email?: string };
+        matchPercentage?: number | null;
+      };
 
     const displayName =
       enriched.candidate?.name?.trim() ||

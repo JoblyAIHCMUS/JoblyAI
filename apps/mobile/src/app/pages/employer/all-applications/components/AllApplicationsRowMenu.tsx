@@ -1,11 +1,6 @@
 import React from 'react';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
-import {
-  ChevronRight,
-  Eye,
-  MessageCircle,
-  XCircle,
-} from 'lucide-react-native';
+import { ChevronRight, Eye, MessageCircle, XCircle } from 'lucide-react-native';
 
 import { HiringStage } from '../types';
 import { nextStageMap } from '../data';
@@ -45,12 +40,22 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
   const items: Array<{
     key: string;
     label: string;
-    icon: React.ComponentType<{ size?: number; color?: string; style?: object }>;
+    icon: React.ComponentType<{
+      size?: number;
+      color?: string;
+      style?: object;
+    }>;
     onPress: () => void;
     color: string;
     destructive?: boolean;
   }> = [
-    { key: 'view', label: 'View Details', icon: Eye, onPress: onView, color: '#0F172A' },
+    {
+      key: 'view',
+      label: 'View Details',
+      icon: Eye,
+      onPress: onView,
+      color: '#0F172A',
+    },
     {
       key: 'message',
       label: 'Message Candidate',
@@ -87,7 +92,12 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
     : 0;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose}>
         <View className="flex-1 bg-black/0">
           <View
@@ -98,7 +108,10 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
               width: MENU_WIDTH,
             }}
           >
-            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
               <View className="bg-white rounded-2xl px-4 py-2 shadow-2xl border border-app-slate-2">
                 {items.map((item, index) => {
                   const Icon = item.icon;

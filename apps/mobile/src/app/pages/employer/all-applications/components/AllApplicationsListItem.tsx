@@ -34,11 +34,7 @@ function ScorePill({ score }: { score: number | null }) {
 
   return (
     <View className="flex-row items-center border border-app-border-2 rounded-full px-2 py-0.5">
-      <Star
-        size={14}
-        color={COLORS.badgeOrange}
-        fill={COLORS.badgeOrange}
-      />
+      <Star size={14} color={COLORS.badgeOrange} fill={COLORS.badgeOrange} />
       <Text className="text-sm text-app-text-3 font-medium ml-1">
         {score.toFixed(1)}
       </Text>
@@ -52,16 +48,17 @@ function StatusPill({
   hiringStage: AllApplication['hiringStage'];
 }) {
   return (
-    <View className={`border rounded-full px-4 py-1.5 ${hiringStageStyles[hiringStage]}`}>
+    <View
+      className={`border rounded-full px-4 py-1.5 ${hiringStageStyles[hiringStage]}`}
+    >
       <Text className="text-sm font-semibold">{hiringStage}</Text>
     </View>
   );
 }
 
-export const AllApplicationsListItem: React.FC<AllApplicationsListItemProps> = ({
-  application,
-  onMenuPress,
-}) => {
+export const AllApplicationsListItem: React.FC<
+  AllApplicationsListItemProps
+> = ({ application, onMenuPress }) => {
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const isSvg =
     application.image?.includes('.svg') || application.image?.includes('/svg');
@@ -111,10 +108,7 @@ export const AllApplicationsListItem: React.FC<AllApplicationsListItemProps> = (
           >
             {application.name}
           </Text>
-          <Text
-            className="text-sm text-app-text-3"
-            numberOfLines={1}
-          >
+          <Text className="text-sm text-app-text-3" numberOfLines={1}>
             Applied for: {application.appliedRole}
           </Text>
         </View>

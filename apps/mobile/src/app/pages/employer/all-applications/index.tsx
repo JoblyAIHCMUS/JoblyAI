@@ -70,7 +70,9 @@ export default function AllApplicationsPage() {
 
   const applications: AllApplication[] = useMemo(() => {
     if (!data) return [];
-    return data.pages.flatMap((page) => mapApiResponseToApplications(page.applications));
+    return data.pages.flatMap((page) =>
+      mapApiResponseToApplications(page.applications)
+    );
   }, [data]);
 
   const total = data?.pages[0]?.total ?? 0;
@@ -86,12 +88,18 @@ export default function AllApplicationsPage() {
   );
 
   const closeMenu = useCallback(() => {
-    setMenuState({ visible: false, application: null, triggerPosition: undefined });
+    setMenuState({
+      visible: false,
+      application: null,
+      triggerPosition: undefined,
+    });
   }, []);
 
   const handleView = useCallback(
     (application: AllApplication) => {
-      router.push(`/pages/employer/all-applications/${application.id}` as never);
+      router.push(
+        `/pages/employer/all-applications/${application.id}` as never
+      );
     },
     [router]
   );
@@ -156,7 +164,10 @@ export default function AllApplicationsPage() {
     if (!application) return;
     setMutatingId(application.id);
     try {
-      await rejectApplication({ applicationId: application.id, feedback: REJECT_FEEDBACK });
+      await rejectApplication({
+        applicationId: application.id,
+        feedback: REJECT_FEEDBACK,
+      });
       Toast.show({
         type: 'success',
         text1: 'Applicant rejected',
@@ -208,7 +219,9 @@ export default function AllApplicationsPage() {
     }
     return (
       <View className="items-center py-10">
-        <Text className="text-base text-app-text-3">No applications found.</Text>
+        <Text className="text-base text-app-text-3">
+          No applications found.
+        </Text>
       </View>
     );
   };
