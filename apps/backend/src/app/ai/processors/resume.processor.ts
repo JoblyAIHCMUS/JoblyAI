@@ -8,6 +8,7 @@ import { S3Service } from '../../s3/s3.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { NotificationType } from '../../notifications/notification-type.enum';
 
 @Processor('resume-extraction')
 export class ResumeProcessor extends WorkerHost {
@@ -148,7 +149,7 @@ export class ResumeProcessor extends WorkerHost {
       try {
         await this.notificationsService.createNotification({
           recipientId: candidateId,
-          type: 'AI_RESUME_PARSED',
+          type: NotificationType.AI_RESUME_PARSED,
           title: 'Resume Parsed',
           content:
             'AI has finished reading your CV. Review and sync to your profile now.',
