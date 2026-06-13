@@ -47,9 +47,7 @@ export function HiringProcessPanel({
             className="flex-1 py-3 rounded-xl border border-app-red-1 items-center"
             style={{ opacity: disabled || !canReject ? 0.5 : 1 }}
           >
-            <Text className="text-sm font-semibold text-app-red-1">
-              Reject
-            </Text>
+            <Text className="text-sm font-semibold text-app-red-1">Reject</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onRequestAdvance}
@@ -58,9 +56,7 @@ export function HiringProcessPanel({
             className="flex-1 py-3 rounded-xl bg-app-primary-1 items-center"
             style={{ opacity: disabled || !canAdvance ? 0.5 : 1 }}
           >
-            <Text className="text-sm font-semibold text-white">
-              Next Stage
-            </Text>
+            <Text className="text-sm font-semibold text-white">Next Stage</Text>
           </TouchableOpacity>
         </View>
       </View>

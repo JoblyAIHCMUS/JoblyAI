@@ -129,7 +129,9 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
       <View className="h-px bg-app-border-2 my-3" />
 
       <View className="mb-3">
-        <Text className="text-xs font-medium text-app-text-3 mb-2">Contact</Text>
+        <Text className="text-xs font-medium text-app-text-3 mb-2">
+          Contact
+        </Text>
         <View className="flex-row items-center mb-1.5">
           <Mail size={16} color="#64748B" />
           <Text

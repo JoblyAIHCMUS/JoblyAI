@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import { Trash2 } from 'lucide-react-native';
 
@@ -99,10 +93,7 @@ function NoteCard({
               >
                 {note.name}
               </Text>
-              <Text
-                className="text-xs text-app-text-3"
-                numberOfLines={1}
-              >
+              <Text className="text-xs text-app-text-3" numberOfLines={1}>
                 {note.timestamp}
               </Text>
             </View>
@@ -162,9 +153,7 @@ export function ApplicationNotes() {
             className="px-3 py-1.5 rounded-lg border border-app-border-2"
             activeOpacity={0.7}
           >
-            <Text className="text-sm font-medium text-app-slate-1">
-              Cancel
-            </Text>
+            <Text className="text-sm font-medium text-app-slate-1">Cancel</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity

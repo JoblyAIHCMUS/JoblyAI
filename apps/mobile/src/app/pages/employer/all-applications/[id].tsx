@@ -71,7 +71,11 @@ function buildApplicantDetail(raw: RawApplication): ApplicantDetail {
     appliedRole,
     jobCategory:
       raw.job?.category ??
-      ({ id: 0, name: 'General', slug: 'general' } as ApplicantDetail['jobCategory']),
+      ({
+        id: 0,
+        name: 'General',
+        slug: 'general',
+      } as ApplicantDetail['jobCategory']),
     employmentType:
       (raw.job?.type as ApplicantDetail['employmentType']) ?? 'FULL_TIME',
     appliedDate,
@@ -95,9 +99,9 @@ export default function AllApplicationsDetailPage() {
     try {
       setError(null);
       const response = await listEmployerApplications({ pageSize: 100 });
-      const raw = response.applications.find(
-        (a) => String(a.id) === id
-      ) as RawApplication | undefined;
+      const raw = response.applications.find((a) => String(a.id) === id) as
+        | RawApplication
+        | undefined;
       if (!raw) {
         setError('Application not found');
         setApplicant(null);
