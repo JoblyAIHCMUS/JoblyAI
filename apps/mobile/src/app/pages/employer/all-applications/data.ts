@@ -3,6 +3,7 @@ import {
   PaginatedApplicationsResponse,
 } from '../../../../types/application';
 import { AllApplication, HiringStage } from './types';
+import { JobCategory, EmploymentType } from '../../../../types/job';
 
 /**
  * Map backend ApplicationStatus to frontend HiringStage.
@@ -38,6 +39,52 @@ export const nextStageMap: Partial<Record<HiringStage, HiringStage>> = {
   Applied: 'Interview',
   Interview: 'Offer',
 };
+
+/**
+ * Progress percentage for the stage progress bar in the applicant detail
+ * overview. Mirrors apps/web/src/features/employer/all-applications/detail/data.ts.
+ */
+export const hiringStageProgress: Record<HiringStage, number> = {
+  Applied: 20,
+  Interview: 40,
+  Offer: 80,
+  Rejected: 0,
+  Withdrawn: 0,
+};
+
+/**
+ * Background-color class for the filled portion of the stage progress bar.
+ * Uses existing mobile tokens (no new colors needed).
+ */
+export const hiringStageColor: Record<HiringStage, string> = {
+  Applied: 'bg-app-secondary-2',
+  Interview: 'bg-app-amber-2',
+  Offer: 'bg-app-emerald-2',
+  Rejected: 'bg-app-red-1',
+  Withdrawn: 'bg-app-gray-3',
+};
+
+/**
+ * Full applicant record shown on the detail screen. Mirrors
+ * apps/web/src/features/employer/all-applications/detail/data.ts::ApplicantDetail.
+ */
+export interface ApplicantDetail {
+  id: string;
+  applicantId: string;
+  name: string;
+  image: string;
+  email: string;
+  phone: string;
+  title: string;
+  jobListingId: string;
+  appliedRole: string;
+  jobCategory: JobCategory;
+  employmentType: EmploymentType;
+  appliedDate: string;
+  resume: string;
+  score: number;
+  hiringStage: HiringStage;
+}
 
 /**
  * Convert a paginated API response into UI-ready AllApplication rows.
