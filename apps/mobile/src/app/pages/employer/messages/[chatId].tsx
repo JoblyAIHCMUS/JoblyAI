@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -43,9 +43,21 @@ export default function ChatScreen() {
   // 3. Flatten + decorate with date separators
   const messages = useMemo(
     () =>
-      withDateSeparators((historyData?.pages ?? []).flatMap((p) => p)),
-    [historyData]
+      withDateSeparators(
+        (historyData?.pages ?? []).flatMap((p) => p),
+        userId
+      ),
+    [historyData, userId]
   );
+
+  // 3.5. Auto-scroll to bottom on new messages (mirrors web's
+  //      useEffect at apps/web/src/features/employer/messages/ChatWindow.tsx:39-44)
+  const listRef = useRef<FlatList>(null);
+  useEffect(() => {
+    if (messages.length > 0) {
+      listRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [messages.length]);
 
   // 4. Send
   const send = useSendMessage({
@@ -68,6 +80,7 @@ export default function ChatScreen() {
         <ChatHeader
           name={summary?.participantName ?? 'Chat'}
           avatar={summary?.participantAvatar ?? null}
+          role={summary?.participantRole ?? null}
           onBack={() => router.back()}
         />
         <ChatLoading />
@@ -82,6 +95,7 @@ export default function ChatScreen() {
         <ChatHeader
           name={summary?.participantName ?? 'Chat'}
           avatar={summary?.participantAvatar ?? null}
+          role={summary?.participantRole ?? null}
           onBack={() => router.back()}
         />
         <ChatError
@@ -101,6 +115,7 @@ export default function ChatScreen() {
       <ChatHeader
         name={summary?.participantName ?? 'Chat'}
         avatar={summary?.participantAvatar ?? null}
+        role={summary?.participantRole ?? null}
         onBack={() => router.back()}
       />
       <KeyboardAvoidingView
@@ -109,12 +124,10 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         <FlatList
+          ref={listRef}
           data={messages}
           keyExtractor={(m) => m.messageId}
-          renderItem={({ item }) => (
-            <MessageBubble message={item} currentUserId={userId} />
-          )}
-          inverted
+          renderItem={({ item }) => <MessageBubble message={item} />}
           contentContainerStyle={{
             padding: 16,
             flexGrow: messages.length === 0 ? 1 : undefined,
