@@ -119,8 +119,9 @@ export const changePassword = async (
       payload: ChangePasswordPayload
     ) => Promise<{ data: ChangePasswordResponse | null; error: unknown }>;
   };
-  const { data: response, error } =
-    await changePasswordClient.changePassword(data);
+  const { data: response, error } = await changePasswordClient.changePassword(
+    data
+  );
 
   if (error) {
     throw error;

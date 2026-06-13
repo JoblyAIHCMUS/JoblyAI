@@ -32,10 +32,7 @@ type IconComponent = ComponentType<{
   strokeWidth?: number;
 }>;
 
-type PasswordFieldName =
-  | 'currentPassword'
-  | 'newPassword'
-  | 'confirmPassword';
+type PasswordFieldName = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
 const PASSWORD_RULES = [
   {
