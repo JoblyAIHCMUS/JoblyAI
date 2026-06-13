@@ -25,6 +25,11 @@ export interface ResetPasswordPayload {
   password: string;
 }
 
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface SendOTPPayload {
   email: string;
   type: 'forget-password';
@@ -96,6 +101,16 @@ export const resetPassword = async (
     data,
     { signal }
   );
+  return response.data;
+};
+
+export const changePassword = async (
+  data: ChangePasswordPayload,
+  signal?: AbortSignal
+): Promise<{ success?: boolean; message?: string }> => {
+  const response = await apiClient.post('/auth/change-password', data, {
+    signal,
+  });
   return response.data;
 };
 

@@ -92,12 +92,14 @@ const LoginPage = () => {
       } else {
         router.push('/');
       }
-    } catch {
+    } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
         text2:
-          error?.message || 'An error occurred during login. Please try again.',
+          err instanceof Error
+            ? err.message
+            : 'An error occurred during login. Please try again.',
       });
     }
   };

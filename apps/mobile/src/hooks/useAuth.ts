@@ -1,20 +1,77 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 import { authClient } from '../lib/auth-client';
 import {
   login as loginRequest,
   signup as signupRequest,
   LoginPayload,
   SignupPayload,
+  ChangePasswordPayload,
   SendOTPPayload,
   ResetPasswordPayload,
   AuthResponse,
+  changePassword as changePasswordRequest,
   resetPassword as resetPasswordRequest,
   sendOTP as sendOTPRequest,
 } from '../api/auth';
 
+function readErrorMessageFromData(data: unknown): string | null {
+  if (!data) {
+    return null;
+  }
+
+  if (typeof data === 'string') {
+    return data.trim() || null;
+  }
+
+  if (typeof data !== 'object') {
+    return null;
+  }
+
+  const record = data as Record<string, unknown>;
+  const directMessage = record.message || record.error || record.detail;
+
+  if (typeof directMessage === 'string' && directMessage.trim()) {
+    return directMessage;
+  }
+
+  if (Array.isArray(record.message)) {
+    const message = record.message
+      .filter((item): item is string => typeof item === 'string')
+      .join('\n')
+      .trim();
+
+    if (message) {
+      return message;
+    }
+  }
+
+  if (record.error && typeof record.error === 'object') {
+    return readErrorMessageFromData(record.error);
+  }
+
+  if (record.errors && typeof record.errors === 'object') {
+    return readErrorMessageFromData(record.errors);
+  }
+
+  return null;
+}
+
 function getAuthErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const responseMessage = readErrorMessageFromData(error.response?.data);
+
+    if (responseMessage) {
+      return responseMessage;
+    }
+
+    if (error.response?.status) {
+      return `${fallback} (HTTP ${error.response.status})`;
+    }
+  }
+
   if (error && typeof error === 'object' && 'message' in error) {
     const message = (error as { message?: unknown }).message;
     if (typeof message === 'string' && message.trim()) {
@@ -125,6 +182,30 @@ export function useResetPassword() {
   };
 
   return { resetPassword, loading, error, data };
+}
+
+export function useChangePassword() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const changePassword = async (payload: ChangePasswordPayload) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      return await changePasswordRequest(payload);
+    } catch (err) {
+      const error = new Error(
+        getAuthErrorMessage(err, 'Failed to change password')
+      );
+      setError(error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { changePassword, loading, error };
 }
 
 export function useLogout() {
