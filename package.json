@@ -137,7 +137,8 @@
       "path-to-regexp": ">=8.4.0",
       "drizzle-orm": ">=0.45.2",
       "next": ">=16.2.3",
-      "tmp": ">=0.2.6"
+      "tmp": ">=0.2.6",
+      "esbuild": ">=0.28.1"
     }
   },
   "resolutions": {
