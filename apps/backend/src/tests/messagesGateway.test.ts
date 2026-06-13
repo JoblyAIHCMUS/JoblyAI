@@ -191,6 +191,54 @@ describe('MessagesGateway', () => {
     });
   });
 
+  describe('handleConnection (RN cookie via handshake.auth)', () => {
+    it('should authenticate when session cookie is provided via handshake.auth (no Cookie header)', async () => {
+      // Arrange
+      const client = {
+        handshake: {
+          headers: {} as Record<string, string | string[]>,
+          auth: { cookie: 'session=valid-cookie-value' },
+        },
+        data: {} as Record<string, unknown>,
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      mockAuthService.validateToken.mockResolvedValue(mockSession1);
+
+      // Act
+      await gateway.handleConnection(client as unknown as Socket);
+
+      // Assert
+      expect(mockAuthService.validateToken).toHaveBeenCalledWith(
+        expect.objectContaining({ cookie: 'session=valid-cookie-value' })
+      );
+      expect(client.join).toHaveBeenCalledWith(mockUser1.id);
+      expect(client.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('should prefer the Cookie header over handshake.auth.cookie when both are present', async () => {
+      // Arrange
+      const client = {
+        handshake: {
+          headers: { cookie: 'session=browser-cookie' } as Record<string, string | string[]>,
+          auth: { cookie: 'session=rn-cookie' },
+        },
+        data: {} as Record<string, unknown>,
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      mockAuthService.validateToken.mockResolvedValue(mockSession1);
+
+      // Act
+      await gateway.handleConnection(client as unknown as Socket);
+
+      // Assert
+      expect(mockAuthService.validateToken).toHaveBeenCalledWith(
+        expect.objectContaining({ cookie: 'session=browser-cookie' })
+      );
+    });
+  });
+
   describe('handleSendMessage', () => {
     it('should send message and emit to recipient', async () => {
       // Arrange

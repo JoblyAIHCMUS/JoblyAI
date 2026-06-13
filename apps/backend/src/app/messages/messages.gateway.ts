@@ -29,9 +29,12 @@ export class MessagesGateway
   ) {}
 
   async handleConnection(client: Socket) {
-    const headers = client.handshake.headers as
-      | Headers
-      | Record<string, string | string[]>;
+    const headers = { ...(client.handshake.headers as Record<string, string>) };
+    // React Native clients send the session via socket `auth` instead of
+    // the upgrade headers. Merge it so authService.validateToken can find it.
+    // The Cookie header (if present) takes precedence — it's what browsers send.
+    const authCookie = (client.handshake.auth as { cookie?: string } | undefined)?.cookie;
+    if (authCookie && !headers.cookie) headers.cookie = authCookie;
 
     const session = await this.authService.validateToken(headers);
 
