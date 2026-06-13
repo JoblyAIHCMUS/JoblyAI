@@ -1,19 +1,19 @@
 import { Stack, useRouter } from 'expo-router';
 import {
-  Bell,
   BriefcaseBusiness,
   Building2,
   ChevronRight,
+  ClipboardList,
   LockKeyhole,
   LogOut,
   Menu,
-  ShieldCheck,
-  Smartphone,
+  Sparkles,
   User,
 } from 'lucide-react-native';
 import type { ComponentType } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   Switch,
@@ -24,6 +24,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+  type NotificationSettings,
+  type NotificationSettingsKey,
+} from '../../../api/notifications';
+import { COLORS } from '../../constants/theme';
 import { useLogout } from '../../../hooks/useAuth';
 import CandidateDashboardSidebar from '../candidate/dashboard/components/CandidateDashboardSidebar';
 import EmployerDashboardSidebar from '../employer/dashboard/components/EmployerDashboardSidebar';
@@ -35,12 +42,8 @@ type IconComponent = ComponentType<{
   strokeWidth?: number;
 }>;
 
-type PreferenceKey =
-  | 'pushNotifications'
-  | 'jobAlerts';
-
 type PreferenceItem = {
-  key: PreferenceKey;
+  key: NotificationSettingsKey;
   label: string;
   description: string;
   icon: IconComponent;
@@ -56,7 +59,7 @@ export type SettingsAccount = {
 const ROLE_CONFIG = {
   candidate: {
     title: 'Settings',
-    subtitle: 'Manage your account, job alerts, and profile visibility.',
+    subtitle: 'Manage your account, notifications, and security preferences.',
     currentPath: '/pages/candidate/settings',
     profilePath: '/pages/candidate/public-profile',
     passwordSecurityPath: '/pages/candidate/settings/password-security',
@@ -78,18 +81,30 @@ const ROLE_CONFIG = {
 
 const PREFERENCES: PreferenceItem[] = [
   {
-    key: 'pushNotifications',
-    label: 'Push notifications',
-    description: 'Receive important hiring and application updates.',
-    icon: Bell,
+    key: 'applications',
+    label: 'Applications',
+    description: 'Send push notifications for jobs that you have applied to.',
+    icon: ClipboardList,
   },
   {
-    key: 'jobAlerts',
-    label: 'Job alerts',
-    description: 'Notify you when strong matches are available.',
+    key: 'jobs',
+    label: 'Jobs',
+    description: 'Send push notifications for job openings that suit you.',
     icon: BriefcaseBusiness,
   },
+  {
+    key: 'recommendations',
+    label: 'Recommendations',
+    description: 'Send push notifications for personalized recommendations.',
+    icon: Sparkles,
+  },
 ];
+
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  applications: true,
+  jobs: true,
+  recommendations: true,
+};
 
 function getInitials(value: string): string {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -122,7 +137,7 @@ function SettingRow({
       className="flex-row items-center rounded-lg border border-app-border-3 bg-white px-4 py-4"
     >
       <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-background-1">
-        <Icon size={20} color="#4640DE" strokeWidth={2.2} />
+        <Icon size={20} color={COLORS.primary} strokeWidth={2.2} />
       </View>
       <View className="ml-3 flex-1">
         <Text className="text-[15px] font-bold text-app-text-4">{title}</Text>
@@ -130,7 +145,7 @@ function SettingRow({
           {description}
         </Text>
       </View>
-      <ChevronRight size={19} color="#94A3B8" />
+      <ChevronRight size={19} color={COLORS.slate400} />
     </TouchableOpacity>
   );
 }
@@ -139,17 +154,21 @@ function PreferenceToggle({
   item,
   enabled,
   onChange,
+  disabled,
+  loading,
 }: {
   item: PreferenceItem;
   enabled: boolean;
   onChange: (value: boolean) => void;
+  disabled?: boolean;
+  loading?: boolean;
 }) {
   const Icon = item.icon;
 
   return (
     <View className="flex-row items-center rounded-lg border border-app-border-3 bg-white px-4 py-4">
       <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-slate-gray">
-        <Icon size={20} color="#64748B" strokeWidth={2.2} />
+        <Icon size={20} color={COLORS.slate500} strokeWidth={2.2} />
       </View>
       <View className="ml-3 flex-1 pr-3">
         <Text className="text-[15px] font-bold text-app-text-4">
@@ -159,15 +178,35 @@ function PreferenceToggle({
           {item.description}
         </Text>
       </View>
-      <Switch
-        value={enabled}
-        onValueChange={onChange}
-        trackColor={{ false: '#CBD5E1', true: '#C7D2FE' }}
-        thumbColor={enabled ? '#4640DE' : '#FFFFFF'}
-        ios_backgroundColor="#CBD5E1"
-      />
+      {loading ? (
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      ) : (
+        <Switch
+          value={enabled}
+          onValueChange={onChange}
+          disabled={disabled}
+          trackColor={{
+            false: COLORS.borderMuted,
+            true: COLORS.indigoTrack,
+          }}
+          thumbColor={enabled ? COLORS.primary : COLORS.white}
+          ios_backgroundColor={COLORS.borderMuted}
+        />
+      )}
     </View>
   );
+}
+
+function getSettingsErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+  }
+
+  return fallback;
 }
 
 export default function SettingsScreen({
@@ -181,12 +220,87 @@ export default function SettingsScreen({
   const config = ROLE_CONFIG[role];
   const { logout, loading: isLoggingOut } = useLogout();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [preferences, setPreferences] = useState<Record<PreferenceKey, boolean>>(
-    {
-      pushNotifications: true,
-      jobAlerts: role === 'candidate',
+  const [avatarImageFailed, setAvatarImageFailed] = useState(false);
+  const [notificationSettings, setNotificationSettings] =
+    useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
+  const [isLoadingNotificationSettings, setIsLoadingNotificationSettings] =
+    useState(true);
+  const [savingPreference, setSavingPreference] =
+    useState<NotificationSettingsKey | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadNotificationSettings() {
+      setIsLoadingNotificationSettings(true);
+
+      try {
+        const settings = await getNotificationSettings(controller.signal);
+        setNotificationSettings(settings);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          Toast.show({
+            type: 'error',
+            text1: 'Failed to load notifications',
+            text2: getSettingsErrorMessage(
+              error,
+              'Please try opening settings again.'
+            ),
+          });
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingNotificationSettings(false);
+        }
+      }
     }
-  );
+
+    void loadNotificationSettings();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    setAvatarImageFailed(false);
+  }, [account.avatarUrl]);
+
+  const handleNotificationPreferenceChange = async (
+    key: NotificationSettingsKey,
+    value: boolean
+  ) => {
+    if (savingPreference) {
+      return;
+    }
+
+    const previousSettings = notificationSettings;
+    const nextSettings = {
+      ...notificationSettings,
+      [key]: value,
+    };
+
+    setNotificationSettings(nextSettings);
+    setSavingPreference(key);
+
+    try {
+      const savedSettings = await updateNotificationSettings({ [key]: value });
+      setNotificationSettings(savedSettings);
+      Toast.show({
+        type: 'success',
+        text1: 'Notification settings updated',
+      });
+    } catch (error) {
+      setNotificationSettings(previousSettings);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update notifications',
+        text2: getSettingsErrorMessage(error, 'Please try again.'),
+      });
+    } finally {
+      setSavingPreference(null);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -200,6 +314,9 @@ export default function SettingsScreen({
     }
   };
 
+  const avatarUri =
+    account.avatarUrl && !avatarImageFailed ? account.avatarUrl : null;
+
   return (
     <SafeAreaView className="flex-1 bg-app-background-2" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -211,7 +328,7 @@ export default function SettingsScreen({
             className="h-11 w-11 items-center justify-center rounded-full border border-app-border-3 bg-white"
             onPress={() => setIsSidebarOpen(true)}
           >
-            <Menu size={22} color="#25324B" strokeWidth={2.5} />
+            <Menu size={22} color={COLORS.textStrong} strokeWidth={2.5} />
           </TouchableOpacity>
           <Text className="text-xl font-bold text-app-text-4">
             {config.title}
@@ -237,11 +354,12 @@ export default function SettingsScreen({
         <View className="mb-5 rounded-lg border border-app-border-3 bg-white p-4">
           <View className="flex-row items-center">
             <View className="h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-app-indigo-soft">
-              {account.avatarUrl ? (
+              {avatarUri ? (
                 <Image
-                  source={{ uri: account.avatarUrl }}
+                  source={{ uri: avatarUri }}
                   className="h-full w-full"
                   resizeMode="cover"
+                  onError={() => setAvatarImageFailed(true)}
                 />
               ) : (
                 <Text className="text-lg font-bold text-app-primary-1">
@@ -292,33 +410,28 @@ export default function SettingsScreen({
             <PreferenceToggle
               key={item.key}
               item={item}
-              enabled={preferences[item.key]}
+              enabled={notificationSettings[item.key]}
+              disabled={
+                isLoadingNotificationSettings || savingPreference !== null
+              }
+              loading={
+                isLoadingNotificationSettings || savingPreference === item.key
+              }
               onChange={(value) =>
-                setPreferences((current) => ({
-                  ...current,
-                  [item.key]: value,
-                }))
+                void handleNotificationPreferenceChange(item.key, value)
               }
             />
           ))}
         </View>
 
         <View className="gap-3">
-          <Text className="text-[13px] font-bold uppercase text-app-text-5">
-            Device
-          </Text>
-          <SettingRow
-            icon={Smartphone}
-            title="Connected devices"
-            description="Manage mobile sessions and trusted devices"
-          />
           <TouchableOpacity
             activeOpacity={0.85}
             disabled={isLoggingOut}
             onPress={handleLogout}
             className="flex-row items-center justify-center rounded-lg border border-red-100 bg-white px-4 py-4"
           >
-            <LogOut size={20} color="#EF4444" strokeWidth={2.4} />
+            <LogOut size={20} color={COLORS.error} strokeWidth={2.4} />
             <Text className="ml-2 text-[16px] font-bold text-app-red-1">
               {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Text>
