@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Conversation } from '../types';
 import { formatTimestamp } from '../utils';
-import Avatar from '../../../../components/Avatar';
+import Avatar from '../../../../../components/Avatar';
 
 interface MessageListItemProps {
   conversation: Conversation;
