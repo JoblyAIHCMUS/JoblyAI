@@ -99,6 +99,8 @@ module.exports = {
         'app-type-full-time': '#10B981',
         'app-type-part-time': '#3B82F6',
         'app-type-contract': '#8B5CF6',
+        'app-accent': '#0A65CC',
+        'app-accent-hover': '#0852A3',
       },
       borderRadius: {
         lg: 'var(--radius)',
