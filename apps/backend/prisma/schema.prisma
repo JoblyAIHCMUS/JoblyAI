@@ -44,6 +44,7 @@ model User {
   participating        Conversation[]        @relation("ParticipantInConversations")
   applications         Application[]
   notifications        Notification[]
+  notificationSettings NotificationSettings?
 
   @@map("user")
 }
@@ -392,6 +393,19 @@ model Notification {
   @@index([recipientId])
   @@index([isRead])
   @@map("notification")
+}
+
+model NotificationSettings {
+  id                     Int      @id @default(autoincrement())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationsEnabled    Boolean  @default(true)
+  jobsEnabled            Boolean  @default(true)
+  recommendationsEnabled Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("notification_settings")
 }
 
 model Application {

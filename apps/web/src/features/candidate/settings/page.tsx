@@ -15,6 +15,7 @@ import {
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetCandidateProfile } from '@/api-hook/candidate';
+import { useNotificationSettings } from '@/api-hook/notification';
 import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
 import { useToast } from '@/hooks/useToast';
 import { SETTINGS_TABS } from './constants';
@@ -25,6 +26,16 @@ import {
 } from '@/lib/validation';
 import { formatErrorForDisplay } from '@/lib/errors';
 import type { CandidateProfileResponse } from '@/api-client/candidate';
+import type {
+  NotificationSettings,
+  NotificationSettingsKey,
+} from '@/types/notification';
+
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  applications: true,
+  jobs: true,
+  recommendations: true,
+};
 
 export default function CandidateSettingsPage() {
   const { setTitle } = usePageTitle();
@@ -34,6 +45,8 @@ export default function CandidateSettingsPage() {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
+  const [notificationSettings, setNotificationSettings] =
+    useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
 
   useEffect(() => {
     setTitle('Settings');
@@ -86,9 +99,42 @@ export default function CandidateSettingsPage() {
   const { updateDetails, loading: updatingProfile } =
     useUpdatePersonalDetails();
 
+  const {
+    fetchSettings: fetchNotificationSettings,
+    updateSettings: updateNotificationSettings,
+    loading: loadingNotificationSettings,
+    saving: savingNotificationSettings,
+  } = useNotificationSettings();
+
   const handleAvatarUpdated = (newAvatarUrl: string) => {
     setProfilePhoto(newAvatarUrl);
     fetchCandidateProfile();
+  };
+
+  const handleNotificationChange = async (key: NotificationSettingsKey) => {
+    const previousSettings = notificationSettings;
+    const nextSettings = {
+      ...notificationSettings,
+      [key]: !notificationSettings[key],
+    };
+
+    setNotificationSettings(nextSettings);
+
+    try {
+      const savedSettings = await updateNotificationSettings({
+        [key]: nextSettings[key],
+      });
+      setNotificationSettings(savedSettings);
+      toast.success('Notification settings updated');
+    } catch (error) {
+      setNotificationSettings(previousSettings);
+      toast.error(
+        formatErrorForDisplay(
+          error,
+          'Failed to update notification settings'
+        )
+      );
+    }
   };
 
   const onSubmit = async (formData: PersonalDetailsFormData) => {
@@ -125,6 +171,24 @@ export default function CandidateSettingsPage() {
       }
     };
     loadProfile();
+  }, []);
+
+  useEffect(() => {
+    const loadNotificationSettings = async () => {
+      try {
+        const settings = await fetchNotificationSettings();
+        setNotificationSettings(settings);
+      } catch (error) {
+        toast.error(
+          formatErrorForDisplay(
+            error,
+            'Failed to load notification settings'
+          )
+        );
+      }
+    };
+
+    loadNotificationSettings();
   }, []);
 
   return (
@@ -227,7 +291,8 @@ export default function CandidateSettingsPage() {
               Notifications
             </h2>
             <p className="body-body-1-regular text-[var(--text-tertiary)] text-xs sm:text-sm">
-              Manage your notification preferences.
+              Manage push delivery preferences. Notification Center keeps your
+              system history.
             </p>
           </div>
 
@@ -236,14 +301,9 @@ export default function CandidateSettingsPage() {
 
           {/* Notifications Section */}
           <NotificationOptions
-            notifications={{
-              applications: true,
-              jobs: false,
-              recommendations: false,
-            }}
-            onChange={(key: string) => {
-              // TODO: Implement notification preferences
-            }}
+            notifications={notificationSettings}
+            onChange={handleNotificationChange}
+            disabled={loadingNotificationSettings || savingNotificationSettings}
           />
         </TabsContent>
       </Tabs>

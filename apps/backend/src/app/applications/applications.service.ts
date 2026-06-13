@@ -185,25 +185,24 @@ export class ApplicationsService {
       console.error(`Failed to emit job.viewed for job ${job.id}:`, error);
     }
 
-    // Notify job poster (Employer)
-    await this.notificationsService.createNotification({
-      recipientId: job.postedById,
-      type: 'NEW_APPLICATION',
-      title: 'New Job Application',
-      content: `A new candidate has applied for your job: ${job.title}`,
-      link: `/employer/all-applications/${application.id}`,
-      metadata: { applicationId: application.id, jobId: job.id },
-    });
-
-    // Notify candidate
-    await this.notificationsService.createNotification({
-      recipientId: candidateId,
-      type: 'APPLICATION_SUBMITTED',
-      title: 'Application Submitted',
-      content: `You have successfully applied for ${job.title}`,
-      link: `/candidate/find-jobs/${job.id}`,
-      metadata: { applicationId: application.id, jobId: job.id },
-    });
+    await this.notificationsService.createNotifications([
+      {
+        recipientId: job.postedById,
+        type: 'NEW_APPLICATION',
+        title: 'New Job Application',
+        content: `A new candidate has applied for your job: ${job.title}`,
+        link: `/employer/all-applications/${application.id}`,
+        metadata: { applicationId: application.id, jobId: job.id },
+      },
+      {
+        recipientId: candidateId,
+        type: 'APPLICATION_SUBMITTED',
+        title: 'Application Submitted',
+        content: `You have successfully applied for ${job.title}`,
+        link: `/candidate/find-jobs/${job.id}`,
+        metadata: { applicationId: application.id, jobId: job.id },
+      },
+    ]);
 
     return this.mapToApplicationResponse(application);
   }
