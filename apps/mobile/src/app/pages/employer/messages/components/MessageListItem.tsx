@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { Conversation } from '../types';
 import { formatTimestamp } from '../utils';
 
@@ -12,10 +13,15 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   conversation,
   onPress,
 }) => {
-  const [avatarError, setAvatarError] = useState(false);
-
   const renderAvatar = () => {
-    if (!conversation.avatar || avatarError) {
+    const avatarUrl = conversation.avatar;
+    const isSvg =
+      !!avatarUrl &&
+      (avatarUrl.endsWith('.svg') ||
+        avatarUrl.includes('/svg') ||
+        avatarUrl.includes('image/svg+xml'));
+
+    if (!avatarUrl) {
       return (
         <View className="w-12 h-12 rounded-full bg-app-border-3 items-center justify-center">
           <Text className="text-base font-semibold text-app-slate-3">
@@ -25,12 +31,19 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       );
     }
 
+    if (isSvg) {
+      return (
+        <View className="w-12 h-12 rounded-full overflow-hidden bg-app-border-3">
+          <SvgUri uri={avatarUrl} width="100%" height="100%" />
+        </View>
+      );
+    }
+
     return (
       <Image
-        source={{ uri: conversation.avatar }}
+        source={{ uri: avatarUrl }}
         className="w-12 h-12 rounded-full"
         resizeMode="cover"
-        onError={() => setAvatarError(true)}
       />
     );
   };
