@@ -1,95 +1,53 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
 import MessagesSearchBar from './components/MessagesSearchBar';
 import MessageListItem from './components/MessageListItem';
 import MessagesLoading from './components/MessagesLoading';
 import MessagesError from './components/MessagesError';
-import { mapChatSummaryToConversation } from './utils';
+import { mapChatSummaryToConversation, filterBySearch } from './utils';
 import { Conversation } from './types';
-import { useGetChatSummary } from '../../../../hooks/useGetChatSummary';
+import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 
 export default function MessagesScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const hasFetchedRef = useRef(false);
+
+  const { data: profile } = useGetEmployerProfile();
+  const userId = profile?.id;
 
   const {
-    data: employerProfile,
-    isLoading: profileLoading,
-    refetch: fetchProfile,
-  } = useGetEmployerProfile();
-  const {
-    fetchChatSummary,
-    data: chatSummary,
-    loading,
+    data: summaries,
+    isLoading,
     error,
-  } = useGetChatSummary();
-
-  const userId = employerProfile?.id;
-
-  const loadMessages = useCallback(
-    async (uid: string) => {
-      await fetchChatSummary(uid);
-    },
-    [fetchChatSummary]
-  );
-
-  useEffect(() => {
-    if (!userId || hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    loadMessages(userId);
-  }, [userId, loadMessages]);
-
-  useEffect(() => {
-    if (!profileLoading && userId) {
-      setInitialLoading(false);
-    }
-  }, [profileLoading, userId]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const { data: profile } = await fetchProfile();
-      if (profile?.id) {
-        await loadMessages(profile.id);
-      }
-    } catch {
-      // silently swallow — previous data stays visible
-    }
-    setRefreshing(false);
-  }, [loadMessages, fetchProfile]);
+    refetch,
+    isRefetching,
+  } = useChatSummary(userId);
 
   const conversations = useMemo(
-    () => (chatSummary || []).map(mapChatSummaryToConversation),
-    [chatSummary]
+    () => (summaries ?? []).map(mapChatSummaryToConversation),
+    [summaries]
   );
 
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
-    const query = searchQuery.toLowerCase();
-    return conversations.filter(
-      (conv) =>
-        conv.name.toLowerCase().includes(query) ||
-        conv.lastMessage.toLowerCase().includes(query)
-    );
-  }, [searchQuery, conversations]);
+  const filtered = useMemo(
+    () => filterBySearch(conversations, searchQuery),
+    [conversations, searchQuery]
+  );
 
-  const handleConversationPress = (conversation: Conversation) => {
-    console.log('Conversation pressed:', conversation.chatId);
-  };
+  const handleConversationPress = useCallback((conv: Conversation) => {
+    router.push({
+      pathname: '/employer/messages/[chatId]',
+      params: { chatId: conv.chatId },
+    });
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const renderEmpty = () => (
     <View className="items-center py-10">
@@ -99,25 +57,44 @@ export default function MessagesScreen() {
     </View>
   );
 
-  const renderContent = () => {
-    if (initialLoading || (profileLoading && !userId)) {
-      return <MessagesLoading />;
-    }
-
-    if (error && !chatSummary) {
-      return (
-        <MessagesError
-          message={
-            error instanceof Error ? error.message : 'Something went wrong'
-          }
-          onRetry={() => userId && loadMessages(userId)}
-        />
-      );
-    }
-
+  if (isLoading) {
     return (
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
+        <MessagesLoading />
+        <EmployerDashboardSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (error && !summaries) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
+        <MessagesError
+          message={error instanceof Error ? error.message : 'Something went wrong'}
+          onRetry={onRefresh}
+        />
+        <EmployerDashboardSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
+
       <FlatList
-        data={filteredConversations}
+        data={filtered}
         keyExtractor={(item) => item.chatId}
         renderItem={({ item }) => (
           <MessageListItem
@@ -128,7 +105,7 @@ export default function MessagesScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
         ListHeaderComponent={
           <>
@@ -145,15 +122,6 @@ export default function MessagesScreen() {
         }
         ListEmptyComponent={renderEmpty}
       />
-    );
-  };
-
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
-
-      {renderContent()}
 
       <EmployerDashboardSidebar
         isOpen={isSidebarOpen}

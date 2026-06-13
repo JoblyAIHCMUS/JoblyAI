@@ -22,3 +22,16 @@ export function formatTimestamp(date: Date): string {
     minute: '2-digit',
   });
 }
+
+export function filterBySearch(
+  conversations: Conversation[],
+  query: string
+): Conversation[] {
+  if (!query.trim()) return conversations;
+  const q = query.toLowerCase();
+  return conversations.filter(
+    (c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.lastMessage.toLowerCase().includes(q)
+  );
+}
