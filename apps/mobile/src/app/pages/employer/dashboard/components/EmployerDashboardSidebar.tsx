@@ -104,7 +104,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
     {
       name: 'All Applicants',
       icon: Users,
-      path: '/pages/employer/applicants',
+      path: '/pages/employer/all-applications',
     },
     {
       name: 'Job Listing',
