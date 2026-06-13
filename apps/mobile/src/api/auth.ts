@@ -1,4 +1,5 @@
 import { apiClient } from './config';
+import { authClient } from '../lib/auth-client';
 
 export interface LoginPayload {
   email: string;
@@ -28,6 +29,12 @@ export interface ResetPasswordPayload {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
+  revokeOtherSessions?: boolean;
+}
+
+export interface ChangePasswordResponse {
+  token?: string | null;
+  user?: AuthResponse['user'];
 }
 
 export interface SendOTPPayload {
@@ -105,13 +112,21 @@ export const resetPassword = async (
 };
 
 export const changePassword = async (
-  data: ChangePasswordPayload,
-  signal?: AbortSignal
-): Promise<{ success?: boolean; message?: string }> => {
-  const response = await apiClient.post('/auth/change-password', data, {
-    signal,
-  });
-  return response.data;
+  data: ChangePasswordPayload
+): Promise<ChangePasswordResponse> => {
+  const changePasswordClient = authClient as typeof authClient & {
+    changePassword: (
+      payload: ChangePasswordPayload
+    ) => Promise<{ data: ChangePasswordResponse | null; error: unknown }>;
+  };
+  const { data: response, error } =
+    await changePasswordClient.changePassword(data);
+
+  if (error) {
+    throw error;
+  }
+
+  return response ?? {};
 };
 
 export const getSession = async (

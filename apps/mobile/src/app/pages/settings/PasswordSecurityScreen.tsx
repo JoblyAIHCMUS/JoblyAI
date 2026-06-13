@@ -206,7 +206,11 @@ export default function PasswordSecurityScreen({
     }
 
     try {
-      await changePassword({ currentPassword, newPassword });
+      await changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: signOutOtherDevices,
+      });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -214,7 +218,9 @@ export default function PasswordSecurityScreen({
       Toast.show({
         type: 'success',
         text1: 'Password updated',
-        text2: 'Your password was changed successfully.',
+        text2: signOutOtherDevices
+          ? 'Other sessions were signed out.'
+          : 'Your password was changed successfully.',
       });
     } catch (error) {
       Toast.show({
@@ -357,7 +363,7 @@ export default function PasswordSecurityScreen({
               Sign out other devices
             </Text>
             <Text className="mt-1 text-[12px] leading-4 text-app-text-5">
-              Keep this preference ready when session revocation is available.
+              Revoke other active sessions after your password is changed.
             </Text>
           </View>
           <Switch

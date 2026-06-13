@@ -309,11 +309,6 @@ export default function SettingsScreen({
             description="Review password, sessions, and sign-in protection"
             onPress={() => router.push(config.passwordSecurityPath as never)}
           />
-          <SettingRow
-            icon={ShieldCheck}
-            title="Privacy controls"
-            description="Control what information is visible to others"
-          />
         </View>
 
         <View className="mb-5 gap-3">
