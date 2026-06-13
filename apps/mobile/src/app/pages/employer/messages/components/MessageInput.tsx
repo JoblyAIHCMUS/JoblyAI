@@ -27,7 +27,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
     <View className="flex-row items-end p-2 border-t border-app-border-3 bg-white">
       <TextInput
         className="flex-1 min-h-10 max-h-24 rounded-2xl bg-app-border-3 px-4 py-2 text-base text-app-slate-1"
-        placeholder="Type a message…"
+        placeholder="Reply message"
         placeholderTextColor="#94A3B8"
         value={text}
         onChangeText={setText}
@@ -38,7 +38,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled }) => {
       <TouchableOpacity
         testID="send-button"
         className={`ml-2 h-10 w-10 rounded-full items-center justify-center ${
-          disabled || !text.trim() ? 'bg-app-border-3' : 'bg-app-primary'
+          disabled || !text.trim() ? 'bg-app-border-3' : 'bg-app-accent'
         }`}
         onPress={handleSend}
         disabled={disabled || !text.trim()}
