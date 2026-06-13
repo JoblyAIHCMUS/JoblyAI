@@ -277,22 +277,26 @@ export default function AllApplicationsPage() {
         }
       />
 
-      {menuState.application && (
-        <AllApplicationsRowMenu
-          visible={menuState.visible}
-          onClose={closeMenu}
-          onView={() => handleView(menuState.application!)}
-          onMessage={() => handleMessage(menuState.application!)}
-          onAdvance={() => requestAdvance(menuState.application!)}
-          onDecline={() => requestDecline(menuState.application!)}
-          hiringStage={menuState.application.hiringStage as HiringStage}
-          triggerPosition={menuState.triggerPosition}
-          isLoading={
-            isMessaging ||
-            (mutatingId !== null && mutatingId === menuState.application.id)
-          }
-        />
-      )}
+      {(() => {
+        const { application, triggerPosition } = menuState;
+        if (!application) return null;
+        return (
+          <AllApplicationsRowMenu
+            visible={menuState.visible}
+            onClose={closeMenu}
+            onView={() => handleView(application)}
+            onMessage={() => handleMessage(application)}
+            onAdvance={() => requestAdvance(application)}
+            onDecline={() => requestDecline(application)}
+            hiringStage={application.hiringStage as HiringStage}
+            triggerPosition={triggerPosition}
+            isLoading={
+              isMessaging ||
+              (mutatingId !== null && mutatingId === application.id)
+            }
+          />
+        );
+      })()}
 
       <HiringStageChangeConfirmModal
         visible={confirmState.open}
