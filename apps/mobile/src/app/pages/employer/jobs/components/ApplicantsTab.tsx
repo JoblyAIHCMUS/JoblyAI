@@ -9,11 +9,9 @@ import {
   RefreshControl,
   TextInput,
 } from 'react-native';
-import { Search, Star, X, MessageCircle } from 'lucide-react-native';
+import { Search, Star, X } from 'lucide-react-native';
 import { SvgUri } from 'react-native-svg';
 import { PipelineView } from './PipelineView';
-import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
-import { useMessageCandidate } from '../../../../../hooks/messaging/useMessageCandidate';
 
 export type ApplicantStatus =
   | 'In-review'
@@ -68,12 +66,6 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   const isSvg =
     applicant.avatarUrl?.includes('.svg') ||
     applicant.avatarUrl?.includes('/svg');
-  const { data: profile } = useGetEmployerProfile();
-  const employerId = profile?.id;
-  const messageCandidate = useMessageCandidate({
-    employerId: employerId ?? '',
-    candidateId: applicant.id,
-  });
 
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
@@ -111,19 +103,6 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
           {applicant.status}
         </Text>
       </View>
-      <TouchableOpacity
-        testID="message-candidate-button"
-        className="ml-3 px-3 py-1.5 rounded-lg border border-app-primary"
-        onPress={() => messageCandidate.mutate()}
-        disabled={messageCandidate.isPending || !employerId}
-        activeOpacity={0.7}
-      >
-        {messageCandidate.isPending ? (
-          <ActivityIndicator size="small" color="#4F46E5" />
-        ) : (
-          <MessageCircle size={14} color="#4F46E5" />
-        )}
-      </TouchableOpacity>
     </View>
   );
 }
