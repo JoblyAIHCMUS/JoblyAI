@@ -100,11 +100,22 @@ export class MessagesGateway
   async handleMarkRead(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { friendId: string }
-  ) {
+  ): Promise<
+    { status: 'ok'; lastReadAt: string } | { status: 'error'; error: string }
+  > {
     const userId = client.data.userId as string;
-    await this.messagesService.markAsRead(userId, data.friendId);
+    try {
+      const lastReadAt = await this.messagesService.markAsRead(
+        userId,
+        data.friendId
+      );
 
-    this.server.to(userId).emit('message_read', { friendId: data.friendId });
-    this.server.to(data.friendId).emit('message_read', { by: userId });
+      this.server.to(userId).emit('message_read', { friendId: data.friendId });
+      this.server.to(data.friendId).emit('message_read', { by: userId });
+
+      return { status: 'ok', lastReadAt };
+    } catch (e) {
+      return { status: 'error', error: (e as Error).message };
+    }
   }
 }

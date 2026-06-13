@@ -533,10 +533,18 @@ describe('MessagesGateway', () => {
       const error = new Error('Failed to mark as read');
       mockMessagesService.markAsRead.mockRejectedValue(error);
 
-      // Act & Assert
-      await expect(
-        gateway.handleMarkRead(client as unknown as Socket, data)
-      ).rejects.toThrow('Failed to mark as read');
+      // Act
+      const result = await gateway.handleMarkRead(
+        client as unknown as Socket,
+        data
+      );
+
+      // Assert
+      expect(result).toEqual({
+        status: 'error',
+        error: 'Failed to mark as read',
+      });
+      expect(mockServer._emitMock).not.toHaveBeenCalled();
     });
 
     it('should use correct user ID from socket data', async () => {
@@ -582,6 +590,40 @@ describe('MessagesGateway', () => {
       const emitCall = mockServer._emitMock.mock.calls[1];
       expect(emitCall[0]).toBe('message_read');
       expect(emitCall[1]).toEqual({ by: userId });
+    });
+  });
+
+  describe('handleMarkRead (typed ack)', () => {
+    it('returns { status: "ok", lastReadAt } in the ack', async () => {
+      const senderId = mockUser1.id;
+      const friendId = mockUser2.id;
+      const client = createMockSocket(senderId);
+      mockMessagesService.markAsRead.mockResolvedValue(
+        '2026-06-13T10:00:00.000Z'
+      );
+
+      const result = await gateway.handleMarkRead(
+        client as unknown as Socket,
+        { friendId }
+      );
+
+      expect(result).toEqual({
+        status: 'ok',
+        lastReadAt: '2026-06-13T10:00:00.000Z',
+      });
+    });
+
+    it('returns { status: "error" } when the service throws', async () => {
+      const client = createMockSocket(mockUser1.id);
+      mockMessagesService.markAsRead.mockRejectedValue(new Error('boom'));
+
+      const result = await gateway.handleMarkRead(
+        client as unknown as Socket,
+        { friendId: mockUser2.id }
+      );
+
+      expect(result).toEqual({ status: 'error', error: 'boom' });
+      expect(mockServer._emitMock).not.toHaveBeenCalled();
     });
   });
 
