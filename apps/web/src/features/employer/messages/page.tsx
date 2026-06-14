@@ -153,6 +153,12 @@ export default function EmployerMessagesPage() {
   // Register callback for new messages via WebSocket
   useEffect(() => {
     const off = onNewMessage((message) => {
+      // Skip messages we sent ourselves (the new sender-self-echo would otherwise
+      // duplicate the optimistic message we just appended in handleSendMessage).
+      if (message.senderId === currentUser?.id) {
+        return;
+      }
+
       const formattedTime = new Date(message.timestamp).toLocaleTimeString(
         'en-US',
         {
