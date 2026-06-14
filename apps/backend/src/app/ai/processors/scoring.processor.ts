@@ -8,6 +8,7 @@ import { S3Service } from '../../s3/s3.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { NotificationType } from '../../notifications/notification-type.enum';
 
 @Processor('resume-scoring')
 export class ScoringProcessor extends WorkerHost {
@@ -87,7 +88,7 @@ export class ScoringProcessor extends WorkerHost {
       try {
         await this.notificationsService.createNotification({
           recipientId: candidateId,
-          type: 'AI_RESUME_SCORED',
+          type: NotificationType.AI_RESUME_SCORED,
           title: 'AI Scoring Complete',
           content:
             'Your CV has been evaluated with a strategic score. View feedback now.',

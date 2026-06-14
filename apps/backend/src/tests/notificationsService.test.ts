@@ -4,6 +4,7 @@ import { NotificationsService } from '../app/notifications/notifications.service
 import { NotificationsGateway } from '../app/notifications/notifications.gateway';
 import { PrismaClient } from '@prisma/client';
 import { CreateNotificationDTO } from '../app/notifications/dto/create-notification.dto';
+import { NotificationType } from '../app/notifications/notification-type.enum';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
@@ -11,6 +12,7 @@ describe('NotificationsService', () => {
   let prisma: PrismaClient;
 
   const mockPrisma = {
+    $transaction: vi.fn(),
     notification: {
       create: vi.fn(),
       findMany: vi.fn(),
@@ -18,6 +20,11 @@ describe('NotificationsService', () => {
       updateMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    notificationSettings: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      upsert: vi.fn(),
     },
   };
 
@@ -41,6 +48,11 @@ describe('NotificationsService', () => {
     // Ensure they are correctly assigned (handle any race conditions or injection issues)
     (service as any).prisma = prisma;
     (service as any).notificationsGateway = gateway;
+
+    vi.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation((operations) =>
+      Promise.all(operations)
+    );
   });
 
   it('should be defined', () => {
@@ -51,7 +63,7 @@ describe('NotificationsService', () => {
     it('should create a notification and push it via gateway', async () => {
       const dto: CreateNotificationDTO = {
         recipientId: 'user-1',
-        type: 'TEST_TYPE',
+        type: NotificationType.NEW_JOB,
         title: 'Test Title',
         content: 'Test Content',
         link: '/test',
@@ -76,6 +88,114 @@ describe('NotificationsService', () => {
         mockNotification
       );
       expect(result).toEqual(mockNotification);
+    });
+
+    it('should create a notification without pushing when the matching setting is disabled', async () => {
+      const dto: CreateNotificationDTO = {
+        recipientId: 'user-1',
+        type: NotificationType.APPLICATION_STATUS_UPDATE,
+        title: 'Application updated',
+        content: 'Your application status changed',
+        link: '/candidate/applications',
+      };
+
+      const mockNotification = {
+        id: 1,
+        ...dto,
+        metadata: null,
+        isRead: false,
+        createdAt: new Date(),
+      };
+
+      mockPrisma.notification.create.mockResolvedValue(mockNotification);
+      mockPrisma.notificationSettings.findUnique.mockResolvedValue({
+        userId: 'user-1',
+        applicationsEnabled: false,
+        jobsEnabled: true,
+        recommendationsEnabled: true,
+      });
+
+      const result = await service.createNotification(dto);
+
+      expect(prisma.notification.create).toHaveBeenCalledWith({
+        data: {
+          recipientId: dto.recipientId,
+          type: dto.type,
+          title: dto.title,
+          content: dto.content,
+          link: dto.link,
+          metadata: dto.metadata,
+        },
+      });
+      expect(gateway.sendNotification).not.toHaveBeenCalled();
+      expect(result).toEqual(mockNotification);
+    });
+
+    it('should create notifications in batch and load matching settings once', async () => {
+      const dtos: CreateNotificationDTO[] = [
+        {
+          recipientId: 'employer-1',
+          type: NotificationType.NEW_APPLICATION,
+          title: 'New Job Application',
+          content: 'A new candidate has applied',
+          link: '/employer/all-applications/1',
+        },
+        {
+          recipientId: 'candidate-1',
+          type: NotificationType.APPLICATION_SUBMITTED,
+          title: 'Application Submitted',
+          content: 'You have successfully applied',
+          link: '/candidate/find-jobs/1',
+        },
+        {
+          recipientId: 'candidate-1',
+          type: NotificationType.APPLICATION_STATUS_UPDATE,
+          title: 'Application Status Updated',
+          content: 'Your status changed',
+          link: '/candidate/find-jobs/1',
+        },
+      ];
+
+      const mockNotifications = dtos.map((dto, index) => ({
+        id: index + 1,
+        ...dto,
+        metadata: null,
+        isRead: false,
+        createdAt: new Date(),
+      }));
+
+      mockPrisma.notification.create
+        .mockResolvedValueOnce(mockNotifications[0])
+        .mockResolvedValueOnce(mockNotifications[1])
+        .mockResolvedValueOnce(mockNotifications[2]);
+      mockPrisma.notificationSettings.findMany.mockResolvedValue([
+        {
+          userId: 'employer-1',
+          applicationsEnabled: true,
+          jobsEnabled: true,
+          recommendationsEnabled: true,
+        },
+        {
+          userId: 'candidate-1',
+          applicationsEnabled: false,
+          jobsEnabled: true,
+          recommendationsEnabled: true,
+        },
+      ]);
+
+      const result = await service.createNotifications(dtos);
+
+      expect(prisma.notification.create).toHaveBeenCalledTimes(3);
+      expect(prisma.notificationSettings.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.notificationSettings.findMany).toHaveBeenCalledWith({
+        where: { userId: { in: ['employer-1', 'candidate-1'] } },
+      });
+      expect(gateway.sendNotification).toHaveBeenCalledTimes(1);
+      expect(gateway.sendNotification).toHaveBeenCalledWith(
+        'employer-1',
+        mockNotifications[0]
+      );
+      expect(result).toEqual(mockNotifications);
     });
   });
 

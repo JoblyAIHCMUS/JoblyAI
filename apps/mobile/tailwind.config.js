@@ -101,6 +101,8 @@ module.exports = {
         'app-type-contract': '#8B5CF6',
         'app-accent': '#0A65CC',
         'app-accent-hover': '#0852A3',
+        'app-tag-red-bg': '#FEE2E2',
+        'app-tag-red-text': '#DC2626',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -1,5 +1,12 @@
-import { IsString, IsOptional, IsNotEmpty, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsObject,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { NotificationType } from '../notification-type.enum';
 
 export class CreateNotificationDTO {
   @ApiProperty({
@@ -10,11 +17,12 @@ export class CreateNotificationDTO {
   recipientId!: string;
 
   @ApiProperty({
-    description: 'Type of notification (e.g., NEW_MESSAGE, APPLICATION_STATUS)',
+    description: 'Type of notification',
+    enum: NotificationType,
   })
-  @IsString()
+  @IsEnum(NotificationType)
   @IsNotEmpty()
-  type!: string;
+  type!: NotificationType;
 
   @ApiProperty({ description: 'Title of the notification' })
   @IsString()

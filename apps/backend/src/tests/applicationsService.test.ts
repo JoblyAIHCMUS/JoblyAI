@@ -117,6 +117,7 @@ const mockPrisma = vi.hoisted(() => ({
 // Mock Notifications Service
 const mockNotificationsService = vi.hoisted(() => ({
   createNotification: vi.fn(),
+  createNotifications: vi.fn(),
 }));
 
 // Mock EventEmitter
