@@ -41,7 +41,6 @@ export default function EmployerDashboard() {
     appsData,
     loading: analyticsLoading,
   } = useJobAnalytics();
-  const { refetch: fetchEmployerProfile } = useGetEmployerProfile();
 
   const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
 
@@ -58,7 +57,7 @@ export default function EmployerDashboard() {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
-  }, [fetchApplications, fetchAnalytics, groupBy]);
+  }, [fetchApplications, fetchAnalytics, groupBy, periods]);
 
   useEffect(() => {
     loadData();
@@ -94,7 +93,7 @@ export default function EmployerDashboard() {
       groupBy,
       periods
     );
-  }, [viewsData, appsData, groupBy]);
+  }, [viewsData, appsData, groupBy, periods]);
 
   const isLoadingSummary = applicationsLoading || chatsLoading;
 
