@@ -48,7 +48,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
           className="text-base font-normal text-app-text-5 mt-0.5"
           numberOfLines={1}
         >
-          {conversation.lastMessage}
+          {conversation.lastMessage || 'No messages yet'}
         </Text>
       </View>
     </TouchableOpacity>

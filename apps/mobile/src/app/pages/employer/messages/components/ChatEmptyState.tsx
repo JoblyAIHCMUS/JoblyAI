@@ -6,11 +6,11 @@ const ChatEmptyState: React.FC = () => {
   return (
     <View className="flex-1 items-center justify-center py-20">
       <MessageCircle size={48} color="#94A3B8" />
-      <Text className="text-base font-semibold text-app-slate-1 mt-4">
+      <Text className="text-lg font-semibold text-app-slate-1 mt-4">
         No messages yet
       </Text>
-      <Text className="text-sm text-app-slate-3 mt-1">
-        Say hi to start the conversation 👋
+      <Text className="text-base text-app-slate-3 mt-1">
+        Say hi to start the conversation 
       </Text>
     </View>
   );
