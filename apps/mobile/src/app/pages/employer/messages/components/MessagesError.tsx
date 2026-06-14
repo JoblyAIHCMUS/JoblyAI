@@ -18,7 +18,7 @@ const MessagesError: React.FC<MessagesErrorProps> = ({ message, onRetry }) => {
         {message}
       </Text>
       <TouchableOpacity
-        className="mt-4 px-6 py-2.5 rounded-lg bg-app-primary"
+        className="mt-4 px-6 py-2.5 rounded-lg bg-app-primary-1"
         onPress={onRetry}
         activeOpacity={0.7}
       >

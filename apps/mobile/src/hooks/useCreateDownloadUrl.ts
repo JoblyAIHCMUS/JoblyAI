@@ -1,16 +1,39 @@
-import { useMutation } from '@tanstack/react-query';
-import { createDownloadUrl } from '../api/candidate';
-import Toast from 'react-native-toast-message';
+import { useCallback, useState } from 'react';
+import {
+  createDownloadUrl,
+  type CreateDownloadUrlPayload,
+  type PresignedDownloadUrlResponse,
+} from '../api/s3';
 
-export function useCreateDownloadUrl() {
-  return useMutation<{ downloadUrl: string }, Error, string>({
-    mutationFn: createDownloadUrl,
-    onError: (error: any) => {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load PDF',
-        text2: error.message,
-      });
+interface UseCreateDownloadUrlOptions {
+  onSuccess?: (data: PresignedDownloadUrlResponse) => void;
+  onError?: (error: unknown) => void;
+}
+
+export function useCreateDownloadUrl(options?: UseCreateDownloadUrlOptions) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [data, setData] = useState<PresignedDownloadUrlResponse | null>(null);
+
+  const fetchDownloadUrl = useCallback(
+    async (payload: CreateDownloadUrlPayload) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await createDownloadUrl(payload);
+        setData(result);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
     },
-  });
+    [options]
+  );
+
+  return { fetchDownloadUrl, loading, error, data };
 }

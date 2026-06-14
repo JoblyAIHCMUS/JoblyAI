@@ -94,4 +94,5 @@ export interface CandidateProfileResponse {
   contacts?: CandidateContact[];
   socials?: CandidateSocial[];
   resumes?: CandidateResume[];
+  portfolios?: { img: string; name: string }[];
 }
