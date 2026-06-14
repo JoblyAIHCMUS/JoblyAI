@@ -56,6 +56,26 @@ export interface CandidateSocial {
   username?: string;
 }
 
+export interface CandidateResume {
+  id: number;
+  fileKey: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  parsedText: string | null;
+  aiScore: number | null;
+  aiFeedback: {
+    strengths: string[];
+    weaknesses: string[];
+    suggestions: string[];
+    formatting: string;
+    impact: string;
+  } | null;
+  isSyncedToProfile: boolean;
+  isDefault: boolean;
+  createdAt: string;
+}
+
 export interface CandidateProfileResponse {
   id: string;
   name?: string;
@@ -73,4 +93,5 @@ export interface CandidateProfileResponse {
   skills?: CandidateSkill[];
   contacts?: CandidateContact[];
   socials?: CandidateSocial[];
+  resumes?: CandidateResume[];
 }
