@@ -29,6 +29,26 @@ export function applyNewMessageToSummary(
   });
 }
 
+export function applyMessageReadToSummary(
+  old: ChatSummary[] | undefined,
+  readBy: string
+): ChatSummary[] | undefined {
+  if (!old) return undefined;
+  return old.map((c) =>
+    c.participantId === readBy ? { ...c, hasUnread: false } : c
+  );
+}
+
+export function applyMarkReadToSummary(
+  old: ChatSummary[] | undefined,
+  chatId: string
+): ChatSummary[] | undefined {
+  if (!old) return undefined;
+  return old.map((c) =>
+    c.chatId === chatId ? { ...c, hasUnread: false } : c
+  );
+}
+
 export function applyNewMessageToHistory(
   old: InfiniteData<ChatMessage[]> | undefined,
   msg: NewMessageEvent

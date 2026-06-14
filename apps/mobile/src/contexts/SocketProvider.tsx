@@ -10,6 +10,7 @@ import {
 import {
   applyNewMessageToSummary,
   applyNewMessageToHistory,
+  applyMessageReadToSummary,
 } from './cacheUpdaters';
 import type {
   ChatSummary,
@@ -52,15 +53,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
           console.error('[ws] subscriber error', e);
         }
       });
-      // 2. Update the chat-summary cache for every known userId that has
-      //    this conversation in their cache. We can't know the current
-      //    userId here without a closure, so we update ALL ['chat-summary', *]
-      //    cache entries that contain the sender.
+      // Partial-key fan-out — we don't know the current userId, and the
+      // summary's `participantId` matches `msg.senderId` (the OTHER party).
       queryClient.setQueriesData<ChatSummary[] | undefined>(
         { queryKey: ['chat-summary'] },
         (old) => applyNewMessageToSummary(old, msg)
       );
-      // 3. Append to chat-history cache (with de-dup)
       queryClient.setQueryData(['chat-history', msg.chatId], (old: unknown) =>
         applyNewMessageToHistory(
           old as Parameters<typeof applyNewMessageToHistory>[0],
@@ -70,6 +68,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const onMessageRead = (data: MessageReadEvent) => {
+      // Same partial-key fan-out: `friendId`/`by` matches the summary's `participantId`.
+      const readBy = 'friendId' in data ? data.friendId : data.by;
       messageReadListeners.current.forEach((cb) => {
         try {
           cb(data);
@@ -77,9 +77,16 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
           console.error('[ws] subscriber error', e);
         }
       });
-      // Listeners (useUnreadDot subscribers) are responsible for invalidating
-      // ['chat-summary', userId] themselves, because we don't know the
-      // current userId here.
+      queryClient.setQueriesData<ChatSummary[] | undefined>(
+        { queryKey: ['chat-summary'] },
+        (old) => {
+          const prev = old?.find((c) => c.participantId === readBy)?.hasUnread;
+          const result = applyMessageReadToSummary(old, readBy);
+          const next = result?.find((c) => c.participantId === readBy)?.hasUnread;
+          console.log('[ws] message_read', { readBy, prev, next });
+          return result;
+        }
+      );
     };
 
     socket.on('new_message', onNewMessage);
@@ -91,9 +98,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [socket, queryClient]);
 
   // ---- AppState → refetch summary on foreground ------------------------
-  // Always invalidate on foreground, even if the socket is in a failed-
-  // reconnect state. The REST refetch will pull the authoritative unread
-  // state from the server; the WS may have missed events while disconnected.
+  // No `socket.connected` guard: REST is independent of the socket.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {

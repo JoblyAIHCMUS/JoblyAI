@@ -5,33 +5,42 @@ import type {
   MarkReadAck,
   NewMessageEvent,
   MessageReadEvent,
-  SendMessageAck,
 } from '../types/message';
+import type { SendMessageAck } from '../types/message';
 
 let _socket: Socket | null = null;
 
 export function getOrCreateSocket(): Socket {
   if (_socket) return _socket;
 
-  _socket = io(API_BASE_URL, {
+  // API_BASE_URL ends in `/api` for REST; socket.io treats it as a namespace, so strip it.
+  const wsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+  console.log('[ws] init', { restUrl: API_BASE_URL, wsUrl: wsBaseUrl });
+
+  _socket = io(wsBaseUrl, {
     path: '/socket.io',
-
-    // RN does not support HTTP long-polling; force the websocket transport.
-    // (The server still upgrades polling→websocket on its own when called
-    //  from a browser; on RN we skip the polling phase entirely.)
+    // RN can't do HTTP long-polling.
     transports: ['websocket'],
-
-    // RN's socket.io-client does NOT auto-attach cookies on the WS upgrade
-    // request the way browsers do. We pass the better-auth session cookie
-    // explicitly via `auth`, and the backend merges it into the headers it
-    // passes to authService.validateToken.
-    auth: { cookie: authClient.getCookie() ?? '' },
+    // Function form re-reads the cookie per connect; static form freezes the empty module-init value.
+    auth: (cb) => {
+      const cookie = authClient.getCookie() ?? '';
+      console.log('[ws] auth', { hasCookie: !!cookie });
+      cb({ cookie });
+    },
 
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     reconnectionAttempts: 10,
   });
+
+  _socket.on('connect', () => console.log('[ws] connect', { id: _socket?.id }));
+  _socket.on('disconnect', (reason) => console.log('[ws] disconnect', { reason }));
+  _socket.on('connect_error', (err) => console.log('[ws] connect_error', { msg: err.message }));
+  _socket.on('reconnect', (attempt) => console.log('[ws] reconnect', { attempt }));
+  _socket.on('reconnect_attempt', (attempt) => console.log('[ws] reconnect_attempt', { attempt }));
+  _socket.on('reconnect_error', (err) => console.log('[ws] reconnect_error', { msg: err.message }));
+  _socket.on('reconnect_failed', () => console.log('[ws] reconnect_failed'));
 
   return _socket;
 }
@@ -42,8 +51,8 @@ export function _resetSocketForTests(): void {
   _socket = null;
 }
 
-// Typed emit helpers — these keep the rest of the codebase from importing
-// socket.io-client directly and from casting payloads.
+// Typed emit helpers — keep the rest of the codebase from importing
+// socket.io-client directly or casting payloads.
 export function emitSendMessage(
   recipientId: string,
   text: string,
@@ -56,7 +65,9 @@ export function emitMarkRead(
   friendId: string,
   ack: (response: MarkReadAck) => void
 ): void {
-  getOrCreateSocket().emit('mark_read', { friendId }, ack);
+  const socket = getOrCreateSocket();
+  console.log('[ws] emit mark_read', { friendId, connected: socket.connected });
+  socket.emit('mark_read', { friendId }, ack);
 }
 
 export type { NewMessageEvent, MessageReadEvent };

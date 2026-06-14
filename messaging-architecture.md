@@ -376,7 +376,7 @@ There are **two parallel Socket.IO client connections** to the same backend (sam
 
 **File:** `apps/mobile/src/hooks/useMessagesSocket.ts`
 
-The mobile client uses the same `socket.io-client` package as the web (`^4.8.3`, matching the server), but with two RN-specific options. **Both are mandatory.**
+The mobile client uses the same `socket.io-client` package as the web (`^4.8.3`, matching the server), but with **four** RN-specific options. **All are mandatory.**
 
 ```ts
 let _socket: Socket | null = null;
@@ -384,7 +384,16 @@ let _socket: Socket | null = null;
 export function getOrCreateSocket(): Socket {
   if (_socket) return _socket;
 
-  _socket = io(API_BASE_URL, {
+  // API_BASE_URL is `http://10.0.2.2:3000/api` (Android) / `http://localhost:3000/api` (iOS)
+  // — correct for REST, where the backend mounts endpoints under /api. But
+  // socket.io treats everything after the host as a namespace, so passing
+  // the full API_BASE_URL would try to connect to namespace `/api`, which
+  // the gateway never registered → "Invalid namespace" on every connect.
+  // Strip the /api suffix so we connect to the host root, where the
+  // default `/` namespace lives (with the default `/socket.io` path).
+  const wsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+
+  _socket = io(wsBaseUrl, {
     path: '/socket.io',
 
     // RN does not support HTTP long-polling; force the websocket transport.
@@ -394,7 +403,14 @@ export function getOrCreateSocket(): Socket {
     // request the way browsers do. We pass the better-auth session cookie
     // explicitly via `auth`, and the backend merges it into the headers it
     // passes to authService.validateToken.
-    auth: { cookie: authClient.getCookie() ?? '' },
+    //
+    // Use the FUNCTION form so the cookie is re-read from SecureStore on
+    // EVERY connect / reconnect attempt. The static form would freeze
+    // whatever authClient.getCookie() returned at socket-creation time —
+    // which is empty if the module loaded before the session was hydrated.
+    auth: (cb) => {
+      cb({ cookie: authClient.getCookie() ?? '' });
+    },
 
     reconnection: true,
     reconnectionDelay: 1000,
@@ -409,6 +425,8 @@ export function getOrCreateSocket(): Socket {
 The socket is a **module-level singleton**, not a `useRef`. This is the deliberate fix for the web's "useMessagesSocket returns a new object every render" problem. One module load → one socket.
 
 Typed emit helpers (`emitSendMessage`, `emitMarkRead`) keep the rest of the codebase from importing `socket.io-client` directly or casting payloads.
+
+**Connection observability:** the socket is wired with one-line `console.log` breadcrumb handlers for `connect`, `disconnect`, `connect_error`, `reconnect`, `reconnect_attempt`, `reconnect_error`, `reconnect_failed`, plus per-connect `auth` and per-emit `mark_read` logs (all prefixed `[ws]`). Per reproduction the user sees ~1 `[ws] connect` on app boot and ~1 `[ws] emit mark_read` + 1 `[ws] message_read` per chat open. These are intentionally cheap production breadcrumbs — not behind a debug flag — so the next time a developer hits a "WS doesn't work" symptom, the failure mode is one `adb logcat | grep [ws]` away from a root cause.
 
 ### 3e. Mobile Socket Context Provider (NEW)
 
@@ -425,15 +443,18 @@ SocketProvider owns the registry              │
                                               ├─ raw socket events  (connect, disconnect, reconnect_*, error)
                                               ├─ subscription registry  (Set<callback> per event)
                                               └─ AppState listener: queryClient.invalidateQueries(['chat-summary'])
-                                                  on AppState change → 'active' and socket.connected
+                                                  on AppState change → 'active'  (no socket.connected gate —
+                                                  see §11 "Why no `socket.connected` guard")
 ```
 
-Two pure cache updaters in `apps/mobile/src/contexts/cacheUpdaters.ts`:
+Three pure cache updaters in `apps/mobile/src/contexts/cacheUpdaters.ts`:
 
-- **`applyNewMessageToSummary(old, msg)`** — bumps `lastMessage` + `lastMessageAt`, sets `hasUnread = true` on the matching conversation, and bubbles it to the top of the list (senderId-match, stable sort).
+- **`applyNewMessageToSummary(old, msg)`** — bumps `lastMessage` + `lastMessageAt`, sets `hasUnread = true` on the matching conversation, and bubbles it to the top of the list (senderId-match, stable sort). **Returns `undefined` (not `[]`) when the cache is empty** so a WS event arriving before the initial fetch never clobbers a not-yet-populated cache.
+- **`applyMessageReadToSummary(old, readBy)`** — the WS `message_read` side of the bus. Maps every `['chat-summary', *]` cache entry and sets `hasUnread = false` for the conversation whose `participantId` matches `readBy` (the OTHER party in the conversation, as carried in the event's `friendId` or `by` field). Uses partial-key `setQueriesData` because the provider has no closure over the current userId.
 - **`applyNewMessageToHistory(old, msg)`** — appends to `pages[0]`, with two de-dup guards:
   1. **Real messageId** de-dup (catches sender-self-echo from multi-device, reconnect storms, the rare optimistic-send-swap race)
   2. **localId de-dup** within a 5-second window: if there's a `local-*` entry with matching `senderId` + `content` + close timestamp, the local entry is removed and the real one is inserted
+- **`applyMarkReadToSummary(old, chatId)`** — the mutation-side mirror of `applyMessageReadToSummary`. Called by `useMarkAsRead.onSuccess` to optimistically flip `hasUnread: false` for the conversation whose `chatId` matches, after the user's own `mark_read` emission succeeds.
 
 The provider's `onNewMessage` flow:
 
@@ -451,12 +472,19 @@ WS event 'new_message' (in SocketProvider, before any subscriber sees it)
      (no manual state, no events, no fan-out — React Query is the bus)
 ```
 
+The provider's `onMessageRead` flow (self-sufficient, no subscriber responsibility):
+
 ```
 WS event 'message_read'
-  └─ Set<MessageReadListener>.forEach (fan out)
-     - The SocketProvider doesn't know the current userId without a closure;
-       subscribers (useUnreadDot) are responsible for invalidating
-       ['chat-summary', userId] themselves.
+  ├─ Set<MessageReadListener>.forEach (fan out — currently empty; reserved for future
+  │   page-level subscribers)
+  │
+  └─ queryClient.setQueriesData(['chat-summary', *], applyMessageReadToSummary)
+        - same partial-key pattern as new_message; matches by participantId
+        - ensures the unread state clears regardless of which device the
+          partner used to mark-as-read (the only path that used to work
+          was the user's own mutation, which is wrong — the partner
+          marking on their device would never update this device's cache)
 ```
 
 **The key simplification: the React Query cache is the bus.** There is no manual `useState`, no `Set<callback>` fan-out for state (only for the WS event stream), no duplicated unread state. This is the single change that fixes the web's "two sources of truth for unread" smell.
@@ -470,7 +498,7 @@ WS event 'message_read'
 | Socket disconnect                          | `socket.io` auto-reconnects with backoff (1s, 2s, 4s, ..., cap 5s, 10 attempts)                                      |
 | All 10 attempts fail                       | `connect_error` logged; socket is in a failed state (sends will time out)                                            |
 | App backgrounded                           | Socket stays connected (matches web); ping/pong keeps the TCP socket warm                                            |
-| App foregrounded                           | `AppState` listener invalidates `['chat-summary']`                                                                   |
+| App foregrounded                           | `AppState` listener invalidates `['chat-summary']` (no `socket.connected` guard — see §11)                          |
 | Logout                                     | Out of scope (the web doesn't handle it either — `client.disconnect()` only happens if `validateToken` returns null) |
 
 ---
@@ -507,6 +535,8 @@ WS event 'message_read'
 ### `markAsRead(senderId, recipientId): Promise<string>` (lines 72-78)
 
 `INSERT INTO last_seen (user_id, chat_id, last_read) VALUES (?, ?, now())` then returns `new Date().toISOString()` — was `void`.
+
+> **Eventual-consistency caveat:** the `INSERT` is acknowledged before the corresponding row is necessarily visible to a subsequent `SELECT last_read FROM last_seen …` (ScyllaDB's default read consistency is `LOCAL_ONE`, so a read on a different replica can return the pre-write state for a brief window). This is the reason the mobile `useMarkAsRead` hook intentionally does **not** call `invalidateQueries` in its `onSuccess` — a refetch fired immediately would observe the stale "no `last_seen`" state and overwrite the optimistic `hasUnread: false` with `hasUnread: true`. The natural `staleTime` (30 s), `AppState→active` invalidation, and subsequent WS `new_message` events all reconcile once Scylla settles.
 
 ### `createConversation(userId, participantId)` (lines 200-230)
 
@@ -583,7 +613,7 @@ The topbar notification **bell** with a numeric `99+` badge is a separate, indep
 | `ChatHeader`               | `messages/components/ChatHeader.tsx`                                                   | Back button, avatar, name, role, online dot                                                      |
 | `MessageBubble`            | `messages/components/MessageBubble.tsx`                                                | Single message; different alignment/colors for sent vs received; renders date separators         |
 | `MessageInput`             | `messages/components/MessageInput.tsx`                                                 | Multiline `TextInput` + Send button with spinner while pending (testID `send-button`)            |
-| `ChatEmptyState`           | `messages/components/ChatEmptyState.tsx`                                               | "No messages yet — say hi 👋"                                                                    |
+| `ChatEmptyState`           | `messages/components/ChatEmptyState.tsx`                                               | "No messages yet — say hi"                                                                    |
 | `ChatLoading`              | `messages/components/ChatLoading.tsx`                                                  | Reused style for the chat detail initial load                                                    |
 | `ChatError`                | `messages/components/ChatError.tsx`                                                    | "Unable to load conversation" + Try again / Back                                                 |
 | `ApplicantsTab` (modified) | `apps/mobile/src/app/pages/employer/jobs/components/ApplicantsTab.tsx`                 | Per-row "Message" button (testID `message-candidate-button`) that triggers `useMessageCandidate` |
@@ -825,6 +855,8 @@ The mobile client **collapses both web concerns into one source of truth**: the 
 - The list and the sidebar see the **same `hasUnread` value** (always). No asymmetry.
 - The cache is **also updated** for incoming messages from other users; the list page's row gets `hasUnread: true` optimistically. (Self-correcting on the next `fetchChatSummary` refetch — which is triggered by `AppState→active` or by the peer marking a message as read.)
 - `useUnreadDot` (`apps/mobile/src/hooks/messaging/useUnreadDot.ts`) is three lines: it reads `['chat-summary', userId]` and returns `(summaries ?? []).some(s => s.hasUnread)`. No events, no manual state.
+- **WS `message_read` event** (NEW) → `SocketProvider` runs `applyMessageReadToSummary` → cache is updated for the matching `participantId`. This handles the case where the **partner** marks a chat as read on their own device — previously the cache could only be cleared by your own `mark_read` mutation, so the partner's read never reached your device.
+- **Own `mark_read` mutation** (NEW) → `useMarkAsRead.onSuccess` runs `applyMarkReadToSummary` (mutation-side mirror of `applyMessageReadToSummary`, matching on `chatId` instead of `participantId`). Both WS paths and the mutation path write to the same React Query cache key, so the dot clears the moment any one of them fires.
 
 This is the single change that **fixes the web's "two sources of truth for unread" smell** for the mobile client.
 
@@ -922,14 +954,14 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `lib/query-client.ts`                       | **NEW** shared `QueryClient` with mobile-aware defaults: `staleTime: 30s`, `gcTime: 5min`, `retry: 1`, `refetchOnWindowFocus: false`, `refetchOnReconnect: true`, mutations `retry: 0`              |
 | `lib/utils.ts`                              | **MODIFIED** — added `uuid()` helper (RFC4122 v4 via `crypto.getRandomValues`)                                                                                                                      |
-| `hooks/useMessagesSocket.ts`                | **NEW** module-level singleton socket; RN config (`transports: ['websocket']`, `auth.cookie`); typed `emitSendMessage` / `emitMarkRead` helpers; `_resetSocketForTests`                             |
-| `contexts/SocketProvider.tsx`               | **NEW** `useSocket()` / `useSocket` context; `Set<cb>` registry; `AppState` listener invalidates `['chat-summary']` on `active`; handles both `new_message` and `message_read`                      |
-| `contexts/cacheUpdaters.ts`                 | **NEW** pure functions `applyNewMessageToSummary` and `applyNewMessageToHistory` (de-dup by real `messageId` + 5s `localId` window)                                                                 |
+| `hooks/useMessagesSocket.ts`                | **NEW** module-level singleton socket; RN config (forces `transports: ['websocket']`, **strips `/api` from `API_BASE_URL` for the WS URL** so socket.io doesn't treat it as a namespace, **function-form `auth`** so the cookie is re-read from SecureStore on every connect/reconnect); typed `emitSendMessage` / `emitMarkRead` helpers; one-line `[ws]` breadcrumb logs on every socket event for observability; `_resetSocketForTests` |
+| `contexts/SocketProvider.tsx`               | **NEW** `useSocket()` / `useSocket` context; `Set<cb>` registry; `AppState` listener invalidates `['chat-summary']` on `active` (**no `socket.connected` guard** — see §11); handles both `new_message` and `message_read`, with `message_read` self-updating the cache via `applyMessageReadToSummary` (not subscriber-responsible as originally documented) |
+| `contexts/cacheUpdaters.ts`                 | **NEW** pure functions: `applyNewMessageToSummary` (returns `undefined`, not `[]`, when cache is empty), `applyMessageReadToSummary` (WS-side mark-read cache flip), `applyNewMessageToHistory` (de-dup by real `messageId` + 5s `localId` window), and `applyMarkReadToSummary` (mutation-side mirror of `applyMessageReadToSummary`) |
 | `hooks/messaging/useChatSummary.ts`         | **NEW** React Query wrapper: `useQuery({ queryKey: ['chat-summary', userId], enabled: !!userId, staleTime: 30_000 })`                                                                               |
 | `hooks/messaging/useChatHistory.ts`         | **NEW** React Query `useInfiniteQuery` (cursor pagination stubbed — server returns the first 50)                                                                                                    |
 | `hooks/messaging/useSendMessage.ts`         | **NEW** React Query `useMutation` with optimistic insert (`local-{uuid}`), 10-second timeout, ack swap, rollback + toast on error                                                                   |
-| `hooks/messaging/useMarkAsRead.ts`          | **NEW** React Query `useMutation` wrapping `emitMarkRead`; optimistically clears `hasUnread` in the `chat-summary` cache on success                                                                 |
-| `hooks/messaging/useMarkAsReadOnFocus.ts`   | **NEW** debounced (500ms) mark-read on mount + on `AppState→active`                                                                                                                                 |
+| `hooks/messaging/useMarkAsRead.ts`          | **NEW** React Query `useMutation` wrapping `emitMarkRead`; 10-second ack safety timeout (rejects with `mark_read_timeout` if backend never acks); `onSuccess` uses **partial-key `setQueriesData`** with `applyMarkReadToSummary` and **does NOT** call `invalidateQueries` (would race Scylla's eventual consistency and clobber the optimistic write) |
+| `hooks/messaging/useMarkAsReadOnFocus.ts`   | **NEW** debounced (500ms) mark-read on mount + on `AppState→active`; **gated on `friendId`** to avoid emitting `mark_read` with an empty recipient on a cold mount (would write a `last_seen` row for a bogus `chatId = sort([userId, '']).join(':')`) |
 | `hooks/messaging/useUnreadDot.ts`           | **NEW** `(summaries ?? []).some(s => s.hasUnread)` from `useChatSummary`                                                                                                                            |
 | `hooks/messaging/useEnsureSummaryLoaded.ts` | **NEW** refetches `['chat-summary', userId]` once if the chatId isn't in the cache (cold-cache deeplink)                                                                                            |
 | `hooks/messaging/useInitConversation.ts`    | **NEW** React Query `useMutation` for `POST /chats/init/:friendId`; on success invalidates `chat-summary` and `router.push` to chat detail                                                          |
@@ -994,11 +1026,13 @@ The mobile app (Expo + React Native) shares the same backend REST + WebSocket AP
 
 ```ts
 // apps/mobile/src/hooks/useMessagesSocket.ts
-io(API_BASE_URL, {
+const wsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+
+io(wsBaseUrl, {
   path: '/socket.io',
   transports: ['websocket'], // RN can't do HTTP long-polling
-  auth: { cookie: authClient.getCookie() ?? '' }, // RN's socket.io-client doesn't
-  // auto-attach cookies on the WS upgrade
+  auth: (cb) => cb({ cookie: authClient.getCookie() ?? '' }), // function form —
+  // re-reads the cookie from SecureStore on every connect / reconnect
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
@@ -1006,21 +1040,29 @@ io(API_BASE_URL, {
 });
 ```
 
-Both options are **mandatory**. The server still handles the cookie merge on its side (`handleConnection` reads `handshake.auth.cookie` if `handshake.headers.cookie` is absent).
+Four things are **mandatory**:
+
+1. **`wsBaseUrl` strips the `/api` suffix.** `API_BASE_URL` is `…/api` (correct for REST, where the backend mounts endpoints under `/api`), but socket.io treats everything after the host as a namespace. Passing the full URL makes the client try to connect to namespace `/api`, which the gateway never registered → `connect_error: "Invalid namespace"`. Stripping `/api` lands the client on the default `/` namespace, with the default `/socket.io` path.
+2. **`transports: ['websocket']`** — RN can't do HTTP long-polling.
+3. **`auth: (cb) => cb({ cookie })` in function form** — the static form `{ cookie: … }` would freeze whatever `authClient.getCookie()` returned at socket-creation time, which is empty if the module loaded before the session was hydrated into SecureStore. The function form re-reads the cookie on every connect / reconnect.
+4. **Module-level singleton** — not a `useRef` — so reconnect after `SocketProvider` remounts (e.g. hot reload) doesn't lose the underlying connection.
+
+The server still handles the cookie merge on its side (`handleConnection` reads `handshake.auth.cookie` if `handshake.headers.cookie` is absent).
 
 ### Data flow
 
-1. **App boot** → `SocketProvider` mounts → `getOrCreateSocket()` returns the singleton (or creates it)
+1. **App boot** → `SocketProvider` mounts → `getOrCreateSocket()` returns the singleton (or creates it) → one-line `[ws] init` log confirms `restUrl` vs `wsUrl`, then `[ws] auth` (per-connect) fires with the fresh cookie, then `[ws] connect` once the WS upgrade completes
 2. **List screen mount** → `useGetEmployerProfile()` (TanStack Query) fires `GET /api/employer/me` → returns the employer profile with `id`
 3. `useChatSummary(profile.id)` fires `GET /api/chats/summary?userId=` → returns `ChatSummary[]` → `mapChatSummaryToConversation` → UI `Conversation[]`
 4. `FlatList` renders rows; each row shows the unread blue dot when `Conversation.unread === true`
 5. **Tap a row** → `router.push({ pathname: '/employer/messages/[chatId]', params: { chatId } })`
 6. **Chat screen** → `useChatSummary(userId).data.find(c => c.chatId === chatId)` looks up metadata; `useEnsureSummaryLoaded` refetches once if missing; `useChatHistory(chatId, participantId)` loads the first 50 messages; `withDateSeparators` decorates them with date labels
-7. **On mount, `useMarkAsReadOnFocus`** fires `mark_read` (debounced 500ms) → server updates `last_seen` → sidebar dot clears on next summary refetch
+7. **On mount, `useMarkAsReadOnFocus`** fires `mark_read` after the 500ms debounce — but **only if `friendId` is set** (gated against a cold mount where the summary hasn't resolved). The full breadcrumb trail: `[mark-read] mount → debounce→mutate → [ws] emit mark_read → [mark-read] ack → [mark-read] cached` (plus `[ws] message_read` from the WS echo).
 8. **Type + Send** → `useSendMessage` does an optimistic insert (`local-{uuid}`), emits `send_message` over WS, waits for the ack (10s timeout)
 9. **Ack arrives** → swap `localId` → real `messageId` in the cache; the WS `new_message` echo (now also emitted to the sender's room for multi-device sync) hits the de-dup guard in the cache updater and is a no-op
 10. **WS `new_message` for a different chat** → `SocketProvider` runs `applyNewMessageToSummary` → bumps `lastMessage` + `lastMessageAt`, sets `hasUnread = true`, bubbles to top → `useUnreadDot` recomputes → sidebar dot appears
-11. **Background → foreground** → `AppState` listener in `SocketProvider` invalidates `['chat-summary']` → React Query refetches → missed messages appear in the list
+11. **WS `message_read` for any chat** (NEW) → `SocketProvider` runs `applyMessageReadToSummary` (matching on `participantId`) → sets `hasUnread: false` for the matching conversation in every `['chat-summary', *]` cache entry → the list row dot and the sidebar dot both clear. This covers the case where the **partner** marks a chat as read on their own device.
+12. **Background → foreground** → `AppState` listener in `SocketProvider` invalidates `['chat-summary']` (no `socket.connected` guard — see §11) → React Query refetches → missed messages appear in the list
 
 ### Loading & Error States
 
@@ -1096,6 +1138,20 @@ Documented for future work — not blockers, but worth tracking.
 - **Sender-self-echo in chat-history is correct, but optimistic `unread: !isActiveChat` is server-blind.** When the chat screen is open and a new message arrives, the list page's matching row gets `hasUnread: false` set optimistically. The server would still say `true` until the next `fetchChatSummary` (which happens on `AppState→active` or when the peer marks a message as read). In practice the chat screen calls `mark_read` immediately, so this is invisible — but the invariant isn't enforced. Same risk as the web's `useUnreadMessagesDot`.
 - **Hardcoded socket config in `useMessagesSocket.ts`.** `reconnectionDelay: 1000`, `reconnectionDelayMax: 5000`, `reconnectionAttempts: 10` are inline constants. If a future caller needs different behavior, they'll need to refactor the singleton.
 - **`useEnsureSummaryLoaded` only refetches when a cache exists but doesn't contain the chatId.** If the user lands on a chat detail with a _cold_ `['chat-summary', userId]` cache (no prior fetch), the hook is a no-op. The chat screen then renders with `summary === undefined` until the next general invalidation fires. Edge case; rare in practice.
+
+### Mobile — recently resolved (NEW)
+
+These are no longer issues. Documented so a future reader doesn't re-discover them and so the rationale for the code changes survives.
+
+- **WS connect_error: "Invalid namespace" (FIXED).** `API_BASE_URL` is `http://10.0.2.2:3000/api` (Android) / `http://localhost:3000/api` (iOS) — correct for REST, where the backend mounts endpoints under `/api`. But socket.io treats everything after the host as a namespace, so passing the full URL made the client try to connect to namespace `/api`, which the gateway never registered. The fix in `useMessagesSocket.ts` derives `wsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '')` and connects to that. REST still uses the original `API_BASE_URL` (with `/api`), so endpoints are unaffected. This was the actual root cause of the "mark-read does nothing" symptom — the socket never connected, so no `mark_read` emit ever reached the backend, so no `message_read` WS echo ever came back, and no `hasUnread` ever flipped.
+- **Stale auth cookie frozen at socket-creation (FIXED).** `authClient.getCookie()` returns `""` at module-init time (the session is hydrated into SecureStore asynchronously). The static `auth: { cookie: authClient.getCookie() ?? '' }` form froze that empty cookie for the entire lifetime of the socket. The fix uses the **function form** `auth: (cb) => cb({ cookie: authClient.getCookie() ?? '' })`, which socket.io-client calls on every connect / reconnect attempt, so the cookie is always fresh. This was a latent bug that would have manifested the moment the `/api` namespace fix above let the socket actually reach the auth check.
+- **`message_read` WS event was a no-op (FIXED).** The previous `onMessageRead` handler only fanned out to `messageReadListeners` (none registered anywhere) and had a comment saying "listeners (useUnreadDot) are responsible for invalidating themselves". That was wishful — the `useUnreadDot` hook never registered a listener, so the partner marking a chat as read on their own device never updated the receiver's cache. The fix: the handler now self-updates every `['chat-summary', *]` cache entry via `setQueriesData({ queryKey: ['chat-summary'] }, (old) => applyMessageReadToSummary(old, readBy))`, matching on `participantId` (the OTHER party, from the event's `friendId`/`by` field). This closes the "partner reads on their device" gap.
+- **`useMarkAsRead` key-shape mismatch (FIXED).** The mutation's `onSuccess` used `setQueryData(['chat-summary', opts.userId], …)` with a specific key. When the call site `useMarkAsReadOnFocus({…, userId: profile?.id ?? ''})` was called with an empty `userId` (cold mount), the optimistic write went to `['chat-summary', '']` — a key no subscriber was on. The fix: use `setQueriesData({ queryKey: ['chat-summary'] }, …)` (partial-key match), which updates every `chat-summary` entry regardless of the suffix the subscriber used (`''`, `undefined`, or the real id).
+- **Eventual-consistency clobber on mark-read (FIXED).** The original `onSuccess` called `invalidateQueries({queryKey: ['chat-summary']})` to "reconcile with the server". In practice the refetch raced ScyllaDB's eventual consistency: the just-written `last_seen` row might not be visible to the very next read, so the refetch observed the stale "no `last_seen`" state and overwrote the optimistic `hasUnread: false` with `hasUnread: true`. The fix: drop the `invalidateQueries` and let the natural `staleTime` (30 s), `AppState→active` invalidation, and subsequent WS events reconcile once Scylla settles.
+- **`useMarkAsReadOnFocus` fired with empty `friendId` (FIXED).** On a cold mount where the chat summary hadn't resolved yet, `summary?.participantId ?? ''` was `''`, and the effect emitted `mark_read` with an empty recipient. The backend would then write a `last_seen` row for `chatId = sort([userId, '']).join(':')` — a bogus chat. The WS echo would carry `friendId: ''` back, never matching any real conversation in the summary cache. The fix: both effects early-return when `opts.friendId` is empty, and the AppState handler's deps now include `opts.friendId` so the listener re-registers once the summary resolves.
+- **10-second ack safety timeout (NEW).** `useMarkAsRead.mutationFn` wraps the `emitMarkRead` ack in a `setTimeout(10_000)` that rejects with `mark_read_timeout`. Without it, a dead socket would leave the mutation hanging forever with no `onError` ever firing. With it, the failure surfaces in one place and any caller-side error handling can react.
+- **`bg-app-primary` Tailwind class was undefined (FIXED — separate from the cache layer).** The sidebar's `sidebar-unread-dot` used `className="… bg-app-primary"`, but `tailwind.config.js` defines `app-primary-1`, `app-primary-2`, etc. — not `app-primary` (no suffix). The class was purged, the `<View>` rendered as a 10×10 transparent circle, and the dot was invisible. Fixed in `EmployerDashboardSidebar.tsx:236`, `ChatError.tsx:23`, and `MessagesError.tsx:21` (replaced with `bg-app-primary-1` and `bg-app-primary-1` respectively). The messages list row's `unread-dot` was already using the valid `bg-blue-500`, which is why the list row showed the dot while the sidebar didn't.
+- **Why no `&& socket.connected` guard on `AppState→active` invalidation (FIXED — explained).** The original code only invalidated `['chat-summary']` if the socket was connected. The intent was to avoid refetching when the socket was in a failed state, but the effect was that a permanently broken socket could never trigger a foreground refresh — the user would have to kill and reopen the app. The fix drops the guard; the REST endpoint is independent of the socket, so the refetch is always safe.
 
 ### Backend test suite
 
