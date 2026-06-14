@@ -11,7 +11,7 @@ import EmployerDashboardSidebar from './components/EmployerDashboardSidebar';
 
 // Hooks
 import { useListEmployerApplications } from '../../../../hooks/useListEmployerApplications';
-import { useGetChatSummary } from '../../../../hooks/useGetChatSummary';
+import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useJobAnalytics } from '../../../../hooks/useJobAnalytics';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 
@@ -31,18 +31,16 @@ export default function EmployerDashboard() {
     data: applicationsResult,
     loading: applicationsLoading,
   } = useListEmployerApplications();
-  const {
-    fetchChatSummary,
-    data: chatsResult,
-    loading: chatsLoading,
-  } = useGetChatSummary();
+  const { data: employerProfileForChat } = useGetEmployerProfile();
+  const { data: chatsResult, isLoading: chatsLoading } = useChatSummary(
+    employerProfileForChat?.id
+  );
   const {
     fetchAnalytics,
     viewsData,
     appsData,
     loading: analyticsLoading,
   } = useJobAnalytics();
-  const { refetch: fetchEmployerProfile } = useGetEmployerProfile();
 
   const periods = groupBy === 'day' ? 7 : groupBy === 'week' ? 4 : 12;
 
@@ -50,29 +48,16 @@ export default function EmployerDashboard() {
     try {
       const [startDate, endDate] = getDateRangeForPeriods(groupBy, periods * 2);
 
-      // Fetch profile first to get the user ID for chat summary
-      const { data: employerProfile } = await fetchEmployerProfile();
-
       const promises: Promise<unknown>[] = [
         fetchApplications({ status: 'APPLIED', pageSize: 1 }),
         fetchAnalytics(startDate, endDate, groupBy),
       ];
 
-      if (employerProfile?.id) {
-        promises.push(fetchChatSummary(employerProfile.id));
-      }
-
       await Promise.all(promises);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
-  }, [
-    fetchApplications,
-    fetchChatSummary,
-    fetchAnalytics,
-    fetchEmployerProfile,
-    groupBy,
-  ]);
+  }, [fetchApplications, fetchAnalytics, groupBy, periods]);
 
   useEffect(() => {
     loadData();
@@ -108,7 +93,7 @@ export default function EmployerDashboard() {
       groupBy,
       periods
     );
-  }, [viewsData, appsData, groupBy]);
+  }, [viewsData, appsData, groupBy, periods]);
 
   const isLoadingSummary = applicationsLoading || chatsLoading;
 

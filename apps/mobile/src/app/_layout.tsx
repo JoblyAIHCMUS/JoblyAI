@@ -19,7 +19,9 @@ import {
 } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
 import { NAV_THEME } from '../lib/theme';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../lib/query-client';
+import { SocketProvider } from '../contexts/SocketProvider';
 import { authClient } from '../lib/auth-client';
 import '../global.css';
 
@@ -116,16 +118,6 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   return children;
 }
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
-      retry: 1,
-    },
-  },
-});
-
 export default function AppLayout() {
   const currentColorScheme = colorScheme.get() ?? 'light';
   const baseTheme = currentColorScheme === 'dark' ? DarkTheme : DefaultTheme;
@@ -142,9 +134,11 @@ export default function AppLayout() {
       <ThemeProvider value={theme}>
         <SessionResumeGate>
           <StatusBar style={currentColorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack screenOptions={{ headerShown: false }} />
-          <PortalHost />
-          <Toast position="top" topOffset={60} />
+          <SocketProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+            <PortalHost />
+            <Toast position="top" topOffset={60} />
+          </SocketProvider>
         </SessionResumeGate>
       </ThemeProvider>
     </QueryClientProvider>

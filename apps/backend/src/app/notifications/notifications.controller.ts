@@ -4,6 +4,7 @@ import {
   Patch,
   Delete,
   Param,
+  Body,
   ParseIntPipe,
   Req,
   UseGuards,
@@ -11,6 +12,7 @@ import {
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
+import { UpdateNotificationSettingsDTO } from './dto/update-notification-settings.dto';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -32,6 +34,23 @@ export class NotificationsController {
   async getUnreadCount(@Req() req: any) {
     const userId = req.user.id;
     return { count: await this.notificationsService.getUnreadCount(userId) };
+  }
+
+  @Get('settings')
+  @ApiOperation({ summary: 'Get notification settings for current user' })
+  async getNotificationSettings(@Req() req: any) {
+    const userId = req.user.id;
+    return this.notificationsService.getNotificationSettings(userId);
+  }
+
+  @Patch('settings')
+  @ApiOperation({ summary: 'Update notification settings for current user' })
+  async updateNotificationSettings(
+    @Req() req: any,
+    @Body() body: UpdateNotificationSettingsDTO
+  ) {
+    const userId = req.user.id;
+    return this.notificationsService.updateNotificationSettings(userId, body);
   }
 
   @Patch(':id/read')

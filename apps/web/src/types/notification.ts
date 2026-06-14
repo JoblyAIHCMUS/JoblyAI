@@ -7,6 +7,14 @@ export interface Notification {
   link: string | null;
 }
 
+export interface NotificationSettings {
+  applications: boolean;
+  jobs: boolean;
+  recommendations: boolean;
+}
+
+export type NotificationSettingsKey = keyof NotificationSettings;
+
 export interface MarkNotificationAsReadResponse {
   notification: Notification;
   unreadCount: number;

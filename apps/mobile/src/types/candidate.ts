@@ -73,4 +73,5 @@ export interface CandidateProfileResponse {
   skills?: CandidateSkill[];
   contacts?: CandidateContact[];
   socials?: CandidateSocial[];
+  portfolios?: { img: string; name: string }[];
 }

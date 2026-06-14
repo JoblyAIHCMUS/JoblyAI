@@ -17,6 +17,8 @@ export const COLORS = {
   tagOrangeText: '#FFB836',
   tagGreenBg: '#EBF9F1',
   tagGreenText: '#56CDAD',
+  tagRedBg: '#FEE2E2',
+  tagRedText: '#DC2626',
   footerBg: '#0F172A',
   footerText: '#64748B',
   error: '#EF4444',

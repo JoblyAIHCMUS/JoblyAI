@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api';
 import {
   Notification,
+  NotificationSettings,
   MarkNotificationAsReadResponse,
   MarkAllNotificationsAsReadResponse,
   DeleteNotificationResponse,
@@ -14,6 +15,23 @@ export async function listNotifications(): Promise<Notification[]> {
 export async function getUnreadCount(): Promise<{ count: number }> {
   const response = await apiClient.get<{ count: number }>(
     '/notifications/unread-count'
+  );
+  return response.data;
+}
+
+export async function getNotificationSettings(): Promise<NotificationSettings> {
+  const response = await apiClient.get<NotificationSettings>(
+    '/notifications/settings'
+  );
+  return response.data;
+}
+
+export async function updateNotificationSettings(
+  settings: Partial<NotificationSettings>
+): Promise<NotificationSettings> {
+  const response = await apiClient.patch<NotificationSettings>(
+    '/notifications/settings',
+    settings
   );
   return response.data;
 }
