@@ -23,7 +23,9 @@ export function useMarkAsReadOnFocus(opts: Options) {
   // Mount-time fire; re-fires on chatId/friendId/userId change. friendId guard avoids a bogus last_seen on cold mount.
   useEffect(() => {
     if (!opts.friendId) {
-      console.log('[mark-read] mount skipped (no friendId)', { chatId: opts.chatId });
+      console.log('[mark-read] mount skipped (no friendId)', {
+        chatId: opts.chatId,
+      });
       return;
     }
     console.log('[mark-read] mount', { chatId: opts.chatId });

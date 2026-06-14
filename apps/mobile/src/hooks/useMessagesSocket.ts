@@ -35,11 +35,21 @@ export function getOrCreateSocket(): Socket {
   });
 
   _socket.on('connect', () => console.log('[ws] connect', { id: _socket?.id }));
-  _socket.on('disconnect', (reason) => console.log('[ws] disconnect', { reason }));
-  _socket.on('connect_error', (err) => console.log('[ws] connect_error', { msg: err.message }));
-  _socket.on('reconnect', (attempt) => console.log('[ws] reconnect', { attempt }));
-  _socket.on('reconnect_attempt', (attempt) => console.log('[ws] reconnect_attempt', { attempt }));
-  _socket.on('reconnect_error', (err) => console.log('[ws] reconnect_error', { msg: err.message }));
+  _socket.on('disconnect', (reason) =>
+    console.log('[ws] disconnect', { reason })
+  );
+  _socket.on('connect_error', (err) =>
+    console.log('[ws] connect_error', { msg: err.message })
+  );
+  _socket.on('reconnect', (attempt) =>
+    console.log('[ws] reconnect', { attempt })
+  );
+  _socket.on('reconnect_attempt', (attempt) =>
+    console.log('[ws] reconnect_attempt', { attempt })
+  );
+  _socket.on('reconnect_error', (err) =>
+    console.log('[ws] reconnect_error', { msg: err.message })
+  );
   _socket.on('reconnect_failed', () => console.log('[ws] reconnect_failed'));
 
   return _socket;

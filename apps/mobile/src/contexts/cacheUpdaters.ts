@@ -44,9 +44,7 @@ export function applyMarkReadToSummary(
   chatId: string
 ): ChatSummary[] | undefined {
   if (!old) return undefined;
-  return old.map((c) =>
-    c.chatId === chatId ? { ...c, hasUnread: false } : c
-  );
+  return old.map((c) => (c.chatId === chatId ? { ...c, hasUnread: false } : c));
 }
 
 export function applyNewMessageToHistory(

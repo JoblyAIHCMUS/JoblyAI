@@ -82,7 +82,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         (old) => {
           const prev = old?.find((c) => c.participantId === readBy)?.hasUnread;
           const result = applyMessageReadToSummary(old, readBy);
-          const next = result?.find((c) => c.participantId === readBy)?.hasUnread;
+          const next = result?.find(
+            (c) => c.participantId === readBy
+          )?.hasUnread;
           console.log('[ws] message_read', { readBy, prev, next });
           return result;
         }

@@ -25,7 +25,10 @@ export function useMarkAsRead(opts: UseMarkAsReadOptions) {
 
         emitMarkRead(opts.friendId, (ack) => {
           clearTimeout(timer);
-          console.log('[mark-read] ack', { chatId: opts.chatId, status: ack.status });
+          console.log('[mark-read] ack', {
+            chatId: opts.chatId,
+            status: ack.status,
+          });
           if (ack.status === 'ok') resolve(ack);
           else reject(new Error(ack.error));
         });
@@ -39,13 +42,20 @@ export function useMarkAsRead(opts: UseMarkAsReadOptions) {
           const prev = old?.find((c) => c.chatId === opts.chatId)?.hasUnread;
           const result = applyMarkReadToSummary(old, opts.chatId);
           const next = result?.find((c) => c.chatId === opts.chatId)?.hasUnread;
-          console.log('[mark-read] cached', { chatId: opts.chatId, prev, next });
+          console.log('[mark-read] cached', {
+            chatId: opts.chatId,
+            prev,
+            next,
+          });
           return result;
         }
       );
     },
     onError: (err) => {
-      console.log('[mark-read] error', { chatId: opts.chatId, msg: err.message });
+      console.log('[mark-read] error', {
+        chatId: opts.chatId,
+        msg: err.message,
+      });
     },
   });
 }

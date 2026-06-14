@@ -10,7 +10,7 @@ const ChatEmptyState: React.FC = () => {
         No messages yet
       </Text>
       <Text className="text-base text-app-slate-3 mt-1">
-        Say hi to start the conversation 
+        Say hi to start the conversation
       </Text>
     </View>
   );
