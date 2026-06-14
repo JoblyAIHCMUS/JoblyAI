@@ -91,14 +91,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [socket, queryClient]);
 
   // ---- AppState → refetch summary on foreground ------------------------
+  // Always invalidate on foreground, even if the socket is in a failed-
+  // reconnect state. The REST refetch will pull the authoritative unread
+  // state from the server; the WS may have missed events while disconnected.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && socket.connected) {
+      if (state === 'active') {
         queryClient.invalidateQueries({ queryKey: ['chat-summary'] });
       }
     });
     return () => sub.remove();
-  }, [socket, queryClient]);
+  }, [queryClient]);
 
   const value: SocketContextValue = {
     socket,

@@ -20,7 +20,7 @@ const ChatError: React.FC<ChatErrorProps> = ({ message, onRetry, onBack }) => {
       </Text>
       <View className="flex-row mt-4">
         <TouchableOpacity
-          className="px-6 py-2.5 rounded-lg bg-app-primary"
+          className="px-6 py-2.5 rounded-lg bg-app-primary-1"
           onPress={onRetry}
           activeOpacity={0.7}
         >

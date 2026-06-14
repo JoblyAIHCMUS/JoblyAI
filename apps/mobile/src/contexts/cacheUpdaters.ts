@@ -8,8 +8,8 @@ import type { InfiniteData } from '@tanstack/react-query';
 export function applyNewMessageToSummary(
   old: ChatSummary[] | undefined,
   msg: NewMessageEvent
-): ChatSummary[] {
-  if (!old) return [];
+): ChatSummary[] | undefined {
+  if (!old) return undefined;
   const next = old.map((c) =>
     c.participantId === msg.senderId
       ? {

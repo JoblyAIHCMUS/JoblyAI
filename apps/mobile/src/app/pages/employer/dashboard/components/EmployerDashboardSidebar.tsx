@@ -233,7 +233,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                 {item.badge && (
                   <View
                     testID="sidebar-unread-dot"
-                    className="ml-auto h-2.5 w-2.5 rounded-full bg-app-primary"
+                    className="ml-auto h-2.5 w-2.5 rounded-full bg-app-primary-1"
                   />
                 )}
               </TouchableOpacity>
