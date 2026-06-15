@@ -457,7 +457,6 @@ The topbar **bell** with numeric `99+` badge is a separate flow: it consumes the
 | `MessagesSearchBar` / `MessagesLoading` / `MessagesError` | `…/components/`                                                        | Search, spinner, inline error with retry                                                                                                          |
 | `ChatHeader` / `MessageBubble` / `MessageInput`           | `…/components/`                                                        | Back button + avatar + name + role, single message (testID `bubble-sent`/`bubble-received`), multiline input + send button (testID `send-button`) |
 | `ChatEmptyState` / `ChatLoading` / `ChatError`            | `…/components/`                                                        | Empty state, spinner, chat error with Try again / Back                                                                                            |
-| `ApplicantsTab`                                           | `apps/mobile/src/app/pages/employer/jobs/components/ApplicantsTab.tsx` | Per-row "Message" button (testID `message-candidate-button`) → `useMessageCandidate`                                                              |
 
 **List screen flow** (`pages/employer/messages/index.tsx`):
 
@@ -477,8 +476,6 @@ The topbar **bell** with numeric `99+` badge is a separate flow: it consumes the
 5. `useMarkAsReadOnFocus` (debounced 500ms) fires `mark_read` on mount + on `AppState→active` while the screen is open
 6. `useSendMessage` mutation: optimistic insert with `local-{uuid}` → emit over WS → on ack, swap `localId` → real `messageId`; on ack error or 10-second timeout, roll back + show toast
 7. WS `new_message` events handled by `SocketProvider` (not by this screen): the cache is updated with de-dup, and React Query re-renders this screen automatically. Sender-self-echo is dropped at the cache layer.
-
-**Conversation initiation** (Applicants tab): tap "Message" → `useMessageCandidate({employerId, candidateId})` → `useInitConversation` mutation (`POST /chats/init/:friendId`) → server upserts both rows idempotently → returns `{chatId}` → `onSuccess` invalidates `['chat-summary', userId]` and `router.push({pathname: '/employer/messages/[chatId]', params: {chatId}})`. This is the mobile flow that **fixes the web's `?candidateId=` bug** by going straight to the chatId route.
 
 ---
 
@@ -588,18 +585,6 @@ re-renders it when the chat-history cache changes.
 2. `useInitializeConversation.initChat(userId, targetId)` — checks existing via `getChatSummary()`; if none, `POST /api/chats/init/:friendId` (REST) → upserts both rows → refetches
 3. Navigates to `/employer/messages?candidateId=...` or `/candidate/messages?recruiterId=...`
 4. **Bug:** the employer page ignores `?candidateId=` — only the candidate page's `?recruiterId=` is read
-
-### 7b. Mobile
-
-`apps/mobile/src/hooks/messaging/useInitConversation.ts` + `useMessageCandidate.ts`:
-
-1. Tap the "Message" button on an `ApplicantsTab` candidate row
-2. `useMessageCandidate({employerId, candidateId})` → `useInitConversation({userId, friendId})`
-3. `POST /chats/init/:friendId` → server upserts both rows idempotently → returns `{chatId}`
-4. `onSuccess` invalidates `['chat-summary', userId]` and `router.push({pathname: '/employer/messages/[chatId]', params: {chatId}})`
-5. Chat screen resolves conversation metadata from the (just-invalidated) `chat-summary` cache via `useChatSummary`; `useEnsureSummaryLoaded` refetches once if the chatId isn't there yet
-
-This is the deliberate fix for the web's `?candidateId=` bug — the mobile flow pushes directly to the chatId route, with no URL query string to be missed.
 
 ---
 
@@ -726,7 +711,6 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 | `app/pages/employer/messages/types.ts`                                                                                                                                    | UI `Conversation` type                                                                                                                                                                                                                                                                                       |
 | `app/pages/employer/dashboard/index.tsx`                                                                                                                                  | Migrated from `useGetChatSummary` to `useChatSummary` (React Query)                                                                                                                                                                                                                                          |
 | `app/pages/employer/dashboard/components/EmployerDashboardSidebar.tsx`                                                                                                    | Wires `useUnreadDot`; renders small blue dot (testID `sidebar-unread-dot`) on the Messages nav item; replaced hardcoded `badge: 1`                                                                                                                                                                           |
-| `app/pages/employer/jobs/components/ApplicantsTab.tsx`                                                                                                                    | Per-row "Message" button (testID `message-candidate-button`) → `useMessageCandidate`                                                                                                                                                                                                                         |
 | `lib/query-client.ts`                                                                                                                                                     | Shared `QueryClient` with mobile-aware defaults: `staleTime: 30s`, `gcTime: 5min`, `retry: 1`, `refetchOnWindowFocus: false`, `refetchOnReconnect: true`, mutations `retry: 0`                                                                                                                               |
 | `lib/utils.ts`                                                                                                                                                            | `uuid()` helper (RFC4122 v4 via `crypto.getRandomValues`)                                                                                                                                                                                                                                                    |
 | `hooks/useMessagesSocket.ts`                                                                                                                                              | Module-level singleton; RN config (strips `/api` from `API_BASE_URL`, forces `transports: ['websocket']`, function-form `auth`); typed `emitSendMessage` / `emitMarkRead`; one-line `[ws]` breadcrumb logs; `_resetSocketForTests`                                                                           |
