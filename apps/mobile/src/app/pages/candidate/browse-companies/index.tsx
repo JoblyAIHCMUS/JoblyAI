@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   Image,
@@ -127,7 +127,7 @@ function CompanyLogo({ company }: { company: Company }) {
     return (
       <Image
         source={{ uri: company.logoUrl }}
-        className="h-16 w-16 rounded-xl border border-[#e2e8f0] bg-white"
+        className="h-16 w-16 rounded-xl border border-[#e2e8f0] bg-app-white-1"
         resizeMode="contain"
       />
     );
@@ -140,13 +140,20 @@ function CompanyLogo({ company }: { company: Company }) {
   );
 }
 
-function CompanyCard({ company }: { company: Company }) {
+function CompanyCard({
+  company,
+  onPress,
+}: {
+  company: Company;
+  onPress?: () => void;
+}) {
   const industry = getIndustry(company);
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      className="rounded-[10px] border border-[#d6ddeb] bg-white p-5"
+      className="rounded-[10px] border border-app-border-1 bg-app-white-1 p-5"
+      onPress={onPress}
     >
       <View className="mb-4 flex-row items-start justify-between gap-4">
         <CompanyLogo company={company} />
@@ -186,6 +193,7 @@ function CompanyCard({ company }: { company: Company }) {
 }
 
 export default function BrowseCompaniesPage() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
@@ -279,7 +287,7 @@ export default function BrowseCompaniesPage() {
     : 'Based on your profile, company preferences, and recent activity';
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-app-white-1" edges={['top', 'left', 'right']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <CandidateDashboardSidebar
@@ -288,7 +296,7 @@ export default function BrowseCompaniesPage() {
         currentPath="/pages/candidate/browse-companies"
       />
 
-      <View className="border-b border-[#d6ddeb] bg-white px-4 py-3">
+      <View className="border-b border-app-border-1 bg-app-white-1 px-4 py-3">
         <View className="flex-row items-center justify-between">
           <TouchableOpacity
             activeOpacity={0.7}
@@ -298,7 +306,7 @@ export default function BrowseCompaniesPage() {
             <Menu size={24} color="#25324b" />
           </TouchableOpacity>
 
-          <Text className="flex-1 pl-3 text-lg font-bold text-[#25324b]">
+          <Text className="flex-1 pl-3 text-lg font-bold text-app-text-4">
             Browse Companies
           </Text>
         </View>
@@ -312,7 +320,7 @@ export default function BrowseCompaniesPage() {
         }
       >
         <View className="bg-[#f8f8fd] px-4 pb-10 pt-8">
-          <View className="rounded-[5px] bg-white p-4 shadow-sm">
+          <View className="rounded-[5px] bg-app-white-1 p-4 shadow-sm">
             <View className="flex-row items-center gap-4 px-1">
               <Search size={22} color="#0f172a" />
               <View className="flex-1 pt-2">
@@ -373,7 +381,7 @@ export default function BrowseCompaniesPage() {
           </View>
         </View>
 
-        <View className="bg-white px-4 py-10">
+        <View className="bg-app-white-1 px-4 py-10">
           <Text className="text-3xl font-semibold leading-9 text-[#0f172a]">
             {companiesSectionTitle}
           </Text>
@@ -398,7 +406,7 @@ export default function BrowseCompaniesPage() {
                   className={`rounded-full border px-4 py-2 ${
                     active
                       ? 'border-[#4f46e5] bg-[#eef0ff]'
-                      : 'border-[#d6ddeb] bg-white'
+                      : 'border-app-border-1 bg-app-white-1'
                   }`}
                 >
                   <Text
@@ -446,7 +454,18 @@ export default function BrowseCompaniesPage() {
           ) : (
             <View className="mt-6 gap-6">
               {visibleCompanies.map((company) => (
-                <CompanyCard key={company.id} company={company} />
+                <CompanyCard
+                  key={company.id}
+                  company={company}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/pages/candidate/company-profile/[id]',
+                      params: {
+                        id: company.id.toString(),
+                      },
+                    })
+                  }
+                />
               ))}
             </View>
           )}
@@ -455,7 +474,7 @@ export default function BrowseCompaniesPage() {
 
       {totalPages > 1 && visibleCompanies.length > 0 ? (
         <View
-          className="border-t border-app-gray-1 bg-white px-4 py-3"
+          className="border-t border-app-gray-1 bg-app-white-1 px-4 py-3"
           style={{ paddingBottom: 12 + insets.bottom }}
         >
           <View className="flex-row items-center justify-between">
