@@ -114,6 +114,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
       path: '/pages/employer/jobs',
     },
   ];
+  const settingsPath = '/pages/employer/settings';
 
   const isRouteActive = (path: string) => {
     if (path === '/pages/employer/dashboard') {
@@ -243,11 +244,26 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
           <View className="h-px bg-[#CBD5E1] my-4 mx-2" />
 
           <TouchableOpacity
-            className="flex-row items-center px-4 py-3 mb-1"
+            className={`flex-row items-center rounded-xl px-4 py-3 mb-1 ${
+              isRouteActive(settingsPath) ? 'bg-[#EEEDFC]' : ''
+            }`}
             activeOpacity={0.8}
+            onPress={() => {
+              onClose();
+              router.push(settingsPath as never);
+            }}
           >
-            <Settings size={24} color="#64748B" />
-            <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
+            <Settings
+              size={24}
+              color={isRouteActive(settingsPath) ? '#4F46E5' : '#64748B'}
+            />
+            <Text
+              className={`ml-4 text-[17px] ${
+                isRouteActive(settingsPath)
+                  ? 'font-semibold text-[#4F46E5]'
+                  : 'font-medium text-[#64748B]'
+              }`}
+            >
               Settings
             </Text>
           </TouchableOpacity>

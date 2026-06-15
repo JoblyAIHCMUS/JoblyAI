@@ -102,7 +102,7 @@ const CandidateDashboardSidebar = ({
   ];
 
   const secondaryItems = [
-    { name: 'Settings', icon: Settings },
+    { name: 'Settings', icon: Settings, path: '/pages/candidate/settings' },
     { name: 'Help Center', icon: HelpCircle },
   ];
 
@@ -270,16 +270,33 @@ const CandidateDashboardSidebar = ({
 
             {secondaryItems.map((item) => {
               const Icon = item.icon;
+              const active = item.path === currentPath;
 
               return (
                 <TouchableOpacity
                   key={item.name}
                   activeOpacity={0.8}
-                  className="mb-1 flex-row items-center px-4 py-3"
-                  onPress={onClose}
+                  className={`mb-1 flex-row items-center rounded-2xl px-4 py-3 ${
+                    active ? 'bg-[#EEEDFC]' : ''
+                  }`}
+                  onPress={() => {
+                    if (item.path) {
+                      onClose();
+                      router.push(item.path as never);
+                      return;
+                    }
+
+                    onClose();
+                  }}
                 >
-                  <Icon size={22} color="#64748B" />
-                  <Text className="ml-4 text-base font-medium text-[#64748B]">
+                  <Icon size={22} color={active ? '#4F46E5' : '#64748B'} />
+                  <Text
+                    className={`ml-4 text-base ${
+                      active
+                        ? 'font-semibold text-[#4F46E5]'
+                        : 'font-medium text-[#64748B]'
+                    }`}
+                  >
                     {item.name}
                   </Text>
                 </TouchableOpacity>
