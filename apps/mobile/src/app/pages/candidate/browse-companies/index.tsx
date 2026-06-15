@@ -287,7 +287,10 @@ export default function BrowseCompaniesPage() {
     : 'Based on your profile, company preferences, and recent activity';
 
   return (
-    <SafeAreaView className="flex-1 bg-app-white-1" edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      className="flex-1 bg-app-white-1"
+      edges={['top', 'left', 'right']}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       <CandidateDashboardSidebar
