@@ -133,23 +133,23 @@ interface SendMessageRequest {
 ```typescript
 // REST — mirrors backend ChatSummaryResponse / ChatHistoryResponse
 interface ChatSummary {
-  chatId;
-  participantId;
-  participantName;
-  participantRole;
-  participantAvatar;
-  latestMessage;
-  hasUnread;
-  lastMessageAt;
-  isActive;
+  chatId: string;
+  participantId: string;
+  participantName: string | null;
+  participantRole: string | null;
+  participantAvatar: string | null;
+  latestMessage: string | null;
+  hasUnread: boolean;
+  lastMessageAt: string | Date;
+  isActive: boolean;
 }
 interface ChatMessage {
-  messageId;
-  senderId;
-  senderAvatar?;
-  senderName?;
-  content;
-  timestamp;
+  messageId: string;
+  senderId: string;
+  senderAvatar?: string | null;
+  senderName?: string | null;
+  content: string;
+  timestamp: string | Date;
 }
 interface ChatHistoryResponse {
   messages: ChatMessage[];
@@ -157,17 +157,14 @@ interface ChatHistoryResponse {
 
 // WebSocket wire
 interface NewMessageEvent {
-  chatId;
-  messageId;
-  senderId;
-  content;
-  timestamp;
+  chatId: string;
+  messageId: string;
+  senderId: string;
+  content: string;
+  timestamp: string;
 }
 type MessageReadEvent = { friendId: string } | { by: string };
-interface SendMessageRequest {
-  recipientId;
-  text;
-}
+interface SendMessageRequest { recipientId: string; text: string; }
 type SendMessageAck =
   | { status: 'ok'; messageId: string; timestamp: string }
   | { status: 'error'; error: string };
@@ -175,6 +172,8 @@ type MarkReadAck =
   | { status: 'ok'; lastReadAt: string }
   | { status: 'error'; error: string };
 ```
+
+> **Field-shape deltas vs the doc's earlier rendering:** REST `participantName` / `participantRole` / `participantAvatar` / `latestMessage` are nullable in code; `lastMessageAt` and `ChatMessage.timestamp` accept `string | Date` (the server sends ISO strings; the UI calls `new Date(...)` at the boundary in `mapChatSummaryToConversation`).
 
 **Mobile** — `apps/mobile/src/app/pages/employer/messages/types.ts` (UI layer): same shape as the web UI layer.
 
@@ -308,7 +307,7 @@ _socket = io(wsBaseUrl, {
 
 The socket is a **module-level singleton** (not a `useRef`) — deliberate fix for the web's "useMessagesSocket returns a new object every render" problem. One module load → one socket. Typed emit helpers (`emitSendMessage`, `emitMarkRead`) keep the rest of the codebase from importing `socket.io-client` directly.
 
-**Connection observability:** one-line `[ws]` breadcrumb logs on `connect`, `disconnect`, `connect_error`, `reconnect`, `reconnect_attempt`, `reconnect_error`, `reconnect_failed`, plus per-connect `auth` and per-emit `mark_read`. Intentionally cheap production breadcrumbs (not behind a debug flag) so the next "WS doesn't work" symptom is one `adb logcat | grep [ws]` away from a root cause.
+**Connection observability:** one-line `[ws]` breadcrumb logs on `connect`, `disconnect`, `connect_error`, `reconnect`, `reconnect_attempt`, `reconnect_error`, `reconnect_failed`, plus module-load `init`, per-connect `auth`, and per-emit `mark_read`. `SocketProvider.tsx` adds a `[ws] message_read` log on the `message_read` event and `[ws] subscriber error` `console.error`s inside the `new_message` / `message_read` fan-out. `useMarkAsRead.ts` and `useMarkAsReadOnFocus.ts` add 8 `[mark-read]` log lines (mount / skip / ack / cached / error) between them. The legacy `apps/mobile/src/hooks/useMessageCandidate.ts` adds one `console.warn`. All unguarded by `__DEV__` — intentionally cheap production breadcrumbs so the next "WS doesn't work" symptom is one `adb logcat | grep [ws]` (or `grep [mark-read]`) away from a root cause.
 
 ### 3e. Mobile Socket Context Provider
 
@@ -326,7 +325,7 @@ SocketProvider owns the registry              │
 
 Four pure cache updaters in `apps/mobile/src/contexts/cacheUpdaters.ts`:
 
-- **`applyNewMessageToSummary(old, msg)`** — bumps `lastMessage` + `lastMessageAt`, sets `hasUnread = true` on the matching conversation, bubbles it to the top (senderId-match, stable sort). Returns `undefined` (not `[]`) when the cache is empty so a WS event arriving before the initial fetch never clobbers a not-yet-populated cache.
+- **`applyNewMessageToSummary(old, msg)`** — bumps `latestMessage` + `lastMessageAt`, sets `hasUnread = true` on the matching conversation (matched by `c.participantId === msg.senderId`), and re-sorts the full array by `lastMessageAt DESC` (matched row promoted to index 0; other rows re-sorted by timestamp — **not** a stable "bubble to top, keep order" sort). Returns `undefined` (not `[]`) when the cache is empty so a WS event arriving before the initial fetch never clobbers a not-yet-populated cache.
 - **`applyMessageReadToSummary(old, readBy)`** — WS `message_read` side of the bus. Maps every `['chat-summary', *]` cache entry and sets `hasUnread = false` for the conversation whose `participantId` matches `readBy`. Partial-key `setQueriesData` because the provider has no closure over the current userId.
 - **`applyNewMessageToHistory(old, msg)`** — appends to `pages[0]`, with two de-dup guards: (1) real `messageId` de-dup (catches sender-self-echo from multi-device, reconnect storms, the rare optimistic-send-swap race), (2) `localId` de-dup within a 5-second window (matches on `senderId` + `content` + close timestamp).
 - **`applyMarkReadToSummary(old, chatId)`** — mutation-side mirror of `applyMessageReadToSummary`, called by `useMarkAsRead.onSuccess` to optimistically flip `hasUnread: false` for the conversation whose `chatId` matches.
@@ -477,9 +476,10 @@ The topbar **bell** with numeric `99+` badge is a separate flow: it consumes the
 2. `useChatSummary(userId).data.find(c => c.chatId === chatId)` looks up metadata; `useEnsureSummaryLoaded` refetches once if missing (cold-cache deeplink)
 3. `useChatHistory(chatId, participantId)` (infinite query — server returns the first 50, no cursor yet)
 4. Pages flattened + sorted ASCENDING by timestamp, then decorated with `withDateSeparators` (Today / Yesterday / MMM D — no year). Sort is client-side because the backend `getChatHistory` has no `ORDER BY`.
-5. `useMarkAsReadOnFocus` (debounced 500ms) fires `mark_read` on mount + on `AppState→active` while the screen is open
-6. `useSendMessage` mutation: optimistic insert with `local-{uuid}` → emit over WS → on ack, swap `localId` → real `messageId`; on ack error or 10-second timeout, roll back + show toast
-7. WS `new_message` events handled by `SocketProvider` (not by this screen): the cache is updated with de-dup, and React Query re-renders this screen automatically. Sender-self-echo is dropped at the cache layer.
+5. `useMarkAsReadOnFocus` (debounced 500ms) fires `mark_read` on mount + on `AppState→active` while the screen is open. Both effects are gated on `opts.friendId` being non-empty; the AppState effect's dep array is `[opts.friendId]` only, so a `chatId` change without a `friendId` change leaves a stale `chatId` in the handler's closure (logged but inert in practice — see §11).
+6. `useSendMessage` mutation: optimistic insert with `local-{uuid}` at the head of `pages[0]` → emit over WS → on ack, swap `localId` → real `messageId` and update the row's `timestamp`; on ack error or 10-second timeout, roll back the optimistic insert and show a `Toast.show({type:'error', text1:"Couldn't send", text2:'Tap to retry', onPress: …})`. **Known smell:** the toast's `onPress` body is an empty stub (comment: "the user can re-tap the Send button themselves; this is a UX nicety") — the "Tap to retry" string is misleading; tapping the toast does nothing, and the user has to retype in the input. `lastTextRef` is captured but never read by any retry handler. See §11.
+7. `FlatList` is **not inverted** — it renders the array in order and calls `scrollToEnd({animated: true})` inside a `useEffect` keyed on `messages.length` (the visual result is identical to an inverted list for a chat scrolled to the bottom). `keyExtractor` keys on `messageId`, which catches the de-duped sender-self-echo from the cache layer.
+8. WS `new_message` events are handled by `SocketProvider` (not by this screen): the `['chat-history', chatId]` cache is updated with two de-dup guards (real `messageId` then `localId`+`content`+5s window), and React Query re-renders this screen automatically. Sender-self-echo is dropped at the cache layer. The screen does **not** import or call `useSocket()` — the `useSocket` export on `SocketProvider` has zero call sites in the repo.
 
 ---
 
@@ -571,14 +571,15 @@ The topbar **bell** with numeric `99+` badge is a separate flow: it consumes the
 Backend MessagesGateway emits 'new_message'  →  SocketProvider's raw socket listener
                                                  ├─ Set<NewMessageListener>.forEach (fan out)
                                                  ├─ queryClient.setQueriesData(['chat-summary', *],
-                                                 │     applyNewMessageToSummary)
+                                                 │     applyNewMessageToSummary) — timestamp DESC re-sort
                                                  ├─ queryClient.setQueryData(['chat-history', msg.chatId],
-                                                 │     applyNewMessageToHistory)
+                                                 │     applyNewMessageToHistory) — messageId + localId de-dup
                                                  └─ useUnreadDot reads ['chat-summary', userId] and
                                                     recomputes its flag automatically
 
 The chat screen [chatId].tsx doesn't subscribe to onNewMessage at all — React Query
-re-renders it when the chat-history cache changes.
+re-renders it when the chat-history cache changes. (It also does not import
+useSocket; SocketProvider owns the only subscription in the app.)
 ```
 
 ---
@@ -712,7 +713,7 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app/_layout.tsx`                                                                                                                                                         | Root layout; mounts `<SocketProvider>` inside `<QueryClientProvider>` (shared `queryClient` from `lib/query-client.ts`); `<Toast />` at top offset 60                                                                                                                                                        |
 | `app/pages/employer/messages/index.tsx`                                                                                                                                   | Conversation list screen; `useChatSummary`; tap → `router.push` to chat detail                                                                                                                                                                                                                               |
-| `app/pages/employer/messages/[chatId].tsx`                                                                                                                                | Chat detail (header, `FlatList` of `MessageBubble`s sorted ASCENDING, `useEffect` auto-scroll to bottom on `[messages.length]`, `MessageInput`); wires `useChatSummary`, `useChatHistory`, `useSendMessage`, `useMarkAsReadOnFocus`, `useEnsureSummaryLoaded`, `useSocket`                                   |
+| `app/pages/employer/messages/[chatId].tsx`                                                                                                                                | Chat detail (header, `FlatList` of `MessageBubble`s sorted ASCENDING, `useEffect` `scrollToEnd` on `[messages.length]`, `MessageInput`); wires `useChatSummary`, `useChatHistory`, `useSendMessage`, `useMarkAsReadOnFocus`, `useEnsureSummaryLoaded`. The `FlatList` is **not inverted** — it renders in order and `scrollToEnd`s to the bottom. Does **not** import `useSocket`. |
 | `app/pages/employer/messages/components/MessageListItem.tsx`                                                                                                              | Conversation row; `isUnread` prop, blue dot (testID `unread-dot`)                                                                                                                                                                                                                                            |
 | `app/pages/employer/messages/components/{MessagesSearchBar,MessagesLoading,MessagesError,ChatHeader,MessageBubble,MessageInput,ChatEmptyState,ChatLoading,ChatError}.tsx` | All chat screen supporting components (also imported by the candidate pages via `../../employer/messages/components/…`)                                                                                                                                                                                      |
 | `app/pages/employer/messages/utils.ts`                                                                                                                                    | `mapChatSummaryToConversation`, `formatTimestamp`, `filterBySearch`, `withDateSeparators`, `mapChatHistoryToMessage`, `Message` UI type (reused by candidate pages)                                                                                                                                          |
@@ -735,7 +736,8 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 | `hooks/messaging/useUnreadDot.ts`                                                                                                                                         | Role-agnostic: takes `userId?: string`; returns `(summaries ?? []).some(s => s.hasUnread)` from `useChatSummary(userId)`. Both `EmployerDashboardSidebar` and `CandidateDashboardSidebar` pass their respective profile id.                                                                                  |
 | `hooks/messaging/useEnsureSummaryLoaded.ts`                                                                                                                               | Refetches `['chat-summary', userId]` once if the chatId isn't in the cache (cold-cache deeplink)                                                                                                                                                                                                             |
 | `hooks/messaging/useInitConversation.ts`                                                                                                                                  | React Query `useMutation` for `POST /chats/init/:friendId`; on success invalidates `chat-summary` and `router.push` to chat detail                                                                                                                                                                           |
-| `hooks/messaging/useMessageCandidate.ts`                                                                                                                                  | Thin wrapper over `useInitConversation` with `{employerId, candidateId}`                                                                                                                                                                                                                                     |
+| `hooks/messaging/useMessageCandidate.ts`                                                                                                                                  | Thin wrapper over `useInitConversation` with `{employerId, candidateId}`. **No live callers** — see the legacy hook below.                                                                                                                                                                                  |
+| `hooks/useMessageCandidate.ts`                                                                                                                                           | **Legacy** `useState`-based conversation initiator (2 live callers in the employer applications pages). Navigates to the messages list page with `?candidateId=` (which the list page never reads). This is the path actually used at runtime.                                                          |
 | `hooks/useGetChatSummary.ts`                                                                                                                                              | **DELETED** (replaced by `hooks/messaging/useChatSummary.ts`; the dashboard now uses `useChatSummary` too)                                                                                                                                                                                                   |
 | `api/messages.ts`                                                                                                                                                         | REST: `getChatSummary` / `getChatHistory` / `initConversation`                                                                                                                                                                                                                                               |
 | `types/message.ts`                                                                                                                                                        | Full shared types (REST `ChatSummary` / `ChatMessage` / `ChatHistoryResponse` + WS `NewMessageEvent` / `MessageReadEvent` / `SendMessageRequest` / `SendMessageAck` / `MarkReadAck`)                                                                                                                         |
@@ -750,7 +752,7 @@ This is the single change that **fixes the web's "two sources of truth for unrea
 - **Read receipts in chat UI** ("Seen 2m ago") — backend emits `message_read` to the sender, but no UI renders it.
 - **Attachments / images / voice** — web has none, mobile gets the same.
 - **Server-side message search** — web has client-side filter only.
-- **Mobile conversation initiation** — no "Message Employer" button on the candidate side yet (the candidate pages exist but the entry point from the candidate dashboard is missing); `useInitConversation` / `useMessageCandidate` are wired and ready.
+- **Mobile conversation initiation** — no "Message Employer" button on the candidate side yet. The React-Query `useInitConversation` / `useMessageCandidate` in `apps/mobile/src/hooks/messaging/` are wired but have **zero callers**; the **live** employer-side "Message candidate" flow uses the legacy `apps/mobile/src/hooks/useMessageCandidate.ts` (a `useState`-based hook in the top-level `hooks/` directory, not the messaging subfolder), which navigates to the messages **list** page with a `?candidateId=` query param — a param the employer messages list page never reads (the list page's `tap` handler is driven by the `chatId` from the React Query summary, not the URL). See §11.
 - **Notifications socket on mobile** — no topbar bell yet; the architecture (one shared socket) is ready for it.
 - **WS reconnection backfill for missed messages** — invalidates `['chat-summary']` on `AppState→active` is a partial fix; a "since-disconnect cursor" fetch would need backend support.
 - **Multi-device session management** — sender-self-echo de-dup is built in; no "this conversation is open on N devices" UI.
@@ -791,8 +793,14 @@ Tracked for future work — not blockers.
 
 ### Mobile (open)
 
+- **"Tap to retry" toast is a no-op.** `useSendMessage.ts` shows `Toast.show({type:'error', text2:'Tap to retry', onPress: …})` on send failure, but the `onPress` body is an empty stub (line ~110 — the file has a comment "the user can re-tap the Send button themselves; this is a UX nicety"). `lastTextRef` is captured but never read by any retry handler. The "Tap to retry" string is misleading — tapping the toast does nothing, and the user has to retype the message in the input. A real retry handler would `send.mutate(lastTextRef.current)`.
+- **Two `useMessageCandidate` implementations; React-Query version is dead code.** `apps/mobile/src/hooks/useMessageCandidate.ts` (legacy, `useState`, 2 live callers in the employer applications pages) is the one actually used at runtime. `apps/mobile/src/hooks/messaging/useMessageCandidate.ts` (React-Query wrapper, 0 callers) is the one this doc describes. They diverge: legacy navigates to the messages **list** with `?candidateId=`; the React-Query wrapper navigates to chat detail with `chatId`. The employer's messages list page never reads `?candidateId=`, so the legacy flow is effectively a list-page deeplink with a dead query param.
+- **`useMarkAsReadOnFocus` AppState effect has stale-closure risk on `chatId`.** `useMarkAsReadOnFocus.ts:40-49` — the AppState effect's dep array is `[opts.friendId]` only (eslint-disabled). The handler reads `opts.chatId` at log/fire time. If `chatId` flips while `friendId` stays stable (rare in 1:1 chat, but possible if `participantId` collides across summaries), the handler logs and would mutate on the stale `chatId`. The mount-time effect mostly covers this by re-binding everything when `chatId` changes, but the AppState handler closure is not symmetric. Fix: include `opts.chatId` in the AppState effect's deps, or read it from a ref.
+- **Hard-coded employer route in `useInitConversation`.** `useInitConversation.ts:19` — `pathname: '/pages/employer/messages/[chatId]'` regardless of caller. A candidate caller would land on the employer's chat screen. The hook has no live callers, so the bug is dormant, but the API needs an explicit role/route parameter before any candidate-side entry point is wired.
+- **`?candidateId=` / `?recruiterId=` deeplinks never auto-open a chat.** The legacy `useMessageCandidate` pushes to `/pages/employer/messages?candidateId=…`, but the list page's `tap` handler is driven by the React Query `chatId` from the summary cache, not by `searchParams`. No equivalent `?recruiterId=` exists on the candidate side either. (Web has the same smell on the employer side — see the "Employer page ignores `?candidateId=`" issue above.)
+- **Excessive unguarded `console.log` noise in the messaging path.** 20 unguarded log calls in production code: 9 `[ws]` in `useMessagesSocket.ts`, 2 `[ws] subscriber error` `console.error`s + 1 `[ws] message_read` in `SocketProvider.tsx`, 4 `[mark-read]` in `useMarkAsRead.ts`, 4 `[mark-read]` in `useMarkAsReadOnFocus.ts`, 1 `console.warn` in the legacy `useMessageCandidate.ts`. None gated by `__DEV__`. Acceptable as cheap breadcrumbs, but if production noise is a concern, gate them with `if (__DEV__)`.
 - **No cursor pagination in `useChatHistory`.** Server returns the first 50 messages; older history is not loadable. `getNextPageParam` is stubbed to return `undefined`.
-- **No offline send queue.** If the socket is disconnected and the user sends a message, the optimistic insert is shown for up to 10 seconds, then rolled back with a "Couldn't send — tap to retry" toast. Message text isn't preserved for retry.
+- **No offline send queue.** If the socket is disconnected and the user sends a message, the optimistic insert is shown for up to 10 seconds, then rolled back with a "Couldn't send — tap to retry" toast. Message text isn't preserved for retry (and even if it were, the toast's `onPress` doesn't read it — see the toast bug above).
 - **No reconnection backfill.** If the socket disconnects mid-session, no `GET /chats/summary?since=<ts>` endpoint exists to fetch missed messages. The `AppState→active` listener only invalidates React Query, which refetches the entire summary.
 - **Notifications socket not wired.** The mobile topbar has no notification bell yet, and `useNotificationsSocket` does not exist. The architecture (one shared socket) is ready for it; just needs the hook + bell.
 - **Sender-self-echo in chat-history is correct, but optimistic `unread: !isActiveChat` is server-blind.** When the chat screen is open and a new message arrives, the list page's matching row gets `hasUnread: false` set optimistically. The server would still say `true` until the next `fetchChatSummary`. In practice the chat screen calls `mark_read` immediately, so this is invisible — but the invariant isn't enforced. Same risk as the web's `useUnreadMessagesDot`.
