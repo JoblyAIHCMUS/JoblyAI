@@ -8,7 +8,10 @@ import MessagesSearchBar from '../../employer/messages/components/MessagesSearch
 import MessageListItem from '../../employer/messages/components/MessageListItem';
 import MessagesLoading from '../../employer/messages/components/MessagesLoading';
 import MessagesError from '../../employer/messages/components/MessagesError';
-import { mapChatSummaryToConversation, filterBySearch } from '../../employer/messages/utils';
+import {
+  mapChatSummaryToConversation,
+  filterBySearch,
+} from '../../employer/messages/utils';
 import { Conversation } from '../../employer/messages/types';
 import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
@@ -61,7 +64,10 @@ export default function MessagesScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ApplicationsHeader title="Messages" onMenuPress={() => setIsSidebarOpen(true)} />
+        <ApplicationsHeader
+          title="Messages"
+          onMenuPress={() => setIsSidebarOpen(true)}
+        />
         <MessagesLoading />
         <CandidateDashboardSidebar
           isOpen={isSidebarOpen}
@@ -75,7 +81,10 @@ export default function MessagesScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ApplicationsHeader title="Messages" onMenuPress={() => setIsSidebarOpen(true)} />
+        <ApplicationsHeader
+          title="Messages"
+          onMenuPress={() => setIsSidebarOpen(true)}
+        />
         <MessagesError
           message={
             error instanceof Error ? error.message : 'Something went wrong'
@@ -93,7 +102,10 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ApplicationsHeader title="Messages" onMenuPress={() => setIsSidebarOpen(true)} />
+      <ApplicationsHeader
+        title="Messages"
+        onMenuPress={() => setIsSidebarOpen(true)}
+      />
 
       <FlatList
         data={filtered}

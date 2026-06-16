@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import ChatHeader from './components/ChatHeader';

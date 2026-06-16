@@ -160,15 +160,21 @@ const CandidateDashboardSidebar = ({
   if (!isVisible) return null;
 
   const firstName =
-    candidateProfile?.firstName || candidateProfile?.name?.split(' ')[0] || getGreetingName(user);
+    candidateProfile?.firstName ||
+    candidateProfile?.name?.split(' ')[0] ||
+    getGreetingName(user);
   const fullName =
     candidateProfile?.name?.trim() ||
-    [candidateProfile?.firstName, candidateProfile?.lastName].filter(Boolean).join(' ').trim() ||
+    [candidateProfile?.firstName, candidateProfile?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() ||
     [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() ||
     user?.name?.trim() ||
     firstName;
   const avatarInitials = fullName.slice(0, 2).toUpperCase();
-  const avatarUrl = candidateProfile?.avatarUrl?.trim() || user?.avatarUrl?.trim();
+  const avatarUrl =
+    candidateProfile?.avatarUrl?.trim() || user?.avatarUrl?.trim();
 
   return (
     <Animated.View
