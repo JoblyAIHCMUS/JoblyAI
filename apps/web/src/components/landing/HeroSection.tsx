@@ -1,8 +1,35 @@
-import { ChevronDown, Search, MapPin } from 'lucide-react';
+'use client';
+
+import { Search, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from 'react';
 
 export default function HeroSection() {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [location, setLocation] = useState('');
+
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const params = new URLSearchParams();
+    const trimmedSearchTerm = searchTerm.trim();
+    const trimmedLocation = location.trim();
+
+    if (trimmedSearchTerm) {
+      params.set('q', trimmedSearchTerm);
+    }
+
+    if (trimmedLocation) {
+      params.set('location', trimmedLocation);
+    }
+
+    const queryString = params.toString();
+    router.push(queryString ? `/find-jobs?${queryString}` : '/find-jobs');
+  };
+
   return (
     <section className="relative bg-indigo-50 min-h-screen flex items-center overflow-hidden">
       {/* Decorative Pattern Background - Bottom Right */}
@@ -44,28 +71,39 @@ export default function HeroSection() {
           </p>
 
           {/* Search Bar */}
-          <div className="bg-white rounded-lg p-4 shadow-lg mb-4">
+          <form
+            className="bg-white rounded-lg p-4 shadow-lg mb-4"
+            onSubmit={handleSearch}
+          >
             <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 flex items-center gap-3 px-4 border-b border-slate-200 pb-4">
-                <Search className="w-6 h-6 text-slate-900" />
+              <div className="flex-1 flex min-w-0 items-center gap-3 px-4 border-b border-slate-200 pb-4">
+                <Search className="w-6 h-6 shrink-0 text-slate-900" />
                 <input
                   type="text"
                   placeholder="Job title or keyword"
                   className="flex-1 outline-none text-slate-900 placeholder-slate-400"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
-              <div className="flex-1 flex items-center gap-3 px-4 border-b border-slate-200 pb-4">
-                <MapPin className="w-6 h-6 text-slate-900" />
-                <div className="flex-1 flex items-center justify-between">
-                  <p className="text-slate-900 text-sm">Florence, Italy</p>
-                  <ChevronDown className="w-4 h-4 text-slate-900" />
-                </div>
+              <div className="flex-1 flex min-w-0 items-center gap-3 px-4 border-b border-slate-200 pb-4">
+                <MapPin className="w-6 h-6 shrink-0 text-slate-900" />
+                <input
+                  type="text"
+                  placeholder="Florence, Italy"
+                  className="flex-1 outline-none text-slate-900 placeholder-slate-400"
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                />
               </div>
-              <Button className="bg-indigo-600 text-white w-full lg:w-auto px-6 py-3 font-bold hover:bg-indigo-700">
-                Search my job
+              <Button
+                type="submit"
+                className=" shrink-0 bg-indigo-600 text-white w-full lg:w-auto px-6 py-3 font-bold hover:bg-indigo-700"
+              >
+                Search
               </Button>
             </div>
-          </div>
+          </form>
           <p className="text-slate-600 text-sm opacity-70">
             Popular : UI Designer, UX Researcher, Android, Admin
           </p>

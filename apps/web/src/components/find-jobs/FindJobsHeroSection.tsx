@@ -1,7 +1,6 @@
 'use client';
 import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import { KeyboardEvent } from 'react';
 
 import { useState, useEffect } from 'react';
@@ -43,31 +42,7 @@ export default function FindJobsHeroSection({
   };
 
   return (
-    <section className="relative overflow-hidden bg-indigo-50">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[#F8F8FD]" />
-
-        <div className="absolute left-0 top-20 hidden h-[436px] w-[244px] overflow-hidden lg:block">
-          <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
-            alt="Pattern left"
-            width={834}
-            height={436}
-            className="absolute bottom-0 right-0 top-5 h-auto w-[834px] max-w-none opacity-90"
-          />
-        </div>
-
-        <div className="absolute right-0 top-20 hidden h-[436px] w-[244px] overflow-hidden lg:block">
-          <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
-            alt="Pattern right"
-            width={834}
-            height={436}
-            className="absolute left-2/3 top-5 h-auto w-[834px] max-w-none -translate-x-1/2 opacity-90"
-          />
-        </div>
-      </div>
-
+    <section className="relative overflow-hidden bg-[#F8F8FD] before:pointer-events-none before:absolute before:left-0 before:top-[85px] before:hidden before:h-[436px] before:w-[244px] before:bg-[url('https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg')] before:bg-[length:834px_436px] before:bg-right-top before:bg-no-repeat before:opacity-90 before:content-[''] after:pointer-events-none after:absolute after:right-0 after:top-[85px] after:hidden after:h-[436px] after:w-[244px] after:bg-[url('https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg')] after:bg-[length:834px_436px] after:bg-no-repeat after:opacity-90 after:content-[''] after:[background-position:43%_top] lg:before:block lg:after:block">
       <div className="relative mx-auto flex w-full max-w-[1240px] flex-col items-center gap-10 px-4 pb-12 pt-28 sm:px-6 lg:px-8 lg:pb-16 lg:pt-36">
         <div className="flex w-full max-w-[1192px] flex-col gap-4">
           <div className="rounded-[5px] bg-white p-4 shadow-[0px_2.713px_4.397px_rgba(192,192,192,0.03),0px_6.863px_11.119px_rgba(192,192,192,0.04),0px_13.999px_22.683px_rgba(192,192,192,0.05),0px_28.836px_46.722px_rgba(192,192,192,0.06),0px_79px_128px_rgba(192,192,192,0.09)] sm:p-6">
