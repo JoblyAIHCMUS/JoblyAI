@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Share2 } from 'lucide-react';
+import { Share2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { InterviewPrepModal } from '@/components/interview/interview-prep-modal';
 import type { EmploymentType } from '@/types/job';
 
 export type JobDetailBreadcrumbItem = {
@@ -48,6 +49,7 @@ export default function JobDetailHeader({
   hasApplied = false,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const router = useRouter();
   const { data: user } = useUser();
   const isApplied = Boolean(hasApplied);
@@ -174,6 +176,23 @@ export default function JobDetailHeader({
               <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             <div className="w-px h-10 bg-slate-200 hidden sm:block" />
+            
+            {canApplyRole && (
+              <button
+                onClick={() => setIsPrepModalOpen(true)}
+                disabled={!isApplied}
+                className={`${
+                  !isApplied
+                    ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200'
+                    : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100'
+                } border font-semibold h-11 px-4 sm:px-5 rounded-[5px] text-sm sm:text-base transition-colors flex items-center gap-2`}
+                title={!isApplied ? 'Apply to unlock AI Interview Prep' : 'AI Interview Preparation'}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="hidden lg:inline">AI Prep</span>
+              </button>
+            )}
+
             <button
               onClick={handleApply}
               disabled={disableApply}
@@ -198,20 +217,29 @@ export default function JobDetailHeader({
         </div>
       </div>
 
-      {canApplyRole ? (
-        <SubmitApplicationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          job={{
-            id: jobId,
-            title: jobTitle,
-            company: company.name,
-            location: address,
-            jobType,
-            logoUrl: company.logoUrl || undefined,
-          }}
-        />
-      ) : null}
+      {canApplyRole && (
+        <>
+          <SubmitApplicationModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            job={{
+              id: jobId,
+              title: jobTitle,
+              company: company.name,
+              location: address,
+              jobType,
+              logoUrl: company.logoUrl || undefined,
+            }}
+          />
+          <InterviewPrepModal
+            isOpen={isPrepModalOpen}
+            onClose={() => setIsPrepModalOpen(false)}
+            jobId={jobId}
+            jobTitle={jobTitle}
+          />
+        </>
+      )}
     </section>
   );
 }
+

@@ -56,3 +56,35 @@ export const previewDeleteImpact = async (resumeId: number) => {
   );
   return response.data;
 };
+
+export const startInterviewPrep = async (jobId: number) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/interview-prep/${jobId}`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+export const getInterviewPrep = async (jobId: number) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/api/interview-prep/${jobId}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+export const regenerateInterviewPrep = async (jobId: number) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/interview-prep/${jobId}/regenerate`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
