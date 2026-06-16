@@ -33,6 +33,7 @@ import { router } from 'expo-router';
 import { getGreetingName, useUser } from '../../../../../hooks/useUser';
 import { useGetCandidateProfile } from '../../../../../hooks/useGetCandidateProfile';
 import { useLogout } from '../../../../../hooks/useAuth';
+import { useUnreadDot } from '../../../../../hooks/messaging/useUnreadDot';
 
 interface CandidateDashboardSidebarProps {
   isOpen: boolean;
@@ -49,8 +50,9 @@ const CandidateDashboardSidebar = ({
   const [isVisible, setIsVisible] = useState(isOpen);
   const translateX = useSharedValue(-width || -500);
   const { data: user } = useUser();
-  const { data: profile } = useGetCandidateProfile();
+  const { data: candidateProfile } = useGetCandidateProfile();
   const { logout, loading: isLoggingOut } = useLogout();
+  const hasUnreadMessages = useUnreadDot(candidateProfile?.id);
 
   const widthRef = useRef(width);
   useEffect(() => {
@@ -86,14 +88,23 @@ const CandidateDashboardSidebar = ({
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, path: '/pages/candidate/dashboard' },
-    { name: 'Messages', icon: MessageSquare, badge: 1 },
+    {
+      name: 'Messages',
+      icon: MessageSquare,
+      path: '/pages/candidate/messages',
+      badge: hasUnreadMessages,
+    },
     {
       name: 'My Applications',
       icon: FileText,
       path: '/pages/candidate/my-applications',
     },
     { name: 'Find Jobs', icon: Search, path: '/pages/candidate/find-jobs' },
-    { name: 'Browse Companies', icon: Building2, path: '/' },
+    {
+      name: 'Browse Companies',
+      icon: Building2,
+      path: '/pages/candidate/browse-companies',
+    },
     {
       name: 'My Public Profile',
       icon: User,
@@ -102,7 +113,7 @@ const CandidateDashboardSidebar = ({
   ];
 
   const secondaryItems = [
-    { name: 'Settings', icon: Settings },
+    { name: 'Settings', icon: Settings, path: '/pages/candidate/settings' },
     { name: 'Help Center', icon: HelpCircle },
   ];
 
@@ -153,15 +164,21 @@ const CandidateDashboardSidebar = ({
   if (!isVisible) return null;
 
   const firstName =
-    profile?.firstName || profile?.name?.split(' ')[0] || getGreetingName(user);
+    candidateProfile?.firstName ||
+    candidateProfile?.name?.split(' ')[0] ||
+    getGreetingName(user);
   const fullName =
-    profile?.name?.trim() ||
-    [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim() ||
+    candidateProfile?.name?.trim() ||
+    [candidateProfile?.firstName, candidateProfile?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() ||
     [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() ||
     user?.name?.trim() ||
     firstName;
   const avatarInitials = fullName.slice(0, 2).toUpperCase();
-  const avatarUrl = profile?.avatarUrl?.trim() || user?.avatarUrl?.trim();
+  const avatarUrl =
+    candidateProfile?.avatarUrl?.trim() || user?.avatarUrl?.trim();
 
   return (
     <Animated.View
@@ -256,11 +273,10 @@ const CandidateDashboardSidebar = ({
                   )}
 
                   {item.badge && (
-                    <View className="ml-2 h-7 min-w-7 items-center justify-center rounded-full bg-[#4F46E5] px-2">
-                      <Text className="text-xs font-bold text-white">
-                        {item.badge}
-                      </Text>
-                    </View>
+                    <View
+                      testID="sidebar-unread-dot"
+                      className="ml-auto h-2.5 w-2.5 rounded-full bg-app-primary-1"
+                    />
                   )}
                 </TouchableOpacity>
               );
@@ -270,16 +286,33 @@ const CandidateDashboardSidebar = ({
 
             {secondaryItems.map((item) => {
               const Icon = item.icon;
+              const active = item.path === currentPath;
 
               return (
                 <TouchableOpacity
                   key={item.name}
                   activeOpacity={0.8}
-                  className="mb-1 flex-row items-center px-4 py-3"
-                  onPress={onClose}
+                  className={`mb-1 flex-row items-center rounded-2xl px-4 py-3 ${
+                    active ? 'bg-[#EEEDFC]' : ''
+                  }`}
+                  onPress={() => {
+                    if (item.path) {
+                      onClose();
+                      router.push(item.path as never);
+                      return;
+                    }
+
+                    onClose();
+                  }}
                 >
-                  <Icon size={22} color="#64748B" />
-                  <Text className="ml-4 text-base font-medium text-[#64748B]">
+                  <Icon size={22} color={active ? '#4F46E5' : '#64748B'} />
+                  <Text
+                    className={`ml-4 text-base ${
+                      active
+                        ? 'font-semibold text-[#4F46E5]'
+                        : 'font-medium text-[#64748B]'
+                    }`}
+                  >
                     {item.name}
                   </Text>
                 </TouchableOpacity>

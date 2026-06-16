@@ -6,7 +6,8 @@ import Toast from 'react-native-toast-message';
 
 import { ApplicantDetail, hiringStageStyles } from '../../data';
 import { HiringStageProgressBar } from './HiringStageProgressBar';
-import { useMessageCandidate } from '../../../../../../hooks/useMessageCandidate';
+import { useGetEmployerProfile } from '../../../../../../hooks/useGetEmployerProfile';
+import { useMessageCandidate } from '../../../../../../hooks/messaging/useMessageCandidate';
 
 interface ApplicantOverviewProps {
   applicant: ApplicantDetail;
@@ -33,7 +34,9 @@ function Avatar({ url, name }: { url: string; name: string }) {
 }
 
 export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
-  const { messageCandidate, loading: isMessaging } = useMessageCandidate();
+  const { data: employerProfile } = useGetEmployerProfile();
+  const { mutateAsync: messageCandidate, isPending: isMessaging } =
+    useMessageCandidate({ employerId: employerProfile?.id });
   const {
     image,
     name,

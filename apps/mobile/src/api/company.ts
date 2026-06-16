@@ -112,7 +112,12 @@ export async function checkCompanyNameExists(name: string): Promise<boolean> {
   }
 }
 
-export async function getCompanyById(id: number): Promise<Company> {
-  const response = await apiClient.get<Company>(`/company/${id}`);
+export async function getCompanyById(
+  id: number,
+  options?: ApiOptions
+): Promise<Company> {
+  const response = await apiClient.get<Company>(`/company/${id}`, {
+    signal: options?.signal,
+  });
   return response.data;
 }
