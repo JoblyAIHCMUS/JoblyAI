@@ -1,5 +1,8 @@
 import { apiClient } from './config';
-import type { CandidateProfileResponse, CandidateResume } from '../types/candidate';
+import type {
+  CandidateProfileResponse,
+  CandidateResume,
+} from '../types/candidate';
 
 export interface ApiOptions {
   signal?: AbortSignal;
@@ -177,6 +180,100 @@ export async function createCandidateSkill(
 
 export async function deleteCandidateSkill(skillId: number): Promise<string> {
   const response = await apiClient.delete(`/candidate/me/skills/${skillId}`);
+  return response.data;
+}
+
+export interface UploadResumePayload {
+  fileKey: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  isDefault?: boolean;
+}
+
+export async function uploadResume(
+  payload: UploadResumePayload
+): Promise<CandidateResume> {
+  const response = await apiClient.post<CandidateResume>(
+    '/candidate/me/resume',
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteResume(
+  resumeId: number,
+  keepData = false
+): Promise<string> {
+  const response = await apiClient.delete(`/candidate/me/resume/${resumeId}`, {
+    params: { keepData },
+  });
+  return response.data;
+}
+
+export async function setDefaultResume(
+  resumeId: number
+): Promise<CandidateResume> {
+  const response = await apiClient.patch<CandidateResume>(
+    '/candidate/me/resume',
+    { id: resumeId, isDefault: true }
+  );
+  return response.data;
+}
+
+export async function triggerAiParse(
+  resumeId: number
+): Promise<{ success: boolean }> {
+  const response = await apiClient.post('/ai/trigger-parse', { resumeId });
+  return response.data;
+}
+
+export async function triggerAiScore(
+  resumeId: number
+): Promise<{ success: boolean }> {
+  const response = await apiClient.post('/ai/trigger-score', { resumeId });
+  return response.data;
+}
+
+export async function commitResumeMerge(
+  resumeId: number,
+  data: any
+): Promise<any> {
+  const response = await apiClient.post('/ai/commit-merge', { resumeId, data });
+  return response.data;
+}
+
+export async function previewDeleteImpact(resumeId: number): Promise<{
+  previewBio: string | null;
+  previewTitle: string | null;
+}> {
+  const response = await apiClient.post('/ai/preview-delete-impact', {
+    resumeId,
+  });
+  return response.data;
+}
+
+export async function createDownloadUrl(
+  fileKey: string
+): Promise<{ downloadUrl: string }> {
+  const response = await apiClient.post('/s3/presigned-download', { fileKey });
+  return response.data;
+}
+
+export async function getPresignedUploadUrl(
+  fileName: string,
+  fileType: string
+): Promise<{
+  uploadUrl: string;
+  fileKey: string;
+  fileUrl: string;
+  expiresIn: number;
+}> {
+  const response = await apiClient.post('/s3/presigned-upload', {
+    fileName,
+    fileType,
+    folder: 'resumes',
+  });
   return response.data;
 }
 

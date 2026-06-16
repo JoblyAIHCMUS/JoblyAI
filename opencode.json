@@ -3,8 +3,14 @@
   "mcp": {
     "nx-mcp": {
       "type": "local",
-      "command": ["npx", "nx", "mcp"],
+      "command": ["npx", "-y", "nx", "mcp"],
       "enabled": true
+    },
+    "codegraph": {
+      "type": "local",
+      "enabled": true,
+      "command": "codegraph",
+      "args": ["serve"]
     }
   }
 }
