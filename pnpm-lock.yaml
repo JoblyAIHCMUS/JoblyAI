@@ -37,6 +37,7 @@ overrides:
   next: '>=16.2.3'
   tmp: '>=0.2.6'
   esbuild: '>=0.28.1'
+  form-data: 4.0.6
 
 importers:
   .:
@@ -15228,13 +15229,6 @@ packages:
         integrity: sha512-yDYSgNMraqvnxiEXO4hi88+YZxaHC6QKzb5N84iRCTDeRO7ZALpir/lVmf/uXUhnwUr2O4HU8s/n6x+yNjQkHw==,
       }
     engines: { node: '>= 14.17' }
-
-  form-data@4.0.5:
-    resolution:
-      {
-        integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==,
-      }
-    engines: { node: '>= 6' }
 
   form-data@4.0.6:
     resolution:
@@ -35286,14 +35280,6 @@ snapshots:
 
   form-data-encoder@2.1.4: {}
 
-  form-data@4.0.5:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
-      mime-types: 2.1.35
-
   form-data@4.0.6:
     dependencies:
       asynckit: 0.4.0
@@ -38207,7 +38193,7 @@ snapshots:
       figures: 3.2.0
       flat: 5.0.2
       follow-redirects: 1.16.0(debug@4.4.3)
-      form-data: 4.0.5
+      form-data: 4.0.6
       fs-constants: 1.0.0
       function-bind: 1.1.2
       get-caller-file: 2.0.5
