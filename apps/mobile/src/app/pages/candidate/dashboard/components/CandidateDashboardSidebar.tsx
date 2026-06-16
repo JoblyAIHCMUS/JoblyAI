@@ -100,7 +100,11 @@ const CandidateDashboardSidebar = ({
       path: '/pages/candidate/my-applications',
     },
     { name: 'Find Jobs', icon: Search, path: '/pages/candidate/find-jobs' },
-    { name: 'Browse Companies', icon: Building2, path: '/' },
+    {
+      name: 'Browse Companies',
+      icon: Building2,
+      path: '/pages/candidate/browse-companies',
+    },
     {
       name: 'My Public Profile',
       icon: User,
