@@ -1,9 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { AiProviderService } from '../ai-provider.service';
-import { PrismaService } from '../../utils/databases/prisma.service';
+import { PrismaClient } from '@prisma/client';
 import { AiGateway } from '../ai.gateway';
-import { Logger } from '@nestjs/common';
+import { Logger, Inject } from '@nestjs/common';
 
 @Processor('interview-prep')
 export class InterviewPrepProcessor extends WorkerHost {
@@ -11,7 +11,7 @@ export class InterviewPrepProcessor extends WorkerHost {
 
   constructor(
     private aiProvider: AiProviderService,
-    private prisma: PrismaService,
+    @Inject('PRISMA_CLIENT') private prisma: PrismaClient,
     private aiGateway: AiGateway,
   ) {
     super();
@@ -89,7 +89,7 @@ export class InterviewPrepProcessor extends WorkerHost {
       await this.prisma.interviewPreparation.update({
         where: { candidateId_jobId: { candidateId, jobId } },
         data: { status: 'FAILED' },
-      }).catch(err => this.logger.error(`Failed to update status to FAILED: ${err.message}`));
+      }).catch((err: any) => this.logger.error(`Failed to update status to FAILED: ${err.message}`));
       
       throw error;
     }

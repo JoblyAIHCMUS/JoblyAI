@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../utils/databases/prisma.service';
+import { Injectable, Inject } from '@nestjs/common';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @Injectable()
 export class InterviewPrepService {
   constructor(
-    private prisma: PrismaService,
+    @Inject('PRISMA_CLIENT') private prisma: PrismaClient,
     @InjectQueue('interview-prep') private prepQueue: Queue,
   ) {}
 
@@ -43,7 +43,7 @@ export class InterviewPrepService {
 
     const prep = await this.prisma.interviewPreparation.update({
       where: { candidateId_jobId: { candidateId, jobId } },
-      data: { status: 'PENDING', questions: null },
+      data: { status: 'PENDING', questions: Prisma.DbNull },
     });
 
     await this.prepQueue.add('generate-questions', { candidateId, jobId, resumeId: application.resumeId });
