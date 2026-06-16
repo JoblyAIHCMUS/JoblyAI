@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
 import { ScoringProcessor } from './processors/scoring.processor';
+import { InterviewPrepProcessor } from './processors/interview-prep.processor';
 import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
@@ -38,6 +39,7 @@ import { JobListener } from './listeners/job.listener';
     ResumeProcessor,
     ScoringProcessor,
     JobProcessor,
+    InterviewPrepProcessor,
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
