@@ -56,6 +56,22 @@ export async function getJobById(
   return response.data;
 }
 
+export async function listCompanyJobs(
+  companyId: number,
+  page = 1,
+  pageSize = 20,
+  options?: ApiOptions
+): Promise<PaginatedJobsResponse> {
+  const response = await apiClient.get<PaginatedJobsResponse>(
+    `/jobs/company/${companyId}`,
+    {
+      params: { page, pageSize },
+      signal: options?.signal,
+    }
+  );
+  return response.data;
+}
+
 export async function createJobPosting(
   payload: CreateJobPayload,
   options?: ApiOptions

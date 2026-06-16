@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import ChatHeader from './components/ChatHeader';
-import ChatEmptyState from './components/ChatEmptyState';
-import ChatError from './components/ChatError';
-import ChatLoading from './components/ChatLoading';
-import MessageBubble from './components/MessageBubble';
-import MessageInput from './components/MessageInput';
+import ChatHeader from '../../employer/messages/components/ChatHeader';
+import ChatEmptyState from '../../employer/messages/components/ChatEmptyState';
+import ChatError from '../../employer/messages/components/ChatError';
+import ChatLoading from '../../employer/messages/components/ChatLoading';
+import MessageBubble from '../../employer/messages/components/MessageBubble';
+import MessageInput from '../../employer/messages/components/MessageInput';
 import { useChatHistory } from '../../../../hooks/messaging/useChatHistory';
 import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSummaryLoaded';
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
-import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
-import { withDateSeparators } from './utils';
+import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
+import { withDateSeparators } from '../../employer/messages/utils';
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
-  const { data: profile } = useGetEmployerProfile();
+  const { data: profile } = useGetCandidateProfile();
   const userId = profile?.id ?? '';
 
   // 1. Conversation metadata from the summary cache

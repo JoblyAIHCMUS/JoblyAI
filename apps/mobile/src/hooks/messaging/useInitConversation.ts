@@ -3,18 +3,19 @@ import { router } from 'expo-router';
 import { initConversation } from '../../api/messages';
 
 interface Options {
-  userId: string;
-  friendId: string;
+  userId: string | undefined;
 }
 
 export function useInitConversation(opts: Options) {
   const queryClient = useQueryClient();
-  return useMutation<{ chatId: string }, Error, void>({
-    mutationFn: () => initConversation(opts.friendId),
+  return useMutation<{ chatId: string }, Error, string>({
+    mutationFn: (friendId) => initConversation(friendId),
     onSuccess: ({ chatId }) => {
-      queryClient.invalidateQueries({
-        queryKey: ['chat-summary', opts.userId],
-      });
+      if (opts.userId) {
+        queryClient.invalidateQueries({
+          queryKey: ['chat-summary', opts.userId],
+        });
+      }
       router.push({
         pathname: '/pages/employer/messages/[chatId]',
         params: { chatId },

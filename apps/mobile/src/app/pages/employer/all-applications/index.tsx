@@ -23,7 +23,8 @@ import {
   useRejectApplication,
   useMoveToOfferApplication,
 } from '../../../../hooks/useEmployerJobApplications';
-import { useMessageCandidate } from '../../../../hooks/useMessageCandidate';
+import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
+import { useMessageCandidate } from '../../../../hooks/messaging/useMessageCandidate';
 
 import { AllApplication, HiringStage } from './types';
 import { mapApiResponseToApplications, nextStageMap } from './data';
@@ -66,7 +67,9 @@ export default function AllApplicationsPage() {
   const { mutateAsync: shortlistApplication } = useShortlistApplication();
   const { mutateAsync: rejectApplication } = useRejectApplication();
   const { mutateAsync: moveToOffer } = useMoveToOfferApplication();
-  const { messageCandidate, loading: isMessaging } = useMessageCandidate();
+  const { data: employerProfile } = useGetEmployerProfile();
+  const { mutateAsync: messageCandidate, isPending: isMessaging } =
+    useMessageCandidate({ employerId: employerProfile?.id });
 
   const applications: AllApplication[] = useMemo(() => {
     if (!data) return [];

@@ -181,7 +181,13 @@ const Sidebar = ({
             </Svg>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center justify-between py-6">
+          <TouchableOpacity
+            className="flex-row items-center justify-between py-6"
+            onPress={() => {
+              onClose();
+              router.push('/pages/candidate/browse-companies');
+            }}
+          >
             <Text className="text-lg font-bold text-app-primary-1">
               Browse Companies
             </Text>
