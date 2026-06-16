@@ -47,7 +47,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const { data: employerProfile, isPending, error } = useGetEmployerProfile();
   const { logout, loading: isLoggingOut } = useLogout();
-  const hasUnreadMessages = useUnreadDot();
+  const hasUnreadMessages = useUnreadDot(employerProfile?.id);
   const company = employerProfile?.company;
   const isUnaffiliated = !company && !isPending && !error;
   const avatarUrl = employerProfile?.avatarUrl?.trim();
