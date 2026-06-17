@@ -84,13 +84,29 @@ export const useAiSocket = (userId: string | undefined) => {
       });
     };
 
+    const handleInterviewPrepReady = (data: any) => {
+      console.log('[useAiSocket] 🎯 EVENT RECEIVED: INTERVIEW_PREP_READY', data);
+      
+      // Dispatch a generic event for any component interested (like the modal)
+      window.dispatchEvent(
+        new CustomEvent('ai-interview-prep-ready', { detail: data })
+      );
+
+      toast.success('Interview Prep Kit Ready!', {
+        description: 'Your personalized interview preparation kit has been generated.',
+        duration: 8000,
+      });
+    };
+
     // Events match the AiGateway implementation
     socket.on(`RESUME_PARSED_${userId}`, handleParsed);
     socket.on(`RESUME_SCORED_${userId}`, handleScored);
+    socket.on(`INTERVIEW_PREP_READY_${userId}`, handleInterviewPrepReady);
 
     return () => {
       socket.off(`RESUME_PARSED_${userId}`, handleParsed);
       socket.off(`RESUME_SCORED_${userId}`, handleScored);
+      socket.off(`INTERVIEW_PREP_READY_${userId}`, handleInterviewPrepReady);
     };
   }, [socket, isConnected, userId, pathname, router]);
 };
