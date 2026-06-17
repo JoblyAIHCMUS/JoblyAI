@@ -84,7 +84,7 @@ export const useAiSocket = (userId: string | undefined) => {
       });
     };
 
-    const handleInterviewPrepReady = (data: any) => {
+    const handleInterviewPrepReady = (data: { jobId: number; questions: any }) => {
       console.log('[useAiSocket] 🎯 EVENT RECEIVED: INTERVIEW_PREP_READY', data);
       
       // Dispatch a generic event for any component interested (like the modal)
@@ -94,7 +94,31 @@ export const useAiSocket = (userId: string | undefined) => {
 
       toast.success('Interview Prep Kit Ready!', {
         description: 'Your personalized interview preparation kit has been generated.',
-        duration: 8000,
+        duration: 10000,
+        action: {
+          label: 'View Kit',
+          onClick: () => {
+            const jobPath = `/find-jobs/${data.jobId}`;
+            console.log('[useAiSocket] Toast action clicked', { currentPath: pathname, targetPath: jobPath });
+            
+            // If already on the page, just trigger the modal
+            if (pathname.includes(jobPath)) {
+              console.log('[useAiSocket] Already on page, dispatching OPEN_INTERVIEW_PREP_MODAL');
+              window.dispatchEvent(
+                new CustomEvent('OPEN_INTERVIEW_PREP_MODAL', {
+                  detail: { jobId: data.jobId },
+                })
+              );
+            } else {
+              // Redirect and use query param to auto-open
+              const redirectPath = pathname.startsWith('/candidate') 
+                ? `/candidate/find-jobs/${data.jobId}?openPrep=true` 
+                : `/find-jobs/${data.jobId}?openPrep=true`;
+              console.log('[useAiSocket] Redirecting to:', redirectPath);
+              router.push(redirectPath);
+            }
+          },
+        },
       });
     };
 
