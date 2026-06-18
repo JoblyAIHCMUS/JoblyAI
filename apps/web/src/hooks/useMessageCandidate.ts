@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
-import { useInitializeConversation } from '@/api-hook/messages';
+import { useInitializeConversation } from '@/hooks/messaging/useInitializeConversation';
 import { useToast } from '@/hooks/useToast';
 
 /**
