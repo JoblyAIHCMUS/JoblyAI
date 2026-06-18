@@ -3,8 +3,11 @@ export type {
   ChatSummary,
   ChatMessage,
   SocketChatMessage,
+  NewMessageEvent,
   SendMessageRequest,
-  SendMessageResponse,
+  SendMessageAck,
+  MarkReadAck,
+  MessageReadEvent,
 } from '@/api-client/messages/types';
 
 // Public endpoints

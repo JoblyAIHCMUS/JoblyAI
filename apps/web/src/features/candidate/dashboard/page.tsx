@@ -14,7 +14,7 @@ import { ApplicationTable } from '@/components/candidate/applicationTable';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationFilter, ApplicationItem } from '@/types/candidate';
 import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDashboard';
-import { useInitializeConversation } from '@/api-hook/messages';
+import { useInitializeConversation } from '@/hooks/messaging/useInitializeConversation';
 import { useWithdrawApplication } from '@/api-hook/application';
 import { StatCard } from './components/StatCard';
 import { StatusChartsSection } from './components/StatusChartsSection';

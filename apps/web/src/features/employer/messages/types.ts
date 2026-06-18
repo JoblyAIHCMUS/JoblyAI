@@ -8,7 +8,7 @@ export interface Conversation {
   timestamp: string;
   unread: boolean;
   isActive: boolean;
-  lastMessageAt: Date;
+  lastMessageAt: string | Date;
 }
 
 export interface Message {
@@ -18,7 +18,7 @@ export interface Message {
   senderAvatar: string;
   isSent: boolean;
   content: string;
-  timestamp: Date;
+  timestamp: string | Date;
   timestamp24: string;
   showDateSeparator?: boolean;
   dateLabel?: string;

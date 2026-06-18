@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/hooks/useUser';
 import { DashboardBigButton } from '@/components/employer/dashboardBigButton';
 import {
@@ -8,7 +9,7 @@ import {
   type StatsDataSet,
 } from '@/components/employer/dashboardStatsPanel';
 import { useListEmployerApplications } from '@/api-hook/application';
-import { useGetChatSummary } from '@/api-hook/messages';
+import { getChatSummary } from '@/api-client/messages/public';
 import {
   useJobViewsAnalytics,
   useJobApplicationsAnalytics,
@@ -34,7 +35,6 @@ export default function EmployerDashboardPage() {
 
   // State for dynamic data
   const [candidateCount, setCandidateCount] = useState(0);
-  const [messageCount, setMessageCount] = useState(0);
   const [weekData, setWeekData] = useState<StatsDataSet | null>(null);
   const [monthData, setMonthData] = useState<StatsDataSet | null>(null);
   const [yearData, setYearData] = useState<StatsDataSet | null>(null);
@@ -47,7 +47,18 @@ export default function EmployerDashboardPage() {
   const { fetchApplications } = useListEmployerApplications({
     initialPageSize: 10,
   });
-  const { fetchChatSummary } = useGetChatSummary();
+  // Read from the same React Query cache the messages pages use. The messages
+  // sidebar dot and the messages page are all driven by ['chat-summary', userId],
+  // so any new message (delivered via the cache bus in SocketProvider) updates
+  // the dashboard's unread count instantly without a re-fetch.
+  const { data: summaries } = useQuery({
+    queryKey: ['chat-summary', user?.id],
+    queryFn: () => getChatSummary(user!.id),
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+  });
+  const messageCount = summaries?.filter((c) => c.hasUnread).length ?? 0;
   const { fetchAnalytics: fetchViewsAnalytics } = useJobViewsAnalytics();
   const { fetchAnalytics: fetchAppsAnalytics } = useJobApplicationsAnalytics();
 
@@ -55,33 +66,27 @@ export default function EmployerDashboardPage() {
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /**
-   * Fetch counts: applications and messages
+   * Fetch the candidates-to-review count. Message count is now derived from
+   * the React Query cache above (shared with the messages pages) and is
+   * auto-polled by refetchInterval.
    */
   const fetchCounts = useCallback(async () => {
     if (!user?.id) return;
 
     try {
       setErrorCounts(null);
-
-      // Fetch pending applications (status = APPLIED)
       const appsResult = await fetchApplications({
         status: 'APPLIED',
         pageSize: 1,
       });
       setCandidateCount(appsResult.total || 0);
-
-      // Fetch chat summary to count unread messages
-      const chatsResult = await fetchChatSummary(user.id);
-      const unreadCount =
-        chatsResult?.filter((chat) => chat.hasUnread).length || 0;
-      setMessageCount(unreadCount);
     } catch (err) {
       console.error('Failed to fetch counts:', err);
       setErrorCounts('Failed to load counts');
     } finally {
       setLoadingCounts(false);
     }
-  }, [user?.id, fetchApplications, fetchChatSummary]);
+  }, [user?.id, fetchApplications]);
 
   /**
    * Fetch and aggregate analytics data for all three time modes in parallel
@@ -137,7 +142,8 @@ export default function EmployerDashboardPage() {
     fetchCounts();
     fetchAnalyticsData();
 
-    // Set up polling for counts (every 30 seconds)
+    // Poll the candidate count every 30s (the message count is auto-polled
+    // by the React Query refetchInterval above).
     pollIntervalRef.current = setInterval(() => {
       fetchCounts();
     }, 30 * 1000);

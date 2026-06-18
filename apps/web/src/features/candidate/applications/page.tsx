@@ -16,7 +16,7 @@ import { useCandidateDashboard } from '@/features/candidate/hooks/useCandidateDa
 import { useCandidateProfileContext } from '@/api-hook/candidate';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
-import { useInitializeConversation } from '@/api-hook/messages';
+import { useInitializeConversation } from '@/hooks/messaging/useInitializeConversation';
 import { ApplicationItem } from '@/types/candidate';
 
 export default function CandidateApplicationsPage() {

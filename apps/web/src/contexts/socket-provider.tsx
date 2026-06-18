@@ -2,136 +2,177 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
-  ReactNode,
-  useRef,
   useEffect,
+  useMemo,
+  useRef,
   useState,
+  type ReactNode,
 } from 'react';
-import { Socket } from 'socket.io-client';
-import { useMessagesSocket } from '@/hooks/useMessagesSocket';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import type { Socket } from 'socket.io-client';
+import { getOrCreateSocket } from '@/hooks/useMessagesSocket';
 import { useNotificationsSocket } from '@/hooks/useNotificationsSocket';
-import { SocketChatMessage } from '@/api-client/messages';
-import { Notification } from '@/types/notification';
+import {
+  applyNewMessageToSummary,
+  applyMessageReadToSummary,
+  applyNewMessageToHistory,
+} from '@/lib/query/cacheUpdaters';
+import type {
+  ChatSummary,
+  ChatMessage,
+  NewMessageEvent,
+  MessageReadEvent,
+} from '@/api-client/messages/types';
+import type { Notification } from '@/types/notification';
 
-interface SocketContextType {
-  socket: Socket | null;
+type NewMessageListener = (msg: NewMessageEvent) => void;
+type MessageReadListener = (readBy: string) => void;
+type NotificationListener = (n: Notification) => void;
+
+interface SocketContextValue {
+  socket: Socket;
   isConnected: boolean;
   activeChatId: string | null;
   setActiveChatId: (id: string | null) => void;
-  sendMessage: (recipientId: string, text: string) => void;
-  markAsRead: (recipientId: string) => Promise<void>;
-  onNewMessage: (callback: (message: SocketChatMessage) => void) => () => void;
-  onMessageRead: (callback: (friendId: string) => void) => () => void;
-  onNewNotification: (
-    callback: (notification: Notification) => void
-  ) => () => void;
+  onNewMessage: (cb: NewMessageListener) => () => void;
+  onMessageRead: (cb: MessageReadListener) => () => void;
+  onNewNotification: (cb: NotificationListener) => () => void;
 }
 
-const SocketContext = createContext<SocketContextType | undefined>(undefined);
+const SocketContext = createContext<SocketContextValue | null>(null);
 
 /**
- * SocketProvider: Centralized socket management for the entire app
- * Ensures a single WebSocket connection is shared across all components
+ * SocketProvider: Centralized socket management for the entire app.
+ * Owns the messages WebSocket singleton (via getOrCreateSocket) and runs the
+ * React Query cache bus — every raw 'new_message' / 'message_read' event is
+ * written into the ['chat-summary'] / ['chat-history'] cache. Notifications
+ * are kept on a separate connection (per spec §6) and fanned out via
+ * onNewNotification for legacy consumers.
  */
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const socketReturn = useMessagesSocket();
-  const notificationSocketReturn = useNotificationsSocket();
+  const queryClient = useQueryClient();
+  const socket = useMemo(() => getOrCreateSocket(), []);
+  const [isConnected, setIsConnected] = useState(socket.connected);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  // Support multiple subscribers
-  const messageCallbacksRef = useRef(new Set<(m: SocketChatMessage) => void>());
-  const readCallbacksRef = useRef(new Set<(id: string) => void>());
-  const notificationCallbacksRef = useRef(new Set<(n: Notification) => void>());
 
-  // Register callbacks from useMessagesSocket
+  const newMessageListeners = useRef(new Set<NewMessageListener>());
+  const messageReadListeners = useRef(new Set<MessageReadListener>());
+  const notificationListeners = useRef(new Set<NotificationListener>());
+
+  // Messages: cache bus + raw socket subscriptions.
   useEffect(() => {
-    // Register our refs with the socket callbacks
-    socketReturn.onNewMessage((message) => {
-      // Debug: number of registered subscribers
-
-      console.debug(
-        '[SocketProvider] new_message received, subscribers=',
-        messageCallbacksRef.current.size,
-        message
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+    const onNewMessage = (msg: NewMessageEvent) => {
+      for (const cb of newMessageListeners.current) {
+        try {
+          cb(msg);
+        } catch (e) {
+          console.error('[ws] subscriber error', e);
+        }
+      }
+      queryClient.setQueriesData({ queryKey: ['chat-summary'] }, (old) =>
+        applyNewMessageToSummary(old as ChatSummary[] | undefined, msg)
       );
-      messageCallbacksRef.current.forEach((cb) => {
+      queryClient.setQueryData<InfiniteData<ChatMessage[]>>(
+        ['chat-history', msg.chatId],
+        (old) => applyNewMessageToHistory(old, msg)
+      );
+    };
+    const onMessageRead = (data: MessageReadEvent) => {
+      const readBy = 'friendId' in data ? data.friendId : data.by;
+      for (const cb of messageReadListeners.current) {
         try {
-          cb(message);
-        } catch (err) {
-          // swallow subscriber errors to avoid breaking others
-          console.error('SocketProvider subscriber error (new_message)', err);
+          cb(readBy);
+        } catch (e) {
+          console.error('[ws] subscriber error', e);
         }
-      });
-    });
+      }
+      queryClient.setQueriesData({ queryKey: ['chat-summary'] }, (old) =>
+        applyMessageReadToSummary(old as ChatSummary[] | undefined, readBy)
+      );
+    };
 
-    socketReturn.onMessageRead((friendId) => {
-      readCallbacksRef.current.forEach((cb) => {
-        try {
-          cb(friendId);
-        } catch (err) {
-          console.error('SocketProvider subscriber error (message_read)', err);
-        }
-      });
-    });
-  }, [socketReturn]);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('new_message', onNewMessage);
+    socket.on('message_read', onMessageRead);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('new_message', onNewMessage);
+      socket.off('message_read', onMessageRead);
+    };
+  }, [socket, queryClient]);
 
-  // Register notifications
+  // Foreground / focus → invalidate ['chat-summary'].
+  useEffect(() => {
+    const invalidate = () => {
+      if (document.visibilityState === 'visible' || document.hasFocus()) {
+        queryClient.invalidateQueries({ queryKey: ['chat-summary'] });
+      }
+    };
+    document.addEventListener('visibilitychange', invalidate);
+    window.addEventListener('focus', invalidate);
+    return () => {
+      document.removeEventListener('visibilitychange', invalidate);
+      window.removeEventListener('focus', invalidate);
+    };
+  }, [queryClient]);
+
+  // Notifications: separate socket, fan-out only.
+  const notificationSocketReturn = useNotificationsSocket();
   useEffect(() => {
     notificationSocketReturn.onNewNotification((notification) => {
-      notificationCallbacksRef.current.forEach((cb) => {
+      for (const cb of notificationListeners.current) {
         try {
           cb(notification);
-        } catch (err) {
-          console.error(
-            'SocketProvider subscriber error (new_notification)',
-            err
-          );
+        } catch (e) {
+          console.error('[ws] subscriber error', e);
         }
-      });
+      }
     });
   }, [notificationSocketReturn]);
 
-  // Context value with callback registration functions
-  const value: SocketContextType = {
-    socket: socketReturn.socket,
-    isConnected: socketReturn.isConnected,
+  const onNewMessageSub = useCallback((cb: NewMessageListener) => {
+    newMessageListeners.current.add(cb);
+    return () => {
+      newMessageListeners.current.delete(cb);
+    };
+  }, []);
+  const onMessageReadSub = useCallback((cb: MessageReadListener) => {
+    messageReadListeners.current.add(cb);
+    return () => {
+      messageReadListeners.current.delete(cb);
+    };
+  }, []);
+  const onNewNotificationSub = useCallback((cb: NotificationListener) => {
+    notificationListeners.current.add(cb);
+    return () => {
+      notificationListeners.current.delete(cb);
+    };
+  }, []);
+
+  const value: SocketContextValue = {
+    socket,
+    isConnected,
     activeChatId,
     setActiveChatId,
-    sendMessage: socketReturn.sendMessage,
-    markAsRead: socketReturn.markAsRead,
-    onNewMessage: (callback) => {
-      messageCallbacksRef.current.add(callback);
-      return () => {
-        messageCallbacksRef.current.delete(callback);
-      };
-    },
-    onMessageRead: (callback) => {
-      readCallbacksRef.current.add(callback);
-      return () => {
-        readCallbacksRef.current.delete(callback);
-      };
-    },
-    onNewNotification: (callback) => {
-      notificationCallbacksRef.current.add(callback);
-      return () => {
-        notificationCallbacksRef.current.delete(callback);
-      };
-    },
+    onNewMessage: onNewMessageSub,
+    onMessageRead: onMessageReadSub,
+    onNewNotification: onNewNotificationSub,
   };
-
   return (
     <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 }
 
-/**
- * Hook to access the shared socket instance and methods
- * Must be called within a component that's wrapped by SocketProvider
- */
-export function useSocket(): SocketContextType {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
+export function useSocket(): SocketContextValue {
+  const ctx = useContext(SocketContext);
+  if (!ctx) {
+    throw new Error('useSocket must be used inside <SocketProvider>');
   }
-  return context;
+  return ctx;
 }
