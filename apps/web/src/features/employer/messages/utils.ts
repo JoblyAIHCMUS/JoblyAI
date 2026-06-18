@@ -42,6 +42,84 @@ export function getDateLabel(date: Date): string {
   });
 }
 
+import type { ChatSummary, ChatMessage } from '@/api-client/messages/types';
+import type { Conversation, Message } from './types';
+
+/**
+ * Map a ChatSummary from the API to the frontend Conversation shape used by
+ * the messages page. Centralized here so both the employer and candidate
+ * pages share the same mapping.
+ */
+export function mapChatSummaryToConversation(summary: ChatSummary): Conversation {
+  return {
+    chatId: summary.chatId,
+    participantId: summary.participantId,
+    name: summary.participantName,
+    role: summary.participantRole,
+    avatar: summary.participantAvatar || 'https://placehold.co/40x40',
+    lastMessage: summary.latestMessage,
+    timestamp: summary.lastMessageAt
+      ? new Date(summary.lastMessageAt).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : 'Now',
+    unread: summary.hasUnread,
+    isActive: false,
+    lastMessageAt: summary.lastMessageAt,
+  };
+}
+
+/**
+ * Decorate raw ChatMessage rows with the UI fields the chat window needs
+ * (avatar, formatted time, isSent, date separator). Sorts ASC so the chat
+ * window can render oldest-first.
+ */
+export function withDateSeparators(
+  messages: ChatMessage[],
+  currentUserId: string,
+  conversationName: string | null,
+  conversationAvatar: string | null
+): Message[] {
+  const sorted = [...messages].sort(
+    (a, b) =>
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  return sorted.map((msg, index) => {
+    const prevMsg = index > 0 ? sorted[index - 1] : null;
+    const showDateSeparator = isNewDate(
+      prevMsg ? new Date(prevMsg.timestamp) : null,
+      new Date(msg.timestamp)
+    );
+    return {
+      messageId: msg.messageId,
+      senderId: msg.senderId,
+      sender:
+        msg.senderName ||
+        (msg.senderId === currentUserId
+          ? 'You'
+          : conversationName || 'User'),
+      senderAvatar: getSenderAvatar(
+        msg.senderAvatar,
+        msg.senderId,
+        currentUserId,
+        conversationAvatar
+      ),
+      isSent: msg.senderId === currentUserId,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      timestamp24: new Date(msg.timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      showDateSeparator,
+      dateLabel: showDateSeparator
+        ? getDateLabel(new Date(msg.timestamp))
+        : undefined,
+    };
+  });
+}
+
 /**
  * Standardizes the sender avatar logic across the application.
  */

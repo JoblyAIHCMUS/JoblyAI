@@ -27,7 +27,8 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { useUnreadMessagesDot } from '@/hooks/useMessages';
+import { useUser } from '@/hooks/useUser';
+import { useUnreadDot } from '@/hooks/messaging/useUnreadDot';
 import { useLogout } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
@@ -157,7 +158,8 @@ function CandidateSidebarItem({
 
 export function CandidateSidebar() {
   const pathname = usePathname();
-  const { hasUnreadMessages } = useUnreadMessagesDot();
+  const { data: currentUser } = useUser();
+  const hasUnreadMessages = useUnreadDot(currentUser?.id);
   const { mutate: handleLogout, isPending: loading } = useLogout();
   const { toast } = useToast();
 
