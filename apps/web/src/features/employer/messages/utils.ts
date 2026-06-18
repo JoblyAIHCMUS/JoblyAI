@@ -50,7 +50,9 @@ import type { Conversation, Message } from './types';
  * the messages page. Centralized here so both the employer and candidate
  * pages share the same mapping.
  */
-export function mapChatSummaryToConversation(summary: ChatSummary): Conversation {
+export function mapChatSummaryToConversation(
+  summary: ChatSummary
+): Conversation {
   return {
     chatId: summary.chatId,
     participantId: summary.participantId,
@@ -82,8 +84,7 @@ export function withDateSeparators(
   conversationAvatar: string | null
 ): Message[] {
   const sorted = [...messages].sort(
-    (a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
   return sorted.map((msg, index) => {
     const prevMsg = index > 0 ? sorted[index - 1] : null;
@@ -96,9 +97,7 @@ export function withDateSeparators(
       senderId: msg.senderId,
       sender:
         msg.senderName ||
-        (msg.senderId === currentUserId
-          ? 'You'
-          : conversationName || 'User'),
+        (msg.senderId === currentUserId ? 'You' : conversationName || 'User'),
       senderAvatar: getSenderAvatar(
         msg.senderAvatar,
         msg.senderId,

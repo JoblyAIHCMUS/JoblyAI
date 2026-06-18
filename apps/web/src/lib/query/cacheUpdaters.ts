@@ -17,13 +17,20 @@ export function applyNewMessageToSummary(
   if (!old) return undefined;
   const updated = old.map((c) =>
     c.participantId === msg.senderId
-      ? { ...c, latestMessage: msg.content, lastMessageAt: msg.timestamp, hasUnread: true }
+      ? {
+          ...c,
+          latestMessage: msg.content,
+          lastMessageAt: msg.timestamp,
+          hasUnread: true,
+        }
       : c
   );
   return updated.sort((a, b) => {
     if (a.participantId === msg.senderId) return -1;
     if (b.participantId === msg.senderId) return 1;
-    return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+    return (
+      new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+    );
   });
 }
 
@@ -32,7 +39,9 @@ export function applyMessageReadToSummary(
   readBy: string
 ): ChatSummary[] | undefined {
   if (!old) return undefined;
-  return old.map((c) => (c.participantId === readBy ? { ...c, hasUnread: false } : c));
+  return old.map((c) =>
+    c.participantId === readBy ? { ...c, hasUnread: false } : c
+  );
 }
 
 export function applyMarkReadToSummary(
@@ -60,25 +69,26 @@ export function applyNewMessageToHistory(
       m.content === msg.content &&
       Math.abs(new Date(m.timestamp).getTime() - msgTime) < FIVE_SECONDS_MS
   );
-  const next = localIdx >= 0
-    ? [
-        ...first.slice(0, localIdx),
-        ...first.slice(localIdx + 1),
-        {
-          messageId: msg.messageId,
-          senderId: msg.senderId,
-          content: msg.content,
-          timestamp: msg.timestamp,
-        },
-      ]
-    : [
-        ...first,
-        {
-          messageId: msg.messageId,
-          senderId: msg.senderId,
-          content: msg.content,
-          timestamp: msg.timestamp,
-        },
-      ];
+  const next =
+    localIdx >= 0
+      ? [
+          ...first.slice(0, localIdx),
+          ...first.slice(localIdx + 1),
+          {
+            messageId: msg.messageId,
+            senderId: msg.senderId,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          },
+        ]
+      : [
+          ...first,
+          {
+            messageId: msg.messageId,
+            senderId: msg.senderId,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          },
+        ];
   return { pages: [next, ...old.pages.slice(1)], pageParams: old.pageParams };
 }

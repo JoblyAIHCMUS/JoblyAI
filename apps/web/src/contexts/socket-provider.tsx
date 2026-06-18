@@ -164,7 +164,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     onMessageRead: onMessageReadSub,
     onNewNotification: onNewNotificationSub,
   };
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+  return (
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
+  );
 }
 
 export function useSocket(): SocketContextValue {

@@ -18,8 +18,11 @@ export default function EmployerMessagesPage() {
   const userId = currentUser?.id;
   const searchParams = useSearchParams();
   const deeplinkCandidateId = searchParams.get('candidateId');
-  const { data: summaries = [], isLoading: summariesLoading, error } =
-    useChatSummary(userId);
+  const {
+    data: summaries = [],
+    isLoading: summariesLoading,
+    error,
+  } = useChatSummary(userId);
   const { activeChatId, setActiveChatId } = useSocket();
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
