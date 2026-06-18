@@ -1,24 +1,14 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SessionProvider } from '@/components/auth/SessionProvider';
-import { MantineProvider } from '@mantine/core';
-import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
+import { MantineProvider } from '@mantine/core';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
+import { SessionProvider } from '@/components/auth/SessionProvider';
 import { SocketProvider } from '@/contexts/socket-provider';
 import { useAiSocket } from '@/hooks/useAiSocket';
 import { authClient } from '@/lib/auth-client';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: true, // Refetch when user refocuses tab
-      retry: 3,
-    },
-  },
-});
+import { queryClient } from '@/lib/query/queryClient';
 
 function GlobalAiSocket() {
   const { data: session } = authClient.useSession();
@@ -30,9 +20,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
       <SessionProvider>
-        <SocketProvider>
-          <GlobalAiSocket />
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <SocketProvider>
+            <GlobalAiSocket />
             {children}
             <Toaster
               position="bottom-right"
@@ -47,8 +37,8 @@ export function Providers({ children }: { children: ReactNode }) {
                 },
               }}
             />
-          </QueryClientProvider>
-        </SocketProvider>
+          </SocketProvider>
+        </QueryClientProvider>
       </SessionProvider>
     </MantineProvider>
   );
