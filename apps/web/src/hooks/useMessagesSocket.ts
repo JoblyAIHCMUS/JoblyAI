@@ -1,254 +1,80 @@
-'use client';
-
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { SocketChatMessage, SendMessageRequest } from '@/api-client/messages';
+// apps/web/src/hooks/useMessagesSocket.ts
+import { useMemo } from 'react';
+import { io, type Socket } from 'socket.io-client';
+import type {
+  SendMessageRequest,
+  SendMessageAck,
+  MarkReadAck,
+} from '@/api-client/messages/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const TEN_SECONDS_MS = 10_000;
 
-// Debug logging utility
-const DEBUG = true;
-const logDebug = {
-  info: (label: string, data?: unknown) => {
-    if (DEBUG) console.log(`[MessagesSocket] ${label}`, data || '');
-  },
-  warn: (label: string, data?: unknown) => {
-    if (DEBUG) console.warn(`[MessagesSocket] ⚠️  ${label}`, data || '');
-  },
-  error: (label: string, data?: unknown) => {
-    if (DEBUG) console.error(`[MessagesSocket] ❌ ${label}`, data || '');
-  },
-  success: (label: string, data?: unknown) => {
-    if (DEBUG) console.log(`[MessagesSocket] ✅ ${label}`, data || '');
-  },
-};
+let _socket: Socket | null = null;
 
-export interface UseMessagesSocketReturn {
-  socket: Socket | null;
-  isConnected: boolean;
-  sendMessage: (recipientId: string, text: string) => void;
-  markAsRead: (recipientId: string) => Promise<void>;
-  onNewMessage: (callback: (message: SocketChatMessage) => void) => void;
-  onMessageRead: (callback: (friendId: string) => void) => void;
+export function getOrCreateSocket(): Socket {
+  if (_socket) return _socket;
+  console.log('[ws] init', { restUrl: API_BASE_URL });
+  _socket = io(API_BASE_URL, {
+    path: '/socket.io',
+    transports: ['websocket', 'polling'],
+    withCredentials: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 10,
+  });
+  _socket.on('connect', () => console.log('[ws] connect', { id: _socket?.id }));
+  _socket.on('disconnect', (reason) => console.log('[ws] disconnect', { reason }));
+  _socket.on('connect_error', (err) =>
+    console.log('[ws] connect_error', { msg: err.message })
+  );
+  _socket.on('reconnect', (attempt) => console.log('[ws] reconnect', { attempt }));
+  _socket.on('reconnect_attempt', (attempt) =>
+    console.log('[ws] reconnect_attempt', { attempt })
+  );
+  _socket.on('reconnect_error', (err) =>
+    console.log('[ws] reconnect_error', { msg: err.message })
+  );
+  _socket.on('reconnect_failed', () => console.log('[ws] reconnect_failed'));
+  return _socket;
 }
 
-/**
- * Custom hook to manage WebSocket connection for real-time messaging
- * Handles authentication via token in handshake headers
- */
-export function useMessagesSocket(): UseMessagesSocketReturn {
-  const socketRef = useRef<Socket | null>(null);
-  const initializedRef = useRef(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const messageCallbackRef = useRef<
-    ((message: SocketChatMessage) => void) | null
-  >(null);
-  const readCallbackRef = useRef<((friendId: string) => void) | null>(null);
-  const mountedRef = useRef(true);
-
-  // Initialize socket connection
-  useEffect(() => {
-    logDebug.info('Initializing WebSocket connection');
-
-    // Prevent double initialization on React 18 Strict Mode
-    if (initializedRef.current) {
-      logDebug.info('Socket already initialized, skipping');
-      return;
-    }
-    initializedRef.current = true;
-
-    let socket: Socket | null = null;
-
-    try {
-      logDebug.info('Socket.io configuration', {
-        apiUrl: API_BASE_URL,
-        path: '/socket.io',
-        transports: ['websocket', 'polling'],
-        withCredentials: true,
-      });
-
-      // Initialize Socket.io client with withCredentials to send httpOnly cookies
-      socket = io(API_BASE_URL, {
-        path: '/socket.io',
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 10,
-        transports: ['websocket', 'polling'],
-        withCredentials: true, // Allow cookies to be sent with the request
-      });
-
-      logDebug.success('Socket.io client created');
-      socketRef.current = socket;
-
-      // Connection event handlers
-      socket.on('connect', () => {
-        if (mountedRef.current) {
-          logDebug.success('WebSocket connected', { socketId: socket?.id });
-          setIsConnected(true);
-        }
-      });
-
-      socket.on('disconnect', (reason: string) => {
-        if (mountedRef.current) {
-          logDebug.warn('WebSocket disconnected', { reason });
-          setIsConnected(false);
-        }
-      });
-
-      socket.on('connect_error', (error: Error) => {
-        logDebug.error('WebSocket connection error', {
-          message: error.message,
-          name: error.name,
-        });
-      });
-
-      socket.on('reconnect_attempt', (attemptNumber: number) => {
-        logDebug.info('WebSocket reconnection attempt', {
-          attempt: attemptNumber,
-        });
-      });
-
-      socket.on('reconnect_failed', () => {
-        logDebug.error(
-          'WebSocket reconnection failed',
-          'Max reconnection attempts reached'
-        );
-      });
-
-      // Listen for new messages
-      socket.on('new_message', (message: SocketChatMessage) => {
-        logDebug.info('New message received', {
-          senderId: message.senderId,
-          contentLength: message.content?.length,
-          timestamp: message.timestamp,
-        });
-        if (messageCallbackRef.current) {
-          messageCallbackRef.current(message);
-        }
-      });
-
-      // Listen for message read receipts
-      socket.on('message_read', (data: { friendId: string; by?: string }) => {
-        logDebug.info('Message read receipt received', data);
-        if (readCallbackRef.current) {
-          readCallbackRef.current(data.friendId);
-        }
-      });
-
-      logDebug.success('All socket event listeners registered');
-
-      return () => {
-        logDebug.info('Cleaning up WebSocket connection');
-        mountedRef.current = false;
-        if (socket && socket.connected) {
-          socket.disconnect();
-        }
-      };
-    } catch (error) {
-      logDebug.error('Error initializing WebSocket', {
-        message: error instanceof Error ? error.message : String(error),
-        error,
-      });
-      return () => {
-        mountedRef.current = false;
-      };
-    }
-  }, []);
-
-  // Set mounted flag on mount
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // Send message via WebSocket
-  const sendMessage = useCallback((recipientId: string, text: string) => {
-    logDebug.info('Send message requested', {
-      recipientId,
-      textLength: text.length,
-      isConnected: socketRef.current?.connected,
+export function emitSendMessage(dto: SendMessageRequest): Promise<SendMessageAck> {
+  const socket = getOrCreateSocket();
+  return new Promise<SendMessageAck>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error('send_timeout_emitter')),
+      TEN_SECONDS_MS
+    );
+    socket.emit('send_message', dto, (response: unknown) => {
+      clearTimeout(timer);
+      resolve(response as SendMessageAck);
     });
+  });
+}
 
-    if (!socketRef.current?.connected) {
-      logDebug.error('WebSocket not connected, cannot send message', {
-        connected: socketRef.current?.connected,
-        socketExists: !!socketRef.current,
-      });
-      return;
-    }
-
-    const payload: SendMessageRequest = {
-      recipientId,
-      text,
-    };
-
-    logDebug.info('Emitting send_message event', { recipientId });
-
-    // Emit 'send_message' event to backend
-    socketRef.current.emit('send_message', payload, (response: unknown) => {
-      if (response) {
-        logDebug.success('Message sent successfully', response);
-      } else {
-        logDebug.warn('Message sent but no acknowledgment received');
-      }
+export function emitMarkRead(friendId: string): Promise<MarkReadAck> {
+  const socket = getOrCreateSocket();
+  console.log('[ws] emit mark_read', { friendId, connected: socket.connected });
+  return new Promise<MarkReadAck>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error('mark_read_timeout_emitter')),
+      TEN_SECONDS_MS
+    );
+    socket.emit('mark_read', { friendId }, (response: unknown) => {
+      clearTimeout(timer);
+      resolve(response as MarkReadAck);
     });
-  }, []);
+  });
+}
 
-  // Register callback for new messages
-  const onNewMessage = useCallback(
-    (callback: (message: SocketChatMessage) => void) => {
-      messageCallbackRef.current = callback;
-    },
-    []
-  );
-
-  // Register callback for message read receipts
-  const onMessageRead = useCallback((callback: (friendId: string) => void) => {
-    readCallbackRef.current = callback;
-  }, []);
-
-  // Mark a conversation as read by emitting mark_read event
-  const markAsRead = useCallback((recipientId: string): Promise<void> => {
-    return new Promise((resolve) => {
-      if (!socketRef.current?.connected) {
-        logDebug.warn('WebSocket not connected, cannot mark as read', {
-          recipientId,
-          connected: socketRef.current?.connected,
-        });
-        resolve();
-        return;
-      }
-
-      logDebug.info('Marking conversation as read', { recipientId });
-      socketRef.current.emit(
-        'mark_read',
-        { friendId: recipientId },
-        (response: unknown) => {
-          if (response) {
-            logDebug.success('Conversation marked as read', {
-              recipientId,
-              response,
-            });
-          } else {
-            logDebug.warn('Mark as read sent but no acknowledgment received', {
-              recipientId,
-            });
-          }
-          resolve();
-        }
-      );
-    });
-  }, []);
-
-  return {
-    socket: socketRef.current,
-    isConnected,
-    sendMessage,
-    markAsRead,
-    onNewMessage,
-    onMessageRead,
-  };
+// Compat shim — returns the singleton via a stable reference. Does NOT expose
+// `isConnected` because socket.connected is non-reactive; the reactive value
+// lives in SocketProvider (via useState that tracks the singleton's
+// connect/disconnect events). After this PR lands, all real consumers should
+// use useSocket() from SocketProvider.
+export function useMessagesSocket(): { socket: Socket } {
+  const socket = useMemo(() => getOrCreateSocket(), []);
+  return { socket };
 }
