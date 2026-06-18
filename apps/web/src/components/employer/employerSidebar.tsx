@@ -20,7 +20,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useLogout } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
-import { useUnreadMessagesDot } from '@/hooks/useMessages';
+import { useUser } from '@/hooks/useUser';
+import { useUnreadDot } from '@/hooks/messaging/useUnreadDot';
 import { useGetEmployerProfile } from '@/api-hook/employer';
 
 // Icons (use lucide-react)
@@ -86,7 +87,8 @@ export function EmployerSidebar() {
   const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
   const logout = useLogout();
   const { toast } = useToast();
-  const { hasUnreadMessages } = useUnreadMessagesDot();
+  const { data: currentUser } = useUser();
+  const hasUnreadMessages = useUnreadDot(currentUser?.id);
   const { data: employerProfile, fetchEmployerProfile } =
     useGetEmployerProfile();
 

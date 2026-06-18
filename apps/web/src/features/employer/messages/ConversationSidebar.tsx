@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Conversation } from './types';
-import { useSocket } from '@/contexts/socket-provider';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
   selectedConversation: Conversation | null;
   onSelectConversation: (conversation: Conversation) => void;
+  onMarkAsRead: () => void;
+  activeChatId?: string | null;
   isLoading?: boolean;
   isMobileView?: boolean;
 }
@@ -20,11 +21,12 @@ export function ConversationSidebar({
   conversations,
   selectedConversation,
   onSelectConversation,
+  onMarkAsRead,
+  activeChatId,
   isLoading = false,
   isMobileView = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { socket } = useSocket();
 
   const filteredConversations = conversations.filter(
     (conv) =>
@@ -33,20 +35,7 @@ export function ConversationSidebar({
 
   const handleSelectConversation = (conversation: Conversation) => {
     onSelectConversation(conversation);
-    // Mark conversation as read via WebSocket
-    if (socket?.connected) {
-      socket.emit(
-        'mark_read',
-        { friendId: conversation.participantId },
-        (response: unknown) => {
-          if (response) {
-            console.debug('Chat marked as read via WebSocket', response);
-          }
-        }
-      );
-    } else {
-      console.warn('WebSocket not connected, cannot mark chat as read');
-    }
+    onMarkAsRead();
   };
 
   return (
