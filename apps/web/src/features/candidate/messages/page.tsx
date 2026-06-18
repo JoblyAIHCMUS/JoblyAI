@@ -20,8 +20,11 @@ export default function CandidateMessagesPage() {
   const { data: currentUser, isPending: userLoading } = useUser();
   const userId = currentUser?.id;
   const deeplinkRecruiterId = searchParams.get('recruiterId');
-  const { data: summaries = [], isLoading: summariesLoading, error } =
-    useChatSummary(userId);
+  const {
+    data: summaries = [],
+    isLoading: summariesLoading,
+    error,
+  } = useChatSummary(userId);
   const { activeChatId, setActiveChatId } = useSocket();
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);

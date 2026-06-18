@@ -25,11 +25,15 @@ export function getOrCreateSocket(): Socket {
     reconnectionAttempts: 10,
   });
   _socket.on('connect', () => console.log('[ws] connect', { id: _socket?.id }));
-  _socket.on('disconnect', (reason) => console.log('[ws] disconnect', { reason }));
+  _socket.on('disconnect', (reason) =>
+    console.log('[ws] disconnect', { reason })
+  );
   _socket.on('connect_error', (err) =>
     console.log('[ws] connect_error', { msg: err.message })
   );
-  _socket.on('reconnect', (attempt) => console.log('[ws] reconnect', { attempt }));
+  _socket.on('reconnect', (attempt) =>
+    console.log('[ws] reconnect', { attempt })
+  );
   _socket.on('reconnect_attempt', (attempt) =>
     console.log('[ws] reconnect_attempt', { attempt })
   );
@@ -40,7 +44,9 @@ export function getOrCreateSocket(): Socket {
   return _socket;
 }
 
-export function emitSendMessage(dto: SendMessageRequest): Promise<SendMessageAck> {
+export function emitSendMessage(
+  dto: SendMessageRequest
+): Promise<SendMessageAck> {
   const socket = getOrCreateSocket();
   return new Promise<SendMessageAck>((resolve, reject) => {
     const timer = setTimeout(

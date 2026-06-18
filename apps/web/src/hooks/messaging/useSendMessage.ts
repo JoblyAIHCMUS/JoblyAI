@@ -81,9 +81,14 @@ export function useSendMessage(opts: Opts) {
         (old) => {
           if (!old || !old.pages[0]) return old;
           const next = old.pages[0].map((m) =>
-            m.messageId === localIdRef.current ? { ...m, messageId, timestamp } : m
+            m.messageId === localIdRef.current
+              ? { ...m, messageId, timestamp }
+              : m
           );
-          return { pages: [next, ...old.pages.slice(1)], pageParams: old.pageParams };
+          return {
+            pages: [next, ...old.pages.slice(1)],
+            pageParams: old.pageParams,
+          };
         }
       );
       localIdRef.current = null;
@@ -96,7 +101,10 @@ export function useSendMessage(opts: Opts) {
           (old) => {
             if (!old || !old.pages[0]) return old;
             return {
-              pages: [old.pages[0].filter((m) => m.messageId !== localId), ...old.pages.slice(1)],
+              pages: [
+                old.pages[0].filter((m) => m.messageId !== localId),
+                ...old.pages.slice(1),
+              ],
               pageParams: old.pageParams,
             };
           }

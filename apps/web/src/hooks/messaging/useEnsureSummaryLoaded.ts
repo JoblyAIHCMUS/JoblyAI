@@ -19,7 +19,10 @@ export function useEnsureSummaryLoaded(
     if (summary) return;
     if (!userId) return;
     if (didRefetchRef.current) return;
-    const existing = queryClient.getQueryData<ChatSummary[]>(['chat-summary', userId]);
+    const existing = queryClient.getQueryData<ChatSummary[]>([
+      'chat-summary',
+      userId,
+    ]);
     if (existing) {
       didRefetchRef.current = true;
       queryClient.invalidateQueries({ queryKey: ['chat-summary', userId] });
