@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '@/lib/api';
 
 export interface JobViewAnalytics {
   period: string;
@@ -11,8 +11,6 @@ export interface JobApplicationAnalytics {
   applicationCount: number;
   approvedCount: number;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Get job view analytics for the current employer
@@ -30,11 +28,8 @@ export async function getJobViewsAnalytics(
   if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
   params.append('groupBy', groupBy);
 
-  const response = await axios.get<JobViewAnalytics[]>(
-    `${API_BASE_URL}/api/jobs/analytics/views?${params.toString()}`,
-    {
-      withCredentials: true,
-    }
+  const response = await apiClient.get<JobViewAnalytics[]>(
+    `/jobs/analytics/views?${params.toString()}`
   );
   return response.data;
 }
@@ -55,11 +50,8 @@ export async function getJobApplicationsAnalytics(
   if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
   params.append('groupBy', groupBy);
 
-  const response = await axios.get<JobApplicationAnalytics[]>(
-    `${API_BASE_URL}/api/jobs/analytics/applications?${params.toString()}`,
-    {
-      withCredentials: true,
-    }
+  const response = await apiClient.get<JobApplicationAnalytics[]>(
+    `/jobs/analytics/applications?${params.toString()}`
   );
   return response.data;
 }
@@ -86,11 +78,8 @@ export async function getJobViewsAnalyticsForJob(
   if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
   params.append('groupBy', groupBy);
 
-  const response = await axios.get<JobViewsAnalyticsResponse>(
-    `${API_BASE_URL}/api/jobs/${jobId}/analytics/views?${params.toString()}`,
-    {
-      withCredentials: true,
-    }
+  const response = await apiClient.get<JobViewsAnalyticsResponse>(
+    `/jobs/${jobId}/analytics/views?${params.toString()}`
   );
   return response.data;
 }
