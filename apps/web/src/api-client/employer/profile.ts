@@ -1,34 +1,21 @@
-import axios from 'axios';
+import apiClient from '@/lib/api';
 import type {
   EmployerProfileResponse,
   UpdateEmployerProfilePayload,
   UpdateEmployerProfileResponse,
 } from '@/api-client/employer/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
 export async function getEmployerProfile(): Promise<EmployerProfileResponse> {
-  const response = await axios.get<EmployerProfileResponse>(
-    `${API_BASE_URL}/api/employer/me`,
-    {
-      withCredentials: true,
-    }
-  );
-
+  const response = await apiClient.get<EmployerProfileResponse>('/employer/me');
   return response.data;
 }
 
 export async function updateEmployerProfile(
   updateDto: UpdateEmployerProfilePayload
 ): Promise<UpdateEmployerProfileResponse> {
-  const response = await axios.post<UpdateEmployerProfileResponse>(
-    `${API_BASE_URL}/api/employer/me`,
-    updateDto,
-    {
-      headers: { 'Content-Type': 'application/json' },
-      withCredentials: true,
-    }
+  const response = await apiClient.post<UpdateEmployerProfileResponse>(
+    '/employer/me',
+    updateDto
   );
-
   return response.data;
 }
