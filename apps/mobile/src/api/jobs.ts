@@ -81,3 +81,22 @@ export async function createJobPosting(
   });
   return response.data;
 }
+
+export interface SimilarJobsQuery {
+  jobId?: number;
+  companyId?: number;
+  location?: string;
+  title?: string;
+  limit?: number;
+}
+
+export async function getSimilarJobs(
+  params: SimilarJobsQuery,
+  options?: ApiOptions
+): Promise<PaginatedJobsResponse> {
+  const response = await apiClient.get<PaginatedJobsResponse>('/jobs/similar', {
+    params,
+    signal: options?.signal,
+  });
+  return response.data;
+}

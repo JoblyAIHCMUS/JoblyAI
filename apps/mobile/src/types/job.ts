@@ -69,6 +69,7 @@ export interface JobPosting {
   currency: string | null;
   status: JobStatus;
   applicantsCount?: number;
+  matchPercentage?: number;
   createdAt: string;
   updatedAt: string;
 }

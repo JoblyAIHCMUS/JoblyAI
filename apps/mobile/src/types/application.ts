@@ -13,6 +13,7 @@ export interface ApplicationRecord {
 
 export interface CandidateApplicationRecord {
   id: number;
+  jobId: number;
   status: ApplicationStatus;
   createdAt: string;
   job: {

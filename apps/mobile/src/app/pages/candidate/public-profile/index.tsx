@@ -1,8 +1,9 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   RefreshControl,
   ScrollView,
@@ -11,7 +12,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, Mail, Menu, Pencil, Phone } from 'lucide-react-native';
+import { BadgeCheck, FileText, Mail, Menu, Pencil, Phone, Trash2 } from 'lucide-react-native';
+import * as DocumentPicker from '@react-native-documents/picker';
 
 import {
   InstagramIcon,
@@ -24,11 +26,14 @@ import EditEducationModal from './components/EditEducationModal';
 import EditCertificateModal from './components/EditCertificateModal';
 import EditSkillModal from './components/EditSkillModal';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
+import { useCreateResume } from '../../../../hooks/useCreateResume';
+import { useDeleteResume } from '../../../../hooks/useDeleteResume';
+import { useUploadFile } from '../../../../hooks/useUploadFile';
 import type {
   CandidateEducation,
   CandidateExperience,
-  CandidateCertificate,
   CandidateProfileResponse,
+  CandidateResume,
 } from '../../../../types/candidate';
 
 function HeaderIcon({
@@ -198,6 +203,10 @@ export default function CandidatePublicProfileScreen() {
     refetch,
   } = useGetCandidateProfile();
 
+  const { createResumeRecord } = useCreateResume();
+  const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
+  const { uploadToS3 } = useUploadFile();
+
   const displayName = useMemo(() => getDisplayName(profile), [profile]);
   const headline = profile?.about?.title?.trim() || 'Candidate';
   const location = profile?.location?.trim() || 'Location not specified';
@@ -236,6 +245,80 @@ export default function CandidatePublicProfileScreen() {
       OTHER: 'Other',
     };
     return map[type] || type.replace(/_/g, ' ').toLowerCase();
+  };
+
+  const resumes = profile?.resumes ?? [];
+
+  const handleUploadResume = async () => {
+    try {
+      const results = await DocumentPicker.pick({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+      });
+
+      if (!results || results.length === 0) return;
+
+      const file = results[0];
+
+      const uploadResult = await uploadToS3(
+        {
+          uri: file.uri,
+          name: file.name || 'resume.pdf',
+          type: file.type || 'application/pdf',
+        } as any,
+        'resumes'
+      );
+
+      await createResumeRecord({
+        fileKey: uploadResult.fileKey,
+        fileName: file.name || 'resume.pdf',
+        fileType: file.type || 'application/pdf',
+        fileSize: file.size || 0,
+      });
+
+      await refetch();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to upload resume';
+      Alert.alert('Upload failed', message);
+    }
+  };
+
+  const handleDeleteResume = (resume: CandidateResume) => {
+    Alert.alert(
+      'Delete resume',
+      `Delete "${resume.fileName}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteResumeRecord(resume.id);
+              await refetch();
+            } catch (error) {
+              const message =
+                error instanceof Error ? error.message : 'Failed to delete resume';
+              Alert.alert('Delete failed', message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const formatResumeSize = (size?: number) => {
+    if (!size) return '';
+    const megabytes = size / (1024 * 1024);
+    if (megabytes >= 1) {
+      return `${megabytes.toFixed(1)} MB`;
+    }
+    const kilobytes = size / 1024;
+    return `${Math.max(1, Math.round(kilobytes))} KB`;
   };
 
   const renderExperience = (experience: CandidateExperience) => {
@@ -650,6 +733,76 @@ export default function CandidatePublicProfileScreen() {
                 ))
               )}
             </View>
+          </Card>
+        </View>
+
+        <View className="mt-5 px-3">
+          <SectionHeader
+            title="Resumes"
+            action={
+              <HeaderIcon onPress={handleUploadResume}>
+                <SimplePlus />
+              </HeaderIcon>
+            }
+          />
+
+          <Card className="px-3 py-2.5">
+            {resumes.length === 0 ? (
+              <Text className="text-sm text-[#6b7280]">
+                No resumes uploaded yet.
+              </Text>
+            ) : (
+              resumes.map((resume, index) => (
+                <View key={resume.id}>
+                  <View className="flex-row items-center gap-3 pb-2.5">
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-[#4f46e5]">
+                      <FileText size={18} color="white" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-bold tracking-tight text-[#1f2535]">
+                        {resume.fileName}
+                      </Text>
+                      <Text className="mt-1 text-sm text-[#6b7280]">
+                        {[
+                          resume.fileType,
+                          formatResumeSize(resume.fileSize),
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-2">
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: '/pages/candidate/pdf-viewer',
+                            params: {
+                              fileKey: resume.fileKey,
+                              fileName: resume.fileName,
+                            },
+                          })
+                        }
+                        className="h-8 w-8 items-center justify-center rounded-full border border-[#dbe1ee] bg-white"
+                      >
+                        <Text className="text-xs font-semibold text-[#4e5cf0]">
+                          View
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteResume(resume)}
+                        disabled={deletingResume}
+                        className="h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50"
+                      >
+                        <Trash2 size={14} color="#DC2626" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {index < resumes.length - 1 && (
+                    <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                  )}
+                </View>
+              ))
+            )}
           </Card>
         </View>
 

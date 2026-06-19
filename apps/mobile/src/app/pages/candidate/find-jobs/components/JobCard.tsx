@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { MapPin, Briefcase, DollarSign } from 'lucide-react-native';
+import { MapPin, Briefcase, DollarSign, Star } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { COLORS } from '../../../../constants/theme';
 import type { JobPosting } from '../../../../../types/job';
 
@@ -10,6 +11,8 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
+  const router = useRouter();
+
   const employmentTypeLabel =
     {
       FULL_TIME: 'Full-time',
@@ -39,10 +42,60 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
         }`
       : 'Not specified';
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push(`/pages/candidate/find-jobs/${job.id}`);
+    }
+  };
+
+  const matchBadge =
+    job.matchPercentage != null ? (
+      <View
+        className={`flex-row items-center gap-1 rounded-full border px-2 py-0.5 ${
+          job.matchPercentage >= 80
+            ? 'border-green-200 bg-green-50'
+            : job.matchPercentage >= 50
+            ? 'border-blue-200 bg-blue-50'
+            : 'border-slate-200 bg-slate-50'
+        }`}
+      >
+        <Star
+          size={10}
+          color={
+            job.matchPercentage >= 80
+              ? '#15803d'
+              : job.matchPercentage >= 50
+              ? '#1d4ed8'
+              : '#475569'
+          }
+          fill={
+            job.matchPercentage >= 80
+              ? '#15803d'
+              : job.matchPercentage >= 50
+              ? '#1d4ed8'
+              : '#475569'
+          }
+        />
+        <Text
+          className={`text-[10px] font-semibold ${
+            job.matchPercentage >= 80
+              ? 'text-green-700'
+              : job.matchPercentage >= 50
+              ? 'text-blue-700'
+              : 'text-slate-600'
+          }`}
+        >
+          {Math.round(job.matchPercentage)}% Match
+        </Text>
+      </View>
+    ) : null;
+
   return (
     <TouchableOpacity
       activeOpacity={0.75}
-      onPress={onPress}
+      onPress={handlePress}
       className="mb-4 rounded-2xl border border-app-gray-1 bg-white px-4 py-4 shadow-sm"
     >
       {/* Header with logo and info */}
@@ -73,12 +126,15 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
             </View>
           </View>
 
-          <Text
-            className="text-base font-bold text-app-dark-text"
-            numberOfLines={2}
-          >
-            {job.title}
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text
+              className="flex-1 text-base font-bold text-app-dark-text"
+              numberOfLines={2}
+            >
+              {job.title}
+            </Text>
+            {matchBadge}
+          </View>
         </View>
       </View>
 
@@ -132,6 +188,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
       {/* Apply button */}
       <TouchableOpacity
         activeOpacity={0.8}
+        onPress={handlePress}
         className="rounded-lg bg-app-primary-2 py-3"
       >
         <Text className="text-center font-semibold text-white">Apply</Text>

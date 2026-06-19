@@ -6,15 +6,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 import { useCreateDownloadUrl } from '../../../../../../hooks/useCreateDownloadUrl';
 
 interface ApplicantResumePanelProps {
   fileKey: string;
+  fileName?: string;
 }
 
-export function ApplicantResumePanel({ fileKey }: ApplicantResumePanelProps) {
+export function ApplicantResumePanel({
+  fileKey,
+  fileName = 'Resume',
+}: ApplicantResumePanelProps) {
   const { fetchDownloadUrl, loading } = useCreateDownloadUrl({
     onError: (err) => {
       const message =
@@ -23,7 +28,22 @@ export function ApplicantResumePanel({ fileKey }: ApplicantResumePanelProps) {
     },
   });
 
-  const openResume = useCallback(async () => {
+  const viewResume = useCallback(() => {
+    if (!fileKey) {
+      Toast.show({
+        type: 'error',
+        text1: 'Resume',
+        text2: 'No resume file is attached.',
+      });
+      return;
+    }
+    router.push({
+      pathname: '/pages/candidate/pdf-viewer',
+      params: { fileKey, fileName },
+    });
+  }, [fileKey, fileName]);
+
+  const downloadResume = useCallback(async () => {
     if (!fileKey) {
       Toast.show({
         type: 'error',
@@ -63,14 +83,14 @@ export function ApplicantResumePanel({ fileKey }: ApplicantResumePanelProps) {
           <ActivityIndicator size="large" color="#4640DE" />
         ) : (
           <Text className="text-sm text-app-text-3 text-center">
-            Tap a button below to open the resume in your browser.
+            Tap a button below to view or download the resume.
           </Text>
         )}
       </View>
 
       <View className="flex-row gap-3">
         <TouchableOpacity
-          onPress={openResume}
+          onPress={viewResume}
           disabled={loading || !fileKey}
           activeOpacity={0.7}
           className="flex-1 py-3 rounded-xl bg-app-primary-1 items-center"
@@ -79,7 +99,7 @@ export function ApplicantResumePanel({ fileKey }: ApplicantResumePanelProps) {
           <Text className="text-sm font-semibold text-white">View Resume</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={openResume}
+          onPress={downloadResume}
           disabled={loading || !fileKey}
           activeOpacity={0.7}
           className="flex-1 py-3 rounded-xl border border-app-border-2 bg-app-slate-gray items-center"

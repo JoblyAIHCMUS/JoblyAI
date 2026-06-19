@@ -1,5 +1,5 @@
 import { apiClient } from './config';
-import type { CandidateProfileResponse } from '../types/candidate';
+import type { CandidateProfileResponse, CandidateResume } from '../types/candidate';
 
 export interface ApiOptions {
   signal?: AbortSignal;
@@ -191,6 +191,51 @@ export async function getCandidateProfileById(
 ): Promise<CandidateProfileResponse> {
   const response = await apiClient.get<CandidateProfileResponse>(
     `/candidate/${candidateId}`
+  );
+  return response.data;
+}
+
+export interface CreateResumePayload {
+  fileKey: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  isDefault?: boolean;
+}
+
+export interface UpdateResumePayload {
+  id: number;
+  fileKey?: string;
+  fileName?: string;
+  isDefault?: boolean;
+}
+
+export async function createResume(
+  payload: CreateResumePayload
+): Promise<CandidateResume> {
+  const response = await apiClient.post<CandidateResume>(
+    '/candidate/me/resume',
+    payload
+  );
+  return response.data;
+}
+
+export async function updateResume(
+  payload: UpdateResumePayload
+): Promise<CandidateResume> {
+  const response = await apiClient.patch<CandidateResume>(
+    '/candidate/me/resume',
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteResume(
+  resumeId: number,
+  keepData = false
+): Promise<string> {
+  const response = await apiClient.delete(
+    `/candidate/me/resume/${resumeId}?keepData=${keepData}`
   );
   return response.data;
 }
