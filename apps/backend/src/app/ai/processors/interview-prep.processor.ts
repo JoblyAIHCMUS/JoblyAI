@@ -12,7 +12,7 @@ export class InterviewPrepProcessor extends WorkerHost {
   constructor(
     private aiProvider: AiProviderService,
     @Inject('PRISMA_CLIENT') private prisma: PrismaClient,
-    private aiGateway: AiGateway,
+    private aiGateway: AiGateway
   ) {
     super();
   }
@@ -21,16 +21,18 @@ export class InterviewPrepProcessor extends WorkerHost {
     const { candidateId, jobId, resumeId } = job.data;
 
     try {
-      this.logger.log(`Generating interview questions for candidate ${candidateId} and job ${jobId}`);
+      this.logger.log(
+        `Generating interview questions for candidate ${candidateId} and job ${jobId}`
+      );
 
       const [jobData, resumeData] = await Promise.all([
-        this.prisma.jobPosting.findUnique({ 
+        this.prisma.jobPosting.findUnique({
           where: { id: jobId },
-          select: { title: true, description: true }
+          select: { title: true, description: true },
         }),
-        this.prisma.resume.findUnique({ 
+        this.prisma.resume.findUnique({
           where: { id: resumeId },
-          select: { parsedText: true }
+          select: { parsedText: true },
         }),
       ]);
 
@@ -72,25 +74,39 @@ export class InterviewPrepProcessor extends WorkerHost {
         }
       `;
 
-      const response = await this.aiProvider.generateStructuredData<any>(prompt);
-      
+      const response = await this.aiProvider.generateStructuredData<any>(
+        prompt
+      );
+
       await this.prisma.interviewPreparation.update({
         where: { candidateId_jobId: { candidateId, jobId } },
         data: { status: 'COMPLETED', questions: response },
       });
 
-      this.aiGateway.notifyUser(candidateId, `INTERVIEW_PREP_READY_${jobId}`, response);
-      
-      this.logger.log(`Successfully generated interview questions for candidate ${candidateId} and job ${jobId}`);
+      this.aiGateway.notifyUser(
+        candidateId,
+        `INTERVIEW_PREP_READY_${jobId}`,
+        response
+      );
+
+      this.logger.log(
+        `Successfully generated interview questions for candidate ${candidateId} and job ${jobId}`
+      );
       return response;
     } catch (error: any) {
-      this.logger.error(`Failed to generate interview questions: ${error.message}`);
-      
-      await this.prisma.interviewPreparation.update({
-        where: { candidateId_jobId: { candidateId, jobId } },
-        data: { status: 'FAILED' },
-      }).catch((err: any) => this.logger.error(`Failed to update status to FAILED: ${err.message}`));
-      
+      this.logger.error(
+        `Failed to generate interview questions: ${error.message}`
+      );
+
+      await this.prisma.interviewPreparation
+        .update({
+          where: { candidateId_jobId: { candidateId, jobId } },
+          data: { status: 'FAILED' },
+        })
+        .catch((err: any) =>
+          this.logger.error(`Failed to update status to FAILED: ${err.message}`)
+        );
+
       throw error;
     }
   }

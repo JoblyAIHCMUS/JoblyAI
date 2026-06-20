@@ -41,7 +41,9 @@ const interviewPrepService = {
   },
 
   regeneratePrep: async (jobId: number): Promise<InterviewPreparation> => {
-    const response = await apiClient.post(`/interview-prep/${jobId}/regenerate`);
+    const response = await apiClient.post(
+      `/interview-prep/${jobId}/regenerate`
+    );
     return response.data;
   },
 };

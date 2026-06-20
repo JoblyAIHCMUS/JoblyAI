@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '@/contexts/socket-provider';
 import { useUser } from '@/hooks/useUser';
-import interviewPrepService, { 
-  InterviewPreparation, 
-  InterviewPrepStatus 
+import interviewPrepService, {
+  InterviewPreparation,
+  InterviewPrepStatus,
 } from '@/services/interviewPrepService';
 import { toast } from 'sonner';
 
@@ -35,10 +35,14 @@ export const useInterviewPrep = (jobId: number) => {
       if (prep.status === InterviewPrepStatus.COMPLETED) {
         setLoading(false);
       } else {
-        toast.info('AI is generating your interview questions. This may take a few moments...');
+        toast.info(
+          'AI is generating your interview questions. This may take a few moments...'
+        );
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to start interview prep');
+      toast.error(
+        error.response?.data?.message || 'Failed to start interview prep'
+      );
       setLoading(false);
     }
   };
@@ -50,7 +54,9 @@ export const useInterviewPrep = (jobId: number) => {
       setData(prep);
       toast.info('AI is regenerating your interview questions...');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to regenerate interview prep');
+      toast.error(
+        error.response?.data?.message || 'Failed to regenerate interview prep'
+      );
       setLoading(false);
     }
   };
@@ -58,7 +64,7 @@ export const useInterviewPrep = (jobId: number) => {
   useEffect(() => {
     if (socket && isConnected && user?.id) {
       const eventName = `INTERVIEW_PREP_READY_${jobId}_${user.id}`;
-      
+
       const handleReady = (questions: any) => {
         setData((prev) => {
           if (!prev) return null;
@@ -80,11 +86,11 @@ export const useInterviewPrep = (jobId: number) => {
     }
   }, [socket, isConnected, jobId, user?.id]);
 
-  return { 
-    data, 
-    loading, 
-    fetchPrep, 
-    startPrep, 
-    regeneratePrep 
+  return {
+    data,
+    loading,
+    fetchPrep,
+    startPrep,
+    regeneratePrep,
   };
 };

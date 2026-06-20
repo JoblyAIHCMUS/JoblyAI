@@ -7,7 +7,7 @@ import { Queue } from 'bullmq';
 export class InterviewPrepService {
   constructor(
     @Inject('PRISMA_CLIENT') private prisma: PrismaClient,
-    @InjectQueue('interview-prep') private prepQueue: Queue,
+    @InjectQueue('interview-prep') private prepQueue: Queue
   ) {}
 
   async getOrCreatePrep(candidateId: string, jobId: number) {
@@ -28,7 +28,11 @@ export class InterviewPrepService {
       prep = await this.prisma.interviewPreparation.create({
         data: { candidateId, jobId, status: 'PENDING' },
       });
-      await this.prepQueue.add('generate-questions', { candidateId, jobId, resumeId: application.resumeId });
+      await this.prepQueue.add('generate-questions', {
+        candidateId,
+        jobId,
+        resumeId: application.resumeId,
+      });
     }
 
     return prep;
@@ -46,7 +50,11 @@ export class InterviewPrepService {
       data: { status: 'PENDING', questions: Prisma.DbNull },
     });
 
-    await this.prepQueue.add('generate-questions', { candidateId, jobId, resumeId: application.resumeId });
+    await this.prepQueue.add('generate-questions', {
+      candidateId,
+      jobId,
+      resumeId: application.resumeId,
+    });
     return prep;
   }
 }

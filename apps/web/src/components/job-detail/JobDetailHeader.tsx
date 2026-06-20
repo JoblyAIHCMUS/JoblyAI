@@ -176,7 +176,7 @@ export default function JobDetailHeader({
               <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             <div className="w-px h-10 bg-slate-200 hidden sm:block" />
-            
+
             {canApplyRole && (
               <button
                 onClick={() => setIsPrepModalOpen(true)}
@@ -186,7 +186,11 @@ export default function JobDetailHeader({
                     ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200'
                     : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100'
                 } border font-semibold h-11 px-4 sm:px-5 rounded-[5px] text-sm sm:text-base transition-colors flex items-center gap-2`}
-                title={!isApplied ? 'Apply to unlock AI Interview Prep' : 'AI Interview Preparation'}
+                title={
+                  !isApplied
+                    ? 'Apply to unlock AI Interview Prep'
+                    : 'AI Interview Preparation'
+                }
               >
                 <Sparkles className="w-4 h-4" />
                 <span className="hidden lg:inline">AI Prep</span>
@@ -242,4 +246,3 @@ export default function JobDetailHeader({
     </section>
   );
 }
-
