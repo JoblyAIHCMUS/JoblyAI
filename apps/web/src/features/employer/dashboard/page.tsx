@@ -34,7 +34,6 @@ export default function EmployerDashboardPage() {
   const firstName = employerProfile?.fullName?.split(' ')[0] ?? '';
 
   // State for dynamic data
-  const [candidateCount, setCandidateCount] = useState(0);
   const [weekData, setWeekData] = useState<StatsDataSet | null>(null);
   const [monthData, setMonthData] = useState<StatsDataSet | null>(null);
   const [yearData, setYearData] = useState<StatsDataSet | null>(null);
@@ -77,29 +76,6 @@ export default function EmployerDashboardPage() {
 
   // Polling intervals ref
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  /**
-   * Fetch the candidates-to-review count. Message count is now derived from
-   * the React Query cache above (shared with the messages pages) and is
-   * auto-polled by refetchInterval.
-   */
-  const fetchCounts = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      setErrorCounts(null);
-      const appsResult = await fetchApplications({
-        status: 'APPLIED',
-        pageSize: 1,
-      });
-      setCandidateCount(appsResult.total || 0);
-    } catch (err) {
-      console.error('Failed to fetch counts:', err);
-      setErrorCounts('Failed to load counts');
-    } finally {
-      setLoadingCounts(false);
-    }
-  }, [user?.id, fetchApplications]);
 
   /**
    * Fetch and aggregate analytics data for all three time modes in parallel
