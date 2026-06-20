@@ -70,3 +70,10 @@ export async function moveToOfferApplication(
   );
   return response.data;
 }
+
+export async function getEmployerApplicationById(
+  id: string | number
+): Promise<unknown> {
+  const response = await apiClient.get(`/employers/applications/${id}`);
+  return response.data;
+}
