@@ -9,21 +9,19 @@ interface UseListEmployerApplicationsOptions {
   pageSize?: number;
   jobId?: number;
   status?: EmployerApplicationsQuery['status'];
-  search?: string;
 }
 
 export function useListEmployerApplications(
   options: UseListEmployerApplicationsOptions = {}
 ) {
-  const { pageSize = 10, jobId, status, search } = options;
+  const { pageSize = 10, jobId, status } = options;
 
   return useInfiniteQuery<PaginatedApplicationsResponse, Error>({
-    queryKey: ['employer-applications', jobId, status, search, pageSize],
+    queryKey: ['employer-applications', jobId, status, pageSize],
     queryFn: async ({ pageParam = 1 }) =>
       listEmployerApplications({
         jobId,
         status,
-        search,
         page: pageParam as number,
         pageSize,
       }),

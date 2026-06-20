@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -38,22 +38,34 @@ export default function JobListingDetailPage() {
     error,
     data: backendJob,
   } = useEmployerJobDetail();
+  // The route always provides an `id`; the only place this hook is mounted
+  // is below `/employer/job-listing/[id]`. The jobId is passed into the
+  // applications query so the list is scoped to this job.
+  const parsedJobId = id ? parseInt(id, 10) : NaN;
+  const jobId = !isNaN(parsedJobId) ? parsedJobId : undefined;
   const {
-    fetchApplications,
-    loading: applicationsLoading,
-    error: applicationsError,
     data: applicationsData,
-  } = useListEmployerApplications({ initialPageSize: 10 });
-  const { shortlistApplication } = useShortlistApplication();
-  const { rejectApplication } = useRejectApplication();
-  const { moveToOffer } = useMoveToOfferApplication();
+    isLoading: applicationsLoading,
+    error: applicationsError,
+  } = useListEmployerApplications({ pageSize: 10, jobId });
+  const { mutateAsync: shortlist } = useShortlistApplication();
+  const { mutateAsync: reject } = useRejectApplication();
+  const { mutateAsync: moveToOffer } = useMoveToOfferApplication();
   const { updateStatus: updateJobStatus, loading: statusUpdateLoading } =
     useUpdateJobStatus();
 
-  const [applicants, setApplicants] = useState(
-    mapApplicationRecordsToApplicants([])
-  );
   const [statusUpdating, setStatusUpdating] = useState(false);
+
+  // Derive applicants from the React Query cache. The mutations
+  // (shortlist/reject/moveToOffer) invalidate the list cache, so this
+  // memo automatically reflects the latest server state.
+  const applicants = useMemo(
+    () =>
+      mapApplicationRecordsToApplicants(
+        applicationsData?.pages.flatMap((p) => p.applications) ?? []
+      ),
+    [applicationsData]
+  );
 
   // Get available status transitions based on current status
   const getAvailableStatusTransitions = useCallback(
@@ -100,28 +112,15 @@ export default function JobListingDetailPage() {
     [id, updateJobStatus, fetchEmployerJobDetail]
   );
 
-  // Fetch job details on mount
+  // Fetch job details on mount. The applications list is auto-fetched by
+  // useListEmployerApplications, which is keyed by the route's jobId.
   useEffect(() => {
-    if (id) {
-      const jobId = parseInt(id, 10);
-      if (!isNaN(jobId)) {
-        fetchEmployerJobDetail(jobId).catch((err) => {
-          console.error('Failed to fetch job details:', err);
-        });
-        // Fetch applications for this job
-        fetchApplications({ jobId }).catch((err) => {
-          console.error('Failed to fetch applications:', err);
-        });
-      }
+    if (jobId !== undefined) {
+      fetchEmployerJobDetail(jobId).catch((err: unknown) => {
+        console.error('Failed to fetch job details:', err);
+      });
     }
-  }, [id, fetchEmployerJobDetail, fetchApplications]);
-
-  // Update applicants when data changes
-  useEffect(() => {
-    if (applicationsData) {
-      setApplicants(mapApplicationRecordsToApplicants(applicationsData));
-    }
-  }, [applicationsData]);
+  }, [jobId, fetchEmployerJobDetail]);
 
   // Advance applicant to next stage
   const handleAdvanceApplicant = useCallback(
@@ -137,17 +136,12 @@ export default function JobListingDetailPage() {
 
         if (applicant.hiringStage === 'Applied') {
           // Move from Applied to Interview
-          await shortlistApplication(appId);
+          await shortlist(appId);
         } else if (applicant.hiringStage === 'Interview') {
           // Move from Interview to Offer
           await moveToOffer(appId);
         }
 
-        // Refresh applications
-        const jobId = parseInt(id as string, 10);
-        if (!isNaN(jobId)) {
-          await fetchApplications({ jobId });
-        }
         toast.success('Applicant advanced successfully');
       } catch (err) {
         const message =
@@ -156,7 +150,7 @@ export default function JobListingDetailPage() {
         toast.error(message);
       }
     },
-    [applicants, id, shortlistApplication, moveToOffer, fetchApplications]
+    [applicants, shortlist, moveToOffer]
   );
 
   // Decline applicant
@@ -164,16 +158,14 @@ export default function JobListingDetailPage() {
     async (applicantId: string) => {
       try {
         const appId = parseInt(applicantId, 10);
-        await rejectApplication(appId, {
-          feedback:
-            'Thank you for applying. We have decided to move forward with other candidates at this time.',
+        await reject({
+          applicationId: appId,
+          payload: {
+            feedback:
+              'Thank you for applying. We have decided to move forward with other candidates at this time.',
+          },
         });
 
-        // Refresh applications
-        const jobId = parseInt(id as string, 10);
-        if (!isNaN(jobId)) {
-          await fetchApplications({ jobId });
-        }
         toast.success('Applicant declined successfully');
       } catch (err) {
         const message =
@@ -182,7 +174,7 @@ export default function JobListingDetailPage() {
         toast.error(message);
       }
     },
-    [id, rejectApplication, fetchApplications]
+    [reject]
   );
 
   // Handle Kanban stage changes
@@ -216,14 +208,17 @@ export default function JobListingDetailPage() {
         // Only handle stage transitions that require backend calls
         if (newStage === 'Rejected') {
           // Move to Rejected
-          await rejectApplication(appId, {
-            feedback:
-              'Thank you for applying. We have decided to move forward with other candidates at this time.',
+          await reject({
+            applicationId: appId,
+            payload: {
+              feedback:
+                'Thank you for applying. We have decided to move forward with other candidates at this time.',
+            },
           });
           stageChangeApplied = true;
         } else if (currentStage === 'Applied' && newStage === 'Interview') {
           // Move from Applied to Interview
-          await shortlistApplication(appId);
+          await shortlist(appId);
           stageChangeApplied = true;
         } else if (currentStage === 'Interview' && newStage === 'Offer') {
           // Move from Interview to Offer
@@ -233,11 +228,6 @@ export default function JobListingDetailPage() {
 
         // Only refresh and show success if an actual stage change was applied
         if (stageChangeApplied) {
-          // Refresh applications
-          const jobId = parseInt(id as string, 10);
-          if (!isNaN(jobId)) {
-            await fetchApplications({ jobId });
-          }
           toast.success('Applicant status updated successfully');
         }
       } catch (err) {
@@ -249,14 +239,7 @@ export default function JobListingDetailPage() {
         toast.error(message);
       }
     },
-    [
-      applicants,
-      id,
-      shortlistApplication,
-      moveToOffer,
-      rejectApplication,
-      fetchApplications,
-    ]
+    [applicants, shortlist, moveToOffer, reject]
   );
 
   // Map backend data to frontend format

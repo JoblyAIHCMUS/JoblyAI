@@ -16,13 +16,10 @@ import {
 } from '@/api-hook/application';
 
 export default function EmployerAllApplicationsPage() {
-  const { data, isLoading, isError, refetch } = useListEmployerApplications();
-  const { mutateAsync: shortlist, isPending: isShortlisting } =
-    useShortlistApplication();
-  const { mutateAsync: reject, isPending: isRejecting } =
-    useRejectApplication();
-  const { mutateAsync: moveToOffer, isPending: isMovingToOffer } =
-    useMoveToOfferApplication();
+  const { data, isLoading, isError } = useListEmployerApplications();
+  const { mutateAsync: shortlist } = useShortlistApplication();
+  const { mutateAsync: reject } = useRejectApplication();
+  const { mutateAsync: moveToOffer } = useMoveToOfferApplication();
 
   const applications: AllApplication[] = useMemo(() => {
     if (!data) return [];
@@ -48,7 +45,6 @@ export default function EmployerAllApplicationsPage() {
   const total = data?.pages[0]?.total ?? 0;
   const totalPages = data?.pages[0]?.totalPages ?? 0;
   const currentPage = data?.pages[0]?.page ?? 1;
-  const isMutating = isShortlisting || isRejecting || isMovingToOffer;
 
   const advanceApplicant = async (id: string) => {
     try {
@@ -74,9 +70,12 @@ export default function EmployerAllApplicationsPage() {
   const declineApplicant = async (id: string) => {
     try {
       const appId = parseInt(id, 10);
-      await reject(appId, {
-        feedback:
-          'Thank you for applying. We have decided to move forward with other candidates at this time.',
+      await reject({
+        applicationId: appId,
+        payload: {
+          feedback:
+            'Thank you for applying. We have decided to move forward with other candidates at this time.',
+        },
       });
       toast.success('Applicant declined successfully');
     } catch (err) {
