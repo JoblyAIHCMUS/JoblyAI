@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import {
   SkillTagsManager,
@@ -31,6 +32,11 @@ import { useSkillIds } from '@/api-hook/skills/useSkillIds';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 import { EMPLOYMENT_TYPE_OPTIONS } from '@/lib/employment-type-config';
+import {
+  currencySymbol,
+  currencyToLocale,
+  type CurrencyCode,
+} from '@/lib/currency-format';
 
 const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
@@ -114,6 +120,8 @@ export default function JobListingEditPage() {
   const skills = watch('skills');
   const type = watch('type');
   const categoryId = watch('categoryId');
+  const salaryMin = watch('salaryMin');
+  const salaryMax = watch('salaryMax');
 
   // Fetch job data on mount
   useEffect(() => {
@@ -191,6 +199,17 @@ export default function JobListingEditPage() {
         return !errors.description && !isHtmlContentEmpty(description);
       default:
         return true;
+    }
+  };
+
+  const handleCurrencyChange = (value: string) => {
+    setValue('currency', value as CurrencyCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    if (value === 'none') {
+      setValue('salaryMin', undefined, { shouldValidate: true });
+      setValue('salaryMax', undefined, { shouldValidate: true });
     }
   };
 
@@ -464,19 +483,7 @@ export default function JobListingEditPage() {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                   <Select
                     value={currency}
-                    onValueChange={(value) =>
-                      setValue(
-                        'currency',
-                        value as
-                          | 'none'
-                          | 'usd'
-                          | 'eur'
-                          | 'gbp'
-                          | 'vnd'
-                          | 'jpy'
-                          | 'cny'
-                      )
-                    }
+                    onValueChange={handleCurrencyChange}
                   >
                     <SelectTrigger className="h-10 sm:h-12 w-full sm:w-[100px] text-xs sm:text-sm">
                       <SelectValue placeholder="Currency" />
@@ -491,30 +498,55 @@ export default function JobListingEditPage() {
                   </Select>
                   {currency !== 'none' && (
                     <>
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        className={`h-10 sm:h-12 text-xs sm:text-sm ${
-                          errors.salaryMin ? 'border-red-500' : ''
-                        }`}
-                        min="0"
-                        {...register('salaryMin', { valueAsNumber: true })}
-                      />
+                      <div className="flex items-center gap-1.5 flex-1">
+                        <span className="text-xs sm:text-sm text-slate-500">
+                          {currencySymbol(currency)}
+                        </span>
+                        <FormattedNumberInput
+                          value={salaryMin}
+                          onChange={(n) =>
+                            setValue('salaryMin', n, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            })
+                          }
+                          locale={currencyToLocale(currency)}
+                          placeholder="Min"
+                          ariaLabel="Minimum salary"
+                          className={`h-10 sm:h-12 text-xs sm:text-sm flex-1 ${
+                            errors.salaryMin ? 'border-red-500' : ''
+                          }`}
+                        />
+                      </div>
                       <span className="text-xs sm:text-sm text-slate-500">
                         to
                       </span>
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        className={`h-10 sm:h-12 text-xs sm:text-sm ${
-                          errors.salaryMax ? 'border-red-500' : ''
-                        }`}
-                        min="0"
-                        {...register('salaryMax', { valueAsNumber: true })}
-                      />
+                      <div className="flex items-center gap-1.5 flex-1">
+                        <span className="text-xs sm:text-sm text-slate-500">
+                          {currencySymbol(currency)}
+                        </span>
+                        <FormattedNumberInput
+                          value={salaryMax}
+                          onChange={(n) =>
+                            setValue('salaryMax', n, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            })
+                          }
+                          locale={currencyToLocale(currency)}
+                          placeholder="Max"
+                          ariaLabel="Maximum salary"
+                          className={`h-10 sm:h-12 text-xs sm:text-sm flex-1 ${
+                            errors.salaryMax ? 'border-red-500' : ''
+                          }`}
+                        />
+                      </div>
                     </>
                   )}
                 </div>
+                {currency !== 'none' && (
+                  <p className="text-xs text-slate-500">per month</p>
+                )}
                 {currency !== 'none' &&
                   (errors.salaryMin || errors.salaryMax) && (
                     <div className="space-y-1">
