@@ -17,8 +17,8 @@ import {
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
 import ConfirmLogoChange from '@/components/ui/confirmLogoChange';
-import { useCreateUploadUrl } from '@/api-hook/s3/useCreateUploadUrl';
-import { useUploadToPresignedUrl } from '@/api-hook/s3/useUploadToPresignedUrl';
+import { useCreateUploadUrl } from '@/api-hook/gcs/useCreateUploadUrl';
+import { useUploadToPresignedUrl } from '@/api-hook/gcs/useUploadToPresignedUrl';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';

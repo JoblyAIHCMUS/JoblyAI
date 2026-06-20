@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Download } from 'lucide-react';
-import { useCreateDownloadUrl } from '@/api-hook/s3';
+import { useCreateDownloadUrl } from '@/api-hook/gcs';
 
 interface ApplicantResumeViewerProps {
   fileKey: string; // S3 file key for the resume

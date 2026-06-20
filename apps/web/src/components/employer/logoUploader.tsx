@@ -4,7 +4,7 @@ import { ImageIcon, X } from 'lucide-react';
 import * as React from 'react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
-import { deleteS3File } from '@/api-client/s3/file';
+import { deleteGcsFile } from '@/api-client/gcs/file';
 
 // Match backend ALLOWED_FILE_TYPES for LOGOS: ['image/jpeg', 'image/png', 'image/svg+xml']
 const ACCEPT = '.svg,.png,.jpg,.jpeg';
@@ -81,7 +81,7 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
     const handleRemove = React.useCallback(() => {
       // Remove: delete previous logo if exists
       if (currentFileKey) {
-        deleteS3File({ fileKey: currentFileKey }).catch(() => {
+        deleteGcsFile({ fileKey: currentFileKey }).catch(() => {
           /* ignore error */
         });
       }
@@ -155,9 +155,9 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
                   // Only delete the previous logo after a successful upload
                   if (currentFileKey && currentFileKey !== result.fileKey) {
                     try {
-                      await deleteS3File({ fileKey: currentFileKey });
+                      await deleteGcsFile({ fileKey: currentFileKey });
                     } catch {
-                      /* ignore S3 delete error */
+                      /* ignore GCS delete error */
                     }
                   }
                   onValueChangeProp?.(result.url, file, result.fileKey);

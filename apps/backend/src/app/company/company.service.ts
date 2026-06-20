@@ -13,7 +13,7 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
-import { S3Service } from '../s3/s3.service';
+import { GcsService } from '../gcs/gcs.service';
 import {
   CompanyAddEmployeeDto,
   CompanyCreateDto,
@@ -26,7 +26,7 @@ import {
 export class CompanyService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly s3Service: S3Service
+    private readonly gcsService: GcsService
   ) {}
 
   async getAll(): Promise<Company[]> {
@@ -291,7 +291,7 @@ export class CompanyService {
         const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "logos/uuid.jpg"
 
         if (oldFileKey && oldFileKey.startsWith('logos/')) {
-          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+          await this.gcsService.deleteFile(`assets/${oldFileKey}`);
         }
       } catch (error) {
         // Log the error but don't fail the operation

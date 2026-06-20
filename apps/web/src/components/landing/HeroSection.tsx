@@ -36,14 +36,14 @@ export default function HeroSection() {
       <div className="absolute bottom-0 right-0 w-full max-w-7xl pointer-events-none">
         <div className="relative w-full h-full flex justify-end items-end">
           <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
+            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
             alt="decorative pattern"
             width={900}
             height={600}
             className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
           />
           {/* <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/hero-image.png"
+            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/hero-image.png"
             alt="Job seeker professional"
             width={500}
             height={600}
@@ -61,7 +61,7 @@ export default function HeroSection() {
             <span className="text-indigo-600">5000+ Jobs</span>
           </h1>
           <img
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Group.svg"
+            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Group.svg"
             alt="decorative group"
             className="mb-6 mx-auto lg:mx-0"
           />

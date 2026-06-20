@@ -22,7 +22,7 @@ import type { SubmitApplicationFormData } from '@/lib/validation';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
-import { useUploadFile } from '@/api-hook/s3';
+import { useUploadFile } from '@/api-hook/gcs';
 import {
   useCreateResume,
   useDeleteResume,

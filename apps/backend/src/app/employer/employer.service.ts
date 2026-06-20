@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { S3Service } from '../s3/s3.service';
+import { GcsService } from '../gcs/gcs.service';
 import {
   QueryResponseEmployerDto,
   UpdateEmployerDto,
@@ -26,7 +26,7 @@ type SearchEmployerUser = {
 export class EmployerService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly s3Service: S3Service
+    private readonly gcsService: GcsService
   ) {}
 
   private splitName(name?: string | null): {
@@ -335,7 +335,7 @@ export class EmployerService {
         const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "avatars/uuid.jpg"
 
         if (oldFileKey && oldFileKey.startsWith('avatars/')) {
-          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+          await this.gcsService.deleteFile(`assets/${oldFileKey}`);
         }
       } catch (error) {
         // Log the error but don't fail the operation

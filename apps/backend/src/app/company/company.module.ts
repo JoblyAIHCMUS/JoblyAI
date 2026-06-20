@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
-import { S3Module } from '../s3/s3.module';
+import { GcsModule } from '../gcs/gcs.module';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
 
 @Module({
-  imports: [AuthModule, S3Module],
+  imports: [AuthModule, GcsModule],
   controllers: [CompanyController],
   providers: [CompanyService],
 })

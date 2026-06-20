@@ -1,6 +1,10 @@
-# 📚 S3 API Documentation
+# 📚 S3 API Documentation (Migrated to GCS)
 
-Complete guide for S3 file management in JoblyAI.
+> ⚠️ **MIGRATION NOTE**: This service has been migrated to use **Google Cloud Storage (GCS)**.
+> The S3 logic remains commented out in the code for fallback purposes.
+> The API endpoints (`/s3/...`) remain the same to maintain frontend compatibility.
+
+Complete guide for file management in JoblyAI.
 
 ---
 

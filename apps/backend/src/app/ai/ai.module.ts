@@ -14,7 +14,7 @@ import { InterviewPrepController } from './interview-prep.controller';
 import { ProfileSyncService } from './profile-sync.service';
 import { MatchingService } from './matching.service';
 import { ResumeListener } from './listeners/resume.listener';
-import { S3Module } from '../s3/s3.module';
+import { GcsModule } from '../gcs/gcs.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -23,7 +23,7 @@ import { JobListener } from './listeners/job.listener';
 
 @Module({
   imports: [
-    S3Module,
+    GcsModule,
     AuthModule,
     NotificationsModule,
     BullModule.registerQueue(

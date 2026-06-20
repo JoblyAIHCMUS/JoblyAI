@@ -9,7 +9,7 @@ export const RECOMMENDED_COMPANIES_MOCK: RecommendedCompany[] = [
       'Nomad is located in Paris, France. Nomad has generates $728,000 in sales (USD).',
     logo: {
       imageUrl:
-        'https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/Nomad.svg',
+        'https://storage.googleapis.com/joblyai-public/assets/public/Nomad.svg',
       alt: 'Nomad logo',
       rounded: 'square',
     },

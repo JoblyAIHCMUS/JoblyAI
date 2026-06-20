@@ -14,7 +14,7 @@ import Educations from './components/Educations';
 import Skills from './components/Skills';
 import Certificates from './components/Certificates';
 // import Portfolios from './components/Portfolios';
-import { useUploadFile } from '@/api-hook/s3';
+import { useUploadFile } from '@/api-hook/gcs';
 import { useCreateResume } from '@/api-hook/candidate';
 import { useUpdateResume } from '@/api-hook/candidate/useUpdateResume';
 import { useDeleteResume } from '@/api-hook/candidate/useDeleteResume';

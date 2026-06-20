@@ -234,7 +234,7 @@ export function CandidateSidebar() {
           </SidebarGroup>
           <div className="pointer-events-none relative hidden h-48 overflow-hidden group-data-[collapsible=icon]:hidden md:block">
             <Image
-              src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/applicant/Pattern.png"
+              src="https://storage.googleapis.com/joblyai-public/assets/public/applicant/Pattern.png"
               alt=""
               fill
               loading="eager"
