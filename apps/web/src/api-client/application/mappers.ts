@@ -4,6 +4,8 @@ import type {
 } from '@/api-client/application/types';
 import type { Applicant } from '@/features/employer/job-listing/detail/data';
 import type { HiringStage } from '@/features/employer/hiringStage';
+import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
+import { type EmploymentType } from '@/features/employer/job-listing/data';
 
 /**
  * Map backend ApplicationStatus to frontend HiringStage
@@ -51,4 +53,37 @@ export function mapApplicationRecordsToApplicants(
   applications: ApplicationRecord[]
 ): Applicant[] {
   return applications.map(mapApplicationRecordToApplicant);
+}
+
+/**
+ * Convert backend ApplicationRecord to the full UI shape used by the
+ * detail page. Mirrors the mobile's buildApplicantDetail.
+ */
+export function mapApplicationRecordToApplicantDetail(
+  application: ApplicationRecord
+): ApplicantDetail {
+  const candidateName =
+    application.candidate?.name?.trim() ||
+    application.candidate?.email ||
+    `Candidate ${application.candidateId}`;
+
+  return {
+    id: String(application.id),
+    applicantId: application.candidateId,
+    name: candidateName,
+    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+      application.candidateId
+    )}`,
+    email: application.candidate?.email || '',
+    phone: '',
+    title: application.job.title,
+    jobListingId: String(application.jobId),
+    appliedRole: application.job.title,
+    jobCategory: application.job.category,
+    employmentType: (application.job.type || 'FULL_TIME') as EmploymentType,
+    appliedDate: application.createdAt.split('T')[0],
+    resume: application.resume.fileKey || '',
+    score: application.matchPercentage ?? 0,
+    hiringStage: mapApplicationStatusToHiringStage(application.status),
+  };
 }
