@@ -23,10 +23,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.jobly.mobile"
     },
-    "web": {
-      "bundler": "metro",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       [
         "expo-splash-screen",
