@@ -1,9 +1,8 @@
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   RefreshControl,
   ScrollView,
@@ -12,8 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, FileText, Mail, Menu, Pencil, Phone, Trash2 } from 'lucide-react-native';
-import * as DocumentPicker from '@react-native-documents/picker';
+import { BadgeCheck, Mail, Menu, Pencil, Phone } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import {
@@ -30,19 +28,28 @@ import { CV } from './components/CV';
 import { AiFeedbackModal } from './components/AiFeedbackModal';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
+import EditSocialModal from './components/EditSocialModal';
+import EditPhoneModal from './components/EditPhoneModal';
+import { useUpdateProfile } from '../../../../hooks/useUpdateProfile';
 import {
   AiProcessingProvider,
   useAiProcessing,
 } from '@/context/AiProcessingContext';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
-import { useCreateResume } from '../../../../hooks/useCreateResume';
-import { useDeleteResume } from '../../../../hooks/useDeleteResume';
-import { useUploadFile } from '../../../../hooks/useUploadFile';
+import { getPresignedUploadUrl } from '../../../../api/candidate';
+import { useUploadResume } from '@/hooks/useUploadResume';
+import { useDeleteResume } from '@/hooks/useDeleteResume';
+import { useSetDefaultResume } from '@/hooks/useSetDefaultResume';
+import { useTriggerAiParse } from '@/hooks/useTriggerAiParse';
+import { useTriggerAiScore } from '@/hooks/useTriggerAiScore';
+import { useCommitResumeMerge } from '@/hooks/useCommitResumeMerge';
+import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
   CandidateEducation,
   CandidateExperience,
+  CandidateCertificate,
   CandidateProfileResponse,
-  CandidateResume,
+  CandidateSocial,
 } from '../../../../types/candidate';
 
 function HeaderIcon({
@@ -212,6 +219,14 @@ function ProfileContent() {
   const [isAddEducationOpen, setIsAddEducationOpen] = useState(false);
   const [isAddCertificateOpen, setIsAddCertificateOpen] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [socialModalMode, setSocialModalMode] = useState<'add' | 'manage'>(
+    'manage'
+  );
+  const [editingSocial, setEditingSocial] = useState<CandidateSocial | null>(
+    null
+  );
+  const [isEditPhoneOpen, setIsEditPhoneOpen] = useState(false);
 
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
@@ -236,10 +251,88 @@ function ProfileContent() {
     error,
     refetch,
   } = useGetCandidateProfile();
+  const { mutateAsync: uploadResume, isPending: isUploading } =
+    useUploadResume();
+  const { deleteResumeRecord: deleteResume, loading: isDeleting } =
+    useDeleteResume();
+  const { mutateAsync: setDefaultResume } = useSetDefaultResume();
+  const { mutateAsync: triggerAiParse } = useTriggerAiParse();
+  const { mutateAsync: triggerAiScore } = useTriggerAiScore();
+  const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
+  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
+  const { mutateAsync: updateProfile } = useUpdateProfile();
 
-  const { createResumeRecord } = useCreateResume();
-  const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
-  const { uploadToS3 } = useUploadFile();
+  const startAiSyncPolling = useCallback(
+    (resumeId: number) => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      const attempt = async () => {
+        try {
+          const freshProfile = await refetch();
+          const freshData = freshProfile?.data;
+          const resume = freshData?.resumes?.find((r) => r.id === resumeId);
+          if (!resume) return;
+          const parsedRaw = (resume as any).parsedText;
+          if (!parsedRaw) return;
+          const parsedData = JSON.parse(parsedRaw);
+          if (!parsedData || Object.keys(parsedData).length === 0) return;
+          if (syncInProgressRef.current.has(resumeId)) return;
+          syncInProgressRef.current.add(resumeId);
+          if (pollRef.current) clearInterval(pollRef.current);
+          onParsedSuccess(resumeId);
+          Toast.show({ type: 'success', text1: 'CV parsed — ready to sync' });
+          setActiveResumeId(resumeId);
+          setSyncModalOpen(true);
+        } catch {
+          /* next tick will retry */
+        }
+      };
+      pollRef.current = setInterval(attempt, 4000);
+      setTimeout(attempt, 500);
+    },
+    [refetch, onParsedSuccess]
+  );
+
+  const startAiCompletionPolling = useCallback(
+    (resumeId: number, type: 'parse' | 'score') => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      const attempt = async () => {
+        try {
+          const freshProfile = await refetch();
+          const freshData = freshProfile?.data;
+          const resume = freshData?.resumes?.find((r) => r.id === resumeId);
+          if (!resume) return;
+          const done =
+            type === 'parse' ? !!resume.parsedText : resume.aiScore !== null;
+          if (done) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            if (type === 'parse') onParsedSuccess(resumeId);
+            else onScoredSuccess(resumeId);
+            Toast.show({
+              type: 'success',
+              text1: type === 'parse' ? 'Data extracted' : 'Score ready',
+            });
+          }
+        } catch {
+          /* next tick will retry */
+        }
+      };
+      pollRef.current = setInterval(attempt, 3000);
+      setTimeout(attempt, 500);
+    },
+    [refetch, onParsedSuccess, onScoredSuccess]
+  );
+
+  useEffect(() => {
+    if (profile?.resumes) reconcile(profile.resumes);
+  }, [profile?.resumes, reconcile]);
+
+  useEffect(() => {
+    const defaultResumeId =
+      profile?.resumes?.find((r) => r.isDefault)?.id ||
+      profile?.resumes?.[0]?.id ||
+      null;
+    setSelectedResumeId(defaultResumeId);
+  }, [profile?.resumes]);
 
   const displayName = useMemo(() => getDisplayName(profile), [profile]);
   const headline = profile?.about?.title?.trim() || 'Candidate';
@@ -282,78 +375,147 @@ function ProfileContent() {
     return map[type] || type.replace(/_/g, ' ').toLowerCase();
   };
 
-  const resumes = profile?.resumes ?? [];
-
-  const handleUploadResume = async () => {
+  const handleCVUpload = async (file: {
+    fileKey: string;
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+  }) => {
+    setUploadErrorMsg(null);
     try {
-      const results = await DocumentPicker.pick({
-        type: [
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ],
-      });
+      if ((profile?.resumes?.length || 0) >= 5) {
+        setUploadErrorMsg('You can store up to 5 resumes.');
+        Toast.show({ type: 'error', text1: 'Maximum resumes reached' });
+        return;
+      }
 
-      if (!results || results.length === 0) return;
-
-      const file = results[0];
-
-      const uploadResult = await uploadToS3(
-        {
-          uri: file.uri,
-          name: file.name || 'resume.pdf',
-          type: file.type || 'application/pdf',
-        } as any,
-        'resumes'
+      const { uploadUrl, fileKey } = await getPresignedUploadUrl(
+        file.fileName,
+        file.fileType
       );
 
-      await createResumeRecord({
-        fileKey: uploadResult.fileKey,
-        fileName: file.name || 'resume.pdf',
-        fileType: file.type || 'application/pdf',
-        fileSize: file.size || 0,
+      const uploadRes = await new Promise<{ status: number }>(
+        (resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', uploadUrl, true);
+          xhr.setRequestHeader('Content-Type', file.fileType);
+          xhr.onload = () => resolve({ status: xhr.status });
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send({ uri: file.fileKey });
+        }
+      );
+      if (uploadRes.status < 200 || uploadRes.status >= 300) {
+        throw new Error(`S3 upload failed (${uploadRes.status})`);
+      }
+      console.log('[CV Upload] S3 upload success, fileKey:', fileKey);
+
+      const newResume = await uploadResume({
+        fileKey,
+        fileName: file.fileName,
+        fileType: file.fileType,
+        fileSize: file.fileSize,
+        isDefault: true,
       });
-
+      if (newResume?.id) {
+        triggerParse(newResume.id);
+        triggerScore(newResume.id);
+        triggerAiParse(newResume.id);
+        triggerAiScore(newResume.id);
+        startAiSyncPolling(newResume.id);
+      }
       await refetch();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to upload resume';
-      Alert.alert('Upload failed', message);
+    } catch (err: any) {
+      setUploadErrorMsg(err.message || 'Upload failed');
     }
   };
 
-  const handleDeleteResume = (resume: CandidateResume) => {
-    Alert.alert(
-      'Delete resume',
-      `Delete "${resume.fileName}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteResumeRecord(resume.id);
-              await refetch();
-            } catch (error) {
-              const message =
-                error instanceof Error ? error.message : 'Failed to delete resume';
-              Alert.alert('Delete failed', message);
-            }
-          },
-        },
-      ]
-    );
+  const handleSelectResume = async (resumeId: number) => {
+    setSelectedResumeId(resumeId);
+    const selectedResume = profile?.resumes?.find((r) => r.id === resumeId);
+    if (!selectedResume || selectedResume.isDefault) return;
+    try {
+      await setDefaultResume(resumeId);
+      await refetch();
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Failed to set default CV' });
+    }
   };
 
-  const formatResumeSize = (size?: number) => {
-    if (!size) return '';
-    const megabytes = size / (1024 * 1024);
-    if (megabytes >= 1) {
-      return `${megabytes.toFixed(1)} MB`;
+  const handleDeleteResume = (resumeId: number) => {
+    setActiveResumeId(resumeId);
+    setDeleteImpactModalOpen(true);
+  };
+
+  const handleConfirmDeleteResume = async (keepData: boolean) => {
+    if (!activeResumeId) return;
+    setDeletingResumeId(activeResumeId);
+    try {
+      await deleteResume({ resumeId: activeResumeId, keepData: true });
+      await refetch();
+      setDeleteImpactModalOpen(false);
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Failed to delete CV' });
+    } finally {
+      setDeletingResumeId(null);
     }
-    const kilobytes = size / 1024;
-    return `${Math.max(1, Math.round(kilobytes))} KB`;
+  };
+
+  const handleTriggerParse = (resumeId: number) => {
+    triggerParse(resumeId);
+    triggerAiParse(resumeId)
+      .then(() => {
+        Toast.show({ type: 'info', text1: 'AI is extracting data...' });
+        startAiCompletionPolling(resumeId, 'parse');
+      })
+      .catch(() => {
+        Toast.show({ type: 'error', text1: 'Failed to start AI parsing' });
+      });
+  };
+
+  const handleTriggerScore = (resumeId: number) => {
+    triggerScore(resumeId);
+    triggerAiScore(resumeId)
+      .then(() => {
+        Toast.show({ type: 'info', text1: 'AI is scoring resume...' });
+        startAiCompletionPolling(resumeId, 'score');
+      })
+      .catch(() => {
+        Toast.show({ type: 'error', text1: 'Failed to start AI scoring' });
+      });
+  };
+
+  const handleSyncResume = async (draftData?: any) => {
+    if (!activeResumeId) return;
+    try {
+      await commitResumeMerge({ resumeId: activeResumeId, data: draftData });
+      await refetch();
+      setSyncModalOpen(false);
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Failed to sync profile' });
+    }
+  };
+
+  const handleToggleOpportunities = async () => {
+    try {
+      await updateProfile({
+        openForOpportunities: !profile?.openForOpportunities,
+      });
+      await refetch();
+      Toast.show({
+        type: 'success',
+        text1: profile?.openForOpportunities
+          ? 'No longer open to opportunities'
+          : 'Now open to opportunities',
+      });
+    } catch {
+      // Error handled by hook
+    }
+  };
+
+  const handleOpenEditSocial = (social?: CandidateSocial) => {
+    setEditingSocial(social || null);
+    setSocialModalMode(social ? 'add' : 'manage');
+    setIsSocialModalOpen(true);
   };
 
   const renderExperience = (experience: CandidateExperience) => {
@@ -515,7 +677,9 @@ function ProfileContent() {
                       {location}
                     </Text>
                   </View>
-                  <View
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handleToggleOpportunities}
                     className={`mt-2 rounded-sm px-3 py-2 ${
                       profile?.openForOpportunities
                         ? 'bg-[#d1f6ef]'
@@ -536,15 +700,6 @@ function ProfileContent() {
                           : 'NOT OPEN TO NEW OPPORTUNITIES'}
                       </Text>
                     </View>
-                  </View>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    className="mt-2.5 h-9 w-full items-center justify-center rounded-sm border border-[#d7ddfb] bg-white"
-                    onPress={() => void refetch()}
-                  >
-                    <Text className="text-sm font-semibold text-[#5758e7]">
-                      Refresh Profile
-                    </Text>
                   </TouchableOpacity>
                 </View>
               </Card>
@@ -607,7 +762,9 @@ function ProfileContent() {
                   <HeaderIcon onPress={() => setIsAddExperienceOpen(true)}>
                     <SimplePlus />
                   </HeaderIcon>
-                  <SectionAction />
+                  <HeaderIcon onPress={() => setIsAddExperienceOpen(true)}>
+                    <SimpleEdit />
+                  </HeaderIcon>
                 </View>
               }
             />
@@ -648,7 +805,9 @@ function ProfileContent() {
                   <HeaderIcon onPress={() => setIsAddEducationOpen(true)}>
                     <SimplePlus />
                   </HeaderIcon>
-                  <SectionAction />
+                  <HeaderIcon onPress={() => setIsAddEducationOpen(true)}>
+                    <SimpleEdit />
+                  </HeaderIcon>
                 </View>
               }
             />
@@ -735,114 +894,47 @@ function ProfileContent() {
             </Card>
           </View>
 
-        <View className="mt-5 px-3">
-          <SectionHeader
-            title="Skills"
-            action={
-              <View className="flex-row items-center gap-2">
-                <HeaderIcon onPress={() => setIsAddSkillOpen(true)}>
-                  <SimplePlus />
-                </HeaderIcon>
-              </View>
-            }
-          />
-
-          <Card className="px-3 py-2.5">
-            <View className="flex-row flex-wrap gap-2">
-              {skills.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">
-                  No skills added yet.
-                </Text>
-              ) : (
-                skills.map((skill) => (
-                  <View
-                    key={skill.id}
-                    className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
-                  >
-                    <Text className="text-xs font-medium text-[#4e5cf0]">
-                      {skill.name || skill.title || 'Skill'}
-                    </Text>
-                  </View>
-                ))
-              )}
-            </View>
-          </Card>
-        </View>
-
-        <View className="mt-5 px-3">
-          <SectionHeader
-            title="Resumes"
-            action={
-              <HeaderIcon onPress={handleUploadResume}>
-                <SimplePlus />
-              </HeaderIcon>
-            }
-          />
-
-          <Card className="px-3 py-2.5">
-            {resumes.length === 0 ? (
-              <Text className="text-sm text-[#6b7280]">
-                No resumes uploaded yet.
-              </Text>
-            ) : (
-              resumes.map((resume, index) => (
-                <View key={resume.id}>
-                  <View className="flex-row items-center gap-3 pb-2.5">
-                    <View className="h-9 w-9 items-center justify-center rounded-full bg-[#4f46e5]">
-                      <FileText size={18} color="white" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-bold tracking-tight text-[#1f2535]">
-                        {resume.fileName}
-                      </Text>
-                      <Text className="mt-1 text-sm text-[#6b7280]">
-                        {[
-                          resume.fileType,
-                          formatResumeSize(resume.fileSize),
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-2">
-                      <TouchableOpacity
-                        onPress={() =>
-                          router.push({
-                            pathname: '/pages/candidate/pdf-viewer',
-                            params: {
-                              fileKey: resume.fileKey,
-                              fileName: resume.fileName,
-                            },
-                          })
-                        }
-                        className="h-8 w-8 items-center justify-center rounded-full border border-[#dbe1ee] bg-white"
-                      >
-                        <Text className="text-xs font-semibold text-[#4e5cf0]">
-                          View
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteResume(resume)}
-                        disabled={deletingResume}
-                        className="h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50"
-                      >
-                        <Trash2 size={14} color="#DC2626" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {index < resumes.length - 1 && (
-                    <View className="my-2.5 h-px bg-[#dfe3f1]" />
-                  )}
+          <View className="mt-5 px-3">
+            <SectionHeader
+              title="Skills"
+              action={
+                <View className="flex-row items-center gap-2">
+                  <HeaderIcon onPress={() => setIsAddSkillOpen(true)}>
+                    <SimplePlus />
+                  </HeaderIcon>
                 </View>
-              ))
-            )}
-          </Card>
-        </View>
+              }
+            />
+            <Card className="px-3 py-2.5">
+              <View className="flex-row flex-wrap gap-2">
+                {skills.length === 0 ? (
+                  <Text className="text-sm text-[#6b7280]">
+                    No skills added yet.
+                  </Text>
+                ) : (
+                  skills.map((skill) => (
+                    <View
+                      key={skill.id}
+                      className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
+                    >
+                      <Text className="text-xs font-medium text-[#4e5cf0]">
+                        {skill.name || skill.title || 'Skill'}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            </Card>
+          </View>
 
           <View className="mt-5 px-3">
             <SectionHeader
               title="Additional Details"
-              action={<SectionAction />}
+              action={
+                <HeaderIcon onPress={() => setIsEditPhoneOpen(true)}>
+                  <SimpleEdit />
+                </HeaderIcon>
+              }
             />
             <Card className="px-3 py-3">
               <View className="flex-row items-center gap-3 py-2">
@@ -868,31 +960,74 @@ function ProfileContent() {
           </View>
 
           <View className="mt-5 px-3">
-            <SectionHeader title="Social Links" action={<SectionAction />} />
+            <SectionHeader
+              title="Social Links"
+              action={
+                <View className="flex-row items-center gap-2">
+                  <HeaderIcon
+                    onPress={() => {
+                      setSocialModalMode('add');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <SimplePlus />
+                  </HeaderIcon>
+                  <HeaderIcon
+                    onPress={() => {
+                      setSocialModalMode('manage');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <SimpleEdit />
+                  </HeaderIcon>
+                </View>
+              }
+            />
             <Card className="px-3 py-3">
-              <View className="flex-row items-center gap-3 py-2">
-                <InstagramIcon />
-                <View>
-                  <Text className="text-xs font-medium text-[#556070]">
-                    Instagram
-                  </Text>
-                  <Text className="mt-1 text-sm text-[#4e5cf0]">
-                    {instagram?.url || 'Not added'}
-                  </Text>
-                </View>
-              </View>
-              <View className="my-3 h-px bg-[#dfe3f1]" />
-              <View className="flex-row items-center gap-3 py-2">
-                <TwitterIcon />
-                <View>
-                  <Text className="text-xs font-medium text-[#556070]">
-                    Twitter
-                  </Text>
-                  <Text className="mt-1 text-sm text-[#4e5cf0]">
-                    {twitter?.url || 'Not added'}
-                  </Text>
-                </View>
-              </View>
+              {socials.length === 0 ? (
+                <Text className="text-sm text-[#6b7280]">
+                  No social links added yet.
+                </Text>
+              ) : (
+                socials.map((social, index) => (
+                  <TouchableOpacity
+                    key={social.id}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setSocialModalMode('manage');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <View className="flex-row items-center gap-3 py-2">
+                      {social.platform.toLowerCase().includes('instagram') ? (
+                        <InstagramIcon />
+                      ) : social.platform.toLowerCase().includes('twitter') ? (
+                        <TwitterIcon />
+                      ) : (
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#6b7280]">
+                          <Text className="text-xs font-bold text-white">
+                            {social.platform.slice(0, 2).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View className="flex-1">
+                        <Text className="text-xs font-medium text-[#556070] uppercase">
+                          {social.platform}
+                        </Text>
+                        <Text className="mt-1 text-sm text-[#4e5cf0]">
+                          {social.url.replace(/^https?:\/\//, '')}
+                        </Text>
+                      </View>
+                    </View>
+                    {index < socials.length - 1 && (
+                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
             </Card>
           </View>
         </ScrollView>
@@ -1018,6 +1153,25 @@ function ProfileContent() {
         certificates={certificates}
         contacts={contacts}
         socials={socials}
+      />
+
+      <EditSocialModal
+        visible={isSocialModalOpen}
+        onClose={() => {
+          setIsSocialModalOpen(false);
+          setEditingSocial(null);
+        }}
+        mode={socialModalMode}
+        social={editingSocial}
+        socials={socials}
+        onSaved={() => void refetch()}
+      />
+
+      <EditPhoneModal
+        visible={isEditPhoneOpen}
+        onClose={() => setIsEditPhoneOpen(false)}
+        currentPhone={profile?.phoneNumber || ''}
+        onSaved={() => void refetch()}
       />
     </SafeAreaView>
   );

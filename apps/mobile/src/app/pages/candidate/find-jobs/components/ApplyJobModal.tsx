@@ -10,8 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,19 +48,21 @@ export default function ApplyJobModal({
   const [resumeOptions, setResumeOptions] = useState<ResumeChoice[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [loadingResumes, setLoadingResumes] = useState(false);
-  const [resumeDeleteTarget, setResumeDeleteTarget] =
-    useState<ResumeChoice | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { mutate: applyToJob, isPending: isSubmitting } = useApplyToJob();
-  const { uploadToS3, loading: uploading, progress: uploadProgress } = useUploadFile();
+  const {
+    uploadToS3,
+    loading: uploading,
+    progress: uploadProgress,
+  } = useUploadFile();
   const { createResumeRecord, loading: creatingResume } = useCreateResume();
   const { deleteResumeRecord, loading: deletingResume } = useDeleteResume();
 
   const isUploading = uploading || creatingResume;
   const selectedResume =
     resumeOptions.find((r) => r.id === selectedResumeId) ?? null;
-  const canUploadNewResume = !loadingResumes && resumeOptions.length < MAX_RESUMES;
+  const canUploadNewResume =
+    !loadingResumes && resumeOptions.length < MAX_RESUMES;
 
   const loadResumes = useCallback(async () => {
     setLoadingResumes(true);
@@ -87,7 +88,8 @@ export default function ApplyJobModal({
         }));
 
       setResumeOptions(sorted);
-      const defaultId = sorted.find((r: ResumeChoice) => r.isDefault)?.id ?? null;
+      const defaultId =
+        sorted.find((r: ResumeChoice) => r.isDefault)?.id ?? null;
       setSelectedResumeId(defaultId ?? sorted[0]?.id ?? null);
     } catch (error) {
       console.error('Failed to load resumes', error);
@@ -157,35 +159,38 @@ export default function ApplyJobModal({
   const handleDeleteResume = (resumeId: number) => {
     const target = resumeOptions.find((r) => r.id === resumeId);
     if (target) {
-      setResumeDeleteTarget(target);
-      setShowDeleteConfirm(true);
+      Alert.alert(
+        'Delete resume',
+        `Delete "${target.fileName}"? This action cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => confirmDeleteResume(target),
+          },
+        ]
+      );
     }
   };
 
-  const confirmDeleteResume = async () => {
-    if (!resumeDeleteTarget) return;
-
+  const confirmDeleteResume = async (target: ResumeChoice) => {
     try {
-      await deleteResumeRecord(resumeDeleteTarget.id);
-      const remaining = resumeOptions.filter(
-        (r) => r.id !== resumeDeleteTarget.id
-      );
+      await deleteResumeRecord(target.id);
+      const remaining = resumeOptions.filter((r) => r.id !== target.id);
       setResumeOptions(remaining);
-      if (selectedResumeId === resumeDeleteTarget.id) {
+      if (selectedResumeId === target.id) {
         setSelectedResumeId(remaining[0]?.id ?? null);
       }
       Toast.show({
         type: 'success',
         text1: 'Resume deleted',
-        text2: `"${resumeDeleteTarget.fileName}" has been deleted.`,
+        text2: `"${target.fileName}" has been deleted.`,
       });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Failed to delete resume';
       Toast.show({ type: 'error', text1: 'Delete failed', text2: message });
-    } finally {
-      setResumeDeleteTarget(null);
-      setShowDeleteConfirm(false);
     }
   };
 
@@ -218,7 +223,11 @@ export default function ApplyJobModal({
             error instanceof Error
               ? error.message
               : 'Failed to submit application';
-          Toast.show({ type: 'error', text1: 'Submission failed', text2: message });
+          Toast.show({
+            type: 'error',
+            text1: 'Submission failed',
+            text2: message,
+          });
         },
       }
     );
@@ -234,220 +243,153 @@ export default function ApplyJobModal({
     }[job.type] || job.type;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <View className="flex-1 bg-black/40 justify-end">
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={onClose}
-            className="flex-1"
-          />
+    <Modal visible={visible} animationType="slide" transparent>
+      <View className="flex-1 items-center justify-end bg-black/40">
+        <View className="w-full max-h-[90%] rounded-t-2xl bg-white px-4">
+          {/* Header */}
+          <View className="flex-row items-center justify-between border-b border-app-gray-1 py-3">
+            <Text className="text-lg font-bold text-app-dark-text">
+              Submit Application
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <X size={24} color={COLORS.darkText} />
+            </TouchableOpacity>
+          </View>
 
-          <View
-            className="max-h-[85%] rounded-t-3xl bg-white"
-            style={{ paddingBottom: 12 + insets.bottom }}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            {/* Header */}
-            <View className="flex-row items-center justify-between border-b border-app-gray-1 px-4 py-4">
-              <Text className="text-lg font-bold text-app-dark-text">
-                Submit Application
-              </Text>
-              <TouchableOpacity onPress={onClose}>
-                <X size={24} color={COLORS.darkText} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              className="flex-1 px-4"
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {/* Job Header */}
-              <View className="flex-row items-start gap-3 border-b border-app-gray-1 py-4">
-                {job.company.logoUrl ? (
-                  <Image
-                    source={{ uri: job.company.logoUrl }}
-                    className="h-16 w-16 rounded-lg"
-                    resizeMode="contain"
-                  />
-                ) : null}
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-app-dark-text">
-                    {job.title}
-                  </Text>
-                  <Text className="mt-1 text-sm text-app-gray-3">
-                    {job.company.name || 'Company'}
-                    {job.location ? ` • ${job.location}` : ''}
-                    {` • ${employmentTypeLabel}`}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Form Title */}
-              <View className="py-4">
+            {/* Job Header */}
+            <View className="flex-row items-start gap-3 border-b border-app-gray-1 py-4">
+              {job.company.logoUrl ? (
+                <Image
+                  source={{ uri: job.company.logoUrl }}
+                  className="h-16 w-16 rounded-lg"
+                  resizeMode="contain"
+                />
+              ) : null}
+              <View className="flex-1">
                 <Text className="text-lg font-semibold text-app-dark-text">
-                  Submit your application
+                  {job.title}
                 </Text>
                 <Text className="mt-1 text-sm text-app-gray-3">
-                  The following information will only be shared with{' '}
-                  {job.company.name || 'the company'}
+                  {job.company.name || 'Company'}
+                  {job.location ? ` • ${job.location}` : ''}
+                  {` • ${employmentTypeLabel}`}
                 </Text>
               </View>
+            </View>
 
-              {/* Job Title Field */}
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-semibold text-app-dark-text">
-                  Current or previous job title
-                </Text>
-                <TextInput
-                  value={jobTitle}
-                  onChangeText={setJobTitle}
-                  placeholder="What's your current or previous job title?"
-                  placeholderTextColor={COLORS.textPlaceholder}
-                  className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
-                  maxLength={200}
-                />
-              </View>
-
-              <View className="border-b border-app-gray-1" />
-
-              {/* Cover Letter Field */}
-              <View className="my-4">
-                <Text className="mb-2 text-sm font-semibold text-app-dark-text">
-                  Additional information/Cover letter
-                </Text>
-                <TextInput
-                  value={coverLetter}
-                  onChangeText={setCoverLetter}
-                  placeholder="Add a cover letter or anything else you want to share"
-                  placeholderTextColor={COLORS.textPlaceholder}
-                  multiline
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                  maxLength={1000}
-                  className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
-                  style={{ minHeight: 100 }}
-                />
-                <View className="mt-2 flex-row items-center justify-between">
-                  <Text className="text-xs text-app-gray-3">
-                    Maximum 1000 characters
-                  </Text>
-                  <Text className="text-xs text-app-gray-3">
-                    {coverLetter.length} / 1000
-                  </Text>
-                </View>
-              </View>
-
-              <View className="border-b border-app-gray-1" />
-
-              {/* Resume Section */}
-              <View className="py-4">
-                <ResumeSection
-                  resumes={resumeOptions}
-                  selectedResumeId={selectedResumeId}
-                  selectedResume={selectedResume}
-                  onSelect={setSelectedResumeId}
-                  onDelete={handleDeleteResume}
-                  onUpload={handleFileUpload}
-                  loading={loadingResumes}
-                  uploading={isUploading}
-                  uploadProgress={uploadProgress}
-                  deletingResume={deletingResume}
-                  candidateProfileError={null}
-                  canUploadNewResume={canUploadNewResume}
-                  maxResumes={MAX_RESUMES}
-                />
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={!selectedResume || isSubmitting}
-                className={`mb-4 rounded-lg py-3 ${
-                  !selectedResume || isSubmitting
-                    ? 'bg-app-bg-disabled'
-                    : 'bg-app-primary-2'
-                }`}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text
-                    className={`text-center font-semibold ${
-                      !selectedResume || isSubmitting
-                        ? 'text-app-text-placeholder'
-                        : 'text-white'
-                    }`}
-                  >
-                    Submit Application
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Terms */}
-              <Text className="mb-4 text-xs text-app-gray-3">
-                By sending the request you confirm that you accept our Terms of
-                Service and Privacy Policy.
+            {/* Form Title */}
+            <View className="py-4">
+              <Text className="text-lg font-semibold text-app-dark-text">
+                Submit your application
               </Text>
-            </ScrollView>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
+              <Text className="mt-1 text-sm text-app-gray-3">
+                The following information will only be shared with{' '}
+                {job.company.name || 'the company'}
+              </Text>
+            </View>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        visible={showDeleteConfirm}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDeleteConfirm(false)}
-      >
-        <View className="flex-1 bg-black/30 justify-center items-center">
-          <View className="bg-white rounded-3xl w-5/6 max-w-sm px-6 py-8 shadow-lg items-center">
-            <View className="w-12 h-12 rounded-full bg-red-100 items-center justify-center mb-4">
-              <X size={24} color="#DC2626" />
+            {/* Job Title Field */}
+            <View className="mb-4">
+              <Text className="mb-2 text-sm font-semibold text-app-dark-text">
+                Current or previous job title
+              </Text>
+              <TextInput
+                value={jobTitle}
+                onChangeText={setJobTitle}
+                placeholder="What's your current or previous job title?"
+                placeholderTextColor={COLORS.textPlaceholder}
+                className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
+                maxLength={200}
+              />
             </View>
-            <Text className="text-lg font-semibold text-app-dark-text mb-2 text-center">
-              Delete resume
-            </Text>
-            <Text className="text-sm text-app-gray-3 mb-6 text-center">
-              Delete &quot;{resumeDeleteTarget?.fileName}&quot;? This action
-              cannot be undone.
-            </Text>
-            <View className="flex-row gap-2 w-full">
-              <TouchableOpacity
-                disabled={deletingResume}
-                onPress={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-2 rounded-lg border border-app-gray-1 bg-white"
-              >
-                <Text className="text-center text-app-gray-2 font-medium">
-                  Cancel
+
+            <View className="border-b border-app-gray-1" />
+
+            {/* Cover Letter Field */}
+            <View className="my-4">
+              <Text className="mb-2 text-sm font-semibold text-app-dark-text">
+                Additional information/Cover letter
+              </Text>
+              <TextInput
+                value={coverLetter}
+                onChangeText={setCoverLetter}
+                placeholder="Add a cover letter or anything else you want to share"
+                placeholderTextColor={COLORS.textPlaceholder}
+                multiline
+                numberOfLines={5}
+                textAlignVertical="top"
+                maxLength={1000}
+                className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
+                style={{ minHeight: 100 }}
+              />
+              <View className="mt-2 flex-row items-center justify-between">
+                <Text className="text-xs text-app-gray-3">
+                  Maximum 1000 characters
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                disabled={deletingResume}
-                onPress={confirmDeleteResume}
-                className="flex-1 py-2 rounded-lg bg-red-600"
-              >
-                {deletingResume ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-center text-white font-semibold">
-                    Delete
-                  </Text>
-                )}
-              </TouchableOpacity>
+                <Text className="text-xs text-app-gray-3">
+                  {coverLetter.length} / 1000
+                </Text>
+              </View>
             </View>
-          </View>
+
+            <View className="border-b border-app-gray-1" />
+
+            {/* Resume Section */}
+            <View className="py-4">
+              <ResumeSection
+                resumes={resumeOptions}
+                selectedResumeId={selectedResumeId}
+                selectedResume={selectedResume}
+                onSelect={setSelectedResumeId}
+                onDelete={handleDeleteResume}
+                onUpload={handleFileUpload}
+                loading={loadingResumes}
+                uploading={isUploading}
+                uploadProgress={uploadProgress}
+                deletingResume={deletingResume}
+                candidateProfileError={null}
+                canUploadNewResume={canUploadNewResume}
+                maxResumes={MAX_RESUMES}
+              />
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!selectedResume || isSubmitting}
+              className={`mb-4 rounded-lg py-3 ${
+                !selectedResume || isSubmitting
+                  ? 'bg-app-bg-disabled'
+                  : 'bg-app-primary-2'
+              }`}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text
+                  className={`text-center font-semibold ${
+                    !selectedResume || isSubmitting
+                      ? 'text-app-text-placeholder'
+                      : 'text-white'
+                  }`}
+                >
+                  Submit Application
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Terms */}
+            <Text className="mb-4 text-xs text-app-gray-3">
+              By sending the request you confirm that you accept our Terms of
+              Service and Privacy Policy.
+            </Text>
+          </ScrollView>
         </View>
-      </Modal>
+      </View>
     </Modal>
   );
 }

@@ -104,7 +104,7 @@ function getCurrentWeekRange(): { start: Date; end: Date; label: string } {
 }
 
 function parseDateInput(value: string): Date | null {
-  const parsed = new Date(`${value}T00:00:00`);
+  const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 

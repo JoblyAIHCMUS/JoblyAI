@@ -145,6 +145,20 @@ export class CandidatesService {
     throw new BadRequestException('Either skillId or title is required.');
   }
 
+  async updateProfile(
+    userId: string,
+    data: { phoneNumber?: string; openForOpportunities?: boolean }
+  ) {
+    const updated = await this.prismaClient.user.update({
+      where: { id: userId },
+      data,
+    });
+    return {
+      success: true,
+      openForOpportunities: updated.openForOpportunities,
+    };
+  }
+
   async getProfileDetails(userId: string): Promise<CandidateQueryResponseDto> {
     const user = await this.prismaClient.user.findUnique({
       where: { id: userId },
@@ -279,6 +293,7 @@ export class CandidatesService {
         username: social.username ?? undefined,
         sourceCvIds: social.sourceCvIds || [],
       })),
+      openForOpportunities: user.openForOpportunities,
     };
   }
 

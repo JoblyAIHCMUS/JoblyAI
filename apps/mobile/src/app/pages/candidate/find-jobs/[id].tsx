@@ -18,14 +18,17 @@ export default function JobDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const jobId = Number(id);
 
-  const { data: job, loading: loadingJob, error: errorJob } = useJobDetail(jobId);
+  const {
+    data: job,
+    loading: loadingJob,
+    error: errorJob,
+  } = useJobDetail(jobId);
   const { data: user } = useUser();
 
   const [hasApplied, setHasApplied] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
 
-  const { fetchApplications } =
-    useListCandidateApplications();
+  const { fetchApplications } = useListCandidateApplications();
 
   useEffect(() => {
     if (!user) return;
@@ -50,10 +53,6 @@ export default function JobDetailPage() {
   }, [user, jobId, fetchApplications]);
 
   const handleApply = () => {
-    if (!user) {
-      // Redirect to login - would need router
-      return;
-    }
     setApplyModalOpen(true);
   };
 
@@ -66,7 +65,10 @@ export default function JobDetailPage() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+        <SafeAreaView
+          className="flex-1 bg-white"
+          edges={['top', 'left', 'right']}
+        >
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={COLORS.primary2} />
             <Text className="mt-4 text-sm text-app-gray-3">
@@ -82,7 +84,10 @@ export default function JobDetailPage() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+        <SafeAreaView
+          className="flex-1 bg-white"
+          edges={['top', 'left', 'right']}
+        >
           <View className="flex-1 items-center justify-center px-4">
             <Text className="text-center text-lg text-app-dark-text">
               {errorJob?.message || 'Job not found'}
@@ -97,7 +102,10 @@ export default function JobDetailPage() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={['top', 'left', 'right']}
+      >
         <ScrollView className="flex-1">
           {/* Header */}
           <JobDetailHeader
@@ -121,15 +129,12 @@ export default function JobDetailPage() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Apply Modal */}
-      {user && (
-        <ApplyJobModal
-          visible={applyModalOpen}
-          onClose={() => setApplyModalOpen(false)}
-          job={job}
-          onSuccess={handleApplySuccess}
-        />
-      )}
+      <ApplyJobModal
+        visible={applyModalOpen}
+        onClose={() => setApplyModalOpen(false)}
+        job={job}
+        onSuccess={handleApplySuccess}
+      />
     </>
   );
 }

@@ -327,12 +327,46 @@ export async function updateResume(
   return response.data;
 }
 
-export async function deleteResume(
-  resumeId: number,
-  keepData = false
-): Promise<string> {
-  const response = await apiClient.delete(
-    `/candidate/me/resume/${resumeId}?keepData=${keepData}`
-  );
+// --- Socials ---
+
+export interface CreateSocialPayload {
+  platform: string;
+  url: string;
+  username?: string;
+}
+
+export interface UpdateSocialPayload {
+  id: number;
+  platform?: string;
+  url?: string;
+  username?: string;
+}
+
+export async function createSocial(payload: CreateSocialPayload): Promise<any> {
+  const response = await apiClient.post('/candidate/me/socials', payload);
+  return response.data;
+}
+
+export async function updateSocial(payload: UpdateSocialPayload): Promise<any> {
+  const response = await apiClient.patch('/candidate/me/socials', payload);
+  return response.data;
+}
+
+export async function deleteSocial(id: number): Promise<any> {
+  const response = await apiClient.delete(`/candidate/me/socials/${id}`);
+  return response.data;
+}
+
+// --- Profile ---
+
+export interface UpdateProfilePayload {
+  phoneNumber?: string;
+  openForOpportunities?: boolean;
+}
+
+export async function updateProfile(
+  payload: UpdateProfilePayload
+): Promise<any> {
+  const response = await apiClient.patch('/candidate/me', payload);
   return response.data;
 }

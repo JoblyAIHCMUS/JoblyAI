@@ -11,7 +11,7 @@ import * as DocumentPicker from '@react-native-documents/picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { File as ExpoFile, Paths } from 'expo-file-system/next';
 import * as Sharing from 'expo-sharing';
-import WebView from 'react-native-webview';
+import Pdf from 'react-native-pdf';
 import {
   Download,
   Trash2,
@@ -71,7 +71,7 @@ export function CV({
   uploadError = null,
 }: CVProps) {
   const router = useRouter();
-  const { mutateAsync: createDownloadUrl } = useCreateDownloadUrl();
+  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -122,8 +122,12 @@ export function CV({
         setPreviewOpen(true);
         setPreviewUri(null);
 
-        const { downloadUrl } = await createDownloadUrl(resume.fileKey);
-        setPreviewUri(downloadUrl);
+        const { downloadUrl } = await createDownloadUrl({
+          fileKey: resume.fileKey,
+        });
+        const localUri = FileSystem.cacheDirectory + `resume_${resume.id}.pdf`;
+        await FileSystem.downloadAsync(downloadUrl, localUri);
+        setPreviewUri(localUri);
       } catch (err) {
         console.error('[CV] Preview failed:', err);
         Toast.show({ type: 'error', text1: 'Failed to load PDF' });
@@ -481,14 +485,13 @@ export function CV({
 
           <View className="flex-1">
             {previewUri ? (
-              <WebView
+              <Pdf
                 source={{ uri: previewUri }}
                 style={{ flex: 1 }}
-                javaScriptEnabled
-                domStorageEnabled
-                allowFileAccess
-                allowUniversalAccessFromFileURLs
-                mixedContentMode="always"
+                enablePaging={false}
+                horizontal={false}
+                spacing={10}
+                fitPolicy={2}
               />
             ) : (
               <View className="flex-1 items-center justify-center">

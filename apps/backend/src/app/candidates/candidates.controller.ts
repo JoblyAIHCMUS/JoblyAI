@@ -24,6 +24,7 @@ import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { UpdateResumeDto } from './dto/resume.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 
 export interface AuthRequest extends Request {
   user: User;
@@ -41,6 +42,14 @@ export class CandidatesController {
     const user = req.user;
 
     return this.candidatesService.getProfileDetails(user.id);
+  }
+
+  // Update current user profile
+  @Patch('/me')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  updateProfile(@Request() req: { user: User }, @Body() dto: UpdateProfileDto) {
+    return this.candidatesService.updateProfile(req.user.id, dto);
   }
 
   // Get candidate profile by ID for employers viewing applications

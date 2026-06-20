@@ -52,5 +52,7 @@ export class CandidateQueryResponseDto {
 
   socials?: QuerySocialDto[];
 
+  openForOpportunities?: boolean;
+
   createdAt!: Date;
 }
