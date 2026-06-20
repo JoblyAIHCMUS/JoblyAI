@@ -62,28 +62,28 @@ export const useInterviewPrep = (jobId: number) => {
   };
 
   useEffect(() => {
-    if (socket && isConnected && user?.id) {
-      const eventName = `INTERVIEW_PREP_READY_${jobId}_${user.id}`;
+    if (!(socket && isConnected && user?.id))
+      return;
+    const eventName = `INTERVIEW_PREP_READY_${jobId}_${user.id}`;
 
-      const handleReady = (questions: any) => {
-        setData((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            status: InterviewPrepStatus.COMPLETED,
-            questions,
-          };
-        });
-        setLoading(false);
-        toast.success('Interview preparation kit is ready!');
-      };
+    const handleReady = (questions: any) => {
+      setData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: InterviewPrepStatus.COMPLETED,
+          questions,
+        };
+      });
+      setLoading(false);
+      toast.success('Interview preparation kit is ready!');
+    };
 
-      socket.on(eventName, handleReady);
+    socket.on(eventName, handleReady);
 
-      return () => {
-        socket.off(eventName, handleReady);
-      };
-    }
+    return () => {
+      socket.off(eventName, handleReady);
+    };
   }, [socket, isConnected, jobId, user?.id]);
 
   return {
