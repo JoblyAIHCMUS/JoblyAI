@@ -8,6 +8,19 @@ export interface NotificationSettings {
 
 export type NotificationSettingsKey = keyof NotificationSettings;
 
+export type DevicePlatform = 'android' | 'ios';
+
+export async function registerDevice(
+  platform: DevicePlatform,
+  pushToken: string
+) {
+  const response = await apiClient.post('/devices/register', {
+    platform,
+    pushToken,
+  });
+  return response.data;
+}
+
 export async function getNotificationSettings(
   signal?: AbortSignal
 ): Promise<NotificationSettings> {

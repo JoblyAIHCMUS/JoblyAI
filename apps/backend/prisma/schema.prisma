@@ -50,8 +50,22 @@ model User {
   interviewPreps       InterviewPreparation[]
 
   image String?
+  devices              UserDevice[]
 
   @@map("user")
+}
+
+model UserDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String
+  pushToken String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("user_device")
 }
 
 model Conversation {

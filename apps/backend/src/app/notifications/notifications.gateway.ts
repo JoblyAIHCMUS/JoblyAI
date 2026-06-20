@@ -20,9 +20,15 @@ export class NotificationsGateway
   constructor(private readonly authService: AuthService) {}
 
   async handleConnection(client: Socket) {
-    const headers = client.handshake.headers as
-      | Headers
-      | Record<string, string | string[]>;
+    const headers = {
+      ...(client.handshake.headers as Record<string, string>),
+    };
+    const authCookie = (
+      client.handshake.auth as { cookie?: string } | undefined
+    )?.cookie;
+    if (authCookie && !headers.cookie) {
+      headers.cookie = authCookie;
+    }
 
     const session = await this.authService.validateToken(headers);
 

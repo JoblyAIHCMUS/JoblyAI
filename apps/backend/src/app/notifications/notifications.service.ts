@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
@@ -9,6 +10,8 @@ import { NotificationsGateway } from './notifications.gateway';
 import { CreateNotificationDTO } from './dto/create-notification.dto';
 import { UpdateNotificationSettingsDTO } from './dto/update-notification-settings.dto';
 import { NotificationType } from './notification-type.enum';
+import { FcmService, type PushPayload } from './fcm.service';
+import type { RegisterDeviceDTO } from './dto/register-device.dto';
 
 type NotificationPreferenceKey = 'applications' | 'jobs' | 'recommendations';
 
@@ -44,13 +47,17 @@ const RECOMMENDATION_NOTIFICATION_TYPES = new Set<NotificationType>([
   NotificationType.AI_RESUME_SCORED,
   NotificationType.RECOMMENDATION,
   NotificationType.PERSONALIZED_RECOMMENDATION,
+  NotificationType.INTERVIEW_PREPARATION_READY,
 ]);
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly notificationsGateway: NotificationsGateway
+    private readonly notificationsGateway: NotificationsGateway,
+    private readonly fcmService: FcmService
   ) {}
 
   async createNotification(data: CreateNotificationDTO) {
@@ -65,6 +72,10 @@ export class NotificationsService {
       this.notificationsGateway.sendNotification(
         data.recipientId,
         notification
+      );
+      await this.sendPushToUser(
+        data.recipientId,
+        this.toPushPayload(data, notification.id)
       );
     }
 
@@ -81,6 +92,7 @@ export class NotificationsService {
     );
     const settingsByUserId = await this.getNotificationSettingsByUserId(data);
 
+    const pushTasks: Promise<unknown>[] = [];
     notifications.forEach((notification, index) => {
       const notificationData = data[index];
       const shouldSendPush = this.shouldSendRealtimeNotificationFromSettings(
@@ -93,10 +105,91 @@ export class NotificationsService {
           notificationData.recipientId,
           notification
         );
+        pushTasks.push(
+          this.sendPushToUser(
+            notificationData.recipientId,
+            this.toPushPayload(notificationData, notification.id)
+          )
+        );
       }
     });
 
+    await Promise.all(pushTasks);
+
     return notifications;
+  }
+
+  async registerDevice(userId: string, data: RegisterDeviceDTO) {
+    return this.prisma.userDevice.upsert({
+      where: { pushToken: data.pushToken },
+      create: {
+        userId,
+        platform: data.platform,
+        pushToken: data.pushToken,
+      },
+      update: {
+        userId,
+        platform: data.platform,
+      },
+      select: {
+        id: true,
+        platform: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async sendPushToUser(userId: string, payload: PushPayload) {
+    try {
+      const devices = await this.prisma.userDevice.findMany({
+        where: { userId },
+        select: { pushToken: true },
+      });
+
+      return await this.sendPushToDevices(
+        devices.map((device) => device.pushToken),
+        payload
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send push notification to user ${userId}: ${
+          (error as Error).message
+        }`
+      );
+      return { successCount: 0, failureCount: 0, invalidTokens: [] };
+    }
+  }
+
+  async sendPushToDevices(pushTokens: string[], payload: PushPayload) {
+    const result = await this.fcmService.sendPushToDevices(pushTokens, payload);
+
+    if (result.invalidTokens.length > 0) {
+      await this.prisma.userDevice.deleteMany({
+        where: { pushToken: { in: result.invalidTokens } },
+      });
+    }
+
+    return result;
+  }
+
+  sendPushNotification(pushToken: string, payload: PushPayload) {
+    return this.fcmService.sendPushNotification(pushToken, payload);
+  }
+
+  notifyInterviewPreparationReady(
+    userId: string,
+    metadata?: Record<string, unknown>,
+    link?: string
+  ) {
+    return this.createNotification({
+      recipientId: userId,
+      type: NotificationType.INTERVIEW_PREPARATION_READY,
+      title: 'Interview Preparation Ready',
+      content: 'Your interview preparation report is ready.',
+      link,
+      metadata,
+    });
   }
 
   async getNotificationSettings(userId: string) {
@@ -239,6 +332,22 @@ export class NotificationsService {
         metadata: data.metadata,
       },
     });
+  }
+
+  private toPushPayload(
+    data: CreateNotificationDTO,
+    notificationId: number
+  ): PushPayload {
+    return {
+      title: data.title,
+      body: data.content,
+      data: {
+        notificationId: String(notificationId),
+        type: data.type,
+        ...(data.link ? { link: data.link } : {}),
+        ...(data.metadata ? { metadata: JSON.stringify(data.metadata) } : {}),
+      },
+    };
   }
 
   private async shouldSendRealtimeNotification(

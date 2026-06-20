@@ -136,6 +136,10 @@ vite.config.*.timestamp*
 **/env.production
 **/.env
 
+# Firebase Admin credentials (never ship or commit private keys)
+**/service-account.json
+**/*firebase-adminsdk*.s
+
 # Prisma
 apps/backend/src/app/generated/prisma\
 .worktrees/\
