@@ -12,7 +12,7 @@ RUN apk add --no-cache libc6-compat openssl git findutils
 WORKDIR /app
 
 # Copy workspace configuration
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
 COPY nx.json tsconfig.base.json tsconfig.json eslint.config.mjs ./
 
 # Copy ALL package.json files for workspace discovery
@@ -57,8 +57,6 @@ ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 
 # Critical runtime libraries for Alpine
 RUN apk add --no-cache libc6-compat openssl libgcc libstdc++ findutils curl
-
-RUN npm install -g pnpm
 
 WORKDIR /app
 
