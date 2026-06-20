@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { formatDate } from '@/lib/utils';
+import { useMessageCandidate } from '@/hooks/useMessageCandidate';
 import {
   type ApplicantDetail,
   hiringStageProgress,
@@ -132,13 +133,22 @@ export default function ApplicantOverview({
           </div>
         </div>
 
-        <Button className="w-full text-xs sm:text-sm h-9 sm:h-10" asChild>
-          <Link href="/employer/messages">
-            <Mail className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-            Message
-          </Link>
-        </Button>
+        <MessageButton applicantId={applicant.applicantId} />
       </CardContent>
     </Card>
+  );
+}
+
+function MessageButton({ applicantId }: { applicantId: string }) {
+  const { handleMessageCandidate, isLoading } = useMessageCandidate();
+  return (
+    <Button
+      className="w-full text-xs sm:text-sm h-9 sm:h-10"
+      onClick={() => void handleMessageCandidate(applicantId)}
+      disabled={isLoading}
+    >
+      <Mail className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+      {isLoading ? 'Opening…' : 'Message'}
+    </Button>
   );
 }
