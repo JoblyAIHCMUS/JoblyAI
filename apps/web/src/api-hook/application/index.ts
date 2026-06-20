@@ -7,4 +7,4 @@ export * from '@/api-hook/application/useShortlistApplication';
 export * from '@/api-hook/application/useRejectApplication';
 export * from '@/api-hook/application/useMoveToOfferApplication';
 export * from '@/api-hook/application/useEmployerApplication';
-export * from '@/api-hook/application/prefetchEmployerApplication';
+export * from '@/api-hook/application/usePrefetchEmployerApplication';

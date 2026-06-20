@@ -26,7 +26,7 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useMessageCandidate } from '@/hooks/useMessageCandidate';
-import { prefetchEmployerApplication } from '@/api-hook/application';
+import { usePrefetchEmployerApplication } from '@/api-hook/application';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
@@ -62,7 +62,7 @@ export const columns: ColumnDef<Applicant>[] = [
       return a.localeCompare(b);
     },
     cell: ({ row }) => {
-      const prefetch = prefetchEmployerApplication(row.original.id);
+      const prefetch = usePrefetchEmployerApplication(row.original.id);
       return (
         <Link
           href={`/employer/all-applications/${row.original.id}`}

@@ -9,7 +9,7 @@ import { type ApplicantDetail } from '@/features/employer/all-applications/detai
 const SINGLE_KEY = (id: string | number) =>
   ['employer-application', id] as const;
 
-export function prefetchEmployerApplication(id: string | number) {
+export function usePrefetchEmployerApplication(id: string | number) {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.prefetchQuery<ApplicantDetail>({

@@ -5,7 +5,7 @@ import { ApplicantDetail } from '../app/pages/employer/all-applications/data';
 const SINGLE_KEY = (id: string | number) =>
   ['employer-application', id] as const;
 
-export function prefetchEmployerApplication(id: string | number) {
+export function usePrefetchEmployerApplication(id: string | number) {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.prefetchQuery<ApplicantDetail>({
