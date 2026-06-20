@@ -26,6 +26,7 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { formatDate } from '@/lib/utils';
 import { useMessageCandidate } from '@/hooks/useMessageCandidate';
+import { usePrefetchEmployerApplication } from '@/api-hook/application';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
@@ -60,27 +61,32 @@ export const columns: ColumnDef<Applicant>[] = [
       const b = rowB.getValue<string>('name');
       return a.localeCompare(b);
     },
-    cell: ({ row }) => (
-      <Link
-        href={`/employer/all-applications/${row.original.id}`}
-        className="flex items-center gap-3 body-body-1-medium hover:underline"
-      >
-        <Avatar className="h-8 w-8">
-          <AvatarImage
-            src={row.original.image}
-            alt={row.getValue<string>('name')}
-          />
-          <AvatarFallback>
-            {row
-              .getValue<string>('name')
-              .split(' ')
-              .map((n) => n[0])
-              .join('')}
-          </AvatarFallback>
-        </Avatar>
-        {row.getValue('name')}
-      </Link>
-    ),
+    cell: ({ row }) => {
+      const prefetch = usePrefetchEmployerApplication(row.original.id);
+      return (
+        <Link
+          href={`/employer/all-applications/${row.original.id}`}
+          onMouseEnter={prefetch}
+          onFocus={prefetch}
+          className="flex items-center gap-3 body-body-1-medium hover:underline"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              src={row.original.image}
+              alt={row.getValue<string>('name')}
+            />
+            <AvatarFallback>
+              {row
+                .getValue<string>('name')
+                .split(' ')
+                .map((n) => n[0])
+                .join('')}
+            </AvatarFallback>
+          </Avatar>
+          {row.getValue('name')}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: 'appliedDate',

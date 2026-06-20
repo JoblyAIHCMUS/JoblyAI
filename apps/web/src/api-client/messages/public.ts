@@ -1,20 +1,14 @@
-import axios from 'axios';
+import apiClient from '@/lib/api';
 import { ChatSummary, ChatMessage } from '@/api-client/messages/types';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Fetch conversations summary for the current user
  */
 export async function getChatSummary(userId: string): Promise<ChatSummary[]> {
   try {
-    const response = await axios.get<ChatSummary[]>(
-      `${API_BASE_URL}/api/chats/summary`,
-      {
-        params: { userId },
-        withCredentials: true,
-      }
-    );
+    const response = await apiClient.get<ChatSummary[]>('/chats/summary', {
+      params: { userId },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching chat summary:', error);
@@ -30,11 +24,10 @@ export async function getChatHistory(
   limit = 50
 ): Promise<ChatMessage[]> {
   try {
-    const response = await axios.get<{ messages: ChatMessage[] }>(
-      `${API_BASE_URL}/api/chats/history/${friendId}`,
+    const response = await apiClient.get<{ messages: ChatMessage[] }>(
+      `/chats/history/${friendId}`,
       {
         params: { limit },
-        withCredentials: true,
       }
     );
     return response.data.messages || [];
@@ -49,9 +42,7 @@ export async function getChatHistory(
  */
 export async function markChatRead(friendId: string): Promise<void> {
   try {
-    await axios.post(`${API_BASE_URL}/api/chats/read/${friendId}`, undefined, {
-      withCredentials: true,
-    });
+    await apiClient.post(`/chats/read/${friendId}`);
   } catch (error) {
     console.error('Error marking chat as read:', error);
     throw error;
@@ -63,9 +54,7 @@ export async function markChatRead(friendId: string): Promise<void> {
  */
 export async function initConversation(friendId: string): Promise<void> {
   try {
-    await axios.post(`${API_BASE_URL}/api/chats/init/${friendId}`, undefined, {
-      withCredentials: true,
-    });
+    await apiClient.post(`/chats/init/${friendId}`);
   } catch (error) {
     console.error('Error initializing conversation:', error);
     throw error;

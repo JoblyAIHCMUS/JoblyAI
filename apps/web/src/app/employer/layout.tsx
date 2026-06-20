@@ -18,27 +18,23 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
   const { data: user, isLoading, isError } = useUser();
 
   useEffect(() => {
-    // Redirect based on auth state
-    if (!isLoading) {
-      // If error occurred during auth check, redirect to login
-      if (isError) {
-        router.push('/login');
-        return;
-      }
+    if (isLoading) return;
 
-      // If user is authenticated but lacks employer role, redirect to unauthorized
-      if (user && user.role !== 'employer') {
-        router.push('/unauthorized');
-        return;
-      }
+    if (isError) {
+      router.push('/login');
+      return;
+    }
 
-      // If user is null, it could be logout in progress or unauthenticated
-      // Don't redirect here - let middleware handle unauthenticated requests
-      // and let logout mutation handle its own redirect
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (user.role !== 'employer') {
+      router.push('/unauthorized');
     }
   }, [user, isLoading, isError, router]);
 
-  // Show loading state while checking authentication and role
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-white px-4 sm:px-6 md:px-8">
@@ -52,7 +48,6 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     );
   }
 
-  // Show error if authentication check failed
   if (isError) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-white px-4 sm:px-6 md:px-8">
@@ -71,7 +66,6 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     );
   }
 
-  // If user passed authorization checks, render the employer dashboard
   if (user && user.role === 'employer') {
     return (
       <EmployerProfileProvider>
@@ -88,12 +82,5 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     );
   }
 
-  // If user is null, show minimal loading state (logout redirect in progress)
-  if (!user && isLoading === false) {
-    return null;
-  }
-
-  // Fallback (user exists but doesn't have employer role) - redirect handled in effect
-  // or still loading
   return null;
 }

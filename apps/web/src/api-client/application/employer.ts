@@ -18,6 +18,15 @@ export async function listEmployerApplications(
   return response.data;
 }
 
+export async function getEmployerApplicationById(
+  id: number | string
+): Promise<ApplicationRecord> {
+  const response = await apiClient.get<ApplicationRecord>(
+    `/employers/applications/${id}`
+  );
+  return response.data;
+}
+
 export async function shortlistEmployerApplication(
   id: number
 ): Promise<ApplicationRecord> {

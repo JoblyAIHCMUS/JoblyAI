@@ -10,39 +10,36 @@ import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeCon
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
 import {
   hiringStageStyles,
   nextStageMap,
-  HiringStage,
+  type HiringStage,
 } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
-import { useShortlistApplication } from '@/api-hook/application/useShortlistApplication';
-import { useMoveToOfferApplication } from '@/api-hook/application/useMoveToOfferApplication';
-import { useRejectApplication } from '@/api-hook/application/useRejectApplication';
+import {
+  useShortlistApplication,
+  useMoveToOfferApplication,
+  useRejectApplication,
+} from '@/api-hook/application';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
+import { toast } from 'sonner';
+
+const REJECT_FEEDBACK =
+  'Thank you for applying. We have decided to move forward with other candidates at this time.';
 
 export default function ApplicantDetails({
   applicant,
-  hiringStage,
-  setHiringStage,
 }: {
   applicant: ApplicantDetail;
-  hiringStage: HiringStage;
-  setHiringStage: (stage: HiringStage) => void;
 }) {
-  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [confirmDialog, setConfirmDialog] = useState<{
     show: boolean;
     actionType: 'advance' | 'reject' | null;
-    nextStage?: HiringStage;
-  }>({
-    show: false,
-    actionType: null,
-  });
+  }>({ show: false, actionType: null });
 
-  // Callback for profile errors - memoized to prevent dependency changes
+  const hiringStage: HiringStage = applicant.hiringStage;
+
   const handleProfileError = useCallback((error: unknown) => {
     const message =
       error instanceof Error
@@ -51,112 +48,68 @@ export default function ApplicantDetails({
     toast.error(message);
   }, []);
 
-  // Fetch candidate profile
   const {
     fetchCandidateProfile,
     data: candidateProfile,
     loading: profileLoading,
     error: profileError,
-  } = useGetCandidateProfile({
-    onError: handleProfileError,
-  });
+  } = useGetCandidateProfile({ onError: handleProfileError });
 
-  // Fetch profile only when applicantId changes
   useEffect(() => {
     if (applicant.applicantId) {
       fetchCandidateProfile(applicant.applicantId);
     }
   }, [applicant.applicantId, fetchCandidateProfile]);
 
-  const { shortlistApplication } = useShortlistApplication({
-    onSuccess: () => {
-      setHiringStage('Interview');
-      toast.success('Applicant moved to interview stage');
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to move applicant to interview';
-      toast.error(message);
-    },
-  });
+  const { mutateAsync: shortlistMutate, isPending: isShortlisting } =
+    useShortlistApplication();
+  const { mutateAsync: moveToOfferMutate, isPending: isMovingToOffer } =
+    useMoveToOfferApplication();
+  const { mutateAsync: rejectMutate, isPending: isRejecting } =
+    useRejectApplication();
 
-  const { moveToOffer } = useMoveToOfferApplication({
-    onSuccess: () => {
-      setHiringStage('Offer');
-      toast.success('Applicant moved to offer stage');
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : 'Failed to move to offer';
-      toast.error(message);
-    },
-  });
+  const isMutating = isShortlisting || isMovingToOffer || isRejecting;
 
-  const { rejectApplication } = useRejectApplication({
-    onSuccess: () => {
-      setHiringStage('Rejected');
-      toast.success('Applicant rejected');
-    },
-    onError: (error) => {
-      const message =
-        error instanceof Error ? error.message : 'Failed to reject applicant';
-      toast.error(message);
-    },
-  });
-
-  const handleAdvanceStage = useCallback(() => {
-    const nextStage = nextStageMap[hiringStage];
-    setConfirmDialog({
-      show: true,
-      actionType: 'advance',
-      nextStage,
-    });
-  }, [hiringStage]);
-
-  const handleDecline = useCallback(() => {
-    setConfirmDialog({
-      show: true,
-      actionType: 'reject',
-    });
-  }, []);
+  const handleAdvanceStage = () => {
+    setConfirmDialog({ show: true, actionType: 'advance' });
+  };
+  const handleDecline = () => {
+    setConfirmDialog({ show: true, actionType: 'reject' });
+  };
 
   const handleConfirmAction = async () => {
+    const action = confirmDialog.actionType;
+    setConfirmDialog({ show: false, actionType: null });
+    const applicationId = parseInt(applicant.id, 10);
     try {
-      setLoadingId(applicant.id);
-      const applicationId = parseInt(applicant.id);
-
-      if (confirmDialog.actionType === 'advance') {
+      if (action === 'advance') {
         if (hiringStage === 'Applied') {
-          await shortlistApplication(applicationId);
+          await shortlistMutate(applicationId);
         } else if (hiringStage === 'Interview') {
-          await moveToOffer(applicationId);
+          await moveToOfferMutate(applicationId);
         }
-      } else if (confirmDialog.actionType === 'reject') {
-        await rejectApplication(applicationId, {
-          feedback:
-            'Thank you for applying. We have decided to move forward with other candidates at this time.',
+      } else if (action === 'reject') {
+        await rejectMutate({
+          applicationId,
+          payload: { feedback: REJECT_FEEDBACK },
         });
       }
-    } catch (err) {
-      // Error is already handled by hook's onError callback
-      console.error('Failed to perform action:', err);
-    } finally {
-      setLoadingId(null);
-      setConfirmDialog({
-        show: false,
-        actionType: null,
-      });
+    } catch {
+      // toasts handled in the hook
     }
   };
 
   const handleCancelDialog = () => {
-    setConfirmDialog({
-      show: false,
-      actionType: null,
-    });
+    setConfirmDialog({ show: false, actionType: null });
   };
+
+  const canReject = hiringStage !== 'Rejected';
+  const canAdvance =
+    !!nextStageMap[hiringStage] &&
+    hiringStage !== 'Rejected' &&
+    hiringStage !== 'Withdrawn' &&
+    hiringStage !== 'Offer';
+
   return (
     <>
       <Card className="w-full">
@@ -190,7 +143,6 @@ export default function ApplicantDetails({
             </TabsList>
 
             <TabsContent value="profile" className="mt-4 sm:mt-6">
-              {/* Applicant Profile Section */}
               {profileLoading ? (
                 <div className="flex items-center justify-center py-8 sm:py-12">
                   <div className="text-[var(--text-secondary)] text-sm sm:text-base">
@@ -218,7 +170,6 @@ export default function ApplicantDetails({
             </TabsContent>
 
             <TabsContent value="hiring-process" className="mt-4 sm:mt-6">
-              {/* Hiring Stage Control */}
               <div className="mb-4 sm:mb-6">
                 <div className="mb-2 sm:mb-3">
                   <span className="block text-left label-label-1-semi-bold text-gray-700 text-xs sm:text-sm">
@@ -238,9 +189,7 @@ export default function ApplicantDetails({
                       size="sm"
                       className="border-red-500 text-red-600 hover:bg-red-50 text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                       onClick={handleDecline}
-                      disabled={
-                        loadingId === applicant.id || hiringStage === 'Rejected'
-                      }
+                      disabled={isMutating || !canReject}
                     >
                       Reject
                     </Button>
@@ -249,13 +198,7 @@ export default function ApplicantDetails({
                       size="sm"
                       className="text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                       onClick={handleAdvanceStage}
-                      disabled={
-                        loadingId === applicant.id ||
-                        !nextStageMap[hiringStage as HiringStage] ||
-                        hiringStage === 'Rejected' ||
-                        hiringStage === 'Withdrawn' ||
-                        hiringStage === 'Offer'
-                      }
+                      disabled={isMutating || !canAdvance}
                     >
                       Next Stage
                     </Button>
@@ -274,10 +217,10 @@ export default function ApplicantDetails({
         <HiringStageChangeConfirm
           actionType={confirmDialog.actionType as 'advance' | 'reject'}
           currentStage={hiringStage}
-          nextStage={confirmDialog.nextStage}
+          nextStage={nextStageMap[hiringStage]}
           onCancel={handleCancelDialog}
           onConfirm={handleConfirmAction}
-          loading={loadingId === applicant.id}
+          loading={isMutating}
         />
       )}
     </>

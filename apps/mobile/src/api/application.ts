@@ -80,5 +80,9 @@ export async function createApplication(
   payload: CreateApplicationPayload
 ): Promise<any> {
   const response = await apiClient.post('/applications', payload);
+export async function getEmployerApplicationById(
+  id: string | number
+): Promise<unknown> {
+  const response = await apiClient.get(`/employers/applications/${id}`);
   return response.data;
 }
