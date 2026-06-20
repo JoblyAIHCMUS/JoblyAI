@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { useFormattedNumber } from '@/hooks/useFormattedNumber';
 
 export interface FormattedNumberInputProps {
-  value: number | undefined;
+  value: number | null | undefined;
   onChange: (value: number | undefined) => void;
   locale: string;
   placeholder?: string;

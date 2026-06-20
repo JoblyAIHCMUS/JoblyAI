@@ -29,10 +29,10 @@ export function currencySymbol(currency: CurrencyCode): string {
 }
 
 export function formatSalaryNumber(
-  value: number | undefined,
+  value: number | null | undefined,
   locale: string
 ): string {
-  if (value === undefined || Number.isNaN(value)) return '';
+  if (value === undefined || value === null || Number.isNaN(value)) return '';
   if (!locale) return value.toString();
   try {
     return new Intl.NumberFormat(locale, {

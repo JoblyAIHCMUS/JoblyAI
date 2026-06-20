@@ -8,7 +8,7 @@ import {
 const MAX_DIGITS = 15;
 
 export function useFormattedNumber(
-  value: number | undefined,
+  value: number | null | undefined,
   locale: string
 ): {
   display: string;
