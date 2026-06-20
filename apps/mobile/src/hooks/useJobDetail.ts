@@ -52,5 +52,10 @@ export function useJobDetail(jobId: number | null) {
     };
   }, [jobId, fetchJob]);
 
-  return { data, loading, error, refetch: () => jobIdRef.current && fetchJob(jobIdRef.current) };
+  return {
+    data,
+    loading,
+    error,
+    refetch: () => jobIdRef.current && fetchJob(jobIdRef.current),
+  };
 }

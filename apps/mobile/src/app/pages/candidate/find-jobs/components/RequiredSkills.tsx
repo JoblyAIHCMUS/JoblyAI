@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import type { JobRequirement, RequirementImportance } from '../../../../../types/job';
+import type {
+  JobRequirement,
+  RequirementImportance,
+} from '../../../../../types/job';
 
 interface RequiredSkillsProps {
   requirements: JobRequirement[];
@@ -22,7 +25,8 @@ const RequiredSkills: React.FC<RequiredSkillsProps> = ({ requirements }) => {
         Required Skills
       </Text>
       {requirements.map((req, index) => {
-        const config = importanceConfig[req.importance] || importanceConfig.OPTIONAL;
+        const config =
+          importanceConfig[req.importance] || importanceConfig.OPTIONAL;
         return (
           <View
             key={index}

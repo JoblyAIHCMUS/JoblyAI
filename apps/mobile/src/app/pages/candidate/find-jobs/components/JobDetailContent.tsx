@@ -2,7 +2,12 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
 import { COLORS } from '../../../../constants/theme';
-import { parseDescription, formatSalary, formatJobType, formatDate } from '../utils';
+import {
+  parseDescription,
+  formatSalary,
+  formatJobType,
+  formatDate,
+} from '../utils';
 import type { JobPosting } from '../../../../../types/job';
 import RequiredSkills from './RequiredSkills';
 
@@ -12,7 +17,11 @@ interface JobDetailContentProps {
 
 const JobDetailContent: React.FC<JobDetailContentProps> = ({ job }) => {
   const descriptionContent = parseDescription(job.description);
-  const formattedSalary = formatSalary(job.salaryMin, job.salaryMax, job.currency);
+  const formattedSalary = formatSalary(
+    job.salaryMin,
+    job.salaryMax,
+    job.currency
+  );
   const jobTypeLabel = formatJobType(job.type);
 
   const renderSection = (title: string, items: string[]) => {

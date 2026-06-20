@@ -44,7 +44,10 @@ const SimilarJobCard: React.FC<{ job: JobPosting; onPress: () => void }> = ({
           </View>
         )}
         <View className="flex-1">
-          <Text className="text-sm font-semibold text-app-dark-text" numberOfLines={1}>
+          <Text
+            className="text-sm font-semibold text-app-dark-text"
+            numberOfLines={1}
+          >
             {job.title}
           </Text>
           <Text className="text-xs text-app-gray-3" numberOfLines={1}>
@@ -121,9 +124,7 @@ const SimilarJobs: React.FC<SimilarJobsProps> = ({
           <SimilarJobCard
             key={job.id}
             job={job}
-            onPress={() =>
-              router.push(`/pages/candidate/find-jobs/${job.id}`)
-            }
+            onPress={() => router.push(`/pages/candidate/find-jobs/${job.id}`)}
           />
         ))}
       </ScrollView>

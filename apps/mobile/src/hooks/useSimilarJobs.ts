@@ -13,7 +13,9 @@ export function useSimilarJobs(params: SimilarJobsQuery) {
     setLoading(true);
     setError(null);
     try {
-      const response = await getSimilarJobs(query, { signal: controller.signal });
+      const response = await getSimilarJobs(query, {
+        signal: controller.signal,
+      });
       setData(response.jobs || []);
     } catch (err) {
       if (
@@ -23,7 +25,9 @@ export function useSimilarJobs(params: SimilarJobsQuery) {
           err.name === 'AbortError')
       )
         return;
-      setError(err instanceof Error ? err : new Error('Failed to fetch similar jobs'));
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch similar jobs')
+      );
     } finally {
       setLoading(false);
     }

@@ -47,7 +47,9 @@ export default function EditPhoneModal({
       <View className="flex-1 items-center justify-end bg-black/40">
         <View className="w-full max-h-[50%] rounded-t-2xl bg-white p-4">
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-4 text-lg font-semibold">Edit Phone Number</Text>
+            <Text className="mb-4 text-lg font-semibold">
+              Edit Phone Number
+            </Text>
 
             <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
               Phone Number
@@ -66,7 +68,9 @@ export default function EditPhoneModal({
                 disabled={isPending}
                 className="rounded-lg border border-[#d1d5db] px-4 py-2.5"
               >
-                <Text className="text-sm font-medium text-[#374151]">Cancel</Text>
+                <Text className="text-sm font-medium text-[#374151]">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}

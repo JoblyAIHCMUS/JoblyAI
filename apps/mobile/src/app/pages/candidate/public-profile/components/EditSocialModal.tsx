@@ -45,17 +45,24 @@ export default function EditSocialModal({
   socials = [],
   onSaved,
 }: EditSocialModalProps) {
-  const [view, setView] = useState<'list' | 'form'>(initialMode === 'manage' ? 'list' : 'form');
-  const [editingSocial, setEditingSocial] = useState<CandidateSocial | null>(social || null);
+  const [view, setView] = useState<'list' | 'form'>(
+    initialMode === 'manage' ? 'list' : 'form'
+  );
+  const [editingSocial, setEditingSocial] = useState<CandidateSocial | null>(
+    social || null
+  );
 
   const [platform, setPlatform] = useState(social?.platform || 'LINKEDIN');
   const [url, setUrl] = useState(social?.url || '');
   const [username, setUsername] = useState(social?.username || '');
   const [showPlatformPicker, setShowPlatformPicker] = useState(false);
 
-  const { mutateAsync: createSocial, isPending: isCreating } = useCreateSocial();
-  const { mutateAsync: updateSocial, isPending: isUpdating } = useUpdateSocial();
-  const { mutateAsync: deleteSocial, isPending: isDeleting } = useDeleteSocial();
+  const { mutateAsync: createSocial, isPending: isCreating } =
+    useCreateSocial();
+  const { mutateAsync: updateSocial, isPending: isUpdating } =
+    useUpdateSocial();
+  const { mutateAsync: deleteSocial, isPending: isDeleting } =
+    useDeleteSocial();
 
   const isPending = isCreating || isUpdating || isDeleting;
   const selectedPlatform = PLATFORMS.find((p) => p.value === platform);
@@ -91,9 +98,18 @@ export default function EditSocialModal({
 
     try {
       if (isEditing) {
-        await updateSocial({ id: editingSocial!.id, platform, url: url.trim(), username: username.trim() || undefined });
+        await updateSocial({
+          id: editingSocial!.id,
+          platform,
+          url: url.trim(),
+          username: username.trim() || undefined,
+        });
       } else {
-        await createSocial({ platform, url: url.trim(), username: username.trim() || undefined });
+        await createSocial({
+          platform,
+          url: url.trim(),
+          username: username.trim() || undefined,
+        });
       }
       onSaved();
       onClose();
@@ -129,7 +145,9 @@ export default function EditSocialModal({
               <View className="mb-4 flex-row items-center justify-between">
                 <Text className="text-lg font-semibold">Social Links</Text>
                 <TouchableOpacity onPress={openAddForm}>
-                  <Text className="text-sm font-semibold text-[#4f46e5]">+ Add New</Text>
+                  <Text className="text-sm font-semibold text-[#4f46e5]">
+                    + Add New
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -171,7 +189,9 @@ export default function EditSocialModal({
                 onPress={onClose}
                 className="mt-4 items-center rounded-lg border border-[#d1d5db] py-2.5"
               >
-                <Text className="text-sm font-medium text-[#374151]">Close</Text>
+                <Text className="text-sm font-medium text-[#374151]">
+                  Close
+                </Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -182,7 +202,9 @@ export default function EditSocialModal({
                 </Text>
                 {initialMode === 'manage' && (
                   <TouchableOpacity onPress={() => setView('list')}>
-                    <Text className="text-sm font-semibold text-[#4f46e5]">← Back</Text>
+                    <Text className="text-sm font-semibold text-[#4f46e5]">
+                      ← Back
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -208,9 +230,17 @@ export default function EditSocialModal({
                         setPlatform(p.value);
                         setShowPlatformPicker(false);
                       }}
-                      className={`border-b border-[#d1d5db] px-3 py-2.5 ${platform === p.value ? 'bg-[#f3f4ff]' : ''}`}
+                      className={`border-b border-[#d1d5db] px-3 py-2.5 ${
+                        platform === p.value ? 'bg-[#f3f4ff]' : ''
+                      }`}
                     >
-                      <Text className={`text-sm ${platform === p.value ? 'font-semibold text-[#4f46e5]' : 'text-[#374151]'}`}>
+                      <Text
+                        className={`text-sm ${
+                          platform === p.value
+                            ? 'font-semibold text-[#4f46e5]'
+                            : 'text-[#374151]'
+                        }`}
+                      >
                         {p.label}
                       </Text>
                     </TouchableOpacity>
@@ -248,7 +278,9 @@ export default function EditSocialModal({
                     disabled={isPending}
                     className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5"
                   >
-                    <Text className="text-sm font-semibold text-red-600">Delete</Text>
+                    <Text className="text-sm font-semibold text-red-600">
+                      Delete
+                    </Text>
                   </TouchableOpacity>
                 )}
                 <View className="flex-1 flex-row justify-end gap-2">
@@ -257,7 +289,9 @@ export default function EditSocialModal({
                     disabled={isPending}
                     className="rounded-lg border border-[#d1d5db] px-4 py-2.5"
                   >
-                    <Text className="text-sm font-medium text-[#374151]">Cancel</Text>
+                    <Text className="text-sm font-medium text-[#374151]">
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSave}

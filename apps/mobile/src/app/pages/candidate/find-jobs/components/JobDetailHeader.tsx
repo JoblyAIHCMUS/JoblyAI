@@ -31,7 +31,9 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
     try {
       const { Share } = await import('react-native');
       await Share.share({
-        message: `Check out this job: ${job.title} at ${job.company.name || 'Company'}`,
+        message: `Check out this job: ${job.title} at ${
+          job.company.name || 'Company'
+        }`,
       });
     } catch {
       // User cancelled

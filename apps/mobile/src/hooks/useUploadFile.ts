@@ -37,7 +37,10 @@ export function useUploadFile(options?: UseUploadFileOptions) {
   }, []);
 
   const uploadToS3 = useCallback(
-    async (file: File, folder: S3Folder = 'resumes'): Promise<UploadFileResult> => {
+    async (
+      file: File,
+      folder: S3Folder = 'resumes'
+    ): Promise<UploadFileResult> => {
       const validationError = validateFile(file);
       if (validationError) {
         throw new Error(validationError);
