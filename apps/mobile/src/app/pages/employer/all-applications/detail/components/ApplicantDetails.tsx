@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
-import Toast from 'react-native-toast-message';
 
 import { ApplicantDetail, nextStageMap } from '../../data';
 import { HiringStage } from '../../types';
@@ -45,21 +44,16 @@ const TAB_LABELS: Record<TabValue, string> = {
 
 interface ApplicantDetailsProps {
   applicant: ApplicantDetail;
-  hiringStage: HiringStage;
-  onHiringStageChange: (stage: HiringStage) => void;
 }
 
-export function ApplicantDetails({
-  applicant,
-  hiringStage,
-  onHiringStageChange,
-}: ApplicantDetailsProps) {
+export function ApplicantDetails({ applicant }: ApplicantDetailsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>('profile');
   const [confirmState, setConfirmState] = useState<ConfirmState>({
     open: false,
     actionType: null,
   });
-  const [isMutating, setIsMutating] = useState(false);
+
+  const hiringStage: HiringStage = applicant.hiringStage;
 
   const {
     data: profile,
@@ -67,9 +61,14 @@ export function ApplicantDetails({
     error: profileError,
   } = useGetCandidateProfileById(applicant.applicantId);
 
-  const { mutateAsync: shortlistApplication } = useShortlistApplication();
-  const { mutateAsync: rejectApplication } = useRejectApplication();
-  const { mutateAsync: moveToOffer } = useMoveToOfferApplication();
+  const { mutateAsync: shortlistApplication, isPending: isShortlisting } =
+    useShortlistApplication();
+  const { mutateAsync: rejectApplication, isPending: isRejecting } =
+    useRejectApplication();
+  const { mutateAsync: moveToOffer, isPending: isMovingToOffer } =
+    useMoveToOfferApplication();
+
+  const isMutating = isShortlisting || isRejecting || isMovingToOffer;
 
   const closeConfirm = useCallback(() => {
     setConfirmState({ open: false, actionType: null });
@@ -84,57 +83,29 @@ export function ApplicantDetails({
   }, []);
 
   const handleConfirm = useCallback(async () => {
-    if (isMutating) return;
-    setIsMutating(true);
+    const action = confirmState.actionType;
+    setConfirmState({ open: false, actionType: null });
     try {
-      if (confirmState.actionType === 'advance') {
+      if (action === 'advance') {
         if (hiringStage === 'Applied') {
           await shortlistApplication(applicant.id);
         } else if (hiringStage === 'Interview') {
           await moveToOffer(applicant.id);
         }
-        const next = nextStageMap[hiringStage];
-        if (next) onHiringStageChange(next);
-        Toast.show({
-          type: 'success',
-          text1: 'Applicant advanced',
-          text2: next ? `Moved to ${next}.` : undefined,
-        });
-      } else if (confirmState.actionType === 'reject') {
+      } else if (action === 'reject') {
         await rejectApplication({
           applicationId: applicant.id,
           feedback: REJECT_FEEDBACK,
         });
-        onHiringStageChange('Rejected');
-        Toast.show({
-          type: 'success',
-          text1: 'Applicant rejected',
-          text2: 'They have been notified.',
-        });
       }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to update applicant';
-      Toast.show({
-        type: 'error',
-        text1:
-          confirmState.actionType === 'reject'
-            ? 'Reject Failed'
-            : 'Advance Failed',
-        text2: message,
-      });
-    } finally {
-      setIsMutating(false);
-      closeConfirm();
+    } catch {
+      // toasts handled in the hook
     }
   }, [
     applicant.id,
-    closeConfirm,
     confirmState.actionType,
     hiringStage,
-    isMutating,
     moveToOffer,
-    onHiringStageChange,
     rejectApplication,
     shortlistApplication,
   ]);
