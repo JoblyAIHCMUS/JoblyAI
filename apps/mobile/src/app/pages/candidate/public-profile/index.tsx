@@ -28,6 +28,9 @@ import { CV } from './components/CV';
 import { AiFeedbackModal } from './components/AiFeedbackModal';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
+import EditSocialModal from './components/EditSocialModal';
+import EditPhoneModal from './components/EditPhoneModal';
+import { useUpdateProfile } from '../../../../hooks/useUpdateProfile';
 import {
   AiProcessingProvider,
   useAiProcessing,
@@ -46,6 +49,7 @@ import type {
   CandidateExperience,
   CandidateCertificate,
   CandidateProfileResponse,
+  CandidateSocial,
 } from '../../../../types/candidate';
 
 function HeaderIcon({
@@ -215,6 +219,14 @@ function ProfileContent() {
   const [isAddEducationOpen, setIsAddEducationOpen] = useState(false);
   const [isAddCertificateOpen, setIsAddCertificateOpen] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [socialModalMode, setSocialModalMode] = useState<'add' | 'manage'>(
+    'manage'
+  );
+  const [editingSocial, setEditingSocial] = useState<CandidateSocial | null>(
+    null
+  );
+  const [isEditPhoneOpen, setIsEditPhoneOpen] = useState(false);
 
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
@@ -241,13 +253,14 @@ function ProfileContent() {
   } = useGetCandidateProfile();
   const { mutateAsync: uploadResume, isPending: isUploading } =
     useUploadResume();
-  const { mutateAsync: deleteResume, isPending: isDeleting } =
+  const { deleteResumeRecord: deleteResume, loading: isDeleting } =
     useDeleteResume();
   const { mutateAsync: setDefaultResume } = useSetDefaultResume();
   const { mutateAsync: triggerAiParse } = useTriggerAiParse();
   const { mutateAsync: triggerAiScore } = useTriggerAiScore();
   const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
-  const { mutateAsync: createDownloadUrl } = useCreateDownloadUrl();
+  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
+  const { mutateAsync: updateProfile } = useUpdateProfile();
 
   const startAiSyncPolling = useCallback(
     (resumeId: number) => {
@@ -482,6 +495,29 @@ function ProfileContent() {
     }
   };
 
+  const handleToggleOpportunities = async () => {
+    try {
+      await updateProfile({
+        openForOpportunities: !profile?.openForOpportunities,
+      });
+      await refetch();
+      Toast.show({
+        type: 'success',
+        text1: profile?.openForOpportunities
+          ? 'No longer open to opportunities'
+          : 'Now open to opportunities',
+      });
+    } catch {
+      // Error handled by hook
+    }
+  };
+
+  const handleOpenEditSocial = (social?: CandidateSocial) => {
+    setEditingSocial(social || null);
+    setSocialModalMode(social ? 'add' : 'manage');
+    setIsSocialModalOpen(true);
+  };
+
   const renderExperience = (experience: CandidateExperience) => {
     return (
       <View key={experience.id} className="flex-row gap-3 pb-2.5">
@@ -641,7 +677,9 @@ function ProfileContent() {
                       {location}
                     </Text>
                   </View>
-                  <View
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handleToggleOpportunities}
                     className={`mt-2 rounded-sm px-3 py-2 ${
                       profile?.openForOpportunities
                         ? 'bg-[#d1f6ef]'
@@ -662,15 +700,6 @@ function ProfileContent() {
                           : 'NOT OPEN TO NEW OPPORTUNITIES'}
                       </Text>
                     </View>
-                  </View>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    className="mt-2.5 h-9 w-full items-center justify-center rounded-sm border border-[#d7ddfb] bg-white"
-                    onPress={() => void refetch()}
-                  >
-                    <Text className="text-sm font-semibold text-[#5758e7]">
-                      Refresh Profile
-                    </Text>
                   </TouchableOpacity>
                 </View>
               </Card>
@@ -733,7 +762,9 @@ function ProfileContent() {
                   <HeaderIcon onPress={() => setIsAddExperienceOpen(true)}>
                     <SimplePlus />
                   </HeaderIcon>
-                  <SectionAction />
+                  <HeaderIcon onPress={() => setIsAddExperienceOpen(true)}>
+                    <SimpleEdit />
+                  </HeaderIcon>
                 </View>
               }
             />
@@ -774,7 +805,9 @@ function ProfileContent() {
                   <HeaderIcon onPress={() => setIsAddEducationOpen(true)}>
                     <SimplePlus />
                   </HeaderIcon>
-                  <SectionAction />
+                  <HeaderIcon onPress={() => setIsAddEducationOpen(true)}>
+                    <SimpleEdit />
+                  </HeaderIcon>
                 </View>
               }
             />
@@ -897,7 +930,11 @@ function ProfileContent() {
           <View className="mt-5 px-3">
             <SectionHeader
               title="Additional Details"
-              action={<SectionAction />}
+              action={
+                <HeaderIcon onPress={() => setIsEditPhoneOpen(true)}>
+                  <SimpleEdit />
+                </HeaderIcon>
+              }
             />
             <Card className="px-3 py-3">
               <View className="flex-row items-center gap-3 py-2">
@@ -923,31 +960,74 @@ function ProfileContent() {
           </View>
 
           <View className="mt-5 px-3">
-            <SectionHeader title="Social Links" action={<SectionAction />} />
+            <SectionHeader
+              title="Social Links"
+              action={
+                <View className="flex-row items-center gap-2">
+                  <HeaderIcon
+                    onPress={() => {
+                      setSocialModalMode('add');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <SimplePlus />
+                  </HeaderIcon>
+                  <HeaderIcon
+                    onPress={() => {
+                      setSocialModalMode('manage');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <SimpleEdit />
+                  </HeaderIcon>
+                </View>
+              }
+            />
             <Card className="px-3 py-3">
-              <View className="flex-row items-center gap-3 py-2">
-                <InstagramIcon />
-                <View>
-                  <Text className="text-xs font-medium text-[#556070]">
-                    Instagram
-                  </Text>
-                  <Text className="mt-1 text-sm text-[#4e5cf0]">
-                    {instagram?.url || 'Not added'}
-                  </Text>
-                </View>
-              </View>
-              <View className="my-3 h-px bg-[#dfe3f1]" />
-              <View className="flex-row items-center gap-3 py-2">
-                <TwitterIcon />
-                <View>
-                  <Text className="text-xs font-medium text-[#556070]">
-                    Twitter
-                  </Text>
-                  <Text className="mt-1 text-sm text-[#4e5cf0]">
-                    {twitter?.url || 'Not added'}
-                  </Text>
-                </View>
-              </View>
+              {socials.length === 0 ? (
+                <Text className="text-sm text-[#6b7280]">
+                  No social links added yet.
+                </Text>
+              ) : (
+                socials.map((social, index) => (
+                  <TouchableOpacity
+                    key={social.id}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setSocialModalMode('manage');
+                      setEditingSocial(null);
+                      setIsSocialModalOpen(true);
+                    }}
+                  >
+                    <View className="flex-row items-center gap-3 py-2">
+                      {social.platform.toLowerCase().includes('instagram') ? (
+                        <InstagramIcon />
+                      ) : social.platform.toLowerCase().includes('twitter') ? (
+                        <TwitterIcon />
+                      ) : (
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#6b7280]">
+                          <Text className="text-xs font-bold text-white">
+                            {social.platform.slice(0, 2).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View className="flex-1">
+                        <Text className="text-xs font-medium text-[#556070] uppercase">
+                          {social.platform}
+                        </Text>
+                        <Text className="mt-1 text-sm text-[#4e5cf0]">
+                          {social.url.replace(/^https?:\/\//, '')}
+                        </Text>
+                      </View>
+                    </View>
+                    {index < socials.length - 1 && (
+                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
             </Card>
           </View>
         </ScrollView>
@@ -1073,6 +1153,25 @@ function ProfileContent() {
         certificates={certificates}
         contacts={contacts}
         socials={socials}
+      />
+
+      <EditSocialModal
+        visible={isSocialModalOpen}
+        onClose={() => {
+          setIsSocialModalOpen(false);
+          setEditingSocial(null);
+        }}
+        mode={socialModalMode}
+        social={editingSocial}
+        socials={socials}
+        onSaved={() => void refetch()}
+      />
+
+      <EditPhoneModal
+        visible={isEditPhoneOpen}
+        onClose={() => setIsEditPhoneOpen(false)}
+        currentPhone={profile?.phoneNumber || ''}
+        onSaved={() => void refetch()}
       />
     </SafeAreaView>
   );

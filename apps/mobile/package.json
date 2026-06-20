@@ -43,6 +43,8 @@
     "react-native-linear-gradient": "^2.8.3",
     "react-native-reanimated": "4.3.1",
     "react-native-render-html": "^6.3.4",
+    "react-native-blob-util": "^0.24.9",
+    "react-native-pdf": "6.7.7",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-step-indicator": "^1.0.3",
@@ -68,6 +70,8 @@
     }
   },
   "devDependencies": {
+    "@config-plugins/react-native-blob-util": "^14.0.1",
+    "@config-plugins/react-native-pdf": "12.0.0",
     "babel-plugin-module-resolver": "^5.0.3"
   }
 }

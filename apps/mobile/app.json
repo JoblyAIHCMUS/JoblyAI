@@ -23,10 +23,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.jobly.mobile"
     },
-    "web": {
-      "bundler": "metro",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       [
         "expo-splash-screen",
@@ -37,7 +33,9 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-router"
+      "expo-router",
+      "@config-plugins/react-native-blob-util",
+      "@config-plugins/react-native-pdf"
     ]
   }
 }

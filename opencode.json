@@ -3,6 +3,11 @@
   "mcp": {
     "codegraph": {
       "type": "local",
+      "command": ["npx", "-y", "nx", "mcp"],
+      "enabled": true
+    },
+    "codegraph": {
+      "type": "local",
       "enabled": true,
       "command": "codegraph",
       "args": ["serve"]

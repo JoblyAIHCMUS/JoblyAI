@@ -1,19 +1,33 @@
-import { useMutation } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 import { deleteResume } from '../api/candidate';
-import Toast from 'react-native-toast-message';
 
-export function useDeleteResume() {
-  return useMutation<string, Error, { resumeId: number; keepData?: boolean }>({
-    mutationFn: ({ resumeId, keepData }) => deleteResume(resumeId, keepData),
-    onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'CV deleted successfully' });
+interface UseDeleteResumeOptions {
+  onSuccess?: (data: string) => void;
+  onError?: (error: unknown) => void;
+}
+
+export function useDeleteResume(options?: UseDeleteResumeOptions) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  const deleteResumeRecord = useCallback(
+    async (resumeId: number, keepData = false) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await deleteResume(resumeId, keepData);
+        options?.onSuccess?.(result);
+        return result;
+      } catch (err: unknown) {
+        setError(err);
+        options?.onError?.(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
     },
-    onError: (error: any) => {
-      Toast.show({
-        type: 'error',
-        text1: 'Delete failed',
-        text2: error.message,
-      });
-    },
-  });
+    [options]
+  );
+
+  return { deleteResumeRecord, loading, error };
 }

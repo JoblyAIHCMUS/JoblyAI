@@ -58,22 +58,18 @@ export interface CandidateSocial {
 
 export interface CandidateResume {
   id: number;
-  fileKey: string;
+  isDefault: boolean;
   fileName: string;
+  fileKey: string;
+  fileUrl: string;
   fileType: string;
   fileSize: number;
-  parsedText: string | null;
-  aiScore: number | null;
-  aiFeedback: {
-    strengths: string[];
-    weaknesses: string[];
-    suggestions: string[];
-    formatting: string;
-    impact: string;
-  } | null;
-  isSyncedToProfile: boolean;
-  isDefault: boolean;
+  aiScore?: number | null;
+  aiFeedback?: Record<string, unknown> | null;
+  isSyncedToProfile?: boolean | null;
+  parsedText?: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CandidateProfileResponse {

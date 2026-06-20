@@ -291,3 +291,82 @@ export async function getCandidateProfileById(
   );
   return response.data;
 }
+
+export interface CreateResumePayload {
+  fileKey: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  isDefault?: boolean;
+}
+
+export interface UpdateResumePayload {
+  id: number;
+  fileKey?: string;
+  fileName?: string;
+  isDefault?: boolean;
+}
+
+export async function createResume(
+  payload: CreateResumePayload
+): Promise<CandidateResume> {
+  const response = await apiClient.post<CandidateResume>(
+    '/candidate/me/resume',
+    payload
+  );
+  return response.data;
+}
+
+export async function updateResume(
+  payload: UpdateResumePayload
+): Promise<CandidateResume> {
+  const response = await apiClient.patch<CandidateResume>(
+    '/candidate/me/resume',
+    payload
+  );
+  return response.data;
+}
+
+// --- Socials ---
+
+export interface CreateSocialPayload {
+  platform: string;
+  url: string;
+  username?: string;
+}
+
+export interface UpdateSocialPayload {
+  id: number;
+  platform?: string;
+  url?: string;
+  username?: string;
+}
+
+export async function createSocial(payload: CreateSocialPayload): Promise<any> {
+  const response = await apiClient.post('/candidate/me/socials', payload);
+  return response.data;
+}
+
+export async function updateSocial(payload: UpdateSocialPayload): Promise<any> {
+  const response = await apiClient.patch('/candidate/me/socials', payload);
+  return response.data;
+}
+
+export async function deleteSocial(id: number): Promise<any> {
+  const response = await apiClient.delete(`/candidate/me/socials/${id}`);
+  return response.data;
+}
+
+// --- Profile ---
+
+export interface UpdateProfilePayload {
+  phoneNumber?: string;
+  openForOpportunities?: boolean;
+}
+
+export async function updateProfile(
+  payload: UpdateProfilePayload
+): Promise<any> {
+  const response = await apiClient.patch('/candidate/me', payload);
+  return response.data;
+}

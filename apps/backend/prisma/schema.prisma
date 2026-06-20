@@ -25,6 +25,7 @@ model User {
   firstName     String?
   lastName      String?
   phoneNumber   String?
+  openForOpportunities Boolean @default(false)
   dateOfBirth   DateTime?
   gender        Gender?
 

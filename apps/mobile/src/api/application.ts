@@ -71,6 +71,18 @@ export async function moveToOfferApplication(
   return response.data;
 }
 
+export interface CreateApplicationPayload {
+  jobId: number;
+  resumeId: number;
+}
+
+export async function createApplication(
+  payload: CreateApplicationPayload
+): Promise<any> {
+  const response = await apiClient.post('/applications', payload);
+  return response.data;
+}
+
 export async function getEmployerApplicationById(
   id: string | number
 ): Promise<unknown> {
