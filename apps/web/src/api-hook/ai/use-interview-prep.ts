@@ -62,8 +62,7 @@ export const useInterviewPrep = (jobId: number) => {
   };
 
   useEffect(() => {
-    if (!(socket && isConnected && user?.id))
-      return;
+    if (!(socket && isConnected && user?.id)) return;
     const eventName = `INTERVIEW_PREP_READY_${jobId}_${user.id}`;
 
     const handleReady = (questions: any) => {
