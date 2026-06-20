@@ -9,6 +9,7 @@ import { useChatSummary } from '@/hooks/messaging/useChatSummary';
 import { useMarkAsRead } from '@/hooks/messaging/useMarkAsRead';
 import { useMarkAsReadOnFocus } from '@/hooks/messaging/useMarkAsReadOnFocus';
 import { useEnsureSummaryLoaded } from '@/hooks/messaging/useEnsureSummaryLoaded';
+import { useGetCandidateProfile } from '@/api-hook/candidate';
 import { ConversationSidebar } from '@/features/employer/messages/ConversationSidebar';
 import { ChatWindow } from '@/features/employer/messages/ChatWindow';
 import { Conversation } from '@/features/employer/messages/types';
@@ -18,7 +19,10 @@ export default function CandidateMessagesPage() {
   const searchParams = useSearchParams();
   const { setTitle } = usePageTitle();
   const { data: currentUser, isPending: userLoading } = useUser();
+  const { data: candidateProfile } = useGetCandidateProfile();
+
   const userId = currentUser?.id;
+  const currentUserAvatar = candidateProfile?.avatarUrl ?? null;
   const deeplinkRecruiterId = searchParams.get('recruiterId');
   const {
     data: summaries = [],
@@ -111,6 +115,7 @@ export default function CandidateMessagesPage() {
           <ChatWindow
             conversation={selectedConversation}
             currentUserId={userId}
+            currentUserAvatar={currentUserAvatar}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-white">
@@ -141,6 +146,7 @@ export default function CandidateMessagesPage() {
           <ChatWindow
             conversation={selectedConversation}
             currentUserId={userId}
+            currentUserAvatar={currentUserAvatar}
             onBackClick={() => setShowConversationsList(true)}
             isMobileView
           />

@@ -12,6 +12,7 @@ interface Opts {
   chatId: string;
   friendId?: string;
   userId: string;
+  currentUserAvatar?: string | null;
 }
 
 const TEN_SECONDS_MS = 10_000;
@@ -64,6 +65,7 @@ export function useSendMessage(opts: Opts) {
           const optimistic: ChatMessage = {
             messageId: localId,
             senderId: opts.userId,
+            senderAvatar: opts.currentUserAvatar ?? null,
             content: text,
             timestamp: new Date().toISOString(),
           };
