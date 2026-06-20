@@ -111,6 +111,7 @@ export function withDateSeparators(
         hour: '2-digit',
         minute: '2-digit',
       }),
+      failed: msg.failed ?? false,
       showDateSeparator,
       dateLabel: showDateSeparator
         ? getDateLabel(new Date(msg.timestamp))

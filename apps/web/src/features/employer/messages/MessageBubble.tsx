@@ -1,5 +1,6 @@
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Message } from './types';
 
@@ -46,6 +47,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <span className="text-[8px] sm:text-[10px] text-slate-500 font-medium px-1">
             {message.timestamp24}
           </span>
+          {message.failed && (
+            <span className="flex items-center gap-1 text-[8px] sm:text-[10px] text-red-500 font-medium px-1">
+              <AlertCircle className="h-3 w-3" aria-hidden="true" />
+              <span>Couldn't send</span>
+            </span>
+          )}
         </div>
 
         {message.isSent && (
