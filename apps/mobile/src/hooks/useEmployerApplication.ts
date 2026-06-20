@@ -1,7 +1,14 @@
-import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { getEmployerApplicationById } from '../api/application';
 import { HiringStage } from '../app/pages/employer/all-applications/types';
-import { ApplicantDetail, mapStatusToHiringStage } from '../app/pages/employer/all-applications/data';
+import {
+  ApplicantDetail,
+  mapStatusToHiringStage,
+} from '../app/pages/employer/all-applications/data';
 import { ApplicationStatus } from '../types/application';
 
 const SINGLE_KEY = (id: string | number) =>
@@ -14,7 +21,11 @@ type RawApplication = {
   status: ApplicationStatus;
   createdAt: string;
   jobId: number;
-  job?: { title?: string; type?: string; category?: ApplicantDetail['jobCategory'] };
+  job?: {
+    title?: string;
+    type?: string;
+    category?: ApplicantDetail['jobCategory'];
+  };
   resume?: { fileKey?: string };
   matchPercentage?: number | null;
   candidate?: { name?: string | null; email?: string; phone?: string };
@@ -32,7 +43,9 @@ function toApplicantDetail(raw: RawApplication): ApplicantDetail {
     id: String(raw.id),
     applicantId: candidateId,
     name: candidateName,
-    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(candidateId)}`,
+    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+      candidateId
+    )}`,
     email: raw.candidate?.email || '',
     phone: raw.candidate?.phone || '',
     title: appliedRole,
@@ -40,7 +53,11 @@ function toApplicantDetail(raw: RawApplication): ApplicantDetail {
     appliedRole,
     jobCategory:
       raw.job?.category ??
-      ({ id: 0, name: 'General', slug: 'general' } as ApplicantDetail['jobCategory']),
+      ({
+        id: 0,
+        name: 'General',
+        slug: 'general',
+      } as ApplicantDetail['jobCategory']),
     employmentType:
       (raw.job?.type as ApplicantDetail['employmentType']) ?? 'FULL_TIME',
     appliedDate: raw.createdAt.split('T')[0],
@@ -54,7 +71,9 @@ function readFromListCache(
   queryClient: QueryClient,
   id: string | number
 ): ApplicantDetail | null {
-  const queries = queryClient.getQueriesData<{ pages: { applications: RawApplication[] }[] }>({
+  const queries = queryClient.getQueriesData<{
+    pages: { applications: RawApplication[] }[];
+  }>({
     queryKey: LIST_KEY,
   });
   for (const [, cached] of queries) {

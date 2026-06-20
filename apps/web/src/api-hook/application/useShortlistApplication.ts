@@ -60,7 +60,9 @@ export function useShortlistApplication() {
         }
       }
       const message =
-        err instanceof Error ? err.message : 'Failed to move applicant to interview';
+        err instanceof Error
+          ? err.message
+          : 'Failed to move applicant to interview';
       toast.error(message);
     },
 

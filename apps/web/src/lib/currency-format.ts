@@ -1,4 +1,11 @@
-export type CurrencyCode = 'none' | 'usd' | 'eur' | 'gbp' | 'vnd' | 'jpy' | 'cny';
+export type CurrencyCode =
+  | 'none'
+  | 'usd'
+  | 'eur'
+  | 'gbp'
+  | 'vnd'
+  | 'jpy'
+  | 'cny';
 
 const LOCALE_MAP: Record<CurrencyCode, string> = {
   none: '',

@@ -419,10 +419,7 @@ export default function EmployerNewJobPage() {
               </div>
               <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                  <Select
-                    value={currency}
-                    onValueChange={handleCurrencyChange}
-                  >
+                  <Select value={currency} onValueChange={handleCurrencyChange}>
                     <SelectTrigger className="h-10 sm:h-12 w-full sm:w-[100px] text-xs sm:text-sm">
                       <SelectValue placeholder="Currency" />
                     </SelectTrigger>

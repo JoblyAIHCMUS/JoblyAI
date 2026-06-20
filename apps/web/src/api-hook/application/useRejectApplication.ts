@@ -53,7 +53,10 @@ export function useRejectApplication() {
 
     onError: (err, vars, ctx) => {
       if (ctx?.previousSingle) {
-        queryClient.setQueryData(SINGLE_KEY(vars.applicationId), ctx.previousSingle);
+        queryClient.setQueryData(
+          SINGLE_KEY(vars.applicationId),
+          ctx.previousSingle
+        );
       }
       if (ctx?.previousLists) {
         for (const [key, value] of ctx.previousLists) {
@@ -66,7 +69,9 @@ export function useRejectApplication() {
     },
 
     onSettled: (_data, _err, vars) => {
-      void queryClient.invalidateQueries({ queryKey: SINGLE_KEY(vars.applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: SINGLE_KEY(vars.applicationId),
+      });
       void queryClient.invalidateQueries({ queryKey: LIST_KEY });
     },
   });

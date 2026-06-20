@@ -10,7 +10,10 @@ import {
   rejectApplication,
   moveToOfferApplication,
 } from '../api/application';
-import { EmployerApplicationsQuery, PaginatedApplicationsResponse } from '../types/application';
+import {
+  EmployerApplicationsQuery,
+  PaginatedApplicationsResponse,
+} from '../types/application';
 import Toast from 'react-native-toast-message';
 
 const LIST_KEY = ['employer-applications'] as const;
@@ -100,7 +103,10 @@ export function useShortlistApplication() {
       return { previousSingle, previousLists };
     },
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'Applicant moved to interview stage' });
+      Toast.show({
+        type: 'success',
+        text1: 'Applicant moved to interview stage',
+      });
     },
     onError: (err, applicationId, ctx) => {
       rollback(queryClient, applicationId, ctx);
@@ -111,7 +117,9 @@ export function useShortlistApplication() {
       });
     },
     onSettled: (_data, _err, applicationId) => {
-      void queryClient.invalidateQueries({ queryKey: singleKey(applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: singleKey(applicationId),
+      });
       void queryClient.invalidateQueries({ queryKey: LIST_KEY });
     },
   });
@@ -153,7 +161,9 @@ export function useRejectApplication() {
       });
     },
     onSettled: (_data, _err, { applicationId }) => {
-      void queryClient.invalidateQueries({ queryKey: singleKey(applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: singleKey(applicationId),
+      });
       void queryClient.invalidateQueries({ queryKey: LIST_KEY });
     },
   });
@@ -189,7 +199,9 @@ export function useMoveToOfferApplication() {
       });
     },
     onSettled: (_data, _err, applicationId) => {
-      void queryClient.invalidateQueries({ queryKey: singleKey(applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: singleKey(applicationId),
+      });
       void queryClient.invalidateQueries({ queryKey: LIST_KEY });
     },
   });

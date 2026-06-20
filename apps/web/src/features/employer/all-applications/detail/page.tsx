@@ -11,8 +11,13 @@ function ApplicantDetailPageContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const { data: applicant, isLoading, isError, error, refetch } =
-    useEmployerApplication(id);
+  const {
+    data: applicant,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useEmployerApplication(id);
 
   if (isLoading) {
     return (

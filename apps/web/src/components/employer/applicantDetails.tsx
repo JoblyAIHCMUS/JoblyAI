@@ -116,16 +116,28 @@ export default function ApplicantDetails({
         <CardContent className="pt-4 sm:pt-5 md:pt-6 px-3 sm:px-4 md:px-6 pb-4 sm:pb-5 md:pb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="inline-flex flex-wrap justify-start gap-1 sm:gap-2 bg-transparent p-0 h-auto mb-4 sm:mb-6 overflow-x-auto">
-              <TabsTrigger value="profile" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <TabsTrigger
+                value="profile"
+                className="text-xs sm:text-sm py-2 px-2 sm:px-3"
+              >
                 Profile
               </TabsTrigger>
-              <TabsTrigger value="resume" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <TabsTrigger
+                value="resume"
+                className="text-xs sm:text-sm py-2 px-2 sm:px-3"
+              >
                 Resume
               </TabsTrigger>
-              <TabsTrigger value="cover-letter" className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap">
+              <TabsTrigger
+                value="cover-letter"
+                className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+              >
                 Cover Letter
               </TabsTrigger>
-              <TabsTrigger value="hiring-process" className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap">
+              <TabsTrigger
+                value="hiring-process"
+                className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
+              >
                 Hiring Process
               </TabsTrigger>
             </TabsList>

@@ -30,10 +30,7 @@ const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
   cny: '¥',
 };
 
-function formatSalaryNumber(
-  value: number | undefined,
-  locale: string
-): string {
+function formatSalaryNumber(value: number | undefined, locale: string): string {
   if (value === undefined || Number.isNaN(value)) return '';
   if (!locale) return value.toString();
   try {
@@ -164,9 +161,7 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
                 </View>
               </View>
               {errors.salaryMin && (
-                <Text className="text-xs text-red-600">
-                  {errors.salaryMin}
-                </Text>
+                <Text className="text-xs text-red-600">{errors.salaryMin}</Text>
               )}
             </View>
 
@@ -198,9 +193,7 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
                 </View>
               </View>
               {errors.salaryMax && (
-                <Text className="text-xs text-red-600">
-                  {errors.salaryMax}
-                </Text>
+                <Text className="text-xs text-red-600">{errors.salaryMax}</Text>
               )}
             </View>
           </View>

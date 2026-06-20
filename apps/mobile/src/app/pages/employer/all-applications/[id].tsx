@@ -21,8 +21,13 @@ export default function AllApplicationsDetailPage() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: applicant, isLoading, isError, error, refetch } =
-    useEmployerApplication(id);
+  const {
+    data: applicant,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useEmployerApplication(id);
 
   if (isLoading && !applicant) {
     return (
@@ -40,7 +45,8 @@ export default function AllApplicationsDetailPage() {
   }
 
   if (isError && !applicant) {
-    const message = error instanceof Error ? error.message : 'Application not found';
+    const message =
+      error instanceof Error ? error.message : 'Application not found';
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -70,7 +76,9 @@ export default function AllApplicationsDetailPage() {
               className="self-start mt-3 px-3 py-1.5 rounded-md border border-app-red-1"
               activeOpacity={0.7}
             >
-              <Text className="text-sm font-semibold text-app-red-1">Retry</Text>
+              <Text className="text-sm font-semibold text-app-red-1">
+                Retry
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -113,8 +121,14 @@ export default function AllApplicationsDetailPage() {
           config={{
             error: ({ text1, text2 }) => (
               <View className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 m-4">
-                {text1 ? <Text className="text-sm font-semibold text-red-800">{text1}</Text> : null}
-                {text2 ? <Text className="text-xs text-red-700 mt-0.5">{text2}</Text> : null}
+                {text1 ? (
+                  <Text className="text-sm font-semibold text-red-800">
+                    {text1}
+                  </Text>
+                ) : null}
+                {text2 ? (
+                  <Text className="text-xs text-red-700 mt-0.5">{text2}</Text>
+                ) : null}
               </View>
             ),
           }}
