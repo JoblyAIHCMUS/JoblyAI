@@ -25,6 +25,7 @@ import {
 } from '../../../../hooks/useEmployerJobApplications';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useMessageCandidate } from '../../../../hooks/messaging/useMessageCandidate';
+import { prefetchEmployerApplication } from '../../../../hooks/prefetchEmployerApplication';
 
 import { AllApplication, HiringStage } from './types';
 import { mapApiResponseToApplications, nextStageMap } from './data';
@@ -253,9 +254,16 @@ export default function AllApplicationsPage() {
       <FlatList
         data={applications}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <AllApplicationsListItem application={item} onMenuPress={openMenu} />
-        )}
+        renderItem={({ item }) => {
+          const prefetch = prefetchEmployerApplication(item.id);
+          return (
+            <AllApplicationsListItem
+              application={item}
+              onMenuPress={openMenu}
+              onPressIn={prefetch}
+            />
+          );
+        }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
