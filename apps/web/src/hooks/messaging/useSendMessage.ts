@@ -5,7 +5,6 @@ import {
   useQueryClient,
   type InfiniteData,
 } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { emitSendMessage } from '@/hooks/useMessagesSocket';
 import type { ChatMessage, SendMessageAck } from '@/api-client/messages/types';
 
@@ -102,7 +101,9 @@ export function useSendMessage(opts: Opts) {
             if (!old || !old.pages[0]) return old;
             return {
               pages: [
-                old.pages[0].filter((m) => m.messageId !== localId),
+                old.pages[0].map((m) =>
+                  m.messageId === localId ? { ...m, failed: true } : m
+                ),
                 ...old.pages.slice(1),
               ],
               pageParams: old.pageParams,
@@ -111,9 +112,6 @@ export function useSendMessage(opts: Opts) {
         );
         localIdRef.current = null;
       }
-      // Preserved smell — matches mobile. The toast's onPress is a no-op stub.
-      // Out of scope for this PR to fix.
-      toast.error("Couldn't send — Tap to retry");
     },
   });
 }

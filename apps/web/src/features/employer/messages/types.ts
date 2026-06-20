@@ -20,6 +20,8 @@ export interface Message {
   content: string;
   timestamp: string | Date;
   timestamp24: string;
+  // True for messages that failed to send (set by useSendMessage onError).
+  failed?: boolean;
   showDateSeparator?: boolean;
   dateLabel?: string;
 }

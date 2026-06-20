@@ -17,6 +17,9 @@ export interface ChatMessage {
   senderName?: string | null;
   content: string;
   timestamp: string | Date;
+  // UI-only optimistic state; never set by the server. Set to true by
+  // useSendMessage.onError to flag an unsent optimistic message.
+  failed?: boolean;
 }
 
 // Widened to match what the backend emits on the 'new_message' WS event.
