@@ -953,4 +953,38 @@ describe('ApplicationsService', () => {
       expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
   });
+
+  describe('getApplicationByIdForEmployer', () => {
+    it('should return application details for the owning employer', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      const result = await service.getApplicationByIdForEmployer(
+        'employer-123',
+        1
+      );
+
+      expect(result.id).toBe(1);
+      expect(result.status).toBe('APPLIED');
+      expect(result.job.title).toBe('Software Engineer');
+    });
+
+    it('should throw NotFoundException if application does not exist', async () => {
+      mockPrisma.application.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getApplicationByIdForEmployer('employer-123', 999)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if job is owned by another employer', async () => {
+      const mockApp = createMockApplication();
+      mockApp.job.postedById = 'another-employer';
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+
+      await expect(
+        service.getApplicationByIdForEmployer('employer-123', 1)
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
 });

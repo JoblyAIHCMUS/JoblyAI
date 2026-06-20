@@ -35,6 +35,18 @@ export class EmployersApplicationsController {
     );
   }
 
+  @Get(':id')
+  async getApplicationById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const employerId = request.user.id;
+    return this.applicationsService.getApplicationByIdForEmployer(
+      employerId,
+      id
+    );
+  }
+
   @Patch(':id/shortlist')
   async shortlistApplication(
     @Param('id', ParseIntPipe) id: number,

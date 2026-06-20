@@ -34,18 +34,21 @@ export default function EmployerDashboardPage() {
   const firstName = employerProfile?.fullName?.split(' ')[0] ?? '';
 
   // State for dynamic data
-  const [candidateCount, setCandidateCount] = useState(0);
   const [weekData, setWeekData] = useState<StatsDataSet | null>(null);
   const [monthData, setMonthData] = useState<StatsDataSet | null>(null);
   const [yearData, setYearData] = useState<StatsDataSet | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [errorStats, setErrorStats] = useState<string | null>(null);
-  const [loadingCounts, setLoadingCounts] = useState(true);
-  const [errorCounts, setErrorCounts] = useState<string | null>(null);
 
   // Hooks for data fetching
-  const { fetchApplications } = useListEmployerApplications({
-    initialPageSize: 10,
+  const {
+    data,
+    isLoading: isApplicationsLoading,
+    error: applicationsError,
+    refetch: refetchApplications,
+  } = useListEmployerApplications({
+    pageSize: 10,
+    status: 'APPLIED',
   });
   // Read from the same React Query cache the messages pages use. The messages
   // sidebar dot and the messages page are all driven by ['chat-summary', userId],
@@ -62,31 +65,17 @@ export default function EmployerDashboardPage() {
   const { fetchAnalytics: fetchViewsAnalytics } = useJobViewsAnalytics();
   const { fetchAnalytics: fetchAppsAnalytics } = useJobApplicationsAnalytics();
 
+  // Derived: candidate count comes from the first page of the applications
+  // query (the query only needs the `total` field, so we discard the rest).
+  const candidateCount = data?.pages[0]?.total ?? 0;
+  // Preserve the original "shared loading/error" semantics: both cards in the
+  // UI read from the same loading/error state, which used to be driven by
+  // the applications fetch. Keep that pattern verbatim.
+  const loadingCounts = isApplicationsLoading;
+  const errorCounts = applicationsError ? 'Failed to load counts' : null;
+
   // Polling intervals ref
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  /**
-   * Fetch the candidates-to-review count. Message count is now derived from
-   * the React Query cache above (shared with the messages pages) and is
-   * auto-polled by refetchInterval.
-   */
-  const fetchCounts = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      setErrorCounts(null);
-      const appsResult = await fetchApplications({
-        status: 'APPLIED',
-        pageSize: 1,
-      });
-      setCandidateCount(appsResult.total || 0);
-    } catch (err) {
-      console.error('Failed to fetch counts:', err);
-      setErrorCounts('Failed to load counts');
-    } finally {
-      setLoadingCounts(false);
-    }
-  }, [user?.id, fetchApplications]);
 
   /**
    * Fetch and aggregate analytics data for all three time modes in parallel
@@ -138,14 +127,15 @@ export default function EmployerDashboardPage() {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Initial fetch for all data
-    fetchCounts();
+    // Initial fetch for analytics (the applications count is fetched
+    // automatically by useListEmployerApplications; the message count is
+    // auto-polled by refetchInterval above).
     fetchAnalyticsData();
 
     // Poll the candidate count every 30s (the message count is auto-polled
     // by the React Query refetchInterval above).
     pollIntervalRef.current = setInterval(() => {
-      fetchCounts();
+      refetchApplications();
     }, 30 * 1000);
 
     return () => {
@@ -153,7 +143,7 @@ export default function EmployerDashboardPage() {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [user?.id, fetchCounts, fetchAnalyticsData]);
+  }, [user?.id, fetchAnalyticsData, refetchApplications]);
 
   return (
     <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">

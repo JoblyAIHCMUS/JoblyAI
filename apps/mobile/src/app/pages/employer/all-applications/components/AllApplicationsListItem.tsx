@@ -13,6 +13,7 @@ interface AllApplicationsListItemProps {
     application: AllApplication,
     triggerPosition: { x: number; y: number; width: number; height: number }
   ) => void;
+  onPressIn?: () => void;
 }
 
 function ScorePill({ score }: { score: number | null }) {
@@ -58,7 +59,7 @@ function StatusPill({
 
 export const AllApplicationsListItem: React.FC<
   AllApplicationsListItemProps
-> = ({ application, onMenuPress }) => {
+> = ({ application, onMenuPress, onPressIn }) => {
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const isSvg =
     application.image?.includes('.svg') || application.image?.includes('/svg');
@@ -88,7 +89,11 @@ export const AllApplicationsListItem: React.FC<
   };
 
   return (
-    <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPressIn={onPressIn}
+      className="flex-row items-center justify-between py-4 border-b border-app-border-light"
+    >
       <View className="flex-row items-center flex-1 mr-3">
         {isSvg ? (
           <View className="w-14 h-14 rounded-full mr-4 bg-app-gray-1 overflow-hidden">
@@ -129,6 +134,6 @@ export const AllApplicationsListItem: React.FC<
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

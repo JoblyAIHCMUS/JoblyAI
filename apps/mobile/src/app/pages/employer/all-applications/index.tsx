@@ -25,6 +25,7 @@ import {
 } from '../../../../hooks/useEmployerJobApplications';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useMessageCandidate } from '../../../../hooks/messaging/useMessageCandidate';
+import { usePrefetchEmployerApplication } from '../../../../hooks/usePrefetchEmployerApplication';
 
 import { AllApplication, HiringStage } from './types';
 import { mapApiResponseToApplications, nextStageMap } from './data';
@@ -37,6 +38,28 @@ type ConfirmState = {
   actionType: 'advance' | 'reject' | null;
   application: AllApplication | null;
 };
+
+type OpenMenu = (
+  application: AllApplication,
+  triggerPosition: { x: number; y: number; width: number; height: number }
+) => void;
+
+function PrefetchableListItem({
+  application,
+  onMenuPress,
+}: {
+  application: AllApplication;
+  onMenuPress: OpenMenu;
+}) {
+  const prefetch = usePrefetchEmployerApplication(application.id);
+  return (
+    <AllApplicationsListItem
+      application={application}
+      onMenuPress={onMenuPress}
+      onPressIn={prefetch}
+    />
+  );
+}
 
 export default function AllApplicationsPage() {
   const router = useRouter();
@@ -254,7 +277,7 @@ export default function AllApplicationsPage() {
         data={applications}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <AllApplicationsListItem application={item} onMenuPress={openMenu} />
+          <PrefetchableListItem application={item} onMenuPress={openMenu} />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
