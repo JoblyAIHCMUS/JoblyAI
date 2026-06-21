@@ -16,7 +16,7 @@ import {
 
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
-import { useUploadFile } from '@/api-hook/s3/useUploadFile';
+import { useUploadFile } from '@/api-hook/gcs/useUploadFile';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';

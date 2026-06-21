@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import { AiGateway } from '../ai.gateway';
 import { ResumeParserService } from '../resume-parser.service';
 import { ProfileSyncService } from '../profile-sync.service';
-import { S3Service } from '../../s3/s3.service';
+import { GcsService } from '../../gcs/gcs.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -18,7 +18,7 @@ export class ResumeProcessor extends WorkerHost {
     private readonly aiGateway: AiGateway,
     private readonly parserService: ResumeParserService,
     private readonly profileSyncService: ProfileSyncService,
-    private readonly s3Service: S3Service,
+    private readonly gcsService: GcsService,
     private readonly notificationsService: NotificationsService,
     @InjectPrisma() private readonly prisma: PrismaClient
   ) {
@@ -39,8 +39,8 @@ export class ResumeProcessor extends WorkerHost {
         throw new Error(`Resume ${resumeId} not found or missing fileKey`);
       }
 
-      // 2. Download file from S3
-      const buffer = await this.s3Service.getFileBuffer(resume.fileKey);
+      // 2. Download file from GCS
+      const buffer = await this.gcsService.getFileBuffer(resume.fileKey);
 
       // 3. Extract text
       const text = await this.parserService.extractTextFromPdf(buffer);

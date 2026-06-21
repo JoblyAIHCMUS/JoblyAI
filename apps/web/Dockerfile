@@ -8,10 +8,10 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # CRITICAL FOR NEXT.JS ON ALPINE
 RUN apk add --no-cache libc6-compat 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.33.0
 
 # Copy workspace manifests for dependency resolution
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.json .npmrc ./
 COPY eslint.config.mjs .prettierrc .prettierignore ./
 
 # Copy ALL package.json files for workspace discovery BEFORE install

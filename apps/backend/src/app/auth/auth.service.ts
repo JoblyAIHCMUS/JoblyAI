@@ -11,7 +11,7 @@ export class AuthService {
   async getSession(
     reqHeaders: Headers | Record<string, string | string[]>
   ): Promise<SessionPayload | null> {
-    console.log('[DEBUG] Fetching session with headers:', reqHeaders);
+    // console.log('[DEBUG] Fetching session with headers:', reqHeaders);
     const session = (await auth.api.getSession({
       headers: reqHeaders,
     })) as SessionPayload | null;

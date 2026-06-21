@@ -19,7 +19,7 @@ import {
   BriefcaseBusiness,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCreateDownloadUrl } from '@/api-hook/s3';
+import { useCreateDownloadUrl } from '@/api-hook/gcs';
 import type { CandidateResume } from '@/types/candidate';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';

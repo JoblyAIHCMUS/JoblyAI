@@ -17,7 +17,7 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
-import { S3Service } from '../s3/s3.service';
+import { GcsService } from '../gcs/gcs.service';
 import { CandidateQueryResponseDto } from './dto/candidate.dto';
 import { UpdateCertificateDto } from './dto/certificate.dto';
 import { UpdateAvatarDto } from './dto/avatar.dto';
@@ -30,7 +30,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 export class CandidatesService {
   constructor(
     @InjectPrisma() private readonly prismaClient: PrismaClient,
-    private readonly s3Service: S3Service,
+    private readonly gcsService: GcsService,
     private readonly eventEmitter: EventEmitter2
   ) {}
 
@@ -251,7 +251,7 @@ export class CandidatesService {
             fileSize: resume.fileSize ?? undefined,
             fileUrl: resume.fileKey
               ? (
-                  await this.s3Service.generatePresignedDownloadUrl(
+                  await this.gcsService.generatePresignedDownloadUrl(
                     resume.fileKey
                   )
                 ).downloadUrl
@@ -668,11 +668,11 @@ export class CandidatesService {
       try {
         const fileKeyToDelete = String(resume.fileKey).trim();
         if (fileKeyToDelete) {
-          await this.s3Service.deleteFile(fileKeyToDelete);
+          await this.gcsService.deleteFile(fileKeyToDelete);
         }
       } catch (error) {
         console.error(
-          `Failed to delete S3 file, continuing with DB deletion:`,
+          `Failed to delete GCS file, continuing with DB deletion:`,
           error
         );
       }
@@ -1220,7 +1220,7 @@ export class CandidatesService {
         const oldFileKey = urlParts.slice(-2).join('/'); // Get last 2 parts: "avatars/uuid.jpg"
 
         if (oldFileKey && oldFileKey.startsWith('avatars/')) {
-          await this.s3Service.deleteFile(`assets/${oldFileKey}`);
+          await this.gcsService.deleteFile(`assets/${oldFileKey}`);
         }
       } catch (error) {
         // Log the error but don't fail the operation

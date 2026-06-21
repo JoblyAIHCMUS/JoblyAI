@@ -19,7 +19,7 @@ export function Logo({ size = 'md', className = '' }: LogoProps) {
       className={`flex-shrink-0 rounded-full overflow-hidden ${sizeConfig.className} ${className}`}
     >
       <Image
-        src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/jobly-logo-v1.svg"
+        src="https://storage.googleapis.com/joblyai-public/assets/public/jobly-logo-v1.svg"
         alt="JoblyAI Logo"
         width={sizeConfig.width}
         height={sizeConfig.height}

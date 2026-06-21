@@ -20,9 +20,26 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly authService: AuthService) {}
 
   async handleConnection(client: Socket) {
-    const headers = client.handshake.headers as
-      | Headers
-      | Record<string, string | string[]>;
+    const rawHeaders = client.handshake.headers;
+    const headers: Record<string, string> = {};
+
+    const cookieHeader = rawHeaders['cookie'];
+    if (typeof cookieHeader === 'string' && cookieHeader.length > 0) {
+      headers.cookie = cookieHeader;
+    }
+
+    const authHeader = rawHeaders['authorization'];
+    if (typeof authHeader === 'string' && authHeader.length > 0) {
+      headers.authorization = authHeader;
+    }
+
+    // React Native compatibility
+    const authCookie = (
+      client.handshake.auth as { cookie?: string } | undefined
+    )?.cookie;
+    if (authCookie && !headers.cookie) {
+      headers.cookie = authCookie;
+    }
 
     const session = await this.authService.validateToken(headers);
 

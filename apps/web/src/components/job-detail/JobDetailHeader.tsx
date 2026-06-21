@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Share2, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
@@ -51,6 +51,7 @@ export default function JobDetailHeader({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: user } = useUser();
   const isApplied = Boolean(hasApplied);
   const userRole = user?.role ?? null;
@@ -61,6 +62,56 @@ export default function JobDetailHeader({
     : isApplied
     ? 'Applied'
     : 'Apply';
+
+  useEffect(() => {
+    console.log('[JobDetailHeader] useEffect mounted/updated', {
+      jobId,
+      openPrepParam: searchParams.get('openPrep'),
+      isApplied,
+    });
+
+    // 1. Listen for the window event (instant trigger if already on page)
+    const handleOpenModal = (event: any) => {
+      console.log(
+        '[JobDetailHeader] Received OPEN_INTERVIEW_PREP_MODAL event',
+        event.detail
+      );
+      if (event.detail && Number(event.detail.jobId) === Number(jobId)) {
+        console.log('[JobDetailHeader] Job IDs match, opening modal');
+        setIsPrepModalOpen(true);
+      }
+    };
+    window.addEventListener('OPEN_INTERVIEW_PREP_MODAL', handleOpenModal);
+
+    // 2. Check query param (trigger on mount/redirect)
+    if (searchParams.get('openPrep') === 'true') {
+      console.log(
+        '[JobDetailHeader] openPrep is true in URL. isApplied:',
+        isApplied
+      );
+      if (isApplied) {
+        console.log(
+          '[JobDetailHeader] isApplied is true, opening modal and cleaning URL'
+        );
+        setIsPrepModalOpen(true);
+        // Clean up URL to avoid re-opening on refresh
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.delete('openPrep');
+        const newUrl =
+          window.location.pathname +
+          (newParams.toString() ? `?${newParams.toString()}` : '');
+        window.history.replaceState(null, '', newUrl);
+      } else {
+        console.log(
+          '[JobDetailHeader] Waiting for isApplied to become true...'
+        );
+      }
+    }
+
+    return () => {
+      window.removeEventListener('OPEN_INTERVIEW_PREP_MODAL', handleOpenModal);
+    };
+  }, [jobId, searchParams, isApplied]);
 
   const handleApply = () => {
     if (isApplied) return;
@@ -81,7 +132,7 @@ export default function JobDetailHeader({
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute right-0 top-0 hidden h-[436px] w-[520px] overflow-hidden lg:block opacity-60">
           <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
+            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
             alt=""
             width={834}
             height={436}
@@ -90,7 +141,7 @@ export default function JobDetailHeader({
         </div>
         <div className="absolute left-0 top-14 hidden h-[436px] w-[244px] overflow-hidden lg:block opacity-60">
           <Image
-            src="https://jobly-dev-assets.s3.ap-southeast-1.amazonaws.com/assets/public/landing/Pattern.svg"
+            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
             alt=""
             width={834}
             height={436}

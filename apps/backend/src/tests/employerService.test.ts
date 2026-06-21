@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { EmployerService } from '../app/employer/employer.service';
-import { S3Service } from '../app/s3/s3.service';
+import { GcsService } from '../app/gcs/gcs.service';
 
 const mockPrisma = vi.hoisted(() => ({
   user: {
@@ -18,7 +18,7 @@ const mockPrisma = vi.hoisted(() => ({
   },
 }));
 
-const mockS3Service = vi.hoisted(() => ({
+const mockGcsService = vi.hoisted(() => ({
   deleteFile: vi.fn(),
 }));
 
@@ -34,8 +34,8 @@ describe('EmployerService', () => {
           useValue: mockPrisma,
         },
         {
-          provide: S3Service,
-          useValue: mockS3Service,
+          provide: GcsService,
+          useValue: mockGcsService,
         },
       ],
     }).compile();

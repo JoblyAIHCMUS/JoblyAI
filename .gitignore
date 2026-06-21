@@ -157,3 +157,5 @@ cache/
 .nx/polygraph
 .claude/worktrees
 .claude/settings.local.json
+
+/apps/backend/gcs-key.json
