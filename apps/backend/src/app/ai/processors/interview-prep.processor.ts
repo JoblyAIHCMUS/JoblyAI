@@ -83,11 +83,10 @@ export class InterviewPrepProcessor extends WorkerHost {
         data: { status: 'COMPLETED', questions: response },
       });
 
-      this.aiGateway.notifyUser(
-        candidateId,
-        `INTERVIEW_PREP_READY_${jobId}`,
-        response
-      );
+      this.aiGateway.notifyUser(candidateId, 'INTERVIEW_PREP_READY', {
+        jobId,
+        questions: response,
+      });
 
       this.logger.log(
         `Successfully generated interview questions for candidate ${candidateId} and job ${jobId}`
