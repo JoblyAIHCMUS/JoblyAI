@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSocket } from '@/contexts/socket-provider';
-import { useUser } from '@/hooks/useUser';
 import interviewPrepService, {
   InterviewPreparation,
   InterviewPrepStatus,
@@ -12,8 +10,6 @@ import { toast } from 'sonner';
 export const useInterviewPrep = (jobId: number) => {
   const [data, setData] = useState<InterviewPreparation | null>(null);
   const [loading, setLoading] = useState(false);
-  const { socket, isConnected } = useSocket();
-  const { data: user } = useUser();
 
   const fetchPrep = useCallback(async () => {
     setLoading(true);
@@ -62,28 +58,33 @@ export const useInterviewPrep = (jobId: number) => {
   };
 
   useEffect(() => {
-    if (!(socket && isConnected && user?.id)) return;
-    const eventName = `INTERVIEW_PREP_READY_${jobId}_${user.id}`;
-
-    const handleReady = (questions: any) => {
-      setData((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          status: InterviewPrepStatus.COMPLETED,
-          questions,
-        };
-      });
-      setLoading(false);
-      toast.success('Interview preparation kit is ready!');
+    const handleReady = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        jobId: number;
+        questions: any;
+      }>;
+      if (
+        customEvent.detail &&
+        Number(customEvent.detail.jobId) === Number(jobId)
+      ) {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: InterviewPrepStatus.COMPLETED,
+            questions: customEvent.detail.questions,
+          };
+        });
+        setLoading(false);
+      }
     };
 
-    socket.on(eventName, handleReady);
+    window.addEventListener('ai-interview-prep-ready', handleReady);
 
     return () => {
-      socket.off(eventName, handleReady);
+      window.removeEventListener('ai-interview-prep-ready', handleReady);
     };
-  }, [socket, isConnected, jobId, user?.id]);
+  }, [jobId]);
 
   return {
     data,
