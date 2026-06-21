@@ -75,6 +75,7 @@ export function applyNewMessageToHistory(
           ...first.slice(0, localIdx),
           ...first.slice(localIdx + 1),
           {
+            ...first[localIdx],
             messageId: msg.messageId,
             senderId: msg.senderId,
             content: msg.content,

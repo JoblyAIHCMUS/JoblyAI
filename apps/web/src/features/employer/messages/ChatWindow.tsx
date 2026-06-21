@@ -14,6 +14,7 @@ import { withDateSeparators } from './utils';
 interface ChatWindowProps {
   conversation: Conversation;
   currentUserId: string;
+  currentUserAvatar?: string | null;
   onBackClick?: () => void;
   isMobileView?: boolean;
 }
@@ -21,6 +22,7 @@ interface ChatWindowProps {
 export function ChatWindow({
   conversation,
   currentUserId,
+  currentUserAvatar,
   onBackClick,
   isMobileView = false,
 }: ChatWindowProps) {
@@ -35,6 +37,7 @@ export function ChatWindow({
     chatId: conversation.chatId,
     friendId: conversation.participantId,
     userId: currentUserId,
+    currentUserAvatar,
   });
 
   const messages = useMemo(
