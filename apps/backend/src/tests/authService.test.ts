@@ -102,7 +102,9 @@ describe('AuthService', () => {
     const sessionToken = 'active-token';
     const listKey = `active-sessions-${userId}`;
     const futureExpires = Date.now() + 60_000;
-    const listRaw = JSON.stringify([{ token: sessionToken, expiresAt: futureExpires }]);
+    const listRaw = JSON.stringify([
+      { token: sessionToken, expiresAt: futureExpires },
+    ]);
     const cachedRaw = JSON.stringify({
       session: { token: sessionToken, expiresAt: new Date(futureExpires) },
       user: { id: userId, role: 'candidate' },
@@ -129,7 +131,10 @@ describe('AuthService', () => {
 
   it('should be a no-op when there are no active sessions for the user', async () => {
     redisMock.get.mockResolvedValueOnce(null);
-    await service.refreshUserSessionCache({ id: 'user-no-sessions', role: 'employer' });
+    await service.refreshUserSessionCache({
+      id: 'user-no-sessions',
+      role: 'employer',
+    });
     expect(redisMock.setex).not.toHaveBeenCalled();
   });
 

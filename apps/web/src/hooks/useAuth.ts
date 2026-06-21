@@ -130,7 +130,8 @@ export function useLogout() {
       router.push('/login');
     },
     onError: (error) => {
-      const isNetworkError = (error as NetworkError | undefined)?.isNetworkError === true;
+      const isNetworkError =
+        (error as NetworkError | undefined)?.isNetworkError === true;
       const isAuthError =
         (error instanceof Error && error.message.includes('401')) ||
         (error instanceof Error && error.message.includes('Unauthorized')) ||

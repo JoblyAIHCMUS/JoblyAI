@@ -28,9 +28,10 @@ export class AuthService {
   }
 
   /** Re-cache the user object across all active sessions — mirrors better-auth's internal refreshUserSessions. */
-  async refreshUserSessionCache(
-    updatedUser: { id: string; [key: string]: unknown }
-  ) {
+  async refreshUserSessionCache(updatedUser: {
+    id: string;
+    [key: string]: unknown;
+  }) {
     const listKey = `active-sessions-${updatedUser.id}`;
     const listRaw = await redis.get(listKey);
     if (!listRaw) return;
@@ -50,12 +51,10 @@ export class AuthService {
         .map(async (session) => {
           const cached = await redis.get(session.token);
           if (!cached) return;
-          let parsed:
-            | {
-                session: { expiresAt: string | number | Date };
-                user: Record<string, unknown>;
-              }
-            | null;
+          let parsed: {
+            session: { expiresAt: string | number | Date };
+            user: Record<string, unknown>;
+          } | null;
           try {
             parsed = JSON.parse(cached);
           } catch {
