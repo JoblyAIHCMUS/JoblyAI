@@ -20,14 +20,10 @@ CLOUDSQL_CONNECTION="$GCP_PROJECT_ID:$GCP_REGION:$CLOUDSQL_INSTANCE_NAME"
 # Thông tin Máy ảo VM (Chạy ScyllaDB & Redis)
 VM_PUBLIC_IP="YOUR_VM_PUBLIC_IP" # Thay bằng IP tĩnh public của VM Compute Engine
 
-# Mật khẩu & API Keys (Thay bằng thông tin bảo mật thực tế của bạn)
+# Mật khẩu cho Database (Cần để chạy local migrations)
 DB_PASSWORD="YOUR_CLOUD_SQL_DB_PASSWORD"
-REDIS_PASSWORD="YOUR_SUPER_STRONG_REDIS_PASSWORD"
-SCYLLA_PASSWORD="YOUR_SUPER_STRONG_SCYLLA_PASSWORD"
-GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 
 # Thông tin Domain chính thức
-BETTER_AUTH_SECRET="RANDOM_LONG_SECRET_KEY" # Tạo chuỗi ngẫu nhiên dài để mã hóa session
 DOMAIN_URL="https://jobly.ai.vn"
 GCS_PUBLIC_BUCKET="joblyai-public"
 GCS_PRIVATE_BUCKET="joblyai-private"
@@ -95,9 +91,6 @@ if [ "$choice" == "1" ] || [ "$choice" == "3" ]; then
     # Step 3: Deploy to Cloud Run
     echo -e "${CYAN}3. Đang deploy/update dịch vụ Cloud Run: $RUN_API_SERVICE...${NC}"
     
-    DATABASE_URL="postgresql://postgres:$DB_PASSWORD@/jobly_db?host=/cloudsql/$CLOUDSQL_CONNECTION"
-    REDIS_URL="redis://:$REDIS_PASSWORD@$VM_PUBLIC_IP:6379"
-
     gcloud run deploy "$RUN_API_SERVICE" \
         --image="$BACKEND_IMAGE" \
         --region="$GCP_REGION" \
@@ -111,7 +104,8 @@ if [ "$choice" == "1" ] || [ "$choice" == "3" ]; then
         --max-instances=5 \
         --memory=1Gi \
         --cpu=1 \
-        --set-env-vars="NODE_ENV=production,DATABASE_URL=$DATABASE_URL,REDIS_URL=$REDIS_URL,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_PASSWORD=$SCYLLA_PASSWORD,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,GEMINI_API_KEY=$GEMINI_API_KEY,BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true"
+        --set-env-vars="NODE_ENV=production,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true" \
+        --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest"
     
     if [ $? -ne 0 ]; then
         echo -e "${RED}Lỗi khi deploy Cloud Run Backend!${NC}"
@@ -166,24 +160,42 @@ fi
 
 if [ "$choice" == "4" ]; then
     echo -e "\n${YELLOW}==============================================${NC}"
-    echo -e "${YELLOW}          ĐANG CHẠY DATABASE MIGRATIONS       ${NC}"
+    echo -e "${YELLOW}    ĐANG CHẠY DATABASE MIGRATIONS & SEEDING   ${NC}"
     echo -e "${YELLOW}==============================================${NC}"
     
-    # Ở local cần kết nối qua TCP công cộng (phải mở IP local ở phần Cloud SQL Authorized Networks)
-    # Hoặc chạy Cloud SQL Auth Proxy để bảo mật.
-    LOCAL_DATABASE_URL="postgresql://postgres:$DB_PASSWORD@YOUR_CLOUD_SQL_IP:5432/jobly_db"
+    echo -e "${YELLOW}Để kết nối, vui lòng đảm bảo IP hiện tại của bạn đã được thêm vào 'Authorized Networks' của Cloud SQL${NC}"
+    echo -e "${YELLOW}Hoặc bạn đang chạy Cloud SQL Auth Proxy ở cổng 5432.${NC}"
     
-    echo -e "${YELLOW}Để chạy migration, vui lòng đảm bảo IP hiện tại của bạn đã được add vào 'Authorized Networks' của Cloud SQL${NC}"
-    echo -e "${YELLOW}Hoặc sử dụng Cloud SQL Auth Proxy.${NC}"
-    read -p "Bạn đã sẵn sàng chạy migration? (Y/N): " confirm
+    read -p "Nhập IP Public của Cloud SQL (Nhấn Enter nếu đang chạy qua Proxy 127.0.0.1): " SQL_IP
+    if [ -z "$SQL_IP" ]; then
+        SQL_IP="127.0.0.1"
+    fi
+    
+    LOCAL_DATABASE_URL="postgresql://postgres:$DB_PASSWORD@$SQL_IP:5432/jobly_db"
+    
+    read -p "Bạn đã sẵn sàng chạy migration & seeding? (Y/N): " confirm
     
     if [ "$confirm" == "Y" ] || [ "$confirm" == "y" ]; then
         export DATABASE_URL="$LOCAL_DATABASE_URL"
-        echo -e "${CYAN}1. Tạo Prisma Client...${NC}"
+        
+        echo -e "\n${CYAN}1. Tạo Prisma Client...${NC}"
         pnpm --filter @jobly/backend prisma:generate
         
-        echo -e "${CYAN}2. Thực thi prisma migrate deploy lên GCP Cloud SQL...${NC}"
+        echo -e "\n${CYAN}2. Thực thi prisma migrate deploy lên GCP Cloud SQL...${NC}"
         npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
+        
+        if [ $? -eq 0 ]; then
+            echo -e "\n${CYAN}3. Khởi tạo dữ liệu hệ thống (Categories & Skills) ở chế độ an toàn...${NC}"
+            export SEED_MODE="system"
+            pnpm --filter @jobly/backend exec ts-node prisma/seed.ts
+            if [ $? -eq 0 ]; then
+                echo -e "\n${GREEN}Database migration & seeding hoàn tất thành công!${NC}"
+            else
+                echo -e "\n${RED}Lỗi khi seeding dữ liệu hệ thống!${NC}"
+            fi
+        else
+            echo -e "\n${RED}Lỗi khi thực thi migration!${NC}"
+        fi
     else
         echo -e "${YELLOW}Đã hủy chạy migration.${NC}"
     fi

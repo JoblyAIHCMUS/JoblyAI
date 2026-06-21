@@ -14,19 +14,15 @@ $RUN_WEB_SERVICE = "joblyai-run-svc-web"
 
 # Tên thực thể Cloud SQL
 $CLOUDSQL_INSTANCE_NAME = "joblyai-db" # Ví dụ: joblyai-db
-$CLOUDSQL_CONNECTION = "$GCP_PROJECT_ID:$GCP_REGION:$CLOUDSQL_INSTANCE_NAME"
+$CLOUDSQL_CONNECTION = "${GCP_PROJECT_ID}:${GCP_REGION}:${CLOUDSQL_INSTANCE_NAME}"
 
 # Thông tin Máy ảo VM (Chạy ScyllaDB & Redis)
 $VM_PUBLIC_IP = "34.143.182.149" # Thay bằng IP tĩnh public của VM Compute Engine
 
-# Mật khẩu & API Keys (Thay bằng thông tin bảo mật thực tế của bạn)
-$DB_PASSWORD = "1234aaAA@" # Mật khẩu mạnh cho PostgreSQL Cloud SQL
-$REDIS_PASSWORD = "1234aaAA@" # Mật khẩu mạnh cho Redis
-$SCYLLA_PASSWORD = "1234aaAA@" # Mật khẩu mạnh cho ScyllaDB
-$GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+# Mật khẩu cho Database (Cần để chạy local migrations)
+$DB_PASSWORD = "1234aaAA@" 
 
 # Thông tin Domain chính thức
-$BETTER_AUTH_SECRET = "RANDOM_LONG_SECRET_KEY" # Tạo chuỗi ngẫu nhiên dài để mã hóa session
 $DOMAIN_URL = "https://jobly.ai.vn"
 $GCS_PUBLIC_BUCKET = "joblyai-public"
 $GCS_PRIVATE_BUCKET = "joblyai-private"
@@ -88,9 +84,6 @@ if ($choice -eq "1" -or $choice -eq "3") {
     # Step 3: Deploy to Cloud Run
     Write-Host "3. Đang deploy/update dịch vụ Cloud Run: $RUN_API_SERVICE..." -ForegroundColor Cyan
     
-    $DATABASE_URL = "postgresql://postgres:$DB_PASSWORD@/jobly_db?host=/cloudsql/$CLOUDSQL_CONNECTION"
-    $REDIS_URL = "redis://:$REDIS_PASSWORD@$VM_PUBLIC_IP:6379"
-
     gcloud run deploy $RUN_API_SERVICE `
         --image=$BACKEND_IMAGE `
         --region=$GCP_REGION `
@@ -104,7 +97,8 @@ if ($choice -eq "1" -or $choice -eq "3") {
         --max-instances=5 `
         --memory=1Gi `
         --cpu=1 `
-        --set-env-vars="NODE_ENV=production,DATABASE_URL=$DATABASE_URL,REDIS_URL=$REDIS_URL,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_PASSWORD=$SCYLLA_PASSWORD,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,GEMINI_API_KEY=$GEMINI_API_KEY,BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true"
+        --set-env-vars="NODE_ENV=production,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true" `
+        --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest"
     
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Lỗi khi deploy Cloud Run Backend!"
@@ -159,25 +153,42 @@ if ($choice -eq "2" -or $choice -eq "3") {
 
 if ($choice -eq "4") {
     Write-Host "`n==============================================" -ForegroundColor Yellow
-    Write-Host "          ĐANG CHẠY DATABASE MIGRATIONS       " -ForegroundColor Yellow
+    Write-Host "    ĐANG CHẠY DATABASE MIGRATIONS & SEEDING   " -ForegroundColor Yellow
     Write-Host "==============================================" -ForegroundColor Yellow
     
-    # Ở local cần kết nối qua TCP công cộng (phải mở IP local ở phần Cloud SQL Authorized Networks)
-    # Hoặc chạy Cloud SQL Auth Proxy để bảo mật.
-    # Dưới đây dùng connection trực tiếp:
-    $LOCAL_DATABASE_URL = "postgresql://postgres:$DB_PASSWORD@YOUR_CLOUD_SQL_IP:5432/jobly_db"
+    Write-Host "Để kết nối, vui lòng đảm bảo IP hiện tại của bạn đã được thêm vào 'Authorized Networks' của Cloud SQL" -ForegroundColor Yellow
+    Write-Host "Hoặc bạn đang chạy Cloud SQL Auth Proxy ở cổng 5432." -ForegroundColor Yellow
     
-    Write-Host "Để chạy migration, vui lòng đảm bảo IP hiện tại của bạn đã được add vào 'Authorized Networks' của Cloud SQL" -ForegroundColor Yellow
-    Write-Host "Hoặc sử dụng Cloud SQL Auth Proxy." -ForegroundColor Yellow
-    $confirm = Read-Host "Bạn đã sẵn sàng chạy migration? (Y/N)"
+    $SQL_IP = Read-Host "Nhập IP Public của Cloud SQL (Nhấn Enter nếu đang chạy qua Proxy 127.0.0.1)"
+    if ([string]::IsNullOrEmpty($SQL_IP)) {
+        $SQL_IP = "127.0.0.1"
+    }
+    
+    $LOCAL_DATABASE_URL = "postgresql://postgres:${DB_PASSWORD}@${SQL_IP}:5432/jobly_db"
+    
+    $confirm = Read-Host "Bạn đã sẵn sàng chạy migration & seeding? (Y/N)"
     
     if ($confirm -eq "Y" -or $confirm -eq "y") {
         $env:DATABASE_URL = $LOCAL_DATABASE_URL
-        Write-Host "1. Tạo Prisma Client..." -ForegroundColor Cyan
+        
+        Write-Host "`n1. Tạo Prisma Client..." -ForegroundColor Cyan
         pnpm --filter @jobly/backend prisma:generate
         
-        Write-Host "2. Thực thi prisma migrate deploy lên GCP Cloud SQL..." -ForegroundColor Cyan
+        Write-Host "`n2. Thực thi prisma migrate deploy lên GCP Cloud SQL..." -ForegroundColor Cyan
         npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "`n3. Khởi tạo dữ liệu hệ thống (Categories & Skills) ở chế độ an toàn..." -ForegroundColor Cyan
+            $env:SEED_MODE = "system"
+            pnpm --filter @jobly/backend exec ts-node prisma/seed.ts
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "`nDatabase migration & seeding hoàn tất thành công!" -ForegroundColor Green
+            } else {
+                Write-Warning "`nLỗi khi seeding dữ liệu hệ thống!"
+            }
+        } else {
+            Write-Error "`nLỗi khi thực thi migration!"
+        }
     } else {
         Write-Host "Đã hủy chạy migration." -ForegroundColor Yellow
     }
