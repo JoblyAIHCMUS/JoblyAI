@@ -92,8 +92,45 @@ describe('AuthService', () => {
     // Act
     await service.invalidateSessionCache(sessionToken);
 
+    // Assert — better-auth uses the session token as the cache key directly.
+    expect(redisMock.del).toHaveBeenCalledWith(sessionToken);
+  });
+
+  it('should refresh session cache entries for the user', async () => {
+    // Arrange
+    const userId = 'user-refresh';
+    const sessionToken = 'active-token';
+    const listKey = `active-sessions-${userId}`;
+    const futureExpires = Date.now() + 60_000;
+    const listRaw = JSON.stringify([{ token: sessionToken, expiresAt: futureExpires }]);
+    const cachedRaw = JSON.stringify({
+      session: { token: sessionToken, expiresAt: new Date(futureExpires) },
+      user: { id: userId, role: 'candidate' },
+    });
+
+    redisMock.get.mockImplementation(async (key: string) => {
+      if (key === listKey) return listRaw;
+      if (key === sessionToken) return cachedRaw;
+      return null;
+    });
+
+    // Act
+    await service.refreshUserSessionCache({ id: userId, role: 'employer' });
+
     // Assert
-    expect(redisMock.del).toHaveBeenCalledWith(`session:${sessionToken}`);
+    expect(redisMock.setex).toHaveBeenCalledTimes(1);
+    const [setKey, setTtl, setValue] = redisMock.setex.mock.calls[0];
+    expect(setKey).toBe(sessionToken);
+    expect(setTtl).toBeGreaterThan(0);
+    const written = JSON.parse(setValue as string);
+    expect(written.user.role).toBe('employer');
+    expect(written.session.token).toBe(sessionToken);
+  });
+
+  it('should be a no-op when there are no active sessions for the user', async () => {
+    redisMock.get.mockResolvedValueOnce(null);
+    await service.refreshUserSessionCache({ id: 'user-no-sessions', role: 'employer' });
+    expect(redisMock.setex).not.toHaveBeenCalled();
   });
 
   it('should return auth instance', () => {

@@ -17,6 +17,10 @@ export interface SignupCredentials extends LoginCredentials {
   role?: string;
 }
 
+interface NetworkError extends Error {
+  isNetworkError: boolean;
+}
+
 export function useLogin() {
   const queryClient = useQueryClient();
 
@@ -104,15 +108,20 @@ export function useLogout() {
             `Network Error: Cannot reach backend ` +
               'Please ensure the backend server is running and accessible.'
           );
-          (detailedError as any).isNetworkError = true;
+          (detailedError as NetworkError).isNetworkError = true;
           throw detailedError;
         }
         throw error;
       }
     },
     onSuccess: () => {
-      // Clear user-specific cached data
-      queryClient.removeQueries({ queryKey: ['user'] });
+      // Cancel any in-flight user fetch so it doesn't overwrite our null
+      queryClient.cancelQueries({ queryKey: ['user'] });
+
+      // Immediately mark the user as logged out without triggering a refetch
+      // (removeQueries would force a getSession() call that can leave the UI
+      // stuck on a "Loading..." screen on slow networks).
+      queryClient.setQueryData(['user'], null);
 
       // Clean up non-HttpOnly cookies just in case backend redirect didn't catch them
       document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
@@ -121,7 +130,7 @@ export function useLogout() {
       router.push('/login');
     },
     onError: (error) => {
-      const isNetworkError = (error as any)?.isNetworkError === true;
+      const isNetworkError = (error as NetworkError | undefined)?.isNetworkError === true;
       const isAuthError =
         (error instanceof Error && error.message.includes('401')) ||
         (error instanceof Error && error.message.includes('Unauthorized')) ||
@@ -134,7 +143,8 @@ export function useLogout() {
       } else if (isAuthError) {
         // User is already logged out on backend, clear frontend state
         console.log('✅ User logged out (auth error detected)');
-        queryClient.removeQueries({ queryKey: ['user'] });
+        queryClient.cancelQueries({ queryKey: ['user'] });
+        queryClient.setQueryData(['user'], null);
         document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
         router.push('/login');
       } else {
