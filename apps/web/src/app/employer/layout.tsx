@@ -82,5 +82,15 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     );
   }
 
-  return null;
+  // useEffect above will redirect; show a spinner so the parent layout doesn't flash empty content.
+  return (
+    <div className="flex items-center justify-center min-h-screen w-full bg-white px-4 sm:px-6 md:px-8">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          Redirecting...
+        </p>
+      </div>
+    </div>
+  );
 }

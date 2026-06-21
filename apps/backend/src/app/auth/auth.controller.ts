@@ -10,6 +10,7 @@ import {
 import type { Request as ExpressRequest, Response } from 'express';
 import { auth } from '../../lib/auth';
 import { AuthGuard } from './auth.guard';
+import { AuthService } from './auth.service';
 import { Roles } from '../decorators/roles.decorator';
 import { RoleGuard } from './role.guard';
 import type { AuthenticatedRequest } from '../types/authenticatedRequest';
@@ -21,6 +22,7 @@ import {
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
   /**
    * Get current authenticated user
    */
@@ -167,6 +169,20 @@ export class AuthController {
             where: { id: jsonBody.user.id },
             data: updateData,
           });
+
+          // better-auth cached the session in Redis before we wrote role/name,
+          // so refresh the cache to avoid a stale `user` on the next getSession.
+          try {
+            await this.authService.refreshUserSessionCache({
+              id: jsonBody.user.id,
+              ...updateData,
+            });
+          } catch (cacheErr) {
+            console.error(
+              '[AUTH] Failed to refresh session cache after user update',
+              cacheErr
+            );
+          }
         }
       } catch {
         // If parsing fails, just send the original body

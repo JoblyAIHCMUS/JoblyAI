@@ -22,12 +22,60 @@ export class AuthService {
     return session;
   }
 
-  /**
-   * Invalidate session cache
-   */
+  /** Delete a single session from secondaryStorage. Key is the session token (no prefix). */
   async invalidateSessionCache(sessionToken: string) {
-    const cacheKey = `session:${sessionToken}`;
-    await redis.del(cacheKey);
+    await redis.del(sessionToken);
+  }
+
+  /** Re-cache the user object across all active sessions — mirrors better-auth's internal refreshUserSessions. */
+  async refreshUserSessionCache(updatedUser: {
+    id: string;
+    [key: string]: unknown;
+  }) {
+    const listKey = `active-sessions-${updatedUser.id}`;
+    const listRaw = await redis.get(listKey);
+    if (!listRaw) return;
+
+    let list: Array<{ token: string; expiresAt: number }>;
+    try {
+      list = JSON.parse(listRaw);
+    } catch {
+      return;
+    }
+    if (!Array.isArray(list)) return;
+
+    const now = Date.now();
+    await Promise.all(
+      list
+        .filter((s) => s && s.token && s.expiresAt > now)
+        .map(async (session) => {
+          const cached = await redis.get(session.token);
+          if (!cached) return;
+          let parsed: {
+            session: { expiresAt: string | number | Date };
+            user: Record<string, unknown>;
+          } | null;
+          try {
+            parsed = JSON.parse(cached);
+          } catch {
+            return;
+          }
+          if (!parsed?.session?.expiresAt) return;
+
+          const expiresAtMs = new Date(parsed.session.expiresAt).getTime();
+          const sessionTTL = Math.floor((expiresAtMs - now) / 1000);
+          if (sessionTTL <= 0) return;
+
+          await redis.setex(
+            session.token,
+            sessionTTL,
+            JSON.stringify({
+              session: parsed.session,
+              user: { ...parsed.user, ...updatedUser },
+            })
+          );
+        })
+    );
   }
 
   /**
