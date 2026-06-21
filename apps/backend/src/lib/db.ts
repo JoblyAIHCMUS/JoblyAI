@@ -28,4 +28,3 @@ export const scylla = new Client({
     ? { credentials: { username: scyllaUser, password: scyllaPassword } }
     : {}),
 });
-
