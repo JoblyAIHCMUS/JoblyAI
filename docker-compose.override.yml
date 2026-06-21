@@ -2,6 +2,10 @@ services:
   backend:
     # Dev: Use cached node_modules and pnpm store for fast startup with hot reload
     user: 'root'
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: base
     command: sh -c "pnpm install --no-frozen-lockfile && pnpm --filter @jobly/backend exec prisma generate && pnpm --filter @jobly/backend exec prisma migrate dev && cd /app/apps/backend && pnpm run start:dev"
     volumes:
       - .:/app
