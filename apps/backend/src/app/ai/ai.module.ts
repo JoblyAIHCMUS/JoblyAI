@@ -3,11 +3,14 @@ import { BullModule } from '@nestjs/bullmq';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
 import { ScoringProcessor } from './processors/scoring.processor';
+import { InterviewPrepProcessor } from './processors/interview-prep.processor';
 import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
+import { InterviewPrepService } from './interview-prep.service';
 import { AiController } from './ai.controller';
 import { MatchingController } from './matching.controller';
+import { InterviewPrepController } from './interview-prep.controller';
 import { ProfileSyncService } from './profile-sync.service';
 import { MatchingService } from './matching.service';
 import { ResumeListener } from './listeners/resume.listener';
@@ -26,18 +29,21 @@ import { JobListener } from './listeners/job.listener';
     BullModule.registerQueue(
       { name: 'resume-extraction' },
       { name: 'resume-scoring' },
-      { name: 'job-embedding' }
+      { name: 'job-embedding' },
+      { name: 'interview-prep' }
     ),
   ],
-  controllers: [AiController, MatchingController],
+  controllers: [AiController, MatchingController, InterviewPrepController],
   providers: [
     AiGateway,
     ResumeProcessor,
     ScoringProcessor,
     JobProcessor,
+    InterviewPrepProcessor,
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
+    InterviewPrepService,
     ProfileSyncService,
     MatchingService,
     ResumeListener,
@@ -48,6 +54,7 @@ import { JobListener } from './listeners/job.listener';
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
+    InterviewPrepService,
     ProfileSyncService,
     MatchingService,
   ],
