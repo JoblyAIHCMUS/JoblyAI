@@ -18,6 +18,7 @@ import { CompanyModule } from './company/company.module';
 import { SkillsModule } from './skills/skills.module';
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { McpModule } from './mcp/mcp.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     CompanyModule,
     SkillsModule,
     AiModule,
+    McpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
