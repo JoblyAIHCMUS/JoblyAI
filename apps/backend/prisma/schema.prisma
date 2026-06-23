@@ -1,3 +1,4 @@
+
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
@@ -11,23 +12,23 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  avatarUrl     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  banExpires    DateTime?
-  banReason     String?
-  banned        Boolean?  @default(false)
-  role          String?   @default("candidate")
-  firstName     String?
-  lastName      String?
-  phoneNumber   String?
-  openForOpportunities Boolean @default(false)
-  dateOfBirth   DateTime?
-  gender        Gender?
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String    @unique
+  emailVerified        Boolean   @default(false)
+  avatarUrl            String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  banExpires           DateTime?
+  banReason            String?
+  banned               Boolean?  @default(false)
+  role                 String?   @default("candidate")
+  firstName            String?
+  lastName             String?
+  phoneNumber          String?
+  openForOpportunities Boolean   @default(false)
+  dateOfBirth          DateTime?
+  gender               Gender?
 
   employer             Employer?
   postedJobs           JobPosting[]
@@ -41,12 +42,14 @@ model User {
   candidateSkills      CandidateSkill[]
   candidateContacts    CandidateContact[]
   candidateSocials     CandidateSocial[]
-  conversations        Conversation[]        @relation("UserConversations")
-  participating        Conversation[]        @relation("ParticipantInConversations")
+  conversations        Conversation[]         @relation("UserConversations")
+  participating        Conversation[]         @relation("ParticipantInConversations")
   applications         Application[]
   notifications        Notification[]
   notificationSettings NotificationSettings?
   interviewPreps       InterviewPreparation[]
+
+  image String?
 
   @@map("user")
 }
@@ -119,11 +122,11 @@ model Verification {
 }
 
 model JobCategory {
-  id   Int          @id @default(autoincrement())
-  name String       @unique
-  slug String       @unique
+  id      Int          @id @default(autoincrement())
+  name    String       @unique
+  slug    String       @unique
   iconKey String?
-  jobs JobPosting[]
+  jobs    JobPosting[]
 }
 
 model Skill {
@@ -134,16 +137,16 @@ model Skill {
 }
 
 model JobPosting {
-  id          Int            @id @default(autoincrement())
+  id          Int                         @id @default(autoincrement())
   title       String
   description String
   location    String?
   salaryMin   Decimal?
   salaryMax   Decimal?
-  currency    String?        @default("USD")
-  status      JobStatus      @default(DRAFT)
-  remote      Boolean        @default(false)
-  type        EmploymentType @default(FULL_TIME)
+  currency    String?                     @default("USD")
+  status      JobStatus                   @default(DRAFT)
+  remote      Boolean                     @default(false)
+  type        EmploymentType              @default(FULL_TIME)
   embedding   Unsupported("vector(768)")?
 
   postedById String
@@ -155,8 +158,8 @@ model JobPosting {
   companyId Int
   company   Company @relation(fields: [companyId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   requirements   JobRequirement[]
@@ -220,9 +223,9 @@ model Experience {
 }
 
 model CandidateDescription {
-  id          Int      @id @default(autoincrement())
-  candidateId String   @unique
-  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          Int    @id @default(autoincrement())
+  candidateId String @unique
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   title           String?                     @db.Text
   bio             String?                     @db.Text
@@ -237,12 +240,12 @@ model CandidateDescription {
 }
 
 model CandidateSkill {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   candidateId String
-  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   User   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   skillId     Int
-  skill       Skill                @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skill       Skill                       @relation(fields: [skillId], references: [id], onDelete: Cascade)
   level       CandidateSkillLevel?
   years       Int?
   sourceCvIds Int[]
@@ -309,19 +312,19 @@ model Certificate {
 }
 
 model Company {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  slug         String     @unique
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  slug        String       @unique
   websiteUrl  String?
   sizeRange   String?
   industry    String?
   description String?
   logoUrl     String?
-  adminId     Int?       @unique
-  admin       Employer?  @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  employers   Employer[] @relation("CompanyEmployers")
+  adminId     Int?         @unique
+  admin       Employer?    @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  employers   Employer[]   @relation("CompanyEmployers")
   jobPostings JobPosting[]
 }
 
@@ -360,21 +363,21 @@ enum EmploymentType {
 }
 
 model Resume {
-  id                Int           @id @default(autoincrement())
+  id                Int                         @id @default(autoincrement())
   candidateId       String
-  candidate         User          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate         User                        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   fileKey           String?
   fileName          String
   fileType          String
   fileSize          Int
-  parsedText        String?       @db.Text
+  parsedText        String?                     @db.Text
   aiScore           Float?
   aiFeedback        Json?
-  isSyncedToProfile Boolean       @default(true)
-  isDefault         Boolean       @default(false)
+  isSyncedToProfile Boolean                     @default(true)
+  isDefault         Boolean                     @default(false)
   embedding         Unsupported("vector(768)")?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
   applications      Application[]
 
   @@index([candidateId])
@@ -385,13 +388,13 @@ model Notification {
   id          Int      @id @default(autoincrement())
   recipientId String
   recipient   User     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
-  type        String   // e.g., "NEW_MESSAGE", "APPLICATION_STATUS", "NEW_APP"
+  type        String // e.g., "NEW_MESSAGE", "APPLICATION_STATUS", "NEW_APP"
   title       String
   content     String
-  link        String?  // URL to redirect when clicked
+  link        String? // URL to redirect when clicked
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
-  metadata    Json?    // Extra info (senderId, jobId, etc.)
+  metadata    Json? // Extra info (senderId, jobId, etc.)
 
   @@index([recipientId])
   @@index([isRead])
@@ -412,19 +415,19 @@ model NotificationSettings {
 }
 
 model Application {
-  id               Int               @id @default(autoincrement())
-  jobId            Int
-  job              JobPosting        @relation(fields: [jobId], references: [id])
-  candidateId      String
-  candidate        User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  resumeId         Int
-  resume           Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  matchPercentage  Float?
-  aiFeedback       Json?
-  status           ApplicationStatus @default(APPLIED)
-  jobDeletedAt     DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id              Int               @id @default(autoincrement())
+  jobId           Int
+  job             JobPosting        @relation(fields: [jobId], references: [id])
+  candidateId     String
+  candidate       User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId        Int
+  resume          Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  matchPercentage Float?
+  aiFeedback      Json?
+  status          ApplicationStatus @default(APPLIED)
+  jobDeletedAt    DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@index([jobId])
   @@index([candidateId])
@@ -466,10 +469,10 @@ model InterviewPreparation {
 }
 
 model JobView {
-  id        Int        @id @default(autoincrement())
-  jobId     Int
-  job       JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  viewedAt  DateTime   @default(now())
+  id       Int        @id @default(autoincrement())
+  jobId    Int
+  job      JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  viewedAt DateTime   @default(now())
 
   @@index([jobId, viewedAt])
   @@index([viewedAt])
@@ -546,4 +549,34 @@ model PotentialMatchCache {
   @@index([jobId])
   @@index([candidateId])
   @@map("potential_match_cache")
+}
+
+model Apikey {
+  id                  String    @id
+  configId            String    @default("default")
+  name                String?
+  start               String?
+  referenceId         String
+  prefix              String?
+  key                 String
+  refillInterval      Int?
+  refillAmount        Int?
+  lastRefillAt        DateTime?
+  enabled             Boolean?  @default(true)
+  rateLimitEnabled    Boolean?  @default(true)
+  rateLimitTimeWindow Int?      @default(86400000)
+  rateLimitMax        Int?      @default(10)
+  requestCount        Int?      @default(0)
+  remaining           Int?
+  lastRequest         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime
+  updatedAt           DateTime
+  permissions         String?
+  metadata            String?
+
+  @@index([configId])
+  @@index([referenceId])
+  @@index([key])
+  @@map("apikey")
 }
