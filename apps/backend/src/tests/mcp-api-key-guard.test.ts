@@ -45,18 +45,26 @@ describe('ApiKeyGuard', () => {
     );
 
     expect(verifySpy).not.toHaveBeenCalled();
-    expect(setHeader).toHaveBeenCalledWith('WWW-Authenticate', expect.stringContaining('Bearer'));
+    expect(setHeader).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      expect.stringContaining('Bearer')
+    );
   });
 
   it('throws invalid_authorization_header when Authorization header is malformed', async () => {
-    const { context, setHeader } = createMockContext({ authorization: 'NotBearer token' });
+    const { context, setHeader } = createMockContext({
+      authorization: 'NotBearer token',
+    });
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException({ error: 'invalid_authorization_header' })
     );
 
     expect(verifySpy).not.toHaveBeenCalled();
-    expect(setHeader).toHaveBeenCalledWith('WWW-Authenticate', expect.stringContaining('Bearer'));
+    expect(setHeader).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      expect.stringContaining('Bearer')
+    );
   });
 
   it('throws invalid_api_key when verifyApiKey returns valid: false', async () => {
@@ -66,14 +74,19 @@ describe('ApiKeyGuard', () => {
       key: null,
     } as never);
 
-    const { context, setHeader } = createMockContext({ authorization: 'Bearer invalid_key' });
+    const { context, setHeader } = createMockContext({
+      authorization: 'Bearer invalid_key',
+    });
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException({ error: 'invalid_api_key' })
     );
 
     expect(verifySpy).toHaveBeenCalledWith({ body: { key: 'invalid_key' } });
-    expect(setHeader).toHaveBeenCalledWith('WWW-Authenticate', expect.stringContaining('Bearer'));
+    expect(setHeader).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      expect.stringContaining('Bearer')
+    );
   });
 
   it('attaches mcpUserId to request when key is valid', async () => {
@@ -98,7 +111,9 @@ describe('ApiKeyGuard', () => {
       },
     } as never);
 
-    const { context, setHeader } = createMockContext({ authorization: 'Bearer valid_key' });
+    const { context, setHeader } = createMockContext({
+      authorization: 'Bearer valid_key',
+    });
     const result = await guard.canActivate(context);
 
     expect(result).toBe(true);
@@ -130,7 +145,9 @@ describe('ApiKeyGuard', () => {
       },
     } as never);
 
-    const { context } = createMockContext({ authorization: 'Bearer valid_key' });
+    const { context } = createMockContext({
+      authorization: 'Bearer valid_key',
+    });
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       new InternalServerErrorException({ error: 'key_misconfigured' })

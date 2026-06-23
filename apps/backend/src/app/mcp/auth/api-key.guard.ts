@@ -51,10 +51,9 @@ export class ApiKeyGuard implements CanActivate {
       'setHeader' in response &&
       typeof (response as { setHeader: unknown }).setHeader === 'function'
     ) {
-      (response as { setHeader: (name: string, value: string) => void }).setHeader(
-        'WWW-Authenticate',
-        'Bearer realm="jobly-mcp"'
-      );
+      (
+        response as { setHeader: (name: string, value: string) => void }
+      ).setHeader('WWW-Authenticate', 'Bearer realm="jobly-mcp"');
     }
   }
 }
