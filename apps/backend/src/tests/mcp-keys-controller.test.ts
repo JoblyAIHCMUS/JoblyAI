@@ -4,7 +4,11 @@ import { McpKeysService } from '../app/mcp/keys/mcp-keys.service';
 
 describe('McpKeysController', () => {
   let controller: McpKeysController;
-  let service: { create: ReturnType<typeof vi.fn>; list: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  let service: {
+    create: ReturnType<typeof vi.fn>;
+    list: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     service = {
@@ -53,7 +57,9 @@ describe('McpKeysController', () => {
 
       const result = await controller.list(mockReq as never);
 
-      expect(service.list).toHaveBeenCalledWith({ authorization: 'Bearer session_token' });
+      expect(service.list).toHaveBeenCalledWith({
+        authorization: 'Bearer session_token',
+      });
       expect(result).toEqual(mockKeys);
     });
   });

@@ -53,10 +53,7 @@ export class McpEndpointController {
     try {
       await transport.handleRequest(req, res, req.body);
     } catch (err) {
-      this.logger.error(
-        { err, userId },
-        'mcp.handleRequest failed'
-      );
+      this.logger.error({ err, userId }, 'mcp.handleRequest failed');
       if (!res.headersSent) {
         res.status(500).json({ error: 'internal_error' });
       }

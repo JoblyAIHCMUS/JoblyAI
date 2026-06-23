@@ -19,7 +19,9 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException({ error: 'invalid_authorization_header' });
+      throw new UnauthorizedException({
+        error: 'invalid_authorization_header',
+      });
     }
 
     const key = authHeader.slice(7);

@@ -66,7 +66,9 @@ describe('McpKeysService', () => {
         offset: 0,
       } as never);
 
-      const result = await service.list({ authorization: 'Bearer session_token' });
+      const result = await service.list({
+        authorization: 'Bearer session_token',
+      });
 
       expect(listSpy).toHaveBeenCalledWith({
         headers: { authorization: 'Bearer session_token' },

@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ExecutionContext, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { auth } from '../lib/auth';
 import { ApiKeyGuard } from '../app/mcp/auth/api-key.guard';
 import { RequestWithMcpUser } from '../app/mcp/auth/api-key.types';
 
-const createMockContext = (headers: Record<string, string>, mcpUserId?: string) => {
-  const request: RequestWithMcpUser = { headers, mcpUserId } as RequestWithMcpUser;
+const createMockContext = (
+  headers: Record<string, string>,
+  mcpUserId?: string
+) => {
+  const request: RequestWithMcpUser = {
+    headers,
+    mcpUserId,
+  } as RequestWithMcpUser;
   return {
     switchToHttp: () => ({
       getRequest: () => request,

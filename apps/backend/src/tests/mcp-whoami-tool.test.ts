@@ -2,14 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { whoamiHandler } from '../app/mcp/tools/whoami.tool';
 import { McpState } from '../app/mcp/server/mcp.types';
 
-const buildState = (user: unknown): McpState =>
-  ({
-    userId: 'user-123',
-    prisma: {
-      user: { findUnique: vi.fn().mockResolvedValue(user) },
-    } as never,
-    logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  });
+const buildState = (user: unknown): McpState => ({
+  userId: 'user-123',
+  prisma: {
+    user: { findUnique: vi.fn().mockResolvedValue(user) },
+  } as never,
+  logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+});
 
 describe('whoamiHandler', () => {
   it('returns user profile when user exists', async () => {

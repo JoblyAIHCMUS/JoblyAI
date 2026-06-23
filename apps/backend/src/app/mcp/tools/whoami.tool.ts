@@ -25,12 +25,15 @@ export async function whoamiHandler(state: McpState) {
       email: user.email,
       name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
       role: user.role ?? 'candidate',
-      hasCandidateProfile: !!user.candidateDescription || user.resumes.length > 0,
+      hasCandidateProfile:
+        !!user.candidateDescription || user.resumes.length > 0,
       hasEmployerProfile: !!user.employer,
     };
 
     return {
-      content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+      content: [
+        { type: 'text' as const, text: JSON.stringify(result, null, 2) },
+      ],
       structuredContent: result,
     };
   } catch (error) {
