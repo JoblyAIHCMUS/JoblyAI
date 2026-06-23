@@ -49,6 +49,8 @@ async function bootstrap() {
       process.env.APP_URL || 'http://localhost:3000',
     ],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'mcp-session-id'],
+    exposedHeaders: ['mcp-session-id'],
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());
