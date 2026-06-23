@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { expo } from '@better-auth/expo';
 import { admin } from 'better-auth/plugins';
+import { apiKey } from '@better-auth/api-key';
 import { emailOTP } from 'better-auth/plugins';
 import { prisma, redis } from './db';
 import {
@@ -89,6 +90,11 @@ export const auth = betterAuth({
         admin: adminRole,
         superAdmin,
       },
+    }),
+    apiKey({
+      defaultPrefix: 'jobly_sk_',
+      defaultKeyLength: 32,
+      storage: 'database',
     }),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
