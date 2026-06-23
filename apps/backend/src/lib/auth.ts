@@ -95,6 +95,11 @@ export const auth = betterAuth({
       defaultPrefix: 'jobly_sk_',
       defaultKeyLength: 32,
       storage: 'database',
+      rateLimit: {
+        enabled: true,
+        timeWindow: 60 * 1000,
+        maxRequests: 1000,
+      },
     }),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
