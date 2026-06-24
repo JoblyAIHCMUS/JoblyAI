@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { authClient } from '../lib/auth-client';
 import {
-  login as loginRequest,
   signup as signupRequest,
   LoginPayload,
   SignupPayload,
@@ -94,11 +93,48 @@ export function useLogin() {
   const login = async (payload: LoginPayload) => {
     setLoading(true);
     setError(null);
-    try {
-      const data = await loginRequest(payload);
 
-      setData(data);
-      return data;
+    try {
+      const { data: result, error } = await authClient.signIn.email({
+        email: payload.email,
+        password: payload.password,
+        rememberMe: payload.rememberMe,
+      });
+
+      if (error) {
+        throw error;
+      }
+      if (!result || !result.user) {
+        throw new Error('Login successful but no user data returned');
+      }
+      const session = await authClient.getSession();
+
+      if (!session.data) {
+        throw new Error('Session was not created');
+      }
+
+      const user = session.data.user as typeof session.data.user & {
+        role: 'candidate' | 'employer';
+      };
+
+      const authResponse: AuthResponse = {
+        user: {
+          id: user.id,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          image: user.image ?? undefined,
+        },
+        session: {
+          id: session.data.session.id,
+          userId: session.data.session.userId,
+          expiresAt: session.data.session.expiresAt.toISOString(),
+        },
+      };
+
+      setData(authResponse);
+
+      return authResponse;
     } catch (err) {
       const error = new Error(getAuthErrorMessage(err, 'Login failed'));
       setError(error);

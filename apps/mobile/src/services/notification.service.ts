@@ -14,9 +14,11 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications() {
+  console.log('[Notification] Registering...');
   if (Platform.OS !== 'android') {
     return null;
   }
+
 
   await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
     name: 'Default',

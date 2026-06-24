@@ -36,7 +36,7 @@ const LoginPage = () => {
       }
 
       const { data: session } = await authClient.getSession();
-      const role = session?.user?.role;
+      const role = (session?.user as { role?: string } | undefined)?.role;
 
       if (role === 'employer') {
         router.replace('/pages/employer/dashboard');
@@ -78,19 +78,14 @@ const LoginPage = () => {
 
     try {
       const result = await login({ email, password, rememberMe });
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Login successful!',
-      });
 
       // Role-based redirect
       if (result.user.role === 'employer') {
-        router.push('/pages/employer/dashboard');
+      router.push('/pages/employer/dashboard');
       } else if (result.user.role === 'candidate') {
-        router.push('/pages/candidate/dashboard');
+      router.push('/pages/candidate/dashboard');
       } else {
-        router.push('/');
+      router.push('/');
       }
     } catch (err) {
       Toast.show({
