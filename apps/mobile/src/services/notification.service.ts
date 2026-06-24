@@ -19,7 +19,6 @@ export async function registerForPushNotifications() {
     return null;
   }
 
-
   await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
     name: 'Default',
     importance: Notifications.AndroidImportance.MAX,
