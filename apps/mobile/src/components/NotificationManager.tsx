@@ -12,19 +12,11 @@ export function NotificationManager() {
   const router = useRouter();
   const { data: user } = useUser();
   const handledResponseId = useRef<string | null>(null);
-  
-const userQuery = useUser();
-
-console.log('[useUser]', userQuery);
 
   useEffect(() => {
-  console.log('[NotificationManager] userId', user?.id);
-
     if (!user?.id) {
       return;
     }
-
-    console.log('[NotificationManager] register start');
 
     void registerForPushNotifications().catch((error) => {
       console.warn('[notifications] Could not register device token', error);
