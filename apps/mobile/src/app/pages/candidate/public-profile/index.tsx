@@ -47,10 +47,10 @@ import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
   CandidateEducation,
   CandidateExperience,
-  CandidateCertificate,
   CandidateProfileResponse,
   CandidateSocial,
 } from '../../../../types/candidate';
+import { CandidateHeader } from '../../../../components/header/CandidateHeader';
 
 function HeaderIcon({
   children,
@@ -105,14 +105,6 @@ function Card({
 
 function SimpleHome() {
   return <View className="h-3 w-3 rounded-sm border border-[#1f2937]" />;
-}
-
-function SimpleBell() {
-  return (
-    <View className="relative h-3 w-3 rounded-t-full border border-[#1f2937]">
-      <View className="absolute -bottom-1 left-1/2 h-0.5 w-1.5 -translate-x-1/2 rounded-full bg-[#1f2937]" />
-    </View>
-  );
 }
 
 function SimpleEdit() {
@@ -598,7 +590,7 @@ function ProfileContent() {
   const screenOptions = useMemo(() => ({ headerShown: false }), []);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+    <>
       <Stack.Screen options={screenOptions} />
       <StatusBar style="dark" />
 
@@ -620,29 +612,11 @@ function ProfileContent() {
             />
           }
         >
-          <View className="px-3 pt-1">
-            <View className="flex-row items-center justify-between pb-3">
-              <View className="flex-row items-center gap-3">
-                <HeaderIcon onPress={() => setIsSidebarOpen(true)}>
-                  <Menu size={22} color="#25324b" />
-                </HeaderIcon>
-                <Text className="text-2xl font-semibold tracking-[-0.3px] text-[#111827]">
-                  My Profile
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <HeaderIcon>
-                  <SimpleHome />
-                </HeaderIcon>
-                <HeaderIcon>
-                  <View>
-                    <SimpleBell />
-                    <View className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#ff5f5f]" />
-                  </View>
-                </HeaderIcon>
-              </View>
-            </View>
-          </View>
+          <CandidateHeader
+            title="Applications"
+            initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
+            onMenuPress={() => setIsSidebarOpen(true)}
+          />
 
           <View className="px-3">
             <View className="relative pt-14">
@@ -1173,7 +1147,7 @@ function ProfileContent() {
         currentPhone={profile?.phoneNumber || ''}
         onSaved={() => void refetch()}
       />
-    </SafeAreaView>
+    </>
   );
 }
 

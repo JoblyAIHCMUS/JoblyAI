@@ -9,7 +9,6 @@ import { Stack } from 'expo-router';
 
 import { ApplicationsEmptyState } from './components/ApplicationsEmptyState';
 import { ApplicationsFilterSheet } from './components/ApplicationsFilterSheet';
-import { ApplicationsHeader } from './components/ApplicationsHeader';
 import { ApplicationsTabs } from './components/ApplicationsTabs';
 import { ApplicationCard } from './components/ApplicationCard';
 import { FeatureBanner } from './components/FeatureBanner';
@@ -30,6 +29,7 @@ import {
 } from '../dashboard/utils';
 import { getGreetingName, useUser } from '../../../../hooks/useUser';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
+import { CandidateHeader } from '@/components/header/CandidateHeader';
 
 type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
 
@@ -269,11 +269,11 @@ export default function MyApplicationsPage() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="flex-1 bg-app-background-2">
-        <ApplicationsHeader
-          title="My Applications"
+        <CandidateHeader
+          title="Applications"
+          initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
           onMenuPress={() => setIsSidebarOpen(true)}
         />
-
         <FlatList
           data={filteredApplications}
           keyExtractor={(item) => item.id}

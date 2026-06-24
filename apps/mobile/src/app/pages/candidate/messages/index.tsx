@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
-import { ApplicationsHeader } from '../my-applications/components/ApplicationsHeader';
+import { CandidateHeader } from '@/components/header/CandidateHeader';
 import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
 import MessagesSearchBar from '../../employer/messages/components/MessagesSearchBar';
 import MessageListItem from '../../employer/messages/components/MessageListItem';
@@ -62,10 +62,11 @@ export default function MessagesScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <>
         <Stack.Screen options={{ headerShown: false }} />
-        <ApplicationsHeader
+        <CandidateHeader
           title="Messages"
+          initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
           onMenuPress={() => setIsSidebarOpen(true)}
         />
         <MessagesLoading />
@@ -73,7 +74,7 @@ export default function MessagesScreen() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
-      </SafeAreaView>
+      </>
     );
   }
 
@@ -81,8 +82,9 @@ export default function MessagesScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ApplicationsHeader
+        <CandidateHeader
           title="Messages"
+          initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
           onMenuPress={() => setIsSidebarOpen(true)}
         />
         <MessagesError
@@ -102,8 +104,9 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ApplicationsHeader
+      <CandidateHeader
         title="Messages"
+        initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
         onMenuPress={() => setIsSidebarOpen(true)}
       />
 
