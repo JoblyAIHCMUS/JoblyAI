@@ -41,6 +41,7 @@ export class FcmService implements OnModuleInit {
   }
 
   async sendPushToDevices(tokens: string[], payload: PushPayload) {
+    this.logger.log(`sendPushToDevices called, tokens=${tokens.length}`);
     const uniqueTokens = [...new Set(tokens)].filter(Boolean);
     if (!this.messaging || uniqueTokens.length === 0) {
       return {
@@ -68,6 +69,9 @@ export class FcmService implements OnModuleInit {
 
       try {
         const response = await this.messaging.sendEachForMulticast(message);
+        this.logger.log(
+          `FCM success=${response.successCount}, failed=${response.failureCount}`
+        );
         successCount += response.successCount;
         failureCount += response.failureCount;
         response.responses.forEach((item, responseIndex) => {
