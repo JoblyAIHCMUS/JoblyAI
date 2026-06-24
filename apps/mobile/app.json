@@ -21,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jobly.mobile"
+      "package": "com.jobly.mobile",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       [
