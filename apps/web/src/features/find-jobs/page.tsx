@@ -73,8 +73,10 @@ function FindJobsPageContent() {
   const urlQ = searchParams.get('q') || '';
   const urlResumeId = searchParams.get('resumeId');
   const urlLocation = searchParams.get('location') || '';
-  const urlMinSalary = Number(searchParams.get('minSalary')) || 0;
-  const urlMaxSalary = Number(searchParams.get('maxSalary')) || SALARY_MAX_CAP;
+  const minSalaryParam = searchParams.get('minSalary');
+  const urlMinSalary = minSalaryParam !== null ? Number(minSalaryParam) : 0;
+  const maxSalaryParam = searchParams.get('maxSalary');
+  const urlMaxSalary = maxSalaryParam !== null ? Number(maxSalaryParam) : SALARY_MAX_CAP;
   const urlCategories = useMemo(
     () => searchParams.getAll('categoryId'),
     [searchParams]
