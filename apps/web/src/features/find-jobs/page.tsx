@@ -22,6 +22,9 @@ import {
   SALARY_MAX_CAP,
   PAGE_SIZE,
   FILTER_GROUPS as INITIAL_FILTER_GROUPS,
+  SupportedCurrency,
+  capFor,
+  isSupportedCurrency,
 } from './constants';
 
 function getEmploymentTypeFromLabel(
@@ -73,10 +76,20 @@ function FindJobsPageContent() {
   const urlQ = searchParams.get('q') || '';
   const urlResumeId = searchParams.get('resumeId');
   const urlLocation = searchParams.get('location') || '';
+  // --- Salary URL state (currency read FIRST — max default depends on it) ---
+  const salaryCurrencyParam = searchParams.get('salaryCurrency');
+  const urlSalaryCurrency: SupportedCurrency | undefined = isSupportedCurrency(
+    salaryCurrencyParam
+  )
+    ? (salaryCurrencyParam as SupportedCurrency)
+    : undefined;
+
   const minSalaryParam = searchParams.get('minSalary');
   const urlMinSalary = minSalaryParam !== null ? Number(minSalaryParam) : 0;
+
   const maxSalaryParam = searchParams.get('maxSalary');
-  const urlMaxSalary = maxSalaryParam !== null ? Number(maxSalaryParam) : SALARY_MAX_CAP;
+  const urlMaxSalary =
+    maxSalaryParam !== null ? Number(maxSalaryParam) : capFor(urlSalaryCurrency);
   const urlCategories = useMemo(
     () => searchParams.getAll('categoryId'),
     [searchParams]
@@ -98,6 +111,8 @@ function FindJobsPageContent() {
   const [localLocation, setLocalLocation] = useState(urlLocation);
   const [localSalaryMin, setLocalSalaryMin] = useState(urlMinSalary);
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
+  const [localSalaryCurrency, setLocalSalaryCurrency] =
+    useState<SupportedCurrency | undefined>(urlSalaryCurrency);
 
   // Sync local input state when URL changes (e.g. Back button)
   useEffect(() => {
@@ -112,6 +127,9 @@ function FindJobsPageContent() {
   useEffect(() => {
     setLocalSalaryMax(urlMaxSalary);
   }, [urlMaxSalary]);
+  useEffect(() => {
+    setLocalSalaryCurrency(urlSalaryCurrency);
+  }, [urlSalaryCurrency]);
 
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [total, setTotal] = useState(0);
@@ -166,9 +184,14 @@ function FindJobsPageContent() {
   }, [categories, filteredSkills, urlCategories, urlTypes, urlSkills]);
 
   // Helper to update URL
+  // NOTE: reads `searchParams` via the existing ref to avoid `updateURL`
+  // becoming a new reference on every render, which would re-fire any effect
+  // that depends on `updateURL` (causing the salary debounce effect to push
+  // the same URL repeatedly and triggering infinite GET requests).
   const updateURL = useCallback(
     (params: Record<string, string | string[] | number | null>) => {
-      const newParams = new URLSearchParams(searchParams.toString());
+      const current = searchParamsRef.current ?? searchParams;
+      const newParams = new URLSearchParams(current.toString());
       Object.entries(params).forEach(([key, value]) => {
         if (
           value === null ||
@@ -190,7 +213,7 @@ function FindJobsPageContent() {
       }
       router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
     },
-    [searchParams, router, pathname]
+    [router, pathname]
   );
 
   // --- Handlers ---
@@ -252,22 +275,70 @@ function FindJobsPageContent() {
     updateURL({ sort: option });
   };
 
-  const handleSalaryChange = (min: number, max: number) => {
+  const handleSalaryChange = useCallback((min: number, max: number) => {
     setLocalSalaryMin(min);
     setLocalSalaryMax(max);
-  };
+  }, []);
+
+  const handleCurrencyChange = useCallback((currency: SupportedCurrency) => {
+    setLocalSalaryCurrency(currency);
+    // Reset salary range to the full range of the new currency.
+    // Clamping would keep a stale USD cap (500k) when switching to VND,
+    // re-introducing the exact bug this feature fixes.
+    const newCap = capFor(currency);
+    setLocalSalaryMin(0);
+    setLocalSalaryMax(newCap);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (localSalaryMin !== urlMinSalary || localSalaryMax !== urlMaxSalary) {
-        updateURL({
-          minSalary: localSalaryMin > 0 ? localSalaryMin : null,
-          maxSalary: localSalaryMax < SALARY_MAX_CAP ? localSalaryMax : null,
-        });
+      const currentCap = capFor(localSalaryCurrency);
+      const isPristine =
+        localSalaryMin === 0 &&
+        localSalaryMax === currentCap &&
+        localSalaryCurrency === undefined;
+
+      if (isPristine) {
+        // Filter is off — remove all salary params from URL
+        if (
+          urlMinSalary !== 0 ||
+          urlMaxSalary !== capFor(urlSalaryCurrency) ||
+          urlSalaryCurrency !== undefined
+        ) {
+          updateURL({ minSalary: null, maxSalary: null, salaryCurrency: null });
+        }
+      } else {
+        // Guard: only write to URL if the derived state actually differs
+        // from what's already in the URL. Prevents an infinite loop where
+        // updateURL → router.push → re-render → effect re-fires → updateURL.
+        const intendedMin = localSalaryMin > 0 ? localSalaryMin : null;
+        const intendedMax = localSalaryMax < currentCap ? localSalaryMax : null;
+        const intendedCurrency = localSalaryCurrency ?? null;
+
+        const minChanged = intendedMin !== (urlMinSalary > 0 ? urlMinSalary : null);
+        const maxChanged =
+          intendedMax !== (urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : null);
+        const currencyChanged = intendedCurrency !== (urlSalaryCurrency ?? null);
+
+        if (minChanged || maxChanged || currencyChanged) {
+          updateURL({
+            minSalary: intendedMin,
+            maxSalary: intendedMax,
+            salaryCurrency: intendedCurrency,
+          });
+        }
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [localSalaryMin, localSalaryMax, urlMinSalary, urlMaxSalary, updateURL]);
+  }, [
+    localSalaryMin,
+    localSalaryMax,
+    localSalaryCurrency,
+    urlMinSalary,
+    urlMaxSalary,
+    urlSalaryCurrency,
+    updateURL,
+  ]);
 
   const setCurrentPage = (page: number) => {
     updateURL({ page });
@@ -278,6 +349,7 @@ function FindJobsPageContent() {
     setLocalLocation('');
     setLocalSalaryMin(0);
     setLocalSalaryMax(SALARY_MAX_CAP);
+    setLocalSalaryCurrency(undefined);
     salaryFilterRef.current?.reset();
     // Redirect to the base path to clear all query params including resumeId
     router.push(pathname);
@@ -312,7 +384,11 @@ function FindJobsPageContent() {
           categories:
             urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
           salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-          salaryMax: urlMaxSalary,
+          salaryMax:
+            urlMaxSalary < capFor(urlSalaryCurrency)
+              ? urlMaxSalary
+              : undefined,
+          currency: urlSalaryCurrency,
           skills: urlSkills.length > 0 ? urlSkills : undefined,
         };
 
@@ -347,6 +423,7 @@ function FindJobsPageContent() {
     urlLocation,
     urlMinSalary,
     urlMaxSalary,
+    urlSalaryCurrency,
     urlCategories,
     urlTypes,
     urlSkills,
@@ -403,6 +480,8 @@ function FindJobsPageContent() {
         checkedMap={checkedMap}
         handleToggle={handleToggle}
         onSalaryChange={handleSalaryChange}
+        onCurrencyChange={handleCurrencyChange}
+        currency={localSalaryCurrency ?? 'USD'}
         salaryFilterRef={salaryFilterRef}
         handleReset={handleReset}
         salaryMin={localSalaryMin}
