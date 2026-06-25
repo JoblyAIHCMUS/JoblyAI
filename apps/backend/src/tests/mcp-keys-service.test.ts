@@ -17,51 +17,71 @@ describe('McpKeysService', () => {
   });
 
   describe('create', () => {
-    it('calls createApiKey with userId, returns view with plaintext key', async () => {
+    it('calls createApiKey with permissions and returns view with plaintext key', async () => {
       const createdAt = new Date('2026-06-21T00:00:00Z');
       createSpy.mockResolvedValue({
         id: 'key-123',
         key: 'jobly_sk_abc123def456',
         prefix: 'jobly_sk_',
-        name: 'API Key',
+        name: 'My Employer Key',
         createdAt,
         lastRequest: null,
         expiresAt: null,
+        permissions: { role: ['employer'] },
       } as never);
 
-      const result = await service.create('user-123');
+      const result = await service.create('user-123', {
+        role: 'employer',
+        name: 'My Employer Key',
+      });
 
       expect(createSpy).toHaveBeenCalledWith({
-        body: { userId: 'user-123', name: 'API Key' },
+        body: {
+          userId: 'user-123',
+          name: 'My Employer Key',
+          permissions: { role: ['employer'] },
+        },
       });
       expect(result).toEqual({
         id: 'key-123',
         key: 'jobly_sk_abc123def456',
         prefix: 'jobly_sk_',
-        name: 'API Key',
+        name: 'My Employer Key',
         createdAt,
         lastRequest: null,
         expiresAt: null,
+        role: 'employer',
       });
     });
   });
 
   describe('list', () => {
-    it('calls listApiKeys and strips hashed key from each result', async () => {
+    it('calls listApiKeys, strips hashed key, and projects role from permissions', async () => {
       const createdAt = new Date('2026-06-21T00:00:00Z');
       listSpy.mockResolvedValue({
         apiKeys: [
           {
             id: 'key-123',
-            name: 'My Key',
+            name: 'My Employer Key',
             prefix: 'jobly_sk_',
             key: 'hashed_value_should_be_stripped',
             createdAt,
             lastRequest: null,
             expiresAt: null,
+            permissions: { role: ['employer'] },
+          },
+          {
+            id: 'key-456',
+            name: 'Legacy Key',
+            prefix: 'jobly_sk_',
+            key: 'hashed_value',
+            createdAt,
+            lastRequest: null,
+            expiresAt: null,
+            permissions: null,
           },
         ],
-        total: 1,
+        total: 2,
         limit: 10,
         offset: 0,
       } as never);
@@ -76,11 +96,21 @@ describe('McpKeysService', () => {
       expect(result).toEqual([
         {
           id: 'key-123',
-          name: 'My Key',
+          name: 'My Employer Key',
           prefix: 'jobly_sk_',
           createdAt,
           lastRequest: null,
           expiresAt: null,
+          role: 'employer',
+        },
+        {
+          id: 'key-456',
+          name: 'Legacy Key',
+          prefix: 'jobly_sk_',
+          createdAt,
+          lastRequest: null,
+          expiresAt: null,
+          role: null,
         },
       ]);
       expect(result[0]).not.toHaveProperty('key');

@@ -5,6 +5,7 @@ export interface McpKeyView {
   createdAt: Date;
   lastRequest: Date | null;
   expiresAt: Date | null;
+  role: 'employer' | 'candidate' | null;
 }
 
 export interface CreateMcpKeyResponse extends McpKeyView {

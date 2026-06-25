@@ -6,8 +6,11 @@ The server is **stateless** — every request creates a fresh `StreamableHTTPSer
 
 ```
 v1 scope: foundation + whoami tool + API-key CRUD.
-v2+ scope: business tools (candidate/employer read+write), one file per tool.
+v2 scope: role-gated API keys + employer tools (read + write), one file per tool.
+v3+ scope: candidate tools, advanced workflows.
 ```
+
+**Role gating:** every MCP key carries a single role (`employer` or `candidate`) stored in Better-Auth's `apikey.permissions` JSON column. The `ApiKeyGuard` reads it on every request, the `McpEndpointController` resolves the caller's `companyId` (for `employer` keys), and the `McpFactory` conditionally registers tool groups based on the role. v2 ships employer tools only; candidate keys authenticate successfully but get an empty tool list.
 
 ---
 
@@ -29,11 +32,11 @@ model Apikey {
   refillInterval      Int?
   refillAmount        Int?
   lastRefillAt        DateTime?
-  enabled             Boolean?    @default(true)
-  rateLimitEnabled    Boolean?    @default(true)
-  rateLimitTimeWindow Int?        @default(86400000)   // 24h
-  rateLimitMax        Int?        @default(10)        // 10 req per window
-  requestCount        Int?        @default(0)
+  enabled             Boolean?  @default(true)
+  rateLimitEnabled    Boolean?  @default(true)
+  rateLimitTimeWindow Int?      @default(86400000)
+  rateLimitMax        Int?      @default(10)
+  requestCount        Int?      @default(0)
   remaining           Int?
   lastRequest         DateTime?
   expiresAt           DateTime?
@@ -58,6 +61,8 @@ model Apikey {
 **Key shape:** plaintext (e.g. `jobly_sk_aB3xY...`) is shown to the user exactly once on `POST /api/mcp-keys`. The DB stores the bcrypt hash. The `prefix` is kept verbatim for display/identification; the `start` column stores the first 6 characters (Better-Auth's `startingCharactersConfig.charactersLength` default) so the UI can show partial keys without revealing them.
 
 **Per-key rate-limit fields** (`rateLimitMax` / `rateLimitTimeWindow` / `rateLimitEnabled`) are baked in at creation time from the plugin config (see §3). Updating the plugin config does **not** affect existing keys — to change a key's limits, the user must delete and recreate it.
+
+**`permissions` column** (`String?`, JSON-encoded `Record<string, string[]>`) — set at key creation via `auth.api.createApiKey({ body: { ..., permissions: { role: ['employer'] } } })`. v2 stores a single key `role` with one-element array `['employer' | 'candidate']`. The `ApiKeyGuard` parses it on every request and rejects keys without a valid role (see §3a).
 
 ---
 
@@ -91,7 +96,7 @@ apiKey({
 
 **Plugin package:** `apiKey` is imported from `@better-auth/api-key@1.6.19` (NOT from `better-auth/plugins`). The version is pinned to match the installed `better-auth@1.6.19`.
 
-**Per-key override at creation:** the service could pass `rateLimitMax` / `rateLimitTimeWindow` to `auth.api.createApiKey`, but the v1 service uses the plugin defaults and hardcodes `name: 'API Key'` (see §4).
+**Per-key override at creation:** the service could pass `rateLimitMax` / `rateLimitTimeWindow` to `auth.api.createApiKey`, but the v2 service uses the plugin defaults and passes `name` + `permissions` from the DTO (see §4).
 
 ---
 
@@ -111,19 +116,25 @@ Two independent auth surfaces, both routed through the same NestJS module:
 3. await auth.api.verifyApiKey({ body: { key } })
 4. !result.valid                  → 401 invalid_api_key
 5. !result.key?.referenceId       → 500 key_misconfigured
-6. request.mcpUserId = result.key.referenceId
-7. return true
+6. Parse result.key.permissions   → read .role[0]
+   - missing / not 1 element      → 401 role_not_set
+   - value not in {employer, candidate} → 401 invalid_role
+7. request.mcpUserId = result.key.referenceId
+8. request.mcpRole  = role
+9. return true
 ```
 
 **Every 401** (missing, malformed, invalid) sets `WWW-Authenticate: Bearer realm="jobly-mcp"` on the response (RFC 6750 §3). This tells well-behaved clients to use Bearer auth, not OAuth — eliminating noisy OAuth discovery probes (`/.well-known/oauth-protected-resource`, `/.well-known/oauth-authorization-server`, `/.well-known/openid-configuration`, `POST /register`) when opencode falls back to discovery after a 401.
 
 **Verify error mapping** (no-guard state):
 
-| `verifyApiKey` outcome                          | Response                                  |
-| ----------------------------------------------- | ----------------------------------------- |
-| `result.valid === false`                        | 401 `invalid_api_key`                     |
-| `result.key?.referenceId` is `null`/`undefined` | 500 `key_misconfigured`                   |
-| `verifyApiKey` throws (DB error, etc.)          | unhandled — bubbles to Nest's default 500 |
+| `verifyApiKey` outcome                                        | Response                                  |
+| ------------------------------------------------------------- | ----------------------------------------- |
+| `result.valid === false`                                      | 401 `invalid_api_key`                     |
+| `result.key?.referenceId` is `null`/`undefined`               | 500 `key_misconfigured`                   |
+| `result.key.permissions` missing / `role` not 1-element array | 401 `role_not_set`                        |
+| `permissions.role[0]` not in `{employer, candidate}`          | 401 `invalid_role`                        |
+| `verifyApiKey` throws (DB error, etc.)                        | unhandled — bubbles to Nest's default 500 |
 
 **Rate-limit behavior:** if a key has already exceeded its per-key limit, `verifyApiKey` returns `{ valid: false, error: { code: 'RATE_LIMITED' } }` — mapped to 401 `invalid_api_key`. The library throws a separate `APIError` with statusCode 429 in some versions; in that case the call bubbles and Nest returns 500. The first behavior is the one we observe with `@better-auth/api-key@1.6.19`.
 
@@ -140,20 +151,21 @@ This is the SAME `AuthGuard` used everywhere else in the app — the MCP module 
 ```ts
 export interface RequestWithMcpUser extends Request {
   mcpUserId?: string;
+  mcpRole?: 'employer' | 'candidate';
 }
 ```
 
-The `mcpUserId` is attached by `ApiKeyGuard` after successful verification. The `McpEndpointController` reads it on the same request (`mcp-endpoint.controller.ts:29`):
+Both `mcpUserId` and `mcpRole` are attached by `ApiKeyGuard` after successful verification. The `McpEndpointController` reads them on the same request (`mcp-endpoint.controller.ts:29`):
 
 ```ts
-if (!req.mcpUserId) {
-  this.logger.error('mcpUserId missing on request after guard');
+if (!req.mcpUserId || !req.mcpRole) {
+  this.logger.error('mcpUserId or mcpRole missing on request after guard');
   if (!res.headersSent) res.status(500).json({ error: 'internal_error' });
   return;
 }
 ```
 
-This is a **defensive guard** (avoids `@typescript-eslint/no-non-null-assertion`). The guard always sets `mcpUserId` on success, so this branch is unreachable in practice — but it protects against future guard refactors that might forget the assignment.
+This is a **defensive guard** (avoids `@typescript-eslint/no-non-null-assertion`). The guard always sets both on success, so this branch is unreachable in practice — but it protects against future guard refactors that might forget the assignment.
 
 ---
 
@@ -161,13 +173,25 @@ This is a **defensive guard** (avoids `@typescript-eslint/no-non-null-assertion`
 
 `apps/backend/src/app/mcp/keys/` — three endpoints, all under `/api/mcp-keys`, all session-protected:
 
-| Method   | Endpoint            | Body    | Returns                                      |
-| -------- | ------------------- | ------- | -------------------------------------------- |
-| `POST`   | `/api/mcp-keys`     | (empty) | `CreateMcpKeyResponse` (with one-time `key`) |
-| `GET`    | `/api/mcp-keys`     | —       | `McpKeyView[]`                               |
-| `DELETE` | `/api/mcp-keys/:id` | —       | `204 No Content`                             |
+| Method   | Endpoint            | Body              | Returns                                      |
+| -------- | ------------------- | ----------------- | -------------------------------------------- |
+| `POST`   | `/api/mcp-keys`     | `CreateMcpKeyDto` | `CreateMcpKeyResponse` (with one-time `key`) |
+| `GET`    | `/api/mcp-keys`     | —                 | `McpKeyView[]`                               |
+| `DELETE` | `/api/mcp-keys/:id` | —                 | `204 No Content`                             |
 
-`POST` is a **no-body** endpoint: the service hardcodes `name: 'API Key'`. One-key-per-user enforcement (409 on duplicate) is deferred to v2.
+`POST` body schema (`apps/backend/src/app/mcp/keys/dto/create-mcp-key.dto.ts`):
+
+```ts
+class CreateMcpKeyDto {
+  @IsIn(['employer', 'candidate'])
+  role!: 'employer' | 'candidate';
+
+  @IsString()
+  name!: string;
+}
+```
+
+The role is **mandatory** and gates the entire key. One user may have one key per role (no DB-level enforcement yet — duplicate keys are accepted; the user is expected to delete the old one).
 
 ### View DTOs
 
@@ -181,12 +205,15 @@ export interface McpKeyView {
   createdAt: Date;
   lastRequest: Date | null;
   expiresAt: Date | null;
+  role: 'employer' | 'candidate' | null;
 }
 
 export interface CreateMcpKeyResponse extends McpKeyView {
   key: string; // ← plaintext; one-time only
 }
 ```
+
+`role` is parsed from the key's stored `permissions` JSON (`permissions.role[0]`); `null` for malformed or missing role data.
 
 **Field-name note:** the DB column is `lastRequest` (not `lastUsedAt` as the spec originally said). The view DTO uses the actual DB field.
 
@@ -195,22 +222,27 @@ export interface CreateMcpKeyResponse extends McpKeyView {
 `mcp-keys.service.ts` — thin wrapper over Better-Auth's `auth.api`:
 
 ```ts
-async create(userId: string): Promise<CreateMcpKeyResponse> {
+async create(userId: string, dto: CreateMcpKeyDto): Promise<CreateMcpKeyResponse> {
   const result = await auth.api.createApiKey({
-    body: { userId, name: 'API Key' },
+    body: { userId, name: dto.name, permissions: { role: [dto.role] } },
   });
-  return { id, key, prefix, name, createdAt, lastRequest, expiresAt };
+  return { id, key, prefix, name, createdAt, lastRequest, expiresAt, role: dto.role };
 }
 
 async list(headers): Promise<McpKeyView[]> {
   const { apiKeys } = await auth.api.listApiKeys({ headers });
-  return apiKeys.map(/* project to McpKeyView */);
+  return apiKeys.map(key => {
+    const role = (key.permissions as { role?: string[] } | null)?.role?.[0];
+    return { /* ... */, role: role === 'employer' || role === 'candidate' ? role : null };
+  });
 }
 
 async delete(keyId: string): Promise<void> {
   await auth.api.deleteApiKey({ body: { keyId } });
 }
 ```
+
+**`createApiKey` permissions:** passed as `permissions: { role: [dto.role] }` — a single-element array under the `role` key. The `ApiKeyGuard` expects exactly this shape (see §3a).
 
 **`listApiKeys` return shape** (`@better-auth/api-key@1.6.19`): `{ apiKeys: [...], total, limit, offset }` — the service destructures `apiKeys`. An earlier draft of the spec assumed a raw array; that was wrong.
 
@@ -227,36 +259,47 @@ async delete(keyId: string): Promise<void> {
 ```ts
 @UseGuards(ApiKeyGuard)
 async handleMcp(@Req() req: RequestWithMcpUser, @Res() res: Response): Promise<void> {
-  if (!req.mcpUserId) { /* defensive 500 */ return; }
+  if (!req.mcpUserId || !req.mcpRole) { /* defensive 500 */ return; }
   const userId = req.mcpUserId;
+  const role = req.mcpRole;
 
-  // 1. Create per-request transport — stateless, no sessionIdGenerator
+  // 1. Resolve companyId for employer keys (single per-request DB lookup)
+  const employer = await this.prisma.employer.findUnique({
+    where: { employerId: userId },
+    select: { companyId: true },
+  });
+
+  // 2. Create per-request transport — stateless, no sessionIdGenerator
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
   });
 
-  // 2. Create per-request McpServer with caller-scoped state
+  // 3. Create per-request McpServer with caller-scoped state
   const server = createMcpServer({
     userId,
+    role,
+    companyId: employer?.companyId ?? null,
     prisma: this.prisma,
     logger: this.logger,
   });
 
-  // 3. Wire transport to server
+  // 4. Wire transport to server
   await server.connect(transport);
 
-  // 4. Cleanup on response close (idle timeout, disconnect, error)
+  // 5. Cleanup on response close (idle timeout, disconnect, error)
   res.on('close', () => {
     void transport.close();
     void server.close();
   });
 
-  // 5. Handle the JSON-RPC message
+  // 6. Handle the JSON-RPC message
   try {
     await transport.handleRequest(req, res, req.body);
   } catch (err) {
     this.logger.error({ err, userId }, 'mcp.handleRequest failed');
-    if (!res.headersSent) res.status(500).json({ error: 'internal_error' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'internal_error' });
+    }
   }
 }
 ```
@@ -345,19 +388,64 @@ export function registerWhoamiTool(server: McpServer, state: McpState): void {
 
 **`structuredContent`:** when the tool's `outputSchema` declares a shape, the SDK requires the result to include `structuredContent` matching that shape. `whoami` returns both `content` (text fallback for clients that don't render structured) and `structuredContent` (the typed payload).
 
-**`McpState`:** `apps/backend/src/app/mcp/server/mcp.types.ts:4-7`:
+**`McpState`:** `apps/backend/src/app/mcp/server/mcp.types.ts:4-12`:
 
 ```ts
+export type McpRole = 'employer' | 'candidate';
+
 export interface McpState {
   userId: string;
+  role: McpRole;
+  companyId: number | null;
   prisma: PrismaClient;
   logger: Logger;
 }
 ```
 
-Tools that need additional state (e.g. an AI client for a `summarize` tool) should extend this in v2 — not bloat the base interface.
+`role` and `companyId` are resolved per-request by the `McpEndpointController` (see §5). `companyId` is `null` for `candidate` keys (and for `employer` keys where the user has no `employer` row, which is a config error). Tools that need additional state (e.g. an AI client for a `summarize` tool) should extend this in v3+ — not bloat the base interface.
 
 **User model caveat:** the `User` model has no `candidate` field — only `candidateDescription` (1:1) and `resumes` (1:many). `hasCandidateProfile` is derived: `!!user.candidateDescription || user.resumes.length > 0`.
+
+---
+
+## 6b. Tools — employer (v2)
+
+Nine employer-scoped tools, all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
+
+| File                        | Tool name           | Purpose                                                                                                                                                            |
+| --------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get-my-company.tool.ts`    | `get_my_company`    | Resolve the caller's company (uses `state.companyId`)                                                                                                              |
+| `list-categories.tool.ts`   | `list_categories`   | List all job categories                                                                                                                                            |
+| `list-skills.tool.ts`       | `list_skills`       | List all skills                                                                                                                                                    |
+| `list-jobs.tool.ts`         | `list_jobs`         | Paginated list of the caller's own jobs (filtered by `postedById`); `{ jobs, total, page, pageSize, totalPages }`                                                  |
+| `get-job.tool.ts`           | `get_job`           | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message)                                                                  |
+| `create-job.tool.ts`        | `create_job`        | Create a job (auto-injects `state.companyId` + `postedById`; rejects if `state.companyId === null`)                                                                |
+| `update-job.tool.ts`        | `update_job`        | Update a job; rejects if `job.postedById !== state.userId`; no companyId check                                                                                     |
+| `change-job-status.tool.ts` | `change_job_status` | Change a job's status; rejects if `job.postedById !== state.userId`; no companyId check                                                                            |
+| `list-applicants.tool.ts`   | `list_applicants`   | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
+
+**Switchboard:** `register-employer-tools.ts` calls all nine `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
+
+```ts
+if (state.role === 'employer') {
+  registerEmployerTools(server, state);
+}
+```
+
+Candidate keys (`state.role === 'candidate'`) skip this branch — they see only `whoami`.
+
+**Shared Zod schemas:** `employer.types.ts` defines input shapes for tools that need them (`CreateJobInputSchema`, `UpdateJobInputSchema`, `ListJobsInputSchema`, `ListApplicantsInputSchema`, `ChangeJobStatusInputSchema`, `GetJobInputSchema`, `JobRequirementInputSchema`). Prisma enums are referenced via `z.enum(JobStatus)`, `z.enum(EmploymentType)`, `z.enum(RequirementImportance)`, `z.enum(ApplicationStatus)` — zod v4 syntax (not `z.nativeEnum`, which is deprecated).
+
+**Ownership model — two separate axes:** tools enforce either `companyId` scoping or `postedById` scoping depending on what's appropriate. There is **no cross-company access** in any tool, but cross-user access within the same company IS allowed for read-only tools:
+
+- **`companyId` scope** (verifies the job belongs to caller's company): `get_job`, `list_applicants`. Both reject cross-company access with `Forbidden: job does not belong to your company`.
+- **`postedById` scope** (verifies the caller originally posted the job): `update_job`, `change_job_status`. Both reject with `Forbidden: only the job poster can …`. This is stricter than `companyId` scoping — it prevents one user in a company from editing another's job.
+- **`postedById` filter (listing)**: `list_jobs` returns only jobs where `postedById === state.userId`, regardless of company membership.
+- **Auto-injected on create**: `create_job` writes `companyId: state.companyId` and `postedById: state.userId` into the new row; the client never sets these. The handler also rejects with `Forbidden: no employer profile` if `state.companyId === null`.
+
+**Trade-off:** the `postedById`-only checks on `update_job` and `change_job_status` mean a company with multiple users cannot have one user close another's job. An admin/manager role with broader edit rights is out of scope (see §11).
+
+**Handler pattern:** same as `whoami` (§6) — each tool exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All nine handlers are unit-tested directly (no `McpServer.callTool` available — see §6 "Why two exports").
 
 ---
 
@@ -394,18 +482,32 @@ app.enableCors({
 apps/backend/src/app/mcp/
 ├── mcp.module.ts                # Nest module wiring (imports AuthModule)
 ├── auth/
-│   ├── api-key.guard.ts         # Bearer key validation, WWW-Authenticate
-│   └── api-key.types.ts         # RequestWithMcpUser
+│   ├── api-key.guard.ts         # Bearer key validation, role parsing, WWW-Authenticate
+│   └── api-key.types.ts         # RequestWithMcpUser (mcpUserId + mcpRole)
 ├── server/
-│   ├── mcp.types.ts             # McpState interface
-│   ├── mcp.factory.ts           # createMcpServer(state) — registers all tools
-│   └── mcp-endpoint.controller.ts  # @All('mcp') Streamable HTTP handler
+│   ├── mcp.types.ts             # McpState interface + McpRole type
+│   ├── mcp.factory.ts           # createMcpServer(state) — role-gated tool registration
+│   └── mcp-endpoint.controller.ts  # @All('mcp') Streamable HTTP handler; resolves companyId
 ├── keys/
 │   ├── mcp-keys.service.ts      # auth.api.createApiKey / listApiKeys / deleteApiKey
 │   ├── mcp-keys.controller.ts   # @Controller('mcp-keys') + AuthGuard
-│   └── dto/mcp-key.view.ts      # McpKeyView + CreateMcpKeyResponse
+│   └── dto/
+│       ├── mcp-key.view.ts      # McpKeyView + CreateMcpKeyResponse (includes role)
+│       └── create-mcp-key.dto.ts  # CreateMcpKeyDto (role + name)
 └── tools/
-    └── whoami.tool.ts           # whoamiHandler + registerWhoamiTool
+    ├── whoami.tool.ts           # whoamiHandler + registerWhoamiTool (every role)
+    └── employer/
+        ├── register-employer-tools.ts  # Switchboard: registers all 9 employer tools
+        ├── employer.types.ts           # Shared Zod input schemas
+        ├── get-my-company.tool.ts
+        ├── list-categories.tool.ts
+        ├── list-skills.tool.ts
+        ├── list-jobs.tool.ts
+        ├── get-job.tool.ts
+        ├── create-job.tool.ts          # Auto-injects companyId + postedById
+        ├── update-job.tool.ts          # Verifies postedById === state.userId
+        ├── change-job-status.tool.ts
+        └── list-applicants.tool.ts
 ```
 
 **`DatabaseModule` is `@Global()`** (`apps/backend/src/app/utils/databases.ts`) — no import needed in `McpModule` for `'PRISMA_CLIENT'`. `AuthModule` IS imported because `AuthGuard` depends on `AuthService` (without the import, Nest's DI throws at controller instantiation).
@@ -423,28 +525,33 @@ apps/backend/src/app/mcp/
 │  opencode.json:                         │          │  McpModule (apps/backend/src/app/mcp/)       │
 │  {                                      │          │  ├─ imports: [AuthModule]                    │
 │    "mcp": {                             │          │  │                                           │
-│      "type": "remote",                  │          │  ├─ ApiKeyGuard (Bearer → mcpUserId)         │
-│      "url": ".../api/mcp",              │          │  │  ├─ WWW-Authenticate on 401               │
-│      "headers": {                       │          │  │  └─ verifyApiKey → 200 or 401              │
-│        "Authorization": "Bearer …sk_…"  │          │  │                                           │
-│      }                                  │          │  ├─ McpKeysService (auth.api)               │
-│    }                                    │          │  │  ├─ createApiKey                          │
-│  }                                      │          │  │  ├─ listApiKeys (destructure .apiKeys)    │
-│                                         │          │  │  └─ deleteApiKey                          │
-│  Lifecycle per request:                 │          │  │                                           │
-│   1. initialize (JSON-RPC)              │          │  ├─ McpKeysController                       │
-│   2. tools/list → [whoami]              │──REST────┼─▶│  @UseGuards(AuthGuard)                    │
-│   3. tools/call {name: "whoami", ...}   │          │  │  POST   /api/mcp-keys       → key (once)  │
+│      "type": "remote",                  │          │  ├─ ApiKeyGuard (Bearer → mcpUserId+mcpRole) │
+│      "url": ".../api/mcp",              │          │  │  ├─ verifyApiKey → 200 or 401              │
+│      "headers": {                       │          │  │  ├─ parse permissions.role[0]             │
+│        "Authorization": "Bearer …sk_…"  │          │  │  ├─ reject if role missing/invalid         │
+│      }                                  │          │  │  └─ WWW-Authenticate on 401               │
+│    }                                    │          │  │                                           │
+│  }                                      │          │  ├─ McpKeysService (auth.api)               │
+│                                         │          │  │  ├─ createApiKey({ permissions: {role} }) │
+│  Lifecycle per request:                 │          │  │  ├─ listApiKeys (destructure .apiKeys)    │
+│   1. initialize (JSON-RPC)              │          │  │  └─ deleteApiKey                          │
+│   2. tools/list → employer tools        │          │  │                                           │
+│   3. tools/call {name: "...", ...}      │          │  ├─ McpKeysController                       │
+│                                         │──REST────┼─▶│  @UseGuards(AuthGuard)                    │
+│   (no sessionId — every request         │          │  │  POST   /api/mcp-keys       → key (once)  │
+│    sends a fresh Bearer header)         │          │  │           body: { role, name }            │
 │                                         │          │  │  GET    /api/mcp-keys       → McpKeyView[]│
-│   (no sessionId — every request         │          │  │  DELETE /api/mcp-keys/:id   → 204          │
-│    sends a fresh Bearer header)         │          │  │                                           │
+│                                         │          │  │  DELETE /api/mcp-keys/:id   → 204          │
+│                                         │          │  │                                           │
 │                                         │          │  └─ McpEndpointController                   │
 │                                         │──HTTP────┼──▶@All('mcp') + ApiKeyGuard                 │
 │                                         │  ALL     │     ┌────────────────────────────────────┐  │
 │                                         │          │     │  Per request:                      │  │
+│                                         │          │     │   employer = prisma.employer.find…  │  │
 │                                         │          │     │   transport = new Streamable…()    │  │
 │                                         │          │     │   server   = createMcpServer({    │  │
-│                                         │          │     │     userId, prisma, logger })     │  │
+│                                         │          │     │     userId, role, companyId,     │  │
+│                                         │          │     │     prisma, logger })             │  │
 │                                         │          │     │   await server.connect(transport) │  │
 │                                         │          │     │   res.on('close', cleanup)        │  │
 │                                         │          │     │   await transport.handleRequest(  │  │
@@ -453,16 +560,25 @@ apps/backend/src/app/mcp/
 │                                         │          │                                              │
 │                                         │          │  McpFactory (createMcpServer)               │
 │                                         │          │   new McpServer({ name: 'jobly-mcp',        │
-│                                         │          │                     version: '0.1.0' })     │
+│                                         │          │                     version: '0.2.0' })     │
 │                                         │          │   registerWhoamiTool(server, state)         │
+│                                         │          │   if (role === 'employer')                  │
+│                                         │          │     registerEmployerTools(server, state)    │
 │                                         │          │                                              │
 │                                         │          │  Tools (apps/backend/src/app/mcp/tools/)     │
 │                                         │          │   whoami.tool.ts                            │
 │                                         │          │   ├─ whoamiHandler(state) → tool result     │
 │                                         │          │   └─ registerWhoamiTool(server, state)      │
+│                                         │          │   employer/                                 │
+│                                         │          │   ├─ register-employer-tools.ts (switchboard)│
+│                                         │          │   ├─ employer.types.ts (zod schemas)         │
+│                                         │          │   ├─ get-my-company, list-categories, …     │
+│                                         │          │   └─ 9 tools: read + mutation, all scoped  │  │
+│                                         │          │      to state.companyId                     │
 │                                         │          │                                              │
 │                                         │          │  Apikey table (PostgreSQL, Prisma)          │
 │                                         │          │   id, prefix, key (hashed), referenceId    │
+│                                         │          │   permissions: '{ "role": ["employer"] }'   │
 │                                         │          │   rateLimitMax, rateLimitTimeWindow        │
 │                                         │          │   lastRequest, enabled, expiresAt           │
 │                                         │          │                                              │
@@ -479,15 +595,25 @@ apps/backend/src/app/mcp/
 
 ## 10. Testing
 
-17 tests across 5 files, all passing. Full suite: 244/244.
+49 tests across 15 MCP files, all passing. Full suite: 278/278.
 
-| Test file                         | Tests | What it covers                                                                                                                               |
-| --------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp-api-key-guard.test.ts`       | 5     | 401 paths (missing/malformed/invalid), success path, `key_misconfigured` 500, `WWW-Authenticate` header on every 401                         |
-| `mcp-keys-service.test.ts`        | 3     | `create` returns full view + one-time `key`, `list` destructures `apiKeys`, `delete` passes `keyId`                                          |
-| `mcp-keys-controller.test.ts`     | 3     | Manual construction (`Test.createTestingModule` failed); POST creates + reads `req.user.id`, GET lists with auth header, DELETE passes `:id` |
-| `mcp-whoami-tool.test.ts`         | 3     | Tests `whoamiHandler` directly (no `McpServer.callTool` available); user-found path, user-not-found error, prisma throws → tool error        |
-| `mcp-endpoint-controller.test.ts` | 3     | Per-request transport + server, `mcpUserId` attached, defensive 500 if missing, `vi.fn` + `function()` syntax for constructable mocks        |
+| Test file                            | Tests | What it covers                                                                                                                                                                    |
+| ------------------------------------ | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp-api-key-guard.test.ts`          | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                      |
+| `mcp-keys-service.test.ts`           | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                  |
+| `mcp-keys-controller.test.ts`        | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                  |
+| `mcp-whoami-tool.test.ts`            | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                       |
+| `mcp-endpoint-controller.test.ts`    | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
+| `mcp-factory.test.ts`                | 2     | `createMcpServer` registers `whoami` only for `candidate`; registers `whoami` + 9 employer tools for `employer`                                                                   |
+| `mcp-get-my-company-tool.test.ts`    | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                     |
+| `mcp-list-categories-tool.test.ts`   | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                      |
+| `mcp-list-skills-tool.test.ts`       | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                |
+| `mcp-list-jobs-tool.test.ts`         | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                     |
+| `mcp-get-job-tool.test.ts`           | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company                                    |
+| `mcp-create-job-tool.test.ts`        | 3     | `create_job` auto-injects `companyId` + `postedById`; "Forbidden: no employer profile" when `state.companyId === null`; isError on prisma throw                                   |
+| `mcp-update-job-tool.test.ts`        | 3     | `update_job` updates fields when caller owns; "Job not found" when missing; "Forbidden: only the job poster can edit this job" when postedById differs                            |
+| `mcp-change-job-status-tool.test.ts` | 3     | `change_job_status` updates status when caller owns; "Job not found" when missing; "Forbidden: only the job poster can change this job's status" when postedById differs          |
+| `mcp-list-applicants-tool.test.ts`   | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                  |
 
 **Test patterns worth keeping:**
 
@@ -500,9 +626,11 @@ apps/backend/src/app/mcp/
 
 ---
 
-## 11. Out of scope (v2+)
+## 11. Out of scope (v3+)
 
-- **Business tools** — one file per tool in `mcp/tools/` (`resume-search.tool.ts`, `job-match.tool.ts`, etc.), registered in `mcp.factory.ts`. Each follows the `whoamiHandler` + `registerWhoamiTool` pattern.
-- **Tool permission scopes** — Better-Auth supports per-key `permissions` (JSON-string column). v1 ignores them.
+- **Candidate tools** — `role === 'candidate'` keys authenticate successfully and see only `whoami`. Candidate-scoped tools (e.g. `search_jobs`, `apply_to_job`, `update_resume`) follow the same `<x>Handler` + `register*Tool` pattern, registered behind `if (state.role === 'candidate')` in `mcp.factory.ts`.
+- **One-key-per-role enforcement** — the service accepts duplicate keys for the same `(userId, role)` pair. The UI is expected to delete the old key; a DB-level unique index is deferred.
 - **Stateful mode** — confirmed off the table. CORS headers for `Mcp-Session-Id` are present for forward-compat only.
-- **AI / streaming** — `whoami` is read-only. v2 tools that call LLMs (e.g. `summarize-resume`) will need streaming SSE or chunked responses — currently unhandled by the stateless transport.
+- **AI / streaming** — every shipped tool is deterministic. v3+ tools that call LLMs (e.g. `summarize-resume`) will need streaming SSE or chunked responses — currently unhandled by the stateless transport.
+- **Cross-company admin tools** — all employer tools scope to `state.companyId`. A superuser that can act across companies would need a separate `admin` role and a separate tool group.
+- **Granular per-tool permissions** — the `permissions` JSON column currently stores a single `role`. v3+ could add per-tool scopes (e.g. `{ role: ['employer'], tools: ['read_only'] }`) and have the guard/factory consult them.

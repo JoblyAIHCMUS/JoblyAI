@@ -20,22 +20,24 @@ describe('McpKeysController', () => {
   });
 
   describe('create', () => {
-    it('calls service.create with req.user.id', async () => {
+    it('calls service.create with req.user.id and the body DTO', async () => {
       const mockReq = { user: { id: 'user-123' } };
+      const mockBody = { role: 'employer' as const, name: 'My Key' };
       const mockResult = {
         id: 'key-123',
         key: 'jobly_sk_abc123',
         prefix: 'jobly_sk_',
-        name: 'API Key',
+        name: 'My Key',
         createdAt: new Date(),
         lastRequest: null,
         expiresAt: null,
+        role: 'employer',
       };
       service.create.mockResolvedValue(mockResult);
 
-      const result = await controller.create(mockReq as never);
+      const result = await controller.create(mockReq as never, mockBody);
 
-      expect(service.create).toHaveBeenCalledWith('user-123');
+      expect(service.create).toHaveBeenCalledWith('user-123', mockBody);
       expect(result).toEqual(mockResult);
     });
   });
