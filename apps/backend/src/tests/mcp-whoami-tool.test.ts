@@ -4,6 +4,8 @@ import { McpState } from '../app/mcp/server/mcp.types';
 
 const buildState = (user: unknown): McpState => ({
   userId: 'user-123',
+  role: 'candidate',
+  companyId: null,
   prisma: {
     user: { findUnique: vi.fn().mockResolvedValue(user) },
   } as never,
@@ -49,6 +51,8 @@ describe('whoamiHandler', () => {
   it('returns isError and logs when Prisma throws', async () => {
     const state: McpState = {
       userId: 'user-123',
+      role: 'candidate',
+      companyId: null,
       prisma: {
         user: { findUnique: vi.fn().mockRejectedValue(new Error('DB error')) },
       } as never,
