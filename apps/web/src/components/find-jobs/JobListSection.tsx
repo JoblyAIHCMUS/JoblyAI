@@ -6,7 +6,10 @@ import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
 import SalaryFilter from '@/components/find-jobs/SalaryFilter';
 import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
-import { SORT_OPTIONS, SupportedCurrency } from '@/features/find-jobs/constants';
+import {
+  SORT_OPTIONS,
+  SupportedCurrency,
+} from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
 import { useState, Ref, useRef, useEffect } from 'react';
 

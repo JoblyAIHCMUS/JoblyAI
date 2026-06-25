@@ -505,7 +505,11 @@ describe('JobsService', () => {
 
     it('should add currency condition to AND array when currency is provided', async () => {
       // Arrange
-      const query = { salaryMin: 50000000, salaryMax: 80000000, currency: 'VND' };
+      const query = {
+        salaryMin: 50000000,
+        salaryMax: 80000000,
+        currency: 'VND',
+      };
       mockPrisma.$transaction.mockResolvedValue([0, []]);
 
       // Act
@@ -547,7 +551,9 @@ describe('JobsService', () => {
       const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
       // AND should only have the two salary conditions, no currency
       expect(countArgs.where.AND).toHaveLength(2);
-      expect(countArgs.where.AND).not.toContainEqual({ currency: expect.anything() });
+      expect(countArgs.where.AND).not.toContainEqual({
+        currency: expect.anything(),
+      });
     });
 
     it('should NOT add AND conditions when no salary and no currency are provided', async () => {

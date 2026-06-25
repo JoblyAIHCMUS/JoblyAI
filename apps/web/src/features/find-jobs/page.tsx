@@ -89,7 +89,9 @@ function FindJobsPageContent() {
 
   const maxSalaryParam = searchParams.get('maxSalary');
   const urlMaxSalary =
-    maxSalaryParam !== null ? Number(maxSalaryParam) : capFor(urlSalaryCurrency);
+    maxSalaryParam !== null
+      ? Number(maxSalaryParam)
+      : capFor(urlSalaryCurrency);
   const urlCategories = useMemo(
     () => searchParams.getAll('categoryId'),
     [searchParams]
@@ -111,8 +113,9 @@ function FindJobsPageContent() {
   const [localLocation, setLocalLocation] = useState(urlLocation);
   const [localSalaryMin, setLocalSalaryMin] = useState(urlMinSalary);
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
-  const [localSalaryCurrency, setLocalSalaryCurrency] =
-    useState<SupportedCurrency | undefined>(urlSalaryCurrency);
+  const [localSalaryCurrency, setLocalSalaryCurrency] = useState<
+    SupportedCurrency | undefined
+  >(urlSalaryCurrency);
 
   // Sync local input state when URL changes (e.g. Back button)
   useEffect(() => {
@@ -323,10 +326,13 @@ function FindJobsPageContent() {
         const intendedMax = localSalaryMax < currentCap ? localSalaryMax : null;
         const intendedCurrency = localSalaryCurrency ?? null;
 
-        const minChanged = intendedMin !== (urlMinSalary > 0 ? urlMinSalary : null);
+        const minChanged =
+          intendedMin !== (urlMinSalary > 0 ? urlMinSalary : null);
         const maxChanged =
-          intendedMax !== (urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : null);
-        const currencyChanged = intendedCurrency !== (urlSalaryCurrency ?? null);
+          intendedMax !==
+          (urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : null);
+        const currencyChanged =
+          intendedCurrency !== (urlSalaryCurrency ?? null);
 
         if (minChanged || maxChanged || currencyChanged) {
           updateURL({
@@ -393,9 +399,7 @@ function FindJobsPageContent() {
             urlCategories.length > 0 ? urlCategories.map(Number) : undefined,
           salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
           salaryMax:
-            urlMaxSalary < capFor(urlSalaryCurrency)
-              ? urlMaxSalary
-              : undefined,
+            urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : undefined,
           currency: urlSalaryCurrency,
           skills: urlSkills.length > 0 ? urlSkills : undefined,
         };

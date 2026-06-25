@@ -76,7 +76,9 @@ export const CURRENCY_LOCALES: Record<SupportedCurrency, string> = {
   CNY: 'zh-CN',
 };
 
-export function isSupportedCurrency(value: unknown): value is SupportedCurrency {
+export function isSupportedCurrency(
+  value: unknown
+): value is SupportedCurrency {
   return (
     typeof value === 'string' &&
     (SUPPORTED_CURRENCIES as readonly string[]).includes(value)

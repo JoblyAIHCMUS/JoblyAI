@@ -19,7 +19,10 @@ interface SalaryFilterProps {
   initialMax?: number;
 }
 
-function formatCurrencyValue(value: number, currency: SupportedCurrency): string {
+function formatCurrencyValue(
+  value: number,
+  currency: SupportedCurrency
+): string {
   const locale = CURRENCY_LOCALES[currency];
   try {
     return new Intl.NumberFormat(locale, {
@@ -34,17 +37,14 @@ function formatCurrencyValue(value: number, currency: SupportedCurrency): string
 
 const SalaryFilter = forwardRef<{ reset: () => void }, SalaryFilterProps>(
   (
-    {
-      onSalaryChange,
-      onCurrencyChange,
-      currency,
-      initialMin = 0,
-      initialMax,
-    },
+    { onSalaryChange, onCurrencyChange, currency, initialMin = 0, initialMax },
     ref
   ) => {
     const effectiveMax = initialMax ?? capFor(currency);
-    const [value, setValue] = useState<[number, number]>([initialMin, effectiveMax]);
+    const [value, setValue] = useState<[number, number]>([
+      initialMin,
+      effectiveMax,
+    ]);
 
     useImperativeHandle(ref, () => ({
       reset() {
@@ -66,7 +66,9 @@ const SalaryFilter = forwardRef<{ reset: () => void }, SalaryFilterProps>(
       return () => clearTimeout(timer);
     }, [value, onSalaryChange]);
 
-    const handleCurrencyChange = (newCurrency: SupportedCurrency | undefined) => {
+    const handleCurrencyChange = (
+      newCurrency: SupportedCurrency | undefined
+    ) => {
       if (!newCurrency) {
         onCurrencyChange?.(undefined);
         return;
