@@ -7,7 +7,7 @@ import { CreateMcpKeyDto } from './dto/create-mcp-key.dto';
 export class McpKeysService {
   async create(
     userId: string,
-    dto: CreateMcpKeyDto,
+    dto: CreateMcpKeyDto
   ): Promise<CreateMcpKeyResponse> {
     const result = await auth.api.createApiKey({
       body: {

@@ -4,7 +4,7 @@ import { ChangeJobStatusInputSchema } from './employer.types';
 
 export async function changeJobStatusHandler(
   state: McpState,
-  rawInput: unknown,
+  rawInput: unknown
 ) {
   try {
     const { id, status } = ChangeJobStatusInputSchema.parse(rawInput);
@@ -60,15 +60,16 @@ export async function changeJobStatusHandler(
 
 export function registerChangeJobStatusTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'change_job_status',
     {
-      description: "Change a job's status (OPEN, DRAFT, CLOSED). Caller must be the original poster.",
+      description:
+        "Change a job's status (OPEN, DRAFT, CLOSED). Caller must be the original poster.",
       inputSchema: ChangeJobStatusInputSchema,
       annotations: { readOnlyHint: false, openWorldHint: false },
     },
-    async (args) => changeJobStatusHandler(state, args),
+    async (args) => changeJobStatusHandler(state, args)
   );
 }

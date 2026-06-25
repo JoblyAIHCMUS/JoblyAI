@@ -75,7 +75,7 @@ export async function updateJobHandler(state: McpState, rawInput: unknown) {
 
 export function registerUpdateJobTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'update_job',
@@ -85,6 +85,6 @@ export function registerUpdateJobTool(
       inputSchema: UpdateJobInputSchema,
       annotations: { readOnlyHint: false, openWorldHint: false },
     },
-    async (args) => updateJobHandler(state, args),
+    async (args) => updateJobHandler(state, args)
   );
 }

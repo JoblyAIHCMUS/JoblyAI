@@ -128,13 +128,13 @@ Two independent auth surfaces, both routed through the same NestJS module:
 
 **Verify error mapping** (no-guard state):
 
-| `verifyApiKey` outcome                                              | Response                                  |
-| ------------------------------------------------------------------- | ----------------------------------------- |
-| `result.valid === false`                                            | 401 `invalid_api_key`                     |
-| `result.key?.referenceId` is `null`/`undefined`                     | 500 `key_misconfigured`                   |
-| `result.key.permissions` missing / `role` not 1-element array        | 401 `role_not_set`                        |
-| `permissions.role[0]` not in `{employer, candidate}`                | 401 `invalid_role`                        |
-| `verifyApiKey` throws (DB error, etc.)                              | unhandled — bubbles to Nest's default 500 |
+| `verifyApiKey` outcome                                        | Response                                  |
+| ------------------------------------------------------------- | ----------------------------------------- |
+| `result.valid === false`                                      | 401 `invalid_api_key`                     |
+| `result.key?.referenceId` is `null`/`undefined`               | 500 `key_misconfigured`                   |
+| `result.key.permissions` missing / `role` not 1-element array | 401 `role_not_set`                        |
+| `permissions.role[0]` not in `{employer, candidate}`          | 401 `invalid_role`                        |
+| `verifyApiKey` throws (DB error, etc.)                        | unhandled — bubbles to Nest's default 500 |
 
 **Rate-limit behavior:** if a key has already exceeded its per-key limit, `verifyApiKey` returns `{ valid: false, error: { code: 'RATE_LIMITED' } }` — mapped to 401 `invalid_api_key`. The library throws a separate `APIError` with statusCode 429 in some versions; in that case the call bubbles and Nest returns 500. The first behavior is the one we observe with `@better-auth/api-key@1.6.19`.
 
@@ -412,17 +412,17 @@ export interface McpState {
 
 Nine employer-scoped tools, all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
 
-| File                          | Tool name             | Purpose                                                   |
-| ----------------------------- | --------------------- | --------------------------------------------------------- |
-| `get-my-company.tool.ts`      | `get_my_company`      | Resolve the caller's company (uses `state.companyId`)     |
-| `list-categories.tool.ts`     | `list_categories`     | List all job categories                                   |
-| `list-skills.tool.ts`         | `list_skills`         | List all skills                                           |
-| `list-jobs.tool.ts`           | `list_jobs`           | Paginated list of the caller's own jobs (filtered by `postedById`); `{ jobs, total, page, pageSize, totalPages }` |
-| `get-job.tool.ts`             | `get_job`             | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message) |
-| `create-job.tool.ts`          | `create_job`          | Create a job (auto-injects `state.companyId` + `postedById`; rejects if `state.companyId === null`) |
-| `update-job.tool.ts`          | `update_job`          | Update a job; rejects if `job.postedById !== state.userId`; no companyId check |
-| `change-job-status.tool.ts`   | `change_job_status`   | Change a job's status; rejects if `job.postedById !== state.userId`; no companyId check |
-| `list-applicants.tool.ts`     | `list_applicants`     | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
+| File                        | Tool name           | Purpose                                                                                                                                                            |
+| --------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get-my-company.tool.ts`    | `get_my_company`    | Resolve the caller's company (uses `state.companyId`)                                                                                                              |
+| `list-categories.tool.ts`   | `list_categories`   | List all job categories                                                                                                                                            |
+| `list-skills.tool.ts`       | `list_skills`       | List all skills                                                                                                                                                    |
+| `list-jobs.tool.ts`         | `list_jobs`         | Paginated list of the caller's own jobs (filtered by `postedById`); `{ jobs, total, page, pageSize, totalPages }`                                                  |
+| `get-job.tool.ts`           | `get_job`           | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message)                                                                  |
+| `create-job.tool.ts`        | `create_job`        | Create a job (auto-injects `state.companyId` + `postedById`; rejects if `state.companyId === null`)                                                                |
+| `update-job.tool.ts`        | `update_job`        | Update a job; rejects if `job.postedById !== state.userId`; no companyId check                                                                                     |
+| `change-job-status.tool.ts` | `change_job_status` | Change a job's status; rejects if `job.postedById !== state.userId`; no companyId check                                                                            |
+| `list-applicants.tool.ts`   | `list_applicants`   | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
 
 **Switchboard:** `register-employer-tools.ts` calls all nine `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
 
@@ -597,23 +597,23 @@ apps/backend/src/app/mcp/
 
 49 tests across 15 MCP files, all passing. Full suite: 278/278.
 
-| Test file                              | Tests | What it covers                                                                                                                               |
-| -------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp-api-key-guard.test.ts`            | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401 |
-| `mcp-keys-service.test.ts`             | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`              |
-| `mcp-keys-controller.test.ts`          | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id` |
-| `mcp-whoami-tool.test.ts`              | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`  |
-| `mcp-endpoint-controller.test.ts`      | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
-| `mcp-factory.test.ts`                  | 2     | `createMcpServer` registers `whoami` only for `candidate`; registers `whoami` + 9 employer tools for `employer`                              |
-| `mcp-get-my-company-tool.test.ts`      | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                 |
-| `mcp-list-categories-tool.test.ts`     | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                 |
-| `mcp-list-skills-tool.test.ts`         | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                           |
-| `mcp-list-jobs-tool.test.ts`           | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                |
-| `mcp-get-job-tool.test.ts`             | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company |
-| `mcp-create-job-tool.test.ts`          | 3     | `create_job` auto-injects `companyId` + `postedById`; "Forbidden: no employer profile" when `state.companyId === null`; isError on prisma throw |
-| `mcp-update-job-tool.test.ts`          | 3     | `update_job` updates fields when caller owns; "Job not found" when missing; "Forbidden: only the job poster can edit this job" when postedById differs |
-| `mcp-change-job-status-tool.test.ts`   | 3     | `change_job_status` updates status when caller owns; "Job not found" when missing; "Forbidden: only the job poster can change this job's status" when postedById differs |
-| `mcp-list-applicants-tool.test.ts`     | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                              |
+| Test file                            | Tests | What it covers                                                                                                                                                                    |
+| ------------------------------------ | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp-api-key-guard.test.ts`          | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                      |
+| `mcp-keys-service.test.ts`           | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                  |
+| `mcp-keys-controller.test.ts`        | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                  |
+| `mcp-whoami-tool.test.ts`            | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                       |
+| `mcp-endpoint-controller.test.ts`    | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
+| `mcp-factory.test.ts`                | 2     | `createMcpServer` registers `whoami` only for `candidate`; registers `whoami` + 9 employer tools for `employer`                                                                   |
+| `mcp-get-my-company-tool.test.ts`    | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                     |
+| `mcp-list-categories-tool.test.ts`   | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                      |
+| `mcp-list-skills-tool.test.ts`       | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                |
+| `mcp-list-jobs-tool.test.ts`         | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                     |
+| `mcp-get-job-tool.test.ts`           | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company                                    |
+| `mcp-create-job-tool.test.ts`        | 3     | `create_job` auto-injects `companyId` + `postedById`; "Forbidden: no employer profile" when `state.companyId === null`; isError on prisma throw                                   |
+| `mcp-update-job-tool.test.ts`        | 3     | `update_job` updates fields when caller owns; "Job not found" when missing; "Forbidden: only the job poster can edit this job" when postedById differs                            |
+| `mcp-change-job-status-tool.test.ts` | 3     | `change_job_status` updates status when caller owns; "Job not found" when missing; "Forbidden: only the job poster can change this job's status" when postedById differs          |
+| `mcp-list-applicants-tool.test.ts`   | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                  |
 
 **Test patterns worth keeping:**
 

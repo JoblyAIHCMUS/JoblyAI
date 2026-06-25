@@ -27,7 +27,7 @@ export async function listSkillsHandler(state: McpState) {
 
 export function registerListSkillsTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'list_skills',
@@ -37,6 +37,6 @@ export function registerListSkillsTool(
       outputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async () => listSkillsHandler(state),
+    async () => listSkillsHandler(state)
   );
 }

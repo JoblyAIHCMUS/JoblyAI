@@ -42,7 +42,7 @@ export async function getMyCompanyHandler(state: McpState) {
 
 export function registerGetMyCompanyTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'get_my_company',
@@ -52,6 +52,6 @@ export function registerGetMyCompanyTool(
       outputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async () => getMyCompanyHandler(state),
+    async () => getMyCompanyHandler(state)
   );
 }

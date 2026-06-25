@@ -9,7 +9,7 @@ const outputSchema = z.array(
     name: z.string(),
     slug: z.string(),
     iconKey: z.string().nullable(),
-  }),
+  })
 );
 
 export async function listCategoriesHandler(state: McpState) {
@@ -34,7 +34,7 @@ export async function listCategoriesHandler(state: McpState) {
 
 export function registerListCategoriesTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'list_categories',
@@ -44,6 +44,6 @@ export function registerListCategoriesTool(
       outputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async () => listCategoriesHandler(state),
+    async () => listCategoriesHandler(state)
   );
 }

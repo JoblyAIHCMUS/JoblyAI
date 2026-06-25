@@ -2,7 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { listJobsHandler } from '../app/mcp/tools/employer/list-jobs.tool';
 import type { McpState } from '../app/mcp/server/mcp.types';
 
-const buildState = (findMany: ReturnType<typeof vi.fn>, count: ReturnType<typeof vi.fn>): McpState => {
+const buildState = (
+  findMany: ReturnType<typeof vi.fn>,
+  count: ReturnType<typeof vi.fn>
+): McpState => {
   const $transaction = vi.fn((promises: Array<Promise<unknown>>) =>
     Promise.all(promises)
   );
@@ -20,9 +23,11 @@ const buildState = (findMany: ReturnType<typeof vi.fn>, count: ReturnType<typeof
 
 describe('listJobsHandler', () => {
   it('returns paginated jobs for the caller', async () => {
-    const findMany = vi.fn().mockResolvedValue([
-      { id: 1, title: 'Backend Engineer', description: 'desc' },
-    ]);
+    const findMany = vi
+      .fn()
+      .mockResolvedValue([
+        { id: 1, title: 'Backend Engineer', description: 'desc' },
+      ]);
     const count = vi.fn().mockResolvedValue(1);
     const state = buildState(findMany, count);
 
@@ -35,7 +40,9 @@ describe('listJobsHandler', () => {
       pageSize: 10,
       totalPages: 1,
     });
-    expect((result.structuredContent as { jobs: unknown[] }).jobs).toHaveLength(1);
+    expect((result.structuredContent as { jobs: unknown[] }).jobs).toHaveLength(
+      1
+    );
   });
 
   it('uses defaults page=1 pageSize=10 when not provided', async () => {

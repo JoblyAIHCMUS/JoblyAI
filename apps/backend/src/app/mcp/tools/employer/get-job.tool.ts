@@ -38,9 +38,7 @@ export async function getJobHandler(state: McpState, rawInput: unknown) {
     }
 
     return {
-      content: [
-        { type: 'text' as const, text: JSON.stringify(job, null, 2) },
-      ],
+      content: [{ type: 'text' as const, text: JSON.stringify(job, null, 2) }],
       structuredContent: { ...job },
     };
   } catch (error) {
@@ -52,17 +50,14 @@ export async function getJobHandler(state: McpState, rawInput: unknown) {
   }
 }
 
-export function registerGetJobTool(
-  server: McpServer,
-  state: McpState,
-): void {
+export function registerGetJobTool(server: McpServer, state: McpState): void {
   server.registerTool(
     'get_job',
     {
-      description: 'Get a job posting by id (must belong to caller\'s company).',
+      description: "Get a job posting by id (must belong to caller's company).",
       inputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async (args) => getJobHandler(state, args),
+    async (args) => getJobHandler(state, args)
   );
 }

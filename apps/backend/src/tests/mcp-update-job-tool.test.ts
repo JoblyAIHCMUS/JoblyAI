@@ -2,7 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { updateJobHandler } from '../app/mcp/tools/employer/update-job.tool';
 import type { McpState } from '../app/mcp/server/mcp.types';
 
-const buildState = (findFirst: ReturnType<typeof vi.fn>, update: ReturnType<typeof vi.fn>): McpState => ({
+const buildState = (
+  findFirst: ReturnType<typeof vi.fn>,
+  update: ReturnType<typeof vi.fn>
+): McpState => ({
   userId: 'user-123',
   role: 'employer',
   companyId: 42,
@@ -15,7 +18,9 @@ const buildState = (findFirst: ReturnType<typeof vi.fn>, update: ReturnType<type
 
 describe('updateJobHandler', () => {
   it('updates fields the caller owns', async () => {
-    const findFirst = vi.fn().mockResolvedValue({ id: 1, postedById: 'user-123' });
+    const findFirst = vi
+      .fn()
+      .mockResolvedValue({ id: 1, postedById: 'user-123' });
     const update = vi.fn().mockResolvedValue({
       id: 1,
       title: 'New Title',
@@ -30,9 +35,12 @@ describe('updateJobHandler', () => {
       expect.objectContaining({
         where: { id: 1 },
         data: expect.objectContaining({ title: 'New Title' }),
-      }),
+      })
     );
-    expect(result.structuredContent).toMatchObject({ id: 1, title: 'New Title' });
+    expect(result.structuredContent).toMatchObject({
+      id: 1,
+      title: 'New Title',
+    });
   });
 
   it('returns isError when job not found', async () => {
@@ -48,14 +56,18 @@ describe('updateJobHandler', () => {
   });
 
   it('returns isError when job posted by another user', async () => {
-    const findFirst = vi.fn().mockResolvedValue({ id: 1, postedById: 'someone-else' });
+    const findFirst = vi
+      .fn()
+      .mockResolvedValue({ id: 1, postedById: 'someone-else' });
     const update = vi.fn();
     const state = buildState(findFirst, update);
 
     const result = await updateJobHandler(state, { id: 1, title: 'X' });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe('Forbidden: only the job poster can edit this job');
+    expect(result.content[0].text).toBe(
+      'Forbidden: only the job poster can edit this job'
+    );
     expect(update).not.toHaveBeenCalled();
   });
 });

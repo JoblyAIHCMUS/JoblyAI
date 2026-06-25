@@ -5,12 +5,16 @@ import type { McpState } from '../app/mcp/server/mcp.types';
 const buildState = (
   findUnique: ReturnType<typeof vi.fn>,
   $transaction: ReturnType<typeof vi.fn>,
-  companyId: number | null = 42,
+  companyId: number | null = 42
 ): McpState => ({
   userId: 'user-123',
   role: 'employer',
   companyId,
-  prisma: { jobPosting: { findUnique }, application: { count: vi.fn(), findMany: vi.fn() }, $transaction } as never,
+  prisma: {
+    jobPosting: { findUnique },
+    application: { count: vi.fn(), findMany: vi.fn() },
+    $transaction,
+  } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
 });
 
@@ -35,9 +39,7 @@ describe('listApplicantsHandler', () => {
     expect($transaction).toHaveBeenCalled();
     expect(result.structuredContent).toMatchObject({
       total: 1,
-      applications: [
-        expect.objectContaining({ id: 100, status: 'APPLIED' }),
-      ],
+      applications: [expect.objectContaining({ id: 100, status: 'APPLIED' })],
     });
   });
 
@@ -60,6 +62,8 @@ describe('listApplicantsHandler', () => {
     const result = await listApplicantsHandler(state, { jobId: 1 });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe('Forbidden: job does not belong to your company');
+    expect(result.content[0].text).toBe(
+      'Forbidden: job does not belong to your company'
+    );
   });
 });

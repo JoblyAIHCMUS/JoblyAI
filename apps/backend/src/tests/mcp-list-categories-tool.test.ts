@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { listCategoriesHandler } from '../app/mcp/tools/employer/list-categories.tool';
 import type { McpState } from '../app/mcp/server/mcp.types';
 
-const buildState = (
-  jobCategory: { findMany: ReturnType<typeof vi.fn> },
-): McpState => ({
+const buildState = (jobCategory: {
+  findMany: ReturnType<typeof vi.fn>;
+}): McpState => ({
   userId: 'user-123',
   role: 'employer',
   companyId: 42,

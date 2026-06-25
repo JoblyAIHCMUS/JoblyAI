@@ -48,7 +48,7 @@ describe('createMcpServer', () => {
         'update_job',
         'change_job_status',
         'list_applicants',
-      ].sort(),
+      ].sort()
     );
   });
 });

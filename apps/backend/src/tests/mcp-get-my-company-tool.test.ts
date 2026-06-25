@@ -3,7 +3,10 @@ import { getMyCompanyHandler } from '../app/mcp/tools/employer/get-my-company.to
 import type { McpState } from '../app/mcp/server/mcp.types';
 
 const buildState = (
-  employer: { companyId: number; company: { name: string; slug: string } } | null,
+  employer: {
+    companyId: number;
+    company: { name: string; slug: string };
+  } | null
 ): McpState => ({
   userId: 'user-123',
   role: 'employer',
@@ -49,7 +52,9 @@ describe('getMyCompanyHandler', () => {
       role: 'employer',
       companyId: null,
       prisma: {
-        employer: { findUnique: vi.fn().mockRejectedValue(new Error('DB error')) },
+        employer: {
+          findUnique: vi.fn().mockRejectedValue(new Error('DB error')),
+        },
       } as never,
       logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
     };

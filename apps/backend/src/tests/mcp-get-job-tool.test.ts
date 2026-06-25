@@ -11,7 +11,7 @@ const buildState = (findUnique: ReturnType<typeof vi.fn>): McpState => ({
 });
 
 describe('getJobHandler', () => {
-  it('returns the job when it belongs to the caller\'s company', async () => {
+  it("returns the job when it belongs to the caller's company", async () => {
     const findUnique = vi.fn().mockResolvedValue({
       id: 1,
       title: 'Backend Engineer',
@@ -35,7 +35,10 @@ describe('getJobHandler', () => {
         _count: expect.any(Object),
       }),
     });
-    expect(result.structuredContent).toMatchObject({ id: 1, title: 'Backend Engineer' });
+    expect(result.structuredContent).toMatchObject({
+      id: 1,
+      title: 'Backend Engineer',
+    });
     expect(result.isError).toBeUndefined();
   });
 
@@ -64,6 +67,8 @@ describe('getJobHandler', () => {
     const result = await getJobHandler(state, { id: 1 });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe('Forbidden: job does not belong to your company');
+    expect(result.content[0].text).toBe(
+      'Forbidden: job does not belong to your company'
+    );
   });
 });

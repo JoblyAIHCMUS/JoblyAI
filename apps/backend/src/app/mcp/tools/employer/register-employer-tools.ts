@@ -10,7 +10,10 @@ import { registerUpdateJobTool } from './update-job.tool';
 import { registerChangeJobStatusTool } from './change-job-status.tool';
 import { registerListApplicantsTool } from './list-applicants.tool';
 
-export function registerEmployerTools(server: McpServer, state: McpState): void {
+export function registerEmployerTools(
+  server: McpServer,
+  state: McpState
+): void {
   registerGetMyCompanyTool(server, state);
   registerListCategoriesTool(server, state);
   registerListSkillsTool(server, state);

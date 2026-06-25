@@ -57,19 +57,15 @@ export async function listJobsHandler(state: McpState, rawInput: unknown) {
   }
 }
 
-export function registerListJobsTool(
-  server: McpServer,
-  state: McpState,
-): void {
+export function registerListJobsTool(server: McpServer, state: McpState): void {
   server.registerTool(
     'list_jobs',
     {
-      description:
-        "List the caller's job postings (paginated, all statuses).",
+      description: "List the caller's job postings (paginated, all statuses).",
       inputSchema: ListJobsInputSchema,
       outputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async (args) => listJobsHandler(state, args),
+    async (args) => listJobsHandler(state, args)
   );
 }

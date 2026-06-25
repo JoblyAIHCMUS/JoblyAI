@@ -4,7 +4,7 @@ import { ListApplicantsInputSchema } from './employer.types';
 
 export async function listApplicantsHandler(
   state: McpState,
-  rawInput: unknown,
+  rawInput: unknown
 ) {
   try {
     const input = ListApplicantsInputSchema.parse(rawInput);
@@ -66,7 +66,9 @@ export async function listApplicantsHandler(
               postedBy: { select: { id: true, name: true, email: true } },
             },
           },
-          resume: { select: { id: true, fileKey: true, aiScore: true, isDefault: true } },
+          resume: {
+            select: { id: true, fileKey: true, aiScore: true, isDefault: true },
+          },
           candidate: { select: { id: true, name: true, email: true } },
         },
       }),
@@ -97,16 +99,16 @@ export async function listApplicantsHandler(
 
 export function registerListApplicantsTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'list_applicants',
     {
       description:
-        "List applicants for a job. Caller must own the job (jobId is required). Read-only.",
+        'List applicants for a job. Caller must own the job (jobId is required). Read-only.',
       inputSchema: ListApplicantsInputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async (args) => listApplicantsHandler(state, args),
+    async (args) => listApplicantsHandler(state, args)
   );
 }

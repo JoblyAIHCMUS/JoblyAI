@@ -2,7 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { createJobHandler } from '../app/mcp/tools/employer/create-job.tool';
 import type { McpState } from '../app/mcp/server/mcp.types';
 
-const buildState = (create: ReturnType<typeof vi.fn>, companyId: number | null = 42): McpState => ({
+const buildState = (
+  create: ReturnType<typeof vi.fn>,
+  companyId: number | null = 42
+): McpState => ({
   userId: 'user-123',
   role: 'employer',
   companyId,
@@ -42,10 +45,16 @@ describe('createJobHandler', () => {
           companyId: 42,
           postedById: 'user-123',
           requirements: {
-            create: [{ skillId: 5, importance: 'REQUIRED', minYearsExperience: undefined }],
+            create: [
+              {
+                skillId: 5,
+                importance: 'REQUIRED',
+                minYearsExperience: undefined,
+              },
+            ],
           },
         }),
-      }),
+      })
     );
     expect(result.structuredContent).toMatchObject({ id: 7 });
     expect(result.isError).toBeUndefined();

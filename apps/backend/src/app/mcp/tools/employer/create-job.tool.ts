@@ -57,7 +57,7 @@ export async function createJobHandler(state: McpState, rawInput: unknown) {
 
 export function registerCreateJobTool(
   server: McpServer,
-  state: McpState,
+  state: McpState
 ): void {
   server.registerTool(
     'create_job',
@@ -67,6 +67,6 @@ export function registerCreateJobTool(
       inputSchema: CreateJobInputSchema,
       annotations: { readOnlyHint: false, openWorldHint: false },
     },
-    async (args) => createJobHandler(state, args),
+    async (args) => createJobHandler(state, args)
   );
 }
