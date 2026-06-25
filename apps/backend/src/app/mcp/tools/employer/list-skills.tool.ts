@@ -3,7 +3,9 @@ import { z } from 'zod';
 import type { McpState } from '../../server/mcp.types';
 
 const inputSchema = z.object({});
-const outputSchema = z.array(z.object({ id: z.number(), name: z.string() }));
+const outputSchema = z.object({
+  skills: z.array(z.object({ id: z.number(), name: z.string() })),
+});
 
 export async function listSkillsHandler(state: McpState) {
   try {
@@ -14,7 +16,7 @@ export async function listSkillsHandler(state: McpState) {
       content: [
         { type: 'text' as const, text: JSON.stringify(skills, null, 2) },
       ],
-      structuredContent: skills as unknown as Record<string, unknown>,
+      structuredContent: { skills },
     };
   } catch (error) {
     state.logger.error(error, 'list_skills tool error');

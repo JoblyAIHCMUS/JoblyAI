@@ -3,7 +3,10 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { RequirementImportance, EmploymentType } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { JobsService } from '../app/jobs/jobs.service';
+import { GetJobsQueryDTO } from '../app/jobs/dto/getJobsQueryDTO';
 
 const mockJobDbRecord = vi.hoisted(() => ({
   id: 1,
@@ -84,7 +87,8 @@ describe('JobsService', () => {
     }).compile();
 
     service = module.get<JobsService>(JobsService);
-    (service as any).eventEmitter = mockEventEmitter;
+    (service as unknown as { eventEmitter: EventEmitter2 }).eventEmitter =
+      mockEventEmitter as unknown as EventEmitter2;
     vi.clearAllMocks();
   });
 
@@ -499,6 +503,73 @@ describe('JobsService', () => {
       ]);
     });
 
+    it('should add currency condition to AND array when currency is provided', async () => {
+      // Arrange
+      const query = {
+        salaryMin: 50000000,
+        salaryMax: 80000000,
+        currency: 'VND',
+      };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          { OR: [{ salaryMax: { gte: 50000000 } }, { salaryMax: null }] },
+          { OR: [{ salaryMin: { lte: 80000000 } }, { salaryMin: null }] },
+          { currency: 'VND' },
+        ])
+      );
+    });
+
+    it('should add currency condition alone when no salary range is provided', async () => {
+      // Arrange
+      const query = { currency: 'VND' };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual([{ currency: 'VND' }]);
+    });
+
+    it('should NOT add currency condition when currency is not provided', async () => {
+      // Arrange
+      const query = { salaryMin: 60000, salaryMax: 120000 };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      // AND should only have the two salary conditions, no currency
+      expect(countArgs.where.AND).toHaveLength(2);
+      expect(countArgs.where.AND).not.toContainEqual({
+        currency: expect.anything(),
+      });
+    });
+
+    it('should NOT add AND conditions when no salary and no currency are provided', async () => {
+      // Arrange — default-off state: no salary params at all
+      const query = { page: 1, pageSize: 10 };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      // No AND array should exist — nothing to filter beyond status:'OPEN'
+      expect(countArgs.where.AND).toBeUndefined();
+    });
+
     it('should use default page and pageSize if not provided', async () => {
       // Arrange
       mockPrisma.$transaction.mockResolvedValue([0, []]);
@@ -577,7 +648,7 @@ describe('JobsService', () => {
   });
 
   describe('getsPaginatedJobsPostings', () => {
-    const baseQuery = { page: 1, pageSize: 10 } as any;
+    const baseQuery: GetJobsQueryDTO = { page: 1, pageSize: 10 };
 
     it('emits job.viewed once per returned job', async () => {
       const rows = [
@@ -720,6 +791,27 @@ describe('JobsService', () => {
         { period: '2026-01', viewCount: 2 },
         { period: '2026-03', viewCount: 1 },
       ]);
+    });
+  });
+
+  describe('GetJobsQueryDTO currency validation', () => {
+    it('accepts a valid currency code', async () => {
+      const dto = plainToInstance(GetJobsQueryDTO, { currency: 'VND' });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('rejects an unknown currency code', async () => {
+      const dto = plainToInstance(GetJobsQueryDTO, { currency: 'BTC' });
+      const errors = await validate(dto);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].constraints).toHaveProperty('isIn');
+    });
+
+    it('accepts undefined currency (optional field)', async () => {
+      const dto = plainToInstance(GetJobsQueryDTO, {});
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
     });
   });
 });

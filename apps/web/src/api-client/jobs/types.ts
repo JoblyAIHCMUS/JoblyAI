@@ -38,6 +38,7 @@ export interface ListJobsQuery {
   remote?: boolean;
   salaryMin?: number;
   salaryMax?: number;
+  currency?: string;
   skills?: string[];
   categories?: number[];
   status?: JobStatus[];

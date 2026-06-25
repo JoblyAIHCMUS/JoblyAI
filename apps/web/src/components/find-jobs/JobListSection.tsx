@@ -6,7 +6,10 @@ import FilterGroup from '@/components/find-jobs/FilterGroup';
 import JobCard from '@/components/find-jobs/JobCard';
 import SalaryFilter from '@/components/find-jobs/SalaryFilter';
 import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
-import { SORT_OPTIONS } from '@/features/find-jobs/constants';
+import {
+  SORT_OPTIONS,
+  SupportedCurrency,
+} from '@/features/find-jobs/constants';
 import { usePagination } from '@/hooks/usePagination';
 import { useState, Ref, useRef, useEffect } from 'react';
 
@@ -27,6 +30,8 @@ interface JobListSectionProps {
     itemValue?: string | number
   ) => void;
   onSalaryChange: (min: number, max: number) => void;
+  onCurrencyChange: (currency: SupportedCurrency | undefined) => void;
+  currency: SupportedCurrency | undefined;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
   salaryMin?: number;
@@ -63,6 +68,8 @@ export default function JobListSection({
   checkedMap,
   handleToggle,
   onSalaryChange,
+  onCurrencyChange,
+  currency,
   salaryFilterRef,
   handleReset,
   salaryMin,
@@ -127,6 +134,8 @@ export default function JobListSection({
           <SalaryFilter
             ref={salaryFilterRef}
             onSalaryChange={onSalaryChange}
+            onCurrencyChange={onCurrencyChange}
+            currency={currency}
             initialMin={salaryMin}
             initialMax={salaryMax}
           />
@@ -316,6 +325,8 @@ export default function JobListSection({
                 <SalaryFilter
                   ref={salaryFilterRef}
                   onSalaryChange={onSalaryChange}
+                  onCurrencyChange={onCurrencyChange}
+                  currency={currency}
                   initialMin={salaryMin}
                   initialMax={salaryMax}
                 />

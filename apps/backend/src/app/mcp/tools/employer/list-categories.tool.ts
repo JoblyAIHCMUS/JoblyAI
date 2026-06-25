@@ -3,14 +3,16 @@ import { z } from 'zod';
 import type { McpState } from '../../server/mcp.types';
 
 const inputSchema = z.object({});
-const outputSchema = z.array(
-  z.object({
-    id: z.number(),
-    name: z.string(),
-    slug: z.string(),
-    iconKey: z.string().nullable(),
-  })
-);
+const outputSchema = z.object({
+  categories: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      slug: z.string(),
+      iconKey: z.string().nullable(),
+    })
+  ),
+});
 
 export async function listCategoriesHandler(state: McpState) {
   try {
@@ -21,7 +23,7 @@ export async function listCategoriesHandler(state: McpState) {
       content: [
         { type: 'text' as const, text: JSON.stringify(categories, null, 2) },
       ],
-      structuredContent: categories as unknown as Record<string, unknown>,
+      structuredContent: { categories },
     };
   } catch (error) {
     state.logger.error(error, 'list_categories tool error');

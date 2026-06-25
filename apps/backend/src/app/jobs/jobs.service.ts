@@ -51,6 +51,7 @@ export class JobsService {
       type,
       salaryMin,
       salaryMax,
+      currency,
       skills,
       categories,
       status,
@@ -129,6 +130,15 @@ export class JobsService {
         existingConditions.push(...salaryConditions);
       } else {
         whereClause.AND = salaryConditions;
+      }
+    }
+
+    // Currency filter: scope salary comparisons to a single currency
+    if (currency) {
+      if (whereClause.AND && Array.isArray(whereClause.AND)) {
+        (whereClause.AND as Prisma.JobPostingWhereInput[]).push({ currency });
+      } else {
+        whereClause.AND = [{ currency }];
       }
     }
 

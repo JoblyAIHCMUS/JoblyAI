@@ -21,10 +21,12 @@ describe('listSkillsHandler', () => {
     const result = await listSkillsHandler(state);
 
     expect(findMany).toHaveBeenCalledWith({ orderBy: { name: 'asc' } });
-    expect(result.structuredContent).toEqual([
-      { id: 1, name: 'Python' },
-      { id: 2, name: 'TypeScript' },
-    ]);
+    expect(result.structuredContent).toEqual({
+      skills: [
+        { id: 1, name: 'Python' },
+        { id: 2, name: 'TypeScript' },
+      ],
+    });
   });
 
   it('returns empty array when no skills exist', async () => {
@@ -33,7 +35,7 @@ describe('listSkillsHandler', () => {
 
     const result = await listSkillsHandler(state);
 
-    expect(result.structuredContent).toEqual([]);
+    expect(result.structuredContent).toEqual({ skills: [] });
   });
 
   it('returns isError when Prisma throws', async () => {

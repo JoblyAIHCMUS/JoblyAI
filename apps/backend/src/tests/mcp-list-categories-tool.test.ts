@@ -23,10 +23,12 @@ describe('listCategoriesHandler', () => {
     const result = await listCategoriesHandler(state);
 
     expect(findMany).toHaveBeenCalledWith({ orderBy: { name: 'asc' } });
-    expect(result.structuredContent).toEqual([
-      { id: 1, name: 'Backend', slug: 'backend', iconKey: 'cpu' },
-      { id: 2, name: 'Frontend', slug: 'frontend', iconKey: 'monitor' },
-    ]);
+    expect(result.structuredContent).toEqual({
+      categories: [
+        { id: 1, name: 'Backend', slug: 'backend', iconKey: 'cpu' },
+        { id: 2, name: 'Frontend', slug: 'frontend', iconKey: 'monitor' },
+      ],
+    });
   });
 
   it('returns empty array when no categories exist', async () => {
@@ -35,7 +37,7 @@ describe('listCategoriesHandler', () => {
 
     const result = await listCategoriesHandler(state);
 
-    expect(result.structuredContent).toEqual([]);
+    expect(result.structuredContent).toEqual({ categories: [] });
   });
 
   it('returns isError when Prisma throws', async () => {
