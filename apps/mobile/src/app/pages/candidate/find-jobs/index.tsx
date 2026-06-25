@@ -185,6 +185,7 @@ function FindJobsPage() {
         <CandidateDashboardSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          currentPath="/pages/candidate/find-jobs"
         />
 
         <View className="flex-1">

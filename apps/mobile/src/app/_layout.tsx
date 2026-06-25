@@ -24,26 +24,16 @@ import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
 import { authClient } from '../lib/auth-client';
 import { NotificationManager } from '../components/NotificationManager';
+import { canAccessRoute } from '@/utils/role-guard';
+import { getDashboardPath } from '@/utils/auth-route';
 import '../global.css';
 
 const PUBLIC_ENTRY_ROUTES = new Set([
   '/',
-  '/pages/(auth)/login',
-  '/pages/(auth)/register',
-  '/pages/(auth)/forgot-password',
+  '/pages/login',
+  '/pages/register',
+  '/pages/forgot-password',
 ]);
-
-function getDashboardPathForRole(role: string | undefined): string | null {
-  if (role === 'candidate') {
-    return '/pages/candidate/dashboard';
-  }
-
-  if (role === 'employer') {
-    return '/pages/employer/dashboard';
-  }
-
-  return null;
-}
 
 type SessionWithRole = {
   user?: {
@@ -66,11 +56,6 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!isPublicRoute) {
-      setIsReady(true);
-      return;
-    }
-
     isCheckingSessionRef.current = true;
 
     try {
@@ -79,12 +64,40 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       if (error) {
         return;
       }
+      // Chưa login nhưng cố vào private route
+      if (!session && !isPublicRoute) {
+        router.replace('/pages/login');
+        return;
+      }
 
       const role = (session as SessionWithRole | null | undefined)?.user?.role;
-      const nextPath = getDashboardPathForRole(role);
 
-      if (nextPath && nextPath !== pathname) {
-        router.replace(nextPath);
+      // Đã login nhưng đang ở login/register
+      if (isPublicRoute) {
+        // Chưa đăng nhập thì cho ở lại public page
+        if (!session) {
+          return;
+        }
+
+        const nextPath = getDashboardPath(role);
+
+        if (nextPath && nextPath !== pathname) {
+          router.replace(nextPath);
+        }
+
+        return;
+      }
+
+      // Kiểm tra quyền truy cập route
+      const authorized = canAccessRoute(pathname, role);
+
+      if (!authorized) {
+        const nextPath = getDashboardPath(role);
+        if (nextPath && nextPath !== pathname) {
+          router.replace(nextPath);
+        }
+
+        return;
       }
     } finally {
       isCheckingSessionRef.current = false;

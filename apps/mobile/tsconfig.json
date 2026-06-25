@@ -1,13 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     }
   },
-  "files": [],
-  "include": ["nativewind-env.d.ts"],
+  "include": ["src/**/*", "nativewind-env.d.ts"],
   "references": [
     {
       "path": "./tsconfig.app.json"
