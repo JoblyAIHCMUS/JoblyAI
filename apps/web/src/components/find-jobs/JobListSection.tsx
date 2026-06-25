@@ -27,8 +27,8 @@ interface JobListSectionProps {
     itemValue?: string | number
   ) => void;
   onSalaryChange: (min: number, max: number) => void;
-  onCurrencyChange: (currency: SupportedCurrency) => void;
-  currency: SupportedCurrency;
+  onCurrencyChange: (currency: SupportedCurrency | undefined) => void;
+  currency: SupportedCurrency | undefined;
   salaryFilterRef: Ref<{ reset: () => void } | null>;
   handleReset: () => void;
   salaryMin?: number;

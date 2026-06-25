@@ -280,15 +280,23 @@ function FindJobsPageContent() {
     setLocalSalaryMax(max);
   }, []);
 
-  const handleCurrencyChange = useCallback((currency: SupportedCurrency) => {
-    setLocalSalaryCurrency(currency);
-    // Reset salary range to the full range of the new currency.
-    // Clamping would keep a stale USD cap (500k) when switching to VND,
-    // re-introducing the exact bug this feature fixes.
-    const newCap = capFor(currency);
-    setLocalSalaryMin(0);
-    setLocalSalaryMax(newCap);
-  }, []);
+  const handleCurrencyChange = useCallback(
+    (currency: SupportedCurrency | undefined) => {
+      setLocalSalaryCurrency(currency);
+      if (currency === undefined) {
+        setLocalSalaryMin(0);
+        setLocalSalaryMax(SALARY_MAX_CAP);
+        return;
+      }
+      // Reset salary range to the full range of the new currency.
+      // Clamping would keep a stale USD cap (500k) when switching to VND,
+      // re-introducing the exact bug this feature fixes.
+      const newCap = capFor(currency);
+      setLocalSalaryMin(0);
+      setLocalSalaryMax(newCap);
+    },
+    []
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -481,7 +489,7 @@ function FindJobsPageContent() {
         handleToggle={handleToggle}
         onSalaryChange={handleSalaryChange}
         onCurrencyChange={handleCurrencyChange}
-        currency={localSalaryCurrency ?? 'USD'}
+        currency={localSalaryCurrency}
         salaryFilterRef={salaryFilterRef}
         handleReset={handleReset}
         salaryMin={localSalaryMin}
