@@ -7,6 +7,7 @@ import {
   IsBoolean,
   IsEnum,
   IsArray,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EmploymentType, JobStatus } from '@prisma/client';
@@ -71,6 +72,10 @@ export class GetJobsQueryDTO {
   @IsInt()
   @Min(0)
   salaryMax?: number;
+
+  @IsOptional()
+  @IsIn(['USD', 'EUR', 'GBP', 'VND', 'JPY', 'CNY'])
+  currency?: string;
 
   @IsOptional()
   @Transform(({ value }) => {
