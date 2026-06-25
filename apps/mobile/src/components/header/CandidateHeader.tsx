@@ -18,10 +18,10 @@ export function CandidateHeader({
   initials = 'U',
   onMenuPress,
 }: CandidateHeaderProps) {
-   const { data: unreadCount = 0 } = useUnreadNotificationCount();
-   const handleNotificationPress = () => {
-  router.push('/pages/candidate/notifications');
-};
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const handleNotificationPress = () => {
+    router.push('/pages/candidate/notifications');
+  };
   const insets = useSafeAreaInsets();
   return (
     <View

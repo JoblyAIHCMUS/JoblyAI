@@ -17,8 +17,7 @@ export function useNotifications() {
 export function useUnreadNotificationCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
-    queryFn: ({ signal }) =>
-      getUnreadNotificationCount(signal),
+    queryFn: ({ signal }) => getUnreadNotificationCount(signal),
     refetchInterval: 30000,
   });
 }

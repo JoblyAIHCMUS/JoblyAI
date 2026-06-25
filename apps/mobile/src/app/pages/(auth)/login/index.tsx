@@ -81,11 +81,11 @@ const LoginPage = () => {
 
       // Role-based redirect
       if (result.user.role === 'employer') {
-      router.push('/pages/employer/dashboard');
+        router.push('/pages/employer/dashboard');
       } else if (result.user.role === 'candidate') {
-      router.push('/pages/candidate/dashboard');
+        router.push('/pages/candidate/dashboard');
       } else {
-      router.push('/');
+        router.push('/');
       }
     } catch (err) {
       Toast.show({

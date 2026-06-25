@@ -632,8 +632,7 @@ export default function CandidateDashboard() {
   ]);
 
   return (
-    <
-    >
+    <>
       <Stack.Screen options={{ headerShown: false }} />
 
       <CandidateHeader
