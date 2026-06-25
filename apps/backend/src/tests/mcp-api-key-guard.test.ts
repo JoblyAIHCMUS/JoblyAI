@@ -89,7 +89,7 @@ describe('ApiKeyGuard', () => {
     );
   });
 
-  it('attaches mcpUserId to request when key is valid', async () => {
+  it('attaches mcpUserId and mcpRole to request when key is valid', async () => {
     verifySpy.mockResolvedValue({
       valid: true,
       error: null,
@@ -106,7 +106,7 @@ describe('ApiKeyGuard', () => {
         rateLimitTimeWindow: 86400000,
         rateLimitMax: 10,
         requestCount: 0,
-        permissions: null,
+        permissions: { role: ['employer'] },
         metadata: null,
       },
     } as never);
@@ -119,6 +119,7 @@ describe('ApiKeyGuard', () => {
     expect(result).toBe(true);
     const req = context.switchToHttp().getRequest();
     expect(req.mcpUserId).toBe('user-123');
+    expect(req.mcpRole).toBe('employer');
     expect(verifySpy).toHaveBeenCalledWith({ body: { key: 'valid_key' } });
     expect(setHeader).not.toHaveBeenCalled();
   });
@@ -152,5 +153,133 @@ describe('ApiKeyGuard', () => {
     await expect(guard.canActivate(context)).rejects.toThrow(
       new InternalServerErrorException({ error: 'key_misconfigured' })
     );
+  });
+
+  it('throws role_not_set when key has no permissions field', async () => {
+    verifySpy.mockResolvedValue({
+      valid: true,
+      error: null,
+      key: {
+        id: 'key-123',
+        referenceId: 'user-123',
+        name: 'Test Key',
+        prefix: 'jobly_sk_',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        configId: 'default',
+        enabled: true,
+        rateLimitEnabled: false,
+        rateLimitTimeWindow: 86400000,
+        rateLimitMax: 10,
+        requestCount: 0,
+        permissions: null,
+        metadata: null,
+      },
+    } as never);
+
+    const { context, setHeader } = createMockContext({
+      authorization: 'Bearer legacy_key',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException({ error: 'role_not_set' })
+    );
+    expect(setHeader).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      expect.stringContaining('Bearer')
+    );
+  });
+
+  it('throws role_not_set when permissions has no role array', async () => {
+    verifySpy.mockResolvedValue({
+      valid: true,
+      error: null,
+      key: {
+        id: 'key-123',
+        referenceId: 'user-123',
+        name: 'Test Key',
+        prefix: 'jobly_sk_',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        configId: 'default',
+        enabled: true,
+        rateLimitEnabled: false,
+        rateLimitTimeWindow: 86400000,
+        rateLimitMax: 10,
+        requestCount: 0,
+        permissions: {},
+        metadata: null,
+      },
+    } as never);
+
+    const { context } = createMockContext({
+      authorization: 'Bearer bad_perms_key',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException({ error: 'role_not_set' })
+    );
+  });
+
+  it('throws invalid_role when permissions.role is not employer or candidate', async () => {
+    verifySpy.mockResolvedValue({
+      valid: true,
+      error: null,
+      key: {
+        id: 'key-123',
+        referenceId: 'user-123',
+        name: 'Test Key',
+        prefix: 'jobly_sk_',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        configId: 'default',
+        enabled: true,
+        rateLimitEnabled: false,
+        rateLimitTimeWindow: 86400000,
+        rateLimitMax: 10,
+        requestCount: 0,
+        permissions: { role: ['admin'] },
+        metadata: null,
+      },
+    } as never);
+
+    const { context } = createMockContext({
+      authorization: 'Bearer admin_key',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException({ error: 'invalid_role' })
+    );
+  });
+
+  it('attaches candidate role when key has role: [candidate]', async () => {
+    verifySpy.mockResolvedValue({
+      valid: true,
+      error: null,
+      key: {
+        id: 'key-123',
+        referenceId: 'user-456',
+        name: 'Test Key',
+        prefix: 'jobly_sk_',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        configId: 'default',
+        enabled: true,
+        rateLimitEnabled: false,
+        rateLimitTimeWindow: 86400000,
+        rateLimitMax: 10,
+        requestCount: 0,
+        permissions: { role: ['candidate'] },
+        metadata: null,
+      },
+    } as never);
+
+    const { context } = createMockContext({
+      authorization: 'Bearer candidate_key',
+    });
+    await guard.canActivate(context);
+
+    const req = context.switchToHttp().getRequest();
+    expect(req.mcpRole).toBe('candidate');
   });
 });

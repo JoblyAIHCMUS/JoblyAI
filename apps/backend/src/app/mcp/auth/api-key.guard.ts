@@ -40,7 +40,24 @@ export class ApiKeyGuard implements CanActivate {
       throw new InternalServerErrorException({ error: 'key_misconfigured' });
     }
 
+    const permissions = result.key?.permissions;
+    if (
+      !permissions ||
+      !Array.isArray(permissions.role) ||
+      permissions.role.length !== 1
+    ) {
+      this.setBearerChallenge(response);
+      throw new UnauthorizedException({ error: 'role_not_set' });
+    }
+
+    const role = permissions.role[0];
+    if (role !== 'employer' && role !== 'candidate') {
+      this.setBearerChallenge(response);
+      throw new UnauthorizedException({ error: 'invalid_role' });
+    }
+
     request.mcpUserId = userId;
+    request.mcpRole = role;
     return true;
   }
 
