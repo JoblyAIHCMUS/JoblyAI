@@ -23,6 +23,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
 import { authClient } from '../lib/auth-client';
+import { NotificationManager } from '../components/NotificationManager';
 import '../global.css';
 
 const PUBLIC_ENTRY_ROUTES = new Set([
@@ -135,6 +136,7 @@ export default function AppLayout() {
         <SessionResumeGate>
           <StatusBar style={currentColorScheme === 'dark' ? 'light' : 'dark'} />
           <SocketProvider>
+            <NotificationManager />
             <Stack screenOptions={{ headerShown: false }} />
             <PortalHost />
             <Toast position="top" topOffset={60} />

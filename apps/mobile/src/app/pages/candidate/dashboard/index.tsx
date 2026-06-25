@@ -28,6 +28,7 @@ import { getFullName, useUser } from '../../../../hooks/useUser';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import type { CandidateApplicationRecord } from '../../../../types/application';
 import CandidateDashboardSidebar from './components/CandidateDashboardSidebar';
+import { CandidateHeader } from '@/components/header/CandidateHeader';
 
 const chartTabs = ['Status', 'Timeline'] as const;
 
@@ -631,41 +632,14 @@ export default function CandidateDashboard() {
   ]);
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-[#f9fbff]"
-      edges={['top', 'left', 'right']}
-    >
+    <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="border-b border-[#d6ddeb] bg-white px-4 py-3">
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className="p-2"
-            onPress={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={22} color="#25324b" />
-          </TouchableOpacity>
-
-          <Text className="text-xl font-bold text-[#25324b]">Dashboard</Text>
-
-          <View className="flex-row items-center gap-2">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef0ff]">
-              <Text className="text-sm font-bold text-[#4640de]">
-                {(firstName || 'U').slice(0, 2).toUpperCase()}
-              </Text>
-            </View>
-            <View className="relative p-2">
-              <Bell size={22} color="#25324b" />
-              <View className="absolute right-1 top-1 h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6b5a] px-1">
-                <Text className="text-xs font-bold leading-3 text-white">
-                  9
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
+      <CandidateHeader
+        title="Dashboard"
+        initials={(firstName || 'U').slice(0, 2).toUpperCase()}
+        onMenuPress={() => setIsSidebarOpen(true)}
+      />
 
       <ScrollView
         ref={scrollViewRef}
@@ -742,6 +716,6 @@ export default function CandidateDashboard() {
         onClose={() => setIsSidebarOpen(false)}
         currentPath="/pages/candidate/dashboard"
       />
-    </SafeAreaView>
+    </>
   );
 }

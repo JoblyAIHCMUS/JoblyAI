@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../../../../constants/theme';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
 import { Link } from 'expo-router';
+import { NotificationBell } from '../../../../../components/header/NotificationBell';
 
 interface EmployerDashboardHeaderProps {
   onMenuPress?: () => void;
@@ -89,15 +89,7 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
         </View>
 
         {/* Notification Bell Right */}
-        <TouchableOpacity
-          className="w-11 h-11 items-center justify-center"
-          activeOpacity={0.7}
-        >
-          <View>
-            <Feather name="bell" size={24} color="#202430" />
-            <View className="absolute top-0 right-0 w-3 h-3 bg-app-red-1 rounded-full border-2 border-white" />
-          </View>
-        </TouchableOpacity>
+        <NotificationBell count={9} />
       </View>
     </SafeAreaView>
   );
