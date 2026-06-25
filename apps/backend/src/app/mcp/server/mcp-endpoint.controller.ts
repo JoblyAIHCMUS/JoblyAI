@@ -26,20 +26,28 @@ export class McpEndpointController {
     @Req() req: RequestWithMcpUser,
     @Res() res: Response
   ): Promise<void> {
-    if (!req.mcpUserId) {
-      this.logger.error('mcpUserId missing on request after guard');
+    if (!req.mcpUserId || !req.mcpRole) {
+      this.logger.error('mcpUserId or mcpRole missing on request after guard');
       if (!res.headersSent) {
         res.status(500).json({ error: 'internal_error' });
       }
       return;
     }
     const userId = req.mcpUserId;
+    const role = req.mcpRole;
+
+    const employer = await this.prisma.employer.findUnique({
+      where: { employerId: userId },
+      select: { companyId: true },
+    });
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
     const server = createMcpServer({
       userId,
+      role,
+      companyId: employer?.companyId ?? null,
       prisma: this.prisma,
       logger: this.logger,
     });
