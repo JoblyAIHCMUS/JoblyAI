@@ -3,6 +3,7 @@
 
 import React, { ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ interface FormFieldProps {
   type?: 'text' | 'email' | 'tel' | 'date' | 'password';
   error?: string;
   icon?: ReactNode;
+  showPasswordToggle?: boolean;
   disabled?: boolean;
   width?: 'full' | 'sm' | 'md';
 }
@@ -30,6 +32,7 @@ export function FormField({
   icon,
   disabled = false,
   width = 'md',
+  showPasswordToggle = false,
 }: FormFieldProps) {
   const widthClasses = {
     full: 'w-full',
@@ -59,32 +62,54 @@ export function FormField({
         )}
       </Label>
       <div className="relative w-full">
-        <Input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          style={{
-            background: 'var(--bg-primary)',
-            color: 'var(--text-primary)',
-            borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
-            fontFamily: 'var(--family-secondary)',
-            fontSize: '0.875rem',
-          }}
-          className={cn(
-            'placeholder:text-secondary text-xs sm:text-sm md:text-base',
-            error && 'border-red-400',
-            icon && 'pr-10'
-          )}
-        />
-        {icon && (
-          <div
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            style={{ color: 'var(--icon-primary)' }}
-          >
-            {icon}
-          </div>
+        {type === 'password' && showPasswordToggle ? (
+          <PasswordInput
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={cn(
+              'placeholder:text-secondary text-xs sm:text-sm md:text-base',
+              error && 'border-red-400'
+            )}
+            style={{
+              background: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+              borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
+              fontFamily: 'var(--family-secondary)',
+              fontSize: '0.875rem',
+            }}
+          />
+        ) : (
+          <>
+            <Input
+              type={type}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={placeholder}
+              disabled={disabled}
+              style={{
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
+                borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
+                fontFamily: 'var(--family-secondary)',
+                fontSize: '0.875rem',
+              }}
+              className={cn(
+                'placeholder:text-secondary text-xs sm:text-sm md:text-base',
+                error && 'border-red-400',
+                icon && 'pr-10'
+              )}
+            />
+            {icon && (
+              <div
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--icon-primary)' }}
+              >
+                {icon}
+              </div>
+            )}
+          </>
         )}
       </div>
       {error && (
