@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { RichTextContent } from '@/components/ui/rich-text-content';
 
 export interface CompanyInfo {
   id: number;
@@ -63,7 +64,7 @@ export default function JobCompanySection({
             </div>
 
             {/* Description */}
-            <p className="text-base leading-6 text-slate-500">{description}</p>
+            <RichTextContent html={description} />
           </div>
 
           {/* Right: Office photos */}
