@@ -38,40 +38,22 @@ export class JobProcessor extends WorkerHost {
 
       this.logger.log(`Successfully saved embedding for Job: ${jobId}`);
 
-      // 3. Update match scores for all applications of this job
+      // 3. Clear match explanations for all applications of this job
+      // They will be recalculated with new job data on next access
       const applications = await this.prisma.application.findMany({
         where: { jobId: jobId },
-        select: { id: true, resumeId: true },
+        select: { id: true },
       });
 
       if (applications.length > 0) {
         this.logger.log(
-          `Recalculating match scores for ${applications.length} applications for job ${jobId}`
+          `Clearing match explanations for ${applications.length} applications for job ${jobId}`
         );
 
-        for (const app of applications) {
-          const [sim]: any[] = await this.prisma.$queryRawUnsafe(
-            `
-            SELECT 1 - (r.embedding <=> j.embedding) as similarity
-            FROM "resume" r
-            JOIN "JobPosting" j ON j.id = $2
-            WHERE r.id = $1 AND r.embedding IS NOT NULL AND j.embedding IS NOT NULL
-          `,
-            app.resumeId,
-            jobId
-          );
-
-          if (sim && sim.similarity !== null) {
-            await this.prisma.application.update({
-              where: { id: app.id },
-              data: {
-                matchPercentage: parseFloat(
-                  (Math.max(0, sim.similarity) * 100).toFixed(2)
-                ),
-              },
-            });
-          }
-        }
+        await this.prisma.application.updateMany({
+          where: { jobId: jobId },
+          data: { matchExplanation: undefined },
+        });
       }
 
       return { success: true, jobId };

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
+import { MatchExplanationButton } from '@/components/employer/matchExplanationButton';
 import {
   KanbanBoard,
   KanbanBoardProvider,
@@ -226,6 +227,10 @@ export default function JobApplicantsKanban({
                               <span className="font-bold">
                                 {Math.round(applicant.score)}%
                               </span>
+                              <MatchExplanationButton
+                                applicationId={applicant.id}
+                                score={applicant.score}
+                              />
                             </>
                           )}
                         </div>

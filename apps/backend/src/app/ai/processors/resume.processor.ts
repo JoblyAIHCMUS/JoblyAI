@@ -104,35 +104,14 @@ export class ResumeProcessor extends WorkerHost {
 
           if (applications.length > 0) {
             this.logger.log(
-              `Updating match scores for ${applications.length} applications using resume ${resumeId}`
+              `Clearing match explanations for ${applications.length} applications using resume ${resumeId}`
             );
 
-            // We can't use MatchingService easily here due to circular deps sometimes,
-            // but we can call the SQL logic directly or just let the system handle it.
-            // Let's use a simple loop for now.
-            for (const app of applications) {
-              const [sim]: any[] = await this.prisma.$queryRawUnsafe(
-                `
-                SELECT 1 - (r.embedding <=> j.embedding) as similarity
-                FROM "resume" r
-                JOIN "JobPosting" j ON j.id = $2
-                WHERE r.id = $1 AND r.embedding IS NOT NULL AND j.embedding IS NOT NULL
-              `,
-                resumeId,
-                app.jobId
-              );
-
-              if (sim && sim.similarity !== null) {
-                await this.prisma.application.update({
-                  where: { id: app.id },
-                  data: {
-                    matchPercentage: parseFloat(
-                      (Math.max(0, sim.similarity) * 100).toFixed(2)
-                    ),
-                  },
-                });
-              }
-            }
+            // Clear match explanations so they get recalculated with new resume data
+            await this.prisma.application.updateMany({
+              where: { resumeId: resumeId },
+              data: { matchExplanation: undefined },
+            });
           }
         } catch (vectorError: any) {
           this.logger.error(
