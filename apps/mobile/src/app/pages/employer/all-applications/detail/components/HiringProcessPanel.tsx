@@ -3,7 +3,6 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import { HiringStage } from '../../types';
 import { hiringStageStyles, nextStageMap } from '../../data';
-import { ApplicationNotes } from './ApplicationNotes';
 
 interface HiringProcessPanelProps {
   hiringStage: HiringStage;
@@ -62,7 +61,6 @@ export function HiringProcessPanel({
       </View>
 
       <View className="h-px bg-app-border-2 mb-4" />
-      <ApplicationNotes />
     </View>
   );
 }

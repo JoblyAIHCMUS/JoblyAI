@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import ApplicantResumeViewer from '@/components/employer/applicantResumeViewer';
-import ApplicationNotes from '@/components/employer/applicationNotes';
 import ApplicantProfile from '@/components/employer/applicantProfile';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 import { Badge } from '@/components/ui/badge';
@@ -206,9 +205,7 @@ export default function ApplicantDetails({
                 </div>
                 <Separator />
               </div>
-              <div className="mt-4 sm:mt-6">
-                <ApplicationNotes />
-              </div>
+              <div className="mt-4 sm:mt-6"></div>
             </TabsContent>
           </Tabs>
         </CardContent>
