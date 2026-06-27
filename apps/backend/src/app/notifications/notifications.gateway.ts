@@ -47,6 +47,7 @@ export class NotificationsGateway
   }
 
   handleDisconnect(client: Socket) {
+    client.data.activeChat = null;
     this.logger.log(`Notification client ${client.id} disconnected`);
   }
 

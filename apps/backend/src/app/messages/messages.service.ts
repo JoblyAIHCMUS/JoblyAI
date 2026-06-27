@@ -4,12 +4,16 @@ import { InjectPrisma, InjectScylla } from '../decorators/inject.decorator';
 import { ChatSummaryResponse, ChatHistoryResponse } from './messages.interface';
 import { SendMessageDTO } from './dto/sendMessageDTO';
 import { PrismaClient } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
+import { MessagesGateway } from './messages.gateway';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectScylla() private readonly scylla: Client,
-    @InjectPrisma() private readonly prisma: PrismaClient
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly notificationsService: NotificationsService,
+    private readonly messagesGateway: MessagesGateway
   ) {}
 
   static getChatId(userA: string, userB: string): string {
@@ -68,6 +72,26 @@ export class MessagesService {
         create: { ...recipientData, ...updatePayload },
       }),
     ]);
+
+    const viewingChat = await this.messagesGateway.isViewingChat(
+      dto.recipientId,
+      chatId
+    );
+
+    if (!viewingChat) {
+      const sender = await this.prisma.user.findUnique({
+        where: { id: senderId },
+        select: { name: true },
+      });
+
+      await this.notificationsService.sendPushOnly(dto.recipientId, {
+        title: sender?.name ?? 'Tin nhắn mới',
+        body: dto.text,
+        data: {
+          link: `/pages/chat/${chatId}`,
+        },
+      });
+    }
 
     return {
       messageId: messageId.toString(),

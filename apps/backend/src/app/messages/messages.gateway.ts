@@ -28,6 +28,12 @@ export class MessagesGateway
     private readonly authService: AuthService
   ) {}
 
+  async isViewingChat(userId: string, chatId: string) {
+    const sockets = await this.server.in(userId).fetchSockets();
+
+    return sockets.some((socket) => socket.data.activeChat === chatId);
+  }
+
   async handleConnection(client: Socket) {
     const headers = { ...(client.handshake.headers as Record<string, string>) };
     // React Native clients send the session via socket `auth` instead of
@@ -125,5 +131,18 @@ export class MessagesGateway
     } catch (e) {
       return { status: 'error', error: (e as Error).message };
     }
+  }
+
+  @SubscribeMessage('chat_opened')
+  handleChatOpened(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { chatId: string }
+  ) {
+    client.data.activeChat = data.chatId;
+  }
+
+  @SubscribeMessage('chat_closed')
+  handleChatClosed(@ConnectedSocket() client: Socket) {
+    client.data.activeChat = null;
   }
 }

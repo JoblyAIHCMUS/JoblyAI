@@ -15,11 +15,24 @@ import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadO
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { withDateSeparators } from './utils';
+import { emitChatOpened, emitChatClosed } from '@/hooks/useMessagesSocket';
+import { AppState } from 'react-native';
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { data: profile } = useGetEmployerProfile();
   const userId = profile?.id ?? '';
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        emitChatClosed();
+      } else if (chatId) {
+        emitChatOpened(chatId);
+      }
+    });
+
+    return () => sub.remove();
+  }, [chatId]);
 
   // 1. Conversation metadata from the summary cache
   const { data: summaries } = useChatSummary(userId || undefined);

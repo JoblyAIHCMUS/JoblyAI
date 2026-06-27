@@ -454,4 +454,11 @@ export class NotificationsService {
       recommendations: settings.recommendationsEnabled,
     };
   }
+
+  async sendPushOnly(
+  recipientId: string,
+  payload: PushPayload,
+) {
+  await this.sendPushToUser(recipientId, payload);
+}
 }
