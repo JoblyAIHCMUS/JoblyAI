@@ -292,47 +292,18 @@ export class MatchingService {
   }
 
   /**
-   * Recalculates match percentages for all applicants of a specific job
-   * Useful when a Job Description is updated or for manual refresh
+   * Clears match explanations for all applicants of a specific job
+   * They will be recalculated with new job data on next access
    */
   async reRankApplicants(jobId: number): Promise<{ updatedCount: number }> {
-    this.logger.log(`Re-ranking all applicants for job ID: ${jobId}`);
+    this.logger.log(`Clearing match explanations for job ID: ${jobId}`);
 
-    const results: any[] = await this.prisma.$queryRawUnsafe(
-      `
-      SELECT 
-        a.id as app_id,
-        1 - (r.embedding <=> j.embedding) as score
-      FROM "application" a
-      JOIN "resume" r ON a."resumeId" = r.id
-      JOIN "JobPosting" j ON a."jobId" = j.id
-      WHERE a."jobId" = $1 
-        AND r.embedding IS NOT NULL 
-        AND j.embedding IS NOT NULL
-    `,
-      jobId
-    );
+    const result = await this.prisma.application.updateMany({
+      where: { jobId: jobId },
+      data: { matchExplanation: undefined },
+    });
 
-    if (results.length === 0) {
-      return { updatedCount: 0 };
-    }
-
-    // Perform updates in a transaction or parallel
-    const updatePromises = results.map((res) =>
-      this.prisma.application.update({
-        where: { id: res.app_id },
-        data: {
-          matchPercentage:
-            res.score !== null
-              ? parseFloat((Math.max(0, res.score) * 100).toFixed(2))
-              : null,
-        },
-      })
-    );
-
-    await Promise.all(updatePromises);
-
-    return { updatedCount: results.length };
+    return { updatedCount: result.count };
   }
 
   /**

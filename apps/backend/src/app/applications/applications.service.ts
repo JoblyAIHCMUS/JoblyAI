@@ -18,7 +18,7 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/notification-type.enum';
 
-import { MatchingService } from '../ai/matching.service';
+import { MatchExplanationService } from '../ai/match-explanation.service';
 
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
@@ -52,7 +52,7 @@ export class ApplicationsService {
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly notificationsService: NotificationsService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly matchingService: MatchingService
+    private readonly matchExplanationService: MatchExplanationService
   ) {}
 
   async createApplication(
@@ -162,20 +162,12 @@ export class ApplicationsService {
       throw new BadRequestException('Could not process application');
     }
 
-    // Automatically calculate match score if embeddings exist
+    // Calculate match explanation (deterministic score with justification)
     try {
-      await this.matchingService.calculateApplicationScore(application.id);
-      // Reload application to get the updated matchPercentage
-      const updatedApp = await this.prisma.application.findUnique({
-        where: { id: application.id },
-        include,
-      });
-      if (updatedApp) {
-        application = updatedApp;
-      }
+      await this.matchExplanationService.calculateExplanation(application.id);
     } catch (error) {
       console.error(
-        `Failed to auto-calculate match score for application ${application.id}:`,
+        `Failed to calculate match explanation for application ${application.id}:`,
         error
       );
     }

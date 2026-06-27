@@ -8,6 +8,7 @@ import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
 import { InterviewPrepService } from './interview-prep.service';
+import { MatchExplanationService } from './match-explanation.service';
 import { AiController } from './ai.controller';
 import { MatchingController } from './matching.controller';
 import { InterviewPrepController } from './interview-prep.controller';
@@ -44,6 +45,7 @@ import { JobListener } from './listeners/job.listener';
     ResumeParserService,
     ResumeScoringService,
     InterviewPrepService,
+    MatchExplanationService,
     ProfileSyncService,
     MatchingService,
     ResumeListener,
@@ -55,6 +57,7 @@ import { JobListener } from './listeners/job.listener';
     ResumeParserService,
     ResumeScoringService,
     InterviewPrepService,
+    MatchExplanationService,
     ProfileSyncService,
     MatchingService,
   ],
