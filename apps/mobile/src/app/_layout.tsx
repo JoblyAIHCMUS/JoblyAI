@@ -27,16 +27,16 @@ import { canAccessRoute } from '@/utils/role-guard';
 import { getDashboardPath } from '@/utils/auth-route';
 import '../global.css';
 
-const PUBLIC_ENTRY_ROUTES = new Set([
+const GUEST_ONLY_ROUTES = new Set([
   '/',
   '/pages/login',
   '/pages/register',
   '/pages/forgot-password',
-  '/pages/find-jobs',
-  '/pages/browse-companies',
 ]);
-const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
 
+const PUBLIC_ROUTES = new Set(['/pages/find-jobs', '/pages/browse-companies']);
+
+const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
 type SessionWithRole = {
   user?: {
     role?: string;
@@ -48,8 +48,10 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isCheckingSessionRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
-  const isPublicRoute =
-    PUBLIC_ENTRY_ROUTES.has(pathname) ||
+  const isGuestOnly = GUEST_ONLY_ROUTES.has(pathname);
+
+  const isPublic =
+    PUBLIC_ROUTES.has(pathname) ||
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   const tryResumeSession = useCallback(async () => {
@@ -65,23 +67,16 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       if (error) {
         return;
       }
-      // Chưa login nhưng cố vào private route
-      if (!session && !isPublicRoute) {
-        console.log('User not logged in, redirecting to login page');
-        console.log('Current pathname:', pathname);
+      // 1. Guest vào private
+      if (!session && !isPublic && !isGuestOnly) {
         router.replace('/pages/login');
         return;
       }
 
       const role = (session as SessionWithRole | null | undefined)?.user?.role;
 
-      // Đã login nhưng đang ở login/register
-      if (isPublicRoute) {
-        // Chưa đăng nhập thì cho ở lại public page
-        if (!session) {
-          return;
-        }
-
+      // 2. Đã login nhưng vào login/register
+      if (session && isGuestOnly) {
         const nextPath = getDashboardPath(role);
 
         if (nextPath && nextPath !== pathname) {
@@ -91,7 +86,12 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Kiểm tra quyền truy cập route
+      // 3. Public page -> ai cũng được ở lại
+      if (isPublic) {
+        return;
+      }
+
+      // 4. Private page -> kiểm tra quyền
       const authorized = canAccessRoute(pathname, role);
 
       if (!authorized) {
@@ -106,7 +106,7 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       isCheckingSessionRef.current = false;
       setIsReady(true);
     }
-  }, [isPublicRoute, pathname, router]);
+  }, [isPublic, isGuestOnly, pathname, router]);
 
   useEffect(() => {
     void tryResumeSession();
@@ -124,7 +124,7 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
     };
   }, [tryResumeSession]);
 
-  if (!isReady && isPublicRoute) {
+  if (!isReady) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color="#4f46e5" />
