@@ -32,6 +32,8 @@ const GUEST_ONLY_ROUTES = new Set([
   '/pages/login',
   '/pages/register',
   '/pages/forgot-password',
+  '/pages/find-jobs',
+  '/pages/browse-companies',
 ]);
 
 const PUBLIC_ROUTES = new Set(['/pages/find-jobs', '/pages/browse-companies']);
