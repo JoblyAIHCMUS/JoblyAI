@@ -77,7 +77,9 @@ export const getMatchExplanation = async (
   applicationId: string | number
 ): Promise<MatchExplanation> => {
   const response = await axios.get(
-    `${API_BASE_URL}/api/matching/application/${Number(applicationId)}/explanation`,
+    `${API_BASE_URL}/api/matching/application/${Number(
+      applicationId
+    )}/explanation`,
     { withCredentials: true }
   );
   return response.data;
@@ -87,7 +89,9 @@ export const recalculateMatchExplanation = async (
   applicationId: string | number
 ): Promise<MatchExplanation> => {
   const response = await axios.post(
-    `${API_BASE_URL}/api/matching/application/${Number(applicationId)}/recalculate`,
+    `${API_BASE_URL}/api/matching/application/${Number(
+      applicationId
+    )}/recalculate`,
     {},
     { withCredentials: true }
   );

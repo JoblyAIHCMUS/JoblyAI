@@ -97,7 +97,9 @@ export default function ApplicantOverview({
             <BarChart3 className="h-4 w-4" />
             {applicant.score.toFixed(1)}
             {applicant.score > 0 && (
-              <span className="text-muted-foreground text-xs">(click to view analysis)</span>
+              <span className="text-muted-foreground text-xs">
+                (click to view analysis)
+              </span>
             )}
           </button>
         </div>

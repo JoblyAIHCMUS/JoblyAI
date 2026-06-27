@@ -53,7 +53,9 @@ export function MatchExplanationDrawer({
   const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
   const [loading, setLoading] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
-  const [scoringMode, setScoringMode] = useState<'hybrid' | 'exact' | 'embedding'>('hybrid');
+  const [scoringMode, setScoringMode] = useState<
+    'hybrid' | 'exact' | 'embedding'
+  >('hybrid');
 
   useEffect(() => {
     if (isOpen && applicationId) {
@@ -115,7 +117,9 @@ export function MatchExplanationDrawer({
     const reqPct = getCurrentRequirementPercentage();
     const expScore = explanation.scoreBreakdown.experienceScore;
     const final = getCurrentScore();
-    return `Final = ReqScore(${Math.round(reqPct)}) × 0.6 + ExpScore(${Math.round(expScore)}) × 0.4 = ${final}`;
+    return `Final = ReqScore(${Math.round(
+      reqPct
+    )}) × 0.6 + ExpScore(${Math.round(expScore)}) × 0.4 = ${final}`;
   };
 
   const getScoreColor = (score: number) => {
@@ -208,7 +212,8 @@ export function MatchExplanationDrawer({
             </div>
           </SheetTitle>
           <SheetDescription>
-            Detailed breakdown of how this candidate matches the job requirements
+            Detailed breakdown of how this candidate matches the job
+            requirements
           </SheetDescription>
         </SheetHeader>
 
@@ -225,7 +230,9 @@ export function MatchExplanationDrawer({
                   Overall Score
                 </div>
                 <div
-                  className={`text-4xl font-bold ${getScoreColor(getCurrentScore())}`}
+                  className={`text-4xl font-bold ${getScoreColor(
+                    getCurrentScore()
+                  )}`}
                 >
                   {getCurrentScore()}/100
                 </div>
@@ -250,27 +257,44 @@ export function MatchExplanationDrawer({
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-muted-foreground">Requirements:</span>{' '}
+                        <span className="text-muted-foreground">
+                          Requirements:
+                        </span>{' '}
                         <span className="font-medium">
                           {getCurrentRequirementPercentage().toFixed(1)}%
                         </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Experience:</span>{' '}
+                        <span className="text-muted-foreground">
+                          Experience:
+                        </span>{' '}
                         <span className="font-medium">
-                          {explanation.scoreBreakdown.experienceScore.toFixed(1)} pts
+                          {explanation.scoreBreakdown.experienceScore.toFixed(
+                            1
+                          )}{' '}
+                          pts
                         </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Exact match:</span>{' '}
+                        <span className="text-muted-foreground">
+                          Exact match:
+                        </span>{' '}
                         <span className="font-medium text-green-600">
-                          {explanation.scoreBreakdown.exactPercentage.toFixed(1)}%
+                          {explanation.scoreBreakdown.exactPercentage.toFixed(
+                            1
+                          )}
+                          %
                         </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Embedding:</span>{' '}
+                        <span className="text-muted-foreground">
+                          Embedding:
+                        </span>{' '}
                         <span className="font-medium text-blue-600">
-                          {explanation.scoreBreakdown.embeddingPercentage.toFixed(1)}%
+                          {explanation.scoreBreakdown.embeddingPercentage.toFixed(
+                            1
+                          )}
+                          %
                         </span>
                       </div>
                     </div>
@@ -369,7 +393,11 @@ export function MatchExplanationDrawer({
                   <Briefcase className="h-4 w-4 text-green-500" />
                   <h3 className="font-semibold">Requirement Breakdown</h3>
                   <Badge variant="outline" className="ml-auto text-xs">
-                    {scoringMode === 'exact' ? 'Exact scores' : scoringMode === 'embedding' ? 'Embedding scores' : 'Both scores'}
+                    {scoringMode === 'exact'
+                      ? 'Exact scores'
+                      : scoringMode === 'embedding'
+                      ? 'Embedding scores'
+                      : 'Both scores'}
                   </Badge>
                 </div>
                 <div className="space-y-3">
@@ -391,16 +419,28 @@ export function MatchExplanationDrawer({
                       {/* Mode-specific score display */}
                       {scoringMode === 'exact' && (
                         <div className="mb-1 flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Score:</span>
-                          <span className={`text-sm font-semibold ${getScoreColor(req.exactScore)}`}>
+                          <span className="text-xs text-muted-foreground">
+                            Score:
+                          </span>
+                          <span
+                            className={`text-sm font-semibold ${getScoreColor(
+                              req.exactScore
+                            )}`}
+                          >
                             {req.exactScore.toFixed(0)}
                           </span>
                         </div>
                       )}
                       {scoringMode === 'embedding' && (
                         <div className="mb-1 flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Score:</span>
-                          <span className={`text-sm font-semibold ${getScoreColor(req.embeddingScore)}`}>
+                          <span className="text-xs text-muted-foreground">
+                            Score:
+                          </span>
+                          <span
+                            className={`text-sm font-semibold ${getScoreColor(
+                              req.embeddingScore
+                            )}`}
+                          >
                             {req.embeddingScore.toFixed(0)}
                           </span>
                         </div>
@@ -408,14 +448,26 @@ export function MatchExplanationDrawer({
                       {scoringMode === 'hybrid' && (
                         <div className="mb-1 flex items-center gap-3">
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">Exact:</span>
-                            <span className={`text-xs font-semibold ${getScoreColor(req.exactScore)}`}>
+                            <span className="text-xs text-muted-foreground">
+                              Exact:
+                            </span>
+                            <span
+                              className={`text-xs font-semibold ${getScoreColor(
+                                req.exactScore
+                              )}`}
+                            >
                               {req.exactScore.toFixed(0)}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">Embed:</span>
-                            <span className={`text-xs font-semibold ${getScoreColor(req.embeddingScore)}`}>
+                            <span className="text-xs text-muted-foreground">
+                              Embed:
+                            </span>
+                            <span
+                              className={`text-xs font-semibold ${getScoreColor(
+                                req.embeddingScore
+                              )}`}
+                            >
                               {req.embeddingScore.toFixed(0)}
                             </span>
                           </div>
@@ -434,7 +486,9 @@ export function MatchExplanationDrawer({
                       )}
                       {req.embeddingMatch?.matched && (
                         <div className="mt-2 text-xs text-blue-600">
-                          🔍 Embedding: {(req.embeddingMatch.similarity * 100).toFixed(0)}% similarity
+                          🔍 Embedding:{' '}
+                          {(req.embeddingMatch.similarity * 100).toFixed(0)}%
+                          similarity
                         </div>
                       )}
                     </div>

@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { MatchExplanationDrawer } from './matchExplanationDrawer';
 
 interface MatchExplanationButtonProps {
@@ -11,7 +16,10 @@ interface MatchExplanationButtonProps {
   score: number | null;
 }
 
-export function MatchExplanationButton({ applicationId, score }: MatchExplanationButtonProps) {
+export function MatchExplanationButton({
+  applicationId,
+  score,
+}: MatchExplanationButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!score && score !== 0) {

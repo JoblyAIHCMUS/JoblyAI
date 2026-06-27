@@ -16,11 +16,11 @@ Final Score = (Requirement Score × 0.6) + (Experience Score × 0.4)
 
 The requirement score is calculated differently based on the scoring mode:
 
-| Mode               | Formula                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| **Hybrid**         | Per-requirement: use exact if found, else embedding            |
-| **Exact Only**     | Uses exactScore per requirement (0 if no exact match)          |
-| **Embedding Only** | Uses embeddingScore per requirement (0 if no embedding match)  |
+| Mode               | Formula                                                       |
+| ------------------ | ------------------------------------------------------------- |
+| **Hybrid**         | Per-requirement: use exact if found, else embedding           |
+| **Exact Only**     | Uses exactScore per requirement (0 if no exact match)         |
+| **Embedding Only** | Uses embeddingScore per requirement (0 if no embedding match) |
 
 ### Experience Score (40% weight)
 
@@ -184,10 +184,10 @@ All 3 scores (exact, embedding, hybrid) are pre-computed and stored — toggle i
 
 **Calculation:**
 
-| Requirement | Exact Score | Embedding Score | Importance    | Exact Weighted | Embed Weighted |
-| ----------- | ----------- | --------------- | ------------- | -------------- | -------------- |
-| React.js    | 75 (4yr ≥ 2yr) | 85 (similarity) | REQUIRED (3×) | 225            | 255            |
-| TypeScript  | 75 (3yr ≥ 1yr) | 80 (similarity) | REQUIRED (3×) | 225            | 240            |
+| Requirement | Exact Score    | Embedding Score | Importance     | Exact Weighted | Embed Weighted |
+| ----------- | -------------- | --------------- | -------------- | -------------- | -------------- |
+| React.js    | 75 (4yr ≥ 2yr) | 85 (similarity) | REQUIRED (3×)  | 225            | 255            |
+| TypeScript  | 75 (3yr ≥ 1yr) | 80 (similarity) | REQUIRED (3×)  | 225            | 240            |
 | GraphQL     | 0 (not found)  | 62 (similarity) | PREFERRED (2×) | 0              | 124            |
 
 **Exact percentage:** 450 / 800 × 100 = **56.3%**
