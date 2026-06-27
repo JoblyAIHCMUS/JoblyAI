@@ -27,12 +27,7 @@ export default function AppSidebar({
   const role = (session as SessionwithRole | null | undefined)?.user?.role;
 
   if (!session) {
-    return (
-      <Sidebar
-        isOpen={isOpen}
-        onClose={onClose}
-      />
-    );
+    return <Sidebar isOpen={isOpen} onClose={onClose} />;
   }
 
   switch (role) {
@@ -55,11 +50,6 @@ export default function AppSidebar({
     //   );
 
     default:
-      return (
-        <Sidebar
-          isOpen={isOpen}
-          onClose={onClose}
-        />
-      );
+      return <Sidebar isOpen={isOpen} onClose={onClose} />;
   }
 }

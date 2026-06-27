@@ -32,6 +32,8 @@ const PUBLIC_ENTRY_ROUTES = new Set([
   '/pages/login',
   '/pages/register',
   '/pages/forgot-password',
+  '/pages/find-jobs',
+  '/pages/browse-companies',
 ]);
 const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
 
@@ -65,6 +67,8 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       }
       // Chưa login nhưng cố vào private route
       if (!session && !isPublicRoute) {
+        console.log('User not logged in, redirecting to login page');
+        console.log('Current pathname:', pathname);
         router.replace('/pages/login');
         return;
       }

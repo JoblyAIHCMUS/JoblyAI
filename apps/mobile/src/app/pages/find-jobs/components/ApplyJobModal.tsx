@@ -41,7 +41,6 @@ export default function ApplyJobModal({
   job,
   onSuccess,
 }: ApplyJobModalProps) {
-
   const [jobTitle, setJobTitle] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
   const [resumeOptions, setResumeOptions] = useState<ResumeChoice[]>([]);

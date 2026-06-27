@@ -6,8 +6,8 @@ import {
   MapPin,
 } from 'lucide-react-native';
 
-import type { EmploymentType, JobPosting } from '../../../../types/job';
-import { COLORS } from '../../../constants/theme';
+import type { EmploymentType, JobPosting } from '@/types/job';
+import { COLORS } from '@/app/constants/theme';
 
 export interface CompanyJobsSectionProps {
   companyName: string;

@@ -103,7 +103,7 @@ const CandidateDashboardSidebar = ({
     {
       name: 'Browse Companies',
       icon: Building2,
-      path: '/pages/candidate/browse-companies',
+      path: '/pages/browse-companies',
     },
     {
       name: 'My Public Profile',

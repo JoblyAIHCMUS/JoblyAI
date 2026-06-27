@@ -9,11 +9,11 @@ import {
   Users,
 } from 'lucide-react-native';
 
-import type { Company } from '../../../../types/company';
+import type { Company } from '@/types/company';
 import {
   INDUSTRY_LABELS,
   SCALE_LABELS,
-} from '../../employer/company-profile/constants';
+} from '../employer/company-profile/constants';
 
 export interface CompanyOverviewSectionProps {
   company: Company;
