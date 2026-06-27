@@ -75,7 +75,9 @@ export function FormField({
             style={{
               background: 'var(--bg-primary)',
               color: 'var(--text-primary)',
-              borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
+              borderColor: error
+                ? 'var(--destructive)'
+                : 'var(--border-primary)',
               fontFamily: 'var(--family-secondary)',
               fontSize: '0.875rem',
             }}
@@ -91,7 +93,9 @@ export function FormField({
               style={{
                 background: 'var(--bg-primary)',
                 color: 'var(--text-primary)',
-                borderColor: error ? 'var(--destructive)' : 'var(--border-primary)',
+                borderColor: error
+                  ? 'var(--destructive)'
+                  : 'var(--border-primary)',
                 fontFamily: 'var(--family-secondary)',
                 fontSize: '0.875rem',
               }}
