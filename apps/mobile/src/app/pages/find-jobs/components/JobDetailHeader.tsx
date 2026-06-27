@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Share } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { COLORS } from '../../../../constants/theme';
-import type { JobPosting } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import type { JobPosting } from '@/types/job';
 
 interface JobDetailHeaderProps {
   job: JobPosting;

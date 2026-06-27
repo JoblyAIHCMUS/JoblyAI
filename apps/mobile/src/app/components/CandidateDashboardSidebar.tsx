@@ -30,10 +30,10 @@ import {
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
-import { getGreetingName, useUser } from '../../../../../hooks/useUser';
-import { useGetCandidateProfile } from '../../../../../hooks/useGetCandidateProfile';
-import { useLogout } from '../../../../../hooks/useAuth';
-import { useUnreadDot } from '../../../../../hooks/messaging/useUnreadDot';
+import { getGreetingName, useUser } from '@/hooks/useUser';
+import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
+import { useLogout } from '@/hooks/useAuth';
+import { useUnreadDot } from '@/hooks/messaging/useUnreadDot';
 
 interface CandidateDashboardSidebarProps {
   isOpen: boolean;
@@ -99,7 +99,7 @@ const CandidateDashboardSidebar = ({
       icon: FileText,
       path: '/pages/candidate/my-applications',
     },
-    { name: 'Find Jobs', icon: Search, path: '/pages/candidate/find-jobs' },
+    { name: 'Find Jobs', icon: Search, path: '/pages/find-jobs' },
     {
       name: 'Browse Companies',
       icon: Building2,

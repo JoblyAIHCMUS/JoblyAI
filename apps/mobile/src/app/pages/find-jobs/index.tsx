@@ -16,18 +16,14 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import { useListJobs, useCategories, useSkillsFilter } from '../../../../hooks';
-import { COLORS } from '../../../constants/theme';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { useListJobs, useCategories, useSkillsFilter } from '@/hooks';
+import { COLORS } from '@/app/constants/theme';
 import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
 import SortDropdown from './components/SortDropdown';
 import FilterPanel from './components/FilterPanel';
-import type {
-  ListJobsQuery,
-  SortOption,
-  EmploymentType,
-} from '../../../../types/job';
+import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
+import AppSidebar from '@/app/components/AppSidebar';
 
 const PAGE_SIZE = 10;
 const SALARY_MAX_CAP = 500000;
@@ -180,14 +176,13 @@ function FindJobsPage() {
           headerShown: false,
         }}
       />
+      <AppSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentPath="/pages/find-jobs"
+      />
 
       <SafeAreaView className="flex-1 bg-white">
-        <CandidateDashboardSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          currentPath="/pages/candidate/find-jobs"
-        />
-
         <View className="flex-1">
           {/* Top Bar */}
           <View className="flex-row items-center justify-between border-b border-app-gray-1 bg-white px-4 py-4">

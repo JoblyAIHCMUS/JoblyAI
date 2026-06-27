@@ -355,7 +355,7 @@ export function CV({
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => router.push('/pages/candidate/find-jobs')}
+                    onPress={() => router.push('/pages/find-jobs')}
                     disabled={isBusy}
                     className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
                   >

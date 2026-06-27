@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
-import { COLORS } from '../../../../constants/theme';
+import { COLORS } from '@/app/constants/theme';
 import {
   parseDescription,
   formatSalary,
   formatJobType,
   formatDate,
 } from '../utils';
-import type { JobPosting } from '../../../../../types/job';
+import type { JobPosting } from '@/types/job';
 import RequiredSkills from './RequiredSkills';
 
 interface JobDetailContentProps {

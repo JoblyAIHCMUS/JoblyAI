@@ -3,7 +3,7 @@ import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import MessagesSearchBar from '../../employer/messages/components/MessagesSearchBar';
 import MessageListItem from '../../employer/messages/components/MessageListItem';
 import MessagesLoading from '../../employer/messages/components/MessagesLoading';
@@ -13,8 +13,8 @@ import {
   filterBySearch,
 } from '../../employer/messages/utils';
 import { Conversation } from '../../employer/messages/types';
-import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
-import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
+import { useChatSummary } from '@/hooks/messaging/useChatSummary';
+import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
 
 export default function MessagesScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

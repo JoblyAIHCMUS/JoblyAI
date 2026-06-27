@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { MapPin, Briefcase, DollarSign, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { COLORS } from '../../../../constants/theme';
-import type { JobPosting } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import type { JobPosting } from '@/types/job';
 
 interface JobCardProps {
   job: JobPosting;
@@ -46,7 +46,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     if (onPress) {
       onPress();
     } else {
-      router.push(`/pages/candidate/find-jobs/${job.id}`);
+      router.push(`/pages/find-jobs/${job.id}`);
     }
   };
 

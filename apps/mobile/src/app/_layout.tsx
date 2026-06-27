@@ -13,7 +13,6 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -34,6 +33,7 @@ const PUBLIC_ENTRY_ROUTES = new Set([
   '/pages/register',
   '/pages/forgot-password',
 ]);
+const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
 
 type SessionWithRole = {
   user?: {
@@ -46,10 +46,9 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isCheckingSessionRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
-  const isPublicRoute = useMemo(
-    () => PUBLIC_ENTRY_ROUTES.has(pathname),
-    [pathname]
-  );
+  const isPublicRoute =
+    PUBLIC_ENTRY_ROUTES.has(pathname) ||
+    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   const tryResumeSession = useCallback(async () => {
     if (isCheckingSessionRef.current) {

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
-import { COLORS } from '../../../../constants/theme';
-import type { SortOption } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import type { SortOption } from '@/types/job';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SortDropdownProps {

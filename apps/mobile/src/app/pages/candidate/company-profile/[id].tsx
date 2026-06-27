@@ -15,9 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Menu } from 'lucide-react-native';
 
-import { useCompanyJobs, useGetCompany } from '../../../../hooks';
-import { COLORS } from '../../../constants/theme';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { useCompanyJobs, useGetCompany } from '@/hooks';
+import { COLORS } from '@/app/constants/theme';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { CompanyJobsSection } from './CompanyJobsSection';
 import { CompanyOverviewSection } from './CompanyOverviewSection';
 
@@ -163,7 +163,7 @@ export default function CandidateCompanyProfilePage() {
               currentPage={jobsPage}
               totalPages={jobsTotalPages}
               onPageChange={setJobsPage}
-              onApplyPress={() => router.push('/pages/candidate/find-jobs')}
+              onApplyPress={() => router.push('/pages/find-jobs')}
             />
           </View>
         </ScrollView>

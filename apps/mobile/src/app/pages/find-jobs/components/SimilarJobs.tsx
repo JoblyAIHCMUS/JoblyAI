@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Briefcase } from 'lucide-react-native';
-import { COLORS } from '../../../../constants/theme';
-import { useSimilarJobs } from '../../../../../hooks/useSimilarJobs';
-import type { JobPosting } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import { useSimilarJobs } from '@/hooks/useSimilarJobs';
+import type { JobPosting } from '@/types/job';
 
 interface SimilarJobsProps {
   jobId: number;
@@ -124,7 +124,7 @@ const SimilarJobs: React.FC<SimilarJobsProps> = ({
           <SimilarJobCard
             key={job.id}
             job={job}
-            onPress={() => router.push(`/pages/candidate/find-jobs/${job.id}`)}
+            onPress={() => router.push(`/pages/find-jobs/${job.id}`)}
           />
         ))}
       </ScrollView>

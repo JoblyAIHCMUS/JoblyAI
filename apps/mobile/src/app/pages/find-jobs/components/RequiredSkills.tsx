@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import type {
   JobRequirement,
   RequirementImportance,
-} from '../../../../../types/job';
+} from '@/types/job';
 
 interface RequiredSkillsProps {
   requirements: JobRequirement[];

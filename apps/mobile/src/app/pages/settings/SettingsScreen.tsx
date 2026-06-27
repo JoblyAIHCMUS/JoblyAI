@@ -29,10 +29,10 @@ import {
   updateNotificationSettings,
   type NotificationSettings,
   type NotificationSettingsKey,
-} from '../../../api/notifications';
-import { COLORS } from '../../constants/theme';
-import { useLogout } from '../../../hooks/useAuth';
-import CandidateDashboardSidebar from '../candidate/dashboard/components/CandidateDashboardSidebar';
+} from '@/api/notifications';
+import { COLORS } from '@/app/constants/theme';
+import { useLogout } from '@/hooks/useAuth';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import EmployerDashboardSidebar from '../employer/dashboard/components/EmployerDashboardSidebar';
 
 type SettingsRole = 'candidate' | 'employer';

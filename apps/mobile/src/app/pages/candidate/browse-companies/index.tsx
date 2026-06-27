@@ -16,10 +16,10 @@ import {
 } from 'react-native-safe-area-context';
 import { Building2, MapPin, Menu, Search } from 'lucide-react-native';
 
-import { useCompanies } from '../../../../hooks';
-import type { Company } from '../../../../types/company';
-import { COLORS } from '../../../constants/theme';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { useCompanies } from '@/hooks';
+import type { Company } from '@/types/company';
+import { COLORS } from '@/app/constants/theme';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 
 const POPULAR_SEARCHES = ['Design', 'Engineering', 'Marketing', 'Finance'];
 const PAGE_SIZE = 6;
