@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Loader2,
   RefreshCw,
@@ -147,7 +146,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden px-6 pb-6">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
           {!data && loading ? (
             <div className="flex flex-col items-center justify-center h-64 space-y-4">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -191,7 +190,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
               </Button>
             </div>
           ) : (
-            <Tabs defaultValue="easy" className="w-full h-full flex flex-col">
+            <Tabs defaultValue="easy" className="w-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="easy" className="gap-2">
                   <Badge
@@ -222,17 +221,15 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                 </TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="flex-1 pr-4">
-                <TabsContent value="easy" className="mt-0">
-                  {renderQuestions(data.questions?.easy || [])}
-                </TabsContent>
-                <TabsContent value="medium" className="mt-0">
-                  {renderQuestions(data.questions?.medium || [])}
-                </TabsContent>
-                <TabsContent value="hard" className="mt-0">
-                  {renderQuestions(data.questions?.hard || [])}
-                </TabsContent>
-              </ScrollArea>
+              <TabsContent value="easy" className="mt-0">
+                {renderQuestions(data.questions?.easy || [])}
+              </TabsContent>
+              <TabsContent value="medium" className="mt-0">
+                {renderQuestions(data.questions?.medium || [])}
+              </TabsContent>
+              <TabsContent value="hard" className="mt-0">
+                {renderQuestions(data.questions?.hard || [])}
+              </TabsContent>
             </Tabs>
           )}
         </div>

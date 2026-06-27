@@ -93,6 +93,7 @@ export default function ChangePasswordForm() {
         isRequired
         width="full"
         disabled={isLoading}
+        showPasswordToggle
       />
       <FormField
         label="New Password"
@@ -104,6 +105,7 @@ export default function ChangePasswordForm() {
         isRequired
         width="full"
         disabled={isLoading}
+        showPasswordToggle
       />
       <FormField
         label="Confirm New Password"
@@ -115,6 +117,7 @@ export default function ChangePasswordForm() {
         isRequired
         width="full"
         disabled={isLoading}
+        showPasswordToggle
       />
       <Button
         type="button"

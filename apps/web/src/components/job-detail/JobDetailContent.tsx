@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import type { JobDetailContentProps } from '@/types/jobDetail';
+import { RichTextContent } from '@/components/ui/rich-text-content';
 
 function CheckItem({ text }: { text: string }) {
   // Handle both plain text and HTML content from editor
@@ -34,24 +35,6 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-function RequirementStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    REQUIRED: 'bg-red-100 text-red-700',
-    PREFERRED: 'bg-amber-100 text-amber-700',
-    OPTIONAL: 'bg-blue-100 text-blue-700',
-  };
-
-  return (
-    <span
-      className={`px-2 py-0.5 rounded text-xs font-semibold ${
-        colors[status] || colors.OPTIONAL
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
-
 function CategoryPill({
   children,
   color,
@@ -72,38 +55,6 @@ function CategoryPill({
   );
 }
 
-function RichDescriptionContent({ html }: { html: string }) {
-  const sanitized = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      'p',
-      'br',
-      'strong',
-      'em',
-      'u',
-      's',
-      'code',
-      'pre',
-      'h1',
-      'h2',
-      'h3',
-      'ul',
-      'ol',
-      'li',
-      'blockquote',
-      'a',
-      'span',
-    ],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
-  });
-
-  return (
-    <div
-      className="prose prose-sm sm:prose-base max-w-none text-slate-500 [&_p]:leading-6 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:mt-7 [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-5 [&_h3]:mb-3 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-4 [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_pre]:bg-slate-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:overflow-x-auto [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_a]:text-indigo-600 [&_a]:hover:underline [&_a]:break-words [&_span]:inline"
-      dangerouslySetInnerHTML={{ __html: sanitized }}
-    />
-  );
-}
-
 /**
  * Renders content that can be either plain text list items or rich HTML.
  * Supports both legacy (string[]) and modern (string/HTML) formats.
@@ -111,7 +62,7 @@ function RichDescriptionContent({ html }: { html: string }) {
 function RichContentSection({ content }: { content: string[] | string }) {
   // If content is a string (HTML), render it as rich content
   if (typeof content === 'string') {
-    return <RichDescriptionContent html={content} />;
+    return <RichTextContent html={content} />;
   }
 
   // If content is an array, render each item with CheckItem
@@ -123,6 +74,12 @@ function RichContentSection({ content }: { content: string[] | string }) {
     </div>
   );
 }
+
+const IMPORTANCE_GROUPS = [
+  { value: 'REQUIRED', label: 'Required', headingClass: 'text-red-700' },
+  { value: 'PREFERRED', label: 'Preferred', headingClass: 'text-amber-700' },
+  { value: 'OPTIONAL', label: 'Optional', headingClass: 'text-blue-700' },
+] as const;
 
 /**
  * Pure presentational component for job detail content.
@@ -146,7 +103,7 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             {/* Description */}
             <div className="flex flex-col gap-4">
               <SectionHeading>Description</SectionHeading>
-              <RichDescriptionContent html={descriptionContent.overview} />
+              <RichTextContent html={descriptionContent.overview} />
             </div>
 
             {/* Responsibilities */}
@@ -266,30 +223,42 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             {requiredSkills.length > 0 && (
               <div className="flex flex-col gap-4">
                 <SectionHeading>Required Skills</SectionHeading>
-                <div className="flex flex-col gap-3">
-                  {requiredSkills.map((requirement) => (
-                    <div
-                      key={requirement.skillName}
-                      className="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg"
-                    >
-                      <span className="text-sm sm:text-base font-medium text-slate-900">
-                        {requirement.skillName}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {requirement.minYearsExperience !== null && (
-                          <span className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">
-                            {requirement.minYearsExperience}+{' '}
-                            {requirement.minYearsExperience === 1
-                              ? 'year'
-                              : 'years'}
-                          </span>
-                        )}
-                        <RequirementStatusBadge
-                          status={requirement.importance}
-                        />
+                <div className="flex flex-col gap-6">
+                  {IMPORTANCE_GROUPS.map((group) => {
+                    const items = requiredSkills.filter(
+                      (r) => r.importance === group.value
+                    );
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={group.value} className="flex flex-col gap-3">
+                        <h3
+                          className={`text-base font-semibold ${group.headingClass}`}
+                        >
+                          {group.label} · {items.length}
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                          {items.map((requirement) => (
+                            <div
+                              key={requirement.skillName}
+                              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                            >
+                              <span className="text-sm sm:text-base font-medium text-slate-900">
+                                {requirement.skillName}
+                              </span>
+                              {requirement.minYearsExperience !== null && (
+                                <span className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">
+                                  {requirement.minYearsExperience}+{' '}
+                                  {requirement.minYearsExperience === 1
+                                    ? 'year'
+                                    : 'years'}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

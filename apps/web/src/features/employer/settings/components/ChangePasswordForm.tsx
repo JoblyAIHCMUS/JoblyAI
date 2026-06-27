@@ -64,6 +64,7 @@ export default function ChangePasswordForm() {
         placeholder="Enter your old password"
         isRequired
         width="full"
+        showPasswordToggle
       />
       <FormField
         label="New Password"
@@ -74,6 +75,7 @@ export default function ChangePasswordForm() {
         placeholder="Enter your new password"
         isRequired
         width="full"
+        showPasswordToggle
       />
       <FormField
         label="Confirm New Password"
@@ -84,6 +86,7 @@ export default function ChangePasswordForm() {
         placeholder="Re-enter your new password"
         isRequired
         width="full"
+        showPasswordToggle
       />
       {success && (
         <span className="text-xs sm:text-sm text-green-600">{success}</span>
