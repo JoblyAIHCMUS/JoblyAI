@@ -10,15 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { BadgeCheck, Mail, Menu, Pencil, Phone } from 'lucide-react-native';
+import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import {
   InstagramIcon,
   TwitterIcon,
 } from '../../../components/shared/svgs/Icons';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import EditAboutModal from './components/EditAboutModal';
 import EditExperienceModal from './components/EditExperienceModal';
 import EditEducationModal from './components/EditEducationModal';
@@ -101,10 +100,6 @@ function Card({
       {children}
     </View>
   );
-}
-
-function SimpleHome() {
-  return <View className="h-3 w-3 rounded-sm border border-[#1f2937]" />;
 }
 
 function SimpleEdit() {
@@ -442,11 +437,12 @@ function ProfileContent() {
     if (!activeResumeId) return;
     setDeletingResumeId(activeResumeId);
     try {
-      await deleteResume({ resumeId: activeResumeId, keepData: true });
+      await deleteResume(activeResumeId, true);
       await refetch();
       setDeleteImpactModalOpen(false);
     } catch (err) {
       Toast.show({ type: 'error', text1: 'Failed to delete CV' });
+      console.error('Delete resume error:', err);
     } finally {
       setDeletingResumeId(null);
     }

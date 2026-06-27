@@ -138,7 +138,7 @@ vite.config.*.timestamp*
 
 # Firebase Admin credentials (never ship or commit private keys)
 **/service-account.json
-**/*firebase-adminsdk*.s
+**/*firebase-adminsdk*.json
 
 # Prisma
 apps/backend/src/app/generated/prisma\
@@ -162,5 +162,5 @@ cache/
 .claude/worktrees
 .claude/settings.local.json
 
-/apps/backend/gcs-key.json
-/apps/backend/firebase/service-account.json
+**/gcs-key.json
+**/service-account.json

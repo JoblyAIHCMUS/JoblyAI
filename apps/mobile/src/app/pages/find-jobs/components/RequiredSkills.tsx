@@ -1,9 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import type {
-  JobRequirement,
-  RequirementImportance,
-} from '../../../../../types/job';
+import type { JobRequirement, RequirementImportance } from '@/types/job';
 
 interface RequiredSkillsProps {
   requirements: JobRequirement[];

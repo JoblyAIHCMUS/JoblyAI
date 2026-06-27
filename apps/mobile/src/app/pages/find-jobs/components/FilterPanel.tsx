@@ -10,8 +10,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { COLORS } from '../../../../constants/theme';
-import type { JobCategory, EmploymentType } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import type { JobCategory, EmploymentType } from '@/types/job';
 
 interface FilterPanelProps {
   isOpen: boolean;

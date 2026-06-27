@@ -15,9 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Menu } from 'lucide-react-native';
 
-import { useCompanyJobs, useGetCompany } from '../../../../hooks';
-import { COLORS } from '../../../constants/theme';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import { useCompanyJobs, useGetCompany } from '@/hooks';
+import { COLORS } from '@/app/constants/theme';
+import AppSidebar from '@/app/components/AppSidebar';
 import { CompanyJobsSection } from './CompanyJobsSection';
 import { CompanyOverviewSection } from './CompanyOverviewSection';
 
@@ -88,11 +88,10 @@ export default function CandidateCompanyProfilePage() {
       edges={['top', 'left', 'right']}
     >
       <Stack.Screen options={{ headerShown: false }} />
-
-      <CandidateDashboardSidebar
+      <AppSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        currentPath="/pages/candidate/browse-companies"
+        currentPath="/pages/find-jobs"
       />
 
       <View className="border-b border-app-border-1 bg-app-white-1 px-4 py-3">
@@ -163,7 +162,7 @@ export default function CandidateCompanyProfilePage() {
               currentPage={jobsPage}
               totalPages={jobsTotalPages}
               onPageChange={setJobsPage}
-              onApplyPress={() => router.push('/pages/candidate/find-jobs')}
+              onApplyPress={() => router.push('/pages/find-jobs')}
             />
           </View>
         </ScrollView>

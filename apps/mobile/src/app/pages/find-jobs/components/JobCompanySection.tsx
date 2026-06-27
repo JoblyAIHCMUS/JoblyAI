@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { ExternalLink } from 'lucide-react-native';
-import { COLORS } from '../../../../constants/theme';
-import type { CompanyInfo } from '../../../../../types/job';
+import { COLORS } from '@/app/constants/theme';
+import type { CompanyInfo } from '@/types/job';
 
 interface JobCompanySectionProps {
   company: CompanyInfo;

@@ -164,7 +164,7 @@ const Sidebar = ({
             className="flex-row items-center justify-between py-6"
             onPress={() => {
               onClose();
-              router.push('/pages/employer/dashboard');
+              router.push('/pages/find-jobs');
             }}
           >
             <Text className="text-lg font-bold text-app-primary-1">
@@ -185,7 +185,7 @@ const Sidebar = ({
             className="flex-row items-center justify-between py-6"
             onPress={() => {
               onClose();
-              router.push('/pages/candidate/browse-companies');
+              router.push('/pages/browse-companies');
             }}
           >
             <Text className="text-lg font-bold text-app-primary-1">

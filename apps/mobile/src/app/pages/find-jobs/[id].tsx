@@ -4,15 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../../constants/theme';
-import { useJobDetail } from '../../../../hooks/useJobDetail';
-import { useListCandidateApplications } from '../../../../hooks/useListCandidateApplications';
+import { COLORS } from '@/app/constants/theme';
+import { useJobDetail } from '@/hooks/useJobDetail';
+import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
 import JobDetailHeader from './components/JobDetailHeader';
 import JobDetailContent from './components/JobDetailContent';
 import JobCompanySection from './components/JobCompanySection';
 import SimilarJobs from './components/SimilarJobs';
 import ApplyJobModal from './components/ApplyJobModal';
-import { useUser } from '../../../../hooks/useUser';
+import { useUser } from '@/hooks/useUser';
 
 export default function JobDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();

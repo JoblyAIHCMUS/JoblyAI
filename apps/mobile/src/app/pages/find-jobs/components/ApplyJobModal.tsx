@@ -15,15 +15,15 @@ import {
 import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from '@react-native-documents/picker';
-import { COLORS } from '../../../../constants/theme';
-import { useApplyToJob } from '../../../../../hooks/useApplyToJob';
-import { useCreateResume } from '../../../../../hooks/useCreateResume';
-import { useDeleteResume } from '../../../../../hooks/useDeleteResume';
-import { useUploadFile } from '../../../../../hooks/useUploadFile';
-import { getCandidateProfile } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
+import { useApplyToJob } from '@/hooks/useApplyToJob';
+import { useCreateResume } from '@/hooks/useCreateResume';
+import { useDeleteResume } from '@/hooks/useDeleteResume';
+import { useUploadFile } from '@/hooks/useUploadFile';
+import { getCandidateProfile } from '@/api/candidate';
 import { ResumeSection, type ResumeChoice } from './ResumeSection';
-import type { JobPosting } from '../../../../../types/job';
-import type { CandidateResume } from '../../../../../types/candidate';
+import type { JobPosting } from '@/types/job';
+import type { CandidateResume } from '@/types/candidate';
 import Toast from 'react-native-toast-message';
 
 const MAX_RESUMES = 5;
@@ -41,8 +41,6 @@ export default function ApplyJobModal({
   job,
   onSuccess,
 }: ApplyJobModalProps) {
-  const insets = useSafeAreaInsets();
-
   const [jobTitle, setJobTitle] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
   const [resumeOptions, setResumeOptions] = useState<ResumeChoice[]>([]);
