@@ -5,7 +5,7 @@ import { ChatSummaryResponse, ChatHistoryResponse } from './messages.interface';
 import { SendMessageDTO } from './dto/sendMessageDTO';
 import { PrismaClient } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
-import { MessagesGateway } from './messages.gateway';
+import { PresenceService } from './presence.service';
 
 @Injectable()
 export class MessagesService {
@@ -13,7 +13,7 @@ export class MessagesService {
     @InjectScylla() private readonly scylla: Client,
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly notificationsService: NotificationsService,
-    private readonly messagesGateway: MessagesGateway
+    private readonly presenceService: PresenceService
   ) {}
 
   static getChatId(userA: string, userB: string): string {
@@ -73,7 +73,7 @@ export class MessagesService {
       }),
     ]);
 
-    const viewingChat = await this.messagesGateway.isViewingChat(
+    const viewingChat = this.presenceService.isViewingChat(
       dto.recipientId,
       chatId
     );

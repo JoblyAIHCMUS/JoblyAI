@@ -104,7 +104,7 @@ const PREFERENCES: PreferenceItem[] = [
     label: 'Messages',
     description: 'Send push notifications for direct messages.',
     icon: MessageCircle,
-  }
+  },
 ];
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {

@@ -3,6 +3,7 @@ import { MessagesGateway } from '../app/messages/messages.gateway';
 import { MessagesService } from '../app/messages/messages.service';
 import { AuthService } from '../app/auth/auth.service';
 import { Socket } from 'socket.io';
+import { PresenceService } from '../app/messages/presence.service';
 
 // ============ Mock Type Definitions ============
 interface MockAuthService {
@@ -17,6 +18,12 @@ interface MockMessagesService {
   getChatListSummary: Mock;
   createConversation: Mock;
   getChatHistory: Mock;
+}
+
+interface MockPresenceService {
+  setActiveChat: Mock;
+  clearUser: Mock;
+  isViewingChat: Mock;
 }
 
 interface MockServer {
@@ -91,6 +98,7 @@ describe('MessagesGateway', () => {
   let mockServer: MockServer;
   let mockAuthService: MockAuthService;
   let mockMessagesService: MockMessagesService;
+  let mockPresenceService: MockPresenceService;
 
   beforeEach(async () => {
     // 1. Create fresh mock objects
@@ -108,12 +116,19 @@ describe('MessagesGateway', () => {
       getChatHistory: vi.fn(),
     };
 
+    mockPresenceService = {
+      setActiveChat: vi.fn(),
+      clearUser: vi.fn(),
+      isViewingChat: vi.fn(),
+    };
+
     mockServer = createMockServer();
 
     // 2. Manually instantiate the gateway with the mock services
     // This bypasses NestJS dependency injection since the real services
     // have complex dependencies (Scylla, Prisma) that we don't need for unit tests
     gateway = new MessagesGateway(
+      mockPresenceService as unknown as PresenceService,
       mockMessagesService as unknown as MessagesService,
       mockAuthService as unknown as AuthService
     );
@@ -238,6 +253,44 @@ describe('MessagesGateway', () => {
       // Assert
       expect(mockAuthService.validateToken).toHaveBeenCalledWith(
         expect.objectContaining({ cookie: 'session=browser-cookie' })
+      );
+    });
+  });
+
+  describe('handleDisconnect', () => {
+    it('should clear active chat when chat_closed is received', () => {
+      const client = createMockSocket(mockUser1.id);
+
+      gateway.handleChatClosed(client as unknown as Socket);
+
+      expect(mockPresenceService.clearUser).toHaveBeenCalledWith(mockUser1.id);
+    });
+  });
+
+  describe('handleChatOpened', () => {
+    it('should update active chat when chat_opened is received', () => {
+      const client = createMockSocket(mockUser1.id);
+
+      gateway.handleChatOpened(client as unknown as Socket, {
+        chatId: 'chat-123',
+      });
+
+      expect(mockPresenceService.setActiveChat).toHaveBeenCalledWith(
+        mockUser1.id,
+        'chat-123'
+      );
+    });
+  });
+
+  describe('handleChatClosed', () => {
+    it('should clear active chat', () => {
+      const client = createMockSocket(mockUser1.id);
+
+      gateway.handleChatClosed(client as unknown as Socket);
+
+      expect(mockPresenceService.setActiveChat).toHaveBeenCalledWith(
+        mockUser1.id,
+        null
       );
     });
   });

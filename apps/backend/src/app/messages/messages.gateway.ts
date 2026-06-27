@@ -14,6 +14,7 @@ import { SendMessageDTO } from './dto/sendMessageDTO';
 import { WsException } from '@nestjs/websockets';
 import { AuthService } from '../auth/auth.service';
 import { WsAllExceptionsFilter } from '../common/filter/ws-exceptions.filter';
+import { PresenceService } from './presence.service';
 
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway()
@@ -24,15 +25,10 @@ export class MessagesGateway
   private readonly logger = new Logger(MessagesGateway.name);
 
   constructor(
+    private readonly presenceService: PresenceService,
     private readonly messagesService: MessagesService,
     private readonly authService: AuthService
   ) {}
-
-  async isViewingChat(userId: string, chatId: string) {
-    const sockets = await this.server.in(userId).fetchSockets();
-
-    return sockets.some((socket) => socket.data.activeChat === chatId);
-  }
 
   async handleConnection(client: Socket) {
     const headers = { ...(client.handshake.headers as Record<string, string>) };
@@ -62,6 +58,7 @@ export class MessagesGateway
   handleDisconnect(client: Socket) {
     const userId = client.data.userId as string | undefined;
     if (userId) {
+      this.presenceService.clearUser(userId);
       this.logger.log(`User ${userId} disconnected (client ${client.id})`);
     } else {
       this.logger.log(`Unauthenticated client ${client.id} disconnected`);
@@ -138,11 +135,11 @@ export class MessagesGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { chatId: string }
   ) {
-    client.data.activeChat = data.chatId;
+    this.presenceService.setActiveChat(client.data.userId, data.chatId);
   }
 
   @SubscribeMessage('chat_closed')
   handleChatClosed(@ConnectedSocket() client: Socket) {
-    client.data.activeChat = null;
+    this.presenceService.setActiveChat(client.data.userId, null);
   }
 }
