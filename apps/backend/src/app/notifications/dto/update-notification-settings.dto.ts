@@ -22,4 +22,11 @@ export class UpdateNotificationSettingsDTO {
   @IsBoolean()
   @IsOptional()
   recommendations?: boolean;
+  
+  @ApiPropertyOptional({
+    description: 'Enable message notifications',
+  })
+  @IsBoolean()
+  @IsOptional()
+  messages?: boolean;
 }
