@@ -7,6 +7,7 @@ import {
   LockKeyhole,
   LogOut,
   Menu,
+  MessageCircle,
   Sparkles,
   User,
 } from 'lucide-react-native';
@@ -98,12 +99,19 @@ const PREFERENCES: PreferenceItem[] = [
     description: 'Send push notifications for personalized recommendations.',
     icon: Sparkles,
   },
+  {
+    key: 'messages',
+    label: 'Messages',
+    description: 'Send push notifications for direct messages.',
+    icon: MessageCircle,
+  }
 ];
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   applications: true,
   jobs: true,
   recommendations: true,
+  messages: true,
 };
 
 function getInitials(value: string): string {
