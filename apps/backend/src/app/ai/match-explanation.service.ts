@@ -84,7 +84,9 @@ export class MatchExplanationService {
     private readonly aiProvider: AiProviderService
   ) {}
 
-  async getExplanation(applicationId: number): Promise<MatchExplanation | null> {
+  async getExplanation(
+    applicationId: number
+  ): Promise<MatchExplanation | null> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       select: { matchExplanation: true },
@@ -108,9 +110,7 @@ export class MatchExplanationService {
     });
 
     if (!application) {
-      throw new NotFoundException(
-        `Application ${applicationId} not found`
-      );
+      throw new NotFoundException(`Application ${applicationId} not found`);
     }
 
     const [job, resume, candidateSkills, candidateExperience] =
@@ -144,9 +144,7 @@ export class MatchExplanationService {
       : null;
 
     // Phase 1: Experience Tier
-    const experienceTier = this.calculateExperienceTier(
-      candidateExperience
-    );
+    const experienceTier = this.calculateExperienceTier(candidateExperience);
 
     // Phase 2: Alignment Matrix
     const jobTier = await this.deriveJobTier(job);
@@ -227,19 +225,41 @@ export class MatchExplanationService {
     const combined = `${title} ${desc} ${company}`;
 
     const educationKeywords = [
-      'student', 'intern', 'internship', 'university', 'college',
-      'school', 'academy', 'institute', 'learning', 'studying',
-      'coursework', 'thesis', 'capstone', 'bachelor', 'master',
-      'phd', 'degree', 'diploma', 'certification', 'training',
-      'course', 'self-taught', 'freelance', 'personal project',
-      'volunteer', 'bootcamp', 'workshop', 'seminar',
+      'student',
+      'intern',
+      'internship',
+      'university',
+      'college',
+      'school',
+      'academy',
+      'institute',
+      'learning',
+      'studying',
+      'coursework',
+      'thesis',
+      'capstone',
+      'bachelor',
+      'master',
+      'phd',
+      'degree',
+      'diploma',
+      'certification',
+      'training',
+      'course',
+      'self-taught',
+      'freelance',
+      'personal project',
+      'volunteer',
+      'bootcamp',
+      'workshop',
+      'seminar',
     ];
 
-    return !educationKeywords.some(kw => combined.includes(kw));
+    return !educationKeywords.some((kw) => combined.includes(kw));
   }
 
   private calculateExperienceTier(experience: any[]): ExperienceTier {
-    const workExp = experience.filter(exp => this.isWorkExperience(exp));
+    const workExp = experience.filter((exp) => this.isWorkExperience(exp));
 
     if (workExp.length === 0) {
       return { totalYears: 0, tier: 1, tierLabel: 'Fresher', baseScore: 40 };
@@ -247,10 +267,10 @@ export class MatchExplanationService {
 
     const now = new Date();
     const earliestStart = Math.min(
-      ...workExp.map(e => new Date(e.startDate).getTime())
+      ...workExp.map((e) => new Date(e.startDate).getTime())
     );
     const latestEnd = Math.max(
-      ...workExp.map(e =>
+      ...workExp.map((e) =>
         e.endDate ? new Date(e.endDate).getTime() : now.getTime()
       )
     );
@@ -291,10 +311,23 @@ export class MatchExplanationService {
     );
 
     const yearsTier =
-      maxYears < 1 ? 1 : maxYears < 3 ? 2 : maxYears < 5 ? 3 : maxYears < 8 ? 4 : 5;
+      maxYears < 1
+        ? 1
+        : maxYears < 3
+        ? 2
+        : maxYears < 5
+        ? 3
+        : maxYears < 8
+        ? 4
+        : 5;
 
     const requirementsText = job.requirements
-      .map((r: any) => `- ${r.skill?.name || 'Unknown'} (${r.importance}, ${r.minYearsExperience || 0} years required)`)
+      .map(
+        (r: any) =>
+          `- ${r.skill?.name || 'Unknown'} (${r.importance}, ${
+            r.minYearsExperience || 0
+          } years required)`
+      )
       .join('\n');
 
     try {
@@ -338,7 +371,9 @@ Return JSON: { "tier": number (1-5), "reasoning": "brief explanation" }`
       );
 
       if (aiResult?.tier >= 1 && aiResult.tier <= 5) {
-        this.logger.log(`AI tier classification: ${aiResult.tier} (${aiResult.reasoning})`);
+        this.logger.log(
+          `AI tier classification: ${aiResult.tier} (${aiResult.reasoning})`
+        );
         return aiResult.tier;
       }
     } catch (error: any) {
@@ -372,7 +407,13 @@ Return JSON: { "tier": number (1-5), "reasoning": "brief explanation" }`
       multiplier = 0.4;
     }
 
-    return { jobTier, candidateTier, distance, multiplier, adjustedBase: Math.round(baseScore * multiplier) };
+    return {
+      jobTier,
+      candidateTier,
+      distance,
+      multiplier,
+      adjustedBase: Math.round(baseScore * multiplier),
+    };
   }
 
   private async calculateQualityBoosters(
@@ -424,9 +465,15 @@ Return JSON:
 }`
       );
 
-      const projectType = Math.min(20, Math.max(0, result.projectType?.score ?? 0));
+      const projectType = Math.min(
+        20,
+        Math.max(0, result.projectType?.score ?? 0)
+      );
       const scale = Math.min(15, Math.max(0, result.scale?.score ?? 0));
-      const leadership = Math.min(15, Math.max(0, result.leadership?.score ?? 0));
+      const leadership = Math.min(
+        15,
+        Math.max(0, result.leadership?.score ?? 0)
+      );
 
       return {
         projectType,
@@ -434,9 +481,13 @@ Return JSON:
         leadership,
         total: projectType + scale + leadership,
         breakdown: [
-          `Project type (${projectType}/20): ${result.projectType?.evidence || 'N/A'}`,
+          `Project type (${projectType}/20): ${
+            result.projectType?.evidence || 'N/A'
+          }`,
           `Scale (${scale}/15): ${result.scale?.evidence || 'N/A'}`,
-          `Leadership (${leadership}/15): ${result.leadership?.evidence || 'N/A'}`,
+          `Leadership (${leadership}/15): ${
+            result.leadership?.evidence || 'N/A'
+          }`,
         ],
       };
     } catch (error: any) {
@@ -471,9 +522,7 @@ Return JSON:
         const importanceWeight = this.getImportanceWeight(jr.importance);
 
         // Compute both scores independently
-        const exactRawScore = exact.found
-          ? this.scoreExactMatch(jr, exact)
-          : 0;
+        const exactRawScore = exact.found ? this.scoreExactMatch(jr, exact) : 0;
         const embeddingRawScore = embedding?.matched
           ? embedding.similarity * 100
           : 0;
@@ -550,13 +599,16 @@ Return JSON:
 
     // 3. Check experience descriptions (try each part)
     for (const exp of candidateExperience) {
-      const text = `${exp.jobTitle || ''} ${exp.description || ''}`.toLowerCase();
+      const text = `${exp.jobTitle || ''} ${
+        exp.description || ''
+      }`.toLowerCase();
       const matchedPart = reqParts.find((part: string) => text.includes(part));
       if (matchedPart) {
         const start = new Date(exp.startDate);
         const end = exp.endDate ? new Date(exp.endDate) : new Date();
         const years =
-          (end.getFullYear() - start.getFullYear()) +
+          end.getFullYear() -
+          start.getFullYear() +
           (end.getMonth() - start.getMonth()) / 12;
 
         return {
@@ -568,7 +620,12 @@ Return JSON:
       }
     }
 
-    return { found: false, candidateYears: null, candidateLevel: null, matchedFrom: null };
+    return {
+      found: false,
+      candidateYears: null,
+      candidateLevel: null,
+      matchedFrom: null,
+    };
   }
 
   private getImportanceWeight(importance: string): number {
@@ -629,8 +686,10 @@ Return JSON:
       if (matchedCandidateSkill) {
         // Short focused text: "Node.js 5 years Expert"
         const parts = [matchedCandidateSkill.skill?.name || reqSkillName];
-        if (matchedCandidateSkill.years) parts.push(`${matchedCandidateSkill.years} years`);
-        if (matchedCandidateSkill.level) parts.push(matchedCandidateSkill.level);
+        if (matchedCandidateSkill.years)
+          parts.push(`${matchedCandidateSkill.years} years`);
+        if (matchedCandidateSkill.level)
+          parts.push(matchedCandidateSkill.level);
         skillText = parts.join(' ');
       } else {
         // No matching skill found — use requirement text for fallback comparison
@@ -638,13 +697,22 @@ Return JSON:
       }
 
       // Also embed the requirement text for comparison
-      const reqText = `${jobReq.skill?.name || ''} ${jobReq.importance || ''} ${jobReq.minYearsExperience ? jobReq.minYearsExperience + ' years experience' : ''}`;
+      const reqText = `${jobReq.skill?.name || ''} ${jobReq.importance || ''} ${
+        jobReq.minYearsExperience
+          ? jobReq.minYearsExperience + ' years experience'
+          : ''
+      }`;
       const [skillEmbedding, reqEmbedding] = await Promise.all([
         this.aiProvider.generateEmbedding(skillText),
         this.aiProvider.generateEmbedding(reqText),
       ]);
 
-      if (!skillEmbedding || skillEmbedding.length === 0 || !reqEmbedding || reqEmbedding.length === 0) {
+      if (
+        !skillEmbedding ||
+        skillEmbedding.length === 0 ||
+        !reqEmbedding ||
+        reqEmbedding.length === 0
+      ) {
         return {
           similarity: 0,
           matched: false,
@@ -661,8 +729,14 @@ Return JSON:
         matched,
         nearestSkill: matchedCandidateSkill?.skill?.name || null,
         explanation: matched
-          ? `Semantic similarity of ${(similarity * 100).toFixed(1)}% between candidate's ${matchedCandidateSkill?.skill?.name || 'skill'} and job requirement`
-          : `Low semantic similarity (${(similarity * 100).toFixed(1)}%) — candidate's skill profile doesn't strongly match this requirement`,
+          ? `Semantic similarity of ${(similarity * 100).toFixed(
+              1
+            )}% between candidate's ${
+              matchedCandidateSkill?.skill?.name || 'skill'
+            } and job requirement`
+          : `Low semantic similarity (${(similarity * 100).toFixed(
+              1
+            )}%) — candidate's skill profile doesn't strongly match this requirement`,
       };
     } catch (error: any) {
       this.logger.warn(
@@ -735,7 +809,11 @@ Return JSON:
     }
 
     if (embedding?.matched) {
-      return `${skillName} not found as exact match, but resume has ${(embedding.similarity * 100).toFixed(0)}% semantic similarity to this requirement. ${embedding.explanation}`;
+      return `${skillName} not found as exact match, but resume has ${(
+        embedding.similarity * 100
+      ).toFixed(0)}% semantic similarity to this requirement. ${
+        embedding.explanation
+      }`;
     }
 
     return `${skillName} not found in candidate's skills or experience. No strong semantic match detected.`;
@@ -783,7 +861,8 @@ Return JSON:
       case 'hybrid':
       default:
         // 30% exact match + 70% embedding match
-        requirementPercentage = exactPercentage * 0.3 + embeddingPercentage * 0.7;
+        requirementPercentage =
+          exactPercentage * 0.3 + embeddingPercentage * 0.7;
         break;
     }
 
@@ -796,7 +875,11 @@ Return JSON:
       exactPercentage: Math.round(exactPercentage * 10) / 10,
       embeddingPercentage: Math.round(embeddingPercentage * 10) / 10,
       experienceScore: Math.round(experienceScore * 10) / 10,
-      formula: `Final = RequirementScore(${Math.round(requirementPercentage)}) × 0.6 + ExperienceScore(${Math.round(experienceScore)}) × 0.4 = ${Math.min(100, Math.max(0, finalScore))}`,
+      formula: `Final = RequirementScore(${Math.round(
+        requirementPercentage
+      )}) × 0.6 + ExperienceScore(${Math.round(
+        experienceScore
+      )}) × 0.4 = ${Math.min(100, Math.max(0, finalScore))}`,
       finalScore: Math.min(100, Math.max(0, finalScore)),
     };
   }
@@ -826,7 +909,11 @@ Return JSON:
       const expText = experience
         .map(
           (e) =>
-            `${e.jobTitle} at ${e.companyName} (${e.startDate?.getFullYear() || 'N/A'} - ${e.endDate?.getFullYear() || 'Present'}): ${e.description || 'No description'}`
+            `${e.jobTitle} at ${e.companyName} (${
+              e.startDate?.getFullYear() || 'N/A'
+            } - ${e.endDate?.getFullYear() || 'Present'}): ${
+              e.description || 'No description'
+            }`
         )
         .join('\n');
       parts.push(`Experience:\n${expText}`);
@@ -835,8 +922,7 @@ Return JSON:
     if (parsedResume.education?.length) {
       const edu = parsedResume.education
         .map(
-          (e) =>
-            `${e.degree || ''} ${e.fieldOfStudy || ''} from ${e.school}`
+          (e) => `${e.degree || ''} ${e.fieldOfStudy || ''} from ${e.school}`
         )
         .join(', ');
       parts.push(`Education: ${edu}`);
