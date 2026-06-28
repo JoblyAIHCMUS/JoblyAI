@@ -21,12 +21,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 import { JobProcessor } from './processors/job.processor';
 import { JobListener } from './listeners/job.listener';
+import { PreShortlistEvaluationProcessor } from './processors/pre-shortlist-evaluation.processor';
+import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
 
 @Module({
   imports: [
     GcsModule,
     AuthModule,
     NotificationsModule,
+    PreShortlistModule,
     BullModule.registerQueue(
       { name: 'resume-extraction' },
       { name: 'resume-scoring' },
@@ -41,6 +44,7 @@ import { JobListener } from './listeners/job.listener';
     ScoringProcessor,
     JobProcessor,
     InterviewPrepProcessor,
+    PreShortlistEvaluationProcessor,
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
