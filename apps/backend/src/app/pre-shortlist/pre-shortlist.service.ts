@@ -21,25 +21,45 @@ import {
 } from './prompts/evaluate-answers';
 import { AiGateway } from '../ai/ai.gateway';
 import type { SubmitAnswersRequestDTO } from './dto/submit-answers.dto';
+import type { PreShortlistQuestionInput } from '../jobs/dto/preShortlistQuestionInput';
+
+export interface PreShortlistQuestionForCandidate {
+  id: string;
+  order: number;
+  question: string;
+}
+
+export interface PreShortlistQuestionForEmployer
+  extends PreShortlistQuestionForCandidate {
+  expectedAnswer: string;
+}
 
 export interface PreShortlistQuestionsView {
   threshold: number;
-  questions: { id: string; order: number; question: string }[];
+  questions: PreShortlistQuestionForEmployer[];
+}
+
+export interface PreShortlistAnswerView {
+  id: string;
+  questionId: string;
+  answer: string;
+  llmComment: string | null;
+}
+
+export interface PreShortlistOverallView {
+  comment: string;
+  suggestion: string;
 }
 
 export interface PreShortlistApplicationView {
   status: ApplicationStatus;
   threshold: number;
-  questions: { id: string; order: number; question: string }[];
-  answers: {
-    id: string;
-    questionId: string;
-    answer: string;
-    llmComment: string | null;
-    llmScore: number | null;
-    llmStatus: string | null;
-  }[];
-  overall: { comment: string; suggestion: string; overallScore: number } | null;
+  questions: (
+    | PreShortlistQuestionForCandidate
+    | PreShortlistQuestionForEmployer
+  )[];
+  answers: PreShortlistAnswerView[];
+  overall: PreShortlistOverallView | null;
   preShortlistStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | null;
   preShortlistError: string | null;
 }
@@ -48,8 +68,7 @@ export interface PreShortlistStatusView {
   status: ApplicationStatus;
   answers: {
     questionId: string;
-    llmStatus: string | null;
-    llmScore: number | null;
+    hasEvaluation: boolean;
   }[];
 }
 
@@ -329,17 +348,25 @@ export class PreShortlistService {
 
   // ---------- Validation helpers (used by JobsService) ----------
 
-  validateQuestions(questions: string[] | undefined): void {
+  validateQuestions(
+    questions: PreShortlistQuestionInput[] | undefined
+  ): void {
     if (questions === undefined) return;
     if (questions.length > MAX_QUESTIONS_PER_JOB) {
       throw new BadRequestException(
         `At most ${MAX_QUESTIONS_PER_JOB} questions are allowed`
       );
     }
-    for (const q of questions) {
-      if (q.length > MAX_QUESTION_LENGTH) {
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (q.question.length < 5 || q.question.length > MAX_QUESTION_LENGTH) {
         throw new BadRequestException(
-          `Each question must be at most ${MAX_QUESTION_LENGTH} characters`
+          `Question ${i + 1} must be between 5 and ${MAX_QUESTION_LENGTH} characters`
+        );
+      }
+      if (q.expectedAnswer.length < 1 || q.expectedAnswer.length > MAX_QUESTION_LENGTH) {
+        throw new BadRequestException(
+          `Expected answer for question ${i + 1} must be between 1 and ${MAX_QUESTION_LENGTH} characters`
         );
       }
     }
