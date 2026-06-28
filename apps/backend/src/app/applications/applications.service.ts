@@ -538,9 +538,13 @@ export class ApplicationsService {
       );
     }
 
-    if (application.status !== ApplicationStatus.APPLIED) {
+    if (
+      application.status !== ApplicationStatus.APPLIED &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_PENDING &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED
+    ) {
       throw new BadRequestException(
-        'Only applications with APPLIED status can be shortlisted'
+        'Only applications with APPLIED, PRE_SHORTLIST_PENDING, or PRE_SHORTLIST_SUBMITTED status can be shortlisted'
       );
     }
 
@@ -616,10 +620,12 @@ export class ApplicationsService {
 
     if (
       application.status !== ApplicationStatus.APPLIED &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_PENDING &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED &&
       application.status !== ApplicationStatus.INTERVIEW
     ) {
       throw new BadRequestException(
-        'Only applications with APPLIED or INTERVIEW status can be rejected'
+        'Only applications with APPLIED, PRE_SHORTLIST_PENDING, PRE_SHORTLIST_SUBMITTED, or INTERVIEW status can be rejected'
       );
     }
 
