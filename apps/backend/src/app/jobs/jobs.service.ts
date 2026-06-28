@@ -212,7 +212,8 @@ export class JobsService {
             ? {
                 create: preShortlistQuestions.map((q, idx) => ({
                   order: idx,
-                  question: q,
+                  question: q.question,
+                  expectedAnswer: q.expectedAnswer,
                 })),
               }
             : undefined,
@@ -512,7 +513,8 @@ export class JobsService {
               deleteMany: {},
               create: preShortlistQuestions.map((q, idx) => ({
                 order: idx,
-                question: q,
+                question: q.question,
+                expectedAnswer: q.expectedAnswer,
               })),
             }
           : undefined,
@@ -935,6 +937,7 @@ export class JobsService {
           id: q.id,
           order: q.order,
           question: q.question,
+          expectedAnswer: q.expectedAnswer ?? null,
         })) ?? [],
 
       // Convert Prisma Decimals to JavaScript Numbers

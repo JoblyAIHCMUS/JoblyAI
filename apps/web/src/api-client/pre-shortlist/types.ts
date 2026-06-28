@@ -1,11 +1,5 @@
 // apps/web/src/api-client/pre-shortlist/types.ts
 
-export type PreShortlistLlmStatus =
-  | 'STRONG_FIT'
-  | 'GOOD_FIT'
-  | 'NEUTRAL'
-  | 'POOR_FIT';
-
 export type PreShortlistSuggestion = 'STRONG' | 'MAYBE' | 'NO';
 
 export type PreShortlistEvaluationStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
@@ -14,6 +8,7 @@ export interface PreShortlistQuestionView {
   id: string;
   order: number;
   question: string;
+  expectedAnswer?: string;
 }
 
 export interface PreShortlistAnswerView {
@@ -21,14 +16,11 @@ export interface PreShortlistAnswerView {
   questionId: string;
   answer: string;
   llmComment: string | null;
-  llmScore: number | null;
-  llmStatus: PreShortlistLlmStatus | null;
 }
 
 export interface PreShortlistOverallView {
   comment: string;
   suggestion: PreShortlistSuggestion;
-  overallScore: number;
 }
 
 export interface PreShortlistApplicationView {
@@ -52,8 +44,7 @@ export interface PreShortlistStatusView {
   status: PreShortlistApplicationView['status'];
   answers: {
     questionId: string;
-    llmStatus: PreShortlistLlmStatus | null;
-    llmScore: number | null;
+    hasEvaluation: boolean;
   }[];
 }
 
@@ -73,7 +64,7 @@ export interface GenerateQuestionsRequest {
 }
 
 export interface GenerateQuestionsResponse {
-  questions: string[];
+  questions: { question: string; expectedAnswer: string }[];
 }
 
 export interface SubmitAnswerInput {

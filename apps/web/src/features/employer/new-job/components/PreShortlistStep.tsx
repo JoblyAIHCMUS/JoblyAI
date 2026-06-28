@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { useGeneratePreShortlistQuestions } from '@/api-hook/pre-shortlist';
+import type { GenerateQuestionsRequest } from '@/api-client/pre-shortlist';
 import type { JobPostingFormData } from '../schema';
 
 const MAX_QUESTIONS = 20;
@@ -21,6 +22,8 @@ const UNDO_STORAGE_KEY_PREFIX = 'joblyai:pre-shortlist-undo:';
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
 }
+
+type QuestionDraft = { question: string; expectedAnswer: string };
 
 export function PreShortlistStep() {
   const {
@@ -41,63 +44,74 @@ export function PreShortlistStep() {
 
   const { generate, loading: generating } = useGeneratePreShortlistQuestions();
 
-  const onGenerate = useCallback(async () => {
-    if (!jobTitle?.trim() || !jobDescription?.trim()) {
-      toast.error('Please fill in the job title and description first.');
-      return;
-    }
-    try {
-      const result = await generate({
-        title: jobTitle,
-        description: jobDescription,
-        requirements: (skills ?? []).map((s) => ({
-          skillName: s.name,
-          importance: s.importance,
-          minYearsExperience: s.minYearsExperience ?? null,
-        })),
-      });
-      const previousSnapshot = getValues('preShortlistQuestions');
-      const undoId = makeId();
-      try {
-        localStorage.setItem(
-          `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
-          JSON.stringify(previousSnapshot ?? [])
-        );
-      } catch {
-        // localStorage may be disabled (SSR, private mode); ignore.
+  const onGenerate = useCallback(
+    async ({
+      jobTitle,
+      jobDescription,
+      requirements,
+    }: {
+      jobTitle: string;
+      jobDescription: string;
+      requirements: GenerateQuestionsRequest['requirements'];
+    }) => {
+      if (!jobTitle?.trim() || !jobDescription?.trim()) {
+        toast.error('Please fill in the job title and description first.');
+        return;
       }
-      setValue('preShortlistQuestions', result.questions, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      toast.success('Replaced with AI suggestions', {
-        description: '5 questions generated.',
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            try {
-              const raw = localStorage.getItem(
-                `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
-              );
-              if (raw) {
-                const restored = JSON.parse(raw) as string[];
-                setValue('preShortlistQuestions', restored, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-                localStorage.removeItem(`${UNDO_STORAGE_KEY_PREFIX}${undoId}`);
+      try {
+        const result = await generate({
+          title: jobTitle,
+          description: jobDescription,
+          requirements,
+        });
+        const previousSnapshot = getValues(
+          'preShortlistQuestions'
+        ) as unknown as QuestionDraft[];
+        const undoId = makeId();
+        try {
+          localStorage.setItem(
+            `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
+            JSON.stringify(previousSnapshot ?? [])
+          );
+        } catch {
+          // localStorage may be disabled (SSR, private mode); ignore.
+        }
+        setValue('preShortlistQuestions', result.questions, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+        toast.success('Replaced with AI suggestions', {
+          description: '5 questions generated.',
+          action: {
+            label: 'Undo',
+            onClick: () => {
+              try {
+                const raw = localStorage.getItem(
+                  `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
+                );
+                if (raw) {
+                  const restored = JSON.parse(raw) as QuestionDraft[];
+                  setValue('preShortlistQuestions', restored, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                  localStorage.removeItem(
+                    `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
+                  );
+                }
+              } catch {
+                // ignore
               }
-            } catch {
-              // ignore
-            }
+            },
           },
-        },
-        duration: 5_000,
-      });
-    } catch {
-      // toast handled in hook
-    }
-  }, [generate, getValues, jobDescription, jobTitle, setValue, skills]);
+          duration: 5_000,
+        });
+      } catch {
+        // toast handled in hook
+      }
+    },
+    [generate, getValues, setValue]
+  );
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto px-3 sm:px-0">
@@ -146,7 +160,17 @@ export function PreShortlistStep() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={onGenerate}
+            onClick={() =>
+              onGenerate({
+                jobTitle: jobTitle ?? '',
+                jobDescription: jobDescription ?? '',
+                requirements: (skills ?? []).map((s) => ({
+                  skillName: s.name,
+                  importance: s.importance,
+                  minYearsExperience: s.minYearsExperience ?? null,
+                })),
+              })
+            }
             disabled={generating}
             className="shrink-0"
           >
@@ -215,18 +239,54 @@ export function PreShortlistStep() {
                   </Button>
                 </div>
               </div>
-              <Textarea
-                rows={2}
-                maxLength={MAX_LENGTH}
-                placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
-                className="text-sm"
-                {...register(`preShortlistQuestions.${idx}` as const)}
-              />
-              {errors.preShortlistQuestions?.[idx] && (
-                <p className="text-xs text-red-500">
-                  {errors.preShortlistQuestions[idx]?.message as string}
+              <div>
+                <Label className="text-xs font-medium text-slate-600">
+                  Question
+                </Label>
+                <Textarea
+                  rows={2}
+                  maxLength={MAX_LENGTH}
+                  placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
+                  className="text-sm mt-1"
+                  {...register(
+                    `preShortlistQuestions.${idx}.question` as const
+                  )}
+                />
+                {errors.preShortlistQuestions?.[idx]?.question && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {
+                      errors.preShortlistQuestions[idx]?.question
+                        ?.message as string
+                    }
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="text-xs font-medium text-slate-600">
+                  Expected answer
+                </Label>
+                <p className="text-xs text-slate-500 mb-1">
+                  What a strong response would include. The candidate won't see
+                  this.
                 </p>
-              )}
+                <Textarea
+                  rows={2}
+                  maxLength={MAX_LENGTH}
+                  placeholder="e.g. A concrete optimization with a measured impact (e.g. latency drop, query time reduction)."
+                  className="text-sm"
+                  {...register(
+                    `preShortlistQuestions.${idx}.expectedAnswer` as const
+                  )}
+                />
+                {errors.preShortlistQuestions?.[idx]?.expectedAnswer && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {
+                      errors.preShortlistQuestions[idx]?.expectedAnswer
+                        ?.message as string
+                    }
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -236,7 +296,12 @@ export function PreShortlistStep() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => (append as (v: string) => void)('')}
+            onClick={() =>
+              (append as (v: QuestionDraft) => void)({
+                question: '',
+                expectedAnswer: '',
+              })
+            }
             className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-1" /> Add question

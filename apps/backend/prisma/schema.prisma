@@ -603,21 +603,15 @@ model Apikey {
   @@map("apikey")
 }
 
-enum LlmEvaluationStatus {
-  STRONG_FIT
-  GOOD_FIT
-  NEUTRAL
-  POOR_FIT
-}
-
 model PreShortlistQuestion {
-  id        String   @id @default(cuid())
-  jobId     Int
-  job       JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  order     Int
-  question  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  jobId          Int
+  job            JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  order          Int
+  question       String
+  expectedAnswer String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   answers PreShortlistAnswer[]
 
@@ -633,8 +627,6 @@ model PreShortlistAnswer {
   question      PreShortlistQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answer        String   @db.Text
   llmComment    String?  @db.Text
-  llmScore      Float?
-  llmStatus     LlmEvaluationStatus?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

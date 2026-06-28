@@ -40,9 +40,9 @@ export class PreShortlistQuestionsController {
 
   @Post('generate-questions')
   @HttpCode(HttpStatus.OK)
-  async generateQuestions(
-    @Body() dto: GenerateQuestionsRequestDTO
-  ): Promise<{ questions: string[] }> {
+  async generateQuestions(@Body() dto: GenerateQuestionsRequestDTO): Promise<{
+    questions: { question: string; expectedAnswer: string }[];
+  }> {
     if (!dto.title?.trim() || !dto.description?.trim()) {
       throw new BadRequestException('title and description are required');
     }
@@ -76,7 +76,13 @@ export class PreShortlistQuestionsController {
       !Array.isArray(output.questions) ||
       output.questions.length !== 5 ||
       !output.questions.every(
-        (q) => typeof q === 'string' && q.trim().length > 0
+        (q) =>
+          q &&
+          typeof q.question === 'string' &&
+          q.question.trim().length > 0 &&
+          typeof q.expectedAnswer === 'string' &&
+          q.expectedAnswer.trim().length > 0 &&
+          q.expectedAnswer.length <= 500
       )
     ) {
       this.logger.error(

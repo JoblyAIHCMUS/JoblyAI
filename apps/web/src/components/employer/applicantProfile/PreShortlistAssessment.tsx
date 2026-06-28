@@ -11,21 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { PreShortlistLlmStatus } from '@/api-client/pre-shortlist';
-
-const STATUS_LABEL: Record<PreShortlistLlmStatus, string> = {
-  STRONG_FIT: 'Strong Fit',
-  GOOD_FIT: 'Good Fit',
-  NEUTRAL: 'Neutral',
-  POOR_FIT: 'Poor Fit',
-};
-
-const STATUS_STYLES: Record<PreShortlistLlmStatus, string> = {
-  STRONG_FIT: 'border-green-500 text-green-700 bg-green-50',
-  GOOD_FIT: 'border-blue-500 text-blue-700 bg-blue-50',
-  NEUTRAL: 'border-slate-400 text-slate-700 bg-slate-50',
-  POOR_FIT: 'border-red-500 text-red-700 bg-red-50',
-};
 
 const SUGGESTION_STYLES: Record<string, string> = {
   STRONG: 'border-green-500 text-green-700 bg-green-50',
@@ -129,19 +114,14 @@ export default function PreShortlistAssessment({
             <CardTitle className="text-base">Overall verdict</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={`${
-                  SUGGESTION_STYLES[data.overall.suggestion] ?? ''
-                } text-xs py-1 px-2`}
-              >
-                {data.overall.suggestion}
-              </Badge>
-              <span className="text-xs text-slate-500">
-                Score: {data.overall.overallScore}/100
-              </span>
-            </div>
+            <Badge
+              variant="outline"
+              className={`${
+                SUGGESTION_STYLES[data.overall.suggestion] ?? ''
+              } text-xs py-1 px-2`}
+            >
+              {data.overall.suggestion}
+            </Badge>
             <p className="text-sm text-slate-700">{data.overall.comment}</p>
           </CardContent>
         </Card>
@@ -156,6 +136,16 @@ export default function PreShortlistAssessment({
                 <CardTitle className="text-sm">
                   {idx + 1}. {q.question}
                 </CardTitle>
+                {q.expectedAnswer && (
+                  <details className="text-xs text-slate-500 mt-1">
+                    <summary className="cursor-pointer select-none hover:text-slate-700">
+                      Show expected answer
+                    </summary>
+                    <p className="mt-1 whitespace-pre-wrap text-slate-600">
+                      {q.expectedAnswer}
+                    </p>
+                  </details>
+                )}
               </CardHeader>
               <CardContent className="space-y-3">
                 {ans ? (
@@ -167,19 +157,12 @@ export default function PreShortlistAssessment({
                 )}
                 {isPending ? (
                   <Skeleton className="h-12 w-full" />
-                ) : ans?.llmStatus ? (
+                ) : ans?.llmComment ? (
                   <div className="space-y-1.5">
-                    <Badge
-                      variant="outline"
-                      className={`${
-                        STATUS_STYLES[ans.llmStatus]
-                      } text-xs py-1 px-2`}
-                    >
-                      {STATUS_LABEL[ans.llmStatus]} · {ans.llmScore ?? 0}/100
-                    </Badge>
-                    {ans.llmComment && (
-                      <p className="text-xs text-slate-600">{ans.llmComment}</p>
-                    )}
+                    <p className="text-xs font-medium text-slate-500">
+                      AI comment
+                    </p>
+                    <p className="text-xs text-slate-600">{ans.llmComment}</p>
                   </div>
                 ) : null}
               </CardContent>

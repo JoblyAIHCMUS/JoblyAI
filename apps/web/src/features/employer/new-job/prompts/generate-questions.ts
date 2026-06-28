@@ -10,8 +10,13 @@ export interface GenerateQuestionsInput {
   requirements: GenerateQuestionsRequirementInput[];
 }
 
+export interface GenerateQuestionsQuestionOutput {
+  question: string;
+  expectedAnswer: string;
+}
+
 export interface GenerateQuestionsOutput {
-  questions: string[];
+  questions: GenerateQuestionsQuestionOutput[];
 }
 
 export function buildGenerateQuestionsPrompt(
@@ -50,13 +55,17 @@ QUALITY CRITERIA (apply to every question)
 4. **Tailor to the explicit requirements above.** A question about "Postgres" is fine only if Postgres appears in the requirements; otherwise it's noise.
 5. **Don't duplicate the resume.** The candidate submits a resume separately, so don't ask for their work history in list form.
 6. **Be specific and concrete.** "Describe a time you disagreed with a senior teammate about a technical decision" is good. "Are you a team player?" is bad.
+7. **For each question, also draft a 1-3 sentence "expectedAnswer".** The expectedAnswer describes what a strong response would contain, anchored in the job's requirements (not generic platitudes). Keep it under 500 characters. The expectedAnswer will be hidden from the candidate and used as the evaluation criterion by another LLM.
 
 OUTPUT FORMAT — strict JSON, no markdown fences, no commentary, no preamble:
 {
-  "questions": ["<question 1>", "<question 2>", "<question 3>", "<question 4>", "<question 5>"]
+  "questions": [
+    { "question": "<single-sentence question ending with ?>", "expectedAnswer": "<1-3 sentence description of a strong response, <=500 chars>" },
+    ... (exactly 5 entries)
+  ]
 }
 
-Each question must be a single sentence ending with a question mark. No numbering, no bullet markers, no quotes inside the string.`;
+Each "question" must be a single sentence ending with a question mark. Each "expectedAnswer" must be 1-3 sentences of concrete substance, under 500 characters. No numbering, no bullet markers, no quotes inside any string.`;
 }
 
 export const GENERATE_QUESTIONS_PROMPT_PATH =

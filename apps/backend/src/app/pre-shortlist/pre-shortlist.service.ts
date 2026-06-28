@@ -21,25 +21,45 @@ import {
 } from './prompts/evaluate-answers';
 import { AiGateway } from '../ai/ai.gateway';
 import type { SubmitAnswersRequestDTO } from './dto/submit-answers.dto';
+import type { PreShortlistQuestionInput } from '../jobs/dto/preShortlistQuestionInput';
+
+export interface PreShortlistQuestionForCandidate {
+  id: string;
+  order: number;
+  question: string;
+}
+
+export interface PreShortlistQuestionForEmployer
+  extends PreShortlistQuestionForCandidate {
+  expectedAnswer: string;
+}
 
 export interface PreShortlistQuestionsView {
   threshold: number;
-  questions: { id: string; order: number; question: string }[];
+  questions: PreShortlistQuestionForEmployer[];
+}
+
+export interface PreShortlistAnswerView {
+  id: string;
+  questionId: string;
+  answer: string;
+  llmComment: string | null;
+}
+
+export interface PreShortlistOverallView {
+  comment: string;
+  suggestion: string;
 }
 
 export interface PreShortlistApplicationView {
   status: ApplicationStatus;
   threshold: number;
-  questions: { id: string; order: number; question: string }[];
-  answers: {
-    id: string;
-    questionId: string;
-    answer: string;
-    llmComment: string | null;
-    llmScore: number | null;
-    llmStatus: string | null;
-  }[];
-  overall: { comment: string; suggestion: string; overallScore: number } | null;
+  questions: (
+    | PreShortlistQuestionForCandidate
+    | PreShortlistQuestionForEmployer
+  )[];
+  answers: PreShortlistAnswerView[];
+  overall: PreShortlistOverallView | null;
   preShortlistStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | null;
   preShortlistError: string | null;
 }
@@ -48,8 +68,7 @@ export interface PreShortlistStatusView {
   status: ApplicationStatus;
   answers: {
     questionId: string;
-    llmStatus: string | null;
-    llmScore: number | null;
+    hasEvaluation: boolean;
   }[];
 }
 
@@ -90,6 +109,7 @@ export class PreShortlistService {
         id: q.id,
         order: q.order,
         question: q.question,
+        expectedAnswer: q.expectedAnswer ?? '',
       })),
     };
   }
@@ -119,21 +139,32 @@ export class PreShortlistService {
     const preShortlistStatus = (aiFb.preShortlistStatus as string) ?? null;
     const preShortlistError = (aiFb.preShortlistError as string) ?? null;
 
+    const isCandidate = requester.role === 'candidate';
+    const baseQuestion = application.job.preShortlistQuestions.map((q) => ({
+      id: q.id,
+      order: q.order,
+      question: q.question,
+    }));
+    const questions = isCandidate
+      ? baseQuestion
+      : baseQuestion.map((q) => ({
+          id: q.id,
+          order: q.order,
+          question: q.question,
+          expectedAnswer:
+            application.job.preShortlistQuestions.find((x) => x.id === q.id)
+              ?.expectedAnswer ?? '',
+        }));
+
     return {
       status: application.status,
       threshold: application.job.preShortlistThreshold,
-      questions: application.job.preShortlistQuestions.map((q) => ({
-        id: q.id,
-        order: q.order,
-        question: q.question,
-      })),
+      questions,
       answers: application.preShortlistAnswers.map((a) => ({
         id: a.id,
         questionId: a.questionId,
         answer: a.answer,
         llmComment: a.llmComment,
-        llmScore: a.llmScore,
-        llmStatus: a.llmStatus,
       })),
       overall: this.normalizeOverall(overall),
       preShortlistStatus: this.normalizeStatus(preShortlistStatus),
@@ -150,7 +181,7 @@ export class PreShortlistService {
       include: {
         job: { select: { postedById: true } },
         preShortlistAnswers: {
-          select: { questionId: true, llmStatus: true, llmScore: true },
+          select: { questionId: true, llmComment: true },
         },
       },
     });
@@ -160,8 +191,7 @@ export class PreShortlistService {
       status: application.status,
       answers: application.preShortlistAnswers.map((a) => ({
         questionId: a.questionId,
-        llmStatus: a.llmStatus,
-        llmScore: a.llmScore,
+        hasEvaluation: a.llmComment !== null && a.llmComment.length > 0,
       })),
     };
   }
@@ -329,17 +359,30 @@ export class PreShortlistService {
 
   // ---------- Validation helpers (used by JobsService) ----------
 
-  validateQuestions(questions: string[] | undefined): void {
+  validateQuestions(questions: PreShortlistQuestionInput[] | undefined): void {
     if (questions === undefined) return;
     if (questions.length > MAX_QUESTIONS_PER_JOB) {
       throw new BadRequestException(
         `At most ${MAX_QUESTIONS_PER_JOB} questions are allowed`
       );
     }
-    for (const q of questions) {
-      if (q.length > MAX_QUESTION_LENGTH) {
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (q.question.length < 5 || q.question.length > MAX_QUESTION_LENGTH) {
         throw new BadRequestException(
-          `Each question must be at most ${MAX_QUESTION_LENGTH} characters`
+          `Question ${
+            i + 1
+          } must be between 5 and ${MAX_QUESTION_LENGTH} characters`
+        );
+      }
+      if (
+        q.expectedAnswer.length < 1 ||
+        q.expectedAnswer.length > MAX_QUESTION_LENGTH
+      ) {
+        throw new BadRequestException(
+          `Expected answer for question ${
+            i + 1
+          } must be between 1 and ${MAX_QUESTION_LENGTH} characters`
         );
       }
     }
@@ -374,21 +417,15 @@ export class PreShortlistService {
   private normalizeOverall(raw: Prisma.JsonValue | null): {
     comment: string;
     suggestion: string;
-    overallScore: number;
   } | null {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
     const o = raw as Record<string, Prisma.JsonValue>;
-    if (
-      typeof o.comment !== 'string' ||
-      typeof o.suggestion !== 'string' ||
-      typeof o.overallScore !== 'number'
-    ) {
+    if (typeof o.comment !== 'string' || typeof o.suggestion !== 'string') {
       return null;
     }
     return {
       comment: o.comment,
       suggestion: o.suggestion,
-      overallScore: o.overallScore,
     };
   }
 
@@ -444,7 +481,11 @@ export class PreShortlistService {
         importance: r.importance,
         minYearsExperience: r.minYearsExperience,
       })),
-      questions: questions.map((q) => ({ id: q.id, question: q.question })),
+      questions: questions.map((q) => ({
+        id: q.id,
+        question: q.question,
+        expectedAnswer: q.expectedAnswer ?? null,
+      })),
       answers: answers.map((a) => ({
         questionId: a.questionId,
         answer: a.answer,
@@ -480,8 +521,6 @@ export class PreShortlistService {
           },
           data: {
             llmComment: ev.comment,
-            llmScore: ev.score,
-            llmStatus: ev.status,
           },
         });
       }
@@ -493,7 +532,6 @@ export class PreShortlistService {
         preShortlistOverall: {
           comment: output.overall.comment,
           suggestion: output.overall.suggestion,
-          overallScore: output.overall.overallScore,
         },
         preShortlistStatus: 'COMPLETED',
         preShortlistError: null,
@@ -581,19 +619,9 @@ export class PreShortlistService {
       if (typeof ev.comment !== 'string' || ev.comment.length === 0) {
         throw new Error(`Missing comment for questionId ${ev.questionId}`);
       }
-      if (
-        ev.status !== 'STRONG_FIT' &&
-        ev.status !== 'GOOD_FIT' &&
-        ev.status !== 'NEUTRAL' &&
-        ev.status !== 'POOR_FIT'
-      ) {
+      if ('score' in ev || 'status' in ev) {
         throw new Error(
-          `Invalid status for questionId ${ev.questionId}: ${String(ev.status)}`
-        );
-      }
-      if (typeof ev.score !== 'number' || ev.score < 0 || ev.score > 100) {
-        throw new Error(
-          `Invalid score for questionId ${ev.questionId}: ${String(ev.score)}`
+          `Unexpected score/status for questionId ${ev.questionId}; the prompt requires these fields to be omitted`
         );
       }
     }
@@ -611,13 +639,9 @@ export class PreShortlistService {
     ) {
       throw new Error(`Invalid overall.suggestion: ${String(o.suggestion)}`);
     }
-    if (
-      typeof o.overallScore !== 'number' ||
-      o.overallScore < 0 ||
-      o.overallScore > 100
-    ) {
+    if ('overallScore' in o) {
       throw new Error(
-        `Invalid overall.overallScore: ${String(o.overallScore)}`
+        'Unexpected overallScore; the prompt requires this field to be omitted'
       );
     }
   }
