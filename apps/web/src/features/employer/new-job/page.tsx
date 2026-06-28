@@ -38,7 +38,7 @@ import { PreShortlistStep } from './components/PreShortlistStep';
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
-  { id: 'pre-shortlist', label: 'Pre-Shortlist' },
+  { id: 'pre-shortlist', label: 'Pre-Shortlist Questions' },
 ] as const;
 
 const CURRENCIES = [
@@ -215,18 +215,18 @@ export default function EmployerNewJobPage() {
         Fill in the details to create a new job posting.
       </p>
 
-      <form onSubmit={handleSubmit(handleComplete)}>
-        <FormProvider {...methods}>
-          <Stepper
-            steps={POST_JOB_STEPS}
-            canProceed={canProceed}
-            loading={
-              creatingJob ||
-              skillsLoading ||
-              categoriesLoading ||
-              employerProfileLoading
-            }
-          >
+      <FormProvider {...methods}>
+        <Stepper
+          steps={POST_JOB_STEPS}
+          canProceed={canProceed}
+          onComplete={handleSubmit(handleComplete)}
+          loading={
+            creatingJob ||
+            skillsLoading ||
+            categoriesLoading ||
+            employerProfileLoading
+          }
+        >
           {/* Step 1: Basic Information */}
           <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-2xl mx-auto px-3 sm:px-0">
             {/* Job Title */}
@@ -532,9 +532,8 @@ export default function EmployerNewJobPage() {
 
           {/* Step 3: Pre-Shortlist */}
           <PreShortlistStep />
-          </Stepper>
-        </FormProvider>
-      </form>
+        </Stepper>
+      </FormProvider>
     </div>
   );
 }
