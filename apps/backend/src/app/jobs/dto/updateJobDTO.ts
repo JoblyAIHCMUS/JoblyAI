@@ -6,6 +6,8 @@ import {
   IsEnum,
   IsArray,
   Min,
+  Max,
+  ArrayMaxSize,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -80,4 +82,16 @@ export class UpdateJobDTO {
   @IsOptional()
   @IsEnum(JobStatus)
   status?: JobStatus;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  preShortlistThreshold?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(20)
+  preShortlistQuestions?: string[];
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import { GetJobsQueryDTO } from './dto/getJobsQueryDTO';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { CreateJobDTO } from './dto/createJobDTO';
 import { UpdateJobDTO } from './dto/updateJobDTO';
+import { PreShortlistService } from '../pre-shortlist/pre-shortlist.service';
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
@@ -24,6 +26,7 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
         skill: true;
       };
     };
+    preShortlistQuestions: true;
   };
 }> & {
   _count?: {
@@ -35,7 +38,8 @@ type JobWithRelations = Prisma.JobPostingGetPayload<{
 export class JobsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly preShortlistService: PreShortlistService,
   ) {}
 
   async getsPaginatedJobsPostings(
@@ -157,6 +161,7 @@ export class JobsService {
               skill: true,
             },
           },
+          preShortlistQuestions: { orderBy: { order: 'asc' } },
           _count: {
             select: {
               applications: true,
@@ -192,12 +197,25 @@ export class JobsService {
     dto: CreateJobDTO,
     userId: string
   ): Promise<JobPostingInterface> {
-    const { requirements, ...jobData } = dto;
+    const { requirements, preShortlistQuestions, ...jobData } = dto;
+
+    this.preShortlistService.validateQuestions(preShortlistQuestions);
+    const threshold = dto.preShortlistThreshold ?? 0;
 
     const createdJob = await this.prisma.jobPosting.create({
       data: {
         ...jobData,
         postedById: userId,
+        preShortlistThreshold: threshold,
+        preShortlistQuestions:
+          preShortlistQuestions && preShortlistQuestions.length > 0
+            ? {
+                create: preShortlistQuestions.map((q, idx) => ({
+                  order: idx,
+                  question: q,
+                })),
+              }
+            : undefined,
         requirements:
           requirements && requirements.length > 0
             ? {
@@ -217,6 +235,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
         _count: {
           select: {
             applications: true,
@@ -247,6 +266,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
       },
     });
     if (!job) {
@@ -274,6 +294,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
         _count: {
           select: {
             applications: true,
@@ -368,6 +389,7 @@ export class JobsService {
               skill: true,
             },
           },
+          preShortlistQuestions: { orderBy: { order: 'asc' } },
           _count: {
             select: {
               applications: true,
@@ -416,6 +438,7 @@ export class JobsService {
               skill: true,
             },
           },
+          preShortlistQuestions: { orderBy: { order: 'asc' } },
           _count: {
             select: {
               applications: true,
@@ -459,12 +482,35 @@ export class JobsService {
       );
     }
 
-    const { requirements, ...jobData } = dto;
+    const { requirements, preShortlistQuestions, preShortlistThreshold, ...jobData } = dto;
+
+    // Gate questions: if the job already has applications, reject the change.
+    if (preShortlistQuestions !== undefined) {
+      this.preShortlistService.validateQuestions(preShortlistQuestions);
+      const hasApplications = await this.prisma.application.count({
+        where: { jobId: id },
+      });
+      if (hasApplications > 0) {
+        throw new BadRequestException(
+          'Pre-shortlist questions cannot be edited after applications exist. The threshold was still updated if you included one.',
+        );
+      }
+    }
 
     const updatedJob = await this.prisma.jobPosting.update({
       where: { id },
       data: {
         ...jobData,
+        preShortlistThreshold: preShortlistThreshold ?? undefined,
+        preShortlistQuestions: preShortlistQuestions
+          ? {
+              deleteMany: {},
+              create: preShortlistQuestions.map((q, idx) => ({
+                order: idx,
+                question: q,
+              })),
+            }
+          : undefined,
         // Handle skills if provided
         requirements: requirements
           ? {
@@ -485,6 +531,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
         _count: {
           select: {
             applications: true,
@@ -541,6 +588,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
         _count: {
           select: {
             applications: true,
@@ -589,6 +637,7 @@ export class JobsService {
             skill: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
         _count: {
           select: {
             applications: true,
@@ -875,6 +924,13 @@ export class JobsService {
             minYearsExperience: jr.minYearsExperience,
           }))
         : [],
+      preShortlistThreshold: (job as any).preShortlistThreshold ?? 0,
+      preShortlistQuestions:
+        (job as any).preShortlistQuestions?.map((q: any) => ({
+          id: q.id,
+          order: q.order,
+          question: q.question,
+        })) ?? [],
 
       // Convert Prisma Decimals to JavaScript Numbers
       salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
