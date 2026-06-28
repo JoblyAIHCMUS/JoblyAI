@@ -49,7 +49,11 @@ export class PreShortlistQuestionsController {
     const prompt = buildGenerateQuestionsPrompt({
       jobTitle: dto.title,
       jobDescription: dto.description,
-      requirements: dto.requirements ?? [],
+      requirements: (dto.requirements ?? []).map((r) => ({
+        skillName: r.skillName,
+        importance: r.importance,
+        minYearsExperience: r.minYearsExperience ?? null,
+      })),
     });
 
     let output: GenerateQuestionsOutput;

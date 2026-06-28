@@ -22,7 +22,6 @@ import {
   buildEvaluateAnswersPrompt,
   type EvaluateAnswersOutput,
 } from './prompts/evaluate-answers';
-import { AiProviderService } from '../ai/ai-provider.service';
 import { AiGateway } from '../ai/ai.gateway';
 import type { SubmitAnswersRequestDTO } from './dto/submit-answers.dto';
 
@@ -65,7 +64,6 @@ export class PreShortlistService {
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     @InjectQueue('pre-shortlist-evaluation') private readonly evalQueue: Queue,
-    private readonly aiProvider: AiProviderService,
     private readonly aiGateway: AiGateway,
   ) {}
 
