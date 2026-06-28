@@ -109,6 +109,7 @@ export class PreShortlistService {
         id: q.id,
         order: q.order,
         question: q.question,
+        expectedAnswer: q.expectedAnswer ?? '',
       })),
     };
   }
@@ -138,21 +139,32 @@ export class PreShortlistService {
     const preShortlistStatus = (aiFb.preShortlistStatus as string) ?? null;
     const preShortlistError = (aiFb.preShortlistError as string) ?? null;
 
+    const isCandidate = requester.role === 'candidate';
+    const baseQuestion = application.job.preShortlistQuestions.map((q) => ({
+      id: q.id,
+      order: q.order,
+      question: q.question,
+    }));
+    const questions = isCandidate
+      ? baseQuestion
+      : baseQuestion.map((q) => ({
+          id: q.id,
+          order: q.order,
+          question: q.question,
+          expectedAnswer:
+            application.job.preShortlistQuestions.find((x) => x.id === q.id)
+              ?.expectedAnswer ?? '',
+        }));
+
     return {
       status: application.status,
       threshold: application.job.preShortlistThreshold,
-      questions: application.job.preShortlistQuestions.map((q) => ({
-        id: q.id,
-        order: q.order,
-        question: q.question,
-      })),
+      questions,
       answers: application.preShortlistAnswers.map((a) => ({
         id: a.id,
         questionId: a.questionId,
         answer: a.answer,
         llmComment: a.llmComment,
-        llmScore: a.llmScore,
-        llmStatus: a.llmStatus,
       })),
       overall: this.normalizeOverall(overall),
       preShortlistStatus: this.normalizeStatus(preShortlistStatus),
@@ -169,7 +181,7 @@ export class PreShortlistService {
       include: {
         job: { select: { postedById: true } },
         preShortlistAnswers: {
-          select: { questionId: true, llmStatus: true, llmScore: true },
+          select: { questionId: true, llmComment: true },
         },
       },
     });
@@ -179,8 +191,7 @@ export class PreShortlistService {
       status: application.status,
       answers: application.preShortlistAnswers.map((a) => ({
         questionId: a.questionId,
-        llmStatus: a.llmStatus,
-        llmScore: a.llmScore,
+        hasEvaluation: a.llmComment !== null && a.llmComment.length > 0,
       })),
     };
   }
@@ -401,21 +412,18 @@ export class PreShortlistService {
   private normalizeOverall(raw: Prisma.JsonValue | null): {
     comment: string;
     suggestion: string;
-    overallScore: number;
   } | null {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
     const o = raw as Record<string, Prisma.JsonValue>;
     if (
       typeof o.comment !== 'string' ||
-      typeof o.suggestion !== 'string' ||
-      typeof o.overallScore !== 'number'
+      typeof o.suggestion !== 'string'
     ) {
       return null;
     }
     return {
       comment: o.comment,
       suggestion: o.suggestion,
-      overallScore: o.overallScore,
     };
   }
 
