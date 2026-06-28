@@ -99,3 +99,8 @@ export interface PaginatedJobsResponse {
   pageSize: number;
   totalPages: number;
 }
+
+export type JobPostingFormData = {
+  preShortlistThreshold: number;
+  preShortlistQuestions: string[];
+};
