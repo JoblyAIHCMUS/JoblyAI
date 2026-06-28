@@ -16,7 +16,9 @@ export function useRetryPreShortlistEvaluation(applicationId: number) {
     mutationFn: () => retryPreShortlistEvaluation(applicationId),
     onSuccess: () => {
       toast.success('Re-queued AI evaluation');
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEY(applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEY(applicationId),
+      });
     },
     onError: (err) => {
       const message =

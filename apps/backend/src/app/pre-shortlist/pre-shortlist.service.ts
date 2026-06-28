@@ -14,11 +14,7 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import {
-  ApplicationStatus,
-  Prisma,
-  PrismaClient,
-} from '@prisma/client';
+import { ApplicationStatus, Prisma, PrismaClient } from '@prisma/client';
 import {
   buildEvaluateAnswersPrompt,
   type EvaluateAnswersOutput,
@@ -50,7 +46,11 @@ export interface PreShortlistApplicationView {
 
 export interface PreShortlistStatusView {
   status: ApplicationStatus;
-  answers: { questionId: string; llmStatus: string | null; llmScore: number | null }[];
+  answers: {
+    questionId: string;
+    llmStatus: string | null;
+    llmScore: number | null;
+  }[];
 }
 
 const MAX_QUESTION_LENGTH = 500;
@@ -66,14 +66,14 @@ export class PreShortlistService {
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     @InjectQueue('pre-shortlist-evaluation') private readonly evalQueue: Queue,
     @Inject(forwardRef(() => AiGateway))
-    private readonly aiGateway: AiGateway,
+    private readonly aiGateway: AiGateway
   ) {}
 
   // ---------- Public read APIs ----------
 
   async getQuestionsForJob(
     jobId: number,
-    employerId: string,
+    employerId: string
   ): Promise<PreShortlistQuestionsView> {
     await this.assertEmployerOwnsJob(jobId, employerId);
     const job = await this.prisma.jobPosting.findUnique({
@@ -96,7 +96,7 @@ export class PreShortlistService {
 
   async getPreShortlistForApplication(
     applicationId: number,
-    requester: { id: string; role: string },
+    requester: { id: string; role: string }
   ): Promise<PreShortlistApplicationView> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
@@ -143,13 +143,15 @@ export class PreShortlistService {
 
   async getStatusForApplication(
     applicationId: number,
-    requester: { id: string; role: string },
+    requester: { id: string; role: string }
   ): Promise<PreShortlistStatusView> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       include: {
         job: { select: { postedById: true } },
-        preShortlistAnswers: { select: { questionId: true, llmStatus: true, llmScore: true } },
+        preShortlistAnswers: {
+          select: { questionId: true, llmStatus: true, llmScore: true },
+        },
       },
     });
     if (!application) throw new NotFoundException('Application not found');
@@ -169,7 +171,7 @@ export class PreShortlistService {
   async submitAnswers(
     applicationId: number,
     candidateId: string,
-    dto: SubmitAnswersRequestDTO,
+    dto: SubmitAnswersRequestDTO
   ): Promise<{ applicationId: number; status: ApplicationStatus }> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
@@ -185,7 +187,7 @@ export class PreShortlistService {
     }
     if (application.status !== ApplicationStatus.PRE_SHORTLIST_PENDING) {
       throw new ConflictException(
-        `Application is in status ${application.status}; only PRE_SHORTLIST_PENDING can submit answers`,
+        `Application is in status ${application.status}; only PRE_SHORTLIST_PENDING can submit answers`
       );
     }
 
@@ -195,16 +197,20 @@ export class PreShortlistService {
     }
     if (dto.answers.length !== questions.length) {
       throw new BadRequestException(
-        `Expected ${questions.length} answers, got ${dto.answers.length}`,
+        `Expected ${questions.length} answers, got ${dto.answers.length}`
       );
     }
 
     for (const a of dto.answers) {
       if (a.answer.length < MIN_ANSWER_LENGTH) {
-        throw new BadRequestException('Each answer must be at least 20 characters');
+        throw new BadRequestException(
+          'Each answer must be at least 20 characters'
+        );
       }
       if (a.answer.length > MAX_ANSWER_LENGTH) {
-        throw new BadRequestException('Each answer must be at most 2000 characters');
+        throw new BadRequestException(
+          'Each answer must be at most 2000 characters'
+        );
       }
     }
 
@@ -218,7 +224,7 @@ export class PreShortlistService {
     for (const a of dto.answers) {
       if (seen.has(a.questionId)) {
         throw new BadRequestException(
-          `Duplicate answer for questionId: ${a.questionId}`,
+          `Duplicate answer for questionId: ${a.questionId}`
         );
       }
       seen.add(a.questionId);
@@ -248,7 +254,7 @@ export class PreShortlistService {
     await this.evalQueue.add(
       'evaluate-answers',
       { applicationId },
-      { attempts: 2, backoff: { type: 'exponential', delay: 5000 } },
+      { attempts: 2, backoff: { type: 'exponential', delay: 5000 } }
     );
 
     return { applicationId, status: ApplicationStatus.PRE_SHORTLIST_SUBMITTED };
@@ -256,7 +262,10 @@ export class PreShortlistService {
 
   // ---------- Retry (employer) ----------
 
-  async retryEvaluation(applicationId: number, employerId: string): Promise<void> {
+  async retryEvaluation(
+    applicationId: number,
+    employerId: string
+  ): Promise<void> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       include: { job: { select: { postedById: true } } },
@@ -264,18 +273,18 @@ export class PreShortlistService {
     if (!application) throw new NotFoundException('Application not found');
     if (application.job.postedById !== employerId) {
       throw new ForbiddenException(
-        'You can only retry evaluations for your own jobs',
+        'You can only retry evaluations for your own jobs'
       );
     }
     if (application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED) {
       throw new BadRequestException(
-        'Only submitted applications can be re-evaluated',
+        'Only submitted applications can be re-evaluated'
       );
     }
     const aiFb = (application.aiFeedback ?? {}) as Prisma.JsonObject;
     if ((aiFb.preShortlistStatus as string) !== 'FAILED') {
       throw new BadRequestException(
-        'Retry is only valid after a failed evaluation',
+        'Retry is only valid after a failed evaluation'
       );
     }
     await this.prisma.application.update({
@@ -290,7 +299,7 @@ export class PreShortlistService {
     await this.evalQueue.add(
       'evaluate-answers',
       { applicationId },
-      { attempts: 2, backoff: { type: 'exponential', delay: 5000 } },
+      { attempts: 2, backoff: { type: 'exponential', delay: 5000 } }
     );
   }
 
@@ -298,7 +307,7 @@ export class PreShortlistService {
 
   async resolveInitialStatus(
     jobId: number,
-    matchPercentage: number | null,
+    matchPercentage: number | null
   ): Promise<ApplicationStatus> {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
@@ -324,13 +333,13 @@ export class PreShortlistService {
     if (questions === undefined) return;
     if (questions.length > MAX_QUESTIONS_PER_JOB) {
       throw new BadRequestException(
-        `At most ${MAX_QUESTIONS_PER_JOB} questions are allowed`,
+        `At most ${MAX_QUESTIONS_PER_JOB} questions are allowed`
       );
     }
     for (const q of questions) {
       if (q.length > MAX_QUESTION_LENGTH) {
         throw new BadRequestException(
-          `Each question must be at most ${MAX_QUESTION_LENGTH} characters`,
+          `Each question must be at most ${MAX_QUESTION_LENGTH} characters`
         );
       }
     }
@@ -338,7 +347,10 @@ export class PreShortlistService {
 
   // ---------- Internal helpers ----------
 
-  private async assertEmployerOwnsJob(jobId: number, employerId: string): Promise<void> {
+  private async assertEmployerOwnsJob(
+    jobId: number,
+    employerId: string
+  ): Promise<void> {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
       select: { postedById: true },
@@ -351,7 +363,7 @@ export class PreShortlistService {
 
   private assertCanReadApplication(
     application: { candidateId: string; job: { postedById: string } },
-    requester: { id: string; role: string },
+    requester: { id: string; role: string }
   ): void {
     if (requester.role === 'admin') return;
     if (application.candidateId === requester.id) return;
@@ -381,15 +393,16 @@ export class PreShortlistService {
   }
 
   private normalizeStatus(
-    raw: string | null,
+    raw: string | null
   ): 'PENDING' | 'COMPLETED' | 'FAILED' | null {
-    if (raw === 'PENDING' || raw === 'COMPLETED' || raw === 'FAILED') return raw;
+    if (raw === 'PENDING' || raw === 'COMPLETED' || raw === 'FAILED')
+      return raw;
     return null;
   }
 
   private mergeAiFeedback(
     existing: Prisma.JsonValue | null | undefined,
-    patch: Record<string, Prisma.JsonValue>,
+    patch: Record<string, Prisma.JsonValue>
   ): Prisma.JsonObject {
     const base: Prisma.JsonObject =
       existing && typeof existing === 'object' && !Array.isArray(existing)
@@ -447,7 +460,7 @@ export class PreShortlistService {
    */
   async persistEvaluation(
     applicationId: number,
-    output: EvaluateAnswersOutput,
+    output: EvaluateAnswersOutput
   ): Promise<void> {
     const expected = await this.prisma.preShortlistQuestion.findMany({
       where: { job: { applications: { some: { id: applicationId } } } },
@@ -500,11 +513,13 @@ export class PreShortlistService {
         this.aiGateway.notifyUser(
           application.job.postedById,
           'PRE_SHORTLIST_EVALUATION_READY',
-          { applicationId },
+          { applicationId }
         );
       } catch (err) {
         this.logger.warn(
-          `Failed to notify employer for application ${applicationId}: ${(err as Error).message}`,
+          `Failed to notify employer for application ${applicationId}: ${
+            (err as Error).message
+          }`
         );
       }
     }
@@ -515,7 +530,7 @@ export class PreShortlistService {
    */
   async markEvaluationFailed(
     applicationId: number,
-    errorMessage: string,
+    errorMessage: string
   ): Promise<void> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
@@ -533,7 +548,7 @@ export class PreShortlistService {
 
   private assertEvaluationShape(
     output: EvaluateAnswersOutput,
-    expectedIds: Set<string>,
+    expectedIds: Set<string>
   ): void {
     if (!output || typeof output !== 'object') {
       throw new Error('LLM output is not an object');
@@ -543,7 +558,7 @@ export class PreShortlistService {
     }
     if (output.evaluations.length !== expectedIds.size) {
       throw new Error(
-        `LLM output.evaluations has ${output.evaluations.length} entries, expected ${expectedIds.size}`,
+        `LLM output.evaluations has ${output.evaluations.length} entries, expected ${expectedIds.size}`
       );
     }
     const seen = new Set<string>();
@@ -551,8 +566,13 @@ export class PreShortlistService {
       if (!ev || typeof ev !== 'object') {
         throw new Error('Each evaluation must be an object');
       }
-      if (typeof ev.questionId !== 'string' || !expectedIds.has(ev.questionId)) {
-        throw new Error(`Unknown or missing questionId: ${String(ev.questionId)}`);
+      if (
+        typeof ev.questionId !== 'string' ||
+        !expectedIds.has(ev.questionId)
+      ) {
+        throw new Error(
+          `Unknown or missing questionId: ${String(ev.questionId)}`
+        );
       }
       if (seen.has(ev.questionId)) {
         throw new Error(`Duplicate evaluation for questionId ${ev.questionId}`);
@@ -568,12 +588,12 @@ export class PreShortlistService {
         ev.status !== 'POOR_FIT'
       ) {
         throw new Error(
-          `Invalid status for questionId ${ev.questionId}: ${String(ev.status)}`,
+          `Invalid status for questionId ${ev.questionId}: ${String(ev.status)}`
         );
       }
       if (typeof ev.score !== 'number' || ev.score < 0 || ev.score > 100) {
         throw new Error(
-          `Invalid score for questionId ${ev.questionId}: ${String(ev.score)}`,
+          `Invalid score for questionId ${ev.questionId}: ${String(ev.score)}`
         );
       }
     }
@@ -584,11 +604,21 @@ export class PreShortlistService {
     if (typeof o.comment !== 'string' || o.comment.length === 0) {
       throw new Error('Missing overall.comment');
     }
-    if (o.suggestion !== 'STRONG' && o.suggestion !== 'MAYBE' && o.suggestion !== 'NO') {
+    if (
+      o.suggestion !== 'STRONG' &&
+      o.suggestion !== 'MAYBE' &&
+      o.suggestion !== 'NO'
+    ) {
       throw new Error(`Invalid overall.suggestion: ${String(o.suggestion)}`);
     }
-    if (typeof o.overallScore !== 'number' || o.overallScore < 0 || o.overallScore > 100) {
-      throw new Error(`Invalid overall.overallScore: ${String(o.overallScore)}`);
+    if (
+      typeof o.overallScore !== 'number' ||
+      o.overallScore < 0 ||
+      o.overallScore > 100
+    ) {
+      throw new Error(
+        `Invalid overall.overallScore: ${String(o.overallScore)}`
+      );
     }
   }
 }

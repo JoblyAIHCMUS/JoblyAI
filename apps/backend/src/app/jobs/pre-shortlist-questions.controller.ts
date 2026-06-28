@@ -35,13 +35,13 @@ export class PreShortlistQuestionsController {
 
   constructor(
     private readonly preShortlistService: PreShortlistService,
-    private readonly aiProvider: AiProviderService,
+    private readonly aiProvider: AiProviderService
   ) {}
 
   @Post('generate-questions')
   @HttpCode(HttpStatus.OK)
   async generateQuestions(
-    @Body() dto: GenerateQuestionsRequestDTO,
+    @Body() dto: GenerateQuestionsRequestDTO
   ): Promise<{ questions: string[] }> {
     if (!dto.title?.trim() || !dto.description?.trim()) {
       throw new BadRequestException('title and description are required');
@@ -58,15 +58,16 @@ export class PreShortlistQuestionsController {
 
     let output: GenerateQuestionsOutput;
     try {
-      output = await this.aiProvider.generateStructuredData<GenerateQuestionsOutput>(
-        prompt,
-      );
+      output =
+        await this.aiProvider.generateStructuredData<GenerateQuestionsOutput>(
+          prompt
+        );
     } catch (err) {
       const msg = (err as Error).message;
       this.logger.error(`generate-questions Gemini call failed: ${msg}`);
       throw new HttpException(
         { message: 'AI service returned an invalid response', detail: msg },
-        HttpStatus.BAD_GATEWAY,
+        HttpStatus.BAD_GATEWAY
       );
     }
 
@@ -74,14 +75,18 @@ export class PreShortlistQuestionsController {
       !output ||
       !Array.isArray(output.questions) ||
       output.questions.length !== 5 ||
-      !output.questions.every((q) => typeof q === 'string' && q.trim().length > 0)
+      !output.questions.every(
+        (q) => typeof q === 'string' && q.trim().length > 0
+      )
     ) {
       this.logger.error(
-        `generate-questions returned malformed output: ${JSON.stringify(output)}`,
+        `generate-questions returned malformed output: ${JSON.stringify(
+          output
+        )}`
       );
       throw new HttpException(
         { message: 'AI service returned an unexpected response shape' },
-        HttpStatus.BAD_GATEWAY,
+        HttpStatus.BAD_GATEWAY
       );
     }
 
@@ -91,11 +96,8 @@ export class PreShortlistQuestionsController {
   @Get(':jobId')
   async getQuestions(
     @Param('jobId', ParseIntPipe) jobId: number,
-    @Req() request: AuthenticatedRequest,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.preShortlistService.getQuestionsForJob(
-      jobId,
-      request.user.id,
-    );
+    return this.preShortlistService.getQuestionsForJob(jobId, request.user.id);
   }
 }

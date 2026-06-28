@@ -29,7 +29,7 @@ export class PreShortlistAnswersController {
   @Roles('candidate', 'employer')
   async get(
     @Param('id', ParseIntPipe) id: number,
-    @Req() request: AuthenticatedRequest,
+    @Req() request: AuthenticatedRequest
   ) {
     return this.preShortlistService.getPreShortlistForApplication(id, {
       id: request.user.id,
@@ -44,13 +44,9 @@ export class PreShortlistAnswersController {
   async submit(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SubmitAnswersRequestDTO,
-    @Req() request: AuthenticatedRequest,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.preShortlistService.submitAnswers(
-      id,
-      request.user.id,
-      dto,
-    );
+    return this.preShortlistService.submitAnswers(id, request.user.id, dto);
   }
 
   @Get(':id/pre-shortlist/status')
@@ -58,7 +54,7 @@ export class PreShortlistAnswersController {
   @Roles('candidate', 'employer')
   async status(
     @Param('id', ParseIntPipe) id: number,
-    @Req() request: AuthenticatedRequest,
+    @Req() request: AuthenticatedRequest
   ) {
     return this.preShortlistService.getStatusForApplication(id, {
       id: request.user.id,
@@ -72,7 +68,7 @@ export class PreShortlistAnswersController {
   @Roles('employer')
   async retry(
     @Param('id', ParseIntPipe) id: number,
-    @Req() request: AuthenticatedRequest,
+    @Req() request: AuthenticatedRequest
   ) {
     await this.preShortlistService.retryEvaluation(id, request.user.id);
     return { ok: true };

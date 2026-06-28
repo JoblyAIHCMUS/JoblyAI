@@ -1,4 +1,3 @@
-
 export interface GenerateQuestionsRequirementInput {
   skillName: string;
   importance: 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
@@ -15,12 +14,16 @@ export interface GenerateQuestionsOutput {
   questions: string[];
 }
 
-export function buildGenerateQuestionsPrompt(input: GenerateQuestionsInput): string {
+export function buildGenerateQuestionsPrompt(
+  input: GenerateQuestionsInput
+): string {
   const requirementsText =
     input.requirements
       .map(
         (r) =>
-          `- ${r.skillName} (${r.importance}, ${r.minYearsExperience ?? 0} years required)`
+          `- ${r.skillName} (${r.importance}, ${
+            r.minYearsExperience ?? 0
+          } years required)`
       )
       .join('\n') || '- (no explicit requirements)';
 

@@ -13,7 +13,7 @@ export class PreShortlistEvaluationProcessor extends WorkerHost {
 
   constructor(
     private readonly aiProvider: AiProviderService,
-    private readonly preShortlistService: PreShortlistService,
+    private readonly preShortlistService: PreShortlistService
   ) {
     super();
   }
@@ -21,7 +21,7 @@ export class PreShortlistEvaluationProcessor extends WorkerHost {
   async process(job: Job<{ applicationId: number }>): Promise<void> {
     const { applicationId } = job.data;
     this.logger.log(
-      `Evaluating pre-shortlist answers for application ${applicationId}`,
+      `Evaluating pre-shortlist answers for application ${applicationId}`
     );
 
     let prompt: string;
@@ -31,28 +31,29 @@ export class PreShortlistEvaluationProcessor extends WorkerHost {
     } catch (err) {
       const msg = (err as Error).message;
       this.logger.error(
-        `Failed to build prompt for application ${applicationId}: ${msg}`,
+        `Failed to build prompt for application ${applicationId}: ${msg}`
       );
       await this.preShortlistService.markEvaluationFailed(
         applicationId,
-        `Could not build prompt: ${msg}`,
+        `Could not build prompt: ${msg}`
       );
       return;
     }
 
     let output: EvaluateAnswersOutput;
     try {
-      output = await this.aiProvider.generateStructuredData<EvaluateAnswersOutput>(
-        prompt,
-      );
+      output =
+        await this.aiProvider.generateStructuredData<EvaluateAnswersOutput>(
+          prompt
+        );
     } catch (err) {
       const msg = (err as Error).message;
       this.logger.error(
-        `Gemini call failed for application ${applicationId}: ${msg}`,
+        `Gemini call failed for application ${applicationId}: ${msg}`
       );
       await this.preShortlistService.markEvaluationFailed(
         applicationId,
-        `AI service error: ${msg}`,
+        `AI service error: ${msg}`
       );
       return;
     }
@@ -62,17 +63,17 @@ export class PreShortlistEvaluationProcessor extends WorkerHost {
     } catch (err) {
       const msg = (err as Error).message;
       this.logger.error(
-        `Validation/persist failed for application ${applicationId}: ${msg}`,
+        `Validation/persist failed for application ${applicationId}: ${msg}`
       );
       await this.preShortlistService.markEvaluationFailed(
         applicationId,
-        `Validation failed: ${msg}`,
+        `Validation failed: ${msg}`
       );
       return;
     }
 
     this.logger.log(
-      `Successfully evaluated pre-shortlist answers for application ${applicationId}`,
+      `Successfully evaluated pre-shortlist answers for application ${applicationId}`
     );
   }
 }

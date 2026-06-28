@@ -54,7 +54,7 @@ export class ApplicationsService {
     private readonly notificationsService: NotificationsService,
     private readonly eventEmitter: EventEmitter2,
     private readonly matchExplanationService: MatchExplanationService,
-    private readonly preShortlistService: PreShortlistService,
+    private readonly preShortlistService: PreShortlistService
   ) {}
 
   async createApplication(
@@ -185,7 +185,7 @@ export class ApplicationsService {
     // Resolve the pre-shortlist status based on threshold + match score
     const initialStatus = await this.preShortlistService.resolveInitialStatus(
       dto.jobId,
-      fresh?.matchPercentage ?? null,
+      fresh?.matchPercentage ?? null
     );
 
     if (initialStatus !== application.status) {

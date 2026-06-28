@@ -48,15 +48,28 @@ describe('buildEvaluateAnswersPrompt', () => {
       jobTitle: 'Backend Engineer',
       jobDescription: 'Build APIs.',
       requirements: [
-        { skillName: 'Postgres', importance: 'REQUIRED', minYearsExperience: 3 },
+        {
+          skillName: 'Postgres',
+          importance: 'REQUIRED',
+          minYearsExperience: 3,
+        },
       ],
       questions: [
-        { id: 'q1', question: 'Tell me about a Postgres optimization you did.' },
+        {
+          id: 'q1',
+          question: 'Tell me about a Postgres optimization you did.',
+        },
         { id: 'q2', question: 'Why do you want this role?' },
       ],
       answers: [
-        { questionId: 'q1', answer: 'I added a partial index that cut query time 80%.' },
-        { questionId: 'q2', answer: 'I want to deepen my distributed systems experience.' },
+        {
+          questionId: 'q1',
+          answer: 'I added a partial index that cut query time 80%.',
+        },
+        {
+          questionId: 'q2',
+          answer: 'I want to deepen my distributed systems experience.',
+        },
       ],
     });
 
@@ -79,7 +92,7 @@ describe('PreShortlistService.validateQuestions', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiGateway as any,
+      mockAiGateway as any
     );
   });
 
@@ -95,7 +108,7 @@ describe('PreShortlistService.validateQuestions', () => {
 
   it('rejects a question longer than 500 characters', () => {
     expect(() => service.validateQuestions(['x'.repeat(501)])).toThrow(
-      BadRequestException,
+      BadRequestException
     );
   });
 });
@@ -108,7 +121,7 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiGateway as any,
+      mockAiGateway as any
     );
   });
 
@@ -181,7 +194,7 @@ describe('PreShortlistService.submitAnswers', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiGateway as any,
+      mockAiGateway as any
     );
   });
 
@@ -201,7 +214,7 @@ describe('PreShortlistService.submitAnswers', () => {
   it('throws NotFound if application does not exist', async () => {
     mockPrisma.application.findUnique.mockResolvedValue(null);
     await expect(
-      service.submitAnswers(99, 'cand-1', { answers: [] }),
+      service.submitAnswers(99, 'cand-1', { answers: [] })
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -216,7 +229,7 @@ describe('PreShortlistService.submitAnswers', () => {
           { questionId: 'q1', answer: 'a'.repeat(25) },
           { questionId: 'q2', answer: 'b'.repeat(25) },
         ],
-      }),
+      })
     ).rejects.toThrow(ForbiddenException);
   });
 
@@ -231,7 +244,7 @@ describe('PreShortlistService.submitAnswers', () => {
           { questionId: 'q1', answer: 'a'.repeat(25) },
           { questionId: 'q2', answer: 'b'.repeat(25) },
         ],
-      }),
+      })
     ).rejects.toThrow(ConflictException);
   });
 
@@ -240,7 +253,7 @@ describe('PreShortlistService.submitAnswers', () => {
     await expect(
       service.submitAnswers(1, 'cand-1', {
         answers: [{ questionId: 'q1', answer: 'a'.repeat(25) }],
-      }),
+      })
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -252,7 +265,7 @@ describe('PreShortlistService.submitAnswers', () => {
           { questionId: 'q1', answer: 'short' },
           { questionId: 'q2', answer: 'b'.repeat(25) },
         ],
-      }),
+      })
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -264,7 +277,7 @@ describe('PreShortlistService.submitAnswers', () => {
           { questionId: 'q1', answer: 'a'.repeat(25) },
           { questionId: 'qX', answer: 'b'.repeat(25) },
         ],
-      }),
+      })
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -284,12 +297,12 @@ describe('PreShortlistService.submitAnswers', () => {
       expect.objectContaining({
         where: { id: 1 },
         data: expect.objectContaining({ status: 'PRE_SHORTLIST_SUBMITTED' }),
-      }),
+      })
     );
     expect(mockQueue.add).toHaveBeenCalledWith(
       'evaluate-answers',
       { applicationId: 1 },
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

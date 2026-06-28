@@ -355,11 +355,12 @@ describe('ApplicationsService', () => {
       // First findUnique is the job; second is the resume; third is for fresh matchPercentage
       // (after calculateExplanation). We just need the next-after-resolve call to
       // return a non-null matchPercentage.
-      mockPrisma.application.findUnique
-        .mockResolvedValueOnce({ matchPercentage: 85 } as any);
+      mockPrisma.application.findUnique.mockResolvedValueOnce({
+        matchPercentage: 85,
+      } as any);
 
       mockPreShortlistService.resolveInitialStatus.mockResolvedValue(
-        'PRE_SHORTLIST_PENDING' as any,
+        'PRE_SHORTLIST_PENDING' as any
       );
 
       const result = await service.createApplication('candidate-123', {
@@ -370,7 +371,7 @@ describe('ApplicationsService', () => {
       expect(mockPrisma.application.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ status: 'PRE_SHORTLIST_PENDING' }),
-        }),
+        })
       );
     });
   });

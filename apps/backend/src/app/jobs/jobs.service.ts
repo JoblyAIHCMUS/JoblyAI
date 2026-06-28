@@ -39,7 +39,7 @@ export class JobsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly eventEmitter: EventEmitter2,
-    private readonly preShortlistService: PreShortlistService,
+    private readonly preShortlistService: PreShortlistService
   ) {}
 
   async getsPaginatedJobsPostings(
@@ -482,7 +482,12 @@ export class JobsService {
       );
     }
 
-    const { requirements, preShortlistQuestions, preShortlistThreshold, ...jobData } = dto;
+    const {
+      requirements,
+      preShortlistQuestions,
+      preShortlistThreshold,
+      ...jobData
+    } = dto;
 
     // Gate questions: if the job already has applications, reject the change.
     if (preShortlistQuestions !== undefined) {
@@ -492,7 +497,7 @@ export class JobsService {
       });
       if (hasApplications > 0) {
         throw new BadRequestException(
-          'Pre-shortlist questions cannot be edited after applications exist. The threshold was still updated if you included one.',
+          'Pre-shortlist questions cannot be edited after applications exist. The threshold was still updated if you included one.'
         );
       }
     }

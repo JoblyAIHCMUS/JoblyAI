@@ -24,7 +24,9 @@ export function useGeneratePreShortlistQuestions() {
       return result;
     } catch (err) {
       setError(err);
-      toast.error('Could not generate questions. Please try again or write them manually.');
+      toast.error(
+        'Could not generate questions. Please try again or write them manually.'
+      );
       throw err;
     } finally {
       setLoading(false);

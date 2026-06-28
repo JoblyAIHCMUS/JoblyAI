@@ -93,7 +93,14 @@ export default function EmployerNewJobPage() {
       preShortlistQuestions: [],
     },
   });
-  const { register, handleSubmit, watch, setValue, getValues, formState: { errors } } = methods;
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = methods;
 
   // Watch fields for tracking
   const remote = watch('remote');

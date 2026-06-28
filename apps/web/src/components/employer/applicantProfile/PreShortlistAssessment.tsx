@@ -43,7 +43,7 @@ export default function PreShortlistAssessment({
   jobId,
 }: PreShortlistAssessmentProps) {
   const { data, isLoading, isError, error } = useEmployerPreShortlist(
-    Number(applicationId),
+    Number(applicationId)
   );
   const retry = useRetryPreShortlistEvaluation(Number(applicationId));
 
@@ -171,7 +171,9 @@ export default function PreShortlistAssessment({
                   <div className="space-y-1.5">
                     <Badge
                       variant="outline"
-                      className={`${STATUS_STYLES[ans.llmStatus]} text-xs py-1 px-2`}
+                      className={`${
+                        STATUS_STYLES[ans.llmStatus]
+                      } text-xs py-1 px-2`}
                     >
                       {STATUS_LABEL[ans.llmStatus]} · {ans.llmScore ?? 0}/100
                     </Badge>

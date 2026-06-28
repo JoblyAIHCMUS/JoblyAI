@@ -13,7 +13,9 @@ interface PreShortlistPageProps {
   applicationId: string;
 }
 
-export default function PreShortlistPage({ applicationId }: PreShortlistPageProps) {
+export default function PreShortlistPage({
+  applicationId,
+}: PreShortlistPageProps) {
   const router = useRouter();
   const { setTitle } = usePageTitle();
   const id = Number(applicationId);

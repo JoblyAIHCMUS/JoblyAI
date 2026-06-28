@@ -19,7 +19,11 @@ interface PreShortlistFormProps {
   data: PreShortlistApplicationView;
 }
 
-export function PreShortlistForm({ applicationId, jobId, data }: PreShortlistFormProps) {
+export function PreShortlistForm({
+  applicationId,
+  jobId,
+  data,
+}: PreShortlistFormProps) {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -61,14 +65,18 @@ export function PreShortlistForm({ applicationId, jobId, data }: PreShortlistFor
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 max-w-2xl mx-auto px-3 sm:px-0">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-5 max-w-2xl mx-auto px-3 sm:px-0"
+    >
       <div>
         <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
           Pre-shortlist questions
         </h1>
         <p className="text-sm text-slate-600 mt-1">
-          Please answer each question. Your answers will be evaluated by our AI and the
-          hiring team will review them before deciding whether to advance your application.
+          Please answer each question. Your answers will be evaluated by our AI
+          and the hiring team will review them before deciding whether to
+          advance your application.
         </p>
       </div>
 
@@ -81,7 +89,8 @@ export function PreShortlistForm({ applicationId, jobId, data }: PreShortlistFor
       <div className="space-y-4">
         {data.questions.map((q, idx) => {
           const value = answers[q.id] ?? '';
-          const tooShort = value.trim().length > 0 && value.trim().length < MIN_LENGTH;
+          const tooShort =
+            value.trim().length > 0 && value.trim().length < MIN_LENGTH;
           const tooLong = value.length > MAX_LENGTH;
           return (
             <div key={q.id} className="space-y-2">

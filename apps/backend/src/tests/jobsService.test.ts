@@ -107,7 +107,9 @@ describe('JobsService', () => {
     service = module.get<JobsService>(JobsService);
     (service as unknown as { eventEmitter: EventEmitter2 }).eventEmitter =
       mockEventEmitter as unknown as EventEmitter2;
-    (service as unknown as { preShortlistService: PreShortlistService }).preShortlistService =
+    (
+      service as unknown as { preShortlistService: PreShortlistService }
+    ).preShortlistService =
       mockPreShortlistService as unknown as PreShortlistService;
     vi.clearAllMocks();
   });

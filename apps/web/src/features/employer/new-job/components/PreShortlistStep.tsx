@@ -4,13 +4,7 @@
 
 import { useCallback } from 'react';
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
-import {
-  Sparkles,
-  Plus,
-  Trash2,
-  ChevronUp,
-  ChevronDown,
-} from 'lucide-react';
+import { Sparkles, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,7 +61,7 @@ export function PreShortlistStep() {
       try {
         localStorage.setItem(
           `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
-          JSON.stringify(previousSnapshot ?? []),
+          JSON.stringify(previousSnapshot ?? [])
         );
       } catch {
         // localStorage may be disabled (SSR, private mode); ignore.
@@ -82,7 +76,9 @@ export function PreShortlistStep() {
           label: 'Undo',
           onClick: () => {
             try {
-              const raw = localStorage.getItem(`${UNDO_STORAGE_KEY_PREFIX}${undoId}`);
+              const raw = localStorage.getItem(
+                `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
+              );
               if (raw) {
                 const restored = JSON.parse(raw) as string[];
                 setValue('preShortlistQuestions', restored, {
@@ -111,8 +107,8 @@ export function PreShortlistStep() {
             Matching threshold
           </Label>
           <p className="text-xs text-slate-500 mt-1">
-            Candidates whose AI match score is at or above this number will be invited to
-            answer your pre-shortlist questions. Set to 0 to disable.
+            Candidates whose AI match score is at or above this number will be
+            invited to answer your pre-shortlist questions. Set to 0 to disable.
           </p>
         </div>
         <div className="space-y-1">
@@ -142,8 +138,8 @@ export function PreShortlistStep() {
               Pre-shortlist questions
             </Label>
             <p className="text-xs text-slate-500 mt-1">
-              These will be served to every candidate who passes the threshold. Each
-              question is answerable in 2-5 sentences.
+              These will be served to every candidate who passes the threshold.
+              Each question is answerable in 2-5 sentences.
             </p>
           </div>
           <Button
@@ -171,8 +167,8 @@ export function PreShortlistStep() {
         {fields.length === 0 && (
           <Alert>
             <AlertDescription>
-              No questions yet. Click "Generate with AI" to draft 5 questions, or add one
-              manually below.
+              No questions yet. Click "Generate with AI" to draft 5 questions,
+              or add one manually below.
             </AlertDescription>
           </Alert>
         )}

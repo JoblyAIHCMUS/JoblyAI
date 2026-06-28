@@ -21,7 +21,9 @@ export function useSubmitPreShortlistAnswers(applicationId: number) {
     mutationFn: (payload) => submitPreShortlistAnswers(applicationId, payload),
     onSuccess: () => {
       toast.success('Pre-shortlist answers submitted');
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEY(applicationId) });
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEY(applicationId),
+      });
       void queryClient.invalidateQueries({ queryKey: APP_LIST_KEY });
     },
     onError: (err) => {

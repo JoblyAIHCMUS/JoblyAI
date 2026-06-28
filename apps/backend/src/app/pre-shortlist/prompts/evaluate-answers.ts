@@ -42,12 +42,16 @@ export interface EvaluateAnswersOutput {
   overall: EvaluateAnswersOverallOutput;
 }
 
-export function buildEvaluateAnswersPrompt(input: EvaluateAnswersInput): string {
+export function buildEvaluateAnswersPrompt(
+  input: EvaluateAnswersInput
+): string {
   const requirementsText =
     input.requirements
       .map(
         (r) =>
-          `- ${r.skillName} (${r.importance}, ${r.minYearsExperience ?? 0} years required)`
+          `- ${r.skillName} (${r.importance}, ${
+            r.minYearsExperience ?? 0
+          } years required)`
       )
       .join('\n') || '- (no explicit requirements)';
 
