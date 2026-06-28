@@ -20,6 +20,8 @@ export function useDashboardInsights({
     offered: '#00a36c',
     rejected: '#ff6550',
     closed: '#7c8493',
+    'pre-shortlist-pending': '#d97706',
+    'pre-shortlist-submitted': '#6366f1',
   };
 
   const barChartItems = useMemo(() => {

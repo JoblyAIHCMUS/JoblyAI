@@ -53,6 +53,10 @@ function mapApiStatusToCandidateStatus(
   switch (status) {
     case 'APPLIED':
       return 'applied';
+    case 'PRE_SHORTLIST_PENDING':
+      return 'pre-shortlist-pending';
+    case 'PRE_SHORTLIST_SUBMITTED':
+      return 'pre-shortlist-submitted';
     case 'INTERVIEW':
       return 'interviewing';
     case 'OFFER':
