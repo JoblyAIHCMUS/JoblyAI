@@ -59,10 +59,7 @@ export class McpKeysService {
     });
   }
 
-  async delete(
-    keyId: string,
-    options: McpKeysServiceOptions
-  ): Promise<void> {
+  async delete(keyId: string, options: McpKeysServiceOptions): Promise<void> {
     await auth.api.deleteApiKey({
       body: { keyId },
       headers: options.headers,

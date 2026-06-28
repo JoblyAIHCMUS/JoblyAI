@@ -1,9 +1,5 @@
 import { apiClient } from '@/lib/api';
-import {
-  McpKeyView,
-  CreateMcpKeyDto,
-  CreateMcpKeyResponse,
-} from './types';
+import { McpKeyView, CreateMcpKeyDto, CreateMcpKeyResponse } from './types';
 
 export async function listMcpKeys(): Promise<McpKeyView[]> {
   const response = await apiClient.get<McpKeyView[]>('/mcp-keys');
@@ -13,10 +9,7 @@ export async function listMcpKeys(): Promise<McpKeyView[]> {
 export async function createMcpKey(
   dto: CreateMcpKeyDto
 ): Promise<CreateMcpKeyResponse> {
-  const response = await apiClient.post<CreateMcpKeyResponse>(
-    '/mcp-keys',
-    dto
-  );
+  const response = await apiClient.post<CreateMcpKeyResponse>('/mcp-keys', dto);
   return response.data;
 }
 

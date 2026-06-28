@@ -5,7 +5,11 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/useToast';
 import { formatErrorForDisplay } from '@/lib/errors';
-import { useListMcpKeys, useCreateMcpKey, useDeleteMcpKey } from '@/api-hook/mcp-keys';
+import {
+  useListMcpKeys,
+  useCreateMcpKey,
+  useDeleteMcpKey,
+} from '@/api-hook/mcp-keys';
 import type {
   McpKeyView,
   CreateMcpKeyResponse,
