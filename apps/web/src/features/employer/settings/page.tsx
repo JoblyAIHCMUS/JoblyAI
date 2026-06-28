@@ -10,6 +10,7 @@ import {
   SettingsTabs,
   ProfilePhotoSection,
   PersonalDetailsForm,
+  ApiKeysSection,
 } from './components';
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
@@ -239,6 +240,14 @@ export default function EmployerSettingsPage() {
               // TODO: Implement notification preferences
             }}
           />
+        </TabsContent>
+
+        {/* Developer Tab Content */}
+        <TabsContent
+          value="developer"
+          className="self-stretch flex flex-col gap-4 sm:gap-5 md:gap-6 bg-white !mt-0 flex-1"
+        >
+          <ApiKeysSection role="employer" />
         </TabsContent>
       </Tabs>
     </div>
