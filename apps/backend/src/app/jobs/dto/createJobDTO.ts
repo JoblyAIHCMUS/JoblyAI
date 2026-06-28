@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EmploymentType, RequirementImportance } from '@prisma/client';
+import { PreShortlistQuestionInput } from './preShortlistQuestionInput';
 
 export class JobRequirementInput {
   @IsNumber()
@@ -79,7 +80,8 @@ export class CreateJobDTO {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
   @ArrayMaxSize(20)
-  preShortlistQuestions?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => PreShortlistQuestionInput)
+  preShortlistQuestions?: PreShortlistQuestionInput[];
 }

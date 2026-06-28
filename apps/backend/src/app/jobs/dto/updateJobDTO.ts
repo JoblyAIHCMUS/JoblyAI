@@ -16,6 +16,7 @@ import {
   RequirementImportance,
   JobStatus,
 } from '@prisma/client';
+import { PreShortlistQuestionInput } from './preShortlistQuestionInput';
 
 export class JobRequirementInput {
   @IsNumber()
@@ -91,7 +92,8 @@ export class UpdateJobDTO {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
   @ArrayMaxSize(20)
-  preShortlistQuestions?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => PreShortlistQuestionInput)
+  preShortlistQuestions?: PreShortlistQuestionInput[];
 }
