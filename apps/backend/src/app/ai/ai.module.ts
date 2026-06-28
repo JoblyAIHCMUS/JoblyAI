@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
@@ -29,7 +29,7 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     GcsModule,
     AuthModule,
     NotificationsModule,
-    PreShortlistModule,
+    forwardRef(() => PreShortlistModule),
     BullModule.registerQueue(
       { name: 'resume-extraction' },
       { name: 'resume-scoring' },

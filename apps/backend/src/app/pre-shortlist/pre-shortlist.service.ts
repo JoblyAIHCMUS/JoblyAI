@@ -10,6 +10,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -64,6 +65,7 @@ export class PreShortlistService {
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     @InjectQueue('pre-shortlist-evaluation') private readonly evalQueue: Queue,
+    @Inject(forwardRef(() => AiGateway))
     private readonly aiGateway: AiGateway,
   ) {}
 
