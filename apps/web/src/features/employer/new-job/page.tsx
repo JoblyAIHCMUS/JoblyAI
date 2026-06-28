@@ -152,7 +152,11 @@ export default function EmployerNewJobPage() {
         return (
           !errors.preShortlistThreshold &&
           !errors.preShortlistQuestions &&
-          currentValues.preShortlistQuestions.every((q) => q.trim().length >= 5)
+          currentValues.preShortlistQuestions.every(
+            (q) =>
+              q.question.trim().length >= 5 &&
+              q.expectedAnswer.trim().length >= 1
+          )
         );
       default:
         return true;
