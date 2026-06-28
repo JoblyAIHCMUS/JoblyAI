@@ -87,7 +87,7 @@ For each question/answer, produce:
 
 Then produce an OVERALL verdict:
 - "comment": 1-2 sentences summarizing the candidate's overall fit for THIS specific job.
-- "suggestion": one of "STRONG" (recommend advancing to interview), "MAYBE" (worth a closer look, not a clear no), "NO" (do not advance). Do NOT emit an "overallScore" — only the suggestion.
+- "suggestion": one of "STRONG" (recommend advancing to interview), "MAYBE" (worth a closer look, not a clear no), "NO" (do not advance). Do not emit any numeric or summary field for the overall verdict — only the suggestion.
 
 QUALITY CRITERIA (apply to every evaluation)
 - Be honest. Do not inflate feedback to be polite. A vague answer to a technical question should be called out clearly, not glossed over.
@@ -105,7 +105,7 @@ OUTPUT FORMAT — strict JSON, no markdown fences, no commentary:
   "overall": { "comment": "...", "suggestion": "STRONG|MAYBE|NO" }
 }
 
-The "evaluations" array MUST contain exactly ${numQuestions} entries, one per input question, in the same order as the input questions. Each "questionId" MUST match an id from the input. Do NOT include any "score", "status", or "overallScore" field anywhere.`;
+The "evaluations" array MUST contain exactly ${numQuestions} entries, one per input question, in the same order as the input questions. Each "questionId" MUST match an id from the input. The output JSON must contain ONLY the fields shown in the example above — no extra numeric, categorical, or summary fields are permitted anywhere.`;
 }
 
 export const EVALUATE_ANSWERS_PROMPT_PATH =

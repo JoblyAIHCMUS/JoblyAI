@@ -43,7 +43,7 @@ const mockAiGateway = vi.hoisted(() => ({
 // ---------- Tests ----------
 
 describe('buildEvaluateAnswersPrompt', () => {
-  it('includes every question and answer in the prompt body', () => {
+  it('includes every question, expected answer, and answer in the prompt body', () => {
     const prompt = buildEvaluateAnswersPrompt({
       jobTitle: 'Backend Engineer',
       jobDescription: 'Build APIs.',
@@ -58,8 +58,14 @@ describe('buildEvaluateAnswersPrompt', () => {
         {
           id: 'q1',
           question: 'Tell me about a Postgres optimization you did.',
+          expectedAnswer:
+            'A concrete optimization with measured impact (e.g. latency drop).',
         },
-        { id: 'q2', question: 'Why do you want this role?' },
+        {
+          id: 'q2',
+          question: 'Why do you want this role?',
+          expectedAnswer: null,
+        },
       ],
       answers: [
         {
@@ -78,9 +84,32 @@ describe('buildEvaluateAnswersPrompt', () => {
     expect(prompt).toContain('q1');
     expect(prompt).toContain('q2');
     expect(prompt).toContain('partial index');
-    expect(prompt).toContain('STRONG_FIT');
+    expect(prompt).toContain('partial index that cut query time');
+    expect(prompt).toContain('A concrete optimization with measured impact');
+    expect(prompt).toContain(
+      '(none provided — evaluate against general role fit and note the absence of a criterion in the comment)'
+    );
     expect(prompt).toContain('STRONG|MAYBE|NO');
     expect(prompt).toContain('exactly 2 entries');
+  });
+
+  it('does not mention score, status, or overallScore', () => {
+    const prompt = buildEvaluateAnswersPrompt({
+      jobTitle: 'X',
+      jobDescription: 'Y',
+      requirements: [],
+      questions: [
+        { id: 'q1', question: 'Q?', expectedAnswer: 'A.' },
+      ],
+      answers: [{ questionId: 'q1', answer: 'A'.repeat(25) }],
+    });
+    expect(prompt).not.toContain('overallScore');
+    expect(prompt).not.toContain('"score"');
+    expect(prompt).not.toContain('"status"');
+    expect(prompt).not.toContain('STRONG_FIT');
+    expect(prompt).not.toContain('GOOD_FIT');
+    expect(prompt).not.toContain('NEUTRAL');
+    expect(prompt).not.toContain('POOR_FIT');
   });
 });
 
@@ -101,15 +130,53 @@ describe('PreShortlistService.validateQuestions', () => {
     expect(() => service.validateQuestions(undefined)).not.toThrow();
   });
 
+  it('accepts a valid array of question+expectedAnswer pairs', () => {
+    expect(() =>
+      service.validateQuestions([
+        { question: 'A valid question?', expectedAnswer: 'A short criterion.' },
+        { question: 'Another valid question?', expectedAnswer: 'Another criterion.' },
+      ])
+    ).not.toThrow();
+  });
+
   it('rejects more than 20 questions', () => {
-    const qs = Array.from({ length: 21 }, () => 'A question');
+    const qs = Array.from({ length: 21 }, () => ({
+      question: 'A question',
+      expectedAnswer: 'A criterion',
+    }));
     expect(() => service.validateQuestions(qs)).toThrow(BadRequestException);
   });
 
+  it('rejects a question shorter than 5 characters', () => {
+    expect(() =>
+      service.validateQuestions([
+        { question: 'hi', expectedAnswer: 'A criterion' },
+      ])
+    ).toThrow(BadRequestException);
+  });
+
   it('rejects a question longer than 500 characters', () => {
-    expect(() => service.validateQuestions(['x'.repeat(501)])).toThrow(
-      BadRequestException
-    );
+    expect(() =>
+      service.validateQuestions([
+        { question: 'x'.repeat(501), expectedAnswer: 'A criterion' },
+      ])
+    ).toThrow(BadRequestException);
+  });
+
+  it('rejects an empty expectedAnswer', () => {
+    expect(() =>
+      service.validateQuestions([
+        { question: 'A valid question?', expectedAnswer: '' },
+      ])
+    ).toThrow(BadRequestException);
+  });
+
+  it('rejects an expectedAnswer longer than 500 characters', () => {
+    expect(() =>
+      service.validateQuestions([
+        { question: 'A valid question?', expectedAnswer: 'x'.repeat(501) },
+      ])
+    ).toThrow(BadRequestException);
   });
 });
 
