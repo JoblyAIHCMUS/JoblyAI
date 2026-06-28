@@ -398,8 +398,197 @@ export class PreShortlistService {
     return { ...base, ...patch };
   }
 
-  // PLACEHOLDER — Task 6 will replace this with the real implementation in Appendix D.
-  buildPrompt(applicationId: number): Promise<string> {
-    throw new Error('buildPrompt: not implemented yet — see Task 6');
+  /**
+   * Build the LLM prompt for evaluating a submitted application.
+   * Throws if the application, job, questions, or answers cannot be loaded.
+   */
+  async buildPrompt(applicationId: number): Promise<{
+    prompt: string;
+    expectedQuestionIds: string[];
+  }> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: {
+          include: {
+            requirements: { include: { skill: true } },
+            preShortlistQuestions: { orderBy: { order: 'asc' } },
+          },
+        },
+        preShortlistAnswers: true,
+      },
+    });
+    if (!application) throw new NotFoundException('Application not found');
+
+    const questions = application.job.preShortlistQuestions;
+    const answers = application.preShortlistAnswers;
+
+    const prompt = buildEvaluateAnswersPrompt({
+      jobTitle: application.job.title,
+      jobDescription: application.job.description,
+      requirements: application.job.requirements.map((r) => ({
+        skillName: r.skill.name,
+        importance: r.importance,
+        minYearsExperience: r.minYearsExperience,
+      })),
+      questions: questions.map((q) => ({ id: q.id, question: q.question })),
+      answers: answers.map((a) => ({
+        questionId: a.questionId,
+        answer: a.answer,
+      })),
+    });
+
+    return { prompt, expectedQuestionIds: questions.map((q) => q.id) };
+  }
+
+  /**
+   * Persist the LLM evaluation result. Used by the processor.
+   * Validates the output shape before writing.
+   */
+  async persistEvaluation(
+    applicationId: number,
+    output: EvaluateAnswersOutput,
+  ): Promise<void> {
+    const expected = await this.prisma.preShortlistQuestion.findMany({
+      where: { job: { applications: { some: { id: applicationId } } } },
+      select: { id: true },
+    });
+    const expectedIds = new Set(expected.map((q) => q.id));
+    this.assertEvaluationShape(output, expectedIds);
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const ev of output.evaluations) {
+        await tx.preShortlistAnswer.update({
+          where: {
+            applicationId_questionId: {
+              applicationId,
+              questionId: ev.questionId,
+            },
+          },
+          data: {
+            llmComment: ev.comment,
+            llmScore: ev.score,
+            llmStatus: ev.status,
+          },
+        });
+      }
+      const application = await tx.application.findUnique({
+        where: { id: applicationId },
+        select: { aiFeedback: true },
+      });
+      const next = this.mergeAiFeedback(application?.aiFeedback, {
+        preShortlistOverall: {
+          comment: output.overall.comment,
+          suggestion: output.overall.suggestion,
+          overallScore: output.overall.overallScore,
+        },
+        preShortlistStatus: 'COMPLETED',
+        preShortlistError: null,
+      });
+      await tx.application.update({
+        where: { id: applicationId },
+        data: { aiFeedback: next },
+      });
+    });
+
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { job: { select: { postedById: true } } },
+    });
+    if (application) {
+      try {
+        this.aiGateway.notifyUser(
+          application.job.postedById,
+          'PRE_SHORTLIST_EVALUATION_READY',
+          { applicationId },
+        );
+      } catch (err) {
+        this.logger.warn(
+          `Failed to notify employer for application ${applicationId}: ${(err as Error).message}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Mark the evaluation as FAILED and persist the error message.
+   */
+  async markEvaluationFailed(
+    applicationId: number,
+    errorMessage: string,
+  ): Promise<void> {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { aiFeedback: true },
+    });
+    const next = this.mergeAiFeedback(application?.aiFeedback, {
+      preShortlistStatus: 'FAILED',
+      preShortlistError: errorMessage.slice(0, 1000),
+    });
+    await this.prisma.application.update({
+      where: { id: applicationId },
+      data: { aiFeedback: next },
+    });
+  }
+
+  private assertEvaluationShape(
+    output: EvaluateAnswersOutput,
+    expectedIds: Set<string>,
+  ): void {
+    if (!output || typeof output !== 'object') {
+      throw new Error('LLM output is not an object');
+    }
+    if (!Array.isArray(output.evaluations)) {
+      throw new Error('LLM output.evaluations is not an array');
+    }
+    if (output.evaluations.length !== expectedIds.size) {
+      throw new Error(
+        `LLM output.evaluations has ${output.evaluations.length} entries, expected ${expectedIds.size}`,
+      );
+    }
+    const seen = new Set<string>();
+    for (const ev of output.evaluations) {
+      if (!ev || typeof ev !== 'object') {
+        throw new Error('Each evaluation must be an object');
+      }
+      if (typeof ev.questionId !== 'string' || !expectedIds.has(ev.questionId)) {
+        throw new Error(`Unknown or missing questionId: ${String(ev.questionId)}`);
+      }
+      if (seen.has(ev.questionId)) {
+        throw new Error(`Duplicate evaluation for questionId ${ev.questionId}`);
+      }
+      seen.add(ev.questionId);
+      if (typeof ev.comment !== 'string' || ev.comment.length === 0) {
+        throw new Error(`Missing comment for questionId ${ev.questionId}`);
+      }
+      if (
+        ev.status !== 'STRONG_FIT' &&
+        ev.status !== 'GOOD_FIT' &&
+        ev.status !== 'NEUTRAL' &&
+        ev.status !== 'POOR_FIT'
+      ) {
+        throw new Error(
+          `Invalid status for questionId ${ev.questionId}: ${String(ev.status)}`,
+        );
+      }
+      if (typeof ev.score !== 'number' || ev.score < 0 || ev.score > 100) {
+        throw new Error(
+          `Invalid score for questionId ${ev.questionId}: ${String(ev.score)}`,
+        );
+      }
+    }
+    const o = output.overall;
+    if (!o || typeof o !== 'object') {
+      throw new Error('LLM output.overall is not an object');
+    }
+    if (typeof o.comment !== 'string' || o.comment.length === 0) {
+      throw new Error('Missing overall.comment');
+    }
+    if (o.suggestion !== 'STRONG' && o.suggestion !== 'MAYBE' && o.suggestion !== 'NO') {
+      throw new Error(`Invalid overall.suggestion: ${String(o.suggestion)}`);
+    }
+    if (typeof o.overallScore !== 'number' || o.overallScore < 0 || o.overallScore > 100) {
+      throw new Error(`Invalid overall.overallScore: ${String(o.overallScore)}`);
+    }
   }
 }
