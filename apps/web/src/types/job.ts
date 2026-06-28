@@ -64,6 +64,12 @@ export interface JobRequirement {
   minYearsExperience: number | null;
 }
 
+export interface PreShortlistQuestion {
+  id: string;
+  order: number;
+  question: string;
+}
+
 export interface JobPosting {
   id: number;
   employerId: string;
@@ -82,6 +88,8 @@ export interface JobPosting {
   createdAt: Date;
   updatedAt: Date;
   matchPercentage?: number;
+  preShortlistThreshold: number;
+  preShortlistQuestions: PreShortlistQuestion[];
 }
 
 export interface PaginatedJobsResponse {
@@ -91,3 +99,8 @@ export interface PaginatedJobsResponse {
   pageSize: number;
   totalPages: number;
 }
+
+export type JobPostingFormData = {
+  preShortlistThreshold: number;
+  preShortlistQuestions: string[];
+};

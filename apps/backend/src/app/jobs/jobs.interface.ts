@@ -37,6 +37,8 @@ export interface JobPosting {
   currency: string | null;
   status: JobStatus;
   applicantsCount?: number;
+  preShortlistThreshold: number;
+  preShortlistQuestions: { id: string; order: number; question: string }[];
   createdAt: Date;
   updatedAt: Date;
 }

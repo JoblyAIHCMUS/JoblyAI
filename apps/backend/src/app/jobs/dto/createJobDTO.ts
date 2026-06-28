@@ -6,6 +6,8 @@ import {
   IsEnum,
   IsArray,
   Min,
+  Max,
+  ArrayMaxSize,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -68,4 +70,16 @@ export class CreateJobDTO {
   @ValidateNested({ each: true })
   @Type(() => JobRequirementInput)
   requirements?: JobRequirementInput[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  preShortlistThreshold?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(20)
+  preShortlistQuestions?: string[];
 }

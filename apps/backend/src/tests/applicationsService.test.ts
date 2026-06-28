@@ -8,6 +8,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApplicationsService } from '../app/applications/applications.service';
 import { NotificationsService } from '../app/notifications/notifications.service';
+import { PreShortlistService } from '../app/pre-shortlist/pre-shortlist.service';
 
 // Mock ApplicationStatus enum from Prisma
 export enum ApplicationStatus {
@@ -125,6 +126,20 @@ const mockEventEmitter = vi.hoisted(() => ({
   emit: vi.fn(),
 }));
 
+// Mock PreShortlistService
+const mockPreShortlistService = vi.hoisted(() => ({
+  resolveInitialStatus: vi.fn().mockResolvedValue('APPLIED'),
+  validateQuestions: vi.fn(),
+  getQuestionsForJob: vi.fn(),
+  getPreShortlistForApplication: vi.fn(),
+  getStatusForApplication: vi.fn(),
+  submitAnswers: vi.fn(),
+  retryEvaluation: vi.fn(),
+  buildPrompt: vi.fn(),
+  persistEvaluation: vi.fn(),
+  markEvaluationFailed: vi.fn(),
+}));
+
 describe('ApplicationsService', () => {
   let service: ApplicationsService;
 
@@ -144,6 +159,10 @@ describe('ApplicationsService', () => {
           provide: EventEmitter2,
           useValue: mockEventEmitter,
         },
+        {
+          provide: PreShortlistService,
+          useValue: mockPreShortlistService,
+        },
       ],
     }).compile();
 
@@ -154,6 +173,7 @@ describe('ApplicationsService', () => {
     (service as any).prisma = mockPrisma;
     (service as any).notificationsService = mockNotificationsService;
     (service as any).eventEmitter = mockEventEmitter;
+    (service as any).preShortlistService = mockPreShortlistService;
   });
 
   describe('createApplication', () => {
@@ -312,6 +332,47 @@ describe('ApplicationsService', () => {
 
       expect(result.status).toBe('APPLIED');
       expect(mockPrisma.application.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('createApplication with pre-shortlist', () => {
+    it('uses PRE_SHORTLIST_PENDING when resolveInitialStatus says so', async () => {
+      const mockApp = createMockApplication();
+      mockPrisma.jobPosting.findUnique.mockResolvedValue({
+        id: 1,
+        status: 'OPEN',
+      });
+      mockPrisma.resume.findUnique.mockResolvedValue({
+        id: 1,
+        candidateId: 'candidate-123',
+      });
+      mockPrisma.application.findFirst.mockResolvedValue(null);
+      mockPrisma.application.create.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue({
+        ...mockApp,
+        status: 'PRE_SHORTLIST_PENDING',
+      });
+      // First findUnique is the job; second is the resume; third is for fresh matchPercentage
+      // (after calculateExplanation). We just need the next-after-resolve call to
+      // return a non-null matchPercentage.
+      mockPrisma.application.findUnique.mockResolvedValueOnce({
+        matchPercentage: 85,
+      } as any);
+
+      mockPreShortlistService.resolveInitialStatus.mockResolvedValue(
+        'PRE_SHORTLIST_PENDING' as any
+      );
+
+      const result = await service.createApplication('candidate-123', {
+        jobId: 1,
+        resumeId: 1,
+      });
+      expect(result.status).toBe('PRE_SHORTLIST_PENDING');
+      expect(mockPrisma.application.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: 'PRE_SHORTLIST_PENDING' }),
+        })
+      );
     });
   });
 

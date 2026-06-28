@@ -15,6 +15,7 @@ import { useUser } from '@/hooks/useUser';
 import { mapJobPostingToDetailContent } from '@/features/find-jobs/job-detail/job.mapper';
 import type { JobPosting } from '@/api-client/jobs';
 import type { JobDetailContentProps } from '@/types/jobDetail';
+import type { ApplicationRecord } from '@/api-client/application';
 
 interface PageData {
   jobId: number;
@@ -47,7 +48,9 @@ export default function JobDetailPage() {
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [jobDetailProps, setJobDetailProps] =
     useState<JobDetailContentProps | null>(null);
+  const [jobData, setJobData] = useState<JobPosting | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
+  const [appsList, setAppsList] = useState<ApplicationRecord[]>([]);
 
   useEffect(() => {
     setTitle('Job Description');
@@ -100,6 +103,7 @@ export default function JobDetailPage() {
         // TODO: capacity should come from a dedicated job posting endpoint
         const detailProps = mapJobPostingToDetailContent(jobData, totalApplied);
         setJobDetailProps(detailProps);
+        setJobData(jobData);
 
         // If user is signed in and candidate, check if they've applied to this job
         try {
@@ -110,6 +114,7 @@ export default function JobDetailPage() {
               (a) => a.jobId === jobData.id && activeStatuses.includes(a.status)
             );
             setHasApplied(applied);
+            setAppsList(apps.applications ?? []);
           } else {
             setHasApplied(false);
           }
@@ -164,15 +169,33 @@ export default function JobDetailPage() {
 
   return (
     <div className="w-full bg-white">
-      <JobDetailHeader
-        breadcrumbItems={pageData.breadcrumbItems}
-        jobTitle={pageData.jobName}
-        company={pageData.company}
-        address={pageData.address}
-        workType={pageData.workType}
-        jobId={pageData.jobId}
-        hasApplied={hasApplied}
-      />
+      {(() => {
+        const preShortlistEligible =
+          jobData !== null &&
+          jobData.preShortlistThreshold > 0 &&
+          jobData.preShortlistQuestions.length > 0;
+        const matchingApp = appsList.find((a) => a.jobId === pageData.jobId);
+        const preShortlistState: 'NONE' | 'PENDING' | 'SUBMITTED' =
+          matchingApp?.status === 'PRE_SHORTLIST_PENDING'
+            ? 'PENDING'
+            : matchingApp?.status === 'PRE_SHORTLIST_SUBMITTED'
+            ? 'SUBMITTED'
+            : 'NONE';
+        return (
+          <JobDetailHeader
+            breadcrumbItems={pageData.breadcrumbItems}
+            jobTitle={pageData.jobName}
+            company={pageData.company}
+            address={pageData.address}
+            workType={pageData.workType}
+            jobId={pageData.jobId}
+            hasApplied={hasApplied}
+            applicationId={matchingApp ? matchingApp.id : undefined}
+            preShortlistEligible={preShortlistEligible}
+            preShortlistState={preShortlistState}
+          />
+        );
+      })()}
       <JobDetailContent {...jobDetailProps} />
       <JobCompanySection
         company={pageData.company}

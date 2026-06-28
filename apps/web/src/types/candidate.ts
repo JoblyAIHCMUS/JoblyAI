@@ -6,7 +6,9 @@ export type ApplicationStatus =
   | 'interviewing'
   | 'offered'
   | 'rejected'
-  | 'closed';
+  | 'closed'
+  | 'pre-shortlist-pending'
+  | 'pre-shortlist-submitted';
 
 export type ApplicationFilter = 'all' | 'active' | 'closed';
 

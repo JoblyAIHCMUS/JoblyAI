@@ -29,6 +29,14 @@ export const CANDIDATE_DASHBOARD_STATUS_META: ApplicationStatusMeta = {
     label: 'Job Closed',
     className: 'border-[#7c8493] text-[#7c8493] bg-[#f8f8fd]',
   },
+  'pre-shortlist-pending': {
+    label: 'Pre-shortlist pending',
+    className: 'border-amber-500 text-amber-700 bg-amber-50',
+  },
+  'pre-shortlist-submitted': {
+    label: 'Pre-shortlist submitted',
+    className: 'border-indigo-500 text-indigo-700 bg-indigo-50',
+  },
 };
 
 export const CANDIDATE_DASHBOARD_FILTER_META: ApplicationFilterMeta = {
@@ -39,7 +47,11 @@ export const CANDIDATE_DASHBOARD_FILTER_META: ApplicationFilterMeta = {
 
 export function isActiveApplicationStatus(status: ApplicationStatus) {
   return (
-    status === 'applied' || status === 'viewed' || status === 'interviewing'
+    status === 'applied' ||
+    status === 'viewed' ||
+    status === 'interviewing' ||
+    status === 'pre-shortlist-pending' ||
+    status === 'pre-shortlist-submitted'
   );
 }
 

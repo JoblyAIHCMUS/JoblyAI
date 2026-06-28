@@ -63,6 +63,8 @@ export interface CreateJobPayload {
   categoryId: number;
   companyId: number;
   requirements?: JobRequirementInput[];
+  preShortlistThreshold?: number;
+  preShortlistQuestions?: string[];
 }
 
 export interface UpdateJobPayload {
@@ -78,6 +80,8 @@ export interface UpdateJobPayload {
   companyId?: number;
   requirements?: JobRequirementInput[];
   status?: 'DRAFT' | 'OPEN' | 'CLOSED';
+  preShortlistThreshold?: number;
+  preShortlistQuestions?: string[];
 }
 
 // Analytics types

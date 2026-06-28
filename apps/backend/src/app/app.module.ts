@@ -19,6 +19,7 @@ import { SkillsModule } from './skills/skills.module';
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { McpModule } from './mcp/mcp.module';
+import { PreShortlistModule } from './pre-shortlist/pre-shortlist.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { McpModule } from './mcp/mcp.module';
     GcsModule,
     MessagesModule,
     NotificationsModule,
+    PreShortlistModule,
     CompanyModule,
     SkillsModule,
     AiModule,
