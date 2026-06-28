@@ -20,11 +20,8 @@ describe('McpKeysController', () => {
   });
 
   describe('create', () => {
-    it('calls service.create with req.user.id, body DTO, and request headers', async () => {
-      const mockReq = {
-        user: { id: 'user-123' },
-        headers: { cookie: 'better-auth.session_token=abc' },
-      };
+    it('calls service.create with req.user.id and the body DTO', async () => {
+      const mockReq = { user: { id: 'user-123' } };
       const mockBody = { role: 'employer' as const, name: 'My Key' };
       const mockResult = {
         id: 'key-123',
@@ -40,9 +37,7 @@ describe('McpKeysController', () => {
 
       const result = await controller.create(mockReq as never, mockBody);
 
-      expect(service.create).toHaveBeenCalledWith('user-123', mockBody, {
-        headers: { cookie: 'better-auth.session_token=abc' },
-      });
+      expect(service.create).toHaveBeenCalledWith('user-123', mockBody);
       expect(result).toEqual(mockResult);
     });
   });

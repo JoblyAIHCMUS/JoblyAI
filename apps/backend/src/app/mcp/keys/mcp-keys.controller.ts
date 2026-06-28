@@ -20,9 +20,7 @@ export class McpKeysController {
 
   @Post()
   async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateMcpKeyDto) {
-    return this.mcpKeysService.create(req.user.id, dto, {
-      headers: req.headers as Record<string, string | string[]>,
-    });
+    return this.mcpKeysService.create(req.user.id, dto);
   }
 
   @Get()

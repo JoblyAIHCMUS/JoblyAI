@@ -11,16 +11,17 @@ interface McpKeysServiceOptions {
 export class McpKeysService {
   async create(
     userId: string,
-    dto: CreateMcpKeyDto,
-    options: McpKeysServiceOptions
+    dto: CreateMcpKeyDto
   ): Promise<CreateMcpKeyResponse> {
+    // Server-side call: no headers. Better Auth's createApiKey marks `userId`
+    // as a server-only property; passing headers makes it treat this as a
+    // client call and reject the body-supplied userId.
     const result = await auth.api.createApiKey({
       body: {
         userId,
         name: dto.name,
         permissions: { role: [dto.role] },
       },
-      headers: options.headers,
     });
 
     return {

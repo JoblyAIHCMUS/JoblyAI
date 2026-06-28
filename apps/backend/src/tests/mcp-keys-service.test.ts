@@ -30,14 +30,10 @@ describe('McpKeysService', () => {
         permissions: { role: ['employer'] },
       } as never);
 
-      const result = await service.create(
-        'user-123',
-        {
-          role: 'employer',
-          name: 'My Employer Key',
-        },
-        { headers: { cookie: 'better-auth.session_token=abc' } }
-      );
+      const result = await service.create('user-123', {
+        role: 'employer',
+        name: 'My Employer Key',
+      });
 
       expect(createSpy).toHaveBeenCalledWith({
         body: {
@@ -45,7 +41,6 @@ describe('McpKeysService', () => {
           name: 'My Employer Key',
           permissions: { role: ['employer'] },
         },
-        headers: { cookie: 'better-auth.session_token=abc' },
       });
       expect(result).toEqual({
         id: 'key-123',
