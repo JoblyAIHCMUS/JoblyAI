@@ -7,7 +7,11 @@ export class PreShortlistQuestionInput {
   question!: string;
 
   @IsString()
-  @MinLength(1, { message: 'Each expected answer must be at least 1 character' })
-  @MaxLength(500, { message: 'Each expected answer must be at most 500 characters' })
+  @MinLength(1, {
+    message: 'Each expected answer must be at least 1 character',
+  })
+  @MaxLength(500, {
+    message: 'Each expected answer must be at most 500 characters',
+  })
   expectedAnswer!: string;
 }

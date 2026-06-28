@@ -40,9 +40,7 @@ export class PreShortlistQuestionsController {
 
   @Post('generate-questions')
   @HttpCode(HttpStatus.OK)
-  async generateQuestions(
-    @Body() dto: GenerateQuestionsRequestDTO
-  ): Promise<{
+  async generateQuestions(@Body() dto: GenerateQuestionsRequestDTO): Promise<{
     questions: { question: string; expectedAnswer: string }[];
   }> {
     if (!dto.title?.trim() || !dto.description?.trim()) {

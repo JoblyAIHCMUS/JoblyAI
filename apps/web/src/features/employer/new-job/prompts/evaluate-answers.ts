@@ -56,10 +56,13 @@ export function buildEvaluateAnswersPrompt(
   const questionsAndAnswersText = input.questions
     .map((q) => {
       const ans = input.answers.find((a) => a.questionId === q.id);
-      const expected = q.expectedAnswer && q.expectedAnswer.trim().length > 0
-        ? q.expectedAnswer
-        : '(none provided — evaluate against general role fit and note the absence of a criterion in the comment)';
-      return `QUESTION id="${q.id}": ${q.question}\nEXPECTED ANSWER: ${expected}\nCANDIDATE ANSWER: ${
+      const expected =
+        q.expectedAnswer && q.expectedAnswer.trim().length > 0
+          ? q.expectedAnswer
+          : '(none provided — evaluate against general role fit and note the absence of a criterion in the comment)';
+      return `QUESTION id="${q.id}": ${
+        q.question
+      }\nEXPECTED ANSWER: ${expected}\nCANDIDATE ANSWER: ${
         ans?.answer ?? '(no answer provided)'
       }`;
     })

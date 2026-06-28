@@ -248,11 +248,16 @@ export function PreShortlistStep() {
                   maxLength={MAX_LENGTH}
                   placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
                   className="text-sm mt-1"
-                  {...register(`preShortlistQuestions.${idx}.question` as const)}
+                  {...register(
+                    `preShortlistQuestions.${idx}.question` as const
+                  )}
                 />
                 {errors.preShortlistQuestions?.[idx]?.question && (
                   <p className="text-xs text-red-500 mt-1">
-                    {errors.preShortlistQuestions[idx]?.question?.message as string}
+                    {
+                      errors.preShortlistQuestions[idx]?.question
+                        ?.message as string
+                    }
                   </p>
                 )}
               </div>

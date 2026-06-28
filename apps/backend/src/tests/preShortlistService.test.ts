@@ -98,9 +98,7 @@ describe('buildEvaluateAnswersPrompt', () => {
       jobTitle: 'X',
       jobDescription: 'Y',
       requirements: [],
-      questions: [
-        { id: 'q1', question: 'Q?', expectedAnswer: 'A.' },
-      ],
+      questions: [{ id: 'q1', question: 'Q?', expectedAnswer: 'A.' }],
       answers: [{ questionId: 'q1', answer: 'A'.repeat(25) }],
     });
     expect(prompt).not.toContain('overallScore');
@@ -134,7 +132,10 @@ describe('PreShortlistService.validateQuestions', () => {
     expect(() =>
       service.validateQuestions([
         { question: 'A valid question?', expectedAnswer: 'A short criterion.' },
-        { question: 'Another valid question?', expectedAnswer: 'Another criterion.' },
+        {
+          question: 'Another valid question?',
+          expectedAnswer: 'Another criterion.',
+        },
       ])
     ).not.toThrow();
   });

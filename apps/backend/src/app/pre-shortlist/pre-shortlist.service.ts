@@ -359,9 +359,7 @@ export class PreShortlistService {
 
   // ---------- Validation helpers (used by JobsService) ----------
 
-  validateQuestions(
-    questions: PreShortlistQuestionInput[] | undefined
-  ): void {
+  validateQuestions(questions: PreShortlistQuestionInput[] | undefined): void {
     if (questions === undefined) return;
     if (questions.length > MAX_QUESTIONS_PER_JOB) {
       throw new BadRequestException(
@@ -372,12 +370,19 @@ export class PreShortlistService {
       const q = questions[i];
       if (q.question.length < 5 || q.question.length > MAX_QUESTION_LENGTH) {
         throw new BadRequestException(
-          `Question ${i + 1} must be between 5 and ${MAX_QUESTION_LENGTH} characters`
+          `Question ${
+            i + 1
+          } must be between 5 and ${MAX_QUESTION_LENGTH} characters`
         );
       }
-      if (q.expectedAnswer.length < 1 || q.expectedAnswer.length > MAX_QUESTION_LENGTH) {
+      if (
+        q.expectedAnswer.length < 1 ||
+        q.expectedAnswer.length > MAX_QUESTION_LENGTH
+      ) {
         throw new BadRequestException(
-          `Expected answer for question ${i + 1} must be between 1 and ${MAX_QUESTION_LENGTH} characters`
+          `Expected answer for question ${
+            i + 1
+          } must be between 1 and ${MAX_QUESTION_LENGTH} characters`
         );
       }
     }
@@ -415,10 +420,7 @@ export class PreShortlistService {
   } | null {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
     const o = raw as Record<string, Prisma.JsonValue>;
-    if (
-      typeof o.comment !== 'string' ||
-      typeof o.suggestion !== 'string'
-    ) {
+    if (typeof o.comment !== 'string' || typeof o.suggestion !== 'string') {
       return null;
     }
     return {
