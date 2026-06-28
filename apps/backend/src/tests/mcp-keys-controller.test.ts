@@ -20,8 +20,11 @@ describe('McpKeysController', () => {
   });
 
   describe('create', () => {
-    it('calls service.create with req.user.id and the body DTO', async () => {
-      const mockReq = { user: { id: 'user-123' } };
+    it('calls service.create with req.user.id, body DTO, and request headers', async () => {
+      const mockReq = {
+        user: { id: 'user-123' },
+        headers: { cookie: 'better-auth.session_token=abc' },
+      };
       const mockBody = { role: 'employer' as const, name: 'My Key' };
       const mockResult = {
         id: 'key-123',
@@ -37,14 +40,18 @@ describe('McpKeysController', () => {
 
       const result = await controller.create(mockReq as never, mockBody);
 
-      expect(service.create).toHaveBeenCalledWith('user-123', mockBody);
+      expect(service.create).toHaveBeenCalledWith('user-123', mockBody, {
+        headers: { cookie: 'better-auth.session_token=abc' },
+      });
       expect(result).toEqual(mockResult);
     });
   });
 
   describe('list', () => {
-    it('calls service.list with request authorization header', async () => {
-      const mockReq = { headers: { authorization: 'Bearer session_token' } };
+    it('calls service.list with request headers', async () => {
+      const mockReq = {
+        headers: { cookie: 'better-auth.session_token=abc' },
+      };
       const mockKeys = [
         {
           id: 'key-123',
@@ -60,19 +67,24 @@ describe('McpKeysController', () => {
       const result = await controller.list(mockReq as never);
 
       expect(service.list).toHaveBeenCalledWith({
-        authorization: 'Bearer session_token',
+        headers: { cookie: 'better-auth.session_token=abc' },
       });
       expect(result).toEqual(mockKeys);
     });
   });
 
   describe('delete', () => {
-    it('calls service.delete with keyId', async () => {
+    it('calls service.delete with keyId and request headers', async () => {
+      const mockReq = {
+        headers: { cookie: 'better-auth.session_token=abc' },
+      };
       service.delete.mockResolvedValue(undefined);
 
-      await controller.delete('key-123');
+      await controller.delete(mockReq as never, 'key-123');
 
-      expect(service.delete).toHaveBeenCalledWith('key-123');
+      expect(service.delete).toHaveBeenCalledWith('key-123', {
+        headers: { cookie: 'better-auth.session_token=abc' },
+      });
     });
   });
 });

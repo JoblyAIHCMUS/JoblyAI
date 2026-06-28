@@ -3,11 +3,16 @@ import { auth } from '../../../lib/auth';
 import { McpKeyView, CreateMcpKeyResponse } from './dto/mcp-key.view';
 import { CreateMcpKeyDto } from './dto/create-mcp-key.dto';
 
+interface McpKeysServiceOptions {
+  headers: Record<string, string | string[]>;
+}
+
 @Injectable()
 export class McpKeysService {
   async create(
     userId: string,
-    dto: CreateMcpKeyDto
+    dto: CreateMcpKeyDto,
+    options: McpKeysServiceOptions
   ): Promise<CreateMcpKeyResponse> {
     const result = await auth.api.createApiKey({
       body: {
@@ -15,6 +20,7 @@ export class McpKeysService {
         name: dto.name,
         permissions: { role: [dto.role] },
       },
+      headers: options.headers,
     });
 
     return {
@@ -29,8 +35,10 @@ export class McpKeysService {
     };
   }
 
-  async list(headers: { authorization?: string }): Promise<McpKeyView[]> {
-    const { apiKeys } = await auth.api.listApiKeys({ headers });
+  async list(options: McpKeysServiceOptions): Promise<McpKeyView[]> {
+    const { apiKeys } = await auth.api.listApiKeys({
+      headers: options.headers,
+    });
 
     return apiKeys.map((key) => {
       const permissions = key.permissions as
@@ -50,7 +58,13 @@ export class McpKeysService {
     });
   }
 
-  async delete(keyId: string): Promise<void> {
-    await auth.api.deleteApiKey({ body: { keyId } });
+  async delete(
+    keyId: string,
+    options: McpKeysServiceOptions
+  ): Promise<void> {
+    await auth.api.deleteApiKey({
+      body: { keyId },
+      headers: options.headers,
+    });
   }
 }

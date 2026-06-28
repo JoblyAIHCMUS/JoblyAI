@@ -30,10 +30,14 @@ describe('McpKeysService', () => {
         permissions: { role: ['employer'] },
       } as never);
 
-      const result = await service.create('user-123', {
-        role: 'employer',
-        name: 'My Employer Key',
-      });
+      const result = await service.create(
+        'user-123',
+        {
+          role: 'employer',
+          name: 'My Employer Key',
+        },
+        { headers: { cookie: 'better-auth.session_token=abc' } }
+      );
 
       expect(createSpy).toHaveBeenCalledWith({
         body: {
@@ -41,6 +45,7 @@ describe('McpKeysService', () => {
           name: 'My Employer Key',
           permissions: { role: ['employer'] },
         },
+        headers: { cookie: 'better-auth.session_token=abc' },
       });
       expect(result).toEqual({
         id: 'key-123',
@@ -87,11 +92,11 @@ describe('McpKeysService', () => {
       } as never);
 
       const result = await service.list({
-        authorization: 'Bearer session_token',
+        headers: { cookie: 'better-auth.session_token=abc' },
       });
 
       expect(listSpy).toHaveBeenCalledWith({
-        headers: { authorization: 'Bearer session_token' },
+        headers: { cookie: 'better-auth.session_token=abc' },
       });
       expect(result).toEqual([
         {
@@ -121,10 +126,13 @@ describe('McpKeysService', () => {
     it('calls deleteApiKey with keyId', async () => {
       deleteSpy.mockResolvedValue({ success: true } as never);
 
-      await service.delete('key-123');
+      await service.delete('key-123', {
+        headers: { cookie: 'better-auth.session_token=abc' },
+      });
 
       expect(deleteSpy).toHaveBeenCalledWith({
         body: { keyId: 'key-123' },
+        headers: { cookie: 'better-auth.session_token=abc' },
       });
     });
   });
