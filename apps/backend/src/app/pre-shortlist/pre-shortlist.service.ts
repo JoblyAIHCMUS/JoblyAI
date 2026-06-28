@@ -479,7 +479,11 @@ export class PreShortlistService {
         importance: r.importance,
         minYearsExperience: r.minYearsExperience,
       })),
-      questions: questions.map((q) => ({ id: q.id, question: q.question })),
+      questions: questions.map((q) => ({
+        id: q.id,
+        question: q.question,
+        expectedAnswer: q.expectedAnswer ?? null,
+      })),
       answers: answers.map((a) => ({
         questionId: a.questionId,
         answer: a.answer,
@@ -515,8 +519,6 @@ export class PreShortlistService {
           },
           data: {
             llmComment: ev.comment,
-            llmScore: ev.score,
-            llmStatus: ev.status,
           },
         });
       }
@@ -528,7 +530,6 @@ export class PreShortlistService {
         preShortlistOverall: {
           comment: output.overall.comment,
           suggestion: output.overall.suggestion,
-          overallScore: output.overall.overallScore,
         },
         preShortlistStatus: 'COMPLETED',
         preShortlistError: null,
@@ -616,19 +617,9 @@ export class PreShortlistService {
       if (typeof ev.comment !== 'string' || ev.comment.length === 0) {
         throw new Error(`Missing comment for questionId ${ev.questionId}`);
       }
-      if (
-        ev.status !== 'STRONG_FIT' &&
-        ev.status !== 'GOOD_FIT' &&
-        ev.status !== 'NEUTRAL' &&
-        ev.status !== 'POOR_FIT'
-      ) {
+      if ('score' in ev || 'status' in ev) {
         throw new Error(
-          `Invalid status for questionId ${ev.questionId}: ${String(ev.status)}`
-        );
-      }
-      if (typeof ev.score !== 'number' || ev.score < 0 || ev.score > 100) {
-        throw new Error(
-          `Invalid score for questionId ${ev.questionId}: ${String(ev.score)}`
+          `Unexpected score/status for questionId ${ev.questionId}; the prompt requires these fields to be omitted`
         );
       }
     }
@@ -646,13 +637,9 @@ export class PreShortlistService {
     ) {
       throw new Error(`Invalid overall.suggestion: ${String(o.suggestion)}`);
     }
-    if (
-      typeof o.overallScore !== 'number' ||
-      o.overallScore < 0 ||
-      o.overallScore > 100
-    ) {
+    if ('overallScore' in o) {
       throw new Error(
-        `Invalid overall.overallScore: ${String(o.overallScore)}`
+        'Unexpected overallScore; the prompt requires this field to be omitted'
       );
     }
   }
