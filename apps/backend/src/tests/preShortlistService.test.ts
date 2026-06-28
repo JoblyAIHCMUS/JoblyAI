@@ -36,12 +36,6 @@ const mockQueue = vi.hoisted(() => ({
   add: vi.fn(),
 })) as unknown as Queue;
 
-const mockAiProvider = vi.hoisted(() => ({
-  generateStructuredData: vi.fn(),
-  generateText: vi.fn(),
-  generateEmbedding: vi.fn(),
-}));
-
 const mockAiGateway = vi.hoisted(() => ({
   notifyUser: vi.fn(),
 }));
@@ -85,7 +79,6 @@ describe('PreShortlistService.validateQuestions', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiProvider as any,
       mockAiGateway as any,
     );
   });
@@ -115,7 +108,6 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiProvider as any,
       mockAiGateway as any,
     );
   });
@@ -189,7 +181,6 @@ describe('PreShortlistService.submitAnswers', () => {
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
-      mockAiProvider as any,
       mockAiGateway as any,
     );
   });
