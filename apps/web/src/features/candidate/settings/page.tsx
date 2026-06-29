@@ -12,6 +12,7 @@ import {
   ProfilePhotoSection,
   PersonalDetailsForm,
 } from './components';
+import { ApiKeysSection } from '@/features/employer/settings/components/api-keys';
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetCandidateProfile } from '@/api-hook/candidate';
@@ -299,6 +300,14 @@ export default function CandidateSettingsPage() {
             onChange={handleNotificationChange}
             disabled={loadingNotificationSettings || savingNotificationSettings}
           />
+        </TabsContent>
+
+        {/* Developer Tab Content */}
+        <TabsContent
+          value="developer"
+          className="self-stretch flex flex-col gap-4 sm:gap-5 md:gap-6 bg-white !mt-0 flex-1"
+        >
+          <ApiKeysSection role="candidate" />
         </TabsContent>
       </Tabs>
     </div>

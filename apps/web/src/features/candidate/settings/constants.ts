@@ -1,6 +1,7 @@
 export const SETTINGS_TABS = [
   { id: 'my-profile', label: 'My Profile' },
   { id: 'system-settings', label: 'System Settings' },
+  { id: 'developer', label: 'Developer' },
 ];
 
 export const GENDER_OPTIONS = ['MALE', 'FEMALE', 'OTHER'] as const;
