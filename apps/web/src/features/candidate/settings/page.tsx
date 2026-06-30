@@ -195,7 +195,7 @@ export default function CandidateSettingsPage() {
         className="w-full flex flex-col flex-1"
       >
         {/* Header Section with Tabs */}
-        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-5">
           <SettingsTabs
             tabs={SETTINGS_TABS}
             activeTab={activeTab}
