@@ -425,6 +425,7 @@ model NotificationSettings {
   applicationsEnabled    Boolean  @default(true)
   jobsEnabled            Boolean  @default(true)
   recommendationsEnabled Boolean  @default(true)
+  messageEnabled Boolean @default(true)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 

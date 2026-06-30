@@ -36,6 +36,7 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   applications: true,
   jobs: true,
   recommendations: true,
+  messages: true,
 };
 
 export default function CandidateSettingsPage() {

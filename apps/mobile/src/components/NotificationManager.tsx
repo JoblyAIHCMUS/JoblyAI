@@ -3,10 +3,10 @@ import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useUser } from '../hooks/useUser';
 import {
-  getNotificationLink,
   registerForPushNotifications,
   syncRefreshedPushToken,
 } from '../services/notification.service';
+import { getNotificationRoute } from '@/utils/notification-navigation';
 
 export function NotificationManager() {
   const router = useRouter();
@@ -43,9 +43,16 @@ export function NotificationManager() {
       }
 
       handledResponseId.current = responseId;
-      const link = getNotificationLink(response);
-      if (link) {
-        router.push(link as Href);
+      const data = response.notification.request.content.data;
+
+      const route = getNotificationRoute(
+        typeof data.type === 'string' ? data.type : '',
+        typeof data.resourceId === 'string' ? data.resourceId : undefined,
+        user?.role
+      );
+
+      if (route) {
+        router.push(route as Href);
       }
     };
 
@@ -58,7 +65,7 @@ export function NotificationManager() {
     }
 
     return () => responseSubscription.remove();
-  }, [router, user?.id]);
+  }, [router, user?.id, user?.role]);
 
   return null;
 }

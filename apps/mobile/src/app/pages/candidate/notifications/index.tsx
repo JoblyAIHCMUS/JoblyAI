@@ -9,6 +9,8 @@ import {
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
 } from '@/hooks/useNotifications';
+import { getNotificationRoute } from '@/utils/notification-navigation';
+import { useUser } from '@/hooks/useUser';
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
@@ -18,6 +20,8 @@ export default function NotificationsScreen() {
   const markAsReadMutation = useMarkNotificationAsRead();
 
   const markAllMutation = useMarkAllNotificationsAsRead();
+
+  const { data: user } = useUser();
 
   return (
     <View
@@ -71,8 +75,14 @@ export default function NotificationsScreen() {
                 if (!item.isRead) {
                   markAsReadMutation.mutate(item.id);
                 }
-                if (item.link) {
-                  router.push(item.link);
+                const route = getNotificationRoute(
+                  item.type,
+                  item.resourceId,
+                  user?.role
+                );
+
+                if (route) {
+                  router.push(route);
                 }
               }}
             >

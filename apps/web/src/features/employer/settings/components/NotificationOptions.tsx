@@ -7,6 +7,7 @@ interface NotificationOptionsProps {
     applications: boolean;
     jobs: boolean;
     recommendations: boolean;
+    messages: boolean;
   };
   onChange: (key: keyof NotificationOptionsProps['notifications']) => void;
 }
@@ -97,6 +98,31 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
           >
             These are notifications for personalized recommendations from our
             recruiters
+          </div>
+        </div>
+      </div>
+      {/* Messages Checkbox */}
+      <div className="flex flex-row items-start gap-4">
+        <Checkbox
+          checked={notifications.messages}
+          onCheckedChange={() => onChange('messages')}
+          aria-label="Toggle message notifications"
+          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=unchecked]:bg-white"
+        />
+
+        <div className="flex flex-col gap-1">
+          <div
+            className="text-[16px] font-medium font-['Lexend_Deca']"
+            style={{ color: 'var(--text-primary, #0F172A)' }}
+          >
+            Messages
+          </div>
+
+          <div
+            className="text-base font-normal font-['Be_Vietnam_Pro'] max-w-[336px]"
+            style={{ color: 'var(--text-secondary, #475569)' }}
+          >
+            Send push notifications when you receive a new message
           </div>
         </div>
       </div>

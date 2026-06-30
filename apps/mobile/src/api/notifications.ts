@@ -4,6 +4,7 @@ export interface NotificationSettings {
   applications: boolean;
   jobs: boolean;
   recommendations: boolean;
+  messages: boolean;
 }
 
 export type NotificationSettingsKey = keyof NotificationSettings;

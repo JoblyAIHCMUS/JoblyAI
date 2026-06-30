@@ -55,22 +55,3 @@ export async function syncRefreshedPushToken(
 
   await registerDevice(Platform.OS, token.data);
 }
-
-export function getNotificationLink(
-  response: Notifications.NotificationResponse
-) {
-  const link = response.notification.request.content.data?.link;
-  if (typeof link !== 'string' || !link.startsWith('/')) {
-    return null;
-  }
-
-  if (link.startsWith('/pages/')) {
-    return link;
-  }
-
-  if (link.startsWith('/candidate/') || link.startsWith('/employer/')) {
-    return `/pages${link}`;
-  }
-
-  return link;
-}
