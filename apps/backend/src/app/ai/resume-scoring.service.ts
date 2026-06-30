@@ -36,7 +36,7 @@ export interface ResumeEvaluation {
   suggestions: string[]; // Keep for backwards compatibility
   formatting: string;
   impact: string;
-  
+
   // Expanded fields for explanation based on rules
   auditReport: {
     impact: AuditDetail;
@@ -168,4 +168,3 @@ export class ResumeScoringService {
     );
   }
 }
-

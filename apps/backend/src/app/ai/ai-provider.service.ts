@@ -52,8 +52,10 @@ export class AiProviderService {
 
     if (!this.cvAuditCacheName) {
       try {
-        this.logger.log(`[Cache] Attempting to create context cache for: ${cacheDisplayName}...`);
-        
+        this.logger.log(
+          `[Cache] Attempting to create context cache for: ${cacheDisplayName}...`
+        );
+
         // Create an explicit cache. In case Google enforces >32k token limits, this may throw, triggering fallback.
         const cache = await this.client.caches.create({
           model: modelName,
@@ -64,16 +66,24 @@ export class AiProviderService {
             contents: [
               {
                 role: 'user',
-                parts: [{ text: 'Here are the official CV Audit reference documents and standards to follow for all future CV auditing requests.' }]
-              }
-            ]
-          }
+                parts: [
+                  {
+                    text: 'Here are the official CV Audit reference documents and standards to follow for all future CV auditing requests.',
+                  },
+                ],
+              },
+            ],
+          },
         });
 
         this.cvAuditCacheName = cache.name || null;
-        this.logger.log(`[Cache] Explicit context cache created successfully: ${this.cvAuditCacheName}`);
+        this.logger.log(
+          `[Cache] Explicit context cache created successfully: ${this.cvAuditCacheName}`
+        );
       } catch (cacheError: any) {
-        this.logger.warn(`[Cache] Explicit context cache creation failed: ${cacheError.message}. Defaulting to standard API calls (Implicit caching).`);
+        this.logger.warn(
+          `[Cache] Explicit context cache creation failed: ${cacheError.message}. Defaulting to standard API calls (Implicit caching).`
+        );
         this.cvAuditCacheName = null;
       }
     }
@@ -81,14 +91,16 @@ export class AiProviderService {
     // Try executing with explicit cache
     if (this.cvAuditCacheName) {
       try {
-        this.logger.log(`[Cache] Generating content using explicit cache: ${this.cvAuditCacheName}`);
+        this.logger.log(
+          `[Cache] Generating content using explicit cache: ${this.cvAuditCacheName}`
+        );
         const response = await this.client.models.generateContent({
           model: modelName,
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           config: {
             cachedContent: this.cvAuditCacheName,
             responseMimeType: 'application/json',
-          }
+          },
         });
 
         const text = response.text;
@@ -98,19 +110,27 @@ export class AiProviderService {
 
         return this.parseJsonResponse<T>(text);
       } catch (apiError: any) {
-        this.logger.error(`[Cache] Request failed with cache: ${apiError.message}. Resetting cache and falling back to standard call.`);
+        this.logger.error(
+          `[Cache] Request failed with cache: ${apiError.message}. Resetting cache and falling back to standard call.`
+        );
         this.cvAuditCacheName = null;
       }
     }
 
     // Standard Fallback Call (uses Google's implicit infrastructure optimization)
-    this.logger.log(`[Gemini] Executing standard content generation (Implicit caching)...`);
+    this.logger.log(
+      `[Gemini] Executing standard content generation (Implicit caching)...`
+    );
     const response = await this.client.models.generateContent({
       model: modelName,
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemInstruction}\n\nUSER RESUME TO AUDIT:\n${prompt}` }],
+          parts: [
+            {
+              text: `${systemInstruction}\n\nUSER RESUME TO AUDIT:\n${prompt}`,
+            },
+          ],
         },
       ],
       config: {
@@ -151,7 +171,6 @@ export class AiProviderService {
       throw error;
     }
   }
-
 
   async generateText(prompt: string): Promise<string> {
     try {
