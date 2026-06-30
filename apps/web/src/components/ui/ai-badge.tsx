@@ -45,7 +45,9 @@ export function AiBadge({
       )}
       {...props}
     >
-      {shouldShowIcon ? <Sparkles className="h-2.5 w-2.5" aria-hidden="true" /> : null}
+      {shouldShowIcon ? (
+        <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
+      ) : null}
       {children ?? defaultLabels[variant]}
     </span>
   );

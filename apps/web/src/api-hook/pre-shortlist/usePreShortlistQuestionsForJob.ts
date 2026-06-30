@@ -9,8 +9,9 @@ import {
 } from '@/api-client/pre-shortlist';
 
 export function usePreShortlistQuestionsForJob(jobId: number) {
-  const [data, setData] =
-    useState<PreShortlistQuestionsForJobView | null>(null);
+  const [data, setData] = useState<PreShortlistQuestionsForJobView | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
 

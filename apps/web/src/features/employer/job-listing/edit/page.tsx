@@ -29,9 +29,7 @@ import { useJobDetail } from '@/api-hook/jobs';
 import { useUpdateJob } from '@/api-hook/jobs';
 import { useCategories } from '@/api-hook/jobs';
 import { useSkillIds } from '@/api-hook/skills';
-import {
-  usePreShortlistQuestionsForJob,
-} from '@/api-hook/pre-shortlist';
+import { usePreShortlistQuestionsForJob } from '@/api-hook/pre-shortlist';
 import { PreShortlistStep } from '../../new-job/components/PreShortlistStep';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';

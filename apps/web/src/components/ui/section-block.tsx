@@ -24,7 +24,8 @@ const labelColorStyles: Record<SectionBlockTone, string> = {
   danger: 'text-[var(--danger-accent)]',
 };
 
-export interface SectionBlockProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SectionBlockProps
+  extends React.HTMLAttributes<HTMLDivElement> {
   label: string;
   tone?: SectionBlockTone;
   icon?: React.ReactNode;
@@ -57,7 +58,9 @@ export function SectionBlock({
         {icon ? <span className="inline-flex shrink-0">{icon}</span> : null}
         <span>{label}</span>
       </div>
-      <div className="mt-1.5 text-sm text-slate-700 min-w-0 break-words">{children}</div>
+      <div className="mt-1.5 text-sm text-slate-700 min-w-0 break-words">
+        {children}
+      </div>
     </div>
   );
 }

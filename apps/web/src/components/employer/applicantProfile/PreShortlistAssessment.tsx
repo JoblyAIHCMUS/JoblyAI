@@ -168,7 +168,9 @@ export default function PreShortlistAssessment({
       {!isFailed && data.overall ? (
         <Card
           tone="neutral"
-          className={`border-l-4 ${SUGGESTION_BORDER[data.overall.suggestion].border} pre-shortlist-reveal`}
+          className={`border-l-4 ${
+            SUGGESTION_BORDER[data.overall.suggestion].border
+          } pre-shortlist-reveal`}
         >
           <CardContent className="p-4 space-y-2 min-w-0 break-words">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-tertiary">
@@ -176,12 +178,16 @@ export default function PreShortlistAssessment({
             </p>
             <div className="flex items-baseline gap-2">
               <span
-                className={`text-2xl font-bold ${SUGGESTION_LABEL_COLOR[data.overall.suggestion]}`}
+                className={`text-2xl font-bold ${
+                  SUGGESTION_LABEL_COLOR[data.overall.suggestion]
+                }`}
                 style={{ fontFamily: 'var(--family-primary)' }}
               >
                 {SUGGESTION_HEADLINE[data.overall.suggestion]}
               </span>
-              <AiBadge variant={SUGGESTION_BORDER[data.overall.suggestion].tone}>
+              <AiBadge
+                variant={SUGGESTION_BORDER[data.overall.suggestion].tone}
+              >
                 AI evaluated
               </AiBadge>
             </div>
@@ -213,16 +219,16 @@ export default function PreShortlistAssessment({
                     {q.question}
                   </p>
                 </div>
-                {ans?.llmComment ? <AiBadge variant="ai">Evaluated</AiBadge> : null}
+                {ans?.llmComment ? (
+                  <AiBadge variant="ai">Evaluated</AiBadge>
+                ) : null}
               </div>
               <CardContent className="p-4 space-y-3">
                 <SectionBlock label="Expected answer" tone="neutral">
                   {q.expectedAnswer && q.expectedAnswer.trim() ? (
                     <LineClamp text={q.expectedAnswer} lines={5} />
                   ) : (
-                    <span className="italic text-tertiary">
-                      Not provided.
-                    </span>
+                    <span className="italic text-tertiary">Not provided.</span>
                   )}
                 </SectionBlock>
                 <SectionBlock label="Candidate's answer" tone="neutral">
@@ -231,9 +237,7 @@ export default function PreShortlistAssessment({
                   ) : ans ? (
                     <LineClamp text={ans.answer} lines={6} />
                   ) : (
-                    <span className="italic text-tertiary">
-                      No answer.
-                    </span>
+                    <span className="italic text-tertiary">No answer.</span>
                   )}
                 </SectionBlock>
                 {ans?.llmComment && !isPending ? (

@@ -60,8 +60,7 @@ function QuestionCard({
   onMoveDown,
   onRemove,
 }: QuestionCardProps) {
-  const { control, register, formState } =
-    useFormContext<JobPostingFormData>();
+  const { control, register, formState } = useFormContext<JobPostingFormData>();
   const errors = formState.errors;
 
   const watchedQuestion =
@@ -157,13 +156,16 @@ function QuestionCard({
           maxLength={MAX_LENGTH}
           currentLength={watchedQuestion.length}
           error={
-            errors.preShortlistQuestions?.[index]?.question
-              ?.message as string | undefined
+            errors.preShortlistQuestions?.[index]?.question?.message as
+              | string
+              | undefined
           }
         >
           {readOnly ? (
             <div className="rounded-md bg-white border border-slate-200 px-3 py-2 text-sm whitespace-pre-wrap break-words">
-              {watchedQuestion || <span className="text-slate-400">(empty)</span>}
+              {watchedQuestion || (
+                <span className="text-slate-400">(empty)</span>
+              )}
             </div>
           ) : (
             <div className="rounded-md bg-white">
@@ -172,24 +174,33 @@ function QuestionCard({
                 maxLength={MAX_LENGTH}
                 placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
                 className="text-sm"
-                {...register(`preShortlistQuestions.${index}.question` as const)}
+                {...register(
+                  `preShortlistQuestions.${index}.question` as const
+                )}
               />
             </div>
           )}
         </FieldShell>
         <FieldShell
           label="Expected answer"
-          helper={readOnly ? undefined : 'Not shown to the candidate. Used to score their response.'}
+          helper={
+            readOnly
+              ? undefined
+              : 'Not shown to the candidate. Used to score their response.'
+          }
           maxLength={MAX_LENGTH}
           currentLength={watchedExpected.length}
           error={
-            errors.preShortlistQuestions?.[index]?.expectedAnswer
-              ?.message as string | undefined
+            errors.preShortlistQuestions?.[index]?.expectedAnswer?.message as
+              | string
+              | undefined
           }
         >
           {readOnly ? (
             <div className="rounded-md bg-white border border-slate-200 px-3 py-2 text-sm whitespace-pre-wrap break-words">
-              {watchedExpected || <span className="text-slate-400">(empty)</span>}
+              {watchedExpected || (
+                <span className="text-slate-400">(empty)</span>
+              )}
             </div>
           ) : (
             <div className="rounded-md bg-white">
@@ -329,8 +340,8 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                 value === 0
                   ? 'text-slate-700 bg-slate-50 border border-transparent'
                   : value >= 80
-                    ? 'text-[var(--ai-accent)] bg-[var(--ai-accent-soft)] border border-[var(--ai-accent)]'
-                    : 'text-[var(--ai-accent)] bg-white border border-[var(--ai-accent-soft)]';
+                  ? 'text-[var(--ai-accent)] bg-[var(--ai-accent-soft)] border border-[var(--ai-accent)]'
+                  : 'text-[var(--ai-accent)] bg-white border border-[var(--ai-accent-soft)]';
               return (
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
@@ -418,7 +429,8 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             <div
               className="h-full w-2/5 bg-[var(--ai-accent)]"
               style={{
-                animation: 'pre-shortlist-indeterminate 1.2s ease-in-out infinite',
+                animation:
+                  'pre-shortlist-indeterminate 1.2s ease-in-out infinite',
               }}
             />
           </div>
@@ -428,7 +440,9 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
         {fields.length === 0 && !generating ? (
           readOnly ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <p className="text-sm font-semibold">No pre-shortlist questions</p>
+              <p className="text-sm font-semibold">
+                No pre-shortlist questions
+              </p>
               <p className="mt-1 text-xs text-slate-600">
                 No pre-shortlist questions are configured for this job.
               </p>
@@ -441,8 +455,8 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
               />
               <p className="mt-2 text-base font-semibold">No questions yet</p>
               <p className="mt-1 text-sm text-slate-600">
-                Generate with AI to draft 5 based on your job description, or add
-                one manually.
+                Generate with AI to draft 5 based on your job description, or
+                add one manually.
               </p>
               <Button
                 type="button"
@@ -510,9 +524,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             </Button>
           </div>
         ) : (
-          <p className="text-[11px] text-tertiary">
-            Maximum reached
-          </p>
+          <p className="text-[11px] text-tertiary">Maximum reached</p>
         )}
       </div>
     </div>

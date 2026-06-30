@@ -36,7 +36,8 @@ export function FieldShell({
             {label}
             {required ? <span className="ml-0.5 text-red-500">*</span> : null}
           </label>
-          {typeof maxLength === 'number' && typeof currentLength === 'number' ? (
+          {typeof maxLength === 'number' &&
+          typeof currentLength === 'number' ? (
             <span
               className={cn(
                 'text-[11px] tabular-nums text-tertiary',
