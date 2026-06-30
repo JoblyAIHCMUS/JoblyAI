@@ -57,7 +57,7 @@ export function SectionBlock({
         {icon ? <span className="inline-flex shrink-0">{icon}</span> : null}
         <span>{label}</span>
       </div>
-      <div className="mt-1.5 text-sm text-slate-700">{children}</div>
+      <div className="mt-1.5 text-sm text-slate-700 min-w-0 break-words">{children}</div>
     </div>
   );
 }

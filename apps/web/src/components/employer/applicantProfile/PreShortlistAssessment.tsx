@@ -170,7 +170,7 @@ export default function PreShortlistAssessment({
           tone="neutral"
           className={`border-l-4 ${SUGGESTION_BORDER[data.overall.suggestion].border} pre-shortlist-reveal`}
         >
-          <CardContent className="p-4 space-y-2">
+          <CardContent className="p-4 space-y-2 min-w-0 break-words">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-tertiary">
               Overall verdict
             </p>
@@ -204,12 +204,12 @@ export default function PreShortlistAssessment({
               className="pre-shortlist-reveal overflow-hidden p-0"
               style={{ animationDelay: `${delay}ms` }}
             >
-              <div className="flex items-center justify-between gap-3 rounded-t-xl bg-slate-50 border-b border-slate-200 px-4 py-3">
-                <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap min-w-0 rounded-t-xl bg-slate-50 border-b border-slate-200 px-4 py-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1 basis-full sm:basis-auto">
                   <span className="size-6 shrink-0 rounded-full bg-slate-100 text-slate-900 text-[11px] font-semibold inline-flex items-center justify-center">
                     Q{idx + 1}
                   </span>
-                  <p className="text-sm font-semibold text-slate-900 truncate">
+                  <p className="text-sm font-semibold text-slate-900 break-words min-w-0">
                     {q.question}
                   </p>
                 </div>
@@ -258,12 +258,12 @@ function LineClamp({ text, lines }: { text: string; lines: number }) {
   const [open, setOpen] = useState(false);
   const isLong = text.split('\n').length > lines || text.length > 240;
   if (!isLong) {
-    return <p className="whitespace-pre-wrap">{text}</p>;
+    return <p className="whitespace-pre-wrap break-words">{text}</p>;
   }
   return (
     <div>
       <p
-        className="whitespace-pre-wrap"
+        className="whitespace-pre-wrap break-words"
         style={
           open
             ? undefined
