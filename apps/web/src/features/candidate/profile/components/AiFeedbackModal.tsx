@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sparkles,
@@ -19,7 +18,6 @@ import {
   BookOpen,
   ArrowRight,
   Info,
-  ShieldAlert,
   Copy,
   Check,
   XCircle,
