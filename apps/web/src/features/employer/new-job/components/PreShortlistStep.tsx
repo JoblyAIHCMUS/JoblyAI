@@ -196,8 +196,10 @@ export function PreShortlistStep() {
   const {
     control,
     formState: { errors },
+    getValues,
+    setValue,
   } = useFormContext<JobPostingFormData>();
-  const { fields, append, remove, move, getValues, setValue } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name: 'preShortlistQuestions' as never,
   });
