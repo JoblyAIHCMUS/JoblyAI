@@ -17,7 +17,7 @@ export const SUPPORTED_CLIENTS: SupportedClient[] = [
  */
 export function buildInstallCommand(selected: Set<string>): string {
   const flags = SUPPORTED_CLIENTS.filter((c) => selected.has(c.flag)).map(
-    (c) => c.flag,
+    (c) => c.flag
   );
   return ['npx jobly-mcp', ...flags].join(' ');
 }
