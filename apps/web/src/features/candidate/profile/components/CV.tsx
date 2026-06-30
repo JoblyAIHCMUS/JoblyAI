@@ -433,15 +433,15 @@ const CV = forwardRef<CVRef, CVProps>(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
                           resume.aiScore !== undefined &&
                             resume.aiScore !== null
-                            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-blue-100' // Consistent hover
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                             : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
                         )}
-                        aria-label="Score Resume"
+                        aria-label="Review Resume"
                         title={
                           resume.aiScore !== undefined &&
                           resume.aiScore !== null
-                            ? 'View AI Score'
-                            : 'Score with AI'
+                            ? 'View AI Review'
+                            : 'Review with AI'
                         }
                       >
                         {processingTasks[resume.id]?.scoring &&
@@ -452,11 +452,11 @@ const CV = forwardRef<CVRef, CVProps>(
                         )}
                         {processingTasks[resume.id]?.scoring &&
                         resume.aiScore === null
-                          ? 'Scoring...'
+                          ? 'Reviewing...'
                           : resume.aiScore !== undefined &&
                             resume.aiScore !== null
-                          ? `Score: ${Math.round((resume.aiScore || 0) * 100)}%`
-                          : 'Score Resume'}
+                          ? 'AI Review'
+                          : 'Review Resume'}
                       </button>
 
                       {/* Find Jobs Button */}
