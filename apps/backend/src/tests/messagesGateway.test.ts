@@ -263,7 +263,10 @@ describe('MessagesGateway', () => {
 
       gateway.handleChatClosed(client as unknown as Socket);
 
-      expect(mockPresenceService.setActiveChat).toHaveBeenCalledWith(mockUser1.id, null);
+      expect(mockPresenceService.setActiveChat).toHaveBeenCalledWith(
+        mockUser1.id,
+        null
+      );
     });
   });
 
