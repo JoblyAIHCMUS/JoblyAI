@@ -42,6 +42,7 @@ type AiBadgeState = Record<number, boolean>;
 interface QuestionCardProps {
   index: number;
   total: number;
+  readOnly?: boolean;
   showAiBadge: boolean;
   onEdit: () => void;
   onMoveUp: () => void;
@@ -52,6 +53,7 @@ interface QuestionCardProps {
 function QuestionCard({
   index,
   total,
+  readOnly = false,
   showAiBadge,
   onEdit,
   onMoveUp,
@@ -100,54 +102,58 @@ function QuestionCard({
           {showAiBadge ? <AiBadge variant="ai">AI suggested</AiBadge> : null}
         </div>
         <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            aria-hidden="true"
-            tabIndex={-1}
-          >
-            <GripVertical className="h-4 w-4 text-slate-400" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onMoveUp}
-            disabled={index === 0}
-            aria-label="Move up"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onMoveDown}
-            disabled={index === total - 1}
-            aria-label="Move down"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onRemove}
-            aria-label="Remove question"
-          >
-            <Trash2 className="h-4 w-4 text-[var(--danger-accent)]" />
-          </Button>
+          {!readOnly && (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <GripVertical className="h-4 w-4 text-slate-400" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onMoveUp}
+                disabled={index === 0}
+                aria-label="Move up"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onMoveDown}
+                disabled={index === total - 1}
+                aria-label="Move down"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onRemove}
+                aria-label="Remove question"
+              >
+                <Trash2 className="h-4 w-4 text-[var(--danger-accent)]" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <div className="space-y-4 p-4">
         <FieldShell
           label="Your question"
-          helper="The candidate sees this."
+          helper={readOnly ? undefined : 'The candidate sees this.'}
           maxLength={MAX_LENGTH}
           currentLength={watchedQuestion.length}
           error={
@@ -155,19 +161,25 @@ function QuestionCard({
               ?.message as string | undefined
           }
         >
-          <div className="rounded-md bg-white">
-            <Textarea
-              rows={2}
-              maxLength={MAX_LENGTH}
-              placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
-              className="text-sm"
-              {...register(`preShortlistQuestions.${index}.question` as const)}
-            />
-          </div>
+          {readOnly ? (
+            <div className="rounded-md bg-white border border-slate-200 px-3 py-2 text-sm whitespace-pre-wrap break-words">
+              {watchedQuestion || <span className="text-slate-400">(empty)</span>}
+            </div>
+          ) : (
+            <div className="rounded-md bg-white">
+              <Textarea
+                rows={2}
+                maxLength={MAX_LENGTH}
+                placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
+                className="text-sm"
+                {...register(`preShortlistQuestions.${index}.question` as const)}
+              />
+            </div>
+          )}
         </FieldShell>
         <FieldShell
           label="Expected answer"
-          helper="Not shown to the candidate. Used to score their response."
+          helper={readOnly ? undefined : 'Not shown to the candidate. Used to score their response.'}
           maxLength={MAX_LENGTH}
           currentLength={watchedExpected.length}
           error={
@@ -175,24 +187,30 @@ function QuestionCard({
               ?.message as string | undefined
           }
         >
-          <div className="rounded-md bg-white">
-            <Textarea
-              rows={2}
-              maxLength={MAX_LENGTH}
-              placeholder="e.g. A concrete optimization with a measured impact (e.g. latency drop, query time reduction)."
-              className="text-sm"
-              {...register(
-                `preShortlistQuestions.${index}.expectedAnswer` as const
-              )}
-            />
-          </div>
+          {readOnly ? (
+            <div className="rounded-md bg-white border border-slate-200 px-3 py-2 text-sm whitespace-pre-wrap break-words">
+              {watchedExpected || <span className="text-slate-400">(empty)</span>}
+            </div>
+          ) : (
+            <div className="rounded-md bg-white">
+              <Textarea
+                rows={2}
+                maxLength={MAX_LENGTH}
+                placeholder="e.g. A concrete optimization with a measured impact (e.g. latency drop, query time reduction)."
+                className="text-sm"
+                {...register(
+                  `preShortlistQuestions.${index}.expectedAnswer` as const
+                )}
+              />
+            </div>
+          )}
         </FieldShell>
       </div>
     </div>
   );
 }
 
-export function PreShortlistStep() {
+export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
   const {
     control,
     formState: { errors },
@@ -367,26 +385,28 @@ export function PreShortlistStep() {
               Each question is answerable in 2-5 sentences.
             </p>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() =>
-              onGenerate({
-                jobTitle: jobTitle ?? '',
-                jobDescription: jobDescription ?? '',
-                requirements: (skills ?? []).map((s) => ({
-                  skillName: s.name,
-                  importance: s.importance,
-                  minYearsExperience: s.minYearsExperience ?? null,
-                })),
-              })
-            }
-            disabled={generating}
-            className="shrink-0"
-          >
-            <Sparkles className="h-4 w-4" />
-            {generating ? 'Generating…' : 'Generate with AI'}
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() =>
+                onGenerate({
+                  jobTitle: jobTitle ?? '',
+                  jobDescription: jobDescription ?? '',
+                  requirements: (skills ?? []).map((s) => ({
+                    skillName: s.name,
+                    importance: s.importance,
+                    minYearsExperience: s.minYearsExperience ?? null,
+                  })),
+                })
+              }
+              disabled={generating}
+              className="shrink-0"
+            >
+              <Sparkles className="h-4 w-4" />
+              {generating ? 'Generating…' : 'Generate with AI'}
+            </Button>
+          )}
         </div>
 
         {generating ? (
@@ -406,37 +426,46 @@ export function PreShortlistStep() {
 
         {/* Empty state */}
         {fields.length === 0 && !generating ? (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-            <Sparkles
-              className="mx-auto h-8 w-8 text-[var(--ai-accent)]"
-              aria-hidden="true"
-            />
-            <p className="mt-2 text-base font-semibold">No questions yet</p>
-            <p className="mt-1 text-sm text-slate-600">
-              Generate with AI to draft 5 based on your job description, or add
-              one manually.
-            </p>
-            <Button
-              type="button"
-              size="sm"
-              className="mt-4"
-              onClick={() =>
-                onGenerate({
-                  jobTitle: jobTitle ?? '',
-                  jobDescription: jobDescription ?? '',
-                  requirements: (skills ?? []).map((s) => ({
-                    skillName: s.name,
-                    importance: s.importance,
-                    minYearsExperience: s.minYearsExperience ?? null,
-                  })),
-                })
-              }
-              disabled={generating}
-            >
-              <Sparkles className="h-4 w-4" />
-              Generate with AI
-            </Button>
-          </div>
+          readOnly ? (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+              <p className="text-sm font-semibold">No pre-shortlist questions</p>
+              <p className="mt-1 text-xs text-slate-600">
+                No pre-shortlist questions are configured for this job.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+              <Sparkles
+                className="mx-auto h-8 w-8 text-[var(--ai-accent)]"
+                aria-hidden="true"
+              />
+              <p className="mt-2 text-base font-semibold">No questions yet</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Generate with AI to draft 5 based on your job description, or add
+                one manually.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                className="mt-4"
+                onClick={() =>
+                  onGenerate({
+                    jobTitle: jobTitle ?? '',
+                    jobDescription: jobDescription ?? '',
+                    requirements: (skills ?? []).map((s) => ({
+                      skillName: s.name,
+                      importance: s.importance,
+                      minYearsExperience: s.minYearsExperience ?? null,
+                    })),
+                  })
+                }
+                disabled={generating}
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate with AI
+              </Button>
+            </div>
+          )
         ) : null}
 
         {/* Populated question list */}
@@ -446,7 +475,8 @@ export function PreShortlistStep() {
               key={field.id}
               index={idx}
               total={fields.length}
-              showAiBadge={aiSuggested[idx] === true}
+              readOnly={readOnly}
+              showAiBadge={!readOnly && aiSuggested[idx] === true}
               onEdit={() =>
                 setAiSuggested((prev) =>
                   prev[idx] === true ? { ...prev, [idx]: false } : prev
@@ -459,7 +489,7 @@ export function PreShortlistStep() {
           ))}
         </div>
 
-        {fields.length < MAX_QUESTIONS ? (
+        {!readOnly && fields.length < MAX_QUESTIONS ? (
           <div className="pt-1">
             <p className="text-[11px] text-tertiary mb-2">
               Up to {MAX_QUESTIONS} questions
