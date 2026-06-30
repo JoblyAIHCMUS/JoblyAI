@@ -35,6 +35,17 @@ export default function EmployerLayout({ children }: EmployerLayoutProps) {
     }
   }, [user, isLoading, isError, router]);
 
+  useEffect(() => {
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen w-full bg-white px-4 sm:px-6 md:px-8">
