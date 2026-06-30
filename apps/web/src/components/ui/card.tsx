@@ -2,14 +2,22 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+type CardTone = 'neutral' | 'ai';
+
+const toneStyles: Record<CardTone, string> = {
+  neutral: 'bg-card text-card-foreground',
+  ai: 'border-[var(--ai-surface-border)] bg-[var(--ai-surface)] text-card-foreground',
+};
+
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { tone?: CardTone }
+>(({ className, tone = 'neutral', ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
       'rounded-xl border bg-card text-card-foreground shadow',
+      toneStyles[tone],
       className
     )}
     {...props}
