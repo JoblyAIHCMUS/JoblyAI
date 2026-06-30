@@ -35,6 +35,16 @@ export default function ChatScreen() {
     return () => sub.remove();
   }, [chatId]);
 
+  useEffect(() => {
+    if (!chatId) return;
+
+    emitChatOpened(chatId);
+
+    return () => {
+      emitChatClosed();
+    };
+  }, [chatId]);
+
   // 1. Conversation metadata from the summary cache
   const { data: summaries } = useChatSummary(userId || undefined);
   const summary = summaries?.find((c) => c.chatId === chatId);
@@ -61,11 +71,11 @@ export default function ChatScreen() {
   // 3.5. Auto-scroll to bottom on new messages (mirrors web's
   //      useEffect at apps/web/src/features/employer/messages/ChatWindow.tsx:39-44)
   const listRef = useRef<FlatList>(null);
-  useEffect(() => {
+useEffect(() => {
     if (messages.length > 0) {
       listRef.current?.scrollToEnd({ animated: true });
     }
-  }, [messages.length]);
+}, [messages.length]);
 
   // 4. Send
   const send = useSendMessage({

@@ -235,6 +235,7 @@ export default function EmployerSettingsPage() {
               applications: true,
               jobs: false,
               recommendations: false,
+              messages: true,
             }}
             onChange={(key: string) => {
               // TODO: Implement notification preferences

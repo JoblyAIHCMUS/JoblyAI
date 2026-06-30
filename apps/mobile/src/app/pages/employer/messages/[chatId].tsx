@@ -34,6 +34,16 @@ export default function ChatScreen() {
     return () => sub.remove();
   }, [chatId]);
 
+  useEffect(() => {
+    if (!chatId) return;
+
+    emitChatOpened(chatId);
+
+    return () => {
+      emitChatClosed();
+    };
+  }, [chatId]);
+
   // 1. Conversation metadata from the summary cache
   const { data: summaries } = useChatSummary(userId || undefined);
   const summary = summaries?.find((c) => c.chatId === chatId);

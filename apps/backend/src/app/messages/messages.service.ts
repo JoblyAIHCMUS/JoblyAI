@@ -88,7 +88,8 @@ export class MessagesService {
         title: sender?.name ?? 'Tin nhắn mới',
         body: dto.text,
         data: {
-          link: `/pages/chat/${chatId}`,
+          type: 'CHAT_MESSAGE',
+          resourceId: chatId,
         },
       });
     }
