@@ -50,7 +50,10 @@ export class MatchingController {
     @Param('id', ParseIntPipe) id: number,
     @Query('scoringMode') scoringMode?: 'exact' | 'embedding'
   ) {
-    const cached = await this.matchExplanationService.getExplanation(id, scoringMode);
+    const cached = await this.matchExplanationService.getExplanation(
+      id,
+      scoringMode
+    );
     if (cached) {
       return cached;
     }
@@ -63,6 +66,9 @@ export class MatchingController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { scoringMode?: 'exact' | 'embedding' }
   ) {
-    return this.matchExplanationService.calculateExplanation(id, body.scoringMode);
+    return this.matchExplanationService.calculateExplanation(
+      id,
+      body.scoringMode
+    );
   }
 }

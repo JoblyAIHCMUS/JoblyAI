@@ -14,7 +14,10 @@ interface ModalProps {
 }
 
 export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
-  ({ isOpen, onClose, children, className, overlayClassName, zIndex = 50 }, ref) => {
+  (
+    { isOpen, onClose, children, className, overlayClassName, zIndex = 50 },
+    ref
+  ) => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

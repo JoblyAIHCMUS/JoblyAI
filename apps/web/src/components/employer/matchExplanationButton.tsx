@@ -39,7 +39,9 @@ export function MatchExplanationButton({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>View match analysis{score != null ? ` (${score.toFixed(2)}%)` : ''}</p>
+          <p>
+            View match analysis{score != null ? ` (${score.toFixed(2)}%)` : ''}
+          </p>
         </TooltipContent>
       </Tooltip>
 

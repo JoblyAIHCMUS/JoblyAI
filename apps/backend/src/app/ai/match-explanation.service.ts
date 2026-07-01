@@ -43,22 +43,31 @@ export class MatchExplanationService {
   ): Promise<MatchExplanation | null> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
-      select: { matchExplanation: true, matchPercentage: true, scoringMode: true },
+      select: {
+        matchExplanation: true,
+        matchPercentage: true,
+        scoringMode: true,
+      },
     });
 
     if (!application?.matchExplanation) {
       return null;
     }
 
-    const explanation = application.matchExplanation as unknown as MatchExplanation;
+    const explanation =
+      application.matchExplanation as unknown as MatchExplanation;
 
     // Recalculate if overallScore is missing (old explanations)
-    if (explanation.overallScore === undefined || explanation.overallScore === null) {
+    if (
+      explanation.overallScore === undefined ||
+      explanation.overallScore === null
+    ) {
       return this.calculateExplanation(applicationId, scoringMode);
     }
 
     // Force recalculate if requested mode differs from cached mode
-    const cachedMode = (application.scoringMode as 'exact' | 'embedding') || 'embedding';
+    const cachedMode =
+      (application.scoringMode as 'exact' | 'embedding') || 'embedding';
     if (scoringMode && scoringMode !== cachedMode) {
       return this.calculateExplanation(applicationId, scoringMode);
     }
@@ -74,14 +83,23 @@ export class MatchExplanationService {
     return explanation;
   }
 
-  async calculateExplanation(applicationId: number, scoringMode?: 'exact' | 'embedding'): Promise<MatchExplanation> {
+  async calculateExplanation(
+    applicationId: number,
+    scoringMode?: 'exact' | 'embedding'
+  ): Promise<MatchExplanation> {
     this.logger.log(
       `Calculating match explanation for application ${applicationId}`
     );
 
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
-      select: { id: true, jobId: true, resumeId: true, candidateId: true, scoringMode: true },
+      select: {
+        id: true,
+        jobId: true,
+        resumeId: true,
+        candidateId: true,
+        scoringMode: true,
+      },
     });
 
     if (!application) {
@@ -128,7 +146,10 @@ export class MatchExplanationService {
     const experienceYears = this.calculateCareerSpan(candidateExperience);
 
     // Per-Requirement Matching — use provided scoringMode, fallback to DB value, then 'embedding'
-    const effectiveMode = scoringMode || (application.scoringMode as 'exact' | 'embedding') || 'embedding';
+    const effectiveMode =
+      scoringMode ||
+      (application.scoringMode as 'exact' | 'embedding') ||
+      'embedding';
     const requirementMatches = await this.matchRequirements(
       job.requirements,
       candidateSkills,
@@ -230,17 +251,23 @@ export class MatchExplanationService {
     return Math.round((totalMonths / 12) * 10) / 10;
   }
 
-  private calculateOverallScore(requirementMatches: RequirementMatch[]): number {
+  private calculateOverallScore(
+    requirementMatches: RequirementMatch[]
+  ): number {
     if (requirementMatches.length === 0) return 0;
 
     const totalSimilarity = requirementMatches.reduce(
       (sum, rm) => sum + rm.embeddingSimilarity,
       0
     );
-    return Math.round((totalSimilarity / requirementMatches.length) * 10000) / 100;
+    return (
+      Math.round((totalSimilarity / requirementMatches.length) * 10000) / 100
+    );
   }
 
-  private calculateExactMatchScore(requirementMatches: RequirementMatch[]): number {
+  private calculateExactMatchScore(
+    requirementMatches: RequirementMatch[]
+  ): number {
     if (requirementMatches.length === 0) return 0;
 
     const metCount = requirementMatches.filter(
@@ -258,9 +285,7 @@ export class MatchExplanationService {
     scoringMode: 'exact' | 'embedding' = 'embedding'
   ): Promise<RequirementMatch[]> {
     // Build resume text for hard constraint checking
-    const resumeText = parsedResume
-      ? this.buildResumeText(parsedResume)
-      : '';
+    const resumeText = parsedResume ? this.buildResumeText(parsedResume) : '';
 
     return Promise.all(
       jobRequirements.map(async (jr) => {
@@ -277,9 +302,18 @@ export class MatchExplanationService {
         const embedding = await this.embeddingSkillMatch(jr, resumeEmbedding);
 
         // Check for exact skill name match
-        const exactMatch = this.checkExactSkillMatch(jr, candidateSkills, resumeText);
+        const exactMatch = this.checkExactSkillMatch(
+          jr,
+          candidateSkills,
+          resumeText
+        );
 
-        const status = this.determineStatus(hardConstraintMet, embedding.similarity, exactMatch, scoringMode);
+        const status = this.determineStatus(
+          hardConstraintMet,
+          embedding.similarity,
+          exactMatch,
+          scoringMode
+        );
         const justification = this.generateJustification(
           jr,
           hardConstraintMet,
@@ -373,10 +407,15 @@ export class MatchExplanationService {
 
     // 3. Check experience descriptions (try each part)
     for (const exp of candidateExperience) {
-      const text = `${exp.jobTitle || ''} ${exp.description || ''}`.toLowerCase();
+      const text = `${exp.jobTitle || ''} ${
+        exp.description || ''
+      }`.toLowerCase();
       const matchedPart = reqParts.find((part: string) => {
         // Use word boundary matching to avoid "java" matching "javascript"
-        const regex = new RegExp(`\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const regex = new RegExp(
+          `\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+          'i'
+        );
         return regex.test(text);
       });
       if (matchedPart) {
@@ -413,7 +452,10 @@ export class MatchExplanationService {
    * Check if a skill name matches text in the resume, handling common variations.
    * e.g., "React" matches "ReactJS", "Node.js" matches "NodeJS", etc.
    */
-  private skillNameMatchesResumeText(skillName: string, resumeTextLower: string): boolean {
+  private skillNameMatchesResumeText(
+    skillName: string,
+    resumeTextLower: string
+  ): boolean {
     const escaped = skillName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     // 1. Exact word boundary match
@@ -422,7 +464,8 @@ export class MatchExplanationService {
     // 2. Try with common suffixes: react → reactjs, react.js
     const suffixes = ['js', '.js', '.ts', '.net', 'js'];
     for (const suffix of suffixes) {
-      if (new RegExp(`\\b${escaped}${suffix}\\b`, 'i').test(resumeTextLower)) return true;
+      if (new RegExp(`\\b${escaped}${suffix}\\b`, 'i').test(resumeTextLower))
+        return true;
     }
 
     // 3. Try stripping suffixes from resume text: reactjs → react
@@ -509,8 +552,12 @@ export class MatchExplanationService {
         matched,
         nearestSkill: null,
         explanation: matched
-          ? `Semantic similarity of ${(similarity * 100).toFixed(1)}% between requirement and candidate's resume`
-          : `Low semantic similarity (${(similarity * 100).toFixed(1)}%) — requirement doesn't match candidate's profile`,
+          ? `Semantic similarity of ${(similarity * 100).toFixed(
+              1
+            )}% between requirement and candidate's resume`
+          : `Low semantic similarity (${(similarity * 100).toFixed(
+              1
+            )}%) — requirement doesn't match candidate's profile`,
       };
     } catch (error: any) {
       this.logger.warn(
@@ -588,12 +635,20 @@ export class MatchExplanationService {
 
     if (embedding.matched) {
       if (exactMatch && embedding.similarity > 0.7) {
-        return `${skillName} — exact skill match with ${(embedding.similarity * 100).toFixed(0)}% semantic similarity.`;
+        return `${skillName} — exact skill match with ${(
+          embedding.similarity * 100
+        ).toFixed(0)}% semantic similarity.`;
       }
       if (embedding.similarity > 0.5) {
-        return `${skillName} — semantic match (${(embedding.similarity * 100).toFixed(0)}% similarity) but not an exact skill match. Candidate may have related experience.`;
+        return `${skillName} — semantic match (${(
+          embedding.similarity * 100
+        ).toFixed(
+          0
+        )}% similarity) but not an exact skill match. Candidate may have related experience.`;
       }
-      return `${skillName} hard constraint not met, but has ${(embedding.similarity * 100).toFixed(0)}% semantic similarity. ${embedding.explanation}`;
+      return `${skillName} hard constraint not met, but has ${(
+        embedding.similarity * 100
+      ).toFixed(0)}% semantic similarity. ${embedding.explanation}`;
     }
 
     return `${skillName} not found in candidate's skills or experience. No strong semantic match detected.`;

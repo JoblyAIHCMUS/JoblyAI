@@ -61,12 +61,12 @@ embeddingSkillMatch(skillText, requirementText) → { similarity, matched }
 
 #### Status Determination
 
-| Condition                | Status         |
-| ------------------------ | -------------- |
-| Hard constraint met      | `strong_match` |
-| Similarity > 0.5         | `match`        |
-| Similarity > 0.3         | `partial`      |
-| Otherwise                | `no_match`     |
+| Condition           | Status         |
+| ------------------- | -------------- |
+| Hard constraint met | `strong_match` |
+| Similarity > 0.5    | `match`        |
+| Similarity > 0.3    | `partial`      |
+| Otherwise           | `no_match`     |
 
 ---
 
@@ -74,17 +74,17 @@ embeddingSkillMatch(skillText, requirementText) → { similarity, matched }
 
 The following components were removed because they had no evidence-based justification:
 
-| Component              | Why Removed                                    |
-| ---------------------- | ---------------------------------------------- |
-| Exact match scoring    | Years-based thresholds (60/95/85/75/55/35/15)  |
-| Importance weighting   | REQUIRED=3×, PREFERRED=2×, OPTIONAL=1×         |
-| Experience tiers       | 40/65/85/100/110 base scores                   |
+| Component              | Why Removed                                   |
+| ---------------------- | --------------------------------------------- |
+| Exact match scoring    | Years-based thresholds (60/95/85/75/55/35/15) |
+| Importance weighting   | REQUIRED=3×, PREFERRED=2×, OPTIONAL=1×        |
+| Experience tiers       | 40/65/85/100/110 base scores                  |
 | Alignment matrix       | Multiplier logic (1.0/0.85/0.3/0.7/0.4)       |
-| Quality boosters       | LLM-based (project type, scale, leadership)    |
-| Job tier derivation    | LLM classification of job seniority            |
+| Quality boosters       | LLM-based (project type, scale, leadership)   |
+| Job tier derivation    | LLM classification of job seniority           |
 | Final formula          | ReqScore × 0.6 + ExpScore × 0.4               |
-| Status thresholds      | 80/60/30 score cutoffs                         |
-| Hybrid/exact/embedding | Toggle between scoring modes                   |
+| Status thresholds      | 80/60/30 score cutoffs                        |
+| Hybrid/exact/embedding | Toggle between scoring modes                  |
 
 ---
 
@@ -129,12 +129,12 @@ Requirements:
 
 ## When Scores Are Calculated
 
-| Trigger                       | Action                                         |
-| ----------------------------- | ---------------------------------------------- |
-| Application created           | Calculate explanation                          |
+| Trigger                       | Action                                             |
+| ----------------------------- | -------------------------------------------------- |
+| Application created           | Calculate explanation                              |
 | Resume re-uploaded            | Recalculate for all applications using that resume |
-| Job posting updated           | Clear explanations; recalculated on next access |
-| Employer clicks "Recalculate" | Fresh calculation on demand                    |
+| Job posting updated           | Clear explanations; recalculated on next access    |
+| Employer clicks "Recalculate" | Fresh calculation on demand                        |
 
 ---
 
@@ -161,7 +161,7 @@ Application Created
 
 ## Frontend Components
 
-| Component                | Location               | Purpose                                 |
-| ------------------------ | ---------------------- | --------------------------------------- |
-| `MatchExplanationButton` | `components/employer/` | Icon button on applicant cards          |
-| `MatchExplanationDrawer` | `components/employer/` | Near full-screen modal with breakdown   |
+| Component                | Location               | Purpose                               |
+| ------------------------ | ---------------------- | ------------------------------------- |
+| `MatchExplanationButton` | `components/employer/` | Icon button on applicant cards        |
+| `MatchExplanationDrawer` | `components/employer/` | Near full-screen modal with breakdown |

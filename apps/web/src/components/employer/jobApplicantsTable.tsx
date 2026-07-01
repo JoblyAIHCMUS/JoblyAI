@@ -148,10 +148,7 @@ export const columns: ColumnDef<Applicant>[] = [
               {score.toFixed(2)}%
             </span>
           )}
-          <MatchExplanationButton
-            applicationId={applicant.id}
-            score={score}
-          />
+          <MatchExplanationButton applicationId={applicant.id} score={score} />
         </div>
       );
     },

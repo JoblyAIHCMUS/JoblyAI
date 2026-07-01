@@ -43,7 +43,9 @@ export function MatchExplanationDrawer({
   const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
   const [loading, setLoading] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
-  const [scoringMode, setScoringMode] = useState<'exact' | 'embedding'>('embedding');
+  const [scoringMode, setScoringMode] = useState<'exact' | 'embedding'>(
+    'embedding'
+  );
 
   useEffect(() => {
     if (isOpen && applicationId) {
@@ -54,7 +56,10 @@ export function MatchExplanationDrawer({
   const fetchExplanation = async () => {
     setLoading(true);
     try {
-      const data = await getMatchExplanation(Number(applicationId), scoringMode);
+      const data = await getMatchExplanation(
+        Number(applicationId),
+        scoringMode
+      );
       setExplanation(data);
     } catch (error) {
       console.error('Failed to fetch match explanation:', error);
@@ -66,7 +71,10 @@ export function MatchExplanationDrawer({
   const handleRecalculate = async () => {
     setRecalculating(true);
     try {
-      const data = await recalculateMatchExplanation(Number(applicationId), scoringMode);
+      const data = await recalculateMatchExplanation(
+        Number(applicationId),
+        scoringMode
+      );
       setExplanation(data);
     } catch (error) {
       console.error('Failed to recalculate match explanation:', error);
@@ -86,28 +94,40 @@ export function MatchExplanationDrawer({
     switch (status) {
       case 'strong_match':
         return (
-          <Badge variant="default" className="bg-green-500 text-white hover:bg-green-600">
+          <Badge
+            variant="default"
+            className="bg-green-500 text-white hover:bg-green-600"
+          >
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Strong Match
           </Badge>
         );
       case 'match':
         return (
-          <Badge variant="default" className="bg-blue-500 text-white hover:bg-blue-600">
+          <Badge
+            variant="default"
+            className="bg-blue-500 text-white hover:bg-blue-600"
+          >
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Match
           </Badge>
         );
       case 'partial':
         return (
-          <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600">
+          <Badge
+            variant="secondary"
+            className="bg-yellow-500 text-white hover:bg-yellow-600"
+          >
             <AlertTriangle className="mr-1 h-3 w-3" />
             Partial
           </Badge>
         );
       case 'no_match':
         return (
-          <Badge variant="destructive" className="bg-red-500 text-white hover:bg-red-600">
+          <Badge
+            variant="destructive"
+            className="bg-red-500 text-white hover:bg-red-600"
+          >
             <XCircle className="mr-1 h-3 w-3" />
             No Match
           </Badge>
@@ -129,7 +149,12 @@ export function MatchExplanationDrawer({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[95vw] max-h-[95vh]" zIndex={100}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-[95vw] max-h-[95vh]"
+      zIndex={100}
+    >
       <ModalHeader onClose={onClose} />
       <ModalBody>
         <div className="mb-4 flex items-center justify-between">
@@ -180,15 +205,29 @@ export function MatchExplanationDrawer({
                 <div className="mb-2 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <h3 className="font-semibold">
-                    {scoringMode === 'exact' ? 'Exact Match Score' : 'Embedding Score'}
+                    {scoringMode === 'exact'
+                      ? 'Exact Match Score'
+                      : 'Embedding Score'}
                   </h3>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-4xl font-bold ${getScoreColor((scoringMode === 'exact' ? (explanation.exactMatchScore ?? 0) : (explanation.overallScore ?? 0)) / 100)}`}>
-                    {(scoringMode === 'exact' ? (explanation.exactMatchScore ?? 0) : (explanation.overallScore ?? 0)).toFixed(2)}%
+                  <span
+                    className={`text-4xl font-bold ${getScoreColor(
+                      (scoringMode === 'exact'
+                        ? explanation.exactMatchScore ?? 0
+                        : explanation.overallScore ?? 0) / 100
+                    )}`}
+                  >
+                    {(scoringMode === 'exact'
+                      ? explanation.exactMatchScore ?? 0
+                      : explanation.overallScore ?? 0
+                    ).toFixed(2)}
+                    %
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {scoringMode === 'exact' ? 'requirements met' : 'semantic similarity'}
+                    {scoringMode === 'exact'
+                      ? 'requirements met'
+                      : 'semantic similarity'}
                   </span>
                 </div>
               </div>
