@@ -13,20 +13,35 @@ const buildState = (
     application: { count, findMany },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  matchExplanationService: { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+  matchExplanationService: {
+    calculateExplanation: vi.fn().mockResolvedValue(undefined),
+  } as never,
   eventEmitter: { emit: vi.fn() } as never,
-  notificationsService: { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+  notificationsService: {
+    createNotifications: vi.fn().mockResolvedValue([]),
+  } as never,
 });
 
 describe('listMyApplicationsHandler', () => {
   it('filters by candidateId + optional status, paginates', async () => {
     const count = vi.fn().mockResolvedValue(5);
-    const findMany = vi.fn().mockResolvedValue([
-      { id: 1, status: 'APPLIED', job: { id: 1, title: 'Dev' }, resume: { id: 1 } },
-    ]);
+    const findMany = vi
+      .fn()
+      .mockResolvedValue([
+        {
+          id: 1,
+          status: 'APPLIED',
+          job: { id: 1, title: 'Dev' },
+          resume: { id: 1 },
+        },
+      ]);
     const state = buildState(count, findMany);
 
-    const result = await listMyApplicationsHandler(state, { page: 1, pageSize: 10, status: 'APPLIED' });
+    const result = await listMyApplicationsHandler(state, {
+      page: 1,
+      pageSize: 10,
+      status: 'APPLIED',
+    });
 
     expect(count).toHaveBeenCalledWith({
       where: { candidateId: 'user-123', status: 'APPLIED' },

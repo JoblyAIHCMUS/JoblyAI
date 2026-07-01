@@ -11,19 +11,34 @@ const buildState = ($transaction: ReturnType<typeof vi.fn>): McpState => ({
     $transaction,
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  matchExplanationService: { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+  matchExplanationService: {
+    calculateExplanation: vi.fn().mockResolvedValue(undefined),
+  } as never,
   eventEmitter: { emit: vi.fn() } as never,
-  notificationsService: { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+  notificationsService: {
+    createNotifications: vi.fn().mockResolvedValue([]),
+  } as never,
 });
 
 describe('searchJobsHandler', () => {
   it('paginates and forces status=OPEN + deletedAt=null', async () => {
-    const $transaction = vi.fn().mockResolvedValue([
-      25,
-      [
-        { id: 1, title: 'Dev', status: 'OPEN', deletedAt: null, category: { id: 1, name: 'Tech' }, company: { id: 1, name: 'Acme' }, requirements: [], _count: { applications: 3 } },
-      ],
-    ]);
+    const $transaction = vi
+      .fn()
+      .mockResolvedValue([
+        25,
+        [
+          {
+            id: 1,
+            title: 'Dev',
+            status: 'OPEN',
+            deletedAt: null,
+            category: { id: 1, name: 'Tech' },
+            company: { id: 1, name: 'Acme' },
+            requirements: [],
+            _count: { applications: 3 },
+          },
+        ],
+      ]);
     const state = buildState($transaction);
 
     const result = await searchJobsHandler(state, { page: 1, pageSize: 10 });
@@ -47,7 +62,11 @@ describe('searchJobsHandler', () => {
     const $transaction = vi.fn().mockResolvedValue([0, []]);
     const state = buildState($transaction);
 
-    await searchJobsHandler(state, { q: 'engineer', remote: true, skills: ['Python'] });
+    await searchJobsHandler(state, {
+      q: 'engineer',
+      remote: true,
+      skills: ['Python'],
+    });
 
     expect($transaction).toHaveBeenCalled();
   });

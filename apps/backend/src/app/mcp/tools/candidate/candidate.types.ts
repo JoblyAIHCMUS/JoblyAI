@@ -27,12 +27,16 @@ export const ListMyApplicationsInputSchema = z.object({
   pageSize: z.number().int().min(1).max(100).default(10),
   status: z.enum(ApplicationStatus).optional(),
 });
-export type ListMyApplicationsInput = z.infer<typeof ListMyApplicationsInputSchema>;
+export type ListMyApplicationsInput = z.infer<
+  typeof ListMyApplicationsInputSchema
+>;
 
 export const WithdrawApplicationInputSchema = z.object({
   applicationId: z.number().int().positive(),
 });
-export type WithdrawApplicationInput = z.infer<typeof WithdrawApplicationInputSchema>;
+export type WithdrawApplicationInput = z.infer<
+  typeof WithdrawApplicationInputSchema
+>;
 
 export const UpdateProfileInputSchema = z
   .object({

@@ -10,21 +10,33 @@ const buildState = (upsert: ReturnType<typeof vi.fn>): McpState => ({
     candidateDescription: { upsert },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  matchExplanationService: { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+  matchExplanationService: {
+    calculateExplanation: vi.fn().mockResolvedValue(undefined),
+  } as never,
   eventEmitter: { emit: vi.fn() } as never,
-  notificationsService: { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+  notificationsService: {
+    createNotifications: vi.fn().mockResolvedValue([]),
+  } as never,
 });
 
 describe('updateProfileHandler', () => {
   it('updates existing profile with both fields', async () => {
     const upsert = vi.fn().mockResolvedValue({
-      id: 1, candidateId: 'user-123', title: 'Dev', bio: 'Bio',
-      rawDescriptions: null, rawTitles: null,
-      createdAt: new Date(), updatedAt: new Date(),
+      id: 1,
+      candidateId: 'user-123',
+      title: 'Dev',
+      bio: 'Bio',
+      rawDescriptions: null,
+      rawTitles: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     const state = buildState(upsert);
 
-    const result = await updateProfileHandler(state, { title: 'Dev', bio: 'Bio' });
+    const result = await updateProfileHandler(state, {
+      title: 'Dev',
+      bio: 'Bio',
+    });
 
     expect(upsert).toHaveBeenCalledWith({
       where: { candidateId: 'user-123' },
@@ -36,9 +48,14 @@ describe('updateProfileHandler', () => {
 
   it('creates profile via upsert when it does not exist', async () => {
     const upsert = vi.fn().mockResolvedValue({
-      id: 2, candidateId: 'user-123', title: 'New', bio: 'New bio',
-      rawDescriptions: null, rawTitles: null,
-      createdAt: new Date(), updatedAt: new Date(),
+      id: 2,
+      candidateId: 'user-123',
+      title: 'New',
+      bio: 'New bio',
+      rawDescriptions: null,
+      rawTitles: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     const state = buildState(upsert);
 
@@ -54,9 +71,14 @@ describe('updateProfileHandler', () => {
 
   it('partial update with only title', async () => {
     const upsert = vi.fn().mockResolvedValue({
-      id: 1, candidateId: 'user-123', title: 'Updated', bio: 'old bio',
-      rawDescriptions: null, rawTitles: null,
-      createdAt: new Date(), updatedAt: new Date(),
+      id: 1,
+      candidateId: 'user-123',
+      title: 'Updated',
+      bio: 'old bio',
+      rawDescriptions: null,
+      rawTitles: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     const state = buildState(upsert);
 

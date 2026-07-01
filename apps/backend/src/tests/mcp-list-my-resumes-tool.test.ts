@@ -10,16 +10,38 @@ const buildState = (findMany: ReturnType<typeof vi.fn>): McpState => ({
     resume: { findMany },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  matchExplanationService: { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+  matchExplanationService: {
+    calculateExplanation: vi.fn().mockResolvedValue(undefined),
+  } as never,
   eventEmitter: { emit: vi.fn() } as never,
-  notificationsService: { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+  notificationsService: {
+    createNotifications: vi.fn().mockResolvedValue([]),
+  } as never,
 });
 
 describe('listMyResumesHandler', () => {
   it('returns resumes with select and orderBy', async () => {
     const findMany = vi.fn().mockResolvedValue([
-      { id: 1, fileName: 'resume.pdf', fileType: 'pdf', fileSize: 1000, isDefault: true, aiScore: 85, createdAt: new Date(), updatedAt: new Date() },
-      { id: 2, fileName: 'cv.docx', fileType: 'docx', fileSize: 2000, isDefault: false, aiScore: null, createdAt: new Date(), updatedAt: new Date() },
+      {
+        id: 1,
+        fileName: 'resume.pdf',
+        fileType: 'pdf',
+        fileSize: 1000,
+        isDefault: true,
+        aiScore: 85,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 2,
+        fileName: 'cv.docx',
+        fileType: 'docx',
+        fileSize: 2000,
+        isDefault: false,
+        aiScore: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ]);
     const state = buildState(findMany);
 

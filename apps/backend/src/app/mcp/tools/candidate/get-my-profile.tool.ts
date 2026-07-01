@@ -53,7 +53,10 @@ export async function getMyProfileHandler(state: McpState) {
   }
 }
 
-export function registerGetMyProfileTool(server: McpServer, state: McpState): void {
+export function registerGetMyProfileTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'get_my_profile',
     {

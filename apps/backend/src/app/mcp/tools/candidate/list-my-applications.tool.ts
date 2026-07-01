@@ -1,7 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { McpState } from '../../server/mcp.types';
-import { ListMyApplicationsInputSchema, type ListMyApplicationsInput } from './candidate.types';
+import {
+  ListMyApplicationsInputSchema,
+  type ListMyApplicationsInput,
+} from './candidate.types';
 
 const outputSchema = z.object({
   applications: z.array(z.unknown()),
@@ -11,9 +14,14 @@ const outputSchema = z.object({
   totalPages: z.number(),
 });
 
-export async function listMyApplicationsHandler(state: McpState, rawInput: unknown) {
+export async function listMyApplicationsHandler(
+  state: McpState,
+  rawInput: unknown
+) {
   try {
-    const input = ListMyApplicationsInputSchema.parse(rawInput) as ListMyApplicationsInput;
+    const input = ListMyApplicationsInputSchema.parse(
+      rawInput
+    ) as ListMyApplicationsInput;
     const { page, pageSize, status } = input;
 
     const where = {
@@ -36,7 +44,9 @@ export async function listMyApplicationsHandler(state: McpState, rawInput: unkno
               postedBy: { select: { id: true, name: true, email: true } },
             },
           },
-          resume: { select: { id: true, fileKey: true, aiScore: true, isDefault: true } },
+          resume: {
+            select: { id: true, fileKey: true, aiScore: true, isDefault: true },
+          },
         },
       }),
     ]);
@@ -64,7 +74,10 @@ export async function listMyApplicationsHandler(state: McpState, rawInput: unkno
   }
 }
 
-export function registerListMyApplicationsTool(server: McpServer, state: McpState): void {
+export function registerListMyApplicationsTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'list_my_applications',
     {

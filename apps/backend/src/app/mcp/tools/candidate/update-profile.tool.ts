@@ -1,11 +1,16 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Prisma } from '@prisma/client';
 import type { McpState } from '../../server/mcp.types';
-import { UpdateProfileInputSchema, type UpdateProfileInput } from './candidate.types';
+import {
+  UpdateProfileInputSchema,
+  type UpdateProfileInput,
+} from './candidate.types';
 
 export async function updateProfileHandler(state: McpState, rawInput: unknown) {
   try {
-    const input = UpdateProfileInputSchema.parse(rawInput) as UpdateProfileInput;
+    const input = UpdateProfileInputSchema.parse(
+      rawInput
+    ) as UpdateProfileInput;
 
     const create: Prisma.CandidateDescriptionUncheckedCreateInput = {
       candidateId: state.userId,
@@ -51,13 +56,21 @@ export async function updateProfileHandler(state: McpState, rawInput: unknown) {
   }
 }
 
-export function registerUpdateProfileTool(server: McpServer, state: McpState): void {
+export function registerUpdateProfileTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'update_profile',
     {
-      description: "Update the candidate's profile (title, bio). Auto-creates if missing.",
+      description:
+        "Update the candidate's profile (title, bio). Auto-creates if missing.",
       inputSchema: UpdateProfileInputSchema,
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
     },
     async (args) => updateProfileHandler(state, args)
   );

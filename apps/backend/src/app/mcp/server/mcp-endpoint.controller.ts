@@ -26,7 +26,7 @@ export class McpEndpointController {
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     private readonly matchExplanationService: MatchExplanationService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly notificationsService: NotificationsService,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   @All()

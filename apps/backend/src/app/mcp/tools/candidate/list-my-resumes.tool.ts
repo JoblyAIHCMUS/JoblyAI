@@ -40,7 +40,10 @@ export async function listMyResumesHandler(state: McpState) {
   }
 }
 
-export function registerListMyResumesTool(server: McpServer, state: McpState): void {
+export function registerListMyResumesTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'list_my_resumes',
     {

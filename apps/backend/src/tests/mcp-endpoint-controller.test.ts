@@ -49,7 +49,7 @@ describe('McpEndpointController', () => {
       } as never,
       { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
       { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never
     );
   });
 
@@ -66,7 +66,7 @@ describe('McpEndpointController', () => {
       prisma as never,
       { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
       { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never
     );
 
     const mockReq = {
@@ -159,7 +159,7 @@ describe('McpEndpointController', () => {
       } as never,
       { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
       { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never
     );
 
     const mockReq = {

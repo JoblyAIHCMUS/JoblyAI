@@ -12,7 +12,9 @@ const include = {
       postedBy: { select: { id: true, name: true, email: true } },
     },
   },
-  resume: { select: { id: true, fileKey: true, aiScore: true, isDefault: true } },
+  resume: {
+    select: { id: true, fileKey: true, aiScore: true, isDefault: true },
+  },
   candidate: { select: { id: true, name: true, email: true } },
 };
 
@@ -23,32 +25,64 @@ export async function applyToJobHandler(state: McpState, rawInput: unknown) {
 
     const job = await state.prisma.jobPosting.findUnique({
       where: { id: jobId },
-      select: { id: true, title: true, status: true, postedById: true, preShortlistThreshold: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        postedById: true,
+        preShortlistThreshold: true,
+      },
     });
 
     if (!job) {
-      return { isError: true, content: [{ type: 'text' as const, text: 'Job not found' }] };
+      return {
+        isError: true,
+        content: [{ type: 'text' as const, text: 'Job not found' }],
+      };
     }
 
     if (job.status !== 'OPEN') {
-      return { isError: true, content: [{ type: 'text' as const, text: 'Job is not open for applications' }] };
+      return {
+        isError: true,
+        content: [
+          { type: 'text' as const, text: 'Job is not open for applications' },
+        ],
+      };
     }
 
     let resume;
     if (resumeId !== undefined) {
-      resume = await state.prisma.resume.findUnique({ where: { id: resumeId } });
+      resume = await state.prisma.resume.findUnique({
+        where: { id: resumeId },
+      });
       if (!resume) {
-        return { isError: true, content: [{ type: 'text' as const, text: 'Resume not found' }] };
+        return {
+          isError: true,
+          content: [{ type: 'text' as const, text: 'Resume not found' }],
+        };
       }
       if (resume.candidateId !== state.userId) {
-        return { isError: true, content: [{ type: 'text' as const, text: 'Resume does not belong to you' }] };
+        return {
+          isError: true,
+          content: [
+            { type: 'text' as const, text: 'Resume does not belong to you' },
+          ],
+        };
       }
     } else {
       resume = await state.prisma.resume.findFirst({
         where: { candidateId: state.userId, isDefault: true },
       });
       if (!resume) {
-        return { isError: true, content: [{ type: 'text' as const, text: 'No default resume; specify resumeId' }] };
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text' as const,
+              text: 'No default resume; specify resumeId',
+            },
+          ],
+        };
       }
     }
 
@@ -56,9 +90,24 @@ export async function applyToJobHandler(state: McpState, rawInput: unknown) {
       where: { jobId, candidateId: state.userId },
     });
 
-    const activeStatuses = ['APPLIED', 'PRE_SHORTLIST_PENDING', 'PRE_SHORTLIST_SUBMITTED', 'INTERVIEW', 'OFFER'];
-    if (existing && (activeStatuses.includes(existing.status) || existing.status === 'REJECTED')) {
-      return { isError: true, content: [{ type: 'text' as const, text: 'Already applied to this job' }] };
+    const activeStatuses = [
+      'APPLIED',
+      'PRE_SHORTLIST_PENDING',
+      'PRE_SHORTLIST_SUBMITTED',
+      'INTERVIEW',
+      'OFFER',
+    ];
+    if (
+      existing &&
+      (activeStatuses.includes(existing.status) ||
+        existing.status === 'REJECTED')
+    ) {
+      return {
+        isError: true,
+        content: [
+          { type: 'text' as const, text: 'Already applied to this job' },
+        ],
+      };
     }
 
     let application;
@@ -89,7 +138,10 @@ export async function applyToJobHandler(state: McpState, rawInput: unknown) {
     try {
       await state.matchExplanationService.calculateExplanation(application.id);
     } catch (err) {
-      state.logger.error({ err, applicationId: application.id }, 'match explanation failed');
+      state.logger.error(
+        { err, applicationId: application.id },
+        'match explanation failed'
+      );
     }
 
     const withScore = await state.prisma.application.findUnique({
@@ -144,7 +196,10 @@ export async function applyToJobHandler(state: McpState, rawInput: unknown) {
         },
       ]);
     } catch (err) {
-      state.logger.error({ err, applicationId: application.id }, 'failed to create apply notifications');
+      state.logger.error(
+        { err, applicationId: application.id },
+        'failed to create apply notifications'
+      );
     }
 
     const fresh = await state.prisma.application.findUnique({
@@ -174,13 +229,21 @@ export async function applyToJobHandler(state: McpState, rawInput: unknown) {
   }
 }
 
-export function registerApplyToJobTool(server: McpServer, state: McpState): void {
+export function registerApplyToJobTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'apply_to_job',
     {
-      description: 'Apply to a job. Auto-uses default resume if resumeId omitted. Re-applies after withdrawal.',
+      description:
+        'Apply to a job. Auto-uses default resume if resumeId omitted. Re-applies after withdrawal.',
       inputSchema: ApplyToJobInputSchema,
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
     },
     async (args) => applyToJobHandler(state, args)
   );

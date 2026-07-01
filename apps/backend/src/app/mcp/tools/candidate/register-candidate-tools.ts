@@ -8,7 +8,10 @@ import { registerApplyToJobTool } from './apply-to-job.tool';
 import { registerUpdateProfileTool } from './update-profile.tool';
 import { registerWithdrawApplicationTool } from './withdraw-application.tool';
 
-export function registerCandidateTools(server: McpServer, state: McpState): void {
+export function registerCandidateTools(
+  server: McpServer,
+  state: McpState
+): void {
   registerGetMyProfileTool(server, state);
   registerListMyResumesTool(server, state);
   registerSearchJobsTool(server, state);

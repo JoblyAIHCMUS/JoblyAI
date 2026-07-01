@@ -1,6 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpState } from '../../server/mcp.types';
-import { WithdrawApplicationInputSchema, type WithdrawApplicationInput } from './candidate.types';
+import {
+  WithdrawApplicationInputSchema,
+  type WithdrawApplicationInput,
+} from './candidate.types';
 
 const include = {
   job: {
@@ -10,12 +13,19 @@ const include = {
       postedBy: { select: { id: true, name: true, email: true } },
     },
   },
-  resume: { select: { id: true, fileKey: true, aiScore: true, isDefault: true } },
+  resume: {
+    select: { id: true, fileKey: true, aiScore: true, isDefault: true },
+  },
 };
 
-export async function withdrawApplicationHandler(state: McpState, rawInput: unknown) {
+export async function withdrawApplicationHandler(
+  state: McpState,
+  rawInput: unknown
+) {
   try {
-    const input = WithdrawApplicationInputSchema.parse(rawInput) as WithdrawApplicationInput;
+    const input = WithdrawApplicationInputSchema.parse(
+      rawInput
+    ) as WithdrawApplicationInput;
     const { applicationId } = input;
 
     const application = await state.prisma.application.findUnique({
@@ -33,7 +43,10 @@ export async function withdrawApplicationHandler(state: McpState, rawInput: unkn
       return {
         isError: true,
         content: [
-          { type: 'text' as const, text: 'Only applications with APPLIED status can be withdrawn' },
+          {
+            type: 'text' as const,
+            text: 'Only applications with APPLIED status can be withdrawn',
+          },
         ],
       };
     }
@@ -59,13 +72,21 @@ export async function withdrawApplicationHandler(state: McpState, rawInput: unkn
   }
 }
 
-export function registerWithdrawApplicationTool(server: McpServer, state: McpState): void {
+export function registerWithdrawApplicationTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'withdraw_application',
     {
-      description: 'Withdraw an application (only APPLIED status can be withdrawn).',
+      description:
+        'Withdraw an application (only APPLIED status can be withdrawn).',
       inputSchema: WithdrawApplicationInputSchema,
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
     },
     async (args) => withdrawApplicationHandler(state, args)
   );

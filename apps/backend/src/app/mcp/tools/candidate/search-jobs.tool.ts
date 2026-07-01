@@ -78,7 +78,9 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
         });
       }
       if (whereClause.AND && Array.isArray(whereClause.AND)) {
-        (whereClause.AND as Prisma.JobPostingWhereInput[]).push(...salaryConditions);
+        (whereClause.AND as Prisma.JobPostingWhereInput[]).push(
+          ...salaryConditions
+        );
       } else {
         whereClause.AND = salaryConditions;
       }
@@ -132,7 +134,10 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
   }
 }
 
-export function registerSearchJobsTool(server: McpServer, state: McpState): void {
+export function registerSearchJobsTool(
+  server: McpServer,
+  state: McpState
+): void {
   server.registerTool(
     'search_jobs',
     {
