@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ExtractedQuestion } from '../dto/extracted-question.model.js';
-import { VerifiedQuestion } from '../dto/verified-question.model.js';
+import {
+  EvidenceLevel,
+  VerifiedQuestion,
+} from '../dto/verified-question.model.js';
 
 type QuestionGroup = {
   question: string;
@@ -23,7 +26,6 @@ export class QuestionVerifierService {
       const normalizedQuestion = this.cleanText(extractedQuestion?.question)?.toLowerCase();
       const normalizedSource = this.cleanText(extractedQuestion?.url)?.toLowerCase();
       const normalizedContext = this.cleanText(extractedQuestion?.context);
-
       if (!normalizedQuestion || !normalizedSource) {
         continue;
       }
@@ -43,9 +45,13 @@ export class QuestionVerifierService {
       group.seenSources.add(normalizedSource);
       group.sources.push(this.cleanText(extractedQuestion.url) ?? '');
 
-      if (normalizedContext && !group.seenContexts.has(normalizedContext.toLowerCase())) {
-        group.seenContexts.add(normalizedContext.toLowerCase());
-        group.contexts.push(normalizedContext);
+      if (normalizedContext) {
+        const normalizedContextKey = normalizedContext.toLowerCase();
+
+        if (!group.seenContexts.has(normalizedContextKey)) {
+          group.seenContexts.add(normalizedContextKey);
+          group.contexts.push(normalizedContext);
+        }
       }
 
       groups.set(normalizedQuestion, group);
@@ -57,27 +63,27 @@ export class QuestionVerifierService {
       return {
         question: group.question,
         evidenceCount,
-        confidence: this.getConfidence(evidenceCount),
+        evidenceLevel: this.getEvidenceLevel(evidenceCount),
         sources: group.sources,
         contexts: group.contexts,
       };
     });
   }
 
-  private getConfidence(evidenceCount: number): number {
+  private getEvidenceLevel(evidenceCount: number): EvidenceLevel {
     if (evidenceCount >= 4) {
-      return 0.95;
+      return 'very_high';
     }
 
     if (evidenceCount === 3) {
-      return 0.9;
+      return 'high';
     }
 
     if (evidenceCount === 2) {
-      return 0.75;
+      return 'moderate';
     }
 
-    return 0.6;
+    return 'low';
   }
 
   private cleanText(value?: string | null): string | undefined {

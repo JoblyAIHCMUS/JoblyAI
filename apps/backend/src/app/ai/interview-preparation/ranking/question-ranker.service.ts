@@ -12,15 +12,35 @@ export class QuestionRankerService {
     return verifiedQuestions
       .map((verifiedQuestion) => ({
         ...verifiedQuestion,
-        score: this.calculateScore(verifiedQuestion),
+        rankingScore: this.calculateScore(verifiedQuestion),
       }))
-      .sort((left, right) => right.score - left.score);
+      .sort((left, right) => right.rankingScore - left.rankingScore);
   }
 
   private calculateScore(verifiedQuestion: VerifiedQuestion): number {
     const evidenceComponent = verifiedQuestion.evidenceCount * 1000;
-    const confidenceComponent = Math.round(verifiedQuestion.confidence * 100);
+    const evidenceLevelComponent = this.getEvidenceLevelScore(
+      verifiedQuestion.evidenceLevel
+    );
 
-    return evidenceComponent + confidenceComponent;
+    return evidenceComponent + evidenceLevelComponent;
+  }
+  /**
+  Evidence level is derived from the number of independent sources.
+  */
+  private getEvidenceLevelScore(
+    evidenceLevel: VerifiedQuestion['evidenceLevel']
+  ): number {
+    switch (evidenceLevel) {
+      case 'very_high':
+        return 95;
+      case 'high':
+        return 90;
+      case 'moderate':
+        return 75;
+      case 'low':
+      default:
+        return 60;
+    }
   }
 }

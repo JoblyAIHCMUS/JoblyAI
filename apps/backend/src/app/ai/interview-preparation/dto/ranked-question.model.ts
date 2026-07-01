@@ -1,5 +1,5 @@
 import { VerifiedQuestion } from './verified-question.model.js';
 
 export interface RankedQuestion extends VerifiedQuestion {
-  score: number;
+  rankingScore: number;
 }
