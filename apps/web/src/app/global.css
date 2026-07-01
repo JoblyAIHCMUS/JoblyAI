@@ -145,6 +145,25 @@
     --kanban-board-circle-red: oklch(0.6368 0.2078 25.33);
     --kanban-board-circle-violet: oklch(0.6059 0.2187 292.72);
     --kanban-board-circle-yellow: oklch(0.7959 0.1618 86.05);
+
+    /* AI surface (pre-shortlist UI) */
+    --ai-surface: #f5f3ff;
+    --ai-surface-border: #ddd6fe;
+    --ai-accent: #7c3aed;
+    --ai-accent-soft: #ede9fe;
+
+    /* Suggestion tones */
+    --success-surface: #ecfdf5;
+    --success-border: #a7f3d0;
+    --success-accent: #047857;
+
+    --warning-surface: #fffbeb;
+    --warning-border: #fde68a;
+    --warning-accent: #b45309;
+
+    --danger-surface: #fef2f2;
+    --danger-border: #fecaca;
+    --danger-accent: #b91c1c;
     --color-kanban-board-circle-blue: var(--kanban-board-circle-blue);
     --color-kanban-board-circle-cyan: var(--kanban-board-circle-cyan);
     --color-kanban-board-circle-gray: var(--kanban-board-circle-gray);
@@ -303,5 +322,39 @@
 
   .hover\:text-accent-link-hover:hover {
     @apply text-[color:var(--indigo-700)];
+  }
+
+  @keyframes pre-shortlist-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .pre-shortlist-reveal {
+    animation: pre-shortlist-reveal var(--reveal-duration, 250ms) ease-out
+      backwards;
+  }
+
+  @keyframes pre-shortlist-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(60%);
+    }
+    100% {
+      transform: translateX(220%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pre-shortlist-reveal {
+      animation: none;
+    }
   }
 }

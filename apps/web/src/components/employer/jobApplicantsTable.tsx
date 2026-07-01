@@ -28,6 +28,7 @@ import { formatDate } from '@/lib/utils';
 import { useMessageCandidate } from '@/hooks/useMessageCandidate';
 import { usePrefetchEmployerApplication } from '@/api-hook/application';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
+import { MatchExplanationButton } from '@/components/employer/matchExplanationButton';
 
 import { type Applicant } from '@/features/employer/job-listing/detail/data';
 import {
@@ -126,27 +127,34 @@ export const columns: ColumnDef<Applicant>[] = [
     ),
     cell: ({ row }) => {
       const score = row.getValue<number>('score');
-      if (score === null || score === undefined || score === 0) {
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
-            AI Calculating...
-          </span>
-        );
-      }
-
-      const badgeClass =
-        score >= 80
-          ? 'bg-green-100 text-green-700'
-          : score >= 50
-          ? 'bg-blue-100 text-blue-700'
-          : 'bg-slate-100 text-slate-700';
+      const applicant = row.original;
 
       return (
-        <span
-          className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
-        >
-          {Math.round(score)}%
-        </span>
+        <div className="flex items-center justify-center gap-1">
+          {score === null || score === undefined || score === 0 ? (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+              AI Calculating...
+            </span>
+          ) : (
+            <>
+              <span
+                className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${
+                  score >= 80
+                    ? 'bg-green-100 text-green-700'
+                    : score >= 50
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-slate-100 text-slate-700'
+                }`}
+              >
+                {Math.round(score)}%
+              </span>
+              <MatchExplanationButton
+                applicationId={applicant.id}
+                score={score}
+              />
+            </>
+          )}
+        </div>
       );
     },
   },

@@ -12,6 +12,7 @@ import {
   ProfilePhotoSection,
   PersonalDetailsForm,
 } from './components';
+import { ApiKeysSection } from '@/features/employer/settings/components/api-keys';
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetCandidateProfile } from '@/api-hook/candidate';
@@ -35,6 +36,7 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   applications: true,
   jobs: true,
   recommendations: true,
+  messages: true,
 };
 
 export default function CandidateSettingsPage() {
@@ -193,7 +195,7 @@ export default function CandidateSettingsPage() {
         className="w-full flex flex-col flex-1"
       >
         {/* Header Section with Tabs */}
-        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-5">
           <SettingsTabs
             tabs={SETTINGS_TABS}
             activeTab={activeTab}
@@ -299,6 +301,14 @@ export default function CandidateSettingsPage() {
             onChange={handleNotificationChange}
             disabled={loadingNotificationSettings || savingNotificationSettings}
           />
+        </TabsContent>
+
+        {/* Developer Tab Content */}
+        <TabsContent
+          value="developer"
+          className="self-stretch flex flex-col gap-4 sm:gap-5 md:gap-6 bg-white !mt-0 flex-1"
+        >
+          <ApiKeysSection role="candidate" />
         </TabsContent>
       </Tabs>
     </div>

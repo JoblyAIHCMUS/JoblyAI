@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useCreateJob } from '@/api-hook/jobs';
@@ -33,10 +33,12 @@ import {
   currencyToLocale,
   type CurrencyCode,
 } from '@/lib/currency-format';
+import { PreShortlistStep } from './components/PreShortlistStep';
 
 const POST_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
+  { id: 'pre-shortlist', label: 'Pre-Shortlist Questions' },
 ] as const;
 
 const CURRENCIES = [
@@ -73,14 +75,7 @@ export default function EmployerNewJobPage() {
     loading: employerProfileLoading,
   } = useGetEmployerProfile();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<JobPostingFormData>({
+  const methods = useForm<JobPostingFormData>({
     resolver: zodResolver(jobPostingSchema),
     mode: 'onChange',
     defaultValues: {
@@ -94,8 +89,18 @@ export default function EmployerNewJobPage() {
       salaryMin: undefined,
       salaryMax: undefined,
       skills: [],
+      preShortlistThreshold: 50,
+      preShortlistQuestions: [],
     },
   });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = methods;
 
   // Watch fields for tracking
   const remote = watch('remote');
@@ -143,6 +148,16 @@ export default function EmployerNewJobPage() {
         );
       case 1: // Job Description
         return !errors.description && !isHtmlContentEmpty(description);
+      case 2: // Pre-Shortlist
+        return (
+          !errors.preShortlistThreshold &&
+          !errors.preShortlistQuestions &&
+          currentValues.preShortlistQuestions.every(
+            (q) =>
+              q.question.trim().length >= 5 &&
+              q.expectedAnswer.trim().length >= 1
+          )
+        );
       default:
         return true;
     }
@@ -193,6 +208,8 @@ export default function EmployerNewJobPage() {
         salaryMax: data.salaryMax ?? undefined,
         companyId: employerProfile?.company?.id || 0,
         requirements,
+        preShortlistThreshold: data.preShortlistThreshold,
+        preShortlistQuestions: data.preShortlistQuestions,
       };
       await submitJob(payload);
     } catch {
@@ -209,10 +226,11 @@ export default function EmployerNewJobPage() {
         Fill in the details to create a new job posting.
       </p>
 
-      <form onSubmit={handleSubmit(handleComplete)}>
+      <FormProvider {...methods}>
         <Stepper
           steps={POST_JOB_STEPS}
           canProceed={canProceed}
+          onComplete={handleSubmit(handleComplete)}
           loading={
             creatingJob ||
             skillsLoading ||
@@ -522,8 +540,11 @@ export default function EmployerNewJobPage() {
               )}
             </div>
           </div>
+
+          {/* Step 3: Pre-Shortlist */}
+          <PreShortlistStep />
         </Stepper>
-      </form>
+      </FormProvider>
     </div>
   );
 }

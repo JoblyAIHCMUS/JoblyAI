@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import ApplicantResumeViewer from '@/components/employer/applicantResumeViewer';
 import ApplicantProfile from '@/components/employer/applicantProfile';
+import PreShortlistAssessment from '@/components/employer/applicantProfile/PreShortlistAssessment';
 import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeConfirm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -205,7 +206,12 @@ export default function ApplicantDetails({
                 </div>
                 <Separator />
               </div>
-              <div className="mt-4 sm:mt-6"></div>
+              <div className="mt-4 sm:mt-6">
+                <PreShortlistAssessment
+                  applicationId={applicant.id}
+                  jobId={applicant.jobListingId}
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -18,7 +18,8 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/notification-type.enum';
 
-import { MatchingService } from '../ai/matching.service';
+import { MatchExplanationService } from '../ai/match-explanation.service';
+import { PreShortlistService } from '../pre-shortlist/pre-shortlist.service';
 
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
@@ -52,7 +53,8 @@ export class ApplicationsService {
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly notificationsService: NotificationsService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly matchingService: MatchingService
+    private readonly matchExplanationService: MatchExplanationService,
+    private readonly preShortlistService: PreShortlistService
   ) {}
 
   async createApplication(
@@ -119,6 +121,8 @@ export class ApplicationsService {
     if (existingApplication) {
       const activeStatuses: ApplicationStatus[] = [
         ApplicationStatus.APPLIED,
+        ApplicationStatus.PRE_SHORTLIST_PENDING,
+        ApplicationStatus.PRE_SHORTLIST_SUBMITTED,
         ApplicationStatus.INTERVIEW,
         ApplicationStatus.OFFER,
       ];
@@ -136,7 +140,7 @@ export class ApplicationsService {
         application = await this.prisma.application.update({
           where: { id: existingApplication.id },
           data: {
-            status: ApplicationStatus.APPLIED,
+            status: ApplicationStatus.APPLIED, // temporary; will be updated below
             resumeId: dto.resumeId,
             matchPercentage: null,
             aiFeedback: Prisma.JsonNull,
@@ -152,7 +156,7 @@ export class ApplicationsService {
           jobId: dto.jobId,
           candidateId,
           resumeId: dto.resumeId,
-          status: ApplicationStatus.APPLIED,
+          status: ApplicationStatus.APPLIED, // temporary; will be updated below
         },
         include,
       });
@@ -162,22 +166,34 @@ export class ApplicationsService {
       throw new BadRequestException('Could not process application');
     }
 
-    // Automatically calculate match score if embeddings exist
+    // Calculate match explanation (deterministic score with justification)
     try {
-      await this.matchingService.calculateApplicationScore(application.id);
-      // Reload application to get the updated matchPercentage
-      const updatedApp = await this.prisma.application.findUnique({
-        where: { id: application.id },
-        include,
-      });
-      if (updatedApp) {
-        application = updatedApp;
-      }
+      await this.matchExplanationService.calculateExplanation(application.id);
     } catch (error) {
       console.error(
-        `Failed to auto-calculate match score for application ${application.id}:`,
+        `Failed to calculate match explanation for application ${application.id}:`,
         error
       );
+    }
+
+    // Re-load the application to get the updated matchPercentage
+    const fresh = await this.prisma.application.findUnique({
+      where: { id: application.id },
+      select: { matchPercentage: true },
+    });
+
+    // Resolve the pre-shortlist status based on threshold + match score
+    const initialStatus = await this.preShortlistService.resolveInitialStatus(
+      dto.jobId,
+      fresh?.matchPercentage ?? null
+    );
+
+    if (initialStatus !== application.status) {
+      application = await this.prisma.application.update({
+        where: { id: application.id },
+        data: { status: initialStatus },
+        include,
+      });
     }
 
     try {
@@ -522,9 +538,13 @@ export class ApplicationsService {
       );
     }
 
-    if (application.status !== ApplicationStatus.APPLIED) {
+    if (
+      application.status !== ApplicationStatus.APPLIED &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_PENDING &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED
+    ) {
       throw new BadRequestException(
-        'Only applications with APPLIED status can be shortlisted'
+        'Only applications with APPLIED, PRE_SHORTLIST_PENDING, or PRE_SHORTLIST_SUBMITTED status can be shortlisted'
       );
     }
 
@@ -600,10 +620,12 @@ export class ApplicationsService {
 
     if (
       application.status !== ApplicationStatus.APPLIED &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_PENDING &&
+      application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED &&
       application.status !== ApplicationStatus.INTERVIEW
     ) {
       throw new BadRequestException(
-        'Only applications with APPLIED or INTERVIEW status can be rejected'
+        'Only applications with APPLIED, PRE_SHORTLIST_PENDING, PRE_SHORTLIST_SUBMITTED, or INTERVIEW status can be rejected'
       );
     }
 

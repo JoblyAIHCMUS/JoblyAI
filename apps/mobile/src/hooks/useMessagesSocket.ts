@@ -9,6 +9,7 @@ import type {
 import type { SendMessageAck } from '../types/message';
 
 let _socket: Socket | null = null;
+let currentChatId: string | null = null;
 
 export function getOrCreateSocket(): Socket {
   if (_socket) return _socket;
@@ -34,7 +35,21 @@ export function getOrCreateSocket(): Socket {
     reconnectionAttempts: 10,
   });
 
-  _socket.on('connect', () => console.log('[ws] connect', { id: _socket?.id }));
+  _socket.on('connect', () => {
+    console.log('[ws] connect', {
+      id: _socket?.id,
+    });
+
+    if (currentChatId) {
+      console.log('[ws] restore active chat', {
+        chatId: currentChatId,
+      });
+
+      _socket?.emit('chat_opened', {
+        chatId: currentChatId,
+      });
+    }
+  });
   _socket.on('disconnect', (reason) =>
     console.log('[ws] disconnect', { reason })
   );
@@ -59,6 +74,7 @@ export function getOrCreateSocket(): Socket {
 export function _resetSocketForTests(): void {
   _socket?.disconnect();
   _socket = null;
+  currentChatId = null;
 }
 
 // Typed emit helpers — keep the rest of the codebase from importing
@@ -78,6 +94,19 @@ export function emitMarkRead(
   const socket = getOrCreateSocket();
   console.log('[ws] emit mark_read', { friendId, connected: socket.connected });
   socket.emit('mark_read', { friendId }, ack);
+}
+
+export function emitChatOpened(chatId: string) {
+  currentChatId = chatId;
+  getOrCreateSocket().emit('chat_opened', {
+    chatId,
+  });
+}
+
+export function emitChatClosed() {
+  currentChatId = null;
+
+  getOrCreateSocket().emit('chat_closed');
 }
 
 export type { NewMessageEvent, MessageReadEvent };

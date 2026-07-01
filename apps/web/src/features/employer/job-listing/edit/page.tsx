@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,10 +25,12 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
-import { useUpdateJob } from '@/api-hook/jobs/useUpdateJob';
-import { useCategories } from '@/api-hook/jobs/useCategories';
-import { useSkillIds } from '@/api-hook/skills/useSkillIds';
+import { useJobDetail } from '@/api-hook/jobs';
+import { useUpdateJob } from '@/api-hook/jobs';
+import { useCategories } from '@/api-hook/jobs';
+import { useSkillIds } from '@/api-hook/skills';
+import { usePreShortlistQuestionsForJob } from '@/api-hook/pre-shortlist';
+import { PreShortlistStep } from '../../new-job/components/PreShortlistStep';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
 import { EMPLOYMENT_TYPE_OPTIONS } from '@/lib/employment-type-config';
@@ -41,6 +43,7 @@ import {
 const EDIT_JOB_STEPS = [
   { id: 'basic-info', label: 'Basic Information' },
   { id: 'description', label: 'Job Description' },
+  { id: 'pre-shortlist', label: 'Pre-Shortlist Questions' },
 ] as const;
 
 const CURRENCIES = [
@@ -87,18 +90,13 @@ export default function JobListingEditPage() {
     },
   });
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
+  const { data: preShortlistData, loading: preShortlistLoading } =
+    usePreShortlistQuestionsForJob(jobId);
 
   // Form setup
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<JobPostingFormData>({
+  const methods = useForm<JobPostingFormData>({
     resolver: zodResolver(jobPostingSchema),
-    mode: 'onBlur',
+    mode: 'onChange',
     defaultValues: {
       title: '',
       description: '',
@@ -110,8 +108,19 @@ export default function JobListingEditPage() {
       salaryMin: undefined,
       salaryMax: undefined,
       skills: [],
+      preShortlistThreshold: 0,
+      preShortlistQuestions: [],
     },
   });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    reset,
+    formState: { errors },
+  } = methods;
 
   // Watch fields
   const remote = watch('remote');
@@ -123,59 +132,48 @@ export default function JobListingEditPage() {
   const salaryMin = watch('salaryMin');
   const salaryMax = watch('salaryMax');
 
-  // Fetch job data on mount
+  // Fetch job data on mount and when jobId changes
   useEffect(() => {
     fetchJobDetail(jobId);
   }, [jobId, fetchJobDetail]);
 
-  // Populate form when job data loads
+  // Populate form once job data, pre-shortlist questions, and categories are all ready
   useEffect(() => {
-    if (jobData) {
-      setValue('title', jobData.title);
-      setValue('description', jobData.description);
-      setValue('type', jobData.type as EmploymentType);
-      setValue('remote', jobData.remote);
-      setValue('location', jobData.location || '');
-      setValue('categoryId', jobData.category.id.toString());
-      setValue(
-        'currency',
-        (jobData.currency ? jobData.currency.toLowerCase() : 'none') as
-          | 'none'
-          | 'usd'
-          | 'eur'
-          | 'gbp'
-          | 'vnd'
-          | 'jpy'
-          | 'cny'
-      );
-      setValue('salaryMin', jobData.salaryMin ?? undefined);
-      setValue('salaryMax', jobData.salaryMax ?? undefined);
-      setValue(
-        'skills',
-        (jobData.requirements || []).map((req) => ({
-          name: req.skillName,
-          importance: req.importance as SkillImportance,
-          minYearsExperience: req.minYearsExperience ?? undefined,
-        }))
-      );
-    }
-  }, [jobData, setValue]);
+    if (!jobData || preShortlistData === null || categoriesLoading) return;
+    reset({
+      title: jobData.title,
+      description: jobData.description,
+      type: jobData.type,
+      remote: jobData.remote,
+      location: jobData.location || '',
+      categoryId: String(jobData.category.id),
+      currency: (jobData.currency
+        ? jobData.currency.toLowerCase()
+        : 'none') as CurrencyCode,
+      salaryMin: jobData.salaryMin ?? undefined,
+      salaryMax: jobData.salaryMax ?? undefined,
+      skills: (jobData.requirements || []).map((req) => ({
+        name: req.skillName,
+        importance: req.importance as SkillImportance,
+        minYearsExperience: req.minYearsExperience ?? undefined,
+      })),
+      preShortlistThreshold:
+        preShortlistData.threshold ?? jobData.preShortlistThreshold ?? 0,
+      preShortlistQuestions: (preShortlistData.questions || [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((q) => ({
+          question: q.question,
+          expectedAnswer: q.expectedAnswer ?? '',
+        })),
+    });
+  }, [jobData, preShortlistData, categoriesLoading, reset]);
 
-  if (jobLoading) {
+  if (jobLoading || !jobData || preShortlistData === null) {
     return (
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
           Loading job...
-        </h1>
-      </div>
-    );
-  }
-
-  if (!jobData) {
-    return (
-      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-          Job not found
         </h1>
       </div>
     );
@@ -193,10 +191,14 @@ export default function JobListingEditPage() {
           !!currentValues.categoryId &&
           !errors.title &&
           !errors.type &&
-          !errors.categoryId
+          !errors.categoryId &&
+          !errors.salaryMin &&
+          !errors.salaryMax
         );
       case 1: // Job Description
         return !errors.description && !isHtmlContentEmpty(description);
+      case 2: // Pre-Shortlist (read-only; threshold already validated)
+        return !errors.preShortlistThreshold;
       default:
         return true;
     }
@@ -246,6 +248,7 @@ export default function JobListingEditPage() {
         salaryMin: data.salaryMin ?? undefined,
         salaryMax: data.salaryMax ?? undefined,
         requirements,
+        preShortlistThreshold: data.preShortlistThreshold,
       };
 
       await submitUpdate(jobId, payload);
@@ -270,11 +273,17 @@ export default function JobListingEditPage() {
         Update the details for <strong>{jobData.title}</strong>.
       </p>
 
-      <form onSubmit={handleSubmit(handleComplete)}>
+      <FormProvider {...methods}>
         <Stepper
           steps={EDIT_JOB_STEPS}
           canProceed={canProceed}
-          loading={submitLoading || skillsLoading || categoriesLoading}
+          onComplete={handleSubmit(handleComplete)}
+          loading={
+            submitLoading ||
+            skillsLoading ||
+            categoriesLoading ||
+            preShortlistLoading
+          }
         >
           {/* Step 1: Basic Information */}
           <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-2xl mx-auto px-3 sm:px-0">
@@ -423,17 +432,11 @@ export default function JobListingEditPage() {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoriesLoading ? (
-                      <div className="p-2 text-xs sm:text-sm text-slate-500">
-                        Loading categories...
-                      </div>
-                    ) : (
-                      categories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </SelectItem>
-                      ))
-                    )}
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.categoryId && (
@@ -486,9 +489,9 @@ export default function JobListingEditPage() {
                       <SelectValue placeholder="Currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CURRENCIES.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>
-                          {c.label}
+                      {CURRENCIES.map((curr) => (
+                        <SelectItem key={curr.value} value={curr.value}>
+                          {curr.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -584,8 +587,11 @@ export default function JobListingEditPage() {
               )}
             </div>
           </div>
+
+          {/* Step 3: Pre-Shortlist (read-only) */}
+          <PreShortlistStep readOnly />
         </Stepper>
-      </form>
+      </FormProvider>
     </div>
   );
 }

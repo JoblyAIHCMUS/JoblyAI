@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Stack } from 'expo-router';
 import {
-  Bell,
   CalendarDays,
   ChevronRight,
   Clock3,
   Building2,
   FileText,
-  Menu,
   MessageCircleQuestion,
   MapPin,
 } from 'lucide-react-native';
@@ -21,13 +19,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useListCandidateApplications } from '../../../../hooks/useListCandidateApplications';
-import { getFullName, useUser } from '../../../../hooks/useUser';
-import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
-import type { CandidateApplicationRecord } from '../../../../types/application';
-import CandidateDashboardSidebar from './components/CandidateDashboardSidebar';
+import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
+import { getFullName, useUser } from '@/hooks/useUser';
+import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
+import type { CandidateApplicationRecord } from '@/types/application';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
 
 const chartTabs = ['Status', 'Timeline'] as const;

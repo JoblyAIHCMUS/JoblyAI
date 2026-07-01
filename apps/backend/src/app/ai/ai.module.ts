@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
@@ -8,6 +8,7 @@ import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
 import { InterviewPrepService } from './interview-prep.service';
+import { MatchExplanationService } from './match-explanation.service';
 import { AiController } from './ai.controller';
 import { MatchingController } from './matching.controller';
 import { InterviewPrepController } from './interview-prep.controller';
@@ -20,12 +21,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 import { JobProcessor } from './processors/job.processor';
 import { JobListener } from './listeners/job.listener';
+import { PreShortlistEvaluationProcessor } from './processors/pre-shortlist-evaluation.processor';
+import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
 
 @Module({
   imports: [
     GcsModule,
     AuthModule,
     NotificationsModule,
+    forwardRef(() => PreShortlistModule),
     BullModule.registerQueue(
       { name: 'resume-extraction' },
       { name: 'resume-scoring' },
@@ -40,10 +44,12 @@ import { JobListener } from './listeners/job.listener';
     ScoringProcessor,
     JobProcessor,
     InterviewPrepProcessor,
+    PreShortlistEvaluationProcessor,
     AiProviderService,
     ResumeParserService,
     ResumeScoringService,
     InterviewPrepService,
+    MatchExplanationService,
     ProfileSyncService,
     MatchingService,
     ResumeListener,
@@ -55,6 +61,7 @@ import { JobListener } from './listeners/job.listener';
     ResumeParserService,
     ResumeScoringService,
     InterviewPrepService,
+    MatchExplanationService,
     ProfileSyncService,
     MatchingService,
   ],

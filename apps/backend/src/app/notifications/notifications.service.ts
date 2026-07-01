@@ -13,12 +13,17 @@ import { NotificationType } from './notification-type.enum';
 import { FcmService, type PushPayload } from './fcm.service';
 import type { RegisterDeviceDTO } from './dto/register-device.dto';
 
-type NotificationPreferenceKey = 'applications' | 'jobs' | 'recommendations';
+type NotificationPreferenceKey =
+  | 'applications'
+  | 'jobs'
+  | 'recommendations'
+  | 'messages';
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   applications: true,
   jobs: true,
   recommendations: true,
+  messages: true,
 };
 
 type NotificationSettingsFlags = {
@@ -26,6 +31,7 @@ type NotificationSettingsFlags = {
   applicationsEnabled: boolean;
   jobsEnabled: boolean;
   recommendationsEnabled: boolean;
+  messageEnabled: boolean;
 };
 
 const APPLICATION_NOTIFICATION_TYPES = new Set<NotificationType>([
@@ -200,6 +206,7 @@ export class NotificationsService {
         applicationsEnabled: DEFAULT_NOTIFICATION_SETTINGS.applications,
         jobsEnabled: DEFAULT_NOTIFICATION_SETTINGS.jobs,
         recommendationsEnabled: DEFAULT_NOTIFICATION_SETTINGS.recommendations,
+        messageEnabled: DEFAULT_NOTIFICATION_SETTINGS.messages,
       },
       update: {},
     });
@@ -220,6 +227,7 @@ export class NotificationsService {
         jobsEnabled: data.jobs ?? DEFAULT_NOTIFICATION_SETTINGS.jobs,
         recommendationsEnabled:
           data.recommendations ?? DEFAULT_NOTIFICATION_SETTINGS.recommendations,
+        messageEnabled: data.messages ?? DEFAULT_NOTIFICATION_SETTINGS.messages,
       },
       update: {
         ...(data.applications !== undefined && {
@@ -228,6 +236,9 @@ export class NotificationsService {
         ...(data.jobs !== undefined && { jobsEnabled: data.jobs }),
         ...(data.recommendations !== undefined && {
           recommendationsEnabled: data.recommendations,
+        }),
+        ...(data.messages !== undefined && {
+          messageEnabled: data.messages,
         }),
       },
     });
@@ -412,6 +423,7 @@ export class NotificationsService {
       applicationsEnabled: boolean;
       jobsEnabled: boolean;
       recommendationsEnabled: boolean;
+      messageEnabled: boolean;
     }
   ) {
     if (preferenceKey === 'applications') {
@@ -420,6 +432,10 @@ export class NotificationsService {
 
     if (preferenceKey === 'jobs') {
       return settings.jobsEnabled;
+    }
+
+    if (preferenceKey === 'messages') {
+      return settings.messageEnabled;
     }
 
     return settings.recommendationsEnabled;
@@ -447,11 +463,28 @@ export class NotificationsService {
     applicationsEnabled: boolean;
     jobsEnabled: boolean;
     recommendationsEnabled: boolean;
+    messageEnabled: boolean;
   }) {
     return {
       applications: settings.applicationsEnabled,
       jobs: settings.jobsEnabled,
       recommendations: settings.recommendationsEnabled,
+      messages: settings.messageEnabled,
     };
+  }
+  private async getNotificationSettingsEntity(userId: string) {
+    return this.prisma.notificationSettings.findUnique({
+      where: { userId },
+    });
+  }
+
+  async sendPushOnly(recipientId: string, payload: PushPayload) {
+    const settings = await this.getNotificationSettingsEntity(recipientId);
+
+    if (settings && !settings.messageEnabled) {
+      return;
+    }
+
+    await this.sendPushToUser(recipientId, payload);
   }
 }

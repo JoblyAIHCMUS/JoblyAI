@@ -24,7 +24,7 @@ export function SettingsTabs({
 }: SettingsTabsProps) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="inline-flex justify-start items-start gap-2 sm:gap-6 md:gap-10 bg-transparent p-0 h-auto overflow-x-auto border-b border-[#d6ddeb] w-full">
+      <TabsList className="inline-flex justify-start items-start gap-2 sm:gap-6 md:gap-10 bg-transparent p-0 h-auto overflow-x-auto rounded-none w-full">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (

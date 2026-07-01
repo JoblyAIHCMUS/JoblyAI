@@ -141,9 +141,10 @@ export function ApplicationHistoryRow({
   }, [item.status, moreActionOptions]);
 
   const handleRowClick = () => {
-    // If the job is closed (deleted), navigating might lead to a 404.
-    // However, we allow navigation so the user can see the 404/Not Found page
-    // which should ideally handle the "Job no longer available" state.
+    if (item.status === 'pre-shortlist-pending') {
+      router.push(`/candidate/pre-shortlist/${item.id}`);
+      return;
+    }
     router.push(`/candidate/find-jobs/${item.jobId}`);
   };
 
@@ -152,7 +153,11 @@ export function ApplicationHistoryRow({
     currentItem: ApplicationItem
   ) => {
     if (option === 'View details') {
-      router.push(`/candidate/find-jobs/${currentItem.jobId}`);
+      if (currentItem.status === 'pre-shortlist-pending') {
+        router.push(`/candidate/pre-shortlist/${currentItem.id}`);
+      } else {
+        router.push(`/candidate/find-jobs/${currentItem.jobId}`);
+      }
     } else if (option === 'Message recruiter' && onMessageRecruiter) {
       onMessageRecruiter(currentItem);
     }

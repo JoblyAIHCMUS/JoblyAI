@@ -68,6 +68,22 @@ export const jobPostingSchema = z
         minYearsExperience: z.number().nonnegative().optional(),
       })
     ),
+    preShortlistThreshold: z
+      .number()
+      .min(0, 'Threshold must be between 0 and 100')
+      .max(100, 'Threshold must be between 0 and 100'),
+    preShortlistQuestions: z.array(
+      z.object({
+        question: z
+          .string()
+          .min(5, 'Each question must be at least 5 characters')
+          .max(500, 'Each question must be at most 500 characters'),
+        expectedAnswer: z
+          .string()
+          .min(1, 'Each expected answer must be at least 1 character')
+          .max(500, 'Each expected answer must be at most 500 characters'),
+      })
+    ),
   })
   .refine(
     (data) => {

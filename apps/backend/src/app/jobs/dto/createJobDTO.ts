@@ -6,10 +6,13 @@ import {
   IsEnum,
   IsArray,
   Min,
+  Max,
+  ArrayMaxSize,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EmploymentType, RequirementImportance } from '@prisma/client';
+import { PreShortlistQuestionInput } from './preShortlistQuestionInput';
 
 export class JobRequirementInput {
   @IsNumber()
@@ -68,4 +71,17 @@ export class CreateJobDTO {
   @ValidateNested({ each: true })
   @Type(() => JobRequirementInput)
   requirements?: JobRequirementInput[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  preShortlistThreshold?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => PreShortlistQuestionInput)
+  preShortlistQuestions?: PreShortlistQuestionInput[];
 }

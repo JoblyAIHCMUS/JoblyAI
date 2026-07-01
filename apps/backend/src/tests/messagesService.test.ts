@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { types } from 'cassandra-driver';
 import { MessagesService } from '../app/messages/messages.service';
 import { NotificationsService } from '../app/notifications/notifications.service';
+import { PresenceService } from '../app/messages/presence.service';
 
 // ============ Mock Data ============
 const mockUser1 = {
@@ -55,12 +56,19 @@ const mockPrisma = vi.hoisted(() => ({
   },
   user: {
     findMany: vi.fn().mockResolvedValue([]),
+    findUnique: vi.fn(),
   },
 }));
 
 // ============ Mock Notifications Service ============
 const mockNotificationsService = vi.hoisted(() => ({
   createNotification: vi.fn(),
+  sendPushOnly: vi.fn(),
+}));
+
+// ============ Mock Presence Service ============
+const mockPresenceService = vi.hoisted(() => ({
+  isViewingChat: vi.fn(),
 }));
 
 describe('MessagesService', () => {
@@ -82,16 +90,25 @@ describe('MessagesService', () => {
           provide: NotificationsService,
           useValue: mockNotificationsService,
         },
+        {
+          provide: PresenceService,
+          useValue: mockPresenceService,
+        },
       ],
     }).compile();
 
     service = module.get<MessagesService>(MessagesService);
     vi.clearAllMocks();
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: mockUser1.id,
+      name: mockUser1.name,
+    });
 
     // Manually assign dependencies as standard injection might fail in some test environments
     (service as any).scylla = mockScylla;
     (service as any).prisma = mockPrisma;
     (service as any).notificationsService = mockNotificationsService;
+    (service as any).presenceService = mockPresenceService;
   });
 
   describe('sendMessage', () => {
@@ -107,6 +124,7 @@ describe('MessagesService', () => {
 
       mockScylla.execute.mockResolvedValue({ rows: [] });
       mockPrisma.conversation.upsert.mockResolvedValue({ id: 1 });
+      mockPresenceService.isViewingChat.mockReturnValue(false);
 
       // Act
       await service.sendMessage(senderId, sendMessageDto);

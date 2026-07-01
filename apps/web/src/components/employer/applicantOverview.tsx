@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, BarChart3 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
 } from '@/features/employer/all-applications/detail/data';
 import { hiringStageStyles } from '@/features/employer/hiringStage';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
+import { MatchExplanationDrawer } from '@/components/employer/matchExplanationDrawer';
 
 const employmentTypeLabels: Record<EmploymentType, string> = {
   FULL_TIME: 'Full-Time',
@@ -36,6 +38,7 @@ export default function ApplicantOverview({
 }: ApplicantOverviewProps) {
   const progress = hiringStageProgress[applicant.hiringStage];
   const progressColor = hiringStageColor[applicant.hiringStage];
+  const [showMatchExplanation, setShowMatchExplanation] = useState(false);
 
   return (
     <Card className="w-full md:sticky md:top-[88px] lg:top-20">
@@ -87,9 +90,18 @@ export default function ApplicantOverview({
           <p className="label-label-2-medium text-muted-foreground text-xs sm:text-sm">
             Score
           </p>
-          <p className="label-label-2-semi-bold text-xs sm:text-sm">
+          <button
+            onClick={() => setShowMatchExplanation(true)}
+            className="flex items-center gap-2 label-label-2-semi-bold text-xs sm:text-sm hover:text-primary transition-colors cursor-pointer"
+          >
+            <BarChart3 className="h-4 w-4" />
             {applicant.score.toFixed(1)}
-          </p>
+            {applicant.score > 0 && (
+              <span className="text-muted-foreground text-xs">
+                (click to view analysis)
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="space-y-2">
@@ -135,6 +147,12 @@ export default function ApplicantOverview({
 
         <MessageButton applicantId={applicant.applicantId} />
       </CardContent>
+
+      <MatchExplanationDrawer
+        applicationId={applicant.id}
+        isOpen={showMatchExplanation}
+        onClose={() => setShowMatchExplanation(false)}
+      />
     </Card>
   );
 }

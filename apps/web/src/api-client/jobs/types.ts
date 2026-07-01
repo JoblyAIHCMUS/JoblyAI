@@ -19,6 +19,11 @@ import type {
   JobStatus,
 } from '@/types/job';
 
+export interface PreShortlistQuestionInput {
+  question: string;
+  expectedAnswer: string;
+}
+
 export interface PaginatedJobsResponse {
   jobs: JobPosting[];
   total: number;
@@ -63,6 +68,8 @@ export interface CreateJobPayload {
   categoryId: number;
   companyId: number;
   requirements?: JobRequirementInput[];
+  preShortlistThreshold?: number;
+  preShortlistQuestions?: PreShortlistQuestionInput[];
 }
 
 export interface UpdateJobPayload {
@@ -78,6 +85,8 @@ export interface UpdateJobPayload {
   companyId?: number;
   requirements?: JobRequirementInput[];
   status?: 'DRAFT' | 'OPEN' | 'CLOSED';
+  preShortlistThreshold?: number;
+  preShortlistQuestions?: PreShortlistQuestionInput[];
 }
 
 // Analytics types

@@ -10,6 +10,7 @@ import {
   SettingsTabs,
   ProfilePhotoSection,
   PersonalDetailsForm,
+  ApiKeysSection,
 } from './components';
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
@@ -129,7 +130,7 @@ export default function EmployerSettingsPage() {
         className="w-full flex flex-col flex-1"
       >
         {/* Header Section with Tabs */}
-        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+        <div className="sticky top-0 z-10 border-b border-[#d6ddeb] bg-white px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-5">
           <SettingsTabs
             tabs={SETTINGS_TABS}
             activeTab={activeTab}
@@ -234,11 +235,20 @@ export default function EmployerSettingsPage() {
               applications: true,
               jobs: false,
               recommendations: false,
+              messages: true,
             }}
             onChange={(key: string) => {
               // TODO: Implement notification preferences
             }}
           />
+        </TabsContent>
+
+        {/* Developer Tab Content */}
+        <TabsContent
+          value="developer"
+          className="self-stretch flex flex-col gap-4 sm:gap-5 md:gap-6 bg-white !mt-0 flex-1"
+        >
+          <ApiKeysSection role="employer" />
         </TabsContent>
       </Tabs>
     </div>

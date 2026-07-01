@@ -163,6 +163,9 @@ model JobPosting {
   type        EmploymentType              @default(FULL_TIME)
   embedding   Unsupported("vector(768)")?
 
+  preShortlistThreshold Int      @default(0)
+  preShortlistQuestions PreShortlistQuestion[]
+
   postedById String
   postedBy   User   @relation(fields: [postedById], references: [id])
 
@@ -422,6 +425,7 @@ model NotificationSettings {
   applicationsEnabled    Boolean  @default(true)
   jobsEnabled            Boolean  @default(true)
   recommendationsEnabled Boolean  @default(true)
+  messageEnabled Boolean @default(true)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -429,19 +433,22 @@ model NotificationSettings {
 }
 
 model Application {
-  id              Int               @id @default(autoincrement())
-  jobId           Int
-  job             JobPosting        @relation(fields: [jobId], references: [id])
-  candidateId     String
-  candidate       User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  resumeId        Int
-  resume          Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  matchPercentage Float?
-  aiFeedback      Json?
-  status          ApplicationStatus @default(APPLIED)
-  jobDeletedAt    DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id               Int               @id @default(autoincrement())
+  jobId            Int
+  job              JobPosting        @relation(fields: [jobId], references: [id])
+  candidateId      String
+  candidate        User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeId         Int
+  resume           Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  matchPercentage  Float?
+  matchExplanation Json?
+  scoringMode      String?           @default("hybrid")
+  aiFeedback       Json?
+  preShortlistAnswers PreShortlistAnswer[]
+  status           ApplicationStatus @default(APPLIED)
+  jobDeletedAt     DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([jobId])
   @@index([candidateId])
@@ -451,6 +458,8 @@ model Application {
 
 enum ApplicationStatus {
   APPLIED
+  PRE_SHORTLIST_PENDING
+  PRE_SHORTLIST_SUBMITTED
   INTERVIEW
   OFFER
   REJECTED
@@ -593,4 +602,36 @@ model Apikey {
   @@index([referenceId])
   @@index([key])
   @@map("apikey")
+}
+
+model PreShortlistQuestion {
+  id             String   @id @default(cuid())
+  jobId          Int
+  job            JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  order          Int
+  question       String
+  expectedAnswer String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  answers PreShortlistAnswer[]
+
+  @@index([jobId, order])
+  @@map("pre_shortlist_question")
+}
+
+model PreShortlistAnswer {
+  id            String   @id @default(cuid())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      PreShortlistQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer        String   @db.Text
+  llmComment    String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([applicationId, questionId])
+  @@index([applicationId])
+  @@map("pre_shortlist_answer")
 }

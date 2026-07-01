@@ -36,6 +36,9 @@ interface JobDetailHeaderProps {
   jobId: number;
   jobType?: EmploymentType;
   hasApplied?: boolean;
+  preShortlistEligible?: boolean;
+  preShortlistState?: 'NONE' | 'PENDING' | 'SUBMITTED';
+  applicationId?: number;
 }
 
 export default function JobDetailHeader({
@@ -47,6 +50,9 @@ export default function JobDetailHeader({
   jobId,
   jobType = 'FULL_TIME',
   hasApplied = false,
+  preShortlistEligible: _preShortlistEligible = false,
+  preShortlistState = 'NONE',
+  applicationId,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
@@ -125,6 +131,18 @@ export default function JobDetailHeader({
     } else if (canApplyRole) {
       setIsModalOpen(true);
     }
+  };
+
+  const showPreShortlistCta = isApplied && preShortlistState === 'PENDING';
+  const showPreShortlistSubmitted =
+    isApplied && preShortlistState === 'SUBMITTED';
+  const preShortlistLabel = showPreShortlistSubmitted
+    ? 'Pre-shortlist Submitted'
+    : 'Answer Pre-shortlist Questions';
+
+  const handlePreShortlistClick = () => {
+    if (!showPreShortlistCta || !applicationId) return;
+    router.push(`/candidate/pre-shortlist/${applicationId}`);
   };
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-14 sm:pt-16 lg:pt-[72px]">
@@ -248,26 +266,44 @@ export default function JobDetailHeader({
               </button>
             )}
 
-            <button
-              onClick={handleApply}
-              disabled={disableApply}
-              className={`${
-                disableApply
-                  ? 'bg-slate-100 text-slate-500 cursor-not-allowed opacity-60'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-              } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
-              title={
-                !user
-                  ? 'Sign in to apply'
-                  : !canApplyRole
-                  ? 'Only candidates can apply'
-                  : isApplied
-                  ? 'You have already applied'
-                  : 'Apply for this job'
-              }
-            >
-              {applyButtonText}
-            </button>
+            {showPreShortlistCta ? (
+              <button
+                onClick={handlePreShortlistClick}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto"
+                title="Answer the pre-shortlist questions"
+              >
+                {preShortlistLabel}
+              </button>
+            ) : showPreShortlistSubmitted ? (
+              <button
+                disabled
+                className="bg-slate-100 text-slate-500 cursor-not-allowed opacity-60 font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto"
+                title="You have already submitted the pre-shortlist answers"
+              >
+                {preShortlistLabel}
+              </button>
+            ) : (
+              <button
+                onClick={handleApply}
+                disabled={disableApply}
+                className={`${
+                  disableApply
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed opacity-60'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                } font-semibold h-11 px-5 sm:px-6 lg:px-7 rounded-[5px] text-sm sm:text-base transition-colors w-full sm:w-auto`}
+                title={
+                  !user
+                    ? 'Sign in to apply'
+                    : !canApplyRole
+                    ? 'Only candidates can apply'
+                    : isApplied
+                    ? 'You have already applied'
+                    : 'Apply for this job'
+                }
+              >
+                {applyButtonText}
+              </button>
+            )}
           </div>
         </div>
       </div>

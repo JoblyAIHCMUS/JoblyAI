@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { AiGateway } from '../ai.gateway';
 import { ResumeParserService } from '../resume-parser.service';
 import { ResumeScoringService } from '../resume-scoring.service';
+import { MatchExplanationService } from '../match-explanation.service';
 import { GcsService } from '../../gcs/gcs.service';
 import { InjectPrisma } from '../../decorators/inject.decorator';
 import { PrismaClient } from '@prisma/client';
@@ -18,6 +19,7 @@ export class ScoringProcessor extends WorkerHost {
     private readonly aiGateway: AiGateway,
     private readonly parserService: ResumeParserService,
     private readonly scoringService: ResumeScoringService,
+    private readonly matchExplanationService: MatchExplanationService,
     private readonly gcsService: GcsService,
     private readonly notificationsService: NotificationsService,
     @InjectPrisma() private readonly prisma: PrismaClient
@@ -80,6 +82,28 @@ export class ScoringProcessor extends WorkerHost {
       this.logger.log(
         `Updated database for resume ${resumeId} with score ${finalScore}`
       );
+
+      // 6. Calculate match explanations for all applications using this resume
+      const applications = await this.prisma.application.findMany({
+        where: { resumeId: resumeId },
+        select: { id: true },
+      });
+
+      if (applications.length > 0) {
+        this.logger.log(
+          `Calculating match explanations for ${applications.length} applications using resume ${resumeId}`
+        );
+
+        for (const app of applications) {
+          try {
+            await this.matchExplanationService.calculateExplanation(app.id);
+          } catch (error: any) {
+            this.logger.warn(
+              `Failed to calculate match explanation for application ${app.id}: ${error.message}`
+            );
+          }
+        }
+      }
 
       // Emit real-time notification via Socket.io
       this.aiGateway.notifyUser(candidateId, 'RESUME_SCORED', { resumeId });

@@ -7,6 +7,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { JobsService } from '../app/jobs/jobs.service';
 import { GetJobsQueryDTO } from '../app/jobs/dto/getJobsQueryDTO';
+import { PreShortlistService } from '../app/pre-shortlist/pre-shortlist.service';
 
 const mockJobDbRecord = vi.hoisted(() => ({
   id: 1,
@@ -68,6 +69,19 @@ const mockEventEmitter = vi.hoisted(() => ({
   emit: vi.fn(),
 }));
 
+const mockPreShortlistService = vi.hoisted(() => ({
+  resolveInitialStatus: vi.fn().mockResolvedValue('APPLIED'),
+  validateQuestions: vi.fn(),
+  getQuestionsForJob: vi.fn(),
+  getPreShortlistForApplication: vi.fn(),
+  getStatusForApplication: vi.fn(),
+  submitAnswers: vi.fn(),
+  retryEvaluation: vi.fn(),
+  buildPrompt: vi.fn(),
+  persistEvaluation: vi.fn(),
+  markEvaluationFailed: vi.fn(),
+}));
+
 describe('JobsService', () => {
   let service: JobsService;
 
@@ -83,12 +97,20 @@ describe('JobsService', () => {
           provide: EventEmitter2,
           useValue: mockEventEmitter,
         },
+        {
+          provide: PreShortlistService,
+          useValue: mockPreShortlistService,
+        },
       ],
     }).compile();
 
     service = module.get<JobsService>(JobsService);
     (service as unknown as { eventEmitter: EventEmitter2 }).eventEmitter =
       mockEventEmitter as unknown as EventEmitter2;
+    (
+      service as unknown as { preShortlistService: PreShortlistService }
+    ).preShortlistService =
+      mockPreShortlistService as unknown as PreShortlistService;
     vi.clearAllMocks();
   });
 
@@ -169,6 +191,7 @@ describe('JobsService', () => {
           salaryMin: 50000,
           salaryMax: 100000,
           postedById: userId,
+          preShortlistThreshold: 0,
           requirements: {
             create: [
               { skillId: 10, importance: 'REQUIRED', minYearsExperience: 2 },

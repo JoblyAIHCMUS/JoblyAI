@@ -13,7 +13,7 @@ import { ApplicationsTabs } from './components/ApplicationsTabs';
 import { ApplicationCard } from './components/ApplicationCard';
 import { FeatureBanner } from './components/FeatureBanner';
 import { SearchFilterBar } from './components/SearchFilterBar';
-import CandidateDashboardSidebar from '../dashboard/components/CandidateDashboardSidebar';
+import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { Text } from '@/components/ui/text';
 
 import { useListCandidateApplications } from '../../../../hooks/useListCandidateApplications';

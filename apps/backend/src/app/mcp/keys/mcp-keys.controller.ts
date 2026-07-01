@@ -26,12 +26,14 @@ export class McpKeysController {
   @Get()
   async list(@Req() req: AuthenticatedRequest) {
     return this.mcpKeysService.list({
-      authorization: req.headers.authorization,
+      headers: req.headers as Record<string, string | string[]>,
     });
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.mcpKeysService.delete(id);
+  async delete(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    await this.mcpKeysService.delete(id, {
+      headers: req.headers as Record<string, string | string[]>,
+    });
   }
 }
