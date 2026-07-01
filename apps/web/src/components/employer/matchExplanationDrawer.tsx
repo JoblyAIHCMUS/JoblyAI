@@ -1,13 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,12 +18,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Search,
-  Trophy,
-  Target,
   Briefcase,
-  Star,
-  Calculator,
+  Clock,
 } from 'lucide-react';
 import {
   getMatchExplanation,
@@ -38,6 +27,7 @@ import {
   type MatchExplanation,
   type RequirementMatch,
 } from '@/api-client/matching/explanation';
+import { Modal, ModalHeader, ModalBody } from '@/components/ui/modal';
 
 interface MatchExplanationDrawerProps {
   applicationId: string | number;
@@ -53,20 +43,18 @@ export function MatchExplanationDrawer({
   const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
   const [loading, setLoading] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
-  const [scoringMode, setScoringMode] = useState<
-    'hybrid' | 'exact' | 'embedding'
-  >('hybrid');
+  const [scoringMode, setScoringMode] = useState<'exact' | 'embedding'>('embedding');
 
   useEffect(() => {
     if (isOpen && applicationId) {
       fetchExplanation();
     }
-  }, [isOpen, applicationId]);
+  }, [isOpen, applicationId, scoringMode]);
 
   const fetchExplanation = async () => {
     setLoading(true);
     try {
-      const data = await getMatchExplanation(Number(applicationId));
+      const data = await getMatchExplanation(Number(applicationId), scoringMode);
       setExplanation(data);
     } catch (error) {
       console.error('Failed to fetch match explanation:', error);
@@ -78,7 +66,7 @@ export function MatchExplanationDrawer({
   const handleRecalculate = async () => {
     setRecalculating(true);
     try {
-      const data = await recalculateMatchExplanation(Number(applicationId));
+      const data = await recalculateMatchExplanation(Number(applicationId), scoringMode);
       setExplanation(data);
     } catch (error) {
       console.error('Failed to recalculate match explanation:', error);
@@ -87,45 +75,10 @@ export function MatchExplanationDrawer({
     }
   };
 
-  const getCurrentScore = () => {
-    if (!explanation) return 0;
-    switch (scoringMode) {
-      case 'exact':
-        return explanation.exactScore;
-      case 'embedding':
-        return explanation.embeddingScore;
-      default:
-        return explanation.hybridScore;
-    }
-  };
-
-  const getCurrentRequirementPercentage = () => {
-    if (!explanation?.scoreBreakdown) return 0;
-    const { exactPercentage, embeddingPercentage } = explanation.scoreBreakdown;
-    switch (scoringMode) {
-      case 'exact':
-        return exactPercentage;
-      case 'embedding':
-        return embeddingPercentage;
-      default:
-        return exactPercentage * 0.3 + embeddingPercentage * 0.7;
-    }
-  };
-
-  const getFormula = () => {
-    if (!explanation?.scoreBreakdown) return '';
-    const reqPct = getCurrentRequirementPercentage();
-    const expScore = explanation.scoreBreakdown.experienceScore;
-    const final = getCurrentScore();
-    return `Final = ReqScore(${Math.round(
-      reqPct
-    )}) × 0.6 + ExpScore(${Math.round(expScore)}) × 0.4 = ${final}`;
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-blue-600';
-    if (score >= 40) return 'text-yellow-600';
+  const getScoreColor = (similarity: number) => {
+    if (similarity >= 0.8) return 'text-green-600';
+    if (similarity >= 0.6) return 'text-blue-600';
+    if (similarity >= 0.4) return 'text-yellow-600';
     return 'text-red-600';
   };
 
@@ -133,28 +86,28 @@ export function MatchExplanationDrawer({
     switch (status) {
       case 'strong_match':
         return (
-          <Badge variant="default" className="bg-green-600">
+          <Badge variant="default" className="bg-green-500 text-white hover:bg-green-600">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Strong Match
           </Badge>
         );
       case 'match':
         return (
-          <Badge variant="default" className="bg-blue-600">
+          <Badge variant="default" className="bg-blue-500 text-white hover:bg-blue-600">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Match
           </Badge>
         );
       case 'partial':
         return (
-          <Badge variant="secondary">
-            <Search className="mr-1 h-3 w-3" />
+          <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600">
+            <AlertTriangle className="mr-1 h-3 w-3" />
             Partial
           </Badge>
         );
       case 'no_match':
         return (
-          <Badge variant="destructive">
+          <Badge variant="destructive" className="bg-red-500 text-white hover:bg-red-600">
             <XCircle className="mr-1 h-3 w-3" />
             No Match
           </Badge>
@@ -176,212 +129,83 @@ export function MatchExplanationDrawer({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[400px] sm:w-[500px]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center justify-between">
-            <span>Match Analysis</span>
-            <div className="flex items-center gap-2">
-              <Select
-                value={scoringMode}
-                onValueChange={(value: 'hybrid' | 'exact' | 'embedding') =>
-                  setScoringMode(value)
-                }
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="exact">Exact Only</SelectItem>
-                  <SelectItem value="embedding">Embedding</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleRecalculate}
-                disabled={recalculating}
-              >
-                {recalculating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </SheetTitle>
-          <SheetDescription>
-            Detailed breakdown of how this candidate matches the job
-            requirements
-          </SheetDescription>
-        </SheetHeader>
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[95vw] max-h-[95vh]" zIndex={100}>
+      <ModalHeader onClose={onClose} />
+      <ModalBody>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold">Match Analysis</h2>
+          <div className="flex items-center gap-2">
+            <Select
+              value={scoringMode}
+              onValueChange={(value: 'exact' | 'embedding') =>
+                setScoringMode(value)
+              }
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="exact">Exact Match</SelectItem>
+                <SelectItem value="embedding">Embedding</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRecalculate}
+              disabled={recalculating}
+            >
+              {recalculating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              Recalculate
+            </Button>
+          </div>
+        </div>
+        <p className="mb-6 text-sm text-muted-foreground">
+          Detailed breakdown of how this candidate matches the job requirements
+        </p>
 
-        <ScrollArea className="mt-6 h-[calc(100vh-200px)]">
+        <ScrollArea className="h-[calc(100vh-250px)]">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : explanation ? (
             <div className="space-y-6">
-              {/* Overall Score */}
-              <div className="rounded-lg border p-4 text-center">
-                <div className="text-sm font-medium text-muted-foreground">
-                  Overall Score
-                </div>
-                <div
-                  className={`text-4xl font-bold ${getScoreColor(
-                    getCurrentScore()
-                  )}`}
-                >
-                  {getCurrentScore()}/100
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-muted">
-                  <div
-                    className="h-2 rounded-full bg-emerald-500 transition-all"
-                    style={{ width: `${getCurrentScore()}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Scoring Formula */}
-              {explanation.scoreBreakdown && (
-                <div className="rounded-lg border p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <Calculator className="h-4 w-4 text-orange-500" />
-                    <h3 className="font-semibold">Scoring Formula</h3>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="rounded bg-muted p-2 font-mono text-xs">
-                      {getFormula()}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="text-muted-foreground">
-                          Requirements:
-                        </span>{' '}
-                        <span className="font-medium">
-                          {getCurrentRequirementPercentage().toFixed(1)}%
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Experience:
-                        </span>{' '}
-                        <span className="font-medium">
-                          {explanation.scoreBreakdown.experienceScore.toFixed(
-                            1
-                          )}{' '}
-                          pts
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Exact match:
-                        </span>{' '}
-                        <span className="font-medium text-green-600">
-                          {explanation.scoreBreakdown.exactPercentage.toFixed(
-                            1
-                          )}
-                          %
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">
-                          Embedding:
-                        </span>{' '}
-                        <span className="font-medium text-blue-600">
-                          {explanation.scoreBreakdown.embeddingPercentage.toFixed(
-                            1
-                          )}
-                          %
-                        </span>
-                      </div>
-                    </div>
-                    <div className="border-t pt-2 text-xs text-muted-foreground">
-                      Final = ReqScore × 0.6 + ExpScore × 0.4
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Experience Tier */}
+              {/* Score */}
               <div className="rounded-lg border p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-yellow-500" />
-                  <h3 className="font-semibold">Experience Tier</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Years:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.experienceTier.totalYears.toFixed(1)} years
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Tier:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.experienceTier.tierLabel}
-                    </span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-muted-foreground">Base Score:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.experienceTier.baseScore} pts
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Alignment Matrix */}
-              <div className="rounded-lg border p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Target className="h-4 w-4 text-blue-500" />
-                  <h3 className="font-semibold">Alignment Matrix</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Job Tier:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.alignment.jobTier}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Your Tier:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.alignment.candidateTier}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Distance:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.alignment.distance > 0 ? '+' : ''}
-                      {explanation.alignment.distance}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Multiplier:</span>{' '}
-                    <span className="font-medium">
-                      {explanation.alignment.multiplier}x
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quality Boosters */}
-              <div className="rounded-lg border p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Star className="h-4 w-4 text-purple-500" />
+                <div className="mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <h3 className="font-semibold">
-                    Quality Boosters: +{explanation.qualityBoosters.total} pts
+                    {scoringMode === 'exact' ? 'Exact Match Score' : 'Embedding Score'}
                   </h3>
                 </div>
-                <div className="space-y-2">
-                  {explanation.qualityBoosters.breakdown.map((item, index) => (
-                    <div key={index} className="text-sm text-muted-foreground">
-                      {item}
-                    </div>
-                  ))}
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-4xl font-bold ${getScoreColor((scoringMode === 'exact' ? (explanation.exactMatchScore ?? 0) : (explanation.overallScore ?? 0)) / 100)}`}>
+                    {(scoringMode === 'exact' ? (explanation.exactMatchScore ?? 0) : (explanation.overallScore ?? 0)).toFixed(2)}%
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {scoringMode === 'exact' ? 'requirements met' : 'semantic similarity'}
+                  </span>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Experience */}
+              <div className="rounded-lg border p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-yellow-500" />
+                  <h3 className="font-semibold">Experience</h3>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Career span:</span>{' '}
+                  <span className="font-medium">
+                    {explanation.experienceYears} years
+                  </span>
                 </div>
               </div>
 
@@ -391,13 +215,11 @@ export function MatchExplanationDrawer({
               <div>
                 <div className="mb-3 flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-green-500" />
-                  <h3 className="font-semibold">Requirement Breakdown</h3>
+                  <h3 className="font-semibold">Requirements</h3>
                   <Badge variant="outline" className="ml-auto text-xs">
                     {scoringMode === 'exact'
-                      ? 'Exact scores'
-                      : scoringMode === 'embedding'
-                      ? 'Embedding scores'
-                      : 'Both scores'}
+                      ? 'Exact match only'
+                      : 'Embedding only'}
                   </Badge>
                 </div>
                 <div className="space-y-3">
@@ -416,81 +238,45 @@ export function MatchExplanationDrawer({
                         </div>
                       ) : null}
 
-                      {/* Mode-specific score display */}
+                      {/* Hard constraint status - show in exact mode */}
                       {scoringMode === 'exact' && (
                         <div className="mb-1 flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
-                            Score:
+                            Hard constraint:
                           </span>
                           <span
-                            className={`text-sm font-semibold ${getScoreColor(
-                              req.exactScore
-                            )}`}
+                            className={`text-sm font-semibold ${
+                              req.hardConstraintMet
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            }`}
                           >
-                            {req.exactScore.toFixed(0)}
+                            {req.hardConstraintMet ? 'Met' : 'Not met'}
                           </span>
                         </div>
                       )}
+
+                      {/* Embedding similarity - show in embedding mode */}
                       {scoringMode === 'embedding' && (
                         <div className="mb-1 flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
-                            Score:
+                            Similarity:
                           </span>
                           <span
                             className={`text-sm font-semibold ${getScoreColor(
-                              req.embeddingScore
+                              req.embeddingSimilarity
                             )}`}
                           >
-                            {req.embeddingScore.toFixed(0)}
+                            {req.embeddingSimilarity > 0
+                              ? `${(req.embeddingSimilarity * 100).toFixed(2)}%`
+                              : 'N/A'}
                           </span>
-                        </div>
-                      )}
-                      {scoringMode === 'hybrid' && (
-                        <div className="mb-1 flex items-center gap-3">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">
-                              Exact:
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${getScoreColor(
-                                req.exactScore
-                              )}`}
-                            >
-                              {req.exactScore.toFixed(0)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">
-                              Embed:
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${getScoreColor(
-                                req.embeddingScore
-                              )}`}
-                            >
-                              {req.embeddingScore.toFixed(0)}
-                            </span>
-                          </div>
                         </div>
                       )}
 
                       <div className="text-sm text-muted-foreground">
                         {req.justification}
                       </div>
-                      {req.exactMatch.found && (
-                        <div className="mt-2 text-xs text-green-600">
-                          ✓ Exact match: {req.exactMatch.candidateYears} years
-                          {req.exactMatch.candidateLevel &&
-                            ` (${req.exactMatch.candidateLevel})`}
-                        </div>
-                      )}
-                      {req.embeddingMatch?.matched && (
-                        <div className="mt-2 text-xs text-blue-600">
-                          🔍 Embedding:{' '}
-                          {(req.embeddingMatch.similarity * 100).toFixed(0)}%
-                          similarity
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -506,7 +292,7 @@ export function MatchExplanationDrawer({
             </div>
           )}
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </ModalBody>
+    </Modal>
   );
 }

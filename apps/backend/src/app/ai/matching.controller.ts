@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Query,
   UseGuards,
+  Body,
 } from '@nestjs/common';
 import { MatchingService } from './matching.service';
 import { MatchExplanationService } from './match-explanation.service';
@@ -45,17 +46,23 @@ export class MatchingController {
 
   @Get('application/:id/explanation')
   @UseGuards(AuthGuard)
-  async getMatchExplanation(@Param('id', ParseIntPipe) id: number) {
-    const cached = await this.matchExplanationService.getExplanation(id);
+  async getMatchExplanation(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('scoringMode') scoringMode?: 'exact' | 'embedding'
+  ) {
+    const cached = await this.matchExplanationService.getExplanation(id, scoringMode);
     if (cached) {
       return cached;
     }
-    return this.matchExplanationService.calculateExplanation(id);
+    return this.matchExplanationService.calculateExplanation(id, scoringMode);
   }
 
   @Post('application/:id/recalculate')
   @UseGuards(AuthGuard)
-  async recalculateExplanation(@Param('id', ParseIntPipe) id: number) {
-    return this.matchExplanationService.calculateExplanation(id);
+  async recalculateExplanation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { scoringMode?: 'exact' | 'embedding' }
+  ) {
+    return this.matchExplanationService.calculateExplanation(id, body.scoringMode);
   }
 }

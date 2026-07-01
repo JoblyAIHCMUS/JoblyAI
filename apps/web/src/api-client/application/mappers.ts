@@ -43,7 +43,7 @@ export function mapApplicationRecordToApplicant(
     name: candidate.name || candidate.email || 'Unknown Candidate',
     image: '', // Backend doesn't provide candidate image in ApplicationRecord
     appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
-    score: application.matchPercentage ?? 0,
+    score: application.matchExplanation?.overallScore ?? application.matchPercentage ?? 0,
     hiringStage: mapApplicationStatusToHiringStage(application.status),
   };
 }
@@ -85,7 +85,7 @@ export function mapApplicationRecordToApplicantDetail(
     employmentType: (application.job.type || 'FULL_TIME') as EmploymentType,
     appliedDate: application.createdAt.split('T')[0],
     resume: application.resume.fileKey || '',
-    score: application.matchPercentage ?? 0,
+    score: application.matchExplanation?.overallScore ?? application.matchPercentage ?? 0,
     hiringStage: mapApplicationStatusToHiringStage(application.status),
   };
 }

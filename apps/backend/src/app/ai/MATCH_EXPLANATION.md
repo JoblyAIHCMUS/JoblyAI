@@ -1,114 +1,54 @@
-# Hybrid Match Explanation System
+# Match Explanation System
 
 ## Overview
 
-The Hybrid Match Explanation System evaluates how well a candidate matches a job posting by combining two scoring approaches: **Exact Keyword Matching** and **Semantic Embedding Matching**. Both scores are computed independently for every requirement, and the scoring mode determines which score is used. The system produces a deterministic, explainable score with per-requirement justification.
+The Match Explanation System evaluates how well a candidate matches a job posting by combining **Hard-Constraint Compliance** (binary: meets/doesn't meet requirement) and **Semantic Embedding Matching** (cosine similarity). The system produces a deterministic, explainable breakdown with per-requirement justification.
 
 ---
 
 ## Scoring Architecture
 
-```
-Final Score = (Requirement Score × 0.6) + (Experience Score × 0.4)
-```
+No combined final score. The system shows:
 
-### Requirement Score (60% weight)
-
-The requirement score is calculated differently based on the scoring mode:
-
-| Mode               | Formula                                                       |
-| ------------------ | ------------------------------------------------------------- |
-| **Hybrid**         | Per-requirement: use exact if found, else embedding           |
-| **Exact Only**     | Uses exactScore per requirement (0 if no exact match)         |
-| **Embedding Only** | Uses embeddingScore per requirement (0 if no embedding match) |
-
-### Experience Score (40% weight)
-
-```
-Experience Score = Alignment Multiplier × (Base Score + Quality Boosters)
-```
+1. **Experience Years** — raw career span (no tiers, no multipliers)
+2. **Per-Requirement Breakdown** — hard constraint status + embedding similarity for each requirement
 
 ---
 
-## The 5-Phase Scoring Pipeline
+## The Scoring Pipeline
 
-### Phase 1: Experience Tier (Logarithmic Growth Curve)
+### Step 1: Calculate Experience Years
 
-Determines the candidate's base score based on total years of experience.
-
-| Years | Tier | Label            | Base Score |
-| ----- | ---- | ---------------- | ---------- |
-| 0–1   | 1    | Fresher          | 40 pts     |
-| 1–2.9 | 2    | Junior           | 65 pts     |
-| 3–4.9 | 3    | Senior           | 85 pts     |
-| 5–7.9 | 4    | Long-term Senior | 100 pts    |
-| 8+    | 5    | Master / Lead    | 110 pts    |
-
-**Formula:** Logarithmic curve that rewards early growth heavily, then tapers at mastery level.
-
-### Phase 2: Alignment Matrix
-
-Prevents absurd placements (e.g., Fresher applying for Lead role) via a distance-based multiplier.
+Determines the candidate's career span from work experience.
 
 ```
-Distance = Candidate Tier − Job Tier
+Career Span = (latest end date - earliest start date) / 12
 ```
 
-| Distance | Scenario                   | Multiplier        |
-| -------- | -------------------------- | ----------------- |
-| 0        | Perfect match              | 1.0×              |
-| −1       | Slight stretch             | 0.85×             |
-| ≤ −2     | Grossly underqualified     | 0.3×              |
-| +1       | Slight overqualification   | 1.0× (no penalty) |
-| +2       | Moderate overqualification | 0.7×              |
-| ≥ +3     | Grossly overqualified      | 0.4×              |
+- Education keywords (student, intern, university, etc.) are filtered out
+- Only counted from work experience entries
 
-**Job Tier Derivation:** Combined from job requirements (max `minYearsExperience`) + LLM classification of job title/description.
-
-### Phase 3: Quality Boosters (LLM-Based)
-
-Extracts contextual signals from the resume using the Gemini LLM.
-
-| Category     | Max Points | Detection Method                                     |
-| ------------ | ---------- | ---------------------------------------------------- |
-| Project Type | 20         | LLM: enterprise/industrial vs personal/indie         |
-| Scale        | 15         | LLM: high-traffic apps, complex architecture         |
-| Leadership   | 15         | LLM: direct management, mentorship, sole contributor |
-
-**Total possible boosters:** 50 points (added to alignment-adjusted base).
-
-Each booster includes a quoted evidence string from the resume for transparency.
-
-### Phase 4: Per-Requirement Matching
+### Step 2: Per-Requirement Matching
 
 For each `JobRequirement` in the job posting:
 
-#### Step 1: Exact Match
+#### Hard-Constraint Compliance (Binary)
 
 ```
-exactMatch(candidateSkills, experience) → { found, candidateYears, matchedFrom }
+checkHardConstraint(candidateSkills, experience) → boolean
 ```
 
 - Checks candidate's skills table by name (case-insensitive)
+- Handles combined names: "JavaScript/TypeScript" → ["javascript", "typescript"]
 - Falls back to scanning experience descriptions for skill mentions
-- Returns years of experience and level if matched
+- If `minYearsExperience` is set, checks that candidate meets the year requirement
 
-**Score based on years vs requirement:**
+**Result:** `true` (met) or `false` (not met)
 
-| Candidate Years vs Requirement | Score |
-| ------------------------------ | ----- |
-| No minYears requirement        | 60    |
-| ≥ 2× requirement               | 95    |
-| ≥ 1.5× requirement             | 85    |
-| ≥ 1× requirement               | 75    |
-| ≥ 0.75× requirement            | 55    |
-| ≥ 0.5× requirement             | 35    |
-| < 0.5× requirement             | 15    |
-
-#### Step 2: Embedding Match (always computed)
+#### Embedding Similarity (Cosine)
 
 ```
-embeddingMatch(skillEmbedding, requirementEmbedding) → { similarity, matched }
+embeddingSkillMatch(skillText, requirementText) → { similarity, matched }
 ```
 
 - Finds the candidate skill matching by name
@@ -117,58 +57,38 @@ embeddingMatch(skillEmbedding, requirementEmbedding) → { similarity, matched }
 - Computes cosine similarity between the two (short vs short comparison)
 - Matched if similarity > 0.5 (50%)
 
-**Score:** `similarity × 100`
+**Result:** `similarity` (0.0 to 1.0)
 
-Both exact and embedding scores are computed independently for every requirement. This allows the scoring mode to select the appropriate score:
+#### Status Determination
 
-- **Exact mode:** Uses `exactScore` per requirement (0 if no exact match)
-- **Embedding mode:** Uses `embeddingScore` per requirement (0 if no embedding match)
-- **Hybrid mode:** Uses `exactScore` if exact match found, otherwise `embeddingScore`
-
-#### Step 3: Importance Weighting
-
-| Importance | Weight |
-| ---------- | ------ |
-| REQUIRED   | 3×     |
-| PREFERRED  | 2×     |
-| OPTIONAL   | 1×     |
-
-**Per-requirement score** = `rawScore × importanceWeight`
-
-#### Step 4: Status Determination
-
-| Score Range | Status         |
-| ----------- | -------------- |
-| ≥ 80        | `strong_match` |
-| ≥ 60        | `match`        |
-| ≥ 30        | `partial`      |
-| < 30        | `no_match`     |
-
-### Phase 5: Final Score Calculation
-
-```typescript
-// Unified denominator: ALL requirements always contribute
-totalMaxScore = sum(100 × importanceWeight) for all requirements
-
-// Exact percentage: sum of exactScore / max for ALL requirements
-exactPercentage = (sum of exactScores / totalMaxScore) × 100
-
-// Embedding percentage: sum of embeddingScore / max for ALL requirements
-embeddingPercentage = (sum of embeddingScores / totalMaxScore) × 100
-
-// Hybrid: use exact if available, else embedding per requirement
-hybridTotal = sum(exactMatch.found ? exactScore : embeddingScore) for each requirement
-requirementPercentage = (hybridTotal / totalMaxScore) × 100
-
-// Final: 60% requirements + 40% experience
-finalScore = requirementPercentage × 0.6 + experienceScore × 0.4
-```
-
-All 3 scores (exact, embedding, hybrid) are pre-computed and stored — toggle is instant with no API call.
+| Condition                | Status         |
+| ------------------------ | -------------- |
+| Hard constraint met      | `strong_match` |
+| Similarity > 0.5         | `match`        |
+| Similarity > 0.3         | `partial`      |
+| Otherwise                | `no_match`     |
 
 ---
 
-## Example Calculation
+## What's NOT Used (Removed)
+
+The following components were removed because they had no evidence-based justification:
+
+| Component              | Why Removed                                    |
+| ---------------------- | ---------------------------------------------- |
+| Exact match scoring    | Years-based thresholds (60/95/85/75/55/35/15)  |
+| Importance weighting   | REQUIRED=3×, PREFERRED=2×, OPTIONAL=1×         |
+| Experience tiers       | 40/65/85/100/110 base scores                   |
+| Alignment matrix       | Multiplier logic (1.0/0.85/0.3/0.7/0.4)       |
+| Quality boosters       | LLM-based (project type, scale, leadership)    |
+| Job tier derivation    | LLM classification of job seniority            |
+| Final formula          | ReqScore × 0.6 + ExpScore × 0.4               |
+| Status thresholds      | 80/60/30 score cutoffs                         |
+| Hybrid/exact/embedding | Toggle between scoring modes                   |
+
+---
+
+## Example Output
 
 **Job Requirements:**
 
@@ -182,46 +102,39 @@ All 3 scores (exact, embedding, hybrid) are pre-computed and stored — toggle i
 - 3 years TypeScript
 - No GraphQL (but REST API experience — 62% semantic similarity)
 
-**Calculation:**
+**Output:**
 
-| Requirement | Exact Score    | Embedding Score | Importance     | Exact Weighted | Embed Weighted |
-| ----------- | -------------- | --------------- | -------------- | -------------- | -------------- |
-| React.js    | 75 (4yr ≥ 2yr) | 85 (similarity) | REQUIRED (3×)  | 225            | 255            |
-| TypeScript  | 75 (3yr ≥ 1yr) | 80 (similarity) | REQUIRED (3×)  | 225            | 240            |
-| GraphQL     | 0 (not found)  | 62 (similarity) | PREFERRED (2×) | 0              | 124            |
+```
+Experience: 4.0 years
 
-**Exact percentage:** 450 / 800 × 100 = **56.3%**
-**Embedding percentage:** 619 / 800 × 100 = **77.4%**
-**Hybrid (exact if found, else embedding):** (225 + 225 + 124) / 800 × 100 = **70.8%**
+Requirements:
 
-**Experience:** 4 years → Tier 3 (Senior, 85 pts) + Quality Boosters (+35) = 120 pts
-**Alignment:** Job Tier 3, Candidate Tier 3, Distance 0, Multiplier 1.0×
-**Experience Score:** 1.0 × (85 + 35) = **120**
+● React.js (Required)
+  ✓ Hard constraint met
+  Similarity: 85%
+  "React.js hard constraint met — skill is present in candidate's profile."
 
-**Final Score:** 70.8 × 0.6 + 120 × 0.4 = **42.5 + 48 = 90/100**
+● TypeScript (Required)
+  ✓ Hard constraint met
+  Similarity: 80%
+  "TypeScript hard constraint met — skill is present in candidate's profile."
+
+● GraphQL (Preferred)
+  ✗ Hard constraint not met
+  Similarity: 62%
+  "GraphQL hard constraint not met, but has 62% semantic similarity..."
+```
 
 ---
 
 ## When Scores Are Calculated
 
-| Trigger                       | Action                                             |
-| ----------------------------- | -------------------------------------------------- |
-| Application created           | Calculate all 3 scores (exact, embedding, hybrid)  |
+| Trigger                       | Action                                         |
+| ----------------------------- | ---------------------------------------------- |
+| Application created           | Calculate explanation                          |
 | Resume re-uploaded            | Recalculate for all applications using that resume |
-| Job posting updated           | Clear explanations; recalculated on next access    |
-| Employer clicks "Recalculate" | Fresh calculation on demand                        |
-
----
-
-## Toggle Behavior
-
-The employer can switch between scoring modes in the explanation drawer:
-
-- **Hybrid** (default): Uses exact score if exact match found, otherwise embedding score per requirement
-- **Exact Only**: Only exact keyword matches count (embedding contributions = 0)
-- **Embedding Only**: Only semantic similarity counts (exact contributions = 0)
-
-All 3 scores are pre-computed and stored — toggle is instant with no API call.
+| Job posting updated           | Clear explanations; recalculated on next access |
+| Employer clicks "Recalculate" | Fresh calculation on demand                    |
 
 ---
 
@@ -229,14 +142,10 @@ All 3 scores are pre-computed and stored — toggle is instant with no API call.
 
 ```
 Application Created
-  → Fetch: resume.parsedText, job.requirements, candidate.profile
-  → Phase 1: Experience Tier (deterministic)
-  → Phase 2: Alignment Matrix (deterministic)
-  → Phase 3: Quality Boosters (LLM call to Gemini)
-  → Phase 4: Per-Requirement Matching (exact + embedding)
-  → Phase 5: Composite Score
+  → Fetch: job.requirements, candidateSkills, candidateExperience
+  → Calculate career span years
+  → Per-Requirement: hard constraint check + embedding similarity
   → Store: Application.matchExplanation (JSON)
-  → Update: Application.matchPercentage
 ```
 
 ---
@@ -255,4 +164,4 @@ Application Created
 | Component                | Location               | Purpose                                 |
 | ------------------------ | ---------------------- | --------------------------------------- |
 | `MatchExplanationButton` | `components/employer/` | Icon button on applicant cards          |
-| `MatchExplanationDrawer` | `components/employer/` | Side panel with full breakdown + toggle |
+| `MatchExplanationDrawer` | `components/employer/` | Near full-screen modal with breakdown   |

@@ -13,7 +13,7 @@ import { MatchExplanationDrawer } from './matchExplanationDrawer';
 
 interface MatchExplanationButtonProps {
   applicationId: string | number;
-  score: number | null;
+  score?: number | null;
 }
 
 export function MatchExplanationButton({
@@ -21,10 +21,6 @@ export function MatchExplanationButton({
   score,
 }: MatchExplanationButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  if (!score && score !== 0) {
-    return null;
-  }
 
   return (
     <TooltipProvider>
@@ -43,7 +39,7 @@ export function MatchExplanationButton({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>View match analysis</p>
+          <p>View match analysis{score != null ? ` (${score.toFixed(2)}%)` : ''}</p>
         </TooltipContent>
       </Tooltip>
 

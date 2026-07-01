@@ -164,7 +164,7 @@ export const columns: ColumnDef<AllApplication>[] = [
         <span
           className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
         >
-          {Math.round(score)}%
+          {score.toFixed(2)}%
         </span>
       );
     },

@@ -853,6 +853,9 @@ export class ApplicationsService {
           email: application.candidate.email,
         },
       }),
+      ...(application.matchExplanation && {
+        matchExplanation: application.matchExplanation,
+      }),
     };
   }
 }

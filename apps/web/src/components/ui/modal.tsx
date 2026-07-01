@@ -1,6 +1,7 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 
 interface ModalProps {
@@ -9,10 +10,17 @@ interface ModalProps {
   children: ReactNode;
   className?: string;
   overlayClassName?: string;
+  zIndex?: number;
 }
 
 export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
-  ({ isOpen, onClose, children, className, overlayClassName }, ref) => {
+  ({ isOpen, onClose, children, className, overlayClassName, zIndex = 50 }, ref) => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
     useEffect(() => {
       if (!isOpen) return;
 
@@ -31,16 +39,17 @@ export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
       };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
+    const modalContent = (
       <>
         {/* Backdrop Overlay */}
         <div
           className={cn(
-            'fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity',
+            'fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity',
             overlayClassName
           )}
+          style={{ zIndex: zIndex - 1 }}
           onClick={onClose}
           role="presentation"
         />
@@ -49,18 +58,21 @@ export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
         <div
           ref={ref}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg bg-white shadow-2xl',
+            'fixed left-1/2 top-1/2 max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg bg-white shadow-2xl',
             'transform transition-all duration-200 ease-out',
             'animate-in fade-in zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%]',
             'max-w-xl',
             className
           )}
+          style={{ zIndex }}
           onClick={(e) => e.stopPropagation()}
         >
           {children}
         </div>
       </>
     );
+
+    return createPortal(modalContent, document.body);
   }
 );
 
