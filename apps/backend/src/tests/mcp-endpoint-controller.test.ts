@@ -38,14 +38,19 @@ describe('McpEndpointController', () => {
     vi.clearAllMocks();
     mockTransportState.handleRequest.mockResolvedValue(undefined);
     mockServerState.connect.mockResolvedValue(undefined);
-    controller = new McpEndpointController({
-      user: {
-        findUnique: vi
-          .fn()
-          .mockResolvedValue({ id: 'user-123', role: 'employer' }),
-      },
-      employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
-    } as never);
+    controller = new McpEndpointController(
+      {
+        user: {
+          findUnique: vi
+            .fn()
+            .mockResolvedValue({ id: 'user-123', role: 'employer' }),
+        },
+        employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
+      } as never,
+      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+      { emit: vi.fn() } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+    );
   });
 
   it('creates fresh transport and server per request with populated state', async () => {
@@ -57,7 +62,12 @@ describe('McpEndpointController', () => {
       },
       employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
     };
-    controller = new McpEndpointController(prisma as never);
+    controller = new McpEndpointController(
+      prisma as never,
+      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+      { emit: vi.fn() } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+    );
 
     const mockReq = {
       mcpUserId: 'user-123',
@@ -138,14 +148,19 @@ describe('McpEndpointController', () => {
   });
 
   it('passes companyId: null when caller has no Employer record', async () => {
-    controller = new McpEndpointController({
-      user: {
-        findUnique: vi
-          .fn()
-          .mockResolvedValue({ id: 'user-123', role: 'candidate' }),
-      },
-      employer: { findUnique: vi.fn().mockResolvedValue(null) },
-    } as never);
+    controller = new McpEndpointController(
+      {
+        user: {
+          findUnique: vi
+            .fn()
+            .mockResolvedValue({ id: 'user-123', role: 'candidate' }),
+        },
+        employer: { findUnique: vi.fn().mockResolvedValue(null) },
+      } as never,
+      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+      { emit: vi.fn() } as never,
+      { createNotifications: vi.fn().mockResolvedValue([]) } as never,
+    );
 
     const mockReq = {
       mcpUserId: 'user-123',
