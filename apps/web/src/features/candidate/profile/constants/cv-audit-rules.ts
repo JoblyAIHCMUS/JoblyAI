@@ -10,7 +10,7 @@ export const CV_AUDIT_RULES: Record<string, RuleReference> = {
   google_xyz: {
     key: 'google_xyz',
     label: 'Google Resume Writing Guide',
-    url: 'youtube.com/watch?v=BYUy1yvjHxE&feature=emb_title',
+    url: 'https://www.youtube.com/watch?v=BYUy1yvjHxE&feature=emb_title',
     summary:
       'Google XYZ formula requires achievements to be framed as: Accomplished [X] as measured by [Y] by doing [Z].',
     fullDescription:
