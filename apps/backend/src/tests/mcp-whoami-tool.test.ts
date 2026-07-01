@@ -10,6 +10,13 @@ const buildState = (user: unknown): McpState => ({
     user: { findUnique: vi.fn().mockResolvedValue(user) },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  matchExplanationService: {
+    calculateExplanation: vi.fn().mockResolvedValue(undefined),
+  } as never,
+  eventEmitter: { emit: vi.fn() } as never,
+  notificationsService: {
+    createNotifications: vi.fn().mockResolvedValue([]),
+  } as never,
 });
 
 describe('whoamiHandler', () => {
@@ -57,6 +64,13 @@ describe('whoamiHandler', () => {
         user: { findUnique: vi.fn().mockRejectedValue(new Error('DB error')) },
       } as never,
       logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+      matchExplanationService: {
+        calculateExplanation: vi.fn().mockResolvedValue(undefined),
+      } as never,
+      eventEmitter: { emit: vi.fn() } as never,
+      notificationsService: {
+        createNotifications: vi.fn().mockResolvedValue([]),
+      } as never,
     };
 
     const result = await whoamiHandler(state);
