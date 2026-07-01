@@ -130,15 +130,13 @@ describe('applyToJobHandler', () => {
 
   it('rejects when job is not OPEN', async () => {
     const state = buildState({
-      jobPostingFindUnique: vi
-        .fn()
-        .mockResolvedValue({
-          id: 1,
-          title: 'Dev',
-          status: 'CLOSED',
-          postedById: 'e-1',
-          preShortlistThreshold: 0,
-        }),
+      jobPostingFindUnique: vi.fn().mockResolvedValue({
+        id: 1,
+        title: 'Dev',
+        status: 'CLOSED',
+        postedById: 'e-1',
+        preShortlistThreshold: 0,
+      }),
     });
 
     const result = await applyToJobHandler(state, { jobId: 1, resumeId: 10 });

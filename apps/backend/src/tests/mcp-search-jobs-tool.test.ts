@@ -22,23 +22,21 @@ const buildState = ($transaction: ReturnType<typeof vi.fn>): McpState => ({
 
 describe('searchJobsHandler', () => {
   it('paginates and forces status=OPEN + deletedAt=null', async () => {
-    const $transaction = vi
-      .fn()
-      .mockResolvedValue([
-        25,
-        [
-          {
-            id: 1,
-            title: 'Dev',
-            status: 'OPEN',
-            deletedAt: null,
-            category: { id: 1, name: 'Tech' },
-            company: { id: 1, name: 'Acme' },
-            requirements: [],
-            _count: { applications: 3 },
-          },
-        ],
-      ]);
+    const $transaction = vi.fn().mockResolvedValue([
+      25,
+      [
+        {
+          id: 1,
+          title: 'Dev',
+          status: 'OPEN',
+          deletedAt: null,
+          category: { id: 1, name: 'Tech' },
+          company: { id: 1, name: 'Acme' },
+          requirements: [],
+          _count: { applications: 3 },
+        },
+      ],
+    ]);
     const state = buildState($transaction);
 
     const result = await searchJobsHandler(state, { page: 1, pageSize: 10 });
