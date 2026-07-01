@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
+import { ConfigModule } from '@nestjs/config';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -23,6 +24,7 @@ import { PreShortlistModule } from './pre-shortlist/pre-shortlist.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     EventEmitterModule.forRoot(),
     BullModule.forRoot({
       connection: {

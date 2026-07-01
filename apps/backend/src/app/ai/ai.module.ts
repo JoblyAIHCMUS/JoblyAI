@@ -1,9 +1,15 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { ConfigModule } from '@nestjs/config';
 import { AiGateway } from './ai.gateway';
 import { ResumeProcessor } from './processors/resume.processor';
 import { ScoringProcessor } from './processors/scoring.processor';
 import { InterviewPrepProcessor } from './processors/interview-prep.processor';
+import { InterviewPreparationPipeline } from './interview-preparation/pipeline/interview-preparation.pipeline';
+import { QueryGeneratorService } from './interview-preparation/retrieval/query-generator.service';
+import { TavilyProvider } from './interview-preparation/retrieval/tavily-provider.service';
+import { SEARCH_PROVIDER } from './interview-preparation/retrieval/search-provider.token.js';
+import { InterviewPromptBuilder } from './interview-preparation/prompts/interview-prompt.builder';
 import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
@@ -26,6 +32,7 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     GcsModule,
     AuthModule,
     NotificationsModule,
@@ -44,6 +51,13 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     ScoringProcessor,
     JobProcessor,
     InterviewPrepProcessor,
+    InterviewPreparationPipeline,
+    QueryGeneratorService,
+    InterviewPromptBuilder,
+    {
+      provide: SEARCH_PROVIDER,
+      useClass: TavilyProvider,
+    },
     PreShortlistEvaluationProcessor,
     AiProviderService,
     ResumeParserService,
@@ -61,9 +75,11 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     ResumeParserService,
     ResumeScoringService,
     InterviewPrepService,
+    QueryGeneratorService,
     MatchExplanationService,
     ProfileSyncService,
     MatchingService,
+    SEARCH_PROVIDER,
   ],
 })
 export class AiModule {}
