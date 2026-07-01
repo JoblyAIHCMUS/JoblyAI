@@ -18,6 +18,9 @@ const buildState = (role: 'employer' | 'candidate'): McpState => ({
   companyId: role === 'employer' ? 42 : null,
   prisma: {} as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  matchExplanationService: { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
+  eventEmitter: { emit: vi.fn() } as never,
+  notificationsService: { createNotifications: vi.fn().mockResolvedValue([]) } as never,
 });
 
 describe('createMcpServer', () => {
@@ -25,11 +28,22 @@ describe('createMcpServer', () => {
     registerSpy.mockClear();
   });
 
-  it('registers whoami for candidate role only', () => {
+  it('registers whoami and 7 candidate tools for candidate role', () => {
     createMcpServer(buildState('candidate'));
 
     const names = registerSpy.mock.calls.map((c) => c[0]);
-    expect(names).toEqual(['whoami']);
+    expect(names.sort()).toEqual(
+      [
+        'whoami',
+        'get_my_profile',
+        'list_my_resumes',
+        'search_jobs',
+        'list_my_applications',
+        'apply_to_job',
+        'update_profile',
+        'withdraw_application',
+      ].sort()
+    );
   });
 
   it('registers whoami and 9 employer tools for employer role', () => {
