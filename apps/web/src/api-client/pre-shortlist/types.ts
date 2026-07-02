@@ -61,6 +61,7 @@ export interface GenerateQuestionsRequest {
     importance: 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
     minYearsExperience: number | null;
   }[];
+  count?: number;
 }
 
 export interface GenerateQuestionsResponse {
