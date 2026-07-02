@@ -221,7 +221,7 @@ export class AiProviderService {
    */
   async generateEmbeddings(
     texts: string[],
-    concurrencyLimit: number = 3
+    concurrencyLimit = 3
   ): Promise<number[][]> {
     if (texts.length === 0) {
       return [];
