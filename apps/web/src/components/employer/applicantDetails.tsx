@@ -29,8 +29,10 @@ const REJECT_FEEDBACK =
 
 export default function ApplicantDetails({
   applicant,
+  refetch,
 }: {
   applicant: ApplicantDetail;
+  refetch?: () => Promise<unknown>;
 }) {
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -94,6 +96,7 @@ export default function ApplicantDetails({
           payload: { feedback: REJECT_FEEDBACK },
         });
       }
+      await refetch?.();
     } catch {
       // toasts handled in the hook
     }
@@ -198,9 +201,11 @@ export default function ApplicantDetails({
                       size="sm"
                       className="text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                       onClick={handleAdvanceStage}
-                      disabled={isMutating || !canAdvance}
+                      disabled={isMutating || !canAdvance || !nextStageMap[hiringStage]}
                     >
-                      Next Stage
+                      {nextStageMap[hiringStage]
+                        ? `Advance to ${nextStageMap[hiringStage]}`
+                        : 'Next Stage'}
                     </Button>
                   </div>
                 </div>
