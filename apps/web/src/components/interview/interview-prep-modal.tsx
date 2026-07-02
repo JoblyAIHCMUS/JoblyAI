@@ -23,7 +23,7 @@ import {
 import { useInterviewPrep } from '@/api-hook/ai/use-interview-prep';
 import {
   InterviewPrepStatus,
-  InterviewPrepQuestion,
+  PublicQuestion,
 } from '@/services/interviewPrepService';
 
 interface InterviewPrepModalProps {
@@ -56,7 +56,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
     regeneratePrep();
   };
 
-  const renderQuestions = (questions: InterviewPrepQuestion[]) => {
+  const renderQuestions = (questions: PublicQuestion[]) => {
     if (!questions || questions.length === 0)
       return (
         <p className="text-muted-foreground text-center py-8">
@@ -71,51 +71,62 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
             <AccordionTrigger className="text-left font-semibold">
               <div className="flex w-full flex-col items-start gap-2 pr-4 text-left">
                 <span>{q.question}</span>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span>
-                    Found in {q.evidenceCount} source
-                    {q.evidenceCount === 1 ? '' : 's'}
-                  </span>
-                </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-foreground">
-                    Sources
+                    Category
                   </div>
-                  {q.sources?.length ? (
-                    <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                      {q.sources.map((source: string, sourceIndex: number) => (
-                        <li key={`${index}-source-${sourceIndex}`}>{source}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No sources available.
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {q.category}
+                  </p>
                 </div>
-
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-foreground">
-                    Supporting Contexts
+                    Difficulty
                   </div>
-                  {q.contexts?.length ? (
-                    <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                      {q.contexts.map((context: string, contextIndex: number) => (
-                        <li key={`${index}-context-${contextIndex}`}>
-                          {context}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No supporting contexts available.
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {q.difficulty}
+                  </p>
                 </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-foreground">
+                    Confidence
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {Math.round(q.confidence * 100)}%
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-foreground">
+                    Relevance
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {q.relevance}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="text-sm font-medium text-foreground">
+                  Sources
+                </div>
+                {q.sources?.length ? (
+                  <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    {q.sources.map((source, sourceIndex) => (
+                      <li key={`${index}-source-${sourceIndex}`}>
+                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {source.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No sources available.
+                  </p>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>

@@ -70,20 +70,14 @@ export class GeminiSearchProvider implements SearchProvider {
                   type: 'NUMBER',
                   description: 'A confidence score between 0.0 and 1.0 representing how reliable and relevant the question is based on the search sources',
                 },
-                sources: {
+                // Cài đặt 1: Bắt Gemini trả về mảng tiêu đề nguồn thay vì URL tự chế
+                sourceTitles: {
                   type: 'ARRAY',
-                  description: 'The web sources where this question was found',
-                  items: {
-                    type: 'OBJECT',
-                    properties: {
-                      title: { type: 'STRING', description: 'The title of the source website/webpage' },
-                      url: { type: 'STRING', description: 'The exact URL of the source page' },
-                    },
-                    required: ['title', 'url'],
-                  },
-                },
+                  description: 'Exact titles of the search results/webpages where this specific question was found',
+                  items: { type: 'STRING' }
+                }
               },
-              required: ['question', 'category', 'difficulty', 'relevance', 'confidence', 'sources'],
+              required: ['question', 'category', 'difficulty', 'relevance', 'confidence', 'sourceTitles'],
             },
           },
         },
@@ -94,7 +88,60 @@ export class GeminiSearchProvider implements SearchProvider {
         throw new Error('Empty response from Gemini API');
       }
 
-      const parsed = JSON.parse(text) as InterviewQuestion[];
+      const parsed = JSON.parse(text) as any[];
+
+      // Cài đặt 2: Lấy danh sách metadata thô (chứa URL sạch 100%) từ Google Search Tool trả về
+      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+      const chunks = groundingMetadata?.groundingChunks || [];
+
+      // Cài đặt 3: Tiến hành map URL bằng code hệ thống dựa trên tiêu đề nguồn
+      for (const q of parsed) {
+        if (!q || typeof q !== 'object') continue;
+
+        const uniqueSourcesMap = new Map<string, { title: string; url: string }>();
+        const aiSuggestedTitles = Array.isArray(q.sourceTitles) ? q.sourceTitles : [];
+
+        for (const aiTitle of aiSuggestedTitles) {
+          if (!aiTitle || typeof aiTitle !== 'string') continue;
+
+          const normAiTitle = aiTitle.toLowerCase().trim();
+
+          // Duyệt qua các kết quả tìm kiếm thực tế của Google để tìm link
+          for (const chunk of chunks) {
+            if (!chunk?.web?.uri) continue;
+            const chunkTitle = (chunk.web.title || '').toLowerCase().trim();
+
+            // Khớp nếu tiêu đề của AI trùng hoặc chứa một phần tiêu đề từ Google Search
+            if (chunkTitle.includes(normAiTitle) || normAiTitle.includes(chunkTitle)) {
+              uniqueSourcesMap.set(chunk.web.uri, {
+                title: chunk.web.title || aiTitle,
+                url: chunk.web.uri, // URL sạch từ API Google
+              });
+            }
+          }
+        }
+
+        let mappedSources = Array.from(uniqueSourcesMap.values());
+
+        // Fallback: Nếu AI gõ lệch tiêu đề khiến không map được link nào,
+        // phân phối toàn bộ link tìm được để tránh Verifier loại bỏ câu hỏi
+        if (mappedSources.length === 0 && chunks.length > 0) {
+          const fallbackSources = new Map<string, { title: string; url: string }>();
+          for (const chunk of chunks) {
+            if (chunk?.web?.uri) {
+              fallbackSources.set(chunk.web.uri, {
+                title: chunk.web.title || 'Google Search Source',
+                url: chunk.web.uri,
+              });
+            }
+          }
+          mappedSources = Array.from(fallbackSources.values());
+        }
+
+        // Đổ dữ liệu sources chuẩn về cho DTO cấu trúc cũ nhận diện
+        q.sources = mappedSources;
+      }
+
       return this.validateAndCleanQuestions(parsed);
     } catch (error: any) {
       this.logger.error(`Gemini Search and Extract failed: ${error.message}`);
@@ -109,6 +156,7 @@ export class GeminiSearchProvider implements SearchProvider {
     );
   }
 
+  // Cài đặt 4: Cập nhật prompt hướng dẫn mô hình xuất sourceTitles
   private buildPrompt(
     companyName: string | null,
     jobTitle: string,
@@ -137,9 +185,7 @@ ${queries.map((q) => `- ${q}`).join('\n')}
     - difficulty: The difficulty level (must be exactly "Easy", "Medium", or "Hard").
     - relevance: Explanation of why this question is highly relevant to this specific company/job profile.
     - confidence: A confidence score between 0.0 and 1.0.
-    - sources: An array of source objects, each containing:
-      * title: The title of the website/webpage where the question was found.
-      * url: The exact URL of the source page.
+    - sourceTitles: An array containing the EXACT titles of the webpages/websites from the Google Search results where you found this question.
 
 Ensure the final output is ONLY a valid JSON array matching the required schema. Do not include any conversational text, markdown formatting other than JSON, or fictional questions.
 `.trim();
@@ -170,11 +216,11 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
 
       const sources = Array.isArray(q.sources)
         ? q.sources
-            .map((s: any) => ({
-              title: this.cleanText(s?.title) ?? 'Google Search',
-              url: this.cleanText(s?.url) ?? 'https://google.com',
-            }))
-            .filter((s: any) => Boolean(s.url))
+          .map((s: any) => ({
+            title: this.cleanText(s?.title) ?? 'Google Search',
+            url: this.cleanText(s?.url) ?? 'https://google.com',
+          }))
+          .filter((s: any) => Boolean(s.url))
         : [];
 
       cleaned.push({

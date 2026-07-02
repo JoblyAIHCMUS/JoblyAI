@@ -30,14 +30,11 @@ export class InterviewPrepProcessor extends WorkerHost {
         resumeId
       );
       this.logger.log('response', response);
-      // đổi respone thành json rồi lưu vào database
-      const jsonResponse = JSON.stringify(response);
-
       await this.prisma.interviewPreparation.update({
         where: { candidateId_jobId: { candidateId, jobId } },
         data: {
           status: 'COMPLETED',
-          questions: jsonResponse,
+          questions: response as any, // Cast to any if needed to appease TS for Prisma Json, but usually response is fine
         },
       });
 

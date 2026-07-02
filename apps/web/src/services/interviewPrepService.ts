@@ -6,11 +6,16 @@ export enum InterviewPrepStatus {
   FAILED = 'FAILED',
 }
 
-export interface InterviewPrepQuestion {
+export interface PublicQuestion {
   question: string;
-  evidenceCount: number;
-  sources: string[];
-  contexts: string[];
+  category: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  relevance: string;
+  confidence: number;
+  sources: {
+    title: string;
+    url: string;
+  }[];
 }
 
 export interface InterviewPreparation {
@@ -18,7 +23,7 @@ export interface InterviewPreparation {
   candidateId: string;
   jobId: number;
   status: InterviewPrepStatus;
-  questions: InterviewPrepQuestion[] | null;
+  questions: PublicQuestion[] | null;
   createdAt: string;
   updatedAt: string;
 }
