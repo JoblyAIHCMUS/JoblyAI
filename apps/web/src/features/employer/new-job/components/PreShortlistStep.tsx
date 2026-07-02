@@ -29,7 +29,7 @@ import type { GenerateQuestionsRequest } from '@/api-client/pre-shortlist';
 import type { JobPostingFormData } from '../schema';
 
 const MAX_QUESTIONS = 20;
-const MAX_LENGTH = 500;
+const MAX_LENGTH = 10_000;
 const UNDO_STORAGE_KEY_PREFIX = 'joblyai:pre-shortlist-undo:';
 
 function makeId() {
