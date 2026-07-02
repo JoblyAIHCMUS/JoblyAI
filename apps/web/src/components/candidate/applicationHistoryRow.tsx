@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Star } from 'lucide-react';
+import { MoreHorizontal, Star, ClipboardList, ChevronRight } from 'lucide-react';
 
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
 import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
@@ -20,7 +20,10 @@ type ApplicationHistoryRowProps = {
   onMessageRecruiter?: (item: ApplicationItem) => void;
 };
 
+const ANSWER_PRE_SHORTLIST_OPTION = 'Answer pre-shortlist questions';
+
 const DEFAULT_MORE_ACTION_OPTIONS = [
+  ANSWER_PRE_SHORTLIST_OPTION,
   'View details',
   'Message recruiter',
   'Withdraw application',
@@ -92,7 +95,7 @@ function MoreActionsMenu({
             <button
               key={option}
               type="button"
-              className={`block w-full rounded px-3 py-2 text-left text-sm hover:bg-[#f8f8fd] ${
+              className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-[#f8f8fd] ${
                 option === 'Withdraw application'
                   ? 'text-[#ff6550] hover:bg-[#fff1f0]'
                   : 'text-[#25324b]'
@@ -102,7 +105,10 @@ function MoreActionsMenu({
                 setIsOpen(false);
               }}
             >
-              {option}
+              {option === ANSWER_PRE_SHORTLIST_OPTION ? (
+                <ClipboardList className="h-4 w-4" aria-hidden="true" />
+              ) : null}
+              <span>{option}</span>
             </button>
           ))}
         </div>
@@ -131,13 +137,17 @@ export function ApplicationHistoryRow({
       return moreActionOptions;
     }
 
-    if (isClosedApplicationStatus(item.status)) {
-      return DEFAULT_MORE_ACTION_OPTIONS.filter(
-        (opt) => opt !== 'Withdraw application'
-      );
+    const base = isClosedApplicationStatus(item.status)
+      ? DEFAULT_MORE_ACTION_OPTIONS.filter(
+          (opt) => opt !== 'Withdraw application'
+        )
+      : DEFAULT_MORE_ACTION_OPTIONS;
+
+    if (item.status !== 'pre-shortlist-pending') {
+      return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
     }
 
-    return DEFAULT_MORE_ACTION_OPTIONS;
+    return base;
   }, [item.status, moreActionOptions]);
 
   const handleRowClick = () => {
@@ -152,12 +162,10 @@ export function ApplicationHistoryRow({
     option: string,
     currentItem: ApplicationItem
   ) => {
-    if (option === 'View details') {
-      if (currentItem.status === 'pre-shortlist-pending') {
-        router.push(`/candidate/pre-shortlist/${currentItem.id}`);
-      } else {
-        router.push(`/candidate/find-jobs/${currentItem.jobId}`);
-      }
+    if (option === ANSWER_PRE_SHORTLIST_OPTION) {
+      router.push(`/candidate/pre-shortlist/${currentItem.id}`);
+    } else if (option === 'View details') {
+      router.push(`/candidate/find-jobs/${currentItem.jobId}`);
     } else if (option === 'Message recruiter' && onMessageRecruiter) {
       onMessageRecruiter(currentItem);
     }
@@ -259,12 +267,23 @@ export function ApplicationHistoryRow({
               {displayCreatedAt}
             </p>
           </div>
-          <div className="shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
+            {item.status === 'pre-shortlist-pending' ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                Click to answer
+              </span>
+            ) : null}
             <ApplicationStatusPill
               status={item.status}
               statusMeta={statusMeta}
               compact
             />
+            {item.status === 'pre-shortlist-pending' ? (
+              <ChevronRight
+                className="h-4 w-4 text-[#515b6f]"
+                aria-hidden="true"
+              />
+            ) : null}
           </div>
         </div>
       </div>
@@ -310,12 +329,23 @@ export function ApplicationHistoryRow({
         </div>
         <p className="text-base text-[#25324b]">{displayCreatedAt}</p>
 
-        <div>
+        <div className="flex items-center gap-2">
+          {item.status === 'pre-shortlist-pending' ? (
+            <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              Click to answer
+            </span>
+          ) : null}
           <ApplicationStatusPill
             status={item.status}
             statusMeta={statusMeta}
             compact
           />
+          {item.status === 'pre-shortlist-pending' ? (
+            <ChevronRight
+              className="h-4 w-4 text-[#515b6f]"
+              aria-hidden="true"
+            />
+          ) : null}
         </div>
 
         {showMoreActions && (
