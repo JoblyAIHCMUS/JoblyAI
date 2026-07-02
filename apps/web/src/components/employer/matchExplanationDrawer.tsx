@@ -16,7 +16,6 @@ import {
   Loader2,
   RefreshCw,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   Briefcase,
   Clock,
@@ -25,7 +24,6 @@ import {
   getMatchExplanation,
   recalculateMatchExplanation,
   type MatchExplanation,
-  type RequirementMatch,
 } from '@/api-client/matching/explanation';
 import { Modal, ModalHeader, ModalBody } from '@/components/ui/modal';
 
@@ -88,51 +86,6 @@ export function MatchExplanationDrawer({
     if (similarity >= 0.6) return 'text-blue-600';
     if (similarity >= 0.4) return 'text-yellow-600';
     return 'text-red-600';
-  };
-
-  const getStatusBadge = (status: RequirementMatch['status']) => {
-    switch (status) {
-      case 'strong_match':
-        return (
-          <Badge
-            variant="default"
-            className="bg-green-500 text-white hover:bg-green-600"
-          >
-            <CheckCircle2 className="mr-1 h-3 w-3" />
-            Strong Match
-          </Badge>
-        );
-      case 'match':
-        return (
-          <Badge
-            variant="default"
-            className="bg-blue-500 text-white hover:bg-blue-600"
-          >
-            <CheckCircle2 className="mr-1 h-3 w-3" />
-            Match
-          </Badge>
-        );
-      case 'partial':
-        return (
-          <Badge
-            variant="secondary"
-            className="bg-yellow-500 text-white hover:bg-yellow-600"
-          >
-            <AlertTriangle className="mr-1 h-3 w-3" />
-            Partial
-          </Badge>
-        );
-      case 'no_match':
-        return (
-          <Badge
-            variant="destructive"
-            className="bg-red-500 text-white hover:bg-red-600"
-          >
-            <XCircle className="mr-1 h-3 w-3" />
-            No Match
-          </Badge>
-        );
-    }
   };
 
   const getImportanceBadge = (importance: string) => {
@@ -269,7 +222,15 @@ export function MatchExplanationDrawer({
                           <span className="font-medium">{req.skillName}</span>
                           {getImportanceBadge(req.importance)}
                         </div>
-                        {getStatusBadge(req.status)}
+                        {req.hardConstraintMet && (
+                          <Badge
+                            variant="default"
+                            className="bg-green-500 text-white hover:bg-green-600"
+                          >
+                            <CheckCircle2 className="mr-1 h-3 w-3" />
+                            Strong Match
+                          </Badge>
+                        )}
                       </div>
                       {req.minYearsRequired ? (
                         <div className="mb-1 text-xs text-muted-foreground">

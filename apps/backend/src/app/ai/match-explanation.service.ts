@@ -301,7 +301,7 @@ export class MatchExplanationService {
           scoringMode
         );
 
-        // Embedding similarity - find best matching skill
+        // Embedding similarity - compare req skill name vs each candidate skill name
         const embedding = await this.embeddingSkillMatch(
           jr,
           skillEmbeddings,
@@ -354,13 +354,7 @@ export class MatchExplanationService {
       return { skillEmbeddings: [], skillNames: [] };
     }
 
-    // Build text representation for each skill: "React - 5 years - ADVANCED"
-    const skillTexts = parsedResume.skills.map((skill) => {
-      const parts = [skill.name];
-      if (skill.years) parts.push(`${skill.years} years`);
-      if (skill.level) parts.push(skill.level);
-      return parts.join(' - ');
-    });
+    const skillTexts = parsedResume.skills.map((skill) => skill.name);
 
     const skillNames = parsedResume.skills.map((s) => s.name);
 
@@ -557,7 +551,6 @@ export class MatchExplanationService {
     skillNames: string[]
   ): Promise<EmbeddingMatchResult> {
     try {
-      // If no skill embeddings available, fallback to zero similarity
       if (!skillEmbeddings || skillEmbeddings.length === 0) {
         return {
           similarity: 0,
@@ -567,12 +560,10 @@ export class MatchExplanationService {
         };
       }
 
-      const reqText = `${jobReq.skill?.name || ''} ${jobReq.importance || ''} ${
-        jobReq.minYearsExperience
-          ? jobReq.minYearsExperience + ' years experience'
-          : ''
-      }`;
-      const reqEmbedding = await this.aiProvider.generateEmbedding(reqText);
+      const reqSkillName = jobReq.skill?.name || '';
+      const reqEmbedding = await this.aiProvider.generateEmbedding(
+        reqSkillName
+      );
 
       if (!reqEmbedding || reqEmbedding.length === 0) {
         return {
@@ -583,7 +574,6 @@ export class MatchExplanationService {
         };
       }
 
-      // Compute cosine similarity against all skill embeddings
       let maxSimilarity = 0;
       let bestMatchSkillIndex = -1;
 
@@ -598,7 +588,7 @@ export class MatchExplanationService {
         }
       }
 
-      const matched = maxSimilarity > 0.5;
+      const matched = maxSimilarity > 0;
       const nearestSkill =
         bestMatchSkillIndex >= 0 ? skillNames[bestMatchSkillIndex] : null;
 
@@ -653,11 +643,10 @@ export class MatchExplanationService {
     if (scoringMode === 'exact') {
       return hardConstraintMet ? 'strong_match' : 'no_match';
     }
-    // Embedding mode
+    // Embedding mode — status based on hard constraint, similarity is informational
     if (hardConstraintMet) return 'strong_match';
-    if (embeddingSimilarity > 0.7 && exactMatch) return 'strong_match';
-    if (embeddingSimilarity > 0.5) return 'match';
-    if (embeddingSimilarity > 0.3) return 'partial';
+    if (exactMatch) return 'strong_match';
+    if (embeddingSimilarity > 0) return 'match';
     return 'no_match';
   }
 
@@ -689,20 +678,13 @@ export class MatchExplanationService {
     }
 
     if (embedding.matched) {
-      const matchedSkillStr = embedding.nearestSkill
-        ? ` (matched with "${embedding.nearestSkill}")`
-        : '';
       const similarity = (embedding.similarity * 100).toFixed(0);
-
-      if (exactMatch && embedding.similarity > 0.7) {
-        return `${skillName} — exact skill match with ${similarity}% semantic similarity${matchedSkillStr}.`;
-      }
-      if (embedding.similarity > 0.5) {
-        return `${skillName} — semantic match (${similarity}% similarity) with candidate's "${embedding.nearestSkill}" skill. Candidate may have related experience${matchedSkillStr}.`;
-      }
-      return `${skillName} hard constraint not met, but has ${similarity}% semantic similarity with "${embedding.nearestSkill}". ${embedding.explanation}`;
+      const nearestStr = embedding.nearestSkill
+        ? ` — closest candidate skill: "${embedding.nearestSkill}"`
+        : '';
+      return `${skillName}: ${similarity}% semantic similarity${nearestStr}.`;
     }
 
-    return `${skillName} not found in candidate's skills or experience. No strong semantic match detected.`;
+    return `${skillName}: no semantic similarity found with candidate's skills.`;
   }
 }
