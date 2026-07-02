@@ -201,7 +201,9 @@ export default function ApplicantDetails({
                       size="sm"
                       className="text-xs sm:text-sm h-9 sm:h-10 flex-1 xs:flex-none"
                       onClick={handleAdvanceStage}
-                      disabled={isMutating || !canAdvance || !nextStageMap[hiringStage]}
+                      disabled={
+                        isMutating || !canAdvance || !nextStageMap[hiringStage]
+                      }
                     >
                       {nextStageMap[hiringStage]
                         ? `Advance to ${nextStageMap[hiringStage]}`

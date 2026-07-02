@@ -260,7 +260,9 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
       }
       const available = MAX_QUESTIONS - fields.length;
       if (available <= 0) {
-        toast.error('You already have 20 questions. Remove some to generate more.');
+        toast.error(
+          'You already have 20 questions. Remove some to generate more.'
+        );
         return;
       }
       const effectiveCount = Math.max(1, Math.min(count, available));
@@ -301,9 +303,10 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                     `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
                   );
                   if (raw) {
-                    const restored = JSON.parse(
-                      raw
-                    ) as Array<{ question: string; expectedAnswer: string }>;
+                    const restored = JSON.parse(raw) as Array<{
+                      question: string;
+                      expectedAnswer: string;
+                    }>;
                     replace(restored);
                     setAiSuggested({});
                     localStorage.removeItem(
@@ -500,7 +503,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
               />
               <p className="mt-2 text-base font-semibold">No questions yet</p>
               <p className="mt-1 text-sm text-slate-600">
-                Generate with AI to draft 5 based on your job description, or
+                Generate with AI to draft some based on your job description, or
                 add one manually.
               </p>
               <Button

@@ -1,13 +1,24 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Star, ClipboardList, ChevronRight } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Star,
+  ClipboardList,
+  ChevronRight,
+} from 'lucide-react';
 
 import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
 import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
 import { formatCreatedAtForDisplay } from '@/lib/candidateDate';
 import { getInitials, cn } from '@/lib/utils';
 import { isClosedApplicationStatus } from '@/lib/candidateStatus';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type ApplicationHistoryRowProps = {
   item: ApplicationItem;
@@ -196,18 +207,154 @@ export function ApplicationHistoryRow({
     </div>
   );
 
+  const chevronNode =
+    item.status === 'pre-shortlist-pending' ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ChevronRight
+            className="h-4 w-4 shrink-0 text-[#515b6f]"
+            aria-label="Click to answer pre-shortlist questions"
+          />
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Click to answer pre-shortlist questions</p>
+        </TooltipContent>
+      </Tooltip>
+    ) : null;
+
   return (
-    <div
-      onClick={handleRowClick}
-      className={`group w-full min-w-0 cursor-pointer rounded-[10px] px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
-        tinted
-          ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]'
-          : 'bg-white hover:bg-[#f8f8fd]'
-      }`}
-    >
-      <div className="flex flex-col gap-2 lg:hidden">
-        <div className="flex items-start justify-between gap-3">
-          {mobileLogoNode}
+    <TooltipProvider delayDuration={200}>
+      <div
+        onClick={handleRowClick}
+        className={`group w-full min-w-0 cursor-pointer rounded-[10px] px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
+          tinted
+            ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]'
+            : 'bg-white hover:bg-[#f8f8fd]'
+        }`}
+      >
+        <div className="flex flex-col gap-2 lg:hidden">
+          <div className="flex items-start justify-between gap-3">
+            {mobileLogoNode}
+            {showMoreActions && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <MoreActionsMenu
+                  item={item}
+                  options={filteredOptions}
+                  onSelect={handleMoreActionSelect}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="break-words font-[family-name:var(--family-primary)] text-[clamp(1.125rem,4.8vw,1.25rem)] font-semibold leading-6 text-[#25324b]">
+                {item.title}
+              </p>
+              {item.matchPercentage !== undefined &&
+              item.matchPercentage !== null ? (
+                <div
+                  className={cn(
+                    'flex items-center gap-1 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold',
+                    item.matchPercentage >= 80
+                      ? 'border-green-200 bg-green-50 text-green-700'
+                      : item.matchPercentage >= 50
+                      ? 'border-blue-200 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 bg-slate-50 text-slate-600'
+                  )}
+                  title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
+                >
+                  <Star size={10} className="fill-current" />
+                  {Math.round(item.matchPercentage)}%
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-1 shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
+                  title="AI is calculating your match score..."
+                >
+                  AI Processing...
+                </div>
+              )}
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm leading-6 text-[#515b6f] sm:text-base">
+              <span className="break-words">{item.company}</span>
+              <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
+              <span className="break-words">{item.location}</span>
+              <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
+              <span className="break-words">{item.jobType}</span>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm leading-[22px] text-[#515b6f] sm:text-base">
+                Date Applied
+              </p>
+              <p className="break-words text-sm font-medium leading-6 text-[#25324b] sm:text-base">
+                {displayCreatedAt}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <ApplicationStatusPill
+                status={item.status}
+                statusMeta={statusMeta}
+                compact
+              />
+              {chevronNode}
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden items-center gap-3 lg:grid lg:grid-cols-[48px_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(120px,0.9fr)_minmax(110px,0.8fr)_24px] xl:gap-5 xl:grid-cols-[56px_221px_275px_194px_1fr_24px]">
+          <p className="text-base text-[#25324b]">{index}</p>
+
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="shrink-0">{desktopLogoNode}</div>
+            <p className="truncate text-base font-medium text-[#25324b]">
+              {item.company}
+            </p>
+          </div>
+
+          <div className="flex flex-col min-w-0">
+            <p className="truncate text-base text-[#25324b] font-medium">
+              {item.title}
+            </p>
+            {item.matchPercentage !== undefined &&
+            item.matchPercentage !== null ? (
+              <div
+                className={cn(
+                  'mt-1 flex items-center gap-1 w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold',
+                  item.matchPercentage >= 80
+                    ? 'border-green-200 bg-green-50 text-green-700'
+                    : item.matchPercentage >= 50
+                    ? 'border-blue-200 bg-blue-50 text-blue-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-600'
+                )}
+                title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
+              >
+                <Star size={10} className="fill-current" />
+                {Math.round(item.matchPercentage)}% Match
+              </div>
+            ) : (
+              <div
+                className="mt-1 flex items-center gap-1 w-fit rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
+                title="AI is calculating your match score..."
+              >
+                AI Processing...
+              </div>
+            )}
+          </div>
+          <p className="text-base text-[#25324b]">{displayCreatedAt}</p>
+
+          <div className="flex items-center gap-2">
+            <ApplicationStatusPill
+              status={item.status}
+              statusMeta={statusMeta}
+              compact
+            />
+            {chevronNode}
+          </div>
+
           {showMoreActions && (
             <div onClick={(e) => e.stopPropagation()}>
               <MoreActionsMenu
@@ -218,146 +365,7 @@ export function ApplicationHistoryRow({
             </div>
           )}
         </div>
-
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="break-words font-[family-name:var(--family-primary)] text-[clamp(1.125rem,4.8vw,1.25rem)] font-semibold leading-6 text-[#25324b]">
-              {item.title}
-            </p>
-            {item.matchPercentage !== undefined &&
-            item.matchPercentage !== null ? (
-              <div
-                className={cn(
-                  'flex items-center gap-1 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold',
-                  item.matchPercentage >= 80
-                    ? 'border-green-200 bg-green-50 text-green-700'
-                    : item.matchPercentage >= 50
-                    ? 'border-blue-200 bg-blue-50 text-blue-700'
-                    : 'border-slate-200 bg-slate-50 text-slate-600'
-                )}
-                title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
-              >
-                <Star size={10} className="fill-current" />
-                {Math.round(item.matchPercentage)}%
-              </div>
-            ) : (
-              <div
-                className="flex items-center gap-1 shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
-                title="AI is calculating your match score..."
-              >
-                AI Processing...
-              </div>
-            )}
-          </div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm leading-6 text-[#515b6f] sm:text-base">
-            <span className="break-words">{item.company}</span>
-            <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
-            <span className="break-words">{item.location}</span>
-            <span className="h-1 w-1 rounded-full bg-[#515b6f]" />
-            <span className="break-words">{item.jobType}</span>
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm leading-[22px] text-[#515b6f] sm:text-base">
-              Date Applied
-            </p>
-            <p className="break-words text-sm font-medium leading-6 text-[#25324b] sm:text-base">
-              {displayCreatedAt}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {item.status === 'pre-shortlist-pending' ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                Click to answer
-              </span>
-            ) : null}
-            <ApplicationStatusPill
-              status={item.status}
-              statusMeta={statusMeta}
-              compact
-            />
-            {item.status === 'pre-shortlist-pending' ? (
-              <ChevronRight
-                className="h-4 w-4 text-[#515b6f]"
-                aria-hidden="true"
-              />
-            ) : null}
-          </div>
-        </div>
       </div>
-
-      <div className="hidden items-center gap-3 lg:grid lg:grid-cols-[48px_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(120px,0.9fr)_minmax(110px,0.8fr)_24px] xl:gap-5 xl:grid-cols-[56px_221px_275px_194px_1fr_24px]">
-        <p className="text-base text-[#25324b]">{index}</p>
-
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="shrink-0">{desktopLogoNode}</div>
-          <p className="truncate text-base font-medium text-[#25324b]">
-            {item.company}
-          </p>
-        </div>
-
-        <div className="flex flex-col min-w-0">
-          <p className="truncate text-base text-[#25324b] font-medium">
-            {item.title}
-          </p>
-          {item.matchPercentage !== undefined &&
-          item.matchPercentage !== null ? (
-            <div
-              className={cn(
-                'mt-1 flex items-center gap-1 w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold',
-                item.matchPercentage >= 80
-                  ? 'border-green-200 bg-green-50 text-green-700'
-                  : item.matchPercentage >= 50
-                  ? 'border-blue-200 bg-blue-50 text-blue-700'
-                  : 'border-slate-200 bg-slate-50 text-slate-600'
-              )}
-              title={`AI Match Score: ${Math.round(item.matchPercentage)}%`}
-            >
-              <Star size={10} className="fill-current" />
-              {Math.round(item.matchPercentage)}% Match
-            </div>
-          ) : (
-            <div
-              className="mt-1 flex items-center gap-1 w-fit rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse"
-              title="AI is calculating your match score..."
-            >
-              AI Processing...
-            </div>
-          )}
-        </div>
-        <p className="text-base text-[#25324b]">{displayCreatedAt}</p>
-
-        <div className="flex items-center gap-2">
-          {item.status === 'pre-shortlist-pending' ? (
-            <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-              Click to answer
-            </span>
-          ) : null}
-          <ApplicationStatusPill
-            status={item.status}
-            statusMeta={statusMeta}
-            compact
-          />
-          {item.status === 'pre-shortlist-pending' ? (
-            <ChevronRight
-              className="h-4 w-4 text-[#515b6f]"
-              aria-hidden="true"
-            />
-          ) : null}
-        </div>
-
-        {showMoreActions && (
-          <div onClick={(e) => e.stopPropagation()}>
-            <MoreActionsMenu
-              item={item}
-              options={filteredOptions}
-              onSelect={handleMoreActionSelect}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }

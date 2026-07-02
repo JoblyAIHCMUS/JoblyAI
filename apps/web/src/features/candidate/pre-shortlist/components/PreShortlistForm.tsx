@@ -69,6 +69,34 @@ export function PreShortlistForm({
     }
   };
 
+  // Defense in depth: if we somehow got here with no questions (e.g. the job's
+  // questions were removed after the page loaded, or a direct URL navigation
+  // bypassed the page-level redirect), show a friendly empty state and never
+  // enable the submit button. The page-level redirect is the primary guard.
+  if (data.questions.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-3 sm:px-0 py-8 space-y-4">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Pre-shortlist questions
+        </h1>
+        <Alert>
+          <AlertDescription>
+            This job no longer has pre-shortlist questions configured. You don't
+            need to answer anything here. You can return to your applications
+            list.
+          </AlertDescription>
+        </Alert>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push('/candidate/applications')}
+        >
+          Back to applications
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form
       onSubmit={onSubmit}
