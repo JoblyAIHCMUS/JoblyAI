@@ -26,11 +26,10 @@ export default function PreShortlistPage({
   }, [setTitle]);
 
   useEffect(() => {
-    // If the user lands here but is not eligible (e.g., status is APPLIED,
-    // or the job has no questions), redirect them to the job detail page.
+    // If the user lands here but is not eligible (already past the form, or
+    // the job has no questions), redirect them to the applications list.
     if (!data) return;
     if (
-      data.status === 'PRE_SHORTLIST_SUBMITTED' ||
       data.status === 'INTERVIEW' ||
       data.status === 'OFFER' ||
       data.status === 'REJECTED' ||
@@ -65,5 +64,12 @@ export default function PreShortlistPage({
     );
   }
 
-  return <PreShortlistForm applicationId={id} jobId={0} data={data} />;
+  return (
+    <PreShortlistForm
+      applicationId={id}
+      jobId={0}
+      data={data}
+      readOnly={data.status === 'PRE_SHORTLIST_SUBMITTED'}
+    />
+  );
 }
