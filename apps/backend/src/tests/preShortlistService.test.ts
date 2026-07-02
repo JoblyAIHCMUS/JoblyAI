@@ -156,10 +156,10 @@ describe('PreShortlistService.validateQuestions', () => {
     ).toThrow(BadRequestException);
   });
 
-  it('rejects a question longer than 500 characters', () => {
+  it('rejects a question longer than 10_000 characters', () => {
     expect(() =>
       service.validateQuestions([
-        { question: 'x'.repeat(501), expectedAnswer: 'A criterion' },
+        { question: 'x'.repeat(10_001), expectedAnswer: 'A criterion' },
       ])
     ).toThrow(BadRequestException);
   });
@@ -172,10 +172,10 @@ describe('PreShortlistService.validateQuestions', () => {
     ).toThrow(BadRequestException);
   });
 
-  it('rejects an expectedAnswer longer than 500 characters', () => {
+  it('rejects an expectedAnswer longer than 10_000 characters', () => {
     expect(() =>
       service.validateQuestions([
-        { question: 'A valid question?', expectedAnswer: 'x'.repeat(501) },
+        { question: 'A valid question?', expectedAnswer: 'x'.repeat(10_001) },
       ])
     ).toThrow(BadRequestException);
   });
