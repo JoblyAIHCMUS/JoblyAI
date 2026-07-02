@@ -240,16 +240,19 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
   const { generate, loading: generating } = useGeneratePreShortlistQuestions();
 
   const [aiSuggested, setAiSuggested] = useState<AiBadgeState>({});
+  const [generateCount, setGenerateCount] = useState<number>(5);
 
   const onGenerate = useCallback(
     async ({
       jobTitle,
       jobDescription,
       requirements,
+      count,
     }: {
       jobTitle: string;
       jobDescription: string;
       requirements: GenerateQuestionsRequest['requirements'];
+      count: number;
     }) => {
       if (!jobTitle?.trim() || !jobDescription?.trim()) {
         toast.error('Please fill in the job title and description first.');
@@ -397,26 +400,51 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             </p>
           </div>
           {!readOnly && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={() =>
-                onGenerate({
-                  jobTitle: jobTitle ?? '',
-                  jobDescription: jobDescription ?? '',
-                  requirements: (skills ?? []).map((s) => ({
-                    skillName: s.name,
-                    importance: s.importance,
-                    minYearsExperience: s.minYearsExperience ?? null,
-                  })),
-                })
-              }
-              disabled={generating}
-              className="shrink-0"
-            >
-              <Sparkles className="h-4 w-4" />
-              {generating ? 'Generating…' : 'Generate with AI'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1.5 text-[11px] text-tertiary">
+                <span>How many</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_QUESTIONS}
+                  value={generateCount}
+                  onChange={(e) => {
+                    const next = Number.parseInt(e.target.value, 10);
+                    if (Number.isFinite(next)) {
+                      setGenerateCount(
+                        Math.max(1, Math.min(MAX_QUESTIONS, next))
+                      );
+                    } else if (e.target.value === '') {
+                      setGenerateCount(1);
+                    }
+                  }}
+                  disabled={generating || fields.length >= MAX_QUESTIONS}
+                  className="h-8 w-14 rounded-md border border-slate-200 bg-white px-2 text-center text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ai-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Number of questions to generate"
+                />
+              </label>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() =>
+                  onGenerate({
+                    jobTitle: jobTitle ?? '',
+                    jobDescription: jobDescription ?? '',
+                    requirements: (skills ?? []).map((s) => ({
+                      skillName: s.name,
+                      importance: s.importance,
+                      minYearsExperience: s.minYearsExperience ?? null,
+                    })),
+                    count: generateCount,
+                  })
+                }
+                disabled={generating || fields.length >= MAX_QUESTIONS}
+                className="shrink-0"
+              >
+                <Sparkles className="h-4 w-4" />
+                {generating ? 'Generating…' : 'Generate with AI'}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -471,6 +499,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                       importance: s.importance,
                       minYearsExperience: s.minYearsExperience ?? null,
                     })),
+                    count: generateCount,
                   })
                 }
                 disabled={generating}
