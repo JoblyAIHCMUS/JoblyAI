@@ -108,8 +108,5 @@ OUTPUT FORMAT — strict JSON, no markdown fences, no commentary:
   "overall": { "comment": "...", "suggestion": "STRONG|MAYBE|NO" }
 }
 
-The "evaluations" array MUST contain exactly ${numQuestions} entries, one per input question, in the same order as the input questions. Each "questionId" MUST match an id from the input. The output JSON must contain ONLY the fields shown in the example above — no extra numeric, categorical, or summary fields are permitted anywhere.`;
+  The "evaluations" array MUST contain exactly ${numQuestions} entries, one per input question, in the same order as the input questions. Each "questionId" MUST match an id from the input. The output JSON must contain ONLY the fields shown in the example above — no extra numeric, categorical, or summary fields are permitted anywhere.`;
 }
-
-export const EVALUATE_ANSWERS_PROMPT_PATH =
-  'apps/web/src/features/employer/new-job/prompts/evaluate-answers.ts';

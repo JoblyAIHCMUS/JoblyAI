@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AiBadge } from '@/components/ui/ai-badge';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { FieldShell } from '@/components/ui/field-shell';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
@@ -29,7 +30,7 @@ import type { GenerateQuestionsRequest } from '@/api-client/pre-shortlist';
 import type { JobPostingFormData } from '../schema';
 
 const MAX_QUESTIONS = 20;
-const MAX_LENGTH = 500;
+const MAX_LENGTH = 10_000;
 const UNDO_STORAGE_KEY_PREFIX = 'joblyai:pre-shortlist-undo:';
 
 function makeId() {
@@ -225,10 +226,8 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
   const {
     control,
     formState: { errors },
-    getValues,
-    setValue,
   } = useFormContext<JobPostingFormData>();
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, move, replace } = useFieldArray({
     control,
     name: 'preShortlistQuestions' as never,
   });
@@ -240,81 +239,93 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
   const { generate, loading: generating } = useGeneratePreShortlistQuestions();
 
   const [aiSuggested, setAiSuggested] = useState<AiBadgeState>({});
+  const [generateCount, setGenerateCount] = useState<number>(5);
+  const [clearOpen, setClearOpen] = useState<boolean>(false);
 
   const onGenerate = useCallback(
     async ({
       jobTitle,
       jobDescription,
       requirements,
+      count,
     }: {
       jobTitle: string;
       jobDescription: string;
       requirements: GenerateQuestionsRequest['requirements'];
+      count: number;
     }) => {
       if (!jobTitle?.trim() || !jobDescription?.trim()) {
         toast.error('Please fill in the job title and description first.');
         return;
       }
+      const available = MAX_QUESTIONS - fields.length;
+      if (available <= 0) {
+        toast.error(
+          'You already have 20 questions. Remove some to generate more.'
+        );
+        return;
+      }
+      const effectiveCount = Math.max(1, Math.min(count, available));
+      const previousSnapshot = [...fields];
+      const undoId = makeId();
       try {
-        const previousSnapshot = getValues(
-          'preShortlistQuestions'
-        ) as unknown as QuestionDraft[];
-        const preIndexSet = new Set(previousSnapshot.map((_, i) => i));
-        const undoId = makeId();
-        try {
-          localStorage.setItem(
-            `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
-            JSON.stringify(previousSnapshot ?? [])
-          );
-        } catch {
-          // localStorage may be disabled (SSR, private mode); ignore.
-        }
+        localStorage.setItem(
+          `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
+          JSON.stringify(previousSnapshot)
+        );
+      } catch {
+        // localStorage may be disabled (SSR, private mode); ignore.
+      }
+      try {
         const result = await generate({
           title: jobTitle,
           description: jobDescription,
           requirements,
+          count: effectiveCount,
         });
-        setValue('preShortlistQuestions', result.questions, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-        const nextSuggested: AiBadgeState = {};
+        replace([...fields, ...result.questions]);
+        const nextSuggested: AiBadgeState = { ...aiSuggested };
         result.questions.forEach((_, i) => {
-          if (!preIndexSet.has(i)) nextSuggested[i] = true;
+          nextSuggested[fields.length + i] = true;
         });
         setAiSuggested(nextSuggested);
-        toast.success('Replaced with AI suggestions', {
-          description: '5 questions generated.',
-          action: {
-            label: 'Undo',
-            onClick: () => {
-              try {
-                const raw = localStorage.getItem(
-                  `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
-                );
-                if (raw) {
-                  const restored = JSON.parse(raw) as QuestionDraft[];
-                  setValue('preShortlistQuestions', restored, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                  setAiSuggested({});
-                  localStorage.removeItem(
+        const capped = effectiveCount < count;
+        toast.success(
+          capped
+            ? `Added ${effectiveCount} questions (capped at ${MAX_QUESTIONS})`
+            : `Added ${effectiveCount} questions`,
+          {
+            action: {
+              label: 'Undo',
+              onClick: () => {
+                try {
+                  const raw = localStorage.getItem(
                     `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
                   );
+                  if (raw) {
+                    const restored = JSON.parse(raw) as Array<{
+                      question: string;
+                      expectedAnswer: string;
+                    }>;
+                    replace(restored);
+                    setAiSuggested({});
+                    localStorage.removeItem(
+                      `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
+                    );
+                  }
+                } catch {
+                  // ignore
                 }
-              } catch {
-                // ignore
-              }
+              },
             },
-          },
-          duration: 5_000,
-        });
+            duration: 5_000,
+          }
+        );
       } catch {
         // toast handled in hook
       }
     },
-    [generate, getValues, setValue]
+    [generate, replace, fields, aiSuggested]
   );
 
   return (
@@ -397,26 +408,63 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             </p>
           </div>
           {!readOnly && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={() =>
-                onGenerate({
-                  jobTitle: jobTitle ?? '',
-                  jobDescription: jobDescription ?? '',
-                  requirements: (skills ?? []).map((s) => ({
-                    skillName: s.name,
-                    importance: s.importance,
-                    minYearsExperience: s.minYearsExperience ?? null,
-                  })),
-                })
-              }
-              disabled={generating}
-              className="shrink-0"
-            >
-              <Sparkles className="h-4 w-4" />
-              {generating ? 'Generating…' : 'Generate with AI'}
-            </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-tertiary">
+                  <span>How many</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={MAX_QUESTIONS}
+                    value={generateCount}
+                    onChange={(e) => {
+                      const next = Number.parseInt(e.target.value, 10);
+                      if (Number.isFinite(next)) {
+                        setGenerateCount(
+                          Math.max(1, Math.min(MAX_QUESTIONS, next))
+                        );
+                      } else if (e.target.value === '') {
+                        setGenerateCount(1);
+                      }
+                    }}
+                    disabled={generating || fields.length >= MAX_QUESTIONS}
+                    className="h-8 w-14 rounded-md border border-slate-200 bg-white px-2 text-center text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ai-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Number of questions to generate"
+                  />
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    onGenerate({
+                      jobTitle: jobTitle ?? '',
+                      jobDescription: jobDescription ?? '',
+                      requirements: (skills ?? []).map((s) => ({
+                        skillName: s.name,
+                        importance: s.importance,
+                        minYearsExperience: s.minYearsExperience ?? null,
+                      })),
+                      count: generateCount,
+                    })
+                  }
+                  disabled={generating || fields.length >= MAX_QUESTIONS}
+                  className="shrink-0"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {generating ? 'Generating…' : 'Generate with AI'}
+                </Button>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setClearOpen(true)}
+                disabled={fields.length === 0}
+                className="shrink-0"
+              >
+                Clear all
+              </Button>
+            </div>
           )}
         </div>
 
@@ -455,7 +503,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
               />
               <p className="mt-2 text-base font-semibold">No questions yet</p>
               <p className="mt-1 text-sm text-slate-600">
-                Generate with AI to draft 5 based on your job description, or
+                Generate with AI to draft some based on your job description, or
                 add one manually.
               </p>
               <Button
@@ -471,6 +519,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                       importance: s.importance,
                       minYearsExperience: s.minYearsExperience ?? null,
                     })),
+                    count: generateCount,
                   })
                 }
                 disabled={generating}
@@ -527,6 +576,20 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
           <p className="text-[11px] text-tertiary">Maximum reached</p>
         )}
       </div>
+      <DeleteConfirmDialog
+        open={clearOpen}
+        title="Remove all questions?"
+        description="You can regenerate with AI afterwards."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onOpenChange={setClearOpen}
+        onCancel={() => setClearOpen(false)}
+        onConfirm={() => {
+          replace([]);
+          setAiSuggested({});
+          setClearOpen(false);
+        }}
+      />
     </div>
   );
 }

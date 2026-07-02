@@ -96,7 +96,7 @@ function ApplicantDetailPageContent() {
       <div className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-auto">
         <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr] gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
           <ApplicantOverview applicant={applicant} />
-          <ApplicantDetails applicant={applicant} />
+          <ApplicantDetails applicant={applicant} refetch={refetch} />
         </div>
       </div>
     </div>

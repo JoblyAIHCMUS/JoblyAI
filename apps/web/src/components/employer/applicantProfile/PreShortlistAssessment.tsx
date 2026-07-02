@@ -88,8 +88,12 @@ export default function PreShortlistAssessment({
     );
   }
 
-  // The job has no pre-shortlist configured — render nothing.
+  // The job has no pre-shortlist configured, or the candidate never reached
+  // the pre-shortlist step (their application is still in the plain
+  // "Applied" stage — no questions were ever shown to them). Either way, there
+  // is nothing for the employer to assess, so render nothing.
   if (data.questions.length === 0) return null;
+  if (data.status === 'APPLIED') return null;
 
   // Candidate hasn't answered yet.
   if (data.status === 'PRE_SHORTLIST_PENDING') {

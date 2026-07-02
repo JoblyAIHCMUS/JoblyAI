@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { useJobDetail } from '@/api-hook/jobs';
+import { useEmployerJobDetail } from '@/api-hook/jobs';
 import { useUpdateJob } from '@/api-hook/jobs';
 import { useCategories } from '@/api-hook/jobs';
 import { useSkillIds } from '@/api-hook/skills';
@@ -78,7 +78,11 @@ export default function JobListingEditPage() {
   const jobId = parseInt(id, 10);
 
   // API hooks
-  const { fetchJobDetail, data: jobData, loading: jobLoading } = useJobDetail();
+  const {
+    fetchEmployerJobDetail,
+    data: jobData,
+    loading: jobLoading,
+  } = useEmployerJobDetail();
   const { categories, loading: categoriesLoading } = useCategories();
   const { submitUpdate, loading: submitLoading } = useUpdateJob({
     onSuccess: () => {
@@ -134,8 +138,10 @@ export default function JobListingEditPage() {
 
   // Fetch job data on mount and when jobId changes
   useEffect(() => {
-    fetchJobDetail(jobId);
-  }, [jobId, fetchJobDetail]);
+    fetchEmployerJobDetail(jobId).catch((err: unknown) => {
+      console.error('Failed to fetch job details:', err);
+    });
+  }, [jobId, fetchEmployerJobDetail]);
 
   // Populate form once job data, pre-shortlist questions, and categories are all ready
   useEffect(() => {

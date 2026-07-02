@@ -20,8 +20,6 @@ import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 import { PreShortlistService } from '../pre-shortlist/pre-shortlist.service';
 import { AiProviderService } from '../ai/ai-provider.service';
 import { GenerateQuestionsRequestDTO } from '../pre-shortlist/dto/generate-questions.dto';
-// Mirrored from apps/web/src/features/employer/new-job/prompts/generate-questions.ts.
-// The canonical source is the web app; keep both files in sync when editing.
 import {
   buildGenerateQuestionsPrompt,
   type GenerateQuestionsOutput,
@@ -46,6 +44,7 @@ export class PreShortlistQuestionsController {
     if (!dto.title?.trim() || !dto.description?.trim()) {
       throw new BadRequestException('title and description are required');
     }
+    const count = dto.count ?? 5;
     const prompt = buildGenerateQuestionsPrompt({
       jobTitle: dto.title,
       jobDescription: dto.description,
@@ -54,6 +53,7 @@ export class PreShortlistQuestionsController {
         importance: r.importance,
         minYearsExperience: r.minYearsExperience ?? null,
       })),
+      count,
     });
 
     let output: GenerateQuestionsOutput;
@@ -74,7 +74,7 @@ export class PreShortlistQuestionsController {
     if (
       !output ||
       !Array.isArray(output.questions) ||
-      output.questions.length !== 5 ||
+      output.questions.length !== count ||
       !output.questions.every(
         (q) =>
           q &&
@@ -82,7 +82,7 @@ export class PreShortlistQuestionsController {
           q.question.trim().length > 0 &&
           typeof q.expectedAnswer === 'string' &&
           q.expectedAnswer.trim().length > 0 &&
-          q.expectedAnswer.length <= 500
+          q.expectedAnswer.length <= 10_000
       )
     ) {
       this.logger.error(
