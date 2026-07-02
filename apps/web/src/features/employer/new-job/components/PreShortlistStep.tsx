@@ -226,8 +226,6 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
   const {
     control,
     formState: { errors },
-    getValues,
-    setValue,
   } = useFormContext<JobPostingFormData>();
   const { fields, append, remove, move, replace } = useFieldArray({
     control,
@@ -260,66 +258,71 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
         toast.error('Please fill in the job title and description first.');
         return;
       }
+      const available = MAX_QUESTIONS - fields.length;
+      if (available <= 0) {
+        toast.error('You already have 20 questions. Remove some to generate more.');
+        return;
+      }
+      const effectiveCount = Math.max(1, Math.min(count, available));
+      const previousSnapshot = [...fields];
+      const undoId = makeId();
       try {
-        const previousSnapshot = getValues(
-          'preShortlistQuestions'
-        ) as unknown as QuestionDraft[];
-        const preIndexSet = new Set(previousSnapshot.map((_, i) => i));
-        const undoId = makeId();
-        try {
-          localStorage.setItem(
-            `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
-            JSON.stringify(previousSnapshot ?? [])
-          );
-        } catch {
-          // localStorage may be disabled (SSR, private mode); ignore.
-        }
+        localStorage.setItem(
+          `${UNDO_STORAGE_KEY_PREFIX}${undoId}`,
+          JSON.stringify(previousSnapshot)
+        );
+      } catch {
+        // localStorage may be disabled (SSR, private mode); ignore.
+      }
+      try {
         const result = await generate({
           title: jobTitle,
           description: jobDescription,
           requirements,
+          count: effectiveCount,
         });
-        setValue('preShortlistQuestions', result.questions, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-        const nextSuggested: AiBadgeState = {};
+        replace([...fields, ...result.questions]);
+        const nextSuggested: AiBadgeState = { ...aiSuggested };
         result.questions.forEach((_, i) => {
-          if (!preIndexSet.has(i)) nextSuggested[i] = true;
+          nextSuggested[fields.length + i] = true;
         });
         setAiSuggested(nextSuggested);
-        toast.success('Replaced with AI suggestions', {
-          description: '5 questions generated.',
-          action: {
-            label: 'Undo',
-            onClick: () => {
-              try {
-                const raw = localStorage.getItem(
-                  `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
-                );
-                if (raw) {
-                  const restored = JSON.parse(raw) as QuestionDraft[];
-                  setValue('preShortlistQuestions', restored, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                  setAiSuggested({});
-                  localStorage.removeItem(
+        const capped = effectiveCount < count;
+        toast.success(
+          capped
+            ? `Added ${effectiveCount} questions (capped at ${MAX_QUESTIONS})`
+            : `Added ${effectiveCount} questions`,
+          {
+            action: {
+              label: 'Undo',
+              onClick: () => {
+                try {
+                  const raw = localStorage.getItem(
                     `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
                   );
+                  if (raw) {
+                    const restored = JSON.parse(
+                      raw
+                    ) as Array<{ question: string; expectedAnswer: string }>;
+                    replace(restored);
+                    setAiSuggested({});
+                    localStorage.removeItem(
+                      `${UNDO_STORAGE_KEY_PREFIX}${undoId}`
+                    );
+                  }
+                } catch {
+                  // ignore
                 }
-              } catch {
-                // ignore
-              }
+              },
             },
-          },
-          duration: 5_000,
-        });
+            duration: 5_000,
+          }
+        );
       } catch {
         // toast handled in hook
       }
     },
-    [generate, getValues, setValue]
+    [generate, replace, fields, aiSuggested]
   );
 
   return (
