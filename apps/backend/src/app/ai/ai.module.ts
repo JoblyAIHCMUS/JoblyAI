@@ -8,18 +8,16 @@ import { InterviewPrepProcessor } from './processors/interview-prep.processor';
 import { InterviewPreparationPipeline } from './interview-preparation/pipeline/interview-preparation.pipeline';
 import { JDAnalysisService } from './interview-preparation/application/jd-analysis.service';
 import { QueryGeneratorService } from './interview-preparation/retrieval/query-generator.service';
-import { TavilyProvider } from './interview-preparation/retrieval/tavily-provider.service';
-import { QuestionExtractorService } from './interview-preparation/extraction/question-extractor.service';
+import { GeminiSearchProvider } from './interview-preparation/retrieval/gemini-search-provider.service';
+import { SEARCH_PROVIDER } from './interview-preparation/retrieval/search-provider.token';
 import { QuestionVerifierService } from './interview-preparation/verification/question-verifier.service';
 import { QuestionRankerService } from './interview-preparation/ranking/question-ranker.service';
-import { SEARCH_PROVIDER } from './interview-preparation/retrieval/search-provider.token.js';
 import { InterviewPromptBuilder } from './interview-preparation/prompts/interview-prompt.builder';
 import { AiProviderService } from './ai-provider.service';
 import { ResumeParserService } from './resume-parser.service';
 import { ResumeScoringService } from './resume-scoring.service';
 import { InterviewPrepService } from './interview-prep.service';
 import { MatchExplanationService } from './match-explanation.service';
-import { ExtractQuestionPromptBuilder } from './interview-preparation/prompts/extract-question.builder';
 import { AiController } from './ai.controller';
 import { MatchingController } from './matching.controller';
 import { InterviewPrepController } from './interview-prep.controller';
@@ -59,15 +57,14 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     InterviewPreparationPipeline,
     JDAnalysisService,
     QueryGeneratorService,
-    QuestionExtractorService,
-    QuestionVerifierService,
-    QuestionRankerService,
-    ExtractQuestionPromptBuilder,
-    InterviewPromptBuilder,
     {
       provide: SEARCH_PROVIDER,
-      useClass: TavilyProvider,
+      useClass: GeminiSearchProvider,
     },
+    GeminiSearchProvider,
+    QuestionVerifierService,
+    QuestionRankerService,
+    InterviewPromptBuilder,
     PreShortlistEvaluationProcessor,
     AiProviderService,
     ResumeParserService,
@@ -87,13 +84,12 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     InterviewPrepService,
     QueryGeneratorService,
     JDAnalysisService,
-    QuestionExtractorService,
+    GeminiSearchProvider,
     QuestionVerifierService,
-    QuestionRankerService,   
+    QuestionRankerService,
     MatchExplanationService,
     ProfileSyncService,
     MatchingService,
-    SEARCH_PROVIDER,
   ],
 })
 export class AiModule {}

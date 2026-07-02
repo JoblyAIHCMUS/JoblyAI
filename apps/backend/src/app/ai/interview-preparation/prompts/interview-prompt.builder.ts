@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class InterviewPromptBuilder {
-  build(jobData: { title: string; description: string }, resumeData: { parsedText: string | null }): string {
+  build(
+    jobData: { title: string; description: string },
+    resumeData: { parsedText: string | null }
+  ): string {
     return `
         You are an expert Interviewer and Senior Hiring Manager at a top-tier company.
         Your task is to generate a comprehensive interview preparation kit for a candidate.

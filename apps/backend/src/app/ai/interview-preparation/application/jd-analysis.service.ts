@@ -3,7 +3,11 @@ import { InterviewContext } from './interview-context.model.js';
 
 @Injectable()
 export class JDAnalysisService {
-  analyze(jobTitle?: string | null, companyName?: string | null, jobDescription?: string | null): InterviewContext {
+  analyze(
+    jobTitle?: string | null,
+    companyName?: string | null,
+    jobDescription?: string | null
+  ): InterviewContext {
     return {
       company: this.normalize(companyName),
       role: this.normalize(jobTitle),

@@ -1,46 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import { RankedQuestion } from '../dto/ranked-question.model.js';
-import { VerifiedQuestion } from '../dto/verified-question.model.js';
+import { InterviewQuestion } from '../dto/interview-question.model.js';
 
 @Injectable()
 export class QuestionRankerService {
-  rank(verifiedQuestions: VerifiedQuestion[]): RankedQuestion[] {
+  rank(verifiedQuestions: InterviewQuestion[]): InterviewQuestion[] {
     if (!Array.isArray(verifiedQuestions) || verifiedQuestions.length === 0) {
       return [];
     }
 
-    return verifiedQuestions
-      .map((verifiedQuestion) => ({
-        ...verifiedQuestion,
-        rankingScore: this.calculateScore(verifiedQuestion),
-      }))
-      .sort((left, right) => right.rankingScore - left.rankingScore);
+    const ranked = [...verifiedQuestions].sort((a, b) => {
+      // 1. Confidence (higher is sorted first)
+      if (a.confidence !== b.confidence) {
+        return b.confidence - a.confidence;
+      }
+
+      // 2. Difficulty (Hard > Medium > Easy)
+      if (a.difficulty !== b.difficulty) {
+        return (
+          this.getDifficultyScore(b.difficulty) -
+          this.getDifficultyScore(a.difficulty)
+        );
+      }
+
+      // 3. Question text
+      return a.question.localeCompare(b.question);
+    });
+
+    return ranked;
   }
 
-  private calculateScore(verifiedQuestion: VerifiedQuestion): number {
-    const evidenceComponent = verifiedQuestion.evidenceCount * 1000;
-    const evidenceLevelComponent = this.getEvidenceLevelScore(
-      verifiedQuestion.evidenceLevel
-    );
-
-    return evidenceComponent + evidenceLevelComponent;
-  }
-  /**
-  Evidence level is derived from the number of independent sources.
-  */
-  private getEvidenceLevelScore(
-    evidenceLevel: VerifiedQuestion['evidenceLevel']
-  ): number {
-    switch (evidenceLevel) {
-      case 'very_high':
-        return 95;
-      case 'high':
-        return 90;
-      case 'moderate':
-        return 75;
-      case 'low':
+  private getDifficultyScore(difficulty: 'Easy' | 'Medium' | 'Hard'): number {
+    switch (difficulty) {
+      case 'Hard':
+        return 3;
+      case 'Medium':
+        return 2;
+      case 'Easy':
       default:
-        return 60;
+        return 1;
     }
   }
 }

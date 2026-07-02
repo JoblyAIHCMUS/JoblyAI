@@ -1,5 +1,10 @@
-import { SearchDocument } from './search-document.model.js';
+import { InterviewQuestion } from '../dto/interview-question.model.js';
 
 export interface SearchProvider {
-  search(queries: string[]): Promise<SearchDocument[]>;
+  searchAndExtract(
+    companyName: string | null,
+    jobTitle: string,
+    jobDescription: string,
+    queries: string[]
+  ): Promise<InterviewQuestion[]>;
 }

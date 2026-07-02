@@ -1,96 +1,78 @@
 import { Injectable } from '@nestjs/common';
-import { ExtractedQuestion } from '../dto/extracted-question.model.js';
-import {
-  EvidenceLevel,
-  VerifiedQuestion,
-} from '../dto/verified-question.model.js';
-
-type QuestionGroup = {
-  question: string;
-  sources: string[];
-  contexts: string[];
-  seenSources: Set<string>;
-  seenContexts: Set<string>;
-};
+import { InterviewQuestion } from '../dto/interview-question.model.js';
 
 @Injectable()
 export class QuestionVerifierService {
-  verify(extractedQuestions: ExtractedQuestion[]): VerifiedQuestion[] {
-    if (!Array.isArray(extractedQuestions) || extractedQuestions.length === 0) {
+  verify(questions: InterviewQuestion[]): InterviewQuestion[] {
+    if (!Array.isArray(questions) || questions.length === 0) {
       return [];
     }
 
-    const groups = new Map<string, QuestionGroup>();
+    const verifiedList: InterviewQuestion[] = [];
 
-    for (const extractedQuestion of extractedQuestions) {
-      const normalizedQuestion = this.cleanText(extractedQuestion?.question)?.toLowerCase();
-      const normalizedSource = this.cleanText(extractedQuestion?.url)?.toLowerCase();
-      const normalizedContext = this.cleanText(extractedQuestion?.context);
-      if (!normalizedQuestion || !normalizedSource) {
+    for (const q of questions) {
+      if (!q || typeof q !== 'object') {
         continue;
       }
 
-      const group = groups.get(normalizedQuestion) ?? {
-        question: this.cleanText(extractedQuestion.question) ?? '',
-        sources: [],
-        contexts: [],
-        seenSources: new Set<string>(),
-        seenContexts: new Set<string>(),
-      };
+      const questionText = this.cleanText(q.question);
+      const confidence = typeof q.confidence === 'number' ? q.confidence : 0;
 
-      if (group.seenSources.has(normalizedSource)) {
+      // Filter: confidence must be >= 0.7, and must have a valid question
+      if (!questionText || confidence < 0.7) {
         continue;
       }
 
-      group.seenSources.add(normalizedSource);
-      group.sources.push(this.cleanText(extractedQuestion.url) ?? '');
+      // Check sources: must have at least one valid source
+      const validSources = Array.isArray(q.sources)
+        ? q.sources
+            .map((s: any) => ({
+              title: this.cleanText(s?.title) ?? 'Google Search',
+              url: this.cleanText(s?.url),
+            }))
+            .filter((s): s is { title: string; url: string } =>
+              this.isValidUrl(s.url)
+            )
+        : [];
 
-      if (normalizedContext) {
-        const normalizedContextKey = normalizedContext.toLowerCase();
-
-        if (!group.seenContexts.has(normalizedContextKey)) {
-          group.seenContexts.add(normalizedContextKey);
-          group.contexts.push(normalizedContext);
-        }
+      if (validSources.length === 0) {
+        continue;
       }
 
-      groups.set(normalizedQuestion, group);
+      const category = this.cleanText(q.category) ?? 'General';
+      const relevance = this.cleanText(q.relevance) ?? '';
+      const difficulty = ['Easy', 'Medium', 'Hard'].includes(q.difficulty)
+        ? (q.difficulty as 'Easy' | 'Medium' | 'Hard')
+        : 'Medium';
+
+      verifiedList.push({
+        question: questionText,
+        category,
+        difficulty,
+        relevance,
+        confidence,
+        sources: validSources,
+      });
     }
 
-    return Array.from(groups.values()).map((group) => {
-      const evidenceCount = group.sources.length;
-
-      return {
-        question: group.question,
-        evidenceCount,
-        evidenceLevel: this.getEvidenceLevel(evidenceCount),
-        sources: group.sources,
-        contexts: group.contexts,
-      };
-    });
+    return verifiedList;
   }
 
-  private getEvidenceLevel(evidenceCount: number): EvidenceLevel {
-    if (evidenceCount >= 4) {
-      return 'very_high';
-    }
+  private isValidUrl(url?: string): boolean {
+    if (!url) return false;
 
-    if (evidenceCount === 3) {
-      return 'high';
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
     }
-
-    if (evidenceCount === 2) {
-      return 'moderate';
-    }
-
-    return 'low';
   }
 
   private cleanText(value?: string | null): string | undefined {
     if (typeof value !== 'string') {
       return undefined;
     }
-
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized.length > 0 ? normalized : undefined;
   }

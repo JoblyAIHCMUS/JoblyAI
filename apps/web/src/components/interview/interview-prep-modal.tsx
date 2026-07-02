@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Accordion,
   AccordionContent,
@@ -16,17 +15,16 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
   RefreshCw,
   Sparkles,
-  Lightbulb,
-  Target,
-  Rocket,
 } from 'lucide-react';
 import { useInterviewPrep } from '@/api-hook/ai/use-interview-prep';
-import { InterviewPrepStatus } from '@/services/interviewPrepService';
+import {
+  InterviewPrepStatus,
+  InterviewPrepQuestion,
+} from '@/services/interviewPrepService';
 
 interface InterviewPrepModalProps {
   isOpen: boolean;
@@ -58,11 +56,11 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
     regeneratePrep();
   };
 
-  const renderQuestions = (questions: any[]) => {
+  const renderQuestions = (questions: InterviewPrepQuestion[]) => {
     if (!questions || questions.length === 0)
       return (
         <p className="text-muted-foreground text-center py-8">
-          No questions generated for this level.
+          No questions generated yet.
         </p>
       );
 
@@ -71,36 +69,52 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
         {questions.map((q, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
             <AccordionTrigger className="text-left font-semibold">
-              {q.question}
+              <div className="flex w-full flex-col items-start gap-2 pr-4 text-left">
+                <span>{q.question}</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span>
+                    Found in {q.evidenceCount} source
+                    {q.evidenceCount === 1 ? '' : 's'}
+                  </span>
+                </div>
+              </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-primary font-medium">
-                  <Lightbulb className="h-4 w-4" />
-                  <span>Suggested Answer</span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed pl-6">
-                  {q.sampleAnswer}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-orange-500 font-medium">
-                    <Target className="h-4 w-4" />
-                    <span>Interviewer Intent</span>
+                  <div className="text-sm font-medium text-foreground">
+                    Sources
                   </div>
-                  <p className="text-muted-foreground text-sm pl-6">
-                    {q.interviewerIntent}
-                  </p>
+                  {q.sources?.length ? (
+                    <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                      {q.sources.map((source: string, sourceIndex: number) => (
+                        <li key={`${index}-source-${sourceIndex}`}>{source}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No sources available.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-green-500 font-medium">
-                    <Rocket className="h-4 w-4" />
-                    <span>Preparation Tips</span>
+                  <div className="text-sm font-medium text-foreground">
+                    Supporting Contexts
                   </div>
-                  <p className="text-muted-foreground text-sm pl-6">{q.tips}</p>
+                  {q.contexts?.length ? (
+                    <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                      {q.contexts.map((context: string, contextIndex: number) => (
+                        <li key={`${index}-context-${contextIndex}`}>
+                          {context}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No supporting contexts available.
+                    </p>
+                  )}
                 </div>
               </div>
             </AccordionContent>
@@ -190,47 +204,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
               </Button>
             </div>
           ) : (
-            <Tabs defaultValue="easy" className="w-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="easy" className="gap-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-green-500/10 text-green-600 border-green-200"
-                  >
-                    Easy
-                  </Badge>
-                  Behavioral
-                </TabsTrigger>
-                <TabsTrigger value="medium" className="gap-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-orange-500/10 text-orange-600 border-orange-200"
-                  >
-                    Medium
-                  </Badge>
-                  Situational
-                </TabsTrigger>
-                <TabsTrigger value="hard" className="gap-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-red-500/10 text-red-600 border-red-200"
-                  >
-                    Hard
-                  </Badge>
-                  Strategic
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="easy" className="mt-0">
-                {renderQuestions(data.questions?.easy || [])}
-              </TabsContent>
-              <TabsContent value="medium" className="mt-0">
-                {renderQuestions(data.questions?.medium || [])}
-              </TabsContent>
-              <TabsContent value="hard" className="mt-0">
-                {renderQuestions(data.questions?.hard || [])}
-              </TabsContent>
-            </Tabs>
+            renderQuestions(data.questions || [])
           )}
         </div>
       </DialogContent>

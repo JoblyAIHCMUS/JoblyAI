@@ -6,7 +6,9 @@ export class QueryGeneratorService {
   generateSearchQueries(context: InterviewContext): string[] {
     const companyName = this.clean(context.company);
     const roleName = this.clean(context.role);
-    const keywords = this.unique([...context.keywords, ...context.skills].map((value) => this.clean(value)));
+    const keywords = this.unique(
+      [...context.keywords, ...context.skills].map((value) => this.clean(value))
+    );
 
     const queries = [
       this.combineParts(companyName, roleName, 'interview questions'),
@@ -24,7 +26,9 @@ export class QueryGeneratorService {
     ];
 
     return this.unique(
-      queries.filter((query): query is string => Boolean(query && query.length > 0))
+      queries.filter((query): query is string =>
+        Boolean(query && query.length > 0)
+      )
     );
   }
 

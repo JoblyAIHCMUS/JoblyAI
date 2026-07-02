@@ -4,48 +4,66 @@ import { QuestionVerifierService } from '../app/ai/interview-preparation/verific
 describe('QuestionVerifierService', () => {
   const service = new QuestionVerifierService();
 
-  it('groups identical questions, deduplicates same-source duplicates, and aggregates evidence', () => {
+  it('validates, normalizes and filters questions by confidence and sources without merging duplicates', () => {
     const result = service.verify([
       {
-        question: 'How do you handle conflict?',
-        source: 'Doc A',
-        url: 'https://example.com/a',
-        context: 'First context',
-      },
-      {
         question: ' How do you handle conflict? ',
-        source: 'Doc A duplicate',
-        url: 'https://example.com/a',
-        context: 'First context duplicate',
+        category: ' Behavioral ',
+        difficulty: 'Medium',
+        relevance: ' Relevant behavioral prompt. ',
+        confidence: 0.85,
+        sources: [{ title: 'Doc A', url: 'https://example.com/a' }],
       },
       {
-        question: 'How do you handle conflict?',
-        source: 'Doc B',
-        url: 'https://example.com/b',
-        context: 'Second context',
+        // Should be filtered out due to low confidence
+        question: 'Explain Dependency Injection',
+        category: 'Technical',
+        difficulty: 'Hard',
+        relevance: 'Not confident',
+        confidence: 0.5,
+        sources: [{ title: 'Doc B', url: 'https://example.com/b' }],
+      },
+      {
+        // Should be filtered out due to missing sources
+        question: 'Explain TypeScript',
+        category: 'Technical',
+        difficulty: 'Easy',
+        relevance: 'No sources',
+        confidence: 0.9,
+        sources: [],
       },
       {
         question: 'Tell me about a time you failed.',
-        source: 'Doc C',
-        url: 'https://example.com/c',
-        context: 'Another context',
+        category: 'Behavioral',
+        difficulty: 'Hard',
+        relevance: 'Failure analysis.',
+        confidence: 0.75,
+        sources: [
+          { title: 'Doc C1', url: 'https://example.com/c1' },
+          { title: 'Doc C2', url: 'https://example.com/c2' },
+        ],
       },
     ]);
 
     expect(result).toEqual([
       {
         question: 'How do you handle conflict?',
-        evidenceCount: 2,
-        confidence: 0.75,
-        sources: ['https://example.com/a', 'https://example.com/b'],
-        contexts: ['First context', 'Second context'],
+        category: 'Behavioral',
+        difficulty: 'Medium',
+        relevance: 'Relevant behavioral prompt.',
+        confidence: 0.85,
+        sources: [{ title: 'Doc A', url: 'https://example.com/a' }],
       },
       {
         question: 'Tell me about a time you failed.',
-        evidenceCount: 1,
-        confidence: 0.6,
-        sources: ['https://example.com/c'],
-        contexts: ['Another context'],
+        category: 'Behavioral',
+        difficulty: 'Hard',
+        relevance: 'Failure analysis.',
+        confidence: 0.75,
+        sources: [
+          { title: 'Doc C1', url: 'https://example.com/c1' },
+          { title: 'Doc C2', url: 'https://example.com/c2' },
+        ],
       },
     ]);
   });

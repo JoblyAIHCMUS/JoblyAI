@@ -4,55 +4,80 @@ import { QuestionRankerService } from '../app/ai/interview-preparation/ranking/q
 describe('QuestionRankerService', () => {
   const service = new QuestionRankerService();
 
-  it('calculates a deterministic score and sorts questions by descending score', () => {
+  it('calculates a deterministic ranking score using confidence, difficulty, and sources and sorts questions', () => {
     const result = service.rank([
       {
         question: 'Question C',
-        evidenceCount: 2,
-        confidence: 0.6,
-        sources: ['c1', 'c2'],
-        contexts: ['context c'],
+        category: 'General',
+        difficulty: 'Easy',
+        relevance: 'easy relevance',
+        confidence: 0.7,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+        ],
       },
       {
         question: 'Question A',
-        evidenceCount: 4,
-        confidence: 0.7,
-        sources: ['a1', 'a2', 'a3', 'a4'],
-        contexts: ['context a'],
+        category: 'Technical',
+        difficulty: 'Hard',
+        relevance: 'hard relevance',
+        confidence: 0.9,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+          { title: 's3', url: 'url3' },
+          { title: 's4', url: 'url4' },
+        ],
       },
       {
         question: 'Question B',
-        evidenceCount: 2,
-        confidence: 0.9,
-        sources: ['b1', 'b2'],
-        contexts: ['context b'],
+        category: 'Behavioral',
+        difficulty: 'Medium',
+        relevance: 'medium relevance',
+        confidence: 0.8,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+        ],
       },
     ]);
 
     expect(result).toEqual([
       {
         question: 'Question A',
-        evidenceCount: 4,
-        confidence: 0.7,
-        sources: ['a1', 'a2', 'a3', 'a4'],
-        contexts: ['context a'],
-        score: 4070,
+        category: 'Technical',
+        difficulty: 'Hard',
+        relevance: 'hard relevance',
+        confidence: 0.9,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+          { title: 's3', url: 'url3' },
+          { title: 's4', url: 'url4' },
+        ],
       },
       {
         question: 'Question B',
-        evidenceCount: 2,
-        confidence: 0.9,
-        sources: ['b1', 'b2'],
-        contexts: ['context b'],
-        score: 2090,
+        category: 'Behavioral',
+        difficulty: 'Medium',
+        relevance: 'medium relevance',
+        confidence: 0.8,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+        ],
       },
       {
         question: 'Question C',
-        evidenceCount: 2,
-        confidence: 0.6,
-        sources: ['c1', 'c2'],
-        contexts: ['context c'],
-        score: 2060,
+        category: 'General',
+        difficulty: 'Easy',
+        relevance: 'easy relevance',
+        confidence: 0.7,
+        sources: [
+          { title: 's1', url: 'url1' },
+          { title: 's2', url: 'url2' },
+        ],
       },
     ]);
   });
