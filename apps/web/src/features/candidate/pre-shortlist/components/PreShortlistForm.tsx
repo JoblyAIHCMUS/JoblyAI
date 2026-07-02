@@ -17,17 +17,22 @@ interface PreShortlistFormProps {
   applicationId: number;
   jobId: number;
   data: PreShortlistApplicationView;
+  readOnly?: boolean;
 }
 
 export function PreShortlistForm({
   applicationId,
   jobId,
   data,
+  readOnly,
 }: PreShortlistFormProps) {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    for (const q of data.questions) init[q.id] = '';
+    for (const q of data.questions) {
+      const existing = data.answers.find((a) => a.questionId === q.id);
+      init[q.id] = existing?.answer ?? '';
+    }
     return init;
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -67,7 +72,7 @@ export function PreShortlistForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-5 max-w-2xl mx-auto px-3 sm:px-0"
+      className="space-y-5 max-w-2xl mx-auto px-3 sm:px-0 pb-12 sm:pb-16"
     >
       <div>
         <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
@@ -98,7 +103,10 @@ export function PreShortlistForm({
                 htmlFor={`q-${q.id}`}
                 className="block text-sm font-semibold text-slate-900"
               >
-                {idx + 1}. {q.question}
+                {idx + 1}. {q.question}{' '}
+                <span className="text-red-500" aria-hidden="true">
+                  *
+                </span>
               </label>
               <Textarea
                 id={`q-${q.id}`}
@@ -108,7 +116,7 @@ export function PreShortlistForm({
                 onChange={(e) =>
                   setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
                 }
-                disabled={submit.isPending}
+                disabled={submit.isPending || readOnly}
                 className={`text-sm ${
                   tooShort || tooLong ? 'border-red-500' : ''
                 }`}
@@ -124,7 +132,9 @@ export function PreShortlistForm({
                       : 'text-slate-500'
                   }
                 >
-                  {tooShort
+                  {readOnly
+                    ? `${value.length} / ${MAX_LENGTH}`
+                    : tooShort
                     ? `Answer must be at least ${MIN_LENGTH} characters`
                     : tooLong
                     ? `Answer must be at most ${MAX_LENGTH} characters`
@@ -136,22 +146,42 @@ export function PreShortlistForm({
         })}
       </div>
 
-      <div className="flex justify-end pt-2">
-        <Button
-          type="submit"
-          disabled={!allValid || submit.isPending}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          {submit.isPending ? (
-            <span className="flex items-center gap-2">
-              <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-              Submitting...
-            </span>
-          ) : (
-            'Submit answers'
-          )}
-        </Button>
-      </div>
+      {readOnly ? (
+        <div className="space-y-3">
+          <Alert>
+            <AlertDescription>
+              Your answers have been submitted. The hiring team will review them
+              and let you know the next step.
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/candidate/applications')}
+            >
+              Back to applications
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex justify-end pt-2">
+          <Button
+            type="submit"
+            disabled={!allValid || submit.isPending}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            {submit.isPending ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                Submitting...
+              </span>
+            ) : (
+              'Submit answers'
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
