@@ -72,7 +72,7 @@ export interface PreShortlistStatusView {
   }[];
 }
 
-const MAX_QUESTION_LENGTH = 500;
+const MAX_QUESTION_LENGTH = 10_000;
 const MAX_QUESTIONS_PER_JOB = 20;
 const MIN_ANSWER_LENGTH = 20;
 const MAX_ANSWER_LENGTH = 2000;
