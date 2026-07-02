@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AiBadge } from '@/components/ui/ai-badge';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { FieldShell } from '@/components/ui/field-shell';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
@@ -228,7 +229,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
     getValues,
     setValue,
   } = useFormContext<JobPostingFormData>();
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, move, replace } = useFieldArray({
     control,
     name: 'preShortlistQuestions' as never,
   });
@@ -241,6 +242,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
 
   const [aiSuggested, setAiSuggested] = useState<AiBadgeState>({});
   const [generateCount, setGenerateCount] = useState<number>(5);
+  const [clearOpen, setClearOpen] = useState<boolean>(false);
 
   const onGenerate = useCallback(
     async ({
@@ -400,49 +402,61 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             </p>
           </div>
           {!readOnly && (
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1.5 text-[11px] text-tertiary">
-                <span>How many</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={MAX_QUESTIONS}
-                  value={generateCount}
-                  onChange={(e) => {
-                    const next = Number.parseInt(e.target.value, 10);
-                    if (Number.isFinite(next)) {
-                      setGenerateCount(
-                        Math.max(1, Math.min(MAX_QUESTIONS, next))
-                      );
-                    } else if (e.target.value === '') {
-                      setGenerateCount(1);
-                    }
-                  }}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-tertiary">
+                  <span>How many</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={MAX_QUESTIONS}
+                    value={generateCount}
+                    onChange={(e) => {
+                      const next = Number.parseInt(e.target.value, 10);
+                      if (Number.isFinite(next)) {
+                        setGenerateCount(
+                          Math.max(1, Math.min(MAX_QUESTIONS, next))
+                        );
+                      } else if (e.target.value === '') {
+                        setGenerateCount(1);
+                      }
+                    }}
+                    disabled={generating || fields.length >= MAX_QUESTIONS}
+                    className="h-8 w-14 rounded-md border border-slate-200 bg-white px-2 text-center text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ai-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Number of questions to generate"
+                  />
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    onGenerate({
+                      jobTitle: jobTitle ?? '',
+                      jobDescription: jobDescription ?? '',
+                      requirements: (skills ?? []).map((s) => ({
+                        skillName: s.name,
+                        importance: s.importance,
+                        minYearsExperience: s.minYearsExperience ?? null,
+                      })),
+                      count: generateCount,
+                    })
+                  }
                   disabled={generating || fields.length >= MAX_QUESTIONS}
-                  className="h-8 w-14 rounded-md border border-slate-200 bg-white px-2 text-center text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ai-accent)] disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label="Number of questions to generate"
-                />
-              </label>
+                  className="shrink-0"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {generating ? 'Generating…' : 'Generate with AI'}
+                </Button>
+              </div>
               <Button
                 type="button"
                 size="sm"
-                onClick={() =>
-                  onGenerate({
-                    jobTitle: jobTitle ?? '',
-                    jobDescription: jobDescription ?? '',
-                    requirements: (skills ?? []).map((s) => ({
-                      skillName: s.name,
-                      importance: s.importance,
-                      minYearsExperience: s.minYearsExperience ?? null,
-                    })),
-                    count: generateCount,
-                  })
-                }
-                disabled={generating || fields.length >= MAX_QUESTIONS}
+                variant="ghost"
+                onClick={() => setClearOpen(true)}
+                disabled={fields.length === 0}
                 className="shrink-0"
               >
-                <Sparkles className="h-4 w-4" />
-                {generating ? 'Generating…' : 'Generate with AI'}
+                Clear all
               </Button>
             </div>
           )}
@@ -556,6 +570,20 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
           <p className="text-[11px] text-tertiary">Maximum reached</p>
         )}
       </div>
+      <DeleteConfirmDialog
+        open={clearOpen}
+        title="Remove all questions?"
+        description="You can regenerate with AI afterwards."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onOpenChange={setClearOpen}
+        onCancel={() => setClearOpen(false)}
+        onConfirm={() => {
+          replace([]);
+          setAiSuggested({});
+          setClearOpen(false);
+        }}
+      />
     </div>
   );
 }
