@@ -15,11 +15,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import {
-  Loader2,
-  RefreshCw,
-  Sparkles,
-} from 'lucide-react';
+import { Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { useInterviewPrep } from '@/api-hook/ai/use-interview-prep';
 import {
   InterviewPrepStatus,
@@ -79,9 +75,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   <div className="text-sm font-medium text-foreground">
                     Category
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {q.category}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{q.category}</p>
                 </div>
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-foreground">
@@ -103,9 +97,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   <div className="text-sm font-medium text-foreground">
                     Relevance
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {q.relevance}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{q.relevance}</p>
                 </div>
               </div>
               <div className="space-y-2 mt-4">
@@ -116,7 +108,12 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
                     {q.sources.map((source, sourceIndex) => (
                       <li key={`${index}-source-${sourceIndex}`}>
-                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
                           {source.title}
                         </a>
                       </li>

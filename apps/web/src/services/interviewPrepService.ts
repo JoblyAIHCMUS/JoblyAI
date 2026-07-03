@@ -9,7 +9,7 @@ export enum InterviewPrepStatus {
 export interface PublicQuestion {
   question: string;
   category: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: 'Easy' | 'Medium' | 'Hard';
   relevance: string;
   confidence: number;
   sources: {

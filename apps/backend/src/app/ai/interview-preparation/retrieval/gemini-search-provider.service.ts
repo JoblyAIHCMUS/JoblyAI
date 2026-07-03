@@ -20,7 +20,9 @@ export class GeminiSearchProvider implements SearchProvider {
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY')?.trim();
     if (!apiKey) {
-      this.logger.error('GEMINI_API_KEY is not defined in environment variables');
+      this.logger.error(
+        'GEMINI_API_KEY is not defined in environment variables'
+      );
     }
     this.client = new GoogleGenAI({
       apiKey: apiKey || '',
@@ -39,10 +41,17 @@ export class GeminiSearchProvider implements SearchProvider {
     }
 
     const model = this.getModel();
-    const prompt = this.buildPrompt(companyName, jobTitle, jobDescription, queries);
+    const prompt = this.buildPrompt(
+      companyName,
+      jobTitle,
+      jobDescription,
+      queries
+    );
 
     try {
-      this.logger.log(`Calling Gemini API (${model}) with Google Search Tool...`);
+      this.logger.log(
+        `Calling Gemini API (${model}) with Google Search Tool...`
+      );
       const response = await this.client.models.generateContent({
         model,
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -51,12 +60,20 @@ export class GeminiSearchProvider implements SearchProvider {
           responseMimeType: 'application/json',
           responseSchema: {
             type: 'ARRAY',
-            description: 'List of real interview questions extracted from web search results',
+            description:
+              'List of real interview questions extracted from web search results',
             items: {
               type: 'OBJECT',
               properties: {
-                question: { type: 'STRING', description: 'The text of the interview question' },
-                category: { type: 'STRING', description: 'The category or topic of the question (e.g. Technical, Behavioral)' },
+                question: {
+                  type: 'STRING',
+                  description: 'The text of the interview question',
+                },
+                category: {
+                  type: 'STRING',
+                  description:
+                    'The category or topic of the question (e.g. Technical, Behavioral)',
+                },
                 difficulty: {
                   type: 'STRING',
                   description: 'The difficulty level of the question',
@@ -64,20 +81,30 @@ export class GeminiSearchProvider implements SearchProvider {
                 },
                 relevance: {
                   type: 'STRING',
-                  description: 'Explanation of why this question is highly relevant to this specific company/job profile',
+                  description:
+                    'Explanation of why this question is highly relevant to this specific company/job profile',
                 },
                 confidence: {
                   type: 'NUMBER',
-                  description: 'A confidence score between 0.0 and 1.0 representing how reliable and relevant the question is based on the search sources',
+                  description:
+                    'A confidence score between 0.0 and 1.0 representing how reliable and relevant the question is based on the search sources',
                 },
                 // Cài đặt 1: Bắt Gemini trả về mảng tiêu đề nguồn thay vì URL tự chế
                 sourceTitles: {
                   type: 'ARRAY',
-                  description: 'Exact titles of the search results/webpages where this specific question was found',
-                  items: { type: 'STRING' }
-                }
+                  description:
+                    'Exact titles of the search results/webpages where this specific question was found',
+                  items: { type: 'STRING' },
+                },
               },
-              required: ['question', 'category', 'difficulty', 'relevance', 'confidence', 'sourceTitles'],
+              required: [
+                'question',
+                'category',
+                'difficulty',
+                'relevance',
+                'confidence',
+                'sourceTitles',
+              ],
             },
           },
         },
@@ -98,8 +125,13 @@ export class GeminiSearchProvider implements SearchProvider {
       for (const q of parsed) {
         if (!q || typeof q !== 'object') continue;
 
-        const uniqueSourcesMap = new Map<string, { title: string; url: string }>();
-        const aiSuggestedTitles = Array.isArray(q.sourceTitles) ? q.sourceTitles : [];
+        const uniqueSourcesMap = new Map<
+          string,
+          { title: string; url: string }
+        >();
+        const aiSuggestedTitles = Array.isArray(q.sourceTitles)
+          ? q.sourceTitles
+          : [];
 
         for (const aiTitle of aiSuggestedTitles) {
           if (!aiTitle || typeof aiTitle !== 'string') continue;
@@ -112,7 +144,10 @@ export class GeminiSearchProvider implements SearchProvider {
             const chunkTitle = (chunk.web.title || '').toLowerCase().trim();
 
             // Khớp nếu tiêu đề của AI trùng hoặc chứa một phần tiêu đề từ Google Search
-            if (chunkTitle.includes(normAiTitle) || normAiTitle.includes(chunkTitle)) {
+            if (
+              chunkTitle.includes(normAiTitle) ||
+              normAiTitle.includes(chunkTitle)
+            ) {
               uniqueSourcesMap.set(chunk.web.uri, {
                 title: chunk.web.title || aiTitle,
                 url: chunk.web.uri, // URL sạch từ API Google
@@ -126,7 +161,10 @@ export class GeminiSearchProvider implements SearchProvider {
         // Fallback: Nếu AI gõ lệch tiêu đề khiến không map được link nào,
         // phân phối toàn bộ link tìm được để tránh Verifier loại bỏ câu hỏi
         if (mappedSources.length === 0 && chunks.length > 0) {
-          const fallbackSources = new Map<string, { title: string; url: string }>();
+          const fallbackSources = new Map<
+            string,
+            { title: string; url: string }
+          >();
           for (const chunk of chunks) {
             if (chunk?.web?.uri) {
               fallbackSources.set(chunk.web.uri, {
@@ -145,7 +183,9 @@ export class GeminiSearchProvider implements SearchProvider {
       return this.validateAndCleanQuestions(parsed);
     } catch (error: any) {
       this.logger.error(`Gemini Search and Extract failed: ${error.message}`);
-      throw new ServiceUnavailableException(`Gemini Search and Extract failed: ${error.message}`);
+      throw new ServiceUnavailableException(
+        `Gemini Search and Extract failed: ${error.message}`
+      );
     }
   }
 
@@ -216,11 +256,11 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
 
       const sources = Array.isArray(q.sources)
         ? q.sources
-          .map((s: any) => ({
-            title: this.cleanText(s?.title) ?? 'Google Search',
-            url: this.cleanText(s?.url) ?? 'https://google.com',
-          }))
-          .filter((s: any) => Boolean(s.url))
+            .map((s: any) => ({
+              title: this.cleanText(s?.title) ?? 'Google Search',
+              url: this.cleanText(s?.url) ?? 'https://google.com',
+            }))
+            .filter((s: any) => Boolean(s.url))
         : [];
 
       cleaned.push({
