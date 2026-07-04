@@ -24,6 +24,7 @@ export type ApplicationItem = {
   status: ApplicationStatus;
   recruiterId: string;
   matchPercentage?: number | null;
+  preShortlistQuestionsCount: number;
 };
 
 export type ApplicationStatusMeta = Record<

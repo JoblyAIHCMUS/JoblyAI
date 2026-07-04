@@ -52,6 +52,7 @@ export interface ApplicationRecord {
   resumeId: number;
   status: ApplicationStatus;
   matchPercentage: number | null;
+  preShortlistQuestionsCount: number;
   aiFeedback: unknown | null;
   jobDeletedAt?: string | null;
   createdAt: string;
