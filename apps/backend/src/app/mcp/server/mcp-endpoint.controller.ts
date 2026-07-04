@@ -7,13 +7,10 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { PrismaClient } from '@prisma/client';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 import type { RequestWithMcpUser } from '../auth/api-key.types';
-import { MatchExplanationService } from '../../ai/match-explanation.service';
-import { NotificationsService } from '../../notifications/notifications.service';
 import { createMcpServer } from './mcp.factory';
 import type { Response } from 'express';
 
@@ -24,9 +21,6 @@ export class McpEndpointController {
 
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
-    private readonly matchExplanationService: MatchExplanationService,
-    private readonly eventEmitter: EventEmitter2,
-    private readonly notificationsService: NotificationsService
   ) {}
 
   @All()
@@ -58,9 +52,6 @@ export class McpEndpointController {
       companyId: employer?.companyId ?? null,
       prisma: this.prisma,
       logger: this.logger,
-      matchExplanationService: this.matchExplanationService,
-      eventEmitter: this.eventEmitter,
-      notificationsService: this.notificationsService,
     });
 
     await server.connect(transport);

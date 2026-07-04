@@ -46,10 +46,7 @@ describe('McpEndpointController', () => {
             .mockResolvedValue({ id: 'user-123', role: 'employer' }),
         },
         employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
-      } as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      } as never
     );
   });
 
@@ -63,10 +60,7 @@ describe('McpEndpointController', () => {
       employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
     };
     controller = new McpEndpointController(
-      prisma as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      prisma as never
     );
 
     const mockReq = {
@@ -156,10 +150,7 @@ describe('McpEndpointController', () => {
             .mockResolvedValue({ id: 'user-123', role: 'candidate' }),
         },
         employer: { findUnique: vi.fn().mockResolvedValue(null) },
-      } as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      } as never
     );
 
     const mockReq = {
