@@ -109,9 +109,7 @@ export default function PreShortlistAssessment({
             >
               Pre-shortlist assessment
             </h3>
-            <p className="text-xs text-tertiary">
-              {data.threshold}% threshold
-            </p>
+            <p className="text-xs text-tertiary">{data.threshold}% threshold</p>
           </div>
           <div className="flex items-center gap-2">
             <PreShortlistInfoButton kind="evaluate" />

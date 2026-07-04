@@ -45,7 +45,7 @@ export function PreShortlistInfoModal({
     : 'How we evaluate pre-shortlist answers';
   const intro = isGenerate
     ? 'The AI drafts screening questions for your job using a structured prompt. Here is what it is told to do:'
-    : "When a candidate submits answers, the AI compares each one to your expected answer and produces an overall fit verdict. Here is what it is told to do:";
+    : 'When a candidate submits answers, the AI compares each one to your expected answer and produces an overall fit verdict. Here is what it is told to do:';
   const criteria = isGenerate ? GENERATE_CRITERIA : EVALUATE_CRITERIA;
   const source = isGenerate ? (
     <>
@@ -105,6 +105,10 @@ export function PreShortlistInfoModal({
 function renderBold(text: string) {
   const parts = text.split(/\*\*(.+?)\*\*/g);
   return parts.map((part, idx) =>
-    idx % 2 === 1 ? <strong key={idx}>{part}</strong> : <span key={idx}>{part}</span>
+    idx % 2 === 1 ? (
+      <strong key={idx}>{part}</strong>
+    ) : (
+      <span key={idx}>{part}</span>
+    )
   );
 }

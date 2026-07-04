@@ -109,32 +109,32 @@ function MoreActionsMenu({
           className="absolute right-0 top-8 z-10 min-w-[180px] rounded-md border border-[#d6ddeb] bg-white p-1 shadow-lg"
         >
           {options.map((option) => {
-              const isDisabled = option === disabledOption;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  disabled={isDisabled}
-                  className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm ${
-                    isDisabled
-                      ? 'cursor-not-allowed text-slate-400'
-                      : option === 'Withdraw application'
-                      ? 'text-[#ff6550] hover:bg-[#fff1f0]'
-                      : 'text-[#25324b] hover:bg-[#f8f8fd]'
-                  }`}
-                  onClick={() => {
-                    if (isDisabled) return;
-                    onSelect?.(option, item);
-                    setIsOpen(false);
-                  }}
-                >
-                  {option === ANSWER_PRE_SHORTLIST_OPTION ? (
-                    <ClipboardList className="h-4 w-4" aria-hidden="true" />
-                  ) : null}
-                  <span>{option}</span>
-                </button>
-              );
-            })}
+            const isDisabled = option === disabledOption;
+            return (
+              <button
+                key={option}
+                type="button"
+                disabled={isDisabled}
+                className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm ${
+                  isDisabled
+                    ? 'cursor-not-allowed text-slate-400'
+                    : option === 'Withdraw application'
+                    ? 'text-[#ff6550] hover:bg-[#fff1f0]'
+                    : 'text-[#25324b] hover:bg-[#f8f8fd]'
+                }`}
+                onClick={() => {
+                  if (isDisabled) return;
+                  onSelect?.(option, item);
+                  setIsOpen(false);
+                }}
+              >
+                {option === ANSWER_PRE_SHORTLIST_OPTION ? (
+                  <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                ) : null}
+                <span>{option}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -199,7 +199,10 @@ export function ApplicationHistoryRow({
   ]);
 
   const handleRowClick = () => {
-    if (item.status === 'pre-shortlist-pending' && !hasNoPreShortlistQuestions) {
+    if (
+      item.status === 'pre-shortlist-pending' &&
+      !hasNoPreShortlistQuestions
+    ) {
       router.push(`/candidate/pre-shortlist/${item.id}`);
       return;
     }
@@ -214,7 +217,10 @@ export function ApplicationHistoryRow({
       // Disabled option — do nothing.
       return;
     }
-    if (option === ANSWER_PRE_SHORTLIST_OPTION || option === answerOptionLabel) {
+    if (
+      option === ANSWER_PRE_SHORTLIST_OPTION ||
+      option === answerOptionLabel
+    ) {
       router.push(`/candidate/pre-shortlist/${currentItem.id}`);
     } else if (option === 'View details') {
       router.push(`/candidate/find-jobs/${currentItem.jobId}`);
@@ -282,7 +288,9 @@ export function ApplicationHistoryRow({
                   item={item}
                   options={filteredOptions}
                   onSelect={handleMoreActionSelect}
-                  disabledOption={hasNoPreShortlistQuestions ? answerOptionLabel : null}
+                  disabledOption={
+                    hasNoPreShortlistQuestions ? answerOptionLabel : null
+                  }
                 />
               </div>
             )}
@@ -403,7 +411,9 @@ export function ApplicationHistoryRow({
                 item={item}
                 options={filteredOptions}
                 onSelect={handleMoreActionSelect}
-                disabledOption={hasNoPreShortlistQuestions ? answerOptionLabel : null}
+                disabledOption={
+                  hasNoPreShortlistQuestions ? answerOptionLabel : null
+                }
               />
             </div>
           )}
