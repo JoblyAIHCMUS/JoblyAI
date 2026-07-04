@@ -26,6 +26,7 @@ import { FieldShell } from '@/components/ui/field-shell';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useGeneratePreShortlistQuestions } from '@/api-hook/pre-shortlist';
+import { PreShortlistInfoButton } from '@/components/employer/preShortlist/PreShortlistInfoButton';
 import type { GenerateQuestionsRequest } from '@/api-client/pre-shortlist';
 import type { JobPostingFormData } from '../schema';
 
@@ -453,6 +454,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                   <Sparkles className="h-4 w-4" />
                   {generating ? 'Generating…' : 'Generate with AI'}
                 </Button>
+                <PreShortlistInfoButton kind="generate" />
               </div>
               <Button
                 type="button"
@@ -506,27 +508,6 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                 Generate with AI to draft some based on your job description, or
                 add one manually.
               </p>
-              <Button
-                type="button"
-                size="sm"
-                className="mt-4"
-                onClick={() =>
-                  onGenerate({
-                    jobTitle: jobTitle ?? '',
-                    jobDescription: jobDescription ?? '',
-                    requirements: (skills ?? []).map((s) => ({
-                      skillName: s.name,
-                      importance: s.importance,
-                      minYearsExperience: s.minYearsExperience ?? null,
-                    })),
-                    count: generateCount,
-                  })
-                }
-                disabled={generating}
-              >
-                <Sparkles className="h-4 w-4" />
-                Generate with AI
-              </Button>
             </div>
           )
         ) : null}
