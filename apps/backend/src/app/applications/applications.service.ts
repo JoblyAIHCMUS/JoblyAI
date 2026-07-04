@@ -257,6 +257,9 @@ export class ApplicationsService {
                   email: true,
                 },
               },
+              _count: {
+                select: { preShortlistQuestions: true },
+              },
             },
           },
           resume: {
@@ -822,6 +825,8 @@ export class ApplicationsService {
         ? Number(application.matchPercentage)
         : null,
       aiFeedback: application.aiFeedback,
+      preShortlistQuestionsCount:
+        application.job._count?.preShortlistQuestions ?? 0,
       jobDeletedAt: application.jobDeletedAt,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,

@@ -70,7 +70,7 @@ export function buildEvaluateAnswersPrompt(
 
   const numQuestions = input.questions.length;
 
-  return `You are a senior hiring manager at a top-tier company evaluating a candidate's pre-shortlist answers for a role.
+  return `You are a senior hiring manager at a top-tier company evaluating a candidate's pre-shortlist answers. You will apply the principles of **Structured Interviewing** to ensure accuracy, consistency, and legal defensibility.
 
 ROLE CONTEXT
 Job Title: ${input.jobTitle}
@@ -83,22 +83,21 @@ CANDIDATE'S ANSWERS
 ${questionsAndAnswersText}
 
 YOUR TASK
-For EACH question/answer pair, evaluate against the question's EXPECTED ANSWER (which represents the criterion the hiring manager supplied) and return a structured verdict.
+For EACH question/answer pair, evaluate the response by comparing the "CANDIDATE ANSWER" against the "EXPECTED ANSWER." You must determine the candidate's **proficiency level** based on the evidence provided in their response.
 
 For each question/answer, produce:
-- "comment": 1-3 sentences that compare the candidate's answer against the expected answer. Be specific and professional. If useful, quote 1 short phrase from the candidate's answer. If no expected answer was supplied for this question, say so explicitly in the comment (e.g. "No expected answer was provided by the employer.") and then evaluate against general role fit. Avoid generic praise or generic criticism. Be honest about weaknesses. Do NOT emit a numeric score or a categorical status label — only the comment.
+- "comment": 1-3 sentences providing an **evidence-based evaluation**. Your comment must be defensible and supported by specific behavioral examples from the candidate's answer. Explicitly note if the candidate provided "Superior" details (probing deeper into a problem), "Satisfactory" details (meeting the basic requirement), or "Unsatisfactory" details (failing to address the core issue). If no expected answer was provided, state: "No expected answer was provided by the employer," then evaluate based on the general competency required for the role.
 
 Then produce an OVERALL verdict:
-- "comment": 1-2 sentences summarizing the candidate's overall fit for THIS specific job.
-- "suggestion": one of "STRONG" (recommend advancing to interview), "MAYBE" (worth a closer look, not a clear no), "NO" (do not advance). Do not emit any numeric or summary field for the overall verdict — only the suggestion.
+- "comment": 1-2 sentences summarizing the candidate's overall fit. This must be a synthesis of their demonstrated competencies across all questions.
+- "suggestion": one of "STRONG" (highly recommended), "MAYBE" (recommended with reservations), "NO" (not recommended).
 
-QUALITY CRITERIA (apply to every evaluation)
-- Be honest. Do not inflate feedback to be polite. A vague answer to a technical question should be called out clearly, not glossed over.
-- If the answer is too short to evaluate (less than ~2 sentences of substance), note the brevity in the comment.
-- Do not penalize candidates for non-native English writing; focus on substance.
-- The "suggestion" must be one of the three enum values. Each "comment" must be a non-empty string.
-- When the expected answer is absent, your comment must say so explicitly and then proceed with the general fit evaluation.
-- Evaluate each question INDEPENDENTLY first, then synthesize the overall verdict from the per-question comments.
+QUALITY CRITERIA (OPM Structured Interview Standards)
+1. **Avoid Rating Errors:** Do not allow the **Halo Effect** (letting one strong answer inflate others) or **Central Tendency** (rating everything as "Maybe" to be safe) to influence your verdict.
+2. **Resist Contrast Effects:** Evaluate this candidate strictly against the job requirements and expected answers, not in comparison to other hypothetical candidates.
+3. **Evidence over First Impressions:** Do not make a rapid decision based on the first sentence. Gather all behavioral evidence from the full response before concluding.
+4. **Behavioral Consistency:** The best predictor of future behavior is past behavior. Look for specific "Actions" the candidate took and the "Outcomes" achieved.
+5. **Focus on Substance:** Focus on the "accuracy and relevance of information" and the "soundness of judgment" rather than writing style or non-native English markers.
 
 OUTPUT FORMAT — strict JSON, no markdown fences, no commentary:
 {
@@ -108,5 +107,5 @@ OUTPUT FORMAT — strict JSON, no markdown fences, no commentary:
   "overall": { "comment": "...", "suggestion": "STRONG|MAYBE|NO" }
 }
 
-  The "evaluations" array MUST contain exactly ${numQuestions} entries, one per input question, in the same order as the input questions. Each "questionId" MUST match an id from the input. The output JSON must contain ONLY the fields shown in the example above — no extra numeric, categorical, or summary fields are permitted anywhere.`;
+The "evaluations" array MUST contain exactly ${numQuestions} entries. The output JSON must contain ONLY the fields shown above.`;
 }

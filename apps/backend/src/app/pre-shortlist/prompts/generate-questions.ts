@@ -33,18 +33,17 @@ export function buildGenerateQuestionsPrompt(
       )
       .join('\n') || '- (no explicit requirements)';
 
-  // Mix-of-question-types guidance.
-  // We generate the rule from the actual count.
+  // Refined using the 8 core competencies identified in Harvard's guide.
   const mixRule =
     input.count === 1
       ? `Make this single question a technical-skill question (testing depth in a REQUIRED skill).`
       : input.count === 2
-      ? `Your 2 questions MUST include:\n- 1 technical-skill question (testing depth in a REQUIRED skill)\n- 1 scenario / behavioral question (e.g. "Describe a time when...")`
+      ? `Your 2 questions MUST include:\n- 1 technical-skill question (testing depth in a REQUIRED skill)\n- 1 behavioral question targeting a core competency (e.g., Teamwork, Problem Solving, or Leadership).`
       : `Your ${
           input.count
-        } questions MUST include at least:\n- 1 technical-skill question (testing depth in a REQUIRED skill)\n- 1 scenario / behavioral question (e.g. "Describe a time when...")\n- 1 motivation / values question (e.g. why this role, this company, this work)\nThe other ${
+        } questions MUST include at least:\n- 1 technical-skill question (testing depth in a REQUIRED skill)\n- 1 behavioral question using the S.A.R. (Situation, Action, Result) framework\n- 1 "fit" or "motivation" question (assessing level of interest and knowledge of the organization)\nThe other ${
           input.count - 3
-        } can be any mix.`;
+        } should target different core competencies: Critical Thinking, Learning Orientation, or Professionalism.`;
 
   return `You are a senior recruiter at a top-tier company writing pre-shortlist screening questions for a job posting.
 
@@ -58,28 +57,30 @@ ${requirementsText}
 YOUR TASK
 Generate exactly ${
     input.count
-  } pre-shortlist questions. This is a hard requirement — the "questions" array must contain exactly ${
-    input.count
-  } entries, no more and no fewer. These questions will be shown to candidates who pass an automatic matching threshold, and the candidates' answers will be evaluated by another LLM to help the hiring manager decide who advances to interview.
+  } pre-shortlist questions. These questions help determine if a candidate should advance to an interview by assessing their qualifications, organizational "fit," and ability to clearly express potential contributions.
 
-QUALITY CRITERIA (apply to every question)
-1. **Probe for evidence, not generic self-promotion.** Avoid "tell me about yourself" or "what are your strengths" — those are answered by the resume. Instead ask for a specific past situation, decision, or example.
-2. **Mix of question types** — ${mixRule}
-3. **Answerable in 2-5 sentences.** Don't ask questions that require a 5-paragraph essay. The LLM evaluator needs a focused answer to score.
-4. **Tailor to the explicit requirements above.** A question about "Postgres" is fine only if Postgres appears in the requirements; otherwise it's noise.
-5. **Don't duplicate the resume.** The candidate submits a resume separately, so don't ask for their work history in list form.
-6. **Be specific and concrete.** "Describe a time you disagreed with a senior teammate about a technical decision" is good. "Are you a team player?" is bad.
-7. **For each question, also draft a 1-3 sentence "expectedAnswer".** The expectedAnswer describes what a strong response would contain, anchored in the job's requirements (not generic platitudes). Keep it under 10,000 characters. The expectedAnswer will be hidden from the candidate and used as the evaluation criterion by another LLM.
+QUALITY CRITERIA (derived from expert interviewing standards)
+1. **Mix of question types** — ${mixRule}
+2. **Probe for Behavioral Evidence (S.A.R. Framework):** For scenario questions, ask for specific past situations. A strong response must follow the Situation-Action-Result framework, focusing on the candidate's specific role and what they learned.
+3. **Assess Core Competencies:** Questions should target specific traits like Critical Thinking (handling ambiguity), Learning Orientation (reflecting on mistakes), and Leadership (demonstrating initiative).
+4. **The "Airport Test" (Fit & Resilience):** Include questions that gauge if the candidate is someone colleagues can work with for long periods under less-than-ideal circumstances (e.g., handling a disagreement or a team not working well).
+5. **Target Technical Depth & Analysis:** For technical questions, don't just ask for a fact. Ask for the *analysis* or *approach* to a problem to see how they think.
+6. **Evaluate "Level of Interest":** Distinguish candidates by asking questions that require them to have researched the organization and the specific challenges of the role.
+7. **Legality & Professionalism:** DO NOT ask about age, race, religion, gender identity, disabilities, or personal life. Focus strictly on qualifications and professional behavior.
+8. **Expected Answer Anchoring:** For each "expectedAnswer," describe a response that "shows rather than tells". It should include specific actions taken and a concrete result or conclusion.
 
 OUTPUT FORMAT — strict JSON, no markdown fences, no commentary, no preamble:
 {
   "questions": [
-    { "question": "<single-sentence question ending with ?>", "expectedAnswer": "<1-3 sentence description of a strong response, <=10000 chars>" },
+    { 
+      "question": "<scenario description (optional), followed by a single-sentence question ending with ?, <=10000 chars>", 
+      "expectedAnswer": "<1-3 sentence description of a strong response using S.A.R. and relevant competencies, <=10000 chars>" 
+    },
     ... (exactly ${input.count} entries)
   ]
 }
 
 The "questions" array MUST contain exactly ${
     input.count
-  } objects — no more, no fewer. Each "question" must be a single sentence ending with a question mark. Each "expectedAnswer" must be 1-3 sentences of concrete substance, under 10,000 characters. No numbering, no bullet markers, no quotes inside any string.`;
+  } objects. No numbering, no bullet markers, no quotes inside any string.`;
 }

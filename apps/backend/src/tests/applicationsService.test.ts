@@ -74,6 +74,7 @@ const createMockApplication = (overrides = {}) => ({
       name: 'Employer Name',
       email: 'employer@test.com',
     },
+    _count: { preShortlistQuestions: 0 },
   },
   resume: {
     id: 1,
@@ -442,6 +443,33 @@ describe('ApplicationsService', () => {
 
       expect(result.applications).toHaveLength(0);
       expect(result.total).toBe(0);
+    });
+
+    it('exposes preShortlistQuestionsCount from job._count.preShortlistQuestions', async () => {
+      const mockApp = createMockApplication({
+        job: {
+          ...createMockApplication().job,
+          _count: { preShortlistQuestions: 3 },
+        },
+      });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      const result = await service.listApplications('candidate-123', {});
+
+      expect(result.applications[0].preShortlistQuestionsCount).toBe(3);
+    });
+
+    it('defaults preShortlistQuestionsCount to 0 when _count is absent', async () => {
+      const mockApp = createMockApplication({
+        job: { ...createMockApplication().job, _count: undefined },
+      });
+      mockPrisma.application.findMany.mockResolvedValue([mockApp]);
+      mockPrisma.application.count.mockResolvedValue(1);
+
+      const result = await service.listApplications('candidate-123', {});
+
+      expect(result.applications[0].preShortlistQuestionsCount).toBe(0);
     });
   });
 
