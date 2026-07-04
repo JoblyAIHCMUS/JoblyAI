@@ -8,7 +8,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-import { ApplicationItem, ApplicationStatusMeta } from '@/types/candidate';
+import {
+  ApplicationItem,
+  ApplicationStatus,
+  ApplicationStatusMeta,
+} from '@/types/candidate';
 import { ApplicationStatusPill } from '@/components/candidate/applicationStatusPill';
 import { formatCreatedAtForDisplay } from '@/lib/candidateDate';
 import { getInitials, cn } from '@/lib/utils';
@@ -44,10 +48,12 @@ function MoreActionsMenu({
   item,
   options,
   onSelect,
+  disabledOption = null,
 }: {
   item: ApplicationItem;
   options: string[];
   onSelect?: (option: string, item: ApplicationItem) => void;
+  disabledOption?: string | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -102,26 +108,33 @@ function MoreActionsMenu({
           id={menuId}
           className="absolute right-0 top-8 z-10 min-w-[180px] rounded-md border border-[#d6ddeb] bg-white p-1 shadow-lg"
         >
-          {options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-[#f8f8fd] ${
-                option === 'Withdraw application'
-                  ? 'text-[#ff6550] hover:bg-[#fff1f0]'
-                  : 'text-[#25324b]'
-              }`}
-              onClick={() => {
-                onSelect?.(option, item);
-                setIsOpen(false);
-              }}
-            >
-              {option === ANSWER_PRE_SHORTLIST_OPTION ? (
-                <ClipboardList className="h-4 w-4" aria-hidden="true" />
-              ) : null}
-              <span>{option}</span>
-            </button>
-          ))}
+          {options.map((option) => {
+              const isDisabled = option === disabledOption;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={isDisabled}
+                  className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm ${
+                    isDisabled
+                      ? 'cursor-not-allowed text-slate-400'
+                      : option === 'Withdraw application'
+                      ? 'text-[#ff6550] hover:bg-[#fff1f0]'
+                      : 'text-[#25324b] hover:bg-[#f8f8fd]'
+                  }`}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    onSelect?.(option, item);
+                    setIsOpen(false);
+                  }}
+                >
+                  {option === ANSWER_PRE_SHORTLIST_OPTION ? (
+                    <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                  ) : null}
+                  <span>{option}</span>
+                </button>
+              );
+            })}
         </div>
       )}
     </div>
@@ -142,6 +155,16 @@ export function ApplicationHistoryRow({
   const initials = getInitials(item.company);
   const displayCreatedAt = formatCreatedAtForDisplay(item.createdAt);
 
+  const hasNoPreShortlistQuestions =
+    item.status === 'pre-shortlist-pending' &&
+    item.preShortlistQuestionsCount === 0;
+  const displayStatus: ApplicationStatus = hasNoPreShortlistQuestions
+    ? 'applied'
+    : item.status;
+  const answerOptionLabel = hasNoPreShortlistQuestions
+    ? 'Employer did not provide pre-shortlist questions'
+    : ANSWER_PRE_SHORTLIST_OPTION;
+
   // Filter out "Withdraw application" if the job is already closed or candidate was rejected/offered
   const filteredOptions = useMemo(() => {
     if (moreActionOptions !== DEFAULT_MORE_ACTION_OPTIONS) {
@@ -154,15 +177,29 @@ export function ApplicationHistoryRow({
         )
       : DEFAULT_MORE_ACTION_OPTIONS;
 
-    if (item.status !== 'pre-shortlist-pending') {
+    if (
+      !hasNoPreShortlistQuestions &&
+      item.status !== 'pre-shortlist-pending'
+    ) {
       return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
     }
 
+    if (hasNoPreShortlistQuestions) {
+      return base.map((opt) =>
+        opt === ANSWER_PRE_SHORTLIST_OPTION ? answerOptionLabel : opt
+      );
+    }
+
     return base;
-  }, [item.status, moreActionOptions]);
+  }, [
+    item.status,
+    moreActionOptions,
+    hasNoPreShortlistQuestions,
+    answerOptionLabel,
+  ]);
 
   const handleRowClick = () => {
-    if (item.status === 'pre-shortlist-pending') {
+    if (item.status === 'pre-shortlist-pending' && !hasNoPreShortlistQuestions) {
       router.push(`/candidate/pre-shortlist/${item.id}`);
       return;
     }
@@ -173,7 +210,11 @@ export function ApplicationHistoryRow({
     option: string,
     currentItem: ApplicationItem
   ) => {
-    if (option === ANSWER_PRE_SHORTLIST_OPTION) {
+    if (option === answerOptionLabel && hasNoPreShortlistQuestions) {
+      // Disabled option — do nothing.
+      return;
+    }
+    if (option === ANSWER_PRE_SHORTLIST_OPTION || option === answerOptionLabel) {
       router.push(`/candidate/pre-shortlist/${currentItem.id}`);
     } else if (option === 'View details') {
       router.push(`/candidate/find-jobs/${currentItem.jobId}`);
@@ -208,7 +249,7 @@ export function ApplicationHistoryRow({
   );
 
   const chevronNode =
-    item.status === 'pre-shortlist-pending' ? (
+    item.status === 'pre-shortlist-pending' && !hasNoPreShortlistQuestions ? (
       <Tooltip>
         <TooltipTrigger asChild>
           <ChevronRight
@@ -241,6 +282,7 @@ export function ApplicationHistoryRow({
                   item={item}
                   options={filteredOptions}
                   onSelect={handleMoreActionSelect}
+                  disabledOption={hasNoPreShortlistQuestions ? answerOptionLabel : null}
                 />
               </div>
             )}
@@ -296,7 +338,7 @@ export function ApplicationHistoryRow({
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <ApplicationStatusPill
-                status={item.status}
+                status={displayStatus}
                 statusMeta={statusMeta}
                 compact
               />
@@ -348,7 +390,7 @@ export function ApplicationHistoryRow({
 
           <div className="flex items-center gap-2">
             <ApplicationStatusPill
-              status={item.status}
+              status={displayStatus}
               statusMeta={statusMeta}
               compact
             />
@@ -361,6 +403,7 @@ export function ApplicationHistoryRow({
                 item={item}
                 options={filteredOptions}
                 onSelect={handleMoreActionSelect}
+                disabledOption={hasNoPreShortlistQuestions ? answerOptionLabel : null}
               />
             </div>
           )}
