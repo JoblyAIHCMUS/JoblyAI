@@ -13,6 +13,9 @@ import { ApiKeyGuard } from '../auth/api-key.guard';
 import type { RequestWithMcpUser } from '../auth/api-key.types';
 import { createMcpServer } from './mcp.factory';
 import type { Response } from 'express';
+import { GcsService } from '../../gcs/gcs.service';
+import { ResumeParserService } from '../../ai/resume-parser.service';
+import { ProfileSyncService } from '../../ai/profile-sync.service';
 
 @Controller('mcp')
 @UseGuards(ApiKeyGuard)
@@ -21,6 +24,9 @@ export class McpEndpointController {
 
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
+    private readonly gcsService: GcsService,
+    private readonly resumeParserService: ResumeParserService,
+    private readonly profileSyncService: ProfileSyncService,
   ) {}
 
   @All()
@@ -52,6 +58,9 @@ export class McpEndpointController {
       companyId: employer?.companyId ?? null,
       prisma: this.prisma,
       logger: this.logger,
+      gcsService: this.gcsService,
+      resumeParserService: this.resumeParserService,
+      profileSyncService: this.profileSyncService,
     });
 
     await server.connect(transport);

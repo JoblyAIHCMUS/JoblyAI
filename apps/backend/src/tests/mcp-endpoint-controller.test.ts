@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpEndpointController } from '../app/mcp/server/mcp-endpoint.controller';
 
+const noopServices = () => ({
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
+});
+
 const mockTransportState: {
   handleRequest: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
@@ -46,7 +52,10 @@ describe('McpEndpointController', () => {
             .mockResolvedValue({ id: 'user-123', role: 'employer' }),
         },
         employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
-      } as never
+      } as never,
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService,
     );
   });
 
@@ -60,7 +69,10 @@ describe('McpEndpointController', () => {
       employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
     };
     controller = new McpEndpointController(
-      prisma as never
+      prisma as never,
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService,
     );
 
     const mockReq = {
@@ -150,7 +162,10 @@ describe('McpEndpointController', () => {
             .mockResolvedValue({ id: 'user-123', role: 'candidate' }),
         },
         employer: { findUnique: vi.fn().mockResolvedValue(null) },
-      } as never
+      } as never,
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService,
     );
 
     const mockReq = {
