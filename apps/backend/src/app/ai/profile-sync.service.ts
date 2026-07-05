@@ -168,6 +168,18 @@ export class ProfileSyncService {
 
     const bioEmbedding = await this.aiProvider.generateEmbedding(finalBio);
 
+    const resumeText = [
+      finalTitle,
+      finalBio,
+      ...experience.map((e) => `${e.jobTitle} at ${e.companyName}: ${e.description || ''}`),
+      ...skills.map((s) => s.name),
+      ...education.map((e) => `${e.degree || ''} ${e.fieldOfStudy || ''} at ${e.school}`),
+      ...certificates.map((c) => `${c.name} by ${c.issuer}`),
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const resumeEmbedding = await this.aiProvider.generateEmbedding(resumeText);
+
     return this.prisma.$transaction(async (tx) => {
       // 1.1 Update description record (Regular fields)
       await tx.candidateDescription.upsert({
@@ -499,8 +511,17 @@ export class ProfileSyncService {
 
       await tx.resume.update({
         where: { id: resumeId },
-        data: { isSyncedToProfile: true },
+        data: { isSyncedToProfile: true, parsedText: JSON.stringify(data) },
       });
+
+      if (resumeEmbedding && resumeEmbedding.length > 0) {
+        await tx.$executeRawUnsafe(
+          `UPDATE "Resume" SET embedding = $1::vector WHERE id = $2`,
+          `[${resumeEmbedding.join(',')}]`,
+          resumeId
+        );
+      }
+
       return { success: true };
     });
   }

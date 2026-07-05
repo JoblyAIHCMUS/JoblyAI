@@ -5,6 +5,7 @@ import type { McpState } from '../app/mcp/server/mcp.types';
 const buildState = (opts: {
   resume: { findUnique: ReturnType<typeof vi.fn> } | null;
   commitMerge: ReturnType<typeof vi.fn>;
+  enrichWithDuplicateFlags?: ReturnType<typeof vi.fn>;
 }): McpState => ({
   userId: 'user-123',
   role: 'candidate',
@@ -13,7 +14,10 @@ const buildState = (opts: {
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
   gcsService: {} as never,
   resumeParserService: {} as never,
-  profileSyncService: { commitMerge: opts.commitMerge } as never,
+  profileSyncService: {
+    commitMerge: opts.commitMerge,
+    enrichWithDuplicateFlags: opts.enrichWithDuplicateFlags ?? vi.fn().mockImplementation(async (_uid: string, data: unknown) => data),
+  } as never,
 });
 
 const sampleData = {

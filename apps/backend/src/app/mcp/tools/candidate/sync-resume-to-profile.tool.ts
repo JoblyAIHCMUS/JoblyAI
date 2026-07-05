@@ -201,10 +201,15 @@ export async function syncResumeToProfileHandler(
       socials: sanitizeSocials(input.data.socials),
     } as unknown as ParsedResume;
 
+    const enriched = await state.profileSyncService.enrichWithDuplicateFlags(
+      state.userId,
+      sanitized
+    );
+
     const result = await state.profileSyncService.commitMerge(
       state.userId,
       input.resumeId,
-      sanitized
+      enriched
     );
 
     return {
