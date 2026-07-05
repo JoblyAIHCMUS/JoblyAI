@@ -18,7 +18,9 @@ const buildState = (role: 'employer' | 'candidate'): McpState => ({
   companyId: role === 'employer' ? 42 : null,
   prisma: {} as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('createMcpServer', () => {
@@ -26,7 +28,7 @@ describe('createMcpServer', () => {
     registerSpy.mockClear();
   });
 
-  it('registers whoami and 4 candidate tools for candidate role', () => {
+  it('registers whoami and 10 candidate tools for candidate role', () => {
     createMcpServer(buildState('candidate'));
 
     const names = registerSpy.mock.calls.map((c) => c[0]);
@@ -37,6 +39,12 @@ describe('createMcpServer', () => {
         'list_my_resumes',
         'search_jobs',
         'list_my_applications',
+        'generate_upload_url',
+        'create_resume_record',
+        'extract_resume_text',
+        'score_resume',
+        'sync_resume_to_profile',
+        'save_resume_score',
       ].sort()
     );
   });
