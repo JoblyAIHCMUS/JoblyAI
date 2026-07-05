@@ -129,7 +129,8 @@ function MoreActionsMenu({
                   setIsOpen(false);
                 }}
               >
-                {option === ANSWER_PRE_SHORTLIST_OPTION ? (
+                {option === ANSWER_PRE_SHORTLIST_OPTION ||
+                option === VIEW_PRE_SHORTLIST_OPTION ? (
                   <ClipboardList className="h-4 w-4" aria-hidden="true" />
                 ) : null}
                 <span>{option}</span>
