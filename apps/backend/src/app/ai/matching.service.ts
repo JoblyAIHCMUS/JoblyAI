@@ -37,7 +37,7 @@ export class MatchingService {
       );
 
       if (result && result.length > 0 && result[0].similarity !== null) {
-        return parseFloat((Math.max(0, result[0].similarity) * 100).toFixed(2));
+        return parseFloat((result[0].similarity * 100).toFixed(2));
       }
       return null;
     } catch (error: any) {
@@ -209,9 +209,7 @@ export class MatchingService {
 
         return {
           ...this.mapToJobResponse(jobDetail),
-          matchPercentage: parseFloat(
-            (Math.max(0, 1 - mj.distance) * 100).toFixed(2)
-          ),
+          matchPercentage: parseFloat(((1 - mj.distance) * 100).toFixed(2)),
         };
       })
       .filter(Boolean);
@@ -403,7 +401,7 @@ export class MatchingService {
             e.endDate ? e.endDate.getFullYear() : 'Present'
           }`,
         })),
-        matchPercentage: Math.max(0, c.similarity * 100),
+        matchPercentage: c.similarity * 100,
         applicationStatus: application?.status || null,
         applicationId: application?.id || null,
         resumeId: c.resume_id,

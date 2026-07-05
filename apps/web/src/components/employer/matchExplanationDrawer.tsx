@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Briefcase,
   Clock,
+  Info,
 } from 'lucide-react';
 import {
   getMatchExplanation,
@@ -26,6 +27,7 @@ import {
   type MatchExplanation,
 } from '@/api-client/matching/explanation';
 import { Modal, ModalHeader, ModalBody } from '@/components/ui/modal';
+import { MatchScoringInfoModal } from './MatchScoringInfoModal';
 
 interface MatchExplanationDrawerProps {
   applicationId: string | number;
@@ -44,6 +46,7 @@ export function MatchExplanationDrawer({
   const [scoringMode, setScoringMode] = useState<'exact' | 'embedding'>(
     'embedding'
   );
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && applicationId) {
@@ -85,6 +88,7 @@ export function MatchExplanationDrawer({
     if (similarity >= 0.8) return 'text-green-600';
     if (similarity >= 0.6) return 'text-blue-600';
     if (similarity >= 0.4) return 'text-yellow-600';
+    if (similarity >= 0) return 'text-orange-600';
     return 'text-red-600';
   };
 
@@ -113,6 +117,14 @@ export function MatchExplanationDrawer({
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">Match Analysis</h2>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setInfoOpen(true)}
+              title="How scoring works"
+            >
+              <Info className="h-4 w-4" />
+            </Button>
             <Select
               value={scoringMode}
               onValueChange={(value: 'exact' | 'embedding') =>
@@ -152,7 +164,7 @@ export function MatchExplanationDrawer({
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : explanation ? (
-            <div className="space-y-6">
+            <div className="space-y-6 pr-2.5">
               {/* Score */}
               <div className="rounded-lg border p-4">
                 <div className="mb-2 flex items-center gap-2">
@@ -267,9 +279,7 @@ export function MatchExplanationDrawer({
                               req.embeddingSimilarity
                             )}`}
                           >
-                            {req.embeddingSimilarity > 0
-                              ? `${(req.embeddingSimilarity * 100).toFixed(2)}%`
-                              : 'N/A'}
+                            {`${(req.embeddingSimilarity * 100).toFixed(2)}%`}
                           </span>
                         </div>
                       )}
@@ -293,6 +303,10 @@ export function MatchExplanationDrawer({
           )}
         </ScrollArea>
       </ModalBody>
+      <MatchScoringInfoModal
+        isOpen={infoOpen}
+        onClose={() => setInfoOpen(false)}
+      />
     </Modal>
   );
 }
