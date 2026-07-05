@@ -1,12 +1,17 @@
 import DOMPurify from 'dompurify';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   type JobListingDetail,
   type SalaryCurrency,
 } from '@/features/employer/job-listing/detail/data';
 import type { EmploymentType } from '@/features/employer/job-listing/data';
 import { CATEGORY_COLORS } from '@/features/employer/job-listing/detail/constants';
+import type { PreShortlistQuestionsForJobView } from '@/api-client/pre-shortlist';
 
 const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   FULL_TIME: 'Full-Time',
@@ -67,43 +72,112 @@ function formatDate(dateStr: string): string {
 
 interface JobDetailsReviewProps {
   job: JobListingDetail;
+  preShortlistData?: PreShortlistQuestionsForJobView | null;
+  preShortlistLoading?: boolean;
+  preShortlistError?: Error | null;
 }
 
-export default function JobDetailsReview({ job }: JobDetailsReviewProps) {
+export default function JobDetailsReview({
+  job,
+  preShortlistData,
+  preShortlistLoading,
+  preShortlistError,
+}: JobDetailsReviewProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
-      {/* Left column — Description rendered from sanitized HTML */}
-      <div
-        className="prose prose-slate max-w-none
-          prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-3
-          prose-h3:text-xl prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-2
-          prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5
-          prose-li:my-1 prose-p:my-3 prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic"
-        dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(job.description, {
-            ALLOWED_TAGS: [
-              'h2',
-              'h3',
-              'p',
-              'br',
-              'hr',
-              'ul',
-              'ol',
-              'li',
-              'strong',
-              'b',
-              'em',
-              'i',
-              's',
-              'del',
-              'blockquote',
-              'code',
-              'pre',
-            ],
-            ALLOWED_ATTR: [],
-          }),
-        }}
-      />
+      <div>
+        <Tabs defaultValue="description" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="description">Description</TabsTrigger>
+            <TabsTrigger value="pre-shortlist">
+              Pre-Shortlist Questions
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="description">
+            <div
+              className="prose prose-slate max-w-none
+                prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-3
+                prose-h3:text-xl prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-2
+                prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5
+                prose-li:my-1 prose-p:my-3 prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(job.description, {
+                  ALLOWED_TAGS: [
+                    'h2',
+                    'h3',
+                    'p',
+                    'br',
+                    'hr',
+                    'ul',
+                    'ol',
+                    'li',
+                    'strong',
+                    'b',
+                    'em',
+                    'i',
+                    's',
+                    'del',
+                    'blockquote',
+                    'code',
+                    'pre',
+                  ],
+                  ALLOWED_ATTR: [],
+                }),
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="pre-shortlist">
+            {preShortlistLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            ) : preShortlistError ? (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {preShortlistError.message ??
+                    'Could not load pre-shortlist questions.'}
+                </AlertDescription>
+              </Alert>
+            ) : !preShortlistData || preShortlistData.questions.length === 0 ? (
+              <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <p className="text-sm font-medium text-slate-700">
+                  This job has no pre-shortlist questions.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-600">
+                  {preShortlistData.questions.length} question
+                  {preShortlistData.questions.length === 1 ? '' : 's'} ·{' '}
+                  {preShortlistData.threshold}% threshold
+                </p>
+                <div className="space-y-3">
+                  {preShortlistData.questions.map((q, idx) => (
+                    <Card
+                      key={q.id}
+                      tone="neutral"
+                      className="overflow-hidden p-0"
+                    >
+                      <div className="flex items-center gap-2 rounded-t-xl bg-slate-50 border-b border-slate-200 px-4 py-3">
+                        <span className="size-6 shrink-0 rounded-full bg-slate-100 text-slate-900 text-[11px] font-semibold inline-flex items-center justify-center">
+                          Q{idx + 1}
+                        </span>
+                        <p className="text-sm font-semibold text-slate-900 break-words min-w-0">
+                          {q.question}
+                        </p>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Right column — Sidebar */}
       <aside className="space-y-6">

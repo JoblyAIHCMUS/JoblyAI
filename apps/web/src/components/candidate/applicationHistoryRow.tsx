@@ -36,6 +36,7 @@ type ApplicationHistoryRowProps = {
 };
 
 const ANSWER_PRE_SHORTLIST_OPTION = 'Answer pre-shortlist questions';
+const VIEW_PRE_SHORTLIST_OPTION = 'View pre-shortlist answers';
 
 const DEFAULT_MORE_ACTION_OPTIONS = [
   ANSWER_PRE_SHORTLIST_OPTION,
@@ -128,7 +129,8 @@ function MoreActionsMenu({
                   setIsOpen(false);
                 }}
               >
-                {option === ANSWER_PRE_SHORTLIST_OPTION ? (
+                {option === ANSWER_PRE_SHORTLIST_OPTION ||
+                option === VIEW_PRE_SHORTLIST_OPTION ? (
                   <ClipboardList className="h-4 w-4" aria-hidden="true" />
                 ) : null}
                 <span>{option}</span>
@@ -165,6 +167,12 @@ export function ApplicationHistoryRow({
     ? 'Employer did not provide pre-shortlist questions'
     : ANSWER_PRE_SHORTLIST_OPTION;
 
+  const canViewPreShortlistAnswers =
+    item.status === 'pre-shortlist-submitted' ||
+    item.status === 'interviewing' ||
+    item.status === 'offered' ||
+    item.status === 'rejected';
+
   // Filter out "Withdraw application" if the job is already closed or candidate was rejected/offered
   const filteredOptions = useMemo(() => {
     if (moreActionOptions !== DEFAULT_MORE_ACTION_OPTIONS) {
@@ -177,11 +185,10 @@ export function ApplicationHistoryRow({
         )
       : DEFAULT_MORE_ACTION_OPTIONS;
 
-    if (
-      !hasNoPreShortlistQuestions &&
-      item.status !== 'pre-shortlist-pending'
-    ) {
-      return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
+    if (canViewPreShortlistAnswers) {
+      return base.map((opt) =>
+        opt === ANSWER_PRE_SHORTLIST_OPTION ? VIEW_PRE_SHORTLIST_OPTION : opt
+      );
     }
 
     if (hasNoPreShortlistQuestions) {
@@ -190,12 +197,17 @@ export function ApplicationHistoryRow({
       );
     }
 
-    return base;
+    if (item.status === 'pre-shortlist-pending') {
+      return base;
+    }
+
+    return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
   }, [
     item.status,
     moreActionOptions,
     hasNoPreShortlistQuestions,
     answerOptionLabel,
+    canViewPreShortlistAnswers,
   ]);
 
   const handleRowClick = () => {
@@ -217,10 +229,9 @@ export function ApplicationHistoryRow({
       // Disabled option — do nothing.
       return;
     }
-    if (
-      option === ANSWER_PRE_SHORTLIST_OPTION ||
-      option === answerOptionLabel
-    ) {
+    if (option === ANSWER_PRE_SHORTLIST_OPTION) {
+      router.push(`/candidate/pre-shortlist/${currentItem.id}`);
+    } else if (option === VIEW_PRE_SHORTLIST_OPTION) {
       router.push(`/candidate/pre-shortlist/${currentItem.id}`);
     } else if (option === 'View details') {
       router.push(`/candidate/find-jobs/${currentItem.jobId}`);
