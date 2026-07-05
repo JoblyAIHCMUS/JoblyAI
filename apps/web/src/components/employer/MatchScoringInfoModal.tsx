@@ -7,8 +7,7 @@ interface MatchScoringInfoModalProps {
   onClose: () => void;
 }
 
-const GEMINI_EMBEDDING_URL =
-  'https://ai.google.dev/gemini-api/docs/embeddings';
+const GEMINI_EMBEDDING_URL = 'https://ai.google.dev/gemini-api/docs/embeddings';
 const COSINE_SIMILARITY_URL =
   'https://www.ibm.com/think/topics/cosine-similarity';
 
@@ -96,8 +95,8 @@ export function MatchScoringInfoModal({
               cosine(a, b) = (a · b) / (||a|| × ||b||)
             </div>
             <p className="text-xs font-semibold text-tertiary">
-              Per-requirement scores are clamped at 0 — no penalty for
-              unrelated skills.
+              Per-requirement scores are clamped at 0 — no penalty for unrelated
+              skills.
             </p>
             <SourceLink
               label="Cosine similarity (IBM)"
@@ -128,7 +127,10 @@ export function MatchScoringInfoModal({
           </Section>
 
           {/* BOTH MODES */}
-          <Section title="6. Hard Constraint Check" badge="Both modes — badge (embedding) + score (exact match)">
+          <Section
+            title="6. Hard Constraint Check"
+            badge="Both modes — badge (embedding) + score (exact match)"
+          >
             <p>
               A multi-layer string-matching algorithm that checks two data
               sources:
@@ -151,8 +153,8 @@ export function MatchScoringInfoModal({
                 <br />
                 Splits compound skills like &quot;JavaScript/TypeScript&quot;
                 into individual parts. Exact case-insensitive match against the
-                candidate&apos;s skills list. If{' '}
-                <code>minYears</code> is set, validates years of experience.
+                candidate&apos;s skills list. If <code>minYears</code> is set,
+                validates years of experience.
               </li>
               <li>
                 <strong>Profile — Structured skills (full name)</strong>
@@ -186,12 +188,12 @@ export function MatchScoringInfoModal({
               <br />
               Experience: Software Engineer (2020–2024)
               <br />
-              Description: &quot;Built full-stack apps using{' '}
-              <u>JavaScript</u>, React, and Node.js&quot;
+              Description: &quot;Built full-stack apps using <u>JavaScript</u>,
+              React, and Node.js&quot;
               <br />
               <br />
-              Layer 1: &quot;javascript&quot; in [react, typescript, node.js]?
-              → No (different skills)
+              Layer 1: &quot;javascript&quot; in [react, typescript, node.js]? →
+              No (different skills)
               <br />
               Layer 2: Compound name match? → No
               <br />
@@ -204,7 +206,8 @@ export function MatchScoringInfoModal({
             <p>
               Calculated from the earliest work start date to the latest work
               end date. Education, internships, and freelance entries are
-              excluded via keyword filtering (student, intern, university, etc.).
+              excluded via keyword filtering (student, intern, university,
+              etc.).
             </p>
           </Section>
         </div>
