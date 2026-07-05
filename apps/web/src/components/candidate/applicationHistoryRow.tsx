@@ -167,6 +167,12 @@ export function ApplicationHistoryRow({
     ? 'Employer did not provide pre-shortlist questions'
     : ANSWER_PRE_SHORTLIST_OPTION;
 
+  const canViewPreShortlistAnswers =
+    item.status === 'pre-shortlist-submitted' ||
+    item.status === 'interviewing' ||
+    item.status === 'offered' ||
+    item.status === 'rejected';
+
   // Filter out "Withdraw application" if the job is already closed or candidate was rejected/offered
   const filteredOptions = useMemo(() => {
     if (moreActionOptions !== DEFAULT_MORE_ACTION_OPTIONS) {
@@ -179,12 +185,10 @@ export function ApplicationHistoryRow({
         )
       : DEFAULT_MORE_ACTION_OPTIONS;
 
-    if (
-      !hasNoPreShortlistQuestions &&
-      item.status !== 'pre-shortlist-pending' &&
-      item.status !== 'pre-shortlist-submitted'
-    ) {
-      return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
+    if (canViewPreShortlistAnswers) {
+      return base.map((opt) =>
+        opt === ANSWER_PRE_SHORTLIST_OPTION ? VIEW_PRE_SHORTLIST_OPTION : opt
+      );
     }
 
     if (hasNoPreShortlistQuestions) {
@@ -193,18 +197,17 @@ export function ApplicationHistoryRow({
       );
     }
 
-    if (item.status === 'pre-shortlist-submitted') {
-      return base.map((opt) =>
-        opt === ANSWER_PRE_SHORTLIST_OPTION ? VIEW_PRE_SHORTLIST_OPTION : opt
-      );
+    if (item.status === 'pre-shortlist-pending') {
+      return base;
     }
 
-    return base;
+    return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
   }, [
     item.status,
     moreActionOptions,
     hasNoPreShortlistQuestions,
     answerOptionLabel,
+    canViewPreShortlistAnswers,
   ]);
 
   const handleRowClick = () => {
