@@ -36,6 +36,7 @@ type ApplicationHistoryRowProps = {
 };
 
 const ANSWER_PRE_SHORTLIST_OPTION = 'Answer pre-shortlist questions';
+const VIEW_PRE_SHORTLIST_OPTION = 'View pre-shortlist answers';
 
 const DEFAULT_MORE_ACTION_OPTIONS = [
   ANSWER_PRE_SHORTLIST_OPTION,
@@ -179,7 +180,8 @@ export function ApplicationHistoryRow({
 
     if (
       !hasNoPreShortlistQuestions &&
-      item.status !== 'pre-shortlist-pending'
+      item.status !== 'pre-shortlist-pending' &&
+      item.status !== 'pre-shortlist-submitted'
     ) {
       return base.filter((opt) => opt !== ANSWER_PRE_SHORTLIST_OPTION);
     }
@@ -187,6 +189,12 @@ export function ApplicationHistoryRow({
     if (hasNoPreShortlistQuestions) {
       return base.map((opt) =>
         opt === ANSWER_PRE_SHORTLIST_OPTION ? answerOptionLabel : opt
+      );
+    }
+
+    if (item.status === 'pre-shortlist-submitted') {
+      return base.map((opt) =>
+        opt === ANSWER_PRE_SHORTLIST_OPTION ? VIEW_PRE_SHORTLIST_OPTION : opt
       );
     }
 
@@ -217,10 +225,9 @@ export function ApplicationHistoryRow({
       // Disabled option — do nothing.
       return;
     }
-    if (
-      option === ANSWER_PRE_SHORTLIST_OPTION ||
-      option === answerOptionLabel
-    ) {
+    if (option === ANSWER_PRE_SHORTLIST_OPTION) {
+      router.push(`/candidate/pre-shortlist/${currentItem.id}`);
+    } else if (option === VIEW_PRE_SHORTLIST_OPTION) {
       router.push(`/candidate/pre-shortlist/${currentItem.id}`);
     } else if (option === 'View details') {
       router.push(`/candidate/find-jobs/${currentItem.jobId}`);
