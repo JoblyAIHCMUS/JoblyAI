@@ -35,7 +35,7 @@ export default function EmployerAllApplicationsPage() {
           a.candidateId
         )}`,
         appliedDate: a.createdAt.split('T')[0],
-        score: a.matchPercentage ?? 0,
+        score: a.matchExplanation?.overallScore ?? a.matchPercentage ?? 0,
         hiringStage: mapApplicationStatusToHiringStage(a.status),
         appliedRole: a.job.title,
       }))

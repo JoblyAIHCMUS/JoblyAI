@@ -54,7 +54,7 @@ export class AiController {
       return { error: 'No file uploaded' };
     }
 
-    const text = await this.parserService.extractTextFromPdf(file.buffer);
+    const { text } = await this.parserService.extractTextFromPdf(file.buffer);
     const result = await this.parserService.parseResumeText(text);
     // Return only the structured data part for the test endpoint
     return result.data;
@@ -69,7 +69,7 @@ export class AiController {
       return { error: 'No file uploaded' };
     }
 
-    const text = await this.parserService.extractTextFromPdf(file.buffer);
+    const { text } = await this.parserService.extractTextFromPdf(file.buffer);
     const result = await this.scoringService.evaluateResume(text);
     return result;
   }

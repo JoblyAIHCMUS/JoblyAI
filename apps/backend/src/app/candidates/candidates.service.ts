@@ -586,11 +586,6 @@ export class CandidatesService {
         `Failed to create resume record for candidate with ID ${userId}.`
       );
 
-    this.eventEmitter.emit('resume.created', {
-      resumeId: result.id,
-      candidateId: userId,
-    });
-
     return result;
   }
 

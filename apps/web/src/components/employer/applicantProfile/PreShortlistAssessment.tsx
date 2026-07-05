@@ -8,6 +8,7 @@ import {
   useEmployerPreShortlist,
   useRetryPreShortlistEvaluation,
 } from '@/api-hook/pre-shortlist';
+import { PreShortlistInfoButton } from '@/components/employer/preShortlist/PreShortlistInfoButton';
 import { AiBadge } from '@/components/ui/ai-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -88,8 +89,38 @@ export default function PreShortlistAssessment({
     );
   }
 
-  // The job has no pre-shortlist configured — render nothing.
-  if (data.questions.length === 0) return null;
+  // The candidate never reached the pre-shortlist step (their application is
+  // still in the plain "Applied" stage — no questions were ever shown to them).
+  if (data.status === 'APPLIED') return null;
+
+  // The job has no pre-shortlist questions configured (either it never had any
+  // or the employer removed them after the candidate was invited). There is
+  // nothing for the employer to assess, so render a small informational block
+  // instead of nothing, and expose the prompt-info button so the employer can
+  // still read about the evaluation criteria.
+  if (data.questions.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="space-y-0.5">
+            <h3
+              className="text-base font-semibold text-slate-900"
+              style={{ fontFamily: 'var(--family-primary)' }}
+            >
+              Pre-shortlist assessment
+            </h3>
+            <p className="text-xs text-tertiary">{data.threshold}% threshold</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <PreShortlistInfoButton kind="evaluate" />
+          </div>
+        </div>
+        <p className="text-sm italic text-tertiary">
+          Employer did not provide pre-shortlist question.
+        </p>
+      </div>
+    );
+  }
 
   // Candidate hasn't answered yet.
   if (data.status === 'PRE_SHORTLIST_PENDING') {
@@ -142,6 +173,7 @@ export default function PreShortlistAssessment({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <PreShortlistInfoButton kind="evaluate" />
           {statusBadge}
           {isFailed ? (
             <Button

@@ -213,4 +213,48 @@ export class AiProviderService {
       return [];
     }
   }
+
+  /**
+   * Batch generate embeddings for multiple texts with concurrency control
+   * Returns an array of embedding vectors, one per input text
+   * Failed items return empty arrays []
+   */
+  async generateEmbeddings(
+    texts: string[],
+    concurrencyLimit = 3
+  ): Promise<number[][]> {
+    if (texts.length === 0) {
+      return [];
+    }
+
+    this.logger.log(
+      `Batch generating embeddings for ${texts.length} texts (concurrency: ${concurrencyLimit})`
+    );
+
+    const results: number[][] = Array(texts.length).fill([]);
+
+    // Process in batches to respect concurrency limit
+    for (let i = 0; i < texts.length; i += concurrencyLimit) {
+      const batch = texts.slice(i, i + concurrencyLimit);
+      const batchPromises = batch.map((text, batchIndex) =>
+        this.generateEmbedding(text).then((embedding) => ({
+          originalIndex: i + batchIndex,
+          embedding,
+        }))
+      );
+
+      const batchResults = await Promise.all(batchPromises);
+      batchResults.forEach(({ originalIndex, embedding }) => {
+        results[originalIndex] = embedding;
+      });
+    }
+
+    this.logger.log(
+      `Batch embedding complete. Generated ${
+        results.filter((e) => e.length > 0).length
+      }/${texts.length} embeddings successfully`
+    );
+
+    return results;
+  }
 }

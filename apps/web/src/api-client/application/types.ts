@@ -52,6 +52,7 @@ export interface ApplicationRecord {
   resumeId: number;
   status: ApplicationStatus;
   matchPercentage: number | null;
+  preShortlistQuestionsCount: number;
   aiFeedback: unknown | null;
   jobDeletedAt?: string | null;
   createdAt: string;
@@ -59,6 +60,20 @@ export interface ApplicationRecord {
   job: ApplicationJob;
   resume: ApplicationResume;
   candidate?: ApplicationCandidate;
+  matchExplanation?: {
+    overallScore: number;
+    exactMatchScore: number;
+    experienceYears: number;
+    requirementMatches: Array<{
+      skillName: string;
+      importance: string;
+      minYearsRequired: number | null;
+      hardConstraintMet: boolean;
+      embeddingSimilarity: number;
+      status: string;
+      justification: string;
+    }>;
+  };
 }
 
 export interface PaginatedApplicationsResponse {

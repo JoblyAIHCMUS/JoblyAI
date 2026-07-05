@@ -6,12 +6,13 @@ The server is **stateless** — every request creates a fresh `StreamableHTTPSer
 
 ```
 v1 scope: foundation + whoami tool + API-key CRUD.
-v2 scope: role-gated API keys + employer tools (read + write), one file per tool.
-v3 scope: candidate tools (7 tools: search, apply, list applications, withdraw, profile, list resumes, update profile) — mirrors web's createApplication for apply_to_job with match-explanation + notifications + event emission.
-v4+ scope: AI-only tools, messaging, cross-role tools, resume upload.
+v2 scope: role-gated API keys + employer read-only tools (6), one file per tool.
+v3 scope: candidate read-only tools (4: search, list applications, profile, list resumes).
+v4 scope: agent-driven resume tools (6: upload, create record, extract text, score, sync profile, save score).
+v5+ scope: messaging, cross-role tools.
 ```
 
-**Role gating:** every MCP key carries a single role (`employer` or `candidate`) stored in Better-Auth's `apikey.permissions` JSON column. The `ApiKeyGuard` reads it on every request, the `McpEndpointController` resolves the caller's `companyId` (for `employer` keys), and the `McpFactory` conditionally registers tool groups based on the role. v2 ships employer tools (9); v3 adds candidate tools (7) — candidate keys now get a full tool set.
+**Role gating:** every MCP key carries a single role (`employer` or `candidate`) stored in Better-Auth's `apikey.permissions` JSON column. The `ApiKeyGuard` reads it on every request, the `McpEndpointController` resolves the caller's `companyId` (for `employer` keys), and the `McpFactory` conditionally registers tool groups based on the role. Employer tools (6 read-only); candidate tools (4 read-only + 6 agent-driven resume flow = 10 total).
 
 ---
 
@@ -255,7 +256,7 @@ async delete(keyId: string): Promise<void> {
 
 ## 5. MCP endpoint (Streamable HTTP)
 
-`apps/backend/src/app/mcp/server/mcp-endpoint.controller.ts` — 4 constructor DI params (`PrismaClient`, `MatchExplanationService`, `EventEmitter2`, `NotificationsService`), single `@All()` handler on `/api/mcp`, guarded by `ApiKeyGuard`:
+`apps/backend/src/app/mcp/server/mcp-endpoint.controller.ts` — 4 constructor DI params (`PrismaClient`, `GcsService`, `ResumeParserService`, `ProfileSyncService`), single `@All()` handler on `/api/mcp`, guarded by `ApiKeyGuard`:
 
 ```ts
 @UseGuards(ApiKeyGuard)
@@ -282,9 +283,9 @@ async handleMcp(@Req() req: RequestWithMcpUser, @Res() res: Response): Promise<v
     companyId: employer?.companyId ?? null,
     prisma: this.prisma,
     logger: this.logger,
-    matchExplanationService: this.matchExplanationService,
-    eventEmitter: this.eventEmitter,
-    notificationsService: this.notificationsService,
+    gcsService: this.gcsService,
+    resumeParserService: this.resumeParserService,
+    profileSyncService: this.profileSyncService,
   });
 
   // 4. Wire transport to server
@@ -392,7 +393,7 @@ export function registerWhoamiTool(server: McpServer, state: McpState): void {
 
 **`structuredContent`:** when the tool's `outputSchema` declares a shape, the SDK requires the result to include `structuredContent` matching that shape. `whoami` returns both `content` (text fallback for clients that don't render structured) and `structuredContent` (the typed payload).
 
-**`McpState`:** `apps/backend/src/app/mcp/server/mcp.types.ts:9-18`:
+**`McpState`:** `apps/backend/src/app/mcp/server/mcp.types.ts`:
 
 ```ts
 export type McpRole = 'employer' | 'candidate';
@@ -403,35 +404,32 @@ export interface McpState {
   companyId: number | null;
   prisma: PrismaClient;
   logger: Logger;
-  matchExplanationService: MatchExplanationService;
-  eventEmitter: EventEmitter2;
-  notificationsService: NotificationsService;
+  gcsService: GcsService;
+  resumeParserService: ResumeParserService;
+  profileSyncService: ProfileSyncService;
 }
 ```
 
-`role` and `companyId` are resolved per-request by the `McpEndpointController` (see §5). `companyId` is `null` for `candidate` keys (and for `employer` keys where the user has no `employer` row, which is a config error). `matchExplanationService`, `eventEmitter`, `notificationsService` are required (not optional) and used by `apply_to_job` to mirror the web's `createApplication` flow.
+`role` and `companyId` are resolved per-request by the `McpEndpointController` (see §5). `companyId` is `null` for `candidate` keys (and for `employer` keys where the user has no `employer` row, which is a config error). The three service fields (`gcsService`, `resumeParserService`, `profileSyncService`) are injected via `McpModule` (which imports `GcsModule` and `AiModule`) and used by the agent-driven resume flow tools (§6c).
 
 **User model caveat:** the `User` model has no `candidate` field — only `candidateDescription` (1:1) and `resumes` (1:many). `hasCandidateProfile` is derived: `!!user.candidateDescription || user.resumes.length > 0`.
 
 ---
 
-## 6b. Tools — employer (v2)
+## 6b. Tools — employer (read-only)
 
-Nine employer-scoped tools, all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
+Six employer-scoped read-only tools, all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
 
-| File                        | Tool name           | Purpose                                                                                                                                                            |
-| --------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `get-my-company.tool.ts`    | `get_my_company`    | Resolve the caller's company (uses `state.companyId`)                                                                                                              |
-| `list-categories.tool.ts`   | `list_categories`   | List all job categories                                                                                                                                            |
-| `list-skills.tool.ts`       | `list_skills`       | List all skills                                                                                                                                                    |
-| `list-jobs.tool.ts`         | `list_jobs`         | Paginated list of the caller's own jobs (filtered by `postedById`); `{ jobs, total, page, pageSize, totalPages }`                                                  |
-| `get-job.tool.ts`           | `get_job`           | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message)                                                                  |
-| `create-job.tool.ts`        | `create_job`        | Create a job (auto-injects `state.companyId` + `postedById`; rejects if `state.companyId === null`)                                                                |
-| `update-job.tool.ts`        | `update_job`        | Update a job; rejects if `job.postedById !== state.userId`; no companyId check                                                                                     |
-| `change-job-status.tool.ts` | `change_job_status` | Change a job's status; rejects if `job.postedById !== state.userId`; no companyId check                                                                            |
-| `list-applicants.tool.ts`   | `list_applicants`   | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
+| File                      | Tool name         | Purpose                                                                                                                                                            |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get-my-company.tool.ts`  | `get_my_company`  | Resolve the caller's company (uses `state.companyId`)                                                                                                              |
+| `list-categories.tool.ts` | `list_categories` | List all job categories                                                                                                                                            |
+| `list-skills.tool.ts`     | `list_skills`     | List all skills                                                                                                                                                    |
+| `list-jobs.tool.ts`       | `list_jobs`       | Paginated list of the caller's own jobs (filtered by `postedById`); `{ jobs, total, page, pageSize, totalPages }`                                                  |
+| `get-job.tool.ts`         | `get_job`         | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message)                                                                  |
+| `list-applicants.tool.ts` | `list_applicants` | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
 
-**Switchboard:** `register-employer-tools.ts` calls all nine `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
+**Switchboard:** `register-employer-tools.ts` calls all six `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
 
 ```ts
 if (state.role === 'employer') {
@@ -441,38 +439,51 @@ if (state.role === 'employer') {
 }
 ```
 
-Candidate keys (`state.role === 'candidate'`) take the `else if` branch — they get 8 tools (whoami + 7 candidate tools; see §6c).
+Write tools (`create_job`, `update_job`, `change_job_status`) were removed — users manage jobs through the web UI for free. AI features are delegated to local agents.
 
-**Shared Zod schemas:** `employer.types.ts` defines input shapes for tools that need them (`CreateJobInputSchema`, `UpdateJobInputSchema`, `ListJobsInputSchema`, `ListApplicantsInputSchema`, `ChangeJobStatusInputSchema`, `GetJobInputSchema`, `JobRequirementInputSchema`). Prisma enums are referenced via `z.enum(JobStatus)`, `z.enum(EmploymentType)`, `z.enum(RequirementImportance)`, `z.enum(ApplicationStatus)` — zod v4 syntax (not `z.nativeEnum`, which is deprecated).
+**Shared Zod schemas:** `employer.types.ts` defines input shapes for remaining tools: `ListJobsInputSchema`, `ListApplicantsInputSchema`. Prisma enums: `z.enum(ApplicationStatus)`.
 
-**Ownership model — two separate axes:** tools enforce either `companyId` scoping or `postedById` scoping depending on what's appropriate. There is **no cross-company access** in any tool, but cross-user access within the same company IS allowed for read-only tools:
+**Ownership model:** tools enforce `companyId` scoping — `get_job` and `list_applicants` reject cross-company access with `Forbidden: job does not belong to your company`. `list_jobs` filters by `postedById === state.userId`.
 
-- **`companyId` scope** (verifies the job belongs to caller's company): `get_job`, `list_applicants`. Both reject cross-company access with `Forbidden: job does not belong to your company`.
-- **`postedById` scope** (verifies the caller originally posted the job): `update_job`, `change_job_status`. Both reject with `Forbidden: only the job poster can …`. This is stricter than `companyId` scoping — it prevents one user in a company from editing another's job.
-- **`postedById` filter (listing)**: `list_jobs` returns only jobs where `postedById === state.userId`, regardless of company membership.
-- **Auto-injected on create**: `create_job` writes `companyId: state.companyId` and `postedById: state.userId` into the new row; the client never sets these. The handler also rejects with `Forbidden: no employer profile` if `state.companyId === null`.
-
-**Trade-off:** the `postedById`-only checks on `update_job` and `change_job_status` mean a company with multiple users cannot have one user close another's job. An admin/manager role with broader edit rights is out of scope (see §11).
-
-**Handler pattern:** same as `whoami` (§6) — each tool exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All nine handlers are unit-tested directly (no `McpServer.callTool` available — see §6 "Why two exports").
+**Handler pattern:** same as `whoami` (§6) — each tool exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All six handlers are unit-tested directly (no `McpServer.callTool` available — see §6 "Why two exports").
 
 ---
 
-## 6c. Tools — candidate (v3)
+## 6c. Tools — candidate
 
-Seven candidate-scoped tools, all registered only when `state.role === 'candidate'`. They live under `apps/backend/src/app/mcp/tools/candidate/`:
+Ten candidate-scoped tools, all registered only when `state.role === 'candidate'`. They live under `apps/backend/src/app/mcp/tools/candidate/`.
 
-| File                           | Tool name              | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `get-my-profile.tool.ts`       | `get_my_profile`       | Returns the caller's `CandidateDescription` (or all-nulls if no profile exists); exposes `title`, `bio`, `rawDescriptions`, `rawTitles`                                                                                                                                                                                                                                                                                                                            |
-| `list-my-resumes.tool.ts`      | `list_my_resumes`      | Metadata-only list of caller's resumes; excludes `parsedText`, `fileKey`, `aiFeedback`, `embedding`                                                                                                                                                                                                                                                                                                                                                                |
-| `search-jobs.tool.ts`          | `search_jobs`          | Paginated open-job search; inlines `jobs.service.ts:46-194` filter logic (`q`, location, type, remote, salary, currency, skills, categories); forces `status: 'OPEN'` and `deletedAt: null`                                                                                                                                                                                                                                                                        |
-| `list-my-applications.tool.ts` | `list_my_applications` | Paginated list of caller's own applications; optional `status` filter                                                                                                                                                                                                                                                                                                                                                                                              |
-| `apply-to-job.tool.ts`         | `apply_to_job`         | Mirrors web's `createApplication` (`applications.service.ts:60-225`); pre-checks (job OPEN, resume ownership), existing-app logic (active/REJECTED → error, WITHDRAWN → re-apply), awaits `MatchExplanationService.calculateExplanation`, resolves initial status (PRE_SHORTLIST_PENDING if threshold met + questions exist), emits `job.viewed` event, creates 2 notifications (employer `NEW_APPLICATION` + candidate `APPLICATION_SUBMITTED`) — all best-effort |
-| `update-profile.tool.ts`       | `update_profile`       | Upserts `CandidateDescription`; accepts `title` + `bio` only (`rawDescriptions`/`rawTitles` not modifiable); validates at least one field is provided                                                                                                                                                                                                                                                                                                              |
-| `withdraw-application.tool.ts` | `withdraw_application` | `APPLIED` → `WITHDRAWN` only; cross-user returns "Application not found" (no existence leak)                                                                                                                                                                                                                                                                                                                                                                       |
+### Read-only tools (4)
 
-**Switchboard:** `register-candidate-tools.ts` calls all seven `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
+| File                           | Tool name              | Purpose                                                                                                                                                                                     |
+| ------------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get-my-profile.tool.ts`       | `get_my_profile`       | Returns the caller's `CandidateDescription` (or all-nulls if no profile exists); exposes `title`, `bio`, `rawDescriptions`, `rawTitles`                                                     |
+| `list-my-resumes.tool.ts`      | `list_my_resumes`      | Metadata-only list of caller's resumes; excludes `parsedText`, `fileKey`, `aiFeedback`, `embedding`                                                                                         |
+| `search-jobs.tool.ts`          | `search_jobs`          | Paginated open-job search; inlines `jobs.service.ts:46-194` filter logic (`q`, location, type, remote, salary, currency, skills, categories); forces `status: 'OPEN'` and `deletedAt: null` |
+| `list-my-applications.tool.ts` | `list_my_applications` | Paginated list of caller's own applications; optional `status` filter                                                                                                                       |
+
+### Agent-driven resume flow (read + write, 6 tools)
+
+The candidate toolset also exposes 6 tools for the full resume upload → extract → score → sync → save flow. These are intended for external AI agents acting on behalf of the candidate. Read-only: `generate_upload_url` (GCS), `extract_resume_text`, `score_resume`. Write: `create_resume_record`, `sync_resume_to_profile`, `save_resume_score`.
+
+| File                             | Tool name                | Read/Write | Purpose                                                                                                                                                                                                                                   |
+| -------------------------------- | ------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generate-upload-url.tool.ts`    | `generate_upload_url`    | Read       | Get a presigned GCS URL to upload a resume file (PDF or DOCX). Uses `GcsService.generatePresignedUploadUrl` with `GcsFolder.RESUMES`. Step 1 of the upload flow.                                                                          |
+| `create-resume-record.tool.ts`   | `create_resume_record`   | Write      | Create a `Resume` DB row after a successful GCS upload. Sets `candidateId: state.userId`, `isSyncedToProfile: false`. Step 2.                                                                                                             |
+| `extract-resume-text.tool.ts`    | `extract_resume_text`    | Read       | Download from GCS, run `ResumeParserService.extractTextFromPdf`, return `{ text, pageCount, isEmpty }`. Ownership check: `resume.candidateId === state.userId`. Step 3a.                                                                  |
+| `score-resume.tool.ts`           | `score_resume`           | Read       | Functionally identical to `extract_resume_text`. Semantic alias — lets the agent signal intent (scoring vs parsing) in its plan. Step 4a.                                                                                                 |
+| `sync-resume-to-profile.tool.ts` | `sync_resume_to_profile` | Write      | Persist agent-parsed resume data (title, bio, skills, experience, education, certificates, contacts, socials) into the candidate profile via `ProfileSyncService.commitMerge`. Ownership check. Step 3b.                                  |
+| `save-resume-score.tool.ts`      | `save_resume_score`      | Write      | Persist agent-computed resume quality score (0-100) + qualitative feedback (`ResumeEvaluation` shape) to `Resume.aiScore` + `Resume.aiFeedback`. No recalc — `calculateExplanation` does not read these fields. Ownership check. Step 4b. |
+
+**Agent flow:** `generate_upload_url` → agent uploads to GCS → `create_resume_record` → `extract_resume_text` → agent parses locally → `sync_resume_to_profile`, then `score_resume` → agent scores locally → `save_resume_score`.
+
+**Ownership model:** tools operating on a specific resume (`extract_resume_text`, `score_resume`, `sync_resume_to_profile`, `save_resume_score`) enforce `resume.candidateId === state.userId` and return `Access denied` on mismatch.
+
+**No match recalc:** `save_resume_score` updates `aiScore`/`aiFeedback` but does not trigger match explanation recalculation. `MatchExplanationService.calculateExplanation` runs once at application creation and does not read these fields — it uses `parsedText`, candidate skills/experience, and job requirements. Existing applications keep their frozen `matchExplanation`/`matchPercentage` snapshots.
+
+**`create_resume_record` trade-off:** this tool bypasses `CandidatesService.createResume`'s 5-resume cap and `isDefault` un-setting-other-defaults logic. The web app's `POST /candidate/me/resume` endpoint applies those constraints. For the MCP flow, we accept the trade-off (caller is responsible for not exceeding the cap).
+
+**Switchboard:** `register-candidate-tools.ts` calls all ten `register*Tool(server, state)` functions (4 read-only + 6 agent-driven). `mcp.factory.ts` calls the switchboard conditionally:
 
 ```ts
 if (state.role === 'employer') {
@@ -482,28 +493,11 @@ if (state.role === 'employer') {
 }
 ```
 
-**Shared Zod schemas:** `candidate.types.ts` defines input shapes: `SearchJobsInputSchema`, `ApplyToJobInputSchema`, `ListMyApplicationsInputSchema`, `WithdrawApplicationInputSchema`, `UpdateProfileInputSchema`.
+**Shared Zod schemas:** `candidate.types.ts` defines input shapes: `SearchJobsInputSchema`, `ListMyApplicationsInputSchema`, `GenerateUploadUrlInputSchema`, `CreateResumeRecordInputSchema`, `ExtractResumeTextInputSchema`, `SyncResumeToProfileInputSchema`, `SaveResumeScoreInputSchema`.
 
-**`apply_to_job` complexity:** this is the most involved tool (187 lines). The full flow:
+**Handler pattern:** same as whoami (§6) and employer tools (§6b) — each exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All ten handlers are unit-tested directly.
 
-1. Parse + validate input (`jobId`, optional `resumeId`)
-2. Look up job — reject with "Job not found" if missing, "Job is not open for applications" if not `OPEN`
-3. Resolve resume — use provided `resumeId` (reject if not owned by caller), else fall back to `isDefault: true` (reject if none)
-4. Check existing application — `APPLIED`/`PRE_SHORTLIST_*`/`INTERVIEW`/`OFFER`/`REJECTED` → "Already applied to this job"; `WITHDRAWN` → re-activate with new resume
-5. Create or re-activate the application row
-6. Fire-and-forget `MatchExplanationService.calculateExplanation` (best-effort, errors logged)
-7. Determine initial status: `PRE_SHORTLIST_PENDING` if `preShortlistThreshold > 0` AND questions exist AND `matchPercentage >= threshold`; else `APPLIED`
-8. Emit `job.viewed` event (best-effort, errors logged)
-9. Create 2 notifications via `NotificationsService.createNotifications` (best-effort, errors logged)
-10. Re-fetch with includes and return
-
-**Known limitations (carried from v2):**
-
-- **`ZodError` swallowed:** `inputSchema.parse()` throws inside the handler's `catch` block, returning generic "Internal error" instead of a structured `ZodError`. Carried forward from the employer tools pattern — a deliberate trade-off to keep handler signatures uniform.
-- **No `$transaction`:** `apply_to_job` mutates `application`, then does `calculateExplanation`, `eventEmitter.emit`, and `notificationsService.createNotifications` — all outside a Prisma `$transaction`. If the process crashes between steps 5 and 9, the application exists but notifications may be lost. Deferred to v4+ (spec §6).
-- **Race condition on concurrent apply:** two simultaneous `apply_to_job` calls for the same `(jobId, userId)` can both pass the "existing" check and create duplicate application rows. A DB unique constraint on `Application(jobId, candidateId)` + `P2002` handling would prevent this — deferred to v4+ (spec §6).
-
-**Handler pattern:** same as whoami (§6) and employer tools (§6b) — each exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All seven handlers are unit-tested directly.
+**Tool count summary:** candidate toolset = `1 whoami + 4 read-only + 6 agent-driven = 11 total`. Employer toolset = `1 whoami + 6 read-only = 7 total` (unchanged). Grand total: **18 tools** (vs 12 before this change).
 
 ---
 
@@ -538,14 +532,14 @@ app.enableCors({
 
 ```
 apps/backend/src/app/mcp/
-├── mcp.module.ts                # Nest module wiring (imports AuthModule, AiModule, NotificationsModule)
+├── mcp.module.ts                # Nest module wiring (imports AuthModule, GcsModule, AiModule)
 ├── auth/
 │   ├── api-key.guard.ts         # Bearer key validation, role parsing, WWW-Authenticate
 │   └── api-key.types.ts         # RequestWithMcpUser (mcpUserId + mcpRole)
 ├── server/
-│   ├── mcp.types.ts             # McpState interface + McpRole type; 3 dep-injected services
+│   ├── mcp.types.ts             # McpState interface + McpRole type; includes gcsService, resumeParserService, profileSyncService
 │   ├── mcp.factory.ts           # createMcpServer(state) — role-gated tool registration (employer + candidate branches)
-│   └── mcp-endpoint.controller.ts  # @All('mcp') Streamable HTTP handler; resolves companyId; 4 constructor params
+│   └── mcp-endpoint.controller.ts  # @All('mcp') Streamable HTTP handler; resolves companyId; 4 constructor params (prisma + 3 services)
 ├── keys/
 │   ├── mcp-keys.service.ts      # auth.api.createApiKey / listApiKeys / deleteApiKey
 │   ├── mcp-keys.controller.ts   # @Controller('mcp-keys') + AuthGuard
@@ -555,27 +549,27 @@ apps/backend/src/app/mcp/
 └── tools/
     ├── whoami.tool.ts           # whoamiHandler + registerWhoamiTool (every role)
     ├── employer/
-    │   ├── register-employer-tools.ts  # Switchboard: registers all 9 employer tools
+    │   ├── register-employer-tools.ts  # Switchboard: registers all 6 employer tools
     │   ├── employer.types.ts           # Shared Zod input schemas
     │   ├── get-my-company.tool.ts
     │   ├── list-categories.tool.ts
     │   ├── list-skills.tool.ts
     │   ├── list-jobs.tool.ts
     │   ├── get-job.tool.ts
-    │   ├── create-job.tool.ts          # Auto-injects companyId + postedById
-    │   ├── update-job.tool.ts          # Verifies postedById === state.userId
-    │   ├── change-job-status.tool.ts
     │   └── list-applicants.tool.ts
     └── candidate/
-        ├── register-candidate-tools.ts  # Switchboard: registers all 7 candidate tools
+        ├── register-candidate-tools.ts  # Switchboard: registers all 10 candidate tools
         ├── candidate.types.ts           # Shared Zod input schemas
         ├── get-my-profile.tool.ts
         ├── list-my-resumes.tool.ts
         ├── search-jobs.tool.ts          # Inlines jobs.service.ts filter logic
         ├── list-my-applications.tool.ts
-        ├── apply-to-job.tool.ts         # Matches web createApplication (187 lines)
-        ├── update-profile.tool.ts
-        └── withdraw-application.tool.ts
+        ├── generate-upload-url.tool.ts        # new — agent-driven resume flow
+        ├── create-resume-record.tool.ts       # new
+        ├── extract-resume-text.tool.ts        # new
+        ├── score-resume.tool.ts               # new
+        ├── sync-resume-to-profile.tool.ts     # new
+        └── save-resume-score.tool.ts          # new
 ```
 
 **`DatabaseModule` is `@Global()`** (`apps/backend/src/app/utils/databases.ts`) — no import needed in `McpModule` for `'PRISMA_CLIENT'`. `AuthModule` IS imported because `AuthGuard` depends on `AuthService` (without the import, Nest's DI throws at controller instantiation).
@@ -591,7 +585,7 @@ apps/backend/src/app/mcp/
 │  MCP Client (opencode, Cursor, etc.)    │          │  Backend (NestJS)                            │
 │                                         │          │                                              │
 │  opencode.json:                         │          │  McpModule (apps/backend/src/app/mcp/)       │
-│  {                                      │          │  ├─ imports: [AuthModule, AiModule, NotificationsModule]│
+│  {                                      │          │  ├─ imports: [AuthModule, GcsModule, AiModule]│
 │    "mcp": {                             │          │  │                                           │
 │      "type": "remote",                  │          │  ├─ ApiKeyGuard (Bearer → mcpUserId+mcpRole) │
 │      "url": ".../api/mcp",              │          │  │  ├─ verifyApiKey → 200 or 401              │
@@ -603,7 +597,7 @@ apps/backend/src/app/mcp/
 │                                         │          │  │  ├─ createApiKey({ permissions: {role} }) │
 │  Lifecycle per request:                 │          │  │  ├─ listApiKeys (destructure .apiKeys)    │
 │   1. initialize (JSON-RPC)              │          │  │  └─ deleteApiKey                          │
-│   2. tools/list → employer tools        │          │  │                                           │
+│   2. tools/list → employer/candidate    │          │  │                                           │
 │   3. tools/call {name: "...", ...}      │          │  ├─ McpKeysController                       │
 │                                         │──REST────┼─▶│  @UseGuards(AuthGuard)                    │
 │   (no sessionId — every request         │          │  │  POST   /api/mcp-keys       → key (once)  │
@@ -620,9 +614,8 @@ apps/backend/src/app/mcp/
 │                                         │          │     │   server   = createMcpServer({    │  │
 │                                         │          │     │     userId, role, companyId,     │  │
 │                                         │          │     │     prisma, logger,              │  │
-│                                         │          │     │     matchExplanationService,     │  │
-│                                         │          │     │     eventEmitter,               │  │
-│                                         │          │     │     notificationsService })      │  │
+│                                         │          │     │     gcsService, resumeParser…,   │  │
+│                                         │          │     │     profileSync… })              │  │
 │                                         │          │     │   await server.connect(transport) │  │
 │                                         │          │     │   res.on('close', cleanup)        │  │
 │                                         │          │     │   await transport.handleRequest(  │  │
@@ -642,18 +635,20 @@ apps/backend/src/app/mcp/
 │                                         │          │   whoami.tool.ts                            │
 │                                         │          │   ├─ whoamiHandler(state) → tool result     │
 │                                         │          │   └─ registerWhoamiTool(server, state)      │
-│                                         │          │   employer/                                 │
+│                                         │          │   employer/ (read-only)                    │
 │                                         │          │   ├─ register-employer-tools.ts (switchboard)│
 │                                         │          │   ├─ employer.types.ts (zod schemas)         │
 │                                         │          │   ├─ get-my-company, list-categories, …     │
-│                                         │          │   └─ 9 tools: read + mutation, all scoped  │  │
+│                                         │          │   └─ 6 tools: all scoped                   │  │
 │                                         │          │      to state.companyId                     │
-│                                         │          │   candidate/                               │  │
+│                                         │          │   candidate/ (10 tools: 4 read + 6 write)   │
 │                                         │          │   ├─ register-candidate-tools.ts (switchboard)│
 │                                         │          │   ├─ candidate.types.ts (zod schemas)       │  │
 │                                         │          │   ├─ get-my-profile, list-my-resumes, …    │  │
-│                                         │          │   └─ 7 tools: read + write, all scoped     │  │
-│                                         │          │      to state.userId                        │
+│                                         │          │   ├─ 4 read-only tools                      │  │
+│                                         │          │   └─ 6 agent-driven resume tools:           │  │
+│                                         │          │      upload, create, extract, score,        │  │
+│                                         │          │      sync profile, save score               │  │
 │                                         │          │                                              │
 │                                         │          │  Apikey table (PostgreSQL, Prisma)          │
 │                                         │          │   id, prefix, key (hashed), referenceId    │
@@ -674,32 +669,32 @@ apps/backend/src/app/mcp/
 
 ## 10. Testing
 
-72 tests across 22 MCP files, all passing. Full suite: 278/278.
+76 tests across 22 MCP files, all passing. Full suite: 337/337.
 
-| Test file                               | Tests | What it covers                                                                                                                                                                    |
-| --------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp-api-key-guard.test.ts`             | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                      |
-| `mcp-keys-service.test.ts`              | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                  |
-| `mcp-keys-controller.test.ts`           | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                  |
-| `mcp-whoami-tool.test.ts`               | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                       |
-| `mcp-endpoint-controller.test.ts`       | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
-| `mcp-factory.test.ts`                   | 2     | `createMcpServer` registers `whoami` + 7 candidate tools for `candidate`; registers `whoami` + 9 employer tools for `employer`                                                    |
-| `mcp-get-my-company-tool.test.ts`       | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                     |
-| `mcp-list-categories-tool.test.ts`      | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                      |
-| `mcp-list-skills-tool.test.ts`          | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                |
-| `mcp-list-jobs-tool.test.ts`            | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                     |
-| `mcp-get-job-tool.test.ts`              | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company                                    |
-| `mcp-create-job-tool.test.ts`           | 3     | `create_job` auto-injects `companyId` + `postedById`; "Forbidden: no employer profile" when `state.companyId === null`; isError on prisma throw                                   |
-| `mcp-update-job-tool.test.ts`           | 3     | `update_job` updates fields when caller owns; "Job not found" when missing; "Forbidden: only the job poster can edit this job" when postedById differs                            |
-| `mcp-change-job-status-tool.test.ts`    | 3     | `change_job_status` updates status when caller owns; "Job not found" when missing; "Forbidden: only the job poster can change this job's status" when postedById differs          |
-| `mcp-list-applicants-tool.test.ts`      | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                  |
-| `mcp-get-my-profile-tool.test.ts`       | 3     | `get_my_profile` returns CandidateDescription when exists; returns all-nulls when no profile; prisma throws → tool error                                                          |
-| `mcp-list-my-resumes-tool.test.ts`      | 3     | `list_my_resumes` returns metadata-only resume list; empty list when none; prisma throws → tool error                                                                             |
-| `mcp-search-jobs-tool.test.ts`          | 3     | `search_jobs` paginates + filters (q, location, type, remote, salary, skills, categories); forces status OPEN + deletedAt null; returns isError on prisma throw                   |
-| `mcp-list-my-applications-tool.test.ts` | 3     | `list_my_applications` paginates by `candidateId: state.userId`; optional status filter; prisma throws → tool error                                                               |
-| `mcp-update-profile-tool.test.ts`       | 3     | `update_profile` upserts with title/bio; validates at least one field; prisma throw → tool error                                                                                  |
-| `mcp-withdraw-application-tool.test.ts` | 3     | `withdraw_application` APPLIED → WITHDRAWN; cross-user returns "Application not found"; non-APPLIED status returns error; prisma throw → tool error                               |
-| `mcp-apply-to-job-tool.test.ts`         | 3     | `apply_to_job` happy path (creates + match explanation + notifications + event); job not found; job not open; resume ownership; existing active; withdrawn re-apply; prisma throw |
+| Test file                                 | Tests | What it covers                                                                                                                                                                    |
+| ----------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp-api-key-guard.test.ts`               | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                      |
+| `mcp-keys-service.test.ts`                | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                  |
+| `mcp-keys-controller.test.ts`             | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                  |
+| `mcp-whoami-tool.test.ts`                 | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                       |
+| `mcp-endpoint-controller.test.ts`         | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
+| `mcp-factory.test.ts`                     | 2     | `createMcpServer` registers `whoami` + 10 candidate tools for `candidate`; registers `whoami` + 6 employer tools for `employer`                                                   |
+| `mcp-get-my-company-tool.test.ts`         | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                     |
+| `mcp-list-categories-tool.test.ts`        | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                      |
+| `mcp-list-skills-tool.test.ts`            | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                |
+| `mcp-list-jobs-tool.test.ts`              | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                     |
+| `mcp-get-job-tool.test.ts`                | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company                                    |
+| `mcp-list-applicants-tool.test.ts`        | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                  |
+| `mcp-get-my-profile-tool.test.ts`         | 3     | `get_my_profile` returns CandidateDescription when exists; returns all-nulls when no profile; prisma throws → tool error                                                          |
+| `mcp-list-my-resumes-tool.test.ts`        | 3     | `list_my_resumes` returns metadata-only resume list; empty list when none; prisma throws → tool error                                                                             |
+| `mcp-search-jobs-tool.test.ts`            | 3     | `search_jobs` paginates + filters (q, location, type, remote, salary, skills, categories); forces status OPEN + deletedAt null; returns isError on prisma throw                   |
+| `mcp-list-my-applications-tool.test.ts`   | 3     | `list_my_applications` paginates by `candidateId: state.userId`; optional status filter; prisma throws → tool error                                                               |
+| `mcp-generate-upload-url-tool.test.ts`    | 2     | `generate_upload_url` calls `GcsService.generatePresignedUploadUrl` with `GcsFolder.RESUMES`; returns isError when GCS throws                                                     |
+| `mcp-create-resume-record-tool.test.ts`   | 2     | `create_resume_record` creates Resume with `candidateId: state.userId`; returns isError when prisma throws                                                                        |
+| `mcp-extract-resume-text-tool.test.ts`    | 6     | `extract_resume_text` returns text + pageCount; marks isEmpty; resume-not-found; no fileKey; GCS throws; access denied                                                            |
+| `mcp-score-resume-tool.test.ts`           | 4     | `score_resume` returns text + pageCount; resume-not-found; no fileKey; access denied                                                                                              |
+| `mcp-sync-resume-to-profile-tool.test.ts` | 4     | `sync_resume_to_profile` calls `commitMerge(userId, resumeId, data)`; resume-not-found; access denied; commitMerge throws                                                         |
+| `mcp-save-resume-score-tool.test.ts`      | 4     | `save_resume_score` updates `aiScore` + `aiFeedback`; resume-not-found; access denied; prisma update throws                                                                       |
 
 **Test patterns worth keeping:**
 
@@ -707,23 +702,163 @@ apps/backend/src/app/mcp/
 - **`vi.fn(function() { return mockState })`** (not arrow) for class-constructor mocks — needed so the factory result is `new`-able.
 - **Manual controller construction** (`new McpKeysController(service as ...)`) when `Test.createTestingModule` + `useValue` yields `undefined` on `this`. The pattern is to inject the mock and cast.
 - **`vi.spyOn(auth.api, 'verifyApiKey')`** in guard tests — `auth.api` is a real function on a real object, not a spy by default, so the spy is created in `beforeEach`.
-- **McpState stub pattern:** every test file that constructs a mock `McpState` now includes 3 stub fields (`matchExplanationService`, `eventEmitter`, `notificationsService`) — added to 11 existing test files alongside the 7 new candidate tool tests.
+- **McpState stub pattern:** mock `McpState` includes `userId`, `role`, `companyId`, `prisma`, `logger`, `gcsService`, `resumeParserService`, `profileSyncService`. Agent-driven resume tool tests mock the relevant service (e.g. `gcsService.generatePresignedUploadUrl`) and use `{} as never` for unused fields.
 
-**`pnpm lint`:** 0 errors, 140 pre-existing warnings (`no-explicit-any` is project-wide warning-level), none in the new MCP files.
+**`pnpm lint`:** 0 errors, 166 pre-existing warnings (`no-explicit-any` is project-wide warning-level), none in the new MCP files.
 
 ---
 
-## 11. Out of scope (v4+)
+## 11. Out of scope
 
-- **AI-only candidate tools** — e.g. `get_job_match_preview`, `tailor_resume_to_job`. Requires LLM integration and streaming support not yet built.
+- **AI-only tools** — all AI features (resume parsing, scoring, interview prep, pre-shortlist evaluation, match explanations) are **delegated to local agents**. The MCP server provides tools for agents to extract text and persist scores; the actual LLM parsing/scoring happens locally. No Gemini calls are made from the MCP endpoint.
 - **Messaging tools** — `send_message`, `list_threads` between candidates and employers. Requires the messaging module to be MCP-ready.
-- **Pre-shortlist answering tools** — candidate-facing tools for answering pre-shortlist questions. Requires `PreShortlistModule`.
-- **Resume upload** — uploading a new resume file via MCP. Requires GCS integration + file parsing pipeline.
+- **Resume upload / CRUD** — uploading, updating, or deleting resumes via MCP is partially covered by the agent-driven resume flow (6 tools). Update and delete operations are still out of scope — users manage them through the web UI.
 - **One-key-per-role enforcement** — the service accepts duplicate keys for the same `(userId, role)` pair. The UI is expected to delete the old key; a DB-level unique index is deferred.
 - **Stateful mode** — confirmed off the table. CORS headers for `Mcp-Session-Id` are present for forward-compat only.
-- **AI / streaming** — every shipped tool is deterministic. v4+ tools that call LLMs (e.g. `summarize-resume`) will need streaming SSE or chunked responses — currently unhandled by the stateless transport.
 - **Cross-company admin tools** — all employer tools scope to `state.companyId`. A superuser that can act across companies would need a separate `admin` role and a separate tool group.
 - **Cross-company candidate comparison** — comparing candidates across different companies is out of scope for the current employer toolset.
 - **Granular per-tool permissions** — the `permissions` JSON column currently stores a single `role`. v4+ could add per-tool scopes (e.g. `{ role: ['employer'], tools: ['read_only'] }`) and have the guard/factory consult them.
-- **`McpState` cleanup** — `companyId` is always `null` for candidate keys. Could be refactored to a discriminated union or removed from the base interface.
-- **DB unique constraint on `Application(jobId, candidateId)`** — a unique index + `P2002` handling would fix the race condition on concurrent `apply_to_job`. Deferred per spec §6.
+
+---
+
+## 12. Gap & deviation analysis (MCP vs web app)
+
+Static comparison run against `apps/web/src/**` (pages, `api-hook/`, `api-client/`) and `apps/backend/src/app/**` (controllers, services). Web surface: ~85 user actions / ~100 REST endpoints. MCP surface: **17 read-only tools + 1 write tool = 18 tools** (6 new agent-driven resume tools added). Roughly **~15% of the user-facing surface is reachable via MCP**. Write tools are limited to the agent-driven resume flow (`create_resume_record`, `sync_resume_to_profile`, `save_resume_score`); all other CRUD operations remain web-only.
+
+### 12.1 Tools that DEVIATE from the web flow
+
+#### 12.1.1 `search_jobs` — missing sort, no analytics tracking
+
+| Aspect                                                                              | Web `JobsService.getsPaginatedJobsPostings`     | MCP `search_jobs` (`mcp/tools/candidate/search-jobs.tool.ts`)   |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| `sort` param (`MOST_RELEVANT` / `NEWEST` / `OLDEST` / `SALARY_ASC` / `SALARY_DESC`) | Yes (`buildOrderBy`)                            | **Not in input schema** — always `createdAt: 'desc'`            |
+| Override `status` filter                                                            | Yes (admin/employer can pick `DRAFT`/`CLOSED`)  | No — hard-coded `status: 'OPEN'`                                |
+| `eventEmitter.emit('job.viewed', …)` for every job in result                        | Yes (feeds `JobViewBatcher` for view analytics) | **Not emitted** — view-count analytics under-count MCP searches |
+| `preShortlistQuestions` in include                                                  | Yes                                             | Yes (consistent) ✓                                              |
+
+#### 12.1.2 `get_job` — wrong include shape, no public view
+
+| Aspect                                | Web has **two** endpoints                                                                            | MCP has one                                                                                                   |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Public view `getJobById`              | No companyId check; throws 404 if status != OPEN; no preShortlistQuestions; no `_count`              | **No equivalent**                                                                                             |
+| Employer view `getJobByIdForEmployer` | `companyId` ownership check; includes `preShortlistQuestions`, `_count.applications`; admin override | `get_job` is closest — but **does not include `preShortlistQuestions`**, has no `admin` override, no `_count` |
+
+**Impact:** a candidate using MCP cannot fetch the full public job detail (description, requirements, location, salary); `search_jobs` returns summary rows only.
+
+#### 12.1.3 `list_applicants` — slightly stricter than web
+
+| Aspect                  | Web `getApplicationsForEmployer` (`applications.service.ts:386`) | MCP `list_applicants` (`mcp/tools/employer/list-applicants.tool.ts:5`) |
+| ----------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `jobId` filter          | Optional                                                         | **Required**                                                           |
+| `postedById` filter     | Yes                                                              | Yes (consistent) ✓                                                     |
+| `companyId` cross-check | No                                                               | Yes (extra defense)                                                    |
+| Search by name/email    | Yes                                                              | Yes (consistent) ✓                                                     |
+
+#### 12.1.4 `get_my_profile` — only returns bio, not the full profile
+
+| Aspect                                                                                 | Web `getProfileDetails` (composite) | MCP `get_my_profile`                                  |
+| -------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| `Candidate` row (name, email, phone)                                                   | Yes                                 | No                                                    |
+| `CandidateDescription` (title, bio)                                                    | Yes                                 | Yes (consistent) ✓                                    |
+| `Resumes[]`                                                                            | Yes                                 | No (separate tool)                                    |
+| `Experience[]`, `Education[]`, `Certificates[]`, `Skills[]`, `Socials[]`, `Contacts[]` | Yes                                 | **No** — and there is no other MCP tool to fetch them |
+
+#### 12.1.5 `list_my_resumes` — read-only; upload is now covered via agent-driven flow
+
+Resume metadata is read via `list_my_resumes`. Resume upload and scoring are now covered by the 6 agent-driven resume flow tools (`generate_upload_url`, `create_resume_record`, `extract_resume_text`, `score_resume`, `sync_resume_to_profile`, `save_resume_score`). Update and delete are still intentionally absent — users manage resumes through the web UI.
+
+#### 12.1.6 `list_my_applications` — extra include (harmless but inconsistent)
+
+Web's `listApplications` includes `job` + `resume`. MCP version adds `candidate: { select: { id, name, email } }` — unused since the caller IS the candidate.
+
+#### 12.1.7 `readOnlyHint` and `outputSchema` — inconsistent across the set
+
+| Tool                   | `readOnlyHint`                      | `outputSchema` declared |
+| ---------------------- | ----------------------------------- | ----------------------- |
+| `whoami`               | ✓                                   | ✓                       |
+| `get_my_company`       | ✓                                   | ✓                       |
+| `list_categories`      | ✓                                   | ✓                       |
+| `list_skills`          | ✓                                   | ✓                       |
+| `list_jobs`            | ✓                                   | ✓                       |
+| `list_applicants`      | ✓                                   | ✗                       |
+| `get_job`              | **✗ (read-only but not annotated)** | ✗                       |
+| `search_jobs`          | ✓                                   | ✓                       |
+| `list_my_applications` | ✓                                   | ✓                       |
+| `get_my_profile`       | ✓                                   | ✓                       |
+| `list_my_resumes`      | ✓                                   | ✓                       |
+
+Two tools that return `structuredContent` do not declare `outputSchema` (`list_applicants`, `get_job`), so MCP clients have no typed contract for those. `get_job` also missing `readOnlyHint: true`.
+
+### 12.2 Web actions with NO MCP equivalent
+
+Items marked **intentional** are write/CRUD operations that users perform through the web UI. Items marked **local-agent** are AI features delegated to the user's local model.
+
+#### 12.2.1 Employer — missing tools
+
+| Capability                       | Web endpoint                                                             | Reason                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Get employer profile             | `GET /api/employer/me`                                                   | Read gap                                                                                                              |
+| Update employer profile          | `POST /api/employer/me`                                                  | Intentional (CRUD via web)                                                                                            |
+| Update employer avatar           | `PATCH /api/employer/me/avatar`                                          | Intentional                                                                                                           |
+| Search employers                 | `GET /api/employer/search`                                               | Read gap                                                                                                              |
+| **Company — full CRUD**          | `POST/GET/PUT/PATCH/DELETE /api/company[/:id]`                           | Intentional                                                                                                           |
+| Company employees                | `GET/POST/DELETE /api/company/:id/employees`                             | Intentional                                                                                                           |
+| Public company views             | `GET /api/company`, `/top`, `/recommended`, `/slug/:slug`, `/check-name` | Read gap                                                                                                              |
+| Update company logo              | `PATCH /api/company/:id/logo`                                            | Intentional                                                                                                           |
+| **Delete a job**                 | `DELETE /api/jobs/:id`                                                   | Intentional                                                                                                           |
+| **Create/update job**            | `POST/PUT /api/jobs/:id`                                                 | Intentional                                                                                                           |
+| Get job for employer (full view) | `GET /api/jobs/employer/:id`                                             | Read gap                                                                                                              |
+| List jobs by user                | `GET /api/jobs/user/:userId`                                             | Read gap                                                                                                              |
+| List jobs by company             | `GET /api/jobs/company/:companyId`                                       | Read gap                                                                                                              |
+| List jobs by category            | `GET /api/jobs/category/:id`                                             | Read gap                                                                                                              |
+| Get similar jobs                 | `GET /api/jobs/similar`                                                  | Read gap                                                                                                              |
+| **Popular categories**           | `GET /api/jobs/categories/popular`                                       | Read gap                                                                                                              |
+| **Job analytics**                | `GET /api/jobs/analytics/*`                                              | Read gap                                                                                                              |
+| **Get one application**          | `GET /api/employers/applications/:id`                                    | Read gap                                                                                                              |
+| **Shortlist/reject/offer**       | `PATCH /api/employers/applications/:id/*`                                | Intentional                                                                                                           |
+| **Pre-shortlist Q&A (employer)** | `GET/POST /api/jobs/pre-shortlist/*`                                     | Local-agent                                                                                                           |
+| **Match operations**             | `GET/POST /api/matching/*`                                               | Local-agent (match explanations computed at application creation; `save_resume_score` persists agent-computed scores) |
+| **Skill search / create**        | `GET/POST /api/skills/*`                                                 | Read gap + intentional                                                                                                |
+
+#### 12.2.2 Candidate — missing tools
+
+| Capability                        | Web endpoint                                                   | Reason                                                                                                                              |
+| --------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **View full profile (composite)** | `GET /api/candidate/me`                                        | Read gap (partial coverage via `get_my_profile` + `list_my_resumes`)                                                                |
+| **Update personal details**       | `PATCH /api/candidate/me`                                      | Intentional                                                                                                                         |
+| **Update avatar**                 | `PATCH /api/candidate/me/avatar`                               | Intentional                                                                                                                         |
+| **Get candidate by id**           | `GET /api/candidate/:id`                                       | Read gap                                                                                                                            |
+| **Resume CRUD**                   | Upload/create/update/delete                                    | Upload + create + extract + score + sync covered by agent-driven tools (§6c); update/delete still intentional                       |
+| **Profile sections CRUD**         | experience, education, certificates, skills, socials, contacts | `sync_resume_to_profile` covers bulk write; individual CRUD still intentional                                                       |
+| **Get single application**        | `GET /api/applications/:id`                                    | Read gap                                                                                                                            |
+| **Pre-shortlist answers**         | `POST/GET /api/applications/:id/pre-shortlist/*`               | Local-agent                                                                                                                         |
+| **AI features**                   | parse, score, analysis, commit-merge, preview-delete-impact    | Extract text + score are now MCP tools; agent parses/scores locally and persists via `save_resume_score` + `sync_resume_to_profile` |
+| **Recommendations**               | `GET /api/matching/resume/:id/recommendations`                 | Local-agent                                                                                                                         |
+| **Public job detail**             | `GET /api/jobs/:id`                                            | Read gap                                                                                                                            |
+| **Similar jobs**                  | `GET /api/jobs/similar`                                        | Read gap                                                                                                                            |
+
+#### 12.2.3 Cross-role — missing entirely
+
+| Capability                              | Endpoints                      | Reason       |
+| --------------------------------------- | ------------------------------ | ------------ |
+| **Messaging**                           | `GET/POST /api/chats/*`        | Out of scope |
+| **Notifications**                       | All `/api/notifications/*`     | Out of scope |
+| **Push device registration**            | `POST /api/devices/register`   | Out of scope |
+| **File upload (S3/GCS)**                | `*/api/s3/*` and `*/api/gcs/*` | Intentional  |
+| **Employer → candidate profile lookup** | `GET /api/candidate/:id`       | Read gap     |
+| **Browse companies (public)**           | `GET /api/company*`            | Read gap     |
+
+### 12.3 Priority summary
+
+**P0 — Behavior bugs in existing read-only tools:**
+
+1. `search_jobs` — never emits `job.viewed`; view analytics under-count.
+2. `get_my_profile` — returns 1/8 of the web profile; no way to fetch the rest (partial coverage via `get_my_profile` + `list_my_resumes` + `sync_resume_to_profile`).
+
+**P1 — Architectural deviations:** 3. `list_applicants` requires `jobId`; web's filter is optional.
+
+**P2 — Read-surface gaps (features an agent would need for context):** 4. No public job-detail tool for candidates (`get_job` is employer-only). 5. No `get_application` (single-application fetch) for either role. 6. No employer profile read tool. 7. No company read tools (search, public views). 8. No `get_similar_jobs`, `popular_categories`, job analytics. 9. No candidate profile read (composite — name, email, phone, experience, education, etc. partially covered by `get_my_profile` + `sync_resume_to_profile`).
+
+**P3 — Minor issues:** 10. No sort parameter in `search_jobs`. 11. `get_job` missing `readOnlyHint: true`. 12. `list_applicants` missing `outputSchema`. 13. `get_job` missing `outputSchema`.
+
+All write tools, AI features, and messaging are intentionally absent — users perform CRUD via web UI, and AI processing is delegated to local agents.

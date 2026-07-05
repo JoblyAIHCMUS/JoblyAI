@@ -9,44 +9,44 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { MatchExplanationDrawer } from './matchExplanationDrawer';
+import {
+  PreShortlistInfoModal,
+  type PreShortlistInfoKind,
+} from './PreShortlistInfoModal';
 
-interface MatchExplanationButtonProps {
-  applicationId: string | number;
-  score?: number | null;
+interface PreShortlistInfoButtonProps {
+  kind: PreShortlistInfoKind;
 }
 
-export function MatchExplanationButton({
-  applicationId,
-  score,
-}: MatchExplanationButtonProps) {
+export function PreShortlistInfoButton({ kind }: PreShortlistInfoButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const tooltipText =
+    kind === 'generate'
+      ? 'Learn how the generation prompt works'
+      : 'Learn how the evaluation prompt works';
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(true);
-            }}
+            aria-label={tooltipText}
+            onClick={() => setIsOpen(true)}
           >
-            <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+            <Info className="h-4 w-4 text-muted-foreground" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>
-            View match analysis{score != null ? ` (${score.toFixed(2)}%)` : ''}
-          </p>
+          <p>{tooltipText}</p>
         </TooltipContent>
       </Tooltip>
 
-      <MatchExplanationDrawer
-        applicationId={applicationId}
+      <PreShortlistInfoModal
+        kind={kind}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       />

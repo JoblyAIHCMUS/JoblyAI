@@ -8,13 +8,9 @@ const buildState = (findUnique: ReturnType<typeof vi.fn>): McpState => ({
   companyId: 42,
   prisma: { jobPosting: { findUnique } } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
-  matchExplanationService: {
-    calculateExplanation: vi.fn().mockResolvedValue(undefined),
-  } as never,
-  eventEmitter: { emit: vi.fn() } as never,
-  notificationsService: {
-    createNotifications: vi.fn().mockResolvedValue([]),
-  } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('getJobHandler', () => {

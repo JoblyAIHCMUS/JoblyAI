@@ -85,6 +85,7 @@ function mapApplicationRecord(record: ApplicationRecord): ApplicationItem {
       : mapApiStatusToCandidateStatus(record.status),
     recruiterId: record.job.postedBy.id,
     matchPercentage: record.matchPercentage,
+    preShortlistQuestionsCount: record.preShortlistQuestionsCount,
   };
 }
 

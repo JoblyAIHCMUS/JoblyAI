@@ -45,7 +45,7 @@ export class ScoringProcessor extends WorkerHost {
       const buffer = await this.gcsService.getFileBuffer(resume.fileKey);
 
       // 3. Extract text
-      const text = await this.parserService.extractTextFromPdf(buffer);
+      const { text } = await this.parserService.extractTextFromPdf(buffer);
 
       // 4. Score with Gemini
       this.logger.log(`Calling scoring service for resume ${resumeId}...`);

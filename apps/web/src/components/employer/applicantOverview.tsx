@@ -95,12 +95,10 @@ export default function ApplicantOverview({
             className="flex items-center gap-2 label-label-2-semi-bold text-xs sm:text-sm hover:text-primary transition-colors cursor-pointer"
           >
             <BarChart3 className="h-4 w-4" />
-            {applicant.score.toFixed(1)}
-            {applicant.score > 0 && (
-              <span className="text-muted-foreground text-xs">
-                (click to view analysis)
-              </span>
-            )}
+            {applicant.score != null ? applicant.score.toFixed(2) : 'N/A'}
+            <span className="text-muted-foreground text-xs">
+              (click to view analysis)
+            </span>
           </button>
         </div>
 
