@@ -16,7 +16,9 @@ const buildState = (opts: {
   resumeParserService: {} as never,
   profileSyncService: {
     commitMerge: opts.commitMerge,
-    enrichWithDuplicateFlags: opts.enrichWithDuplicateFlags ?? vi.fn().mockImplementation(async (_uid: string, data: unknown) => data),
+    enrichWithDuplicateFlags:
+      opts.enrichWithDuplicateFlags ??
+      vi.fn().mockImplementation(async (_uid: string, data: unknown) => data),
   } as never,
 });
 

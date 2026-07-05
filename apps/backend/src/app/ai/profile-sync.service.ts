@@ -171,9 +171,13 @@ export class ProfileSyncService {
     const resumeText = [
       finalTitle,
       finalBio,
-      ...experience.map((e) => `${e.jobTitle} at ${e.companyName}: ${e.description || ''}`),
+      ...experience.map(
+        (e) => `${e.jobTitle} at ${e.companyName}: ${e.description || ''}`
+      ),
       ...skills.map((s) => s.name),
-      ...education.map((e) => `${e.degree || ''} ${e.fieldOfStudy || ''} at ${e.school}`),
+      ...education.map(
+        (e) => `${e.degree || ''} ${e.fieldOfStudy || ''} at ${e.school}`
+      ),
       ...certificates.map((c) => `${c.name} by ${c.issuer}`),
     ]
       .filter(Boolean)
