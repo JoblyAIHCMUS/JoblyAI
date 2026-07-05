@@ -102,7 +102,15 @@ const CandidateProfilePage = () => {
         try {
           const parsed = JSON.parse(saved);
           // Convert string keys back to numbers if they were serialized as strings
-          const rehydrated: Record<number, any> = {};
+          const rehydrated: Record<
+            number,
+            {
+              parsing: boolean;
+              scoring: boolean;
+              parsingStartTime?: number;
+              scoringStartTime?: number;
+            }
+          > = {};
           Object.keys(parsed).forEach((key) => {
             rehydrated[Number(key)] = parsed[key];
           });
@@ -189,7 +197,14 @@ const CandidateProfilePage = () => {
     // Check all current tasks
     Object.keys(nextTasks).forEach((idStr) => {
       const id = parseInt(idStr);
-      const task = nextTasks[id] as any;
+      const task = nextTasks[id] as
+        | {
+            parsing?: boolean;
+            scoring?: boolean;
+            parsingStartTime?: number;
+            scoringStartTime?: number;
+          }
+        | undefined;
       if (!task) return;
 
       const resume = resumes.find((r) => r.id === id);
@@ -462,7 +477,9 @@ const CandidateProfilePage = () => {
     };
   }, [fetchCandidateProfile]);
 
-  const handleSyncResume = async (modifiedDraftData?: any) => {
+  const handleSyncResume = async (
+    modifiedDraftData?: Record<string, unknown>
+  ) => {
     if (!activeResumeId || !profile) return;
 
     const resume = profile.resumes?.find((r) => r.id === activeResumeId);
@@ -569,25 +586,6 @@ const CandidateProfilePage = () => {
         resumeData.id
       );
 
-      // Replace generic processing toast with resume-specific one
-      toast.info('AI is extracting and scoring your resume...', {
-        id: `ai-processing-${resumeData.id}`,
-        description:
-          'This usually takes 10-20 seconds. We will notify you when it is done.',
-        duration: Infinity,
-      });
-      toast.dismiss('ai-processing-upload');
-
-      setProcessingTasks((prev) => ({
-        ...prev,
-        [resumeData.id]: {
-          parsing: true,
-          scoring: true,
-          parsingStartTime: Date.now(),
-          scoringStartTime: Date.now(),
-        },
-      }));
-
       const newResume = {
         ...resumeData,
         parsedText: null,
@@ -619,7 +617,6 @@ const CandidateProfilePage = () => {
       const errorMsg =
         err instanceof Error ? err.message : 'Failed to save resume';
       setUploadErrorMsg(errorMsg);
-      toast.dismiss('ai-processing-upload');
     },
   });
 
@@ -795,7 +792,7 @@ const CandidateProfilePage = () => {
         setProfile(updatedProfile);
       }
       toast.success('Social links updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update social links');
     }
   };
@@ -840,7 +837,7 @@ const CandidateProfilePage = () => {
         setProfile(updatedProfile);
       }
       toast.success('Contact info updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update contact info');
     }
   };
@@ -935,12 +932,6 @@ const CandidateProfilePage = () => {
       }
 
       const uploadResult = await uploadToS3(file, 'resumes');
-      toast.info('AI is analyzing your resume...', {
-        id: 'ai-processing-upload',
-        description:
-          'This usually takes 10-20 seconds. We will notify you when it is done.',
-        duration: Infinity,
-      });
 
       await createResumeRecord({
         fileKey: uploadResult.fileKey,
@@ -1088,7 +1079,7 @@ const CandidateProfilePage = () => {
                       ? JSON.parse(res.parsedText)
                       : res.parsedText
                     : null;
-                } catch (e) {
+                } catch {
                   return null;
                 }
               })()
@@ -1154,7 +1145,7 @@ const CandidateProfilePage = () => {
                       ? JSON.parse(res.aiFeedback)
                       : res.aiFeedback
                     : null;
-                } catch (e) {
+                } catch {
                   return null;
                 }
               })()

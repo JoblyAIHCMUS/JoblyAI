@@ -7,15 +7,15 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { PrismaClient } from '@prisma/client';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 import type { RequestWithMcpUser } from '../auth/api-key.types';
-import { MatchExplanationService } from '../../ai/match-explanation.service';
-import { NotificationsService } from '../../notifications/notifications.service';
 import { createMcpServer } from './mcp.factory';
 import type { Response } from 'express';
+import { GcsService } from '../../gcs/gcs.service';
+import { ResumeParserService } from '../../ai/resume-parser.service';
+import { ProfileSyncService } from '../../ai/profile-sync.service';
 
 @Controller('mcp')
 @UseGuards(ApiKeyGuard)
@@ -24,9 +24,9 @@ export class McpEndpointController {
 
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
-    private readonly matchExplanationService: MatchExplanationService,
-    private readonly eventEmitter: EventEmitter2,
-    private readonly notificationsService: NotificationsService
+    private readonly gcsService: GcsService,
+    private readonly resumeParserService: ResumeParserService,
+    private readonly profileSyncService: ProfileSyncService
   ) {}
 
   @All()
@@ -58,9 +58,9 @@ export class McpEndpointController {
       companyId: employer?.companyId ?? null,
       prisma: this.prisma,
       logger: this.logger,
-      matchExplanationService: this.matchExplanationService,
-      eventEmitter: this.eventEmitter,
-      notificationsService: this.notificationsService,
+      gcsService: this.gcsService,
+      resumeParserService: this.resumeParserService,
+      profileSyncService: this.profileSyncService,
     });
 
     await server.connect(transport);

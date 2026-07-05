@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpEndpointController } from '../app/mcp/server/mcp-endpoint.controller';
 
+const noopServices = () => ({
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
+});
+
 const mockTransportState: {
   handleRequest: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
@@ -47,9 +53,9 @@ describe('McpEndpointController', () => {
         },
         employer: { findUnique: vi.fn().mockResolvedValue({ companyId: 42 }) },
       } as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService
     );
   });
 
@@ -64,9 +70,9 @@ describe('McpEndpointController', () => {
     };
     controller = new McpEndpointController(
       prisma as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService
     );
 
     const mockReq = {
@@ -157,9 +163,9 @@ describe('McpEndpointController', () => {
         },
         employer: { findUnique: vi.fn().mockResolvedValue(null) },
       } as never,
-      { calculateExplanation: vi.fn().mockResolvedValue(undefined) } as never,
-      { emit: vi.fn() } as never,
-      { createNotifications: vi.fn().mockResolvedValue([]) } as never
+      noopServices().gcsService,
+      noopServices().resumeParserService,
+      noopServices().profileSyncService
     );
 
     const mockReq = {

@@ -64,23 +64,25 @@ export class ResumeParserService {
 
   constructor(private readonly aiProvider: AiProviderService) {}
 
-  async extractTextFromPdf(fileBuffer: Buffer): Promise<string> {
+  async extractTextFromPdf(
+    fileBuffer: Buffer
+  ): Promise<{ text: string; pageCount: number }> {
     try {
-      // Use pdf-parse for simple and reliable text extraction in Node.js
       const data = await pdf(fileBuffer);
 
-      const cleanText = (data.text || '').trim();
+      const text = (data.text || '').trim();
+      const pageCount = data.numpages ?? 0;
       this.logger.log(
-        `PDF extraction complete. Text length: ${cleanText.length}`
+        `PDF extraction complete. Text length: ${text.length}, pages: ${pageCount}`
       );
 
-      if (cleanText.length < 50) {
+      if (text.length < 50) {
         this.logger.warn(
           'Extracted text is very short. PDF might be scanned/image-based or empty.'
         );
       }
 
-      return cleanText;
+      return { text, pageCount };
     } catch (error: any) {
       this.logger.error(`Error parsing PDF with pdf-parse: ${error.message}`);
       throw new Error('Failed to extract text from PDF');
