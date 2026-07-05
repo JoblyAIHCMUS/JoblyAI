@@ -81,7 +81,10 @@ export const jobPostingSchema = z
         expectedAnswer: z
           .string()
           .min(1, 'Each expected answer must be at least 1 character')
-          .max(10_000, 'Each expected answer must be at most 10,000 characters'),
+          .max(
+            10_000,
+            'Each expected answer must be at most 10,000 characters'
+          ),
       })
     ),
   })

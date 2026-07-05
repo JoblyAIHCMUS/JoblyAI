@@ -27,10 +27,7 @@ export default function PreShortlistPage({
 
   useEffect(() => {
     if (!data) return;
-    if (
-      data.status === 'APPLIED' ||
-      data.status === 'WITHDRAWN'
-    ) {
+    if (data.status === 'APPLIED' || data.status === 'WITHDRAWN') {
       router.replace('/candidate/applications');
       return;
     }

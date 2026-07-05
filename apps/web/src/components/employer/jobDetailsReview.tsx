@@ -1,12 +1,7 @@
 import DOMPurify from 'dompurify';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -147,8 +142,7 @@ export default function JobDetailsReview({
                     'Could not load pre-shortlist questions.'}
                 </AlertDescription>
               </Alert>
-            ) : !preShortlistData ||
-              preShortlistData.questions.length === 0 ? (
+            ) : !preShortlistData || preShortlistData.questions.length === 0 ? (
               <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
                 <p className="text-sm font-medium text-slate-700">
                   This job has no pre-shortlist questions.
