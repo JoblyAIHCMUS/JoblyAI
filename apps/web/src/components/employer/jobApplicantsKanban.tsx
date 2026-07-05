@@ -217,14 +217,14 @@ export default function JobApplicantsKanban({
                       <div className="text-right">
                         <div className="body-body-1-medium">Score</div>
                         <div className="flex items-center gap-1">
-                          {applicant.score === 0 || applicant.score == null ? (
+                          {applicant.score == null ? (
                             <span className="text-[10px] text-amber-600 animate-pulse font-bold">
                               Calculating...
                             </span>
                           ) : (
                             <Star className="h-3 w-3 fill-current" />
                           )}
-                          {applicant.score != null && applicant.score > 0 && (
+                          {applicant.score != null && (
                             <span className="font-bold">
                               {applicant.score.toFixed(2)}%
                             </span>

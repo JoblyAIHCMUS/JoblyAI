@@ -574,7 +574,7 @@ export class MatchExplanationService {
         };
       }
 
-      let maxSimilarity = 0;
+      let maxSimilarity = -Infinity;
       let bestMatchSkillIndex = -1;
 
       for (let i = 0; i < skillEmbeddings.length; i++) {
@@ -588,7 +588,10 @@ export class MatchExplanationService {
         }
       }
 
-      const matched = maxSimilarity > 0;
+      // Clamp to 0 — negative means opposite, not "less than zero match"
+      maxSimilarity = Math.max(0, maxSimilarity);
+
+      const matched = bestMatchSkillIndex >= 0;
       const nearestSkill =
         bestMatchSkillIndex >= 0 ? skillNames[bestMatchSkillIndex] : null;
 
@@ -646,7 +649,6 @@ export class MatchExplanationService {
     // Embedding mode — status based on hard constraint, similarity is informational
     if (hardConstraintMet) return 'strong_match';
     if (exactMatch) return 'strong_match';
-    if (embeddingSimilarity > 0) return 'match';
     return 'no_match';
   }
 

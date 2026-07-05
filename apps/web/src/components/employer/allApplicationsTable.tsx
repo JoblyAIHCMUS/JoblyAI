@@ -145,7 +145,7 @@ export const columns: ColumnDef<AllApplication>[] = [
     ),
     cell: ({ row }) => {
       const score = row.getValue<number>('score');
-      if (score === null || score === undefined || score === 0) {
+      if (score === null || score === undefined) {
         return (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
             AI Calculating...
