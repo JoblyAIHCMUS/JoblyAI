@@ -11,16 +11,30 @@ export async function createResumeRecordHandler(
   input: CreateResumeRecordInput
 ) {
   try {
-    const resume = await state.prisma.resume.create({
-      data: {
-        candidateId: state.userId,
-        fileKey: input.fileKey,
-        fileName: input.fileName,
-        fileType: input.fileType,
-        fileSize: input.fileSize,
-        isDefault: input.isDefault ?? false,
-        isSyncedToProfile: false,
-      },
+    const resume = await state.prisma.$transaction(async (tx) => {
+      const created = await tx.resume.create({
+        data: {
+          candidateId: state.userId,
+          fileKey: input.fileKey,
+          fileName: input.fileName,
+          fileType: input.fileType,
+          fileSize: input.fileSize,
+          isDefault: input.isDefault ?? false,
+          isSyncedToProfile: false,
+        },
+      });
+
+      if (input.isDefault) {
+        await tx.resume.updateMany({
+          where: {
+            candidateId: state.userId,
+            id: { not: created.id },
+          },
+          data: { isDefault: false },
+        });
+      }
+
+      return created;
     });
 
     const result = { resumeId: resume.id };
