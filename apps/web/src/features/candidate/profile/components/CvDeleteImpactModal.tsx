@@ -68,9 +68,18 @@ export function CvDeleteImpactModal({
   // A CV is the "last one" if the resumes array has exactly 1 item
   const isLastCv = currentData?.resumes?.length === 1;
 
+  // Look up the specific resume being deleted
+  const targetResume = currentData?.resumes?.find(
+    (r: any) => r.id === resumeId
+  );
+  // If the resume was never synced to the profile, it contributed no data
+  // — no AI preview is needed, and the delete should be immediate.
+  const isSyncedToProfile = targetResume?.isSyncedToProfile === true;
+
   useEffect(() => {
     // Only fetch preview if NOT the last CV (if it's the last, the new bio will just be empty)
-    if (isOpen && resumeId && !isLastCv) {
+    // AND the resume was actually synced to the profile (otherwise it had no impact)
+    if (isOpen && resumeId && !isLastCv && isSyncedToProfile) {
       const fetchPreview = async () => {
         setIsPreviewBioLoading(true);
         try {
@@ -91,7 +100,7 @@ export function CvDeleteImpactModal({
       setPreviewTitle(null);
       setIsPreviewBioLoading(false);
     }
-  }, [isOpen, resumeId, isLastCv]);
+  }, [isOpen, resumeId, isLastCv, isSyncedToProfile]);
 
   const getAffectedItems = () => {
     const filterFn = (item: any) => {
@@ -639,7 +648,7 @@ export function CvDeleteImpactModal({
                 variant="ghost"
                 onClick={onClose}
                 disabled={isLoading}
-                className="text-slate-500 hover:bg-slate-200 px-6 font-bold transition-all"
+                className="text-slate-500 hover:bg-slate-200 px-6 font-bold transition-all h-11"
               >
                 Cancel
               </Button>
