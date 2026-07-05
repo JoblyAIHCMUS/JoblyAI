@@ -143,7 +143,6 @@ Pass the evaluation result as the "feedback" field matching this structure:
       outputSchema: z.object({ success: z.literal(true) }),
       annotations: { readOnlyHint: false, openWorldHint: false },
     },
-    async (args) =>
-      saveResumeScoreHandler(state, args as SaveResumeScoreInput)
+    async (args) => saveResumeScoreHandler(state, args as SaveResumeScoreInput)
   );
 }

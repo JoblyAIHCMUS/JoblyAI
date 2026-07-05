@@ -26,7 +26,7 @@ export class McpEndpointController {
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
     private readonly gcsService: GcsService,
     private readonly resumeParserService: ResumeParserService,
-    private readonly profileSyncService: ProfileSyncService,
+    private readonly profileSyncService: ProfileSyncService
   ) {}
 
   @All()

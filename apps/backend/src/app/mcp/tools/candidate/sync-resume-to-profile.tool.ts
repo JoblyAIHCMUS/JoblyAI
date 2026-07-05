@@ -89,14 +89,14 @@ function sanitizeExperienceDates(items: unknown[]): unknown[] {
       typeof e.companyName === 'string' && e.companyName
         ? e.companyName
         : typeof e.company === 'string' && e.company
-          ? e.company
-          : 'Independent',
+        ? e.company
+        : 'Independent',
     jobTitle:
       typeof e.jobTitle === 'string' && e.jobTitle
         ? e.jobTitle
         : typeof e.role === 'string' && e.role
-          ? e.role
-          : 'Unknown',
+        ? e.role
+        : 'Unknown',
     description: typeof e.description === 'string' ? e.description : '',
     location: typeof e.location === 'string' ? e.location : '',
     startDate: sanitizeDate(e.startDate, '1970-01-01'),
@@ -111,23 +111,23 @@ function sanitizeEducationDates(items: unknown[]): unknown[] {
       typeof e.school === 'string' && e.school
         ? e.school
         : typeof e.institution === 'string' && e.institution
-          ? e.institution
-          : 'Unknown',
+        ? e.institution
+        : 'Unknown',
     degree: normalizeDegree(e.degree),
     fieldOfStudy:
       typeof e.fieldOfStudy === 'string'
         ? e.fieldOfStudy
         : typeof e.field === 'string'
-          ? e.field
-          : '',
+        ? e.field
+        : '',
     startDate: sanitizeDate(e.startDate, '1970-01-01'),
     endDate: sanitizeDate(e.endDate, null),
     grade:
       typeof e.grade === 'string'
         ? e.grade
         : typeof e.gpa !== 'undefined'
-          ? String(e.gpa)
-          : '',
+        ? String(e.gpa)
+        : '',
     description: typeof e.description === 'string' ? e.description : '',
   }));
 }
@@ -139,8 +139,8 @@ function sanitizeCertificateDates(items: unknown[]): unknown[] {
       typeof c.issuer === 'string' && c.issuer
         ? c.issuer
         : typeof c.issuer === 'string'
-          ? c.issuer
-          : 'Unknown',
+        ? c.issuer
+        : 'Unknown',
     issueDate: sanitizeDate(c.issueDate, '1970-01-01'),
     expiryDate: sanitizeDate(c.expiryDate, null),
   }));
@@ -150,8 +150,7 @@ function sanitizeContacts(items: unknown[]): unknown[] {
   return (items as Array<Record<string, unknown>>)
     .filter((c) => typeof c.value === 'string' && c.value)
     .map((c) => {
-      const upper =
-        typeof c.type === 'string' ? c.type.toUpperCase() : 'OTHER';
+      const upper = typeof c.type === 'string' ? c.type.toUpperCase() : 'OTHER';
       return {
         ...c,
         type: VALID_CONTACT_TYPES.has(upper) ? upper : 'OTHER',

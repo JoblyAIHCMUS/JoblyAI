@@ -58,9 +58,6 @@ export function registerGenerateUploadUrlTool(
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async (args) =>
-      generateUploadUrlHandler(
-        state,
-        args as GenerateUploadUrlInput
-      )
+      generateUploadUrlHandler(state, args as GenerateUploadUrlInput)
   );
 }

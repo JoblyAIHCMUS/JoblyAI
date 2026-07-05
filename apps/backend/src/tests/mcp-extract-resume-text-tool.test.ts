@@ -27,12 +27,10 @@ describe('extractResumeTextHandler', () => {
       fileKey: 'resumes/abc.pdf',
     });
     const getFileBuffer = vi.fn().mockResolvedValue(Buffer.from('PDF'));
-    const extractTextFromPdf = vi
-      .fn()
-      .mockResolvedValue({
-        text: 'Experienced software engineer with a decade of building scalable systems.',
-        pageCount: 1,
-      });
+    const extractTextFromPdf = vi.fn().mockResolvedValue({
+      text: 'Experienced software engineer with a decade of building scalable systems.',
+      pageCount: 1,
+    });
     const state = buildState({
       resume: { findUnique },
       getFileBuffer,

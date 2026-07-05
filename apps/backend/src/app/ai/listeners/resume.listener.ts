@@ -6,9 +6,7 @@ import { ProfileSyncService } from '../profile-sync.service';
 export class ResumeListener {
   private readonly logger = new Logger(ResumeListener.name);
 
-  constructor(
-    private readonly profileSyncService: ProfileSyncService
-  ) {}
+  constructor(private readonly profileSyncService: ProfileSyncService) {}
 
   @OnEvent('resume.deleted')
   async handleResumeDeleted(payload: {
@@ -31,7 +29,9 @@ export class ResumeListener {
       );
     } catch (error: unknown) {
       this.logger.error(
-        `Failed to cleanup profile data for deleted resume ${payload.resumeId}: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to cleanup profile data for deleted resume ${
+          payload.resumeId
+        }: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

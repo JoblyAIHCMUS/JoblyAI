@@ -29,9 +29,7 @@ export async function scoreResumeHandler(
     if (!resume.fileKey) {
       return {
         isError: true,
-        content: [
-          { type: 'text' as const, text: 'Resume has no fileKey' },
-        ],
+        content: [{ type: 'text' as const, text: 'Resume has no fileKey' }],
       };
     }
 

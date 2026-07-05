@@ -55,7 +55,7 @@ describe('McpEndpointController', () => {
       } as never,
       noopServices().gcsService,
       noopServices().resumeParserService,
-      noopServices().profileSyncService,
+      noopServices().profileSyncService
     );
   });
 
@@ -72,7 +72,7 @@ describe('McpEndpointController', () => {
       prisma as never,
       noopServices().gcsService,
       noopServices().resumeParserService,
-      noopServices().profileSyncService,
+      noopServices().profileSyncService
     );
 
     const mockReq = {
@@ -165,7 +165,7 @@ describe('McpEndpointController', () => {
       } as never,
       noopServices().gcsService,
       noopServices().resumeParserService,
-      noopServices().profileSyncService,
+      noopServices().profileSyncService
     );
 
     const mockReq = {

@@ -102,7 +102,15 @@ const CandidateProfilePage = () => {
         try {
           const parsed = JSON.parse(saved);
           // Convert string keys back to numbers if they were serialized as strings
-          const rehydrated: Record<number, { parsing: boolean; scoring: boolean; parsingStartTime?: number; scoringStartTime?: number }> = {};
+          const rehydrated: Record<
+            number,
+            {
+              parsing: boolean;
+              scoring: boolean;
+              parsingStartTime?: number;
+              scoringStartTime?: number;
+            }
+          > = {};
           Object.keys(parsed).forEach((key) => {
             rehydrated[Number(key)] = parsed[key];
           });
@@ -189,7 +197,14 @@ const CandidateProfilePage = () => {
     // Check all current tasks
     Object.keys(nextTasks).forEach((idStr) => {
       const id = parseInt(idStr);
-      const task = nextTasks[id] as { parsing?: boolean; scoring?: boolean; parsingStartTime?: number; scoringStartTime?: number } | undefined;
+      const task = nextTasks[id] as
+        | {
+            parsing?: boolean;
+            scoring?: boolean;
+            parsingStartTime?: number;
+            scoringStartTime?: number;
+          }
+        | undefined;
       if (!task) return;
 
       const resume = resumes.find((r) => r.id === id);
@@ -462,7 +477,9 @@ const CandidateProfilePage = () => {
     };
   }, [fetchCandidateProfile]);
 
-  const handleSyncResume = async (modifiedDraftData?: Record<string, unknown>) => {
+  const handleSyncResume = async (
+    modifiedDraftData?: Record<string, unknown>
+  ) => {
     if (!activeResumeId || !profile) return;
 
     const resume = profile.resumes?.find((r) => r.id === activeResumeId);
