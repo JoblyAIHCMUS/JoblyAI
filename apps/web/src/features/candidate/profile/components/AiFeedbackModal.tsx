@@ -5,10 +5,12 @@ import { CV_AUDIT_RULES } from '../constants/cv-audit-rules';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sparkles,
@@ -54,6 +56,8 @@ interface RewriteSuggestion {
 interface AiFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isReScoring: boolean;
+  onReAnalyze: () => void;
   score: number | null;
   feedback: {
     strengths: string[];
@@ -75,6 +79,8 @@ interface AiFeedbackModalProps {
 export function AiFeedbackModal({
   isOpen,
   onClose,
+  isReScoring,
+  onReAnalyze,
   feedback,
 }: AiFeedbackModalProps) {
   const [activeTab, setActiveTab] = useState<
@@ -583,6 +589,22 @@ export function AiFeedbackModal({
             )}
           </div>
         </ScrollArea>
+        <DialogFooter className="border-t border-slate-100 shrink-0 px-6 py-4 bg-slate-50/30">
+          <Button
+            variant="outline"
+            onClick={onReAnalyze}
+            disabled={isReScoring}
+          >
+            {isReScoring ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
+                Re-analyzing...
+              </>
+            ) : (
+              'Re-analyze'
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

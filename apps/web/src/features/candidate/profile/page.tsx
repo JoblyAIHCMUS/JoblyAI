@@ -1129,6 +1129,16 @@ const CandidateProfilePage = () => {
       <AiFeedbackModal
         isOpen={feedbackModalOpen}
         onClose={() => setFeedbackModalOpen(false)}
+        isReScoring={processingTasks[activeResumeId ?? -1]?.scoring ?? false}
+        onReAnalyze={() => {
+          if (!activeResumeId) return;
+          window.dispatchEvent(
+            new CustomEvent('TRIGGER_AI_SCORE', {
+              detail: { resumeId: activeResumeId },
+            })
+          );
+          setFeedbackModalOpen(false);
+        }}
         score={
           activeResumeId
             ? profile?.resumes?.find((r) => r.id === activeResumeId)?.aiScore ||
