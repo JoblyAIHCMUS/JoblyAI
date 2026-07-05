@@ -10,7 +10,6 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
-  Download,
   AlertCircle,
   Trash2,
   Star,
@@ -222,17 +221,6 @@ const CV = forwardRef<CVRef, CVProps>(
         } catch (error) {
           console.error('Failed to upload resume:', error);
         }
-      }
-    };
-
-    const handleDownload = () => {
-      if (presignedUrl) {
-        const link = document.createElement('a');
-        link.href = presignedUrl;
-        link.download = previewResume?.fileName || 'Resume.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
       }
     };
 
@@ -566,15 +554,6 @@ const CV = forwardRef<CVRef, CVProps>(
                 <DialogDescription className="sr-only">
                   Preview the selected CV document.
                 </DialogDescription>
-                <button
-                  onClick={handleDownload}
-                  disabled={!presignedUrl || isBusy}
-                  className="flex items-center justify-center h-10 w-10 rounded-lg border border-[color:var(--border-primary)] bg-[color:var(--bg-tertiary)] hover:bg-[color:var(--bg-secondary)] transition-colors"
-                  aria-label="Download CV"
-                  title="Download"
-                >
-                  <Download size={18} className="text-primary" />
-                </button>
               </div>
               <div className="flex-1 bg-[color:var(--bg-secondary)]">
                 {urlLoading ? (
