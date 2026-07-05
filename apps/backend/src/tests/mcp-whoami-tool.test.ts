@@ -10,6 +10,9 @@ const buildState = (user: unknown): McpState => ({
     user: { findUnique: vi.fn().mockResolvedValue(user) },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('whoamiHandler', () => {
@@ -57,6 +60,9 @@ describe('whoamiHandler', () => {
         user: { findUnique: vi.fn().mockRejectedValue(new Error('DB error')) },
       } as never,
       logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+      gcsService: {} as never,
+      resumeParserService: {} as never,
+      profileSyncService: {} as never,
     };
 
     const result = await whoamiHandler(state);

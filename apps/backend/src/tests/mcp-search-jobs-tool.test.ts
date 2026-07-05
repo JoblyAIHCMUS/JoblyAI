@@ -11,6 +11,9 @@ const buildState = ($transaction: ReturnType<typeof vi.fn>): McpState => ({
     $transaction,
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('searchJobsHandler', () => {

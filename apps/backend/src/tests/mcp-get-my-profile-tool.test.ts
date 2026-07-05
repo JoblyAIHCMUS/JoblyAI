@@ -10,6 +10,9 @@ const buildState = (findUnique: ReturnType<typeof vi.fn>): McpState => ({
     candidateDescription: { findUnique },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('getMyProfileHandler', () => {

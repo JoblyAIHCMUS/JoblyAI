@@ -18,6 +18,9 @@ const buildState = (
       $transaction,
     } as never,
     logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+    gcsService: {} as never,
+    resumeParserService: {} as never,
+    profileSyncService: {} as never,
   };
 };
 
@@ -67,6 +70,9 @@ describe('listJobsHandler', () => {
         $transaction: vi.fn().mockRejectedValue(new Error('DB error')),
       } as never,
       logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+      gcsService: {} as never,
+      resumeParserService: {} as never,
+      profileSyncService: {} as never,
     };
 
     const result = await listJobsHandler(state, { page: 1, pageSize: 10 });

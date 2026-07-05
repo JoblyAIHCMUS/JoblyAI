@@ -10,6 +10,9 @@ const buildState = (findMany: ReturnType<typeof vi.fn>): McpState => ({
     resume: { findMany },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('listMyResumesHandler', () => {

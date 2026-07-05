@@ -15,6 +15,9 @@ const buildState = (
     employer: { findUnique: vi.fn().mockResolvedValue(employer) },
   } as never,
   logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+  gcsService: {} as never,
+  resumeParserService: {} as never,
+  profileSyncService: {} as never,
 });
 
 describe('getMyCompanyHandler', () => {
@@ -57,6 +60,9 @@ describe('getMyCompanyHandler', () => {
         },
       } as never,
       logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never,
+      gcsService: {} as never,
+      resumeParserService: {} as never,
+      profileSyncService: {} as never,
     };
 
     const result = await getMyCompanyHandler(state);
