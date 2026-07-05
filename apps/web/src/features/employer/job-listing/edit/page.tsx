@@ -25,11 +25,13 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEmployerJobDetail } from '@/api-hook/jobs';
 import { useUpdateJob } from '@/api-hook/jobs';
 import { useCategories } from '@/api-hook/jobs';
 import { useSkillIds } from '@/api-hook/skills';
 import { usePreShortlistQuestionsForJob } from '@/api-hook/pre-shortlist';
+import { useListEmployerApplications } from '@/api-hook/application';
 import { PreShortlistStep } from '../../new-job/components/PreShortlistStep';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import type { EmploymentType, RequirementImportance } from '@/api-client/jobs';
@@ -96,6 +98,15 @@ export default function JobListingEditPage() {
   const { getOrCreateSkills, loading: skillsLoading } = useSkillIds();
   const { data: preShortlistData, loading: preShortlistLoading } =
     usePreShortlistQuestionsForJob(jobId);
+  const {
+    data: applicationsData,
+    isLoading: applicationsLoading,
+    isError: applicationsError,
+  } = useListEmployerApplications({ pageSize: 1, jobId });
+
+  const applicationsCount = applicationsData?.pages?.[0]?.total ?? 0;
+  // Safer default: if we can't verify the count, lock the step.
+  const canEditQuestions = !applicationsError && applicationsCount === 0;
 
   // Form setup
   const methods = useForm<JobPostingFormData>({
@@ -175,7 +186,12 @@ export default function JobListingEditPage() {
     });
   }, [jobData, preShortlistData, categoriesLoading, reset]);
 
-  if (jobLoading || !jobData || preShortlistData === null) {
+  if (
+    jobLoading ||
+    !jobData ||
+    preShortlistData === null ||
+    applicationsLoading
+  ) {
     return (
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
@@ -203,8 +219,19 @@ export default function JobListingEditPage() {
         );
       case 1: // Job Description
         return !errors.description && !isHtmlContentEmpty(description);
-      case 2: // Pre-Shortlist (read-only; threshold already validated)
-        return !errors.preShortlistThreshold;
+      case 2: // Pre-Shortlist
+        if (!canEditQuestions) {
+          return !errors.preShortlistThreshold;
+        }
+        return (
+          !errors.preShortlistThreshold &&
+          !errors.preShortlistQuestions &&
+          currentValues.preShortlistQuestions.every(
+            (q) =>
+              q.question.trim().length >= 5 &&
+              q.expectedAnswer.trim().length >= 1
+          )
+        );
       default:
         return true;
     }
@@ -255,6 +282,7 @@ export default function JobListingEditPage() {
         salaryMax: data.salaryMax ?? undefined,
         requirements,
         preShortlistThreshold: data.preShortlistThreshold,
+        preShortlistQuestions: data.preShortlistQuestions,
       };
 
       await submitUpdate(jobId, payload);
@@ -594,8 +622,20 @@ export default function JobListingEditPage() {
             </div>
           </div>
 
-          {/* Step 3: Pre-Shortlist (read-only) */}
-          <PreShortlistStep readOnly />
+          {/* Step 3: Pre-Shortlist */}
+          {!canEditQuestions && preShortlistData.questions.length > 0 ? (
+            <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
+              <Alert>
+                <AlertDescription>
+                  Pre-shortlist questions are locked because this job has
+                  received applications.
+                </AlertDescription>
+              </Alert>
+              <PreShortlistStep readOnly />
+            </div>
+          ) : (
+            <PreShortlistStep />
+          )}
         </Stepper>
       </FormProvider>
     </div>
