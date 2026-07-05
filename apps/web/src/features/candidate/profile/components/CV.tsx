@@ -414,8 +414,7 @@ const CV = forwardRef<CVRef, CVProps>(
                         }}
                         disabled={
                           isActionInProgress ||
-                          (processingTasks[resume.id]?.scoring &&
-                            resume.aiScore === null)
+                          processingTasks[resume.id]?.scoring
                         }
                         className={cn(
                           'h-9 px-3 flex items-center justify-center gap-2 rounded-md border transition-colors text-xs font-semibold',
@@ -432,15 +431,13 @@ const CV = forwardRef<CVRef, CVProps>(
                             : 'Review with AI'
                         }
                       >
-                        {processingTasks[resume.id]?.scoring &&
-                        resume.aiScore === null ? (
+                        {processingTasks[resume.id]?.scoring ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
                         ) : (
                           <Wand2 size={14} />
                         )}
-                        {processingTasks[resume.id]?.scoring &&
-                        resume.aiScore === null
-                          ? 'Reviewing...'
+                        {processingTasks[resume.id]?.scoring
+                          ? 'Re-analyzing...'
                           : resume.aiScore !== undefined &&
                             resume.aiScore !== null
                           ? 'AI Review'
