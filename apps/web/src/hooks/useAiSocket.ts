@@ -31,6 +31,9 @@ export const useAiSocket = (userId: string | undefined) => {
         new CustomEvent('ai-parsed-success', { detail: data })
       );
 
+      // Dismiss the in-progress "AI is extracting..." info toast globally so it is removed even when the user has navigated away from the profile page.
+      toast.dismiss(`ai-processing-${data.resumeId}`);
+
       toast.success('Resume parsed successfully!', {
         id: `ai-parsed-success-${data.resumeId}`,
         description:
