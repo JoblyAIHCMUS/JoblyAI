@@ -13,7 +13,9 @@ const googleGenAIMocks = vi.hoisted(() => {
       generateContent: generateContentMock,
     };
 
-    constructor(_options?: unknown) {}
+    constructor(_options?: unknown) {
+      // Empty constructor for mocking GoogleGenAI
+    }
   }
 
   return {
@@ -71,12 +73,7 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Candidate lists NestJS.',
           confidence: 0.9,
-          sources: [
-            {
-              title: 'NestJS Docs',
-              url: 'https://docs.nestjs.com',
-            },
-          ],
+          sourceTitles: ['NestJS Docs'],
         },
         {
           // duplicate question to be removed
@@ -85,9 +82,23 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Duplicated info',
           confidence: 0.9,
-          sources: [],
+          sourceTitles: [],
         },
       ]),
+      candidates: [
+        {
+          groundingMetadata: {
+            groundingChunks: [
+              {
+                web: {
+                  title: 'NestJS Docs',
+                  uri: 'https://docs.nestjs.com',
+                },
+              },
+            ],
+          },
+        },
+      ],
     });
 
     const results = await provider.searchAndExtract(
