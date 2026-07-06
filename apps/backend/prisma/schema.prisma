@@ -478,7 +478,19 @@ model InterviewPreparation {
   jobId       Int
   status      InterviewPrepStatus @default(PENDING)
 
-  // Structured JSON: { easy: Question[], medium: Question[], hard: Question[] }
+  // Structured JSON:
+  // [
+  //   {
+  //     "question": "Explain the CAP theorem.",
+  //     "category": "Technical",
+  //     "difficulty": "Hard",
+  //     "relevance": "Hard",
+  //     "confidence": 0.9,
+  //     "sources": [
+  //       "https://www.glassdoor.com/..."
+  //     ],
+  //   }
+  // ]
   questions Json?
 
   createdAt DateTime @default(now())
