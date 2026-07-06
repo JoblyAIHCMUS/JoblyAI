@@ -198,7 +198,7 @@ export class AiProviderService {
         ],
         config: {
           taskType: 'RETRIEVAL_DOCUMENT',
-          outputDimensionality: 3072,
+          outputDimensionality: 768,
         },
       });
 

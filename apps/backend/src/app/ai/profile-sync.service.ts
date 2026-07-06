@@ -520,7 +520,7 @@ export class ProfileSyncService {
 
       if (resumeEmbedding && resumeEmbedding.length > 0) {
         await tx.$executeRawUnsafe(
-          `UPDATE "Resume" SET embedding = $1::vector WHERE id = $2`,
+          `UPDATE resume SET embedding = $1::vector WHERE id = $2`,
           `[${resumeEmbedding.join(',')}]`,
           resumeId
         );
