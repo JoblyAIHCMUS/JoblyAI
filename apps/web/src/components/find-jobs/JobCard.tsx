@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
-import { useListCandidateApplications } from '@/api-hook/application';
 import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
@@ -50,6 +49,8 @@ function formatSalaryRange(
 type JobCardProps = {
   job: JobPosting;
   viewMode: ViewMode;
+  hasApplied: boolean;
+  onApplySuccess?: (jobId: number) => void;
 };
 
 function getColorForSkill(skill: string): string {
@@ -71,10 +72,13 @@ function getColorForSkill(skill: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export default function JobCard({ job, viewMode }: JobCardProps) {
+export default function JobCard({
+  job,
+  viewMode,
+  hasApplied,
+  onApplySuccess,
+}: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hasApplied, setHasApplied] = useState(false);
-  const { fetchApplications } = useListCandidateApplications();
   const { data: user } = useUser();
   const router = useRouter();
   const userRole = user?.role ?? null;
@@ -104,35 +108,13 @@ export default function JobCard({ job, viewMode }: JobCardProps) {
     : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
   const handleApplicationSuccess = (message: string) => {
-    setHasApplied(true);
+    onApplySuccess?.(job.id);
     toast.success(message);
   };
 
   const handleApplicationError = (error: string) => {
     toast.error(error);
   };
-
-  useEffect(() => {
-    let mounted = true;
-    const checkApplied = async () => {
-      if (!user) return;
-      try {
-        const res = await fetchApplications({ page: 1, pageSize: 100 });
-        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
-        const applied = (res.applications || []).some(
-          (a) => a.jobId === job.id && activeStatuses.includes(a.status)
-        );
-        if (mounted) setHasApplied(applied);
-      } catch (err) {
-        // ignore errors (likely unauthenticated)
-      }
-    };
-
-    checkApplied();
-    return () => {
-      mounted = false;
-    };
-  }, [user, fetchApplications, job.id]);
 
   return (
     <>
