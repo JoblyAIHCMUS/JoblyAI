@@ -11,7 +11,13 @@ import { usePageTitle } from '@/contexts/page-title-context';
 
 export default function BrowseCompaniesPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading page...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          Loading page...
+        </div>
+      }
+    >
       <BrowseCompaniesPageContent />
     </Suspense>
   );
@@ -45,11 +51,15 @@ function BrowseCompaniesPageContent() {
     });
   }, [urlQ, urlLocation, urlPage, fetchCompanies]);
 
-  const pendingUpdatesRef = useRef<Record<string, string | number | null | undefined>>({});
+  const pendingUpdatesRef = useRef<
+    Record<string, string | number | null | undefined>
+  >({});
   const timerRef = useRef<any>(null);
 
   // --- Helper to update URL params ---
-  const updateUrl = (newParams: Record<string, string | number | null | undefined>) => {
+  const updateUrl = (
+    newParams: Record<string, string | number | null | undefined>
+  ) => {
     // Accumulate query parameter updates
     pendingUpdatesRef.current = {
       ...pendingUpdatesRef.current,
@@ -81,7 +91,6 @@ function BrowseCompaniesPageContent() {
       timerRef.current = null;
     }, 0);
   };
-
 
   // --- Search actions ---
   const handleSearchTermChange = (term: string) => {
@@ -128,7 +137,6 @@ function BrowseCompaniesPageContent() {
 
       {/* Main content grid */}
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        
         {/* Header info bar */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -136,7 +144,9 @@ function BrowseCompaniesPageContent() {
               All Companies
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              {loading ? 'Searching...' : `Showing ${companiesList.length} of ${totalCompanies} companies`}
+              {loading
+                ? 'Searching...'
+                : `Showing ${companiesList.length} of ${totalCompanies} companies`}
             </p>
           </div>
         </div>

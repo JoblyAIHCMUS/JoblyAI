@@ -55,7 +55,6 @@ export default function FindJobsHeroSection({
                   <input
                     type="text"
                     placeholder={placeholder || 'Job title or keyword'}
-
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
                     value={localSearchTerm}
                     onChange={(e) => setLocalSearchTerm(e.target.value)}
