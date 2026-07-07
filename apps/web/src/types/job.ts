@@ -85,6 +85,7 @@ export interface JobPosting {
   salaryMax: number | null;
   currency: string | null;
   status: JobStatus;
+  applicantsCount?: number;
   createdAt: Date;
   updatedAt: Date;
   matchPercentage?: number;
