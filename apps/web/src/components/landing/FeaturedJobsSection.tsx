@@ -2,7 +2,7 @@
 import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
-import { RichTextContent } from '@/components/ui/rich-text-content';
+import { getCardPreviewText } from '@/lib/utils';
 import { useEffect } from 'react';
 
 export default function FeaturedJobsSection() {
@@ -60,10 +60,9 @@ export default function FeaturedJobsSection() {
                   <p className="text-sm text-slate-600 mb-4">
                     {job.company.name} • {job.location}
                   </p>
-                  <RichTextContent
-                    html={job.description}
-                    className="text-sm text-slate-500 mb-4 line-clamp-2 [&_p]:m-0"
-                  />
+                  <p className="text-sm text-slate-500 mb-4 line-clamp-2">
+                    {getCardPreviewText(job.description)}
+                  </p>
                   <div className="flex gap-2 flex-wrap">
                     {job.requirements.slice(0, 2).map((req) => (
                       <span
@@ -103,10 +102,9 @@ export default function FeaturedJobsSection() {
                   <p className="text-sm text-slate-600 mb-4">
                     {job.company.name} • {job.location}
                   </p>
-                  <RichTextContent
-                    html={job.description}
-                    className="text-sm text-slate-500 mb-4 line-clamp-2 [&_p]:m-0"
-                  />
+                  <p className="text-sm text-slate-500 mb-4 line-clamp-2">
+                    {getCardPreviewText(job.description)}
+                  </p>
                   <div className="flex gap-2 flex-wrap">
                     {job.requirements.slice(0, 2).map((req) => (
                       <span

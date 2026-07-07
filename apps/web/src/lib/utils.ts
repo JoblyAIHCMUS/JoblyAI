@@ -98,6 +98,42 @@ export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
 };
 
 /**
+ * Extracts a plain-text preview from a job description for card display.
+ *
+ * - If description is structured JSON, extracts the `overview` field.
+ * - Finds the first <p> tag content when available.
+ * - Falls back to stripping all HTML tags.
+ * - Collapses whitespace and truncates to a consistent length.
+ */
+export function getCardPreviewText(description: string): string {
+  if (!description || typeof description !== 'string') return '';
+
+  let html: string;
+
+  try {
+    const parsed = JSON.parse(description) as Partial<JobDescriptionContent>;
+    if (parsed.overview) {
+      html = parsed.overview;
+    } else {
+      html = description;
+    }
+  } catch {
+    html = description;
+  }
+
+  const firstParagraph = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  const raw = firstParagraph ? firstParagraph[1] : html;
+
+  const plain = raw
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (plain.length <= 120) return plain;
+  return plain.slice(0, 120).trimEnd() + '…';
+}
+
+/**
  * Parses a job description JSON string into structured content.
  *
  * Supports two formats:

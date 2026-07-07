@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { COLORS } from '../../constants/theme';
 import { Badge } from './Badge';
+import { getCardPreviewText } from '../../pages/find-jobs/utils';
 
 export interface FeaturedJobProps {
   title: string;
@@ -56,7 +57,7 @@ export const FeaturedJobCard = ({
           {company} • {location}
         </Text>
         <Text className="text-sm text-app-text-2 leading-5" numberOfLines={2}>
-          {description}
+          {getCardPreviewText(description)}
         </Text>
       </View>
       <View className="flex-row justify-between items-center mt-auto">
