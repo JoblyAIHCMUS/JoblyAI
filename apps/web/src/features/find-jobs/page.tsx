@@ -73,7 +73,7 @@ function FindJobsPageContent() {
       }
       try {
         const res = await fetchApplications({ page: 1, pageSize: 100 });
-        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+        const activeStatuses = ['APPLIED', 'PRE_SHORTLIST_PENDING', 'PRE_SHORTLIST_SUBMITTED', 'INTERVIEW', 'OFFER'];
         const appliedIds = new Set<number>(
           (res.applications || [])
             .filter((a) => activeStatuses.includes(a.status))
