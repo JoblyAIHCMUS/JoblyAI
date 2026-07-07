@@ -527,14 +527,20 @@ describe('JobsService', () => {
             OR: [
               { title: { contains: 'Senior', mode: 'insensitive' } },
               { description: { contains: 'Senior', mode: 'insensitive' } },
-              { company: { name: { contains: 'Senior', mode: 'insensitive' } } },
+              {
+                company: { name: { contains: 'Senior', mode: 'insensitive' } },
+              },
             ],
           },
           {
             OR: [
               { title: { contains: 'Developer', mode: 'insensitive' } },
               { description: { contains: 'Developer', mode: 'insensitive' } },
-              { company: { name: { contains: 'Developer', mode: 'insensitive' } } },
+              {
+                company: {
+                  name: { contains: 'Developer', mode: 'insensitive' },
+                },
+              },
             ],
           },
         ])
@@ -564,7 +570,11 @@ describe('JobsService', () => {
             OR: [
               { title: { contains: 'Developer', mode: 'insensitive' } },
               { description: { contains: 'Developer', mode: 'insensitive' } },
-              { company: { name: { contains: 'Developer', mode: 'insensitive' } } },
+              {
+                company: {
+                  name: { contains: 'Developer', mode: 'insensitive' },
+                },
+              },
             ],
           },
         ])

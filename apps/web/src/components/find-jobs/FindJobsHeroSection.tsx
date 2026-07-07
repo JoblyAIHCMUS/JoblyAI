@@ -10,6 +10,7 @@ interface FindJobsHeroSectionProps {
   location?: string;
   setSearchTerm?: (term: string) => void;
   setLocation?: (location: string) => void;
+  placeholder?: string;
 }
 
 export default function FindJobsHeroSection({
@@ -17,6 +18,7 @@ export default function FindJobsHeroSection({
   location,
   setSearchTerm,
   setLocation,
+  placeholder,
 }: FindJobsHeroSectionProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || '');
   const [localLocation, setLocalLocation] = useState(location || '');
@@ -52,7 +54,8 @@ export default function FindJobsHeroSection({
                 <div className="flex flex-1 flex-col gap-2 pt-2.5">
                   <input
                     type="text"
-                    placeholder="Job title or keyword"
+                    placeholder={placeholder || 'Job title or keyword'}
+
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
                     value={localSearchTerm}
                     onChange={(e) => setLocalSearchTerm(e.target.value)}

@@ -60,18 +60,15 @@ describe('Jobs Integration (Controller + Service)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Manually instantiate to bypass dependency injection decorator metadata limitations in the test environment
     service = new JobsService(
       mockPrisma as any,
       mockEventEmitter as any,
       mockPreShortlistService as any
     );
-    
-    controller = new JobsController(
-      service,
-      mockEventEmitter as any
-    );
+
+    controller = new JobsController(service, mockEventEmitter as any);
   });
 
   it('should instantiate components successfully', () => {
@@ -98,7 +95,7 @@ describe('Jobs Integration (Controller + Service)', () => {
       // Verify count was called with correct search criteria including company name
       expect(mockPrisma.jobPosting.count).toHaveBeenCalled();
       const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
-      
+
       expect(countArgs.where).toEqual(
         expect.objectContaining({
           AND: expect.arrayContaining([

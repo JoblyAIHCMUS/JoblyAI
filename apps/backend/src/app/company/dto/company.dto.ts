@@ -6,7 +6,9 @@ import {
   IsString,
   IsUrl,
   Min,
+  Max,
 } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class CompanyCreateDto {
   @IsString()
@@ -167,4 +169,57 @@ export class CompanyLogoDto {
   @IsNotEmpty()
   @IsUrl()
   fileUrl!: string;
+}
+
+export class GetCompaniesQueryDTO {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) {
+      return value.filter((v) => v);
+    }
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  industry?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) {
+      return value.filter((v) => v);
+    }
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  sizeRange?: string[];
 }

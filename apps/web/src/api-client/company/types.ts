@@ -92,3 +92,20 @@ export interface CompanyEmployee {
   email: string;
   avatarUrl: string | null;
 }
+
+export interface ListCompaniesQuery {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  location?: string;
+  industry?: string[];
+  sizeRange?: string[];
+}
+
+export interface PaginatedCompaniesResponse {
+  companies: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
