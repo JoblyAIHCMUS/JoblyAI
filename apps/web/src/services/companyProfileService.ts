@@ -44,9 +44,17 @@ export const companyProfileService = {
     const override = COMPANY_PROFILE_OVERRIDES[id];
     const website = company.websiteUrl ?? override?.website ?? '';
 
-    const officeLocations = company.location
-      ? [company.location]
-      : override?.officeLocations ?? [];
+    const officeLocations =
+      (company.locations && company.locations.length > 0) || company.location
+        ? Array.from(
+            new Set(
+              [
+                ...(company.location ? [company.location] : []),
+                ...(company.locations || []),
+              ].filter(Boolean)
+            )
+          )
+        : override?.officeLocations ?? [];
 
     const team =
       company.employers && company.employers.length > 0
@@ -119,7 +127,10 @@ export const companyProfileService = {
             ]
           : []),
       stats,
-      gallery: override?.gallery ?? [],
+      gallery:
+        company.images && company.images.length > 0
+          ? company.images
+          : override?.gallery ?? [],
       team,
       openJobs: override?.openJobs ?? [],
     };

@@ -236,6 +236,8 @@ export class CompanyService {
           data: {
             ...dto,
             slug,
+            images: dto.images || [],
+            locations: dto.locations || [],
           },
         });
 

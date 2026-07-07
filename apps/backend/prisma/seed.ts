@@ -280,11 +280,13 @@ async function main() {
   console.log('Creating companies...');
   const nextCompanySlug = createUniqueSlugFactory();
   const createdCompanies = await Promise.all(
-    company.map((company) =>
+    company.map((c) =>
       prisma.company.create({
         data: {
-          ...company,
-          slug: nextCompanySlug(company.name),
+          ...c,
+          slug: nextCompanySlug(c.name),
+          locations: c.locations || [],
+          images: c.images || [],
         },
       })
     )

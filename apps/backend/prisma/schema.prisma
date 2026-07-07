@@ -344,6 +344,8 @@ model Company {
   updatedAt   DateTime     @updatedAt
   employers   Employer[]   @relation("CompanyEmployers")
   jobPostings JobPosting[]
+  images      String[]
+  locations   String[]
 }
 
 model Employer {
