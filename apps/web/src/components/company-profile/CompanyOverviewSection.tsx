@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Facebook, Globe, Linkedin, MapPin, Twitter } from 'lucide-react';
+import { RichTextContent } from '@/components/ui/rich-text-content';
 import type {
   CompanyProfile,
   CompanyContactLink,
@@ -44,9 +45,10 @@ export default function CompanyOverviewSection({
               <h2 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
                 Company Profile
               </h2>
-              <p className="text-base leading-7 text-slate-600">
-                {company.description}
-              </p>
+              <RichTextContent
+                html={company.description ?? ''}
+                className="text-base leading-7 text-slate-600 [&_p]:my-0 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-5 [&_h3]:mb-3 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-4"
+              />
             </div>
 
             <div className="space-y-4">
