@@ -90,7 +90,9 @@ export default function JobDetailPage() {
           company: jobData.company,
           address: jobData.location || 'Remote',
           workType: jobData.type,
-          companyDescription: renderDescription(jobData.company.description || ''),
+          companyDescription: renderDescription(
+            jobData.company.description || ''
+          ),
           companyPhotos: jobData.company.logoUrl
             ? [jobData.company.logoUrl]
             : [],

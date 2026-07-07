@@ -396,7 +396,10 @@ export default function EmployerNewCompanyPage() {
 
               {/* Location */}
               <div className="space-y-2">
-                <Label htmlFor="location" className="label-label-1-semibold text-sm sm:text-base">
+                <Label
+                  htmlFor="location"
+                  className="label-label-1-semibold text-sm sm:text-base"
+                >
                   Location
                 </Label>
                 <Input

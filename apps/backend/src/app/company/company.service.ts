@@ -51,6 +51,11 @@ export class CompanyService {
             },
           },
         },
+        _count: {
+          select: {
+            jobPostings: true,
+          },
+        },
       },
     });
 
@@ -77,6 +82,11 @@ export class CompanyService {
                 avatarUrl: true,
               },
             },
+          },
+        },
+        _count: {
+          select: {
+            jobPostings: true,
           },
         },
       },

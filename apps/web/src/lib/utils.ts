@@ -330,7 +330,9 @@ export function convertTiptapJsonToHtml(node: any): string {
 /**
  * Checks if a description is in TipTap JSON format or HTML format and renders it accordingly.
  */
-export function renderDescription(description: string | null | undefined): string {
+export function renderDescription(
+  description: string | null | undefined
+): string {
   if (!description) return '';
 
   const trimmed = description.trim();

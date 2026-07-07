@@ -26,6 +26,9 @@ export interface Company {
       avatarUrl: string | null;
     };
   }>;
+  _count?: {
+    jobPostings: number;
+  };
 }
 
 export interface CreateCompanyPayload {
