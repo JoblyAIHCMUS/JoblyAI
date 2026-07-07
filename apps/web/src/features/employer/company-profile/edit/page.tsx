@@ -113,7 +113,9 @@ export default function EmployerCompanyProfileEditPage() {
 
   const [uploadingImages, setUploadingImages] = useState(false);
 
-  const handleCompanyImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCompanyImagesUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -136,14 +138,10 @@ export default function EmployerCompanyProfileEditPage() {
         });
 
         // Step 2: Upload file directly to storage
-        await uploadToPresignedUrl(
-          uploadUrlResponse.uploadUrl,
-          file,
-          {
-            contentType: file.type,
-            folder: 'logos',
-          }
-        );
+        await uploadToPresignedUrl(uploadUrlResponse.uploadUrl, file, {
+          contentType: file.type,
+          folder: 'logos',
+        });
 
         uploadedUrls.push(uploadUrlResponse.fileUrl);
       }
@@ -613,7 +611,10 @@ export default function EmployerCompanyProfileEditPage() {
                       type="button"
                       onClick={() => {
                         const newImages = images.filter((_, i) => i !== index);
-                        setValue('images', newImages, { shouldValidate: true, shouldDirty: true });
+                        setValue('images', newImages, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                       className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-white/80 hover:bg-white text-black shadow-md transition-colors"
                       aria-label="Remove image"
@@ -628,12 +629,16 @@ export default function EmployerCompanyProfileEditPage() {
                     {uploadingImages ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
-                        <span className="text-[10px] text-slate-500 font-medium">Uploading...</span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Uploading...
+                        </span>
                       </>
                     ) : (
                       <>
                         <ImagePlus className="h-5 w-5 text-slate-400" />
-                        <span className="text-[10px] text-slate-500 font-medium">Upload Photo</span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Upload Photo
+                        </span>
                       </>
                     )}
                     <input
@@ -815,7 +820,7 @@ export default function EmployerCompanyProfileEditPage() {
                 <Label className="label-label-1-semibold block">
                   Additional Locations
                 </Label>
-                
+
                 {locations.map((loc, index) => (
                   <div key={index} className="flex gap-2 items-center">
                     <Input
@@ -825,7 +830,10 @@ export default function EmployerCompanyProfileEditPage() {
                       onChange={(e) => {
                         const newLocs = [...locations];
                         newLocs[index] = e.target.value;
-                        setValue('locations', newLocs, { shouldValidate: true, shouldDirty: true });
+                        setValue('locations', newLocs, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                     />
                     <Button
@@ -835,7 +843,10 @@ export default function EmployerCompanyProfileEditPage() {
                       className="h-10 w-10 text-slate-500 hover:text-red-500 flex-shrink-0"
                       onClick={() => {
                         const newLocs = locations.filter((_, i) => i !== index);
-                        setValue('locations', newLocs, { shouldValidate: true, shouldDirty: true });
+                        setValue('locations', newLocs, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
                       }}
                     >
                       <X className="h-4 w-4" />
@@ -849,12 +860,15 @@ export default function EmployerCompanyProfileEditPage() {
                   size="sm"
                   className="mt-1"
                   onClick={() => {
-                    setValue('locations', [...locations, ''], { shouldValidate: true, shouldDirty: true });
+                    setValue('locations', [...locations, ''], {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" /> Add Location
                 </Button>
-                
+
                 {errors.locations && (
                   <p className="text-xs sm:text-sm text-red-500">
                     {errors.locations.message}
