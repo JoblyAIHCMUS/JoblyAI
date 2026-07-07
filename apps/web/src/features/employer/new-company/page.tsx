@@ -332,7 +332,12 @@ export default function EmployerNewCompanyPage() {
                   </Label>
                   <Select
                     value={scale || ''}
-                    onValueChange={(value) => setValue('scale', value as any)}
+                    onValueChange={(value) =>
+                      setValue(
+                        'scale',
+                        value as CompanyRegistrationFormData['scale']
+                      )
+                    }
                   >
                     <SelectTrigger
                       className={`h-10 sm:h-12 text-sm sm:text-base ${
