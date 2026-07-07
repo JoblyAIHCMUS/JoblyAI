@@ -5,7 +5,6 @@ import { useCompanyNavigation } from '@/hooks/useCompanyNavigation';
 import type { RecommendedCompany } from '@/types/recommendedCompany';
 import CategoryBadge from './CategoryBadge';
 import CompanyLogo from './CompanyLogo';
-import { stripHtmlTags } from '@/lib/utils';
 
 export default function CompanyCard({
   company,
