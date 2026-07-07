@@ -336,7 +336,7 @@ const CandidateProfilePage = () => {
       });
 
       toast.info('AI is extracting data from your resume...', {
-        id: `ai-processing-${resumeId}`,
+        id: `ai-parsing-${resumeId}`,
         description:
           'This usually takes 10-20 seconds. We will notify you when it is done.',
         duration: Infinity,
@@ -356,7 +356,7 @@ const CandidateProfilePage = () => {
             parsing: false,
           },
         }));
-        toast.dismiss(`ai-processing-${resumeId}`);
+        toast.dismiss(`ai-parsing-${resumeId}`);
         toast.error('Failed to start data extraction');
       }
     };
@@ -390,7 +390,7 @@ const CandidateProfilePage = () => {
       });
 
       toast.info('AI is scoring your resume...', {
-        id: `ai-processing-${resumeId}`,
+        id: `ai-scoring-${resumeId}`,
         description: 'This usually takes 10-15 seconds.',
         duration: Infinity,
       });
@@ -409,7 +409,7 @@ const CandidateProfilePage = () => {
             scoring: false,
           },
         }));
-        toast.dismiss(`ai-processing-${resumeId}`);
+        toast.dismiss(`ai-scoring-${resumeId}`);
         toast.error('Failed to start AI scoring');
       }
     };
@@ -438,19 +438,21 @@ const CandidateProfilePage = () => {
         const updated = next[rid];
         if (updated && !updated.parsing && !updated.scoring) {
           console.log(
-            `[CandidateProfilePage] Task complete for resume ${rid}, dismissing toast`
+            `[CandidateProfilePage] Task complete for resume ${rid}, dismissing toasts`
           );
-          toast.dismiss(`ai-processing-${rid}`);
+          toast.dismiss(`ai-parsing-${rid}`);
+          toast.dismiss(`ai-scoring-${rid}`);
           delete next[rid];
         }
 
         return next;
       });
 
-      // Luôn đóng toast của resume đó khi có bất kỳ sự kiện thành công nào nếu nó không còn parsing/scoring tương ứng
-      if (type === 'ai-scored-success' || type === 'ai-parsed-success') {
-        // Force dismiss after a short delay to ensure UI transition
-        setTimeout(() => toast.dismiss(`ai-processing-${rid}`), 500);
+      // Dismiss the toast corresponding to the event that just finished, after a short delay to ensure UI transition
+      if (type === 'ai-parsed-success') {
+        setTimeout(() => toast.dismiss(`ai-parsing-${rid}`), 500);
+      } else if (type === 'ai-scored-success') {
+        setTimeout(() => toast.dismiss(`ai-scoring-${rid}`), 500);
       }
 
       console.log('[CandidateProfilePage] Refreshing profile data...');
@@ -1127,6 +1129,16 @@ const CandidateProfilePage = () => {
       <AiFeedbackModal
         isOpen={feedbackModalOpen}
         onClose={() => setFeedbackModalOpen(false)}
+        isReScoring={processingTasks[activeResumeId ?? -1]?.scoring ?? false}
+        onReAnalyze={() => {
+          if (!activeResumeId) return;
+          window.dispatchEvent(
+            new CustomEvent('TRIGGER_AI_SCORE', {
+              detail: { resumeId: activeResumeId },
+            })
+          );
+          setFeedbackModalOpen(false);
+        }}
         score={
           activeResumeId
             ? profile?.resumes?.find((r) => r.id === activeResumeId)?.aiScore ||

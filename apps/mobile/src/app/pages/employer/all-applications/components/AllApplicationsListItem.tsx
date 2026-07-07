@@ -17,7 +17,7 @@ interface AllApplicationsListItemProps {
 }
 
 function ScorePill({ score }: { score: number | null }) {
-  if (score === null || score === undefined || score === 0) {
+  if (score === null || score === undefined) {
     return (
       <View
         className="rounded-full px-2 py-0.5"

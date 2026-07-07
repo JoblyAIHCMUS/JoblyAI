@@ -19,6 +19,7 @@ import {
   useRejectApplication,
   useMoveToOfferApplication,
 } from '@/api-hook/application';
+import { usePreShortlistQuestionsForJob } from '@/api-hook/pre-shortlist';
 import { useUpdateJobStatus } from '@/api-hook/jobs/useUpdateJobStatus';
 import { useEmployerJobDetail } from '@/api-hook/jobs/useEmployerJobDetail';
 import { mapJobPostingToListingDetail } from '@/api-client/jobs/mappers';
@@ -48,6 +49,11 @@ export default function JobListingDetailPage() {
     isLoading: applicationsLoading,
     error: applicationsError,
   } = useListEmployerApplications({ pageSize: 10, jobId });
+  const {
+    data: preShortlistData,
+    loading: preShortlistLoading,
+    error: preShortlistError,
+  } = usePreShortlistQuestionsForJob(jobId ?? 0);
   const { mutateAsync: shortlist } = useShortlistApplication();
   const { mutateAsync: reject } = useRejectApplication();
   const { mutateAsync: moveToOffer } = useMoveToOfferApplication();
@@ -416,7 +422,18 @@ export default function JobListingDetailPage() {
           </TabsContent>
 
           <TabsContent value="job-details" className="mt-4 sm:mt-6">
-            <JobDetailsReview job={job} />
+            <JobDetailsReview
+              job={job}
+              preShortlistData={preShortlistData ?? null}
+              preShortlistLoading={preShortlistLoading}
+              preShortlistError={
+                preShortlistError
+                  ? preShortlistError instanceof Error
+                    ? preShortlistError
+                    : new Error('Failed to load pre-shortlist questions')
+                  : null
+              }
+            />
           </TabsContent>
 
           <TabsContent value="stats" className="mt-4 sm:mt-6">

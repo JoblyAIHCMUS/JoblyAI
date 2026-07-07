@@ -36,6 +36,8 @@ interface JobListSectionProps {
   handleReset: () => void;
   salaryMin?: number;
   salaryMax?: number;
+  appliedJobIds?: Set<number>;
+  onApplySuccess?: (jobId: number) => void;
 }
 
 function getSORT_LABEL(option: SortOption): string {
@@ -74,6 +76,8 @@ export default function JobListSection({
   handleReset,
   salaryMin,
   salaryMax,
+  appliedJobIds = new Set(),
+  onApplySuccess,
 }: JobListSectionProps) {
   const { pages, goPrev, goNext } = usePagination(
     currentPage,
@@ -277,7 +281,13 @@ export default function JobListSection({
               </div>
             ) : (
               jobs.map((job) => (
-                <JobCard key={job.id} job={job} viewMode={viewMode} />
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  viewMode={viewMode}
+                  hasApplied={appliedJobIds.has(job.id)}
+                  onApplySuccess={onApplySuccess}
+                />
               ))
             )}
           </div>

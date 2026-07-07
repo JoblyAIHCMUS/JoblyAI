@@ -16,6 +16,8 @@ import { useRecommendJobs } from '@/api-hook/jobs/useRecommendJobs';
 import { useCategories } from '@/api-hook/jobs/useCategories';
 import { useSkillsFilter } from '@/api-hook/jobs/useSkillsFilter';
 import { usePageTitle } from '@/contexts/page-title-context';
+import { useUser } from '@/hooks/useUser';
+import { useListCandidateApplications } from '@/api-hook/application';
 import { BriefcaseBusiness } from 'lucide-react';
 import type { EmploymentType, JobPosting, SortOption } from '@/types/job';
 import {
@@ -57,6 +59,47 @@ export default function FindJobsPage() {
 function FindJobsPageContent() {
   const { setTitle } = usePageTitle();
   const { categories } = useCategories();
+  const { data: user } = useUser();
+  const { fetchApplications } = useListCandidateApplications();
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+
+  // Fetch applications for candidate once on mount/user change
+  useEffect(() => {
+    let mounted = true;
+    const loadApplications = async () => {
+      if (!user || user.role !== 'candidate') {
+        if (mounted) setAppliedJobIds(new Set());
+        return;
+      }
+      try {
+        const res = await fetchApplications({ page: 1, pageSize: 100 });
+        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+        const appliedIds = new Set<number>(
+          (res.applications || [])
+            .filter((a) => activeStatuses.includes(a.status))
+            .map((a) => a.jobId)
+        );
+        if (mounted) {
+          setAppliedJobIds(appliedIds);
+        }
+      } catch {
+        // ignore errors
+      }
+    };
+    loadApplications();
+    return () => {
+      mounted = false;
+    };
+  }, [user, fetchApplications]);
+
+  const handleApplySuccess = useCallback((jobId: number) => {
+    setAppliedJobIds((prev) => {
+      const next = new Set(prev);
+      next.add(jobId);
+      return next;
+    });
+  }, []);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -498,6 +541,8 @@ function FindJobsPageContent() {
         handleReset={handleReset}
         salaryMin={localSalaryMin}
         salaryMax={localSalaryMax}
+        appliedJobIds={appliedJobIds}
+        onApplySuccess={handleApplySuccess}
       />
     </>
   );

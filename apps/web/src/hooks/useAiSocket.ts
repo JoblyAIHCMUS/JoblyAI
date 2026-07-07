@@ -31,6 +31,9 @@ export const useAiSocket = (userId: string | undefined) => {
         new CustomEvent('ai-parsed-success', { detail: data })
       );
 
+      // Dismiss the in-progress "AI is extracting..." info toast globally so it is removed even when the user has navigated away from the profile page.
+      toast.dismiss(`ai-parsing-${data.resumeId}`);
+
       toast.success('Resume parsed successfully!', {
         id: `ai-parsed-success-${data.resumeId}`,
         description:
@@ -60,6 +63,9 @@ export const useAiSocket = (userId: string | undefined) => {
       window.dispatchEvent(
         new CustomEvent('ai-scored-success', { detail: data })
       );
+
+      // Dismiss the in-progress "AI is scoring..." info toast globally so it is removed even when the user has navigated away from the profile page.
+      toast.dismiss(`ai-scoring-${data.resumeId}`);
 
       toast.success('AI Scoring complete!', {
         id: `ai-scored-success-${data.resumeId}`,

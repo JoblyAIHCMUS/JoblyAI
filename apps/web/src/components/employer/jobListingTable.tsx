@@ -99,7 +99,7 @@ function mapJobPostingToListing(job: JobPosting): JobListing {
         ? job.updatedAt.toISOString().split('T')[0]
         : new Date(job.updatedAt).toISOString().split('T')[0],
     employmentType: job.type,
-    applicants: 0, // TODO: Add applicants field to backend or fetch separately
+    applicants: job.applicantsCount ?? 0,
   };
 }
 

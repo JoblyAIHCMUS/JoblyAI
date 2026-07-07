@@ -673,12 +673,30 @@ export class CandidatesService {
       }
     }
 
-    // Delete from database
-    await this.prismaClient.resume.delete({
-      where: {
-        id: resumeId,
-        candidateId: userId,
-      },
+    const wasDefault = resume.isDefault;
+
+    // Delete from database and reassign default if needed (atomic)
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.resume.delete({
+        where: {
+          id: resumeId,
+          candidateId: userId,
+        },
+      });
+
+      if (wasDefault) {
+        const nextDefault = await tx.resume.findFirst({
+          where: { candidateId: userId },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true },
+        });
+        if (nextDefault) {
+          await tx.resume.update({
+            where: { id: nextDefault.id },
+            data: { isDefault: true },
+          });
+        }
+      }
     });
 
     // Emit event for cleanup (e.g. AI-sync data removal)

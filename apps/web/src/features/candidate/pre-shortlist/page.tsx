@@ -26,17 +26,8 @@ export default function PreShortlistPage({
   }, [setTitle]);
 
   useEffect(() => {
-    // If the user lands here but is not eligible (already past the form, never
-    // reached the pre-shortlist step, or the job has no questions), redirect
-    // them to the applications list.
     if (!data) return;
-    if (
-      data.status === 'APPLIED' ||
-      data.status === 'INTERVIEW' ||
-      data.status === 'OFFER' ||
-      data.status === 'REJECTED' ||
-      data.status === 'WITHDRAWN'
-    ) {
+    if (data.status === 'APPLIED' || data.status === 'WITHDRAWN') {
       router.replace('/candidate/applications');
       return;
     }
@@ -71,7 +62,12 @@ export default function PreShortlistPage({
       applicationId={id}
       jobId={0}
       data={data}
-      readOnly={data.status === 'PRE_SHORTLIST_SUBMITTED'}
+      readOnly={
+        data.status === 'PRE_SHORTLIST_SUBMITTED' ||
+        data.status === 'INTERVIEW' ||
+        data.status === 'OFFER' ||
+        data.status === 'REJECTED'
+      }
     />
   );
 }
