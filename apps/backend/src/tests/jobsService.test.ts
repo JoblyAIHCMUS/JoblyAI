@@ -485,13 +485,89 @@ describe('JobsService', () => {
 
       expect(countArgs.where).toEqual(
         expect.objectContaining({
-          OR: [
-            { title: { contains: 'React', mode: 'insensitive' } },
-            { description: { contains: 'React', mode: 'insensitive' } },
-          ],
+          AND: expect.arrayContaining([
+            {
+              OR: [
+                { title: { contains: 'React', mode: 'insensitive' } },
+                { description: { contains: 'React', mode: 'insensitive' } },
+                {
+                  company: {
+                    name: { contains: 'React', mode: 'insensitive' },
+                  },
+                },
+              ],
+            },
+          ]),
           location: { contains: 'New York', mode: 'insensitive' },
           remote: false,
         })
+      );
+    });
+
+    it('should split multiple search terms by whitespace, normalize multiple spaces, and query in any order', async () => {
+      // Arrange
+      const query = { q: '  React   Senior  Developer  ' };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          {
+            OR: [
+              { title: { contains: 'React', mode: 'insensitive' } },
+              { description: { contains: 'React', mode: 'insensitive' } },
+              { company: { name: { contains: 'React', mode: 'insensitive' } } },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Senior', mode: 'insensitive' } },
+              { description: { contains: 'Senior', mode: 'insensitive' } },
+              { company: { name: { contains: 'Senior', mode: 'insensitive' } } },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Developer', mode: 'insensitive' } },
+              { description: { contains: 'Developer', mode: 'insensitive' } },
+              { company: { name: { contains: 'Developer', mode: 'insensitive' } } },
+            ],
+          },
+        ])
+      );
+    });
+
+    it('should preserve literal plus signs like in C++ and split multiple keywords correctly', async () => {
+      // Arrange
+      const query = { q: 'C++ Developer' };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          {
+            OR: [
+              { title: { contains: 'C++', mode: 'insensitive' } },
+              { description: { contains: 'C++', mode: 'insensitive' } },
+              { company: { name: { contains: 'C++', mode: 'insensitive' } } },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Developer', mode: 'insensitive' } },
+              { description: { contains: 'Developer', mode: 'insensitive' } },
+              { company: { name: { contains: 'Developer', mode: 'insensitive' } } },
+            ],
+          },
+        ])
       );
     });
 
