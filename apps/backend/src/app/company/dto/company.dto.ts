@@ -33,6 +33,10 @@ export class CompanyCreateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
 
 export class CompanyUpdateDto {
@@ -61,6 +65,10 @@ export class CompanyUpdateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
 
 export class CompanyPatchDto {
@@ -90,6 +98,10 @@ export class CompanyPatchDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
 
 export class CompanyAddEmployeeDto {

@@ -33,8 +33,26 @@ export class CompanyService {
     return this.prisma.company.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
-  async getById(id: number): Promise<Company> {
-    const company = await this.prisma.company.findUnique({ where: { id } });
+  async getById(id: number): Promise<any> {
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+      include: {
+        employers: {
+          include: {
+            employer: {
+              select: {
+                id: true,
+                name: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
@@ -43,9 +61,25 @@ export class CompanyService {
     return company;
   }
 
-  async getBySlug(slug: string): Promise<Company> {
+  async getBySlug(slug: string): Promise<any> {
     const company = await this.prisma.company.findFirst({
       where: { slug: this.toSlug(slug) },
+      include: {
+        employers: {
+          include: {
+            employer: {
+              select: {
+                id: true,
+                name: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!company) {

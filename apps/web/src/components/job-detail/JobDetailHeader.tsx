@@ -206,21 +206,30 @@ export default function JobDetailHeader({
           {/* Left: Logo + Info */}
           <div className="flex w-full min-w-0 items-start justify-between gap-3 sm:gap-4 lg:gap-6">
             <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-4 lg:gap-6">
-              <div className="relative h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-100">
+              <Link
+                href={`/browse-companies/${company.id}`}
+                className="relative h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white hover:opacity-90 transition-opacity"
+              >
                 <Image
                   src={company.logoUrl || '/placeholder-logo.png'}
                   alt={`${company.name} company logo`}
                   fill
-                  className="object-contain"
+                  sizes="(max-width: 768px) 56px, (max-width: 1024px) 64px, 72px"
+                  className="object-contain p-1"
                   unoptimized
                 />
-              </div>
+              </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <h1 className="text-[22px] sm:text-[26px] lg:text-[32px] font-semibold leading-tight text-slate-900 break-words">
                   {jobTitle}
                 </h1>
                 <div className="flex items-center gap-2 text-slate-500 text-sm sm:text-base flex-wrap">
-                  <span>{company.name}</span>
+                  <Link
+                    href={`/browse-companies/${company.id}`}
+                    className="hover:text-indigo-600 font-medium transition-colors"
+                  >
+                    {company.name}
+                  </Link>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
                   <span>{address}</span>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />

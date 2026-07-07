@@ -130,6 +130,7 @@ export const companyUpdateSchema = z
         'Company description cannot be empty'
       ),
     logoUrl: z.string().optional().nullable(),
+    location: z.string().optional(),
   })
   .strict();
 

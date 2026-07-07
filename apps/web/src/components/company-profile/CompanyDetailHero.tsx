@@ -27,6 +27,7 @@ export default function CompanyDetailHero({
             width={834}
             height={436}
             className="absolute top-0 right-1/3 h-auto w-[400px] max-w-none opacity-90"
+            style={{ height: 'auto' }}
           />
         </div>
 
@@ -37,6 +38,7 @@ export default function CompanyDetailHero({
             width={834}
             height={436}
             className="absolute left-2/3 top-1/2 h-auto w-[834px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-90"
+            style={{ height: 'auto' }}
           />
         </div>
       </div>

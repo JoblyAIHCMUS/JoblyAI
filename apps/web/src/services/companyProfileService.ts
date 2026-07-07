@@ -5,6 +5,7 @@ import { RECOMMENDED_COMPANIES_MOCK } from '@/mocks/recommendedCompanies';
 import type { Company } from '@/api-client/company';
 import type { CompanyProfile, CompanyTeamMember } from '@/types/companyProfile';
 import type { SimilarJob } from '@/types/similarJob';
+import { renderDescription } from '@/lib/utils';
 
 const categoryNameMap = new Map(
   COMPANY_CATEGORIES.map((category) => [category.id, category.name])
@@ -111,26 +112,48 @@ export const companyProfileService = {
       override?.website ??
       `https://${name.toLowerCase().replace(/\s+/g, '')}.com`;
 
+    const officeLocations = company.location
+      ? [company.location]
+      : (override?.officeLocations ?? [
+          'United States',
+          'United Kingdom',
+          'Germany',
+          'Singapore',
+        ]);
+
+    const team = company.employers && company.employers.length > 0
+      ? company.employers.map((member) => {
+          const nameParts = member.employer.name?.trim().split(/\s+/) ?? [];
+          const firstName = member.employer.firstName ?? nameParts[0] ?? '';
+          const lastName = member.employer.lastName ?? nameParts.slice(1).join(' ') ?? '';
+          const fullName = [firstName, lastName].filter(Boolean).join(' ') || member.employer.email;
+          return {
+            id: member.employerId,
+            name: fullName,
+            role: member.role || 'Member',
+            avatarUrl: member.employer.avatarUrl ?? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}`,
+          };
+        })
+      : override?.team ?? fallbackTeam;
+
     return {
       id,
       name,
       logoUrl,
       website,
       openJobsCount,
-      description:
+      description: renderDescription(
         company.description ??
-        override?.description ??
-        recommendedCompany?.description ??
-        `${name} is building products for modern teams and scaling across multiple markets with an emphasis on craft, speed, and reliable execution.`,
+          override?.description ??
+          recommendedCompany?.description ??
+          `${name} is building products for modern teams and scaling across multiple markets with an emphasis on craft, speed, and reliable execution.`
+      ),
       officeSummary:
         override?.officeSummary ??
-        `${name} teams collaborate across hybrid offices and distributed hubs worldwide`,
-      officeLocations: override?.officeLocations ?? [
-        'United States',
-        'United Kingdom',
-        'Germany',
-        'Singapore',
-      ],
+        (company.location
+          ? `${name} is based in ${company.location} and collaborates across hybrid offices and hubs.`
+          : `${name} teams collaborate across hybrid offices and distributed hubs worldwide`),
+      officeLocations,
       contacts: override?.contacts ?? [
         {
           type: 'website',
@@ -146,11 +169,16 @@ export const companyProfileService = {
       stats: override?.stats ?? [
         { label: 'Founded', value: '2017' },
         { label: 'Employees', value: `${Math.max(openJobsCount * 40, 120)}+` },
-        { label: 'Location', value: `${Math.max(openJobsCount, 4)} countries` },
+        {
+          label: 'Location',
+          value: company.location
+            ? company.location
+            : `${Math.max(openJobsCount, 4)} countries`,
+        },
         { label: 'Industry', value: categoryName },
       ],
       gallery: override?.gallery ?? fallbackGallery,
-      team: override?.team ?? fallbackTeam,
+      team,
       openJobs: override?.openJobs ?? buildOpenJobs(name, openJobsCount),
     };
   },

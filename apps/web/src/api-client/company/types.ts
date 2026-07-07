@@ -7,9 +7,25 @@ export interface Company {
   industry: string | null;
   description: string | null;
   logoUrl: string | null;
+  location: string | null;
   adminId: number | null;
   createdAt: Date;
   updatedAt: Date;
+  employers?: Array<{
+    id: number;
+    companyId: number | null;
+    employerId: string;
+    role: string;
+    assignedAt: string;
+    employer: {
+      id: string;
+      name: string | null;
+      firstName: string | null;
+      lastName: string | null;
+      email: string;
+      avatarUrl: string | null;
+    };
+  }>;
 }
 
 export interface CreateCompanyPayload {
@@ -19,6 +35,7 @@ export interface CreateCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
+  location?: string;
 }
 
 export interface UpdateCompanyPayload {
@@ -28,6 +45,7 @@ export interface UpdateCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
+  location?: string;
 }
 
 export interface PatchCompanyPayload {
@@ -37,6 +55,7 @@ export interface PatchCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
+  location?: string;
 }
 
 export interface AddCompanyEmployeePayload {

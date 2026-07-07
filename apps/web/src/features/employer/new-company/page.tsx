@@ -52,6 +52,7 @@ export default function EmployerNewCompanyPage() {
       industry: '',
       companyDescription: '',
       logoUrl: null,
+      location: '',
     },
   });
 
@@ -128,6 +129,7 @@ export default function EmployerNewCompanyPage() {
       industry: data.industry || undefined,
       description: data.companyDescription || undefined,
       logoUrl: data.logoUrl || undefined,
+      location: data.location || undefined,
     };
     try {
       const company = await submitCompany(payload);
@@ -390,6 +392,26 @@ export default function EmployerNewCompanyPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location" className="label-label-1-semibold text-sm sm:text-base">
+                  Location
+                </Label>
+                <Input
+                  id="location"
+                  placeholder="e.g. Ho Chi Minh City, Vietnam"
+                  className={`h-10 sm:h-12 text-sm sm:text-base ${
+                    errors.location ? 'border-red-500' : ''
+                  }`}
+                  {...register('location')}
+                />
+                {errors.location && (
+                  <p className="text-xs sm:text-sm text-red-500">
+                    {errors.location.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>

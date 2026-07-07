@@ -7,6 +7,7 @@ import type {
   CompanyProfile,
   CompanyContactLink,
 } from '@/types/companyProfile';
+import { RichTextContent } from '@/components/ui/rich-text-content';
 
 function ContactIcon({ type }: { type: CompanyContactLink['type'] }) {
   const iconClassName = 'h-4 w-4';

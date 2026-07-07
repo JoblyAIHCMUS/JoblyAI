@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { renderDescription } from '@/lib/utils';
 import { useRole } from '@/contexts/role-context';
 import { usePageTitle } from '@/contexts/page-title-context';
 import JobDetailHeader from '@/components/job-detail/JobDetailHeader';
@@ -89,11 +90,11 @@ export default function JobDetailPage() {
           company: jobData.company,
           address: jobData.location || 'Remote',
           workType: jobData.type,
-          companyDescription: jobData.company.description || '',
+          companyDescription: renderDescription(jobData.company.description || ''),
           companyPhotos: jobData.company.logoUrl
             ? [jobData.company.logoUrl]
             : [],
-          companyPageUrl: jobData.company.websiteUrl || '',
+          companyPageUrl: `/browse-companies/${jobData.company.id}`,
         };
 
         setPageData(transformedData);

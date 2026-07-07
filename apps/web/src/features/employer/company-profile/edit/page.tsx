@@ -96,6 +96,7 @@ export default function EmployerCompanyProfileEditPage() {
       industry: '',
       companyDescription: '',
       logoUrl: null,
+      location: '',
     },
   });
 
@@ -214,6 +215,7 @@ export default function EmployerCompanyProfileEditPage() {
       setValue('industry', company.industry || '');
       setValue('companyDescription', company.description || '');
       setValue('logoUrl', company.logoUrl || null);
+      setValue('location', company.location || '');
       setLogoFileKey(
         company.logoUrl ? company.logoUrl.split('/').pop() || null : null
       );
@@ -266,6 +268,7 @@ export default function EmployerCompanyProfileEditPage() {
       sizeRange: data.scale || undefined,
       industry: data.industry || undefined,
       description: data.companyDescription || undefined,
+      location: data.location || undefined,
     };
     try {
       await submitUpdate(companyId, payload);
@@ -653,6 +656,26 @@ export default function EmployerCompanyProfileEditPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location" className="label-label-1-semibold">
+                  Location
+                </Label>
+                <Input
+                  id="location"
+                  placeholder="e.g. Ho Chi Minh City, Vietnam"
+                  className={`h-10 sm:h-12 text-sm sm:text-base ${
+                    errors.location ? 'border-red-500' : ''
+                  }`}
+                  {...register('location')}
+                />
+                {errors.location && (
+                  <p className="text-xs sm:text-sm text-red-500">
+                    {errors.location.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
