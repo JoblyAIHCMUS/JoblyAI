@@ -52,9 +52,45 @@ describe('CompanyService - getPaginatedCompanies', () => {
         sizeRange: '10000+',
         industry: 'Technology',
         description: 'Search engine company',
-        location: 'California',
+        location: {
+          id: 'loc-california',
+          provider: 'manual',
+          providerId: 'California',
+          formattedAddress: 'California',
+          lat: 0,
+          lng: 0,
+          city: null,
+          state: null,
+          country: null,
+          postcode: null,
+        },
         logoUrl: 'https://logo.com/google.png',
-        locations: ['California', 'New York'],
+        locations: [
+          {
+            id: 'loc-california',
+            provider: 'manual',
+            providerId: 'California',
+            formattedAddress: 'California',
+            lat: 0,
+            lng: 0,
+            city: null,
+            state: null,
+            country: null,
+            postcode: null,
+          },
+          {
+            id: 'loc-new-york',
+            provider: 'manual',
+            providerId: 'New York',
+            formattedAddress: 'New York',
+            lat: 0,
+            lng: 0,
+            city: null,
+            state: null,
+            country: null,
+            postcode: null,
+          },
+        ],
         _count: {
           jobPostings: 5,
         },
@@ -77,6 +113,8 @@ describe('CompanyService - getPaginatedCompanies', () => {
     expect(mockPrisma.company.findMany).toHaveBeenCalledWith({
       where: {},
       include: {
+        location: true,
+        locations: true,
         _count: {
           select: {
             jobPostings: {
@@ -93,7 +131,7 @@ describe('CompanyService - getPaginatedCompanies', () => {
     expect(result).toEqual({
       companies: [
         {
-          id: '1',
+          id: 1,
           name: 'Google',
           slug: 'google',
           websiteUrl: 'https://google.com',
@@ -113,6 +151,47 @@ describe('CompanyService - getPaginatedCompanies', () => {
             id: '1',
             label: 'Technology',
             tone: 'orange-outline',
+          },
+          locationDetail: {
+            id: 'loc-california',
+            provider: 'manual',
+            providerId: 'California',
+            formattedAddress: 'California',
+            lat: 0,
+            lng: 0,
+            city: null,
+            state: null,
+            country: null,
+            postcode: null,
+          },
+          locationDetails: [
+            {
+              id: 'loc-california',
+              provider: 'manual',
+              providerId: 'California',
+              formattedAddress: 'California',
+              lat: 0,
+              lng: 0,
+              city: null,
+              state: null,
+              country: null,
+              postcode: null,
+            },
+            {
+              id: 'loc-new-york',
+              provider: 'manual',
+              providerId: 'New York',
+              formattedAddress: 'New York',
+              lat: 0,
+              lng: 0,
+              city: null,
+              state: null,
+              country: null,
+              postcode: null,
+            },
+          ],
+          _count: {
+            jobPostings: 5,
           },
         },
       ],
@@ -170,8 +249,8 @@ describe('CompanyService - getPaginatedCompanies', () => {
         AND: [
           {
             OR: [
-              { location: { contains: 'California', mode: 'insensitive' } },
-              { locations: { has: 'California' } },
+              { location: { formattedAddress: { contains: 'California', mode: 'insensitive' } } },
+              { locations: { some: { formattedAddress: { contains: 'California', mode: 'insensitive' } } } },
             ],
           },
           {
