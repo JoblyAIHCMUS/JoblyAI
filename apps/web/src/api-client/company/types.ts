@@ -1,3 +1,5 @@
+import { LocationDetail } from '../location';
+
 export interface Company {
   id: number;
   name: string;
@@ -8,11 +10,13 @@ export interface Company {
   description: string | null;
   logoUrl: string | null;
   location: string | null;
+  locationDetail?: LocationDetail | null;
   adminId: number | null;
   createdAt: Date;
   updatedAt: Date;
   images: string[];
   locations: string[];
+  locationDetails?: LocationDetail[];
   employers?: Array<{
     id: number;
     companyId: number | null;
@@ -40,9 +44,9 @@ export interface CreateCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
-  location?: string;
+  location?: LocationDetail;
   images?: string[];
-  locations?: string[];
+  locations?: LocationDetail[];
 }
 
 export interface UpdateCompanyPayload {
@@ -52,9 +56,9 @@ export interface UpdateCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
-  location?: string;
+  location?: LocationDetail;
   images?: string[];
-  locations?: string[];
+  locations?: LocationDetail[];
 }
 
 export interface PatchCompanyPayload {
@@ -64,9 +68,9 @@ export interface PatchCompanyPayload {
   industry?: string;
   description?: string;
   logoUrl?: string;
-  location?: string;
+  location?: LocationDetail;
   images?: string[];
-  locations?: string[];
+  locations?: LocationDetail[];
 }
 
 export interface AddCompanyEmployeePayload {

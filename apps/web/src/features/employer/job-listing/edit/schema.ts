@@ -48,7 +48,21 @@ export const jobPostingSchema = z
         'Please select a valid employment type'
       ),
     remote: z.boolean(),
-    location: z.string().optional(),
+    location: z
+      .object({
+        id: z.string().optional(),
+        provider: z.string(),
+        providerId: z.string(),
+        formattedAddress: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+        city: z.string().nullable().optional(),
+        state: z.string().nullable().optional(),
+        country: z.string().nullable().optional(),
+        postcode: z.string().nullable().optional(),
+      })
+      .nullable()
+      .optional(),
     categoryId: z.string().min(1, 'Please select a category'),
     currency: z.enum(['none', 'usd', 'eur', 'gbp', 'vnd', 'jpy', 'cny']),
     salaryMin: z
@@ -91,7 +105,7 @@ export const jobPostingSchema = z
   .refine(
     (data) => {
       // If not remote, location must be provided
-      if (!data.remote && !data.location?.trim()) {
+      if (!data.remote && !data.location) {
         return false;
       }
       return true;
