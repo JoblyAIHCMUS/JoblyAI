@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { ParsedResume } from './resume-parser.service';
 import { AiProviderService } from './ai-provider.service';
 import { OnEvent } from '@nestjs/event-emitter';
+import { LocationService } from '../location/location.service';
 
 @Injectable()
 export class ProfileSyncService {
@@ -10,7 +11,8 @@ export class ProfileSyncService {
 
   constructor(
     @Inject('PRISMA_CLIENT') private readonly prisma: PrismaClient,
-    private readonly aiProvider: AiProviderService
+    private readonly aiProvider: AiProviderService,
+    private readonly locationService: LocationService
   ) {}
 
   @OnEvent('profile.item.updated')
@@ -276,6 +278,22 @@ export class ProfileSyncService {
           }
         }
 
+        let resolvedLocationId: string | null = null;
+        if (e.location && e.location.trim() !== '') {
+          try {
+            const locRecord = await this.locationService.getOrCreateLocation({
+              provider: 'manual',
+              providerId: e.location.trim(),
+              formattedAddress: e.location.trim(),
+              lat: 0.0,
+              lng: 0.0,
+            });
+            resolvedLocationId = locRecord.id;
+          } catch (locErr: any) {
+            this.logger.error(`Failed to create manual location from resume experience: ${locErr.message as string}`);
+          }
+        }
+
         if (existingId) {
           const existing = await tx.experience.findUnique({
             where: { id: existingId },
@@ -290,7 +308,7 @@ export class ProfileSyncService {
                 startDate: new Date(e.startDate),
                 endDate: e.endDate ? new Date(e.endDate) : null,
                 type: e.type as any,
-                location: e.location,
+                locationId: resolvedLocationId,
                 sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])],
               },
             });
@@ -309,7 +327,7 @@ export class ProfileSyncService {
               candidateId,
               companyName: e.companyName,
               jobTitle: e.jobTitle,
-              location: e.location || '',
+              locationId: resolvedLocationId || undefined,
               startDate: new Date(e.startDate),
               endDate: e.endDate ? new Date(e.endDate) : null,
               description: e.description || '',

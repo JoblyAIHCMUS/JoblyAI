@@ -64,7 +64,7 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
     }
 
     if (location) {
-      whereClause.location = { contains: location, mode: 'insensitive' };
+      whereClause.location = { formattedAddress: { contains: location, mode: 'insensitive' } };
     }
 
     if (remote !== undefined) whereClause.remote = remote;
@@ -123,6 +123,7 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
         include: {
           category: true,
           company: true,
+          location: true,
           requirements: { include: { skill: true } },
           preShortlistQuestions: { orderBy: { order: 'asc' } },
           _count: { select: { applications: true } },
