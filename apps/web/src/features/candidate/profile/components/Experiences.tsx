@@ -11,6 +11,7 @@ import {
   createExperienceSchema,
   type ExperienceFormData,
 } from '@/lib/validation';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import {
   EMPLOYMENT_TYPE_OPTIONS,
   formatEmploymentType,
@@ -54,7 +55,7 @@ function ExperienceEditForm({
       jobTitle: editItem.jobTitle || '',
       companyName: editItem.companyName || '',
       type: editItem.type || 'FULL_TIME',
-      location: editItem.location || '',
+      location: (editItem.location as any) || null,
       startDate:
         editItem.startDate && !isNaN(new Date(editItem.startDate).getTime())
           ? new Date(editItem.startDate)
@@ -288,10 +289,13 @@ function ExperienceEditForm({
           control={control}
           render={({ field }) => (
             <>
-              <input
-                {...field}
+              <LocationAutocomplete
+                value={field.value}
+                onChange={(loc) => field.onChange(loc)}
                 placeholder="e.g. Ho Chi Minh City, Vietnam"
-                className={`w-full text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
+                error={!!errors.location}
+                className="w-full"
+                inputClassName={`h-[46px] text-slate-900 font-medium break-words border rounded-lg p-2.5 bg-white transition-all focus:outline-none focus:ring-2 ${
                   errors.location
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-300 focus:ring-indigo-500 shadow-sm'
@@ -433,7 +437,11 @@ function ExperienceView({
         </span>
       </div>
       {/* Row 3 */}
-      <div className="text-tertiary break-words">{exp.location}</div>
+      <div className="text-tertiary break-words">
+        {typeof exp.location === 'object' && exp.location
+          ? exp.location.formattedAddress
+          : (exp.location || '')}
+      </div>
       {/* Row 4 */}
       <div className="text-tertiary break-words">{exp.description}</div>
     </>
@@ -509,7 +517,7 @@ export default function Experiences({
       type: 'FULL_TIME',
       startDate: '',
       endDate: '',
-      location: '',
+      location: null,
       description: '',
     });
     setEditItem(createEmptyExperience());

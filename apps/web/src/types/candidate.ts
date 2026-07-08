@@ -74,12 +74,14 @@ export interface CandidateEducation {
   sourceCvIds?: number[];
 }
 
+import { LocationDetail } from '@/api-client/location';
+
 export interface CandidateExperience {
   id: number;
   companyName: string;
   jobTitle: string;
   type?: EmploymentType; // Optional: undefined when creating new, set after user selection
-  location?: string;
+  location?: string | LocationDetail | null;
   startDate: string;
   endDate?: string;
   description?: string;

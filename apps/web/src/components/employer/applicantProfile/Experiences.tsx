@@ -45,7 +45,9 @@ export default function Experiences({
           </div>
           {exp.location && (
             <div className="text-[var(--text-tertiary)] body-body-1-regular text-xs sm:text-sm">
-              {exp.location}
+              {typeof exp.location === 'object' && exp.location
+                ? exp.location.formattedAddress
+                : (exp.location as any)}
             </div>
           )}
           {exp.description && (
