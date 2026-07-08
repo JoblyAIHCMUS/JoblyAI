@@ -25,13 +25,15 @@ import { UpdateEducationDto } from './dto/education.dto';
 import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { CreateSkillDto, UpdateSkillDto } from './dto/skill.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { LocationService } from '../location/location.service';
 
 @Injectable()
 export class CandidatesService {
   constructor(
     @InjectPrisma() private readonly prismaClient: PrismaClient,
     private readonly gcsService: GcsService,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly locationService: LocationService
   ) {}
 
   private toPrismaDateTime(value: string | Date, fieldName: string): Date {
@@ -164,7 +166,11 @@ export class CandidatesService {
       where: { id: userId },
       include: {
         education: true,
-        experiences: true,
+        experiences: {
+          include: {
+            location: true,
+          },
+        },
         certificates: true,
         resumes: true,
         candidateDescription: true,
@@ -219,7 +225,19 @@ export class CandidatesService {
         id: exp.id,
         companyName: exp.companyName,
         jobTitle: exp.jobTitle,
-        location: exp.location || '',
+        location: exp.location?.formattedAddress || '',
+        locationDetail: exp.location ? {
+          id: exp.location.id,
+          provider: exp.location.provider,
+          providerId: exp.location.providerId,
+          formattedAddress: exp.location.formattedAddress,
+          lat: exp.location.lat,
+          lng: exp.location.lng,
+          city: exp.location.city || null,
+          state: exp.location.state || null,
+          country: exp.location.country || null,
+          postcode: exp.location.postcode || null,
+        } : null,
         startDate: exp.startDate.toISOString(),
         endDate: exp.endDate?.toISOString(),
         description: exp.description || '',
@@ -411,11 +429,18 @@ export class CandidatesService {
     userId: string,
     createDto: CreateExperienceDto
   ): Promise<Experience> {
-    const { startDate, endDate, ...rest } = createDto;
+    const { startDate, endDate, location, locationId, ...rest } = createDto;
+
+    let resolvedLocationId: string | undefined = locationId;
+    if (location) {
+      const locRecord = await this.locationService.getOrCreateLocation(location);
+      resolvedLocationId = locRecord.id;
+    }
 
     const result = await this.prismaClient.experience.create({
       data: {
         ...rest,
+        location: resolvedLocationId ? { connect: { id: resolvedLocationId } } : undefined,
         startDate: this.toPrismaDateTime(startDate, 'startDate'),
         ...(endDate === undefined
           ? {}
@@ -425,6 +450,9 @@ export class CandidatesService {
         candidate: {
           connect: { id: userId },
         },
+      },
+      include: {
+        location: true,
       },
     });
 
@@ -440,7 +468,7 @@ export class CandidatesService {
     userId: string,
     updateDto: UpdateExperienceDto
   ): Promise<Experience> {
-    const { id, startDate, endDate, ...rest } = updateDto;
+    const { id, startDate, endDate, location, locationId, ...rest } = updateDto;
 
     const existing = await this.prismaClient.experience.findFirst({
       where: {
@@ -455,8 +483,22 @@ export class CandidatesService {
       );
     }
 
+    let resolvedLocationId: string | null | undefined = undefined;
+    if (locationId !== undefined) {
+      resolvedLocationId = locationId;
+    }
+    if (location !== undefined) {
+      if (location === null) {
+        resolvedLocationId = null;
+      } else {
+        const locRecord = await this.locationService.getOrCreateLocation(location);
+        resolvedLocationId = locRecord.id;
+      }
+    }
+
     const data: Prisma.ExperienceUpdateInput = {
       ...rest,
+      location: resolvedLocationId !== undefined ? (resolvedLocationId ? { connect: { id: resolvedLocationId } } : { disconnect: true }) : undefined,
       sourceCvIds: [], // Manual edit clears AI source tracking
       ...(startDate === undefined
         ? {}
@@ -473,6 +515,9 @@ export class CandidatesService {
         const updated = await tx.experience.update({
           where: { id },
           data,
+          include: {
+            location: true,
+          },
         });
 
         // Clear stale vector embedding
