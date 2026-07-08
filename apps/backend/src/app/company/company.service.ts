@@ -20,6 +20,7 @@ import {
   CompanyLogoDto,
   CompanyPatchDto,
   CompanyUpdateDto,
+  GetCompaniesQueryDTO,
 } from './dto/company.dto';
 
 @Injectable()
@@ -31,6 +32,133 @@ export class CompanyService {
 
   async getAll(): Promise<Company[]> {
     return this.prisma.company.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+  async getPaginatedCompanies(query: GetCompaniesQueryDTO): Promise<{
+    companies: any[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    const { page = 1, pageSize = 10, q, location, industry, sizeRange } = query;
+
+    const whereClause: Prisma.CompanyWhereInput = {};
+
+    if (q) {
+      const searchTerms = q
+        .trim()
+        .split(/\s+/)
+        .filter((term) => term.length > 0);
+
+      if (searchTerms.length > 0) {
+        const keywordConditions = searchTerms.map((term) => ({
+          OR: [
+            { name: { contains: term, mode: 'insensitive' as const } },
+            { description: { contains: term, mode: 'insensitive' as const } },
+            { industry: { contains: term, mode: 'insensitive' as const } },
+          ],
+        }));
+
+        whereClause.AND = keywordConditions;
+      }
+    }
+
+    if (location) {
+      const locationCondition = {
+        OR: [
+          { location: { contains: location, mode: 'insensitive' as const } },
+          { locations: { has: location } },
+        ],
+      };
+      if (whereClause.AND && Array.isArray(whereClause.AND)) {
+        (whereClause.AND as Prisma.CompanyWhereInput[]).push(locationCondition);
+      } else {
+        whereClause.AND = [locationCondition];
+      }
+    }
+
+    if (industry && industry.length > 0) {
+      const industryCondition = {
+        industry: { in: industry },
+      };
+      if (whereClause.AND && Array.isArray(whereClause.AND)) {
+        (whereClause.AND as Prisma.CompanyWhereInput[]).push(industryCondition);
+      } else {
+        whereClause.AND = [industryCondition];
+      }
+    }
+
+    if (sizeRange && sizeRange.length > 0) {
+      const sizeCondition = {
+        sizeRange: { in: sizeRange },
+      };
+      if (whereClause.AND && Array.isArray(whereClause.AND)) {
+        (whereClause.AND as Prisma.CompanyWhereInput[]).push(sizeCondition);
+      } else {
+        whereClause.AND = [sizeCondition];
+      }
+    }
+
+    const [total, companies] = await this.prisma.$transaction([
+      this.prisma.company.count({ where: whereClause }),
+      this.prisma.company.findMany({
+        where: whereClause,
+        include: {
+          _count: {
+            select: {
+              jobPostings: {
+                where: { status: 'OPEN', deletedAt: null },
+              },
+            },
+          },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const mappedCompanies = companies.map((company) => ({
+      id: String(company.id),
+      name: company.name,
+      slug: company.slug,
+      websiteUrl: company.websiteUrl,
+      sizeRange: company.sizeRange,
+      industry: company.industry,
+      description: company.description || '',
+      location: company.location,
+      logoUrl: company.logoUrl || '',
+      locations: company.locations,
+      logo: {
+        imageUrl: company.logoUrl || '',
+        alt: `${company.name} logo`,
+        rounded: 'square' as const,
+      },
+      jobs: company._count.jobPostings,
+      tag: {
+        id: String(company.id),
+        label: company.industry || 'Technology',
+        tone: this.getTagTone(company.industry),
+      },
+    }));
+
+    return {
+      companies: mappedCompanies,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  private getTagTone(
+    industry: string | null
+  ): 'orange-outline' | 'orange-soft' | 'indigo-soft' {
+    if (!industry) return 'orange-outline';
+    if (industry.toLowerCase().includes('fintech')) return 'indigo-soft';
+    if (industry.toLowerCase().includes('hosting')) return 'orange-soft';
+    return 'orange-outline';
   }
 
   async getById(id: number): Promise<any> {

@@ -7,6 +7,8 @@ import type {
   CreateCompanyPayload,
   PatchCompanyPayload,
   UpdateCompanyPayload,
+  ListCompaniesQuery,
+  PaginatedCompaniesResponse,
 } from '@/api-client/company/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -15,6 +17,22 @@ export async function getCompanies(): Promise<Company[]> {
   const response = await axios.get<Company[]>(`${API_BASE_URL}/api/company`, {
     headers: { 'Content-Type': 'application/json' },
   });
+
+  return response.data;
+}
+
+export async function listCompanies(
+  query?: ListCompaniesQuery,
+  options?: { signal?: AbortSignal }
+): Promise<PaginatedCompaniesResponse> {
+  const response = await axios.get<PaginatedCompaniesResponse>(
+    `${API_BASE_URL}/api/company`,
+    {
+      params: query,
+      signal: options?.signal,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 
   return response.data;
 }

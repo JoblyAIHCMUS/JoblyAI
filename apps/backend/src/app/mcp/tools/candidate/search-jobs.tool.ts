@@ -35,10 +35,32 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
     };
 
     if (q) {
-      whereClause.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-      ];
+      const searchTerms = q
+        .trim()
+        .split(/\s+/)
+        .filter((term) => term.length > 0);
+
+      if (searchTerms.length > 0) {
+        const keywordConditions = searchTerms.map((term) => ({
+          OR: [
+            { title: { contains: term, mode: 'insensitive' as const } },
+            { description: { contains: term, mode: 'insensitive' as const } },
+            {
+              company: {
+                name: { contains: term, mode: 'insensitive' as const },
+              },
+            },
+          ],
+        }));
+
+        if (whereClause.AND && Array.isArray(whereClause.AND)) {
+          const existingConditions =
+            whereClause.AND as Prisma.JobPostingWhereInput[];
+          existingConditions.push(...keywordConditions);
+        } else {
+          whereClause.AND = keywordConditions;
+        }
+      }
     }
 
     if (location) {
