@@ -105,9 +105,12 @@ export class JobsService {
     }
 
     if (location) {
-      whereClause.location = {
-        formattedAddress: { contains: location, mode: 'insensitive' },
-      };
+      const mainLocation = location.split(',')[0].trim();
+      if (mainLocation) {
+        whereClause.location = {
+          formattedAddress: { contains: mainLocation, mode: 'insensitive' },
+        };
+      }
     }
 
     if (remote !== undefined) whereClause.remote = remote;

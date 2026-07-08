@@ -543,6 +543,21 @@ describe('JobsService', () => {
       );
     });
 
+    it('should split location query by comma and search using the first part', async () => {
+      // Arrange
+      const query = { location: 'Da Nang, Vietnam' };
+      mockPrisma.$transaction.mockResolvedValue([1, [mockJobDbRecord]]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.location).toEqual({
+        formattedAddress: { contains: 'Da Nang', mode: 'insensitive' },
+      });
+    });
+
     it('should split multiple search terms by whitespace, normalize multiple spaces, and query in any order', async () => {
       // Arrange
       const query = { q: '  React   Senior  Developer  ' };
