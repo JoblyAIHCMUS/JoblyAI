@@ -109,6 +109,9 @@
   },
   "pnpm": {
     "overrides": {
+      "better-auth": "^1.6.23",
+      "@better-auth/expo": "^1.6.23",
+      "@better-auth/api-key": "^1.6.23",
       "react": "19.1.0",
       "react-dom": "19.1.0",
       "@types/react": "19.1.0",
