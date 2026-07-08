@@ -290,7 +290,11 @@ export class ProfileSyncService {
             });
             resolvedLocationId = locRecord.id;
           } catch (locErr: any) {
-            this.logger.error(`Failed to create manual location from resume experience: ${locErr.message as string}`);
+            this.logger.error(
+              `Failed to create manual location from resume experience: ${
+                locErr.message as string
+              }`
+            );
           }
         }
 

@@ -134,8 +134,7 @@ describe('JobsService', () => {
       mockPreShortlistService as unknown as PreShortlistService;
     (
       service as unknown as { locationService: LocationService }
-    ).locationService =
-      mockLocationService as unknown as LocationService;
+    ).locationService = mockLocationService as unknown as LocationService;
     vi.clearAllMocks();
   });
 
@@ -537,7 +536,9 @@ describe('JobsService', () => {
               ],
             },
           ]),
-          location: { formattedAddress: { contains: 'New York', mode: 'insensitive' } },
+          location: {
+            formattedAddress: { contains: 'New York', mode: 'insensitive' },
+          },
           remote: false,
         })
       );

@@ -336,7 +336,9 @@ export default function EmployerNewJobPage() {
                         onChange={(loc) => field.onChange(loc)}
                         placeholder="e.g. 123 This Street, That Town, The Other Country"
                         error={!!errors.location}
-                        className={`w-full ${remote ? 'opacity-50 pointer-events-none' : ''}`}
+                        className={`w-full ${
+                          remote ? 'opacity-50 pointer-events-none' : ''
+                        }`}
                         inputClassName="h-10 sm:h-12 text-sm sm:text-base"
                       />
                     )}

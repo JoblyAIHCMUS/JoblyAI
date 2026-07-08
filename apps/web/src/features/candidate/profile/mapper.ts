@@ -110,7 +110,10 @@ export function mapUIToApiCreateExperience(
     companyName: exp.companyName,
     jobTitle: exp.jobTitle,
     type: exp.type,
-    location: (typeof exp.location === 'object' && exp.location) ? exp.location : undefined,
+    location:
+      typeof exp.location === 'object' && exp.location
+        ? exp.location
+        : undefined,
     startDate: exp.startDate,
     endDate: exp.endDate,
     description: exp.description,

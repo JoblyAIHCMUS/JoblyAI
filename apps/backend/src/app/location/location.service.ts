@@ -10,7 +10,8 @@ export class LocationService {
 
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    @Inject('GEOCODING_PROVIDER') private readonly geocodingProvider: GeocodingProvider,
+    @Inject('GEOCODING_PROVIDER')
+    private readonly geocodingProvider: GeocodingProvider
   ) {}
 
   async autocomplete(text: string) {
@@ -46,7 +47,9 @@ export class LocationService {
         },
       });
     } catch (error: any) {
-      this.logger.error(`Error in getOrCreateLocation: ${error.message as string}`);
+      this.logger.error(
+        `Error in getOrCreateLocation: ${error.message as string}`
+      );
       throw error;
     }
   }

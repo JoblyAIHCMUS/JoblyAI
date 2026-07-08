@@ -146,19 +146,20 @@ export const companyUpdateSchema = z
       .optional(),
     locations: z
       .array(
-        z.object({
-          id: z.string().optional(),
-          provider: z.string(),
-          providerId: z.string(),
-          formattedAddress: z.string(),
-          lat: z.number(),
-          lng: z.number(),
-          city: z.string().nullable().optional(),
-          state: z.string().nullable().optional(),
-          country: z.string().nullable().optional(),
-          postcode: z.string().nullable().optional(),
-        })
-        .nullable()
+        z
+          .object({
+            id: z.string().optional(),
+            provider: z.string(),
+            providerId: z.string(),
+            formattedAddress: z.string(),
+            lat: z.number(),
+            lng: z.number(),
+            city: z.string().nullable().optional(),
+            state: z.string().nullable().optional(),
+            country: z.string().nullable().optional(),
+            postcode: z.string().nullable().optional(),
+          })
+          .nullable()
       )
       .optional(),
     logoUrl: z.string().optional().nullable(),

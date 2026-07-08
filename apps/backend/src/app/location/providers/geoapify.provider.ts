@@ -11,7 +11,9 @@ export class GeoapifyProvider implements GeocodingProvider {
   constructor() {
     this.apiKey = process.env.GEOAPIFY_API_KEY || '';
     if (!this.apiKey) {
-      this.logger.warn('GEOAPIFY_API_KEY is not defined in the environment variables.');
+      this.logger.warn(
+        'GEOAPIFY_API_KEY is not defined in the environment variables.'
+      );
     }
   }
 
@@ -33,7 +35,9 @@ export class GeoapifyProvider implements GeocodingProvider {
 
       const response = await fetch(url.toString());
       if (!response.ok) {
-        throw new Error(`Geoapify autocomplete request failed: ${response.statusText}`);
+        throw new Error(
+          `Geoapify autocomplete request failed: ${response.statusText}`
+        );
       }
 
       const data = (await response.json()) as {
@@ -67,10 +71,11 @@ export class GeoapifyProvider implements GeocodingProvider {
       return data.features.map((feature) => {
         const props = feature.properties || {};
         const coordinates = feature.geometry?.coordinates || [0, 0]; // [lon, lat] in GeoJSON
-        
+
         return {
           provider: 'geoapify',
-          providerId: props.place_id || `geoapify_${Date.now()}_${Math.random()}`,
+          providerId:
+            props.place_id || `geoapify_${Date.now()}_${Math.random()}`,
           formattedAddress: props.formatted || text,
           lat: props.lat ?? coordinates[1] ?? 0.0,
           lng: props.lon ?? coordinates[0] ?? 0.0,
@@ -81,7 +86,11 @@ export class GeoapifyProvider implements GeocodingProvider {
         };
       });
     } catch (error: any) {
-      this.logger.error(`Error fetching autocomplete suggestions from Geoapify: ${error.message as string}`);
+      this.logger.error(
+        `Error fetching autocomplete suggestions from Geoapify: ${
+          error.message as string
+        }`
+      );
       return [];
     }
   }

@@ -226,18 +226,20 @@ export class CandidatesService {
         companyName: exp.companyName,
         jobTitle: exp.jobTitle,
         location: exp.location?.formattedAddress || '',
-        locationDetail: exp.location ? {
-          id: exp.location.id,
-          provider: exp.location.provider,
-          providerId: exp.location.providerId,
-          formattedAddress: exp.location.formattedAddress,
-          lat: exp.location.lat,
-          lng: exp.location.lng,
-          city: exp.location.city || null,
-          state: exp.location.state || null,
-          country: exp.location.country || null,
-          postcode: exp.location.postcode || null,
-        } : null,
+        locationDetail: exp.location
+          ? {
+              id: exp.location.id,
+              provider: exp.location.provider,
+              providerId: exp.location.providerId,
+              formattedAddress: exp.location.formattedAddress,
+              lat: exp.location.lat,
+              lng: exp.location.lng,
+              city: exp.location.city || null,
+              state: exp.location.state || null,
+              country: exp.location.country || null,
+              postcode: exp.location.postcode || null,
+            }
+          : null,
         startDate: exp.startDate.toISOString(),
         endDate: exp.endDate?.toISOString(),
         description: exp.description || '',
@@ -433,14 +435,18 @@ export class CandidatesService {
 
     let resolvedLocationId: string | undefined = locationId;
     if (location) {
-      const locRecord = await this.locationService.getOrCreateLocation(location);
+      const locRecord = await this.locationService.getOrCreateLocation(
+        location
+      );
       resolvedLocationId = locRecord.id;
     }
 
     const result = await this.prismaClient.experience.create({
       data: {
         ...rest,
-        location: resolvedLocationId ? { connect: { id: resolvedLocationId } } : undefined,
+        location: resolvedLocationId
+          ? { connect: { id: resolvedLocationId } }
+          : undefined,
         startDate: this.toPrismaDateTime(startDate, 'startDate'),
         ...(endDate === undefined
           ? {}
@@ -491,14 +497,21 @@ export class CandidatesService {
       if (location === null) {
         resolvedLocationId = null;
       } else {
-        const locRecord = await this.locationService.getOrCreateLocation(location);
+        const locRecord = await this.locationService.getOrCreateLocation(
+          location
+        );
         resolvedLocationId = locRecord.id;
       }
     }
 
     const data: Prisma.ExperienceUpdateInput = {
       ...rest,
-      location: resolvedLocationId !== undefined ? (resolvedLocationId ? { connect: { id: resolvedLocationId } } : { disconnect: true }) : undefined,
+      location:
+        resolvedLocationId !== undefined
+          ? resolvedLocationId
+            ? { connect: { id: resolvedLocationId } }
+            : { disconnect: true }
+          : undefined,
       sourceCvIds: [], // Manual edit clears AI source tracking
       ...(startDate === undefined
         ? {}

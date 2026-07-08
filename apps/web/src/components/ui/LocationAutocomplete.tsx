@@ -31,7 +31,8 @@ export function LocationAutocomplete({
   const [inputValue, setInputValue] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const { fetchSuggestions, suggestions, loading, setSuggestions } = useLocationAutocomplete();
+  const { fetchSuggestions, suggestions, loading, setSuggestions } =
+    useLocationAutocomplete();
   const [debouncedValue, setDebouncedValue] = React.useState('');
 
   // Sync prop value to input string
@@ -58,7 +59,12 @@ export function LocationAutocomplete({
   React.useEffect(() => {
     if (isOpen && debouncedValue.trim() !== '') {
       // Don't search if the input value matches the current selected formattedAddress
-      const currentFormatted = typeof value === 'object' && value ? value.formattedAddress : (typeof value === 'string' ? value : '');
+      const currentFormatted =
+        typeof value === 'object' && value
+          ? value.formattedAddress
+          : typeof value === 'string'
+          ? value
+          : '';
       if (debouncedValue !== currentFormatted) {
         void fetchSuggestions(debouncedValue);
       }
@@ -70,7 +76,10 @@ export function LocationAutocomplete({
   // Handle click outside to close suggestion box
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -81,7 +90,7 @@ export function LocationAutocomplete({
   const handleSelect = async (suggestion: LocationDetail) => {
     setInputValue(suggestion.formattedAddress);
     setIsOpen(false);
-    
+
     if (onChange) {
       try {
         const dbLocation = await getOrCreateLocation({
@@ -151,7 +160,7 @@ export function LocationAutocomplete({
         )}
       </div>
 
-      {isOpen && (suggestions.length > 0) && (
+      {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-lg">
           {suggestions.map((suggestion) => (
             <button
@@ -161,7 +170,9 @@ export function LocationAutocomplete({
               className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-slate-100 focus:bg-slate-100 focus:outline-none transition-colors"
             >
               <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-              <span className="truncate text-slate-700">{suggestion.formattedAddress}</span>
+              <span className="truncate text-slate-700">
+                {suggestion.formattedAddress}
+              </span>
             </button>
           ))}
         </div>

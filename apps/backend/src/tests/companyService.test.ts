@@ -249,8 +249,24 @@ describe('CompanyService - getPaginatedCompanies', () => {
         AND: [
           {
             OR: [
-              { location: { formattedAddress: { contains: 'California', mode: 'insensitive' } } },
-              { locations: { some: { formattedAddress: { contains: 'California', mode: 'insensitive' } } } },
+              {
+                location: {
+                  formattedAddress: {
+                    contains: 'California',
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                locations: {
+                  some: {
+                    formattedAddress: {
+                      contains: 'California',
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
             ],
           },
           {

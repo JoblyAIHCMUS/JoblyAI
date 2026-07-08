@@ -64,7 +64,9 @@ export async function searchJobsHandler(state: McpState, rawInput: unknown) {
     }
 
     if (location) {
-      whereClause.location = { formattedAddress: { contains: location, mode: 'insensitive' } };
+      whereClause.location = {
+        formattedAddress: { contains: location, mode: 'insensitive' },
+      };
     }
 
     if (remote !== undefined) whereClause.remote = remote;

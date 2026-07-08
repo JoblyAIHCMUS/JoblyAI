@@ -229,14 +229,22 @@ export class JobsService {
     dto: CreateJobDTO,
     userId: string
   ): Promise<JobPostingInterface> {
-    const { requirements, preShortlistQuestions, location, locationId, ...jobData } = dto;
+    const {
+      requirements,
+      preShortlistQuestions,
+      location,
+      locationId,
+      ...jobData
+    } = dto;
 
     this.preShortlistService.validateQuestions(preShortlistQuestions);
     const threshold = dto.preShortlistThreshold ?? 0;
 
     let resolvedLocationId: string | undefined = locationId;
     if (location) {
-      const locRecord = await this.locationService.getOrCreateLocation(location);
+      const locRecord = await this.locationService.getOrCreateLocation(
+        location
+      );
       resolvedLocationId = locRecord.id;
     }
 
@@ -557,7 +565,9 @@ export class JobsService {
       if (location === null) {
         resolvedLocationId = null;
       } else {
-        const locRecord = await this.locationService.getOrCreateLocation(location);
+        const locRecord = await this.locationService.getOrCreateLocation(
+          location
+        );
         resolvedLocationId = locRecord.id;
       }
     }
@@ -693,7 +703,9 @@ export class JobsService {
     } else if (companyId) {
       whereClause.companyId = companyId;
     } else if (location) {
-      whereClause.location = { formattedAddress: { contains: location, mode: 'insensitive' } };
+      whereClause.location = {
+        formattedAddress: { contains: location, mode: 'insensitive' },
+      };
     }
 
     const jobs = await this.prisma.jobPosting.findMany({
@@ -985,18 +997,20 @@ export class JobsService {
       employerId: postedById,
       applicantsCount: _count?.applications,
       location: location?.formattedAddress || null,
-      locationDetail: location ? {
-        id: location.id,
-        provider: location.provider,
-        providerId: location.providerId,
-        formattedAddress: location.formattedAddress,
-        lat: location.lat,
-        lng: location.lng,
-        city: location.city || null,
-        state: location.state || null,
-        country: location.country || null,
-        postcode: location.postcode || null,
-      } : null,
+      locationDetail: location
+        ? {
+            id: location.id,
+            provider: location.provider,
+            providerId: location.providerId,
+            formattedAddress: location.formattedAddress,
+            lat: location.lat,
+            lng: location.lng,
+            city: location.city || null,
+            state: location.state || null,
+            country: location.country || null,
+            postcode: location.postcode || null,
+          }
+        : null,
       // Map requirements with full details including years and importance
       requirements: requirements
         ? requirements.map((jr) => ({

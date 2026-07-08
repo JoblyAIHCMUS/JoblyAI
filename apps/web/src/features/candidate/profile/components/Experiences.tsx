@@ -440,7 +440,7 @@ function ExperienceView({
       <div className="text-tertiary break-words">
         {typeof exp.location === 'object' && exp.location
           ? exp.location.formattedAddress
-          : (exp.location || '')}
+          : exp.location || ''}
       </div>
       {/* Row 4 */}
       <div className="text-tertiary break-words">{exp.description}</div>

@@ -335,7 +335,8 @@ async function main() {
   const createdCompanies = await Promise.all(
     company.map((c) => {
       const { locations, ...rest } = c;
-      const primaryLocation = locations && locations.length > 0 ? locations[0] : null;
+      const primaryLocation =
+        locations && locations.length > 0 ? locations[0] : null;
       return prisma.company.create({
         data: {
           ...rest,

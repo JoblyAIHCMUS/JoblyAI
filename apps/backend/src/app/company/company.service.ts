@@ -69,8 +69,24 @@ export class CompanyService {
     if (location) {
       const locationCondition = {
         OR: [
-          { location: { formattedAddress: { contains: location, mode: 'insensitive' as const } } },
-          { locations: { some: { formattedAddress: { contains: location, mode: 'insensitive' as const } } } },
+          {
+            location: {
+              formattedAddress: {
+                contains: location,
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+          {
+            locations: {
+              some: {
+                formattedAddress: {
+                  contains: location,
+                  mode: 'insensitive' as const,
+                },
+              },
+            },
+          },
         ],
       };
       if (whereClause.AND && Array.isArray(whereClause.AND)) {
@@ -123,7 +139,9 @@ export class CompanyService {
       }),
     ]);
 
-    const mappedCompanies = companies.map((company) => this.mapToCompanyResponse(company));
+    const mappedCompanies = companies.map((company) =>
+      this.mapToCompanyResponse(company)
+    );
 
     return {
       companies: mappedCompanies,
@@ -344,7 +362,9 @@ export class CompanyService {
     // Resolve location and locations before transaction
     let resolvedLocationId: string | undefined = undefined;
     if (dto.location) {
-      const locRecord = await this.locationService.getOrCreateLocation(dto.location);
+      const locRecord = await this.locationService.getOrCreateLocation(
+        dto.location
+      );
       resolvedLocationId = locRecord.id;
     } else if (dto.locationId) {
       resolvedLocationId = dto.locationId;
@@ -366,7 +386,8 @@ export class CompanyService {
       const company = await this.prisma.$transaction(async (tx) => {
         // Create the company
         const slug = await this.generateUniqueSlug(dto.name);
-        const { location, locations, locationId, locationIds, ...companyData } = dto;
+        const { location, locations, locationId, locationIds, ...companyData } =
+          dto;
 
         const newCompany = await tx.company.create({
           data: {
@@ -374,9 +395,12 @@ export class CompanyService {
             slug,
             images: dto.images || [],
             locationId: resolvedLocationId || undefined,
-            locations: resolvedLocationIds.length > 0 ? {
-              connect: resolvedLocationIds.map(id => ({ id }))
-            } : undefined,
+            locations:
+              resolvedLocationIds.length > 0
+                ? {
+                    connect: resolvedLocationIds.map((id) => ({ id })),
+                  }
+                : undefined,
           },
         });
 
@@ -448,7 +472,9 @@ export class CompanyService {
       if (location === null) {
         resolvedLocationId = null;
       } else {
-        const locRecord = await this.locationService.getOrCreateLocation(location);
+        const locRecord = await this.locationService.getOrCreateLocation(
+          location
+        );
         resolvedLocationId = locRecord.id;
       }
     }
@@ -485,7 +511,7 @@ export class CompanyService {
 
       if (resolvedLocationIds !== undefined) {
         data.locations = {
-          set: resolvedLocationIds.map(id => ({ id }))
+          set: resolvedLocationIds.map((id) => ({ id })),
         };
       }
 
@@ -835,31 +861,37 @@ export class CompanyService {
     return {
       ...rest,
       location: location?.formattedAddress || null,
-      locationDetail: location ? {
-        id: location.id,
-        provider: location.provider,
-        providerId: location.providerId,
-        formattedAddress: location.formattedAddress,
-        lat: location.lat,
-        lng: location.lng,
-        city: location.city || null,
-        state: location.state || null,
-        country: location.country || null,
-        postcode: location.postcode || null,
-      } : null,
-      locations: locations ? locations.map((loc: any) => loc.formattedAddress) : [],
-      locationDetails: locations ? locations.map((loc: any) => ({
-        id: loc.id,
-        provider: loc.provider,
-        providerId: loc.providerId,
-        formattedAddress: loc.formattedAddress,
-        lat: loc.lat,
-        lng: loc.lng,
-        city: loc.city || null,
-        state: loc.state || null,
-        country: loc.country || null,
-        postcode: loc.postcode || null,
-      })) : [],
+      locationDetail: location
+        ? {
+            id: location.id,
+            provider: location.provider,
+            providerId: location.providerId,
+            formattedAddress: location.formattedAddress,
+            lat: location.lat,
+            lng: location.lng,
+            city: location.city || null,
+            state: location.state || null,
+            country: location.country || null,
+            postcode: location.postcode || null,
+          }
+        : null,
+      locations: locations
+        ? locations.map((loc: any) => loc.formattedAddress)
+        : [],
+      locationDetails: locations
+        ? locations.map((loc: any) => ({
+            id: loc.id,
+            provider: loc.provider,
+            providerId: loc.providerId,
+            formattedAddress: loc.formattedAddress,
+            lat: loc.lat,
+            lng: loc.lng,
+            city: loc.city || null,
+            state: loc.state || null,
+            country: loc.country || null,
+            postcode: loc.postcode || null,
+          }))
+        : [],
       logo: {
         imageUrl: company.logoUrl || '',
         alt: `${company.name} logo`,

@@ -18,7 +18,9 @@ export interface LocationDetail {
 /**
  * Autocomplete address suggestions from provider
  */
-export async function getLocationAutocomplete(text: string): Promise<LocationDetail[]> {
+export async function getLocationAutocomplete(
+  text: string
+): Promise<LocationDetail[]> {
   if (!text || text.trim() === '') return [];
   const response = await axios.get<LocationDetail[]>(
     `${API_BASE_URL}/api/location/autocomplete`,
@@ -33,7 +35,9 @@ export async function getLocationAutocomplete(text: string): Promise<LocationDet
 /**
  * Resolve/save a location to database
  */
-export async function getOrCreateLocation(location: Omit<LocationDetail, 'id'>): Promise<LocationDetail> {
+export async function getOrCreateLocation(
+  location: Omit<LocationDetail, 'id'>
+): Promise<LocationDetail> {
   const response = await axios.post<LocationDetail>(
     `${API_BASE_URL}/api/location`,
     location,
