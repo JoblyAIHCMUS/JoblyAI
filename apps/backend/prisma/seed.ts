@@ -6,7 +6,7 @@ import {
   RequirementImportance,
   Employer,
 } from '@prisma/client';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { scryptAsync } from '@noble/hashes/scrypt.js';
 import { jobCategories } from './data/JobCategory';
 import { Skill } from './data/Skill';
@@ -26,6 +26,11 @@ function toSlug(value: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function getLocationId(locationStr: string): string {
+  const hash = createHash('md5').update(locationStr).digest('hex');
+  return `manual_${hash}`;
 }
 
 function createUniqueSlugFactory() {
@@ -93,6 +98,7 @@ async function main() {
     await prisma.user.deleteMany({});
     await prisma.jobCategory.deleteMany({});
     await prisma.skill.deleteMany({});
+    await prisma.location.deleteMany({});
     console.log('Data cleaned up successfully');
   }
 
@@ -126,6 +132,49 @@ async function main() {
 
   // --- MOCK DATA (Only for development) ---
   console.log('Seeding database with mock test data...');
+
+  // Collect and seed unique locations
+  console.log('Collecting and seeding unique locations...');
+  const uniqueLocationsSet = new Set<string>();
+  for (const c of company) {
+    if (c.locations) {
+      c.locations.forEach((loc) => {
+        if (loc && loc.trim() !== '') {
+          uniqueLocationsSet.add(loc.trim());
+        }
+      });
+    }
+  }
+  for (const job of jobPosting) {
+    if (job.location && job.location.trim() !== '') {
+      uniqueLocationsSet.add(job.location.trim());
+    }
+  }
+  for (const profile of candidateProfiles) {
+    if (profile.experiences) {
+      for (const exp of profile.experiences) {
+        if (exp.location && exp.location.trim() !== '') {
+          uniqueLocationsSet.add(exp.location.trim());
+        }
+      }
+    }
+  }
+  const locationsData = Array.from(uniqueLocationsSet).map((locStr) => ({
+    id: getLocationId(locStr),
+    provider: 'manual',
+    providerId: locStr,
+    formattedAddress: locStr,
+    lat: 0.0,
+    lng: 0.0,
+  }));
+  if (locationsData.length > 0) {
+    await prisma.location.createMany({
+      data: locationsData,
+      skipDuplicates: true,
+    });
+    console.log(`Seeded ${locationsData.length} unique locations.`);
+  }
+
   const hashedPassword = await hashPassword('TestPass123!');
 
   const usersData = users.map((u) => ({
@@ -204,10 +253,14 @@ async function main() {
     // Create Experience
     if (profile.experiences && profile.experiences.length > 0) {
       await prisma.experience.createMany({
-        data: profile.experiences.map((exp) => ({
-          candidateId,
-          ...exp,
-        })),
+        data: profile.experiences.map((exp) => {
+          const { location, ...rest } = exp;
+          return {
+            candidateId,
+            ...rest,
+            locationId: location ? getLocationId(location) : null,
+          };
+        }),
       });
     }
 
@@ -280,16 +333,23 @@ async function main() {
   console.log('Creating companies...');
   const nextCompanySlug = createUniqueSlugFactory();
   const createdCompanies = await Promise.all(
-    company.map((c) =>
-      prisma.company.create({
+    company.map((c) => {
+      const { locations, ...rest } = c;
+      const primaryLocation =
+        locations && locations.length > 0 ? locations[0] : null;
+      return prisma.company.create({
         data: {
-          ...c,
-          slug: nextCompanySlug(c.name),
-          locations: c.locations || [],
-          images: c.images || [],
+          ...rest,
+          slug: nextCompanySlug(rest.name),
+          locationId: primaryLocation ? getLocationId(primaryLocation) : null,
+          locations: {
+            connect: (locations || []).map((locStr) => ({
+              id: getLocationId(locStr),
+            })),
+          },
         },
-      })
-    )
+      });
+    })
   );
   console.log(`Created ${createdCompanies.length} companies`);
 
@@ -351,7 +411,7 @@ async function main() {
         data: {
           title: job.title,
           description: job.description,
-          location: job.location,
+          locationId: job.location ? getLocationId(job.location) : null,
           remote: job.remote,
           type: job.type as EmploymentType,
           status: job.status as JobStatus,

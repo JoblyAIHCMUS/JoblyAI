@@ -133,8 +133,22 @@ export const companyRegistrationSchema = z
         (description) => !description || !isHtmlContentEmpty(description),
         'Company description cannot be empty'
       ),
+    location: z
+      .object({
+        id: z.string().optional(),
+        provider: z.string(),
+        providerId: z.string(),
+        formattedAddress: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+        city: z.string().nullable().optional(),
+        state: z.string().nullable().optional(),
+        country: z.string().nullable().optional(),
+        postcode: z.string().nullable().optional(),
+      })
+      .nullable()
+      .optional(),
     logoUrl: z.string().optional().nullable(),
-    location: z.string().optional(),
   })
   .strict();
 

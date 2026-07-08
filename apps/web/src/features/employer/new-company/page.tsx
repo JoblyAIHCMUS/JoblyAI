@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ export default function EmployerNewCompanyPage() {
     formState: { errors, isValidating },
     setValue,
     getValues,
+    control,
   } = useForm<CompanyRegistrationFormData>({
     resolver: zodResolver(companyRegistrationSchema),
     mode: 'onBlur',
@@ -52,7 +54,7 @@ export default function EmployerNewCompanyPage() {
       industry: '',
       companyDescription: '',
       logoUrl: null,
-      location: '',
+      location: null,
     },
   });
 
@@ -402,13 +404,19 @@ export default function EmployerNewCompanyPage() {
                 >
                   Location
                 </Label>
-                <Input
-                  id="location"
-                  placeholder="e.g. Ho Chi Minh City, Vietnam"
-                  className={`h-10 sm:h-12 text-sm sm:text-base ${
-                    errors.location ? 'border-red-500' : ''
-                  }`}
-                  {...register('location')}
+                <Controller
+                  name="location"
+                  control={control}
+                  render={({ field }) => (
+                    <LocationAutocomplete
+                      value={field.value}
+                      onChange={(loc) => field.onChange(loc)}
+                      placeholder="e.g. Ho Chi Minh City, Vietnam"
+                      error={!!errors.location}
+                      className="w-full"
+                      inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                    />
+                  )}
                 />
                 {errors.location && (
                   <p className="text-xs sm:text-sm text-red-500">

@@ -3,9 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, X, ImagePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -87,6 +88,7 @@ export default function EmployerCompanyProfileEditPage() {
     formState: { errors, isValidating },
     setValue,
     getValues,
+    control,
   } = useForm<CompanyUpdateFormData>({
     resolver: zodResolver(companyUpdateSchema),
     mode: 'onBlur',
@@ -97,7 +99,7 @@ export default function EmployerCompanyProfileEditPage() {
       industry: '',
       companyDescription: '',
       logoUrl: null,
-      location: '',
+      location: null,
       locations: [],
       images: [],
     },
@@ -270,8 +272,8 @@ export default function EmployerCompanyProfileEditPage() {
       setValue('industry', company.industry || '');
       setValue('companyDescription', company.description || '');
       setValue('logoUrl', company.logoUrl || null);
-      setValue('location', company.location || '');
-      setValue('locations', company.locations || []);
+      setValue('location', company.locationDetail || null);
+      setValue('locations', company.locationDetails || []);
       setValue('images', company.images || []);
       setLogoFileKey(
         company.logoUrl ? company.logoUrl.split('/').pop() || null : null
@@ -326,7 +328,7 @@ export default function EmployerCompanyProfileEditPage() {
       industry: data.industry || undefined,
       description: data.companyDescription || undefined,
       location: data.location || undefined,
-      locations: data.locations || [],
+      locations: (data.locations || []).filter(Boolean) as any[],
       images: data.images || [],
     };
     try {
@@ -800,13 +802,19 @@ export default function EmployerCompanyProfileEditPage() {
                 <Label htmlFor="location" className="label-label-1-semibold">
                   Primary Location
                 </Label>
-                <Input
-                  id="location"
-                  placeholder="e.g. Ho Chi Minh City, Vietnam"
-                  className={`h-10 sm:h-12 text-sm sm:text-base ${
-                    errors.location ? 'border-red-500' : ''
-                  }`}
-                  {...register('location')}
+                <Controller
+                  name="location"
+                  control={control}
+                  render={({ field }) => (
+                    <LocationAutocomplete
+                      value={field.value}
+                      onChange={(loc) => field.onChange(loc)}
+                      placeholder="e.g. Ho Chi Minh City, Vietnam"
+                      error={!!errors.location}
+                      className="w-full"
+                      inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                    />
+                  )}
                 />
                 {errors.location && (
                   <p className="text-xs sm:text-sm text-red-500">
@@ -823,13 +831,14 @@ export default function EmployerCompanyProfileEditPage() {
 
                 {locations.map((loc, index) => (
                   <div key={index} className="flex gap-2 items-center">
-                    <Input
+                    <LocationAutocomplete
                       value={loc}
                       placeholder={`Branch Office #${index + 1}`}
-                      className="h-10 sm:h-12 text-sm sm:text-base flex-1"
-                      onChange={(e) => {
+                      className="flex-1"
+                      inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                      onChange={(newLoc) => {
                         const newLocs = [...locations];
-                        newLocs[index] = e.target.value;
+                        newLocs[index] = newLoc;
                         setValue('locations', newLocs, {
                           shouldValidate: true,
                           shouldDirty: true,
@@ -860,7 +869,7 @@ export default function EmployerCompanyProfileEditPage() {
                   size="sm"
                   className="mt-1"
                   onClick={() => {
-                    setValue('locations', [...locations, ''], {
+                    setValue('locations', [...locations, null], {
                       shouldValidate: true,
                       shouldDirty: true,
                     });

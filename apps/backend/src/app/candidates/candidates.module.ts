@@ -3,9 +3,10 @@ import { AuthModule } from '../auth/auth.module';
 import { GcsModule } from '../gcs/gcs.module';
 import { CandidatesService } from './candidates.service';
 import { CandidatesController } from './candidates.controller';
+import { LocationModule } from '../location/location.module';
 
 @Module({
-  imports: [AuthModule, GcsModule],
+  imports: [AuthModule, GcsModule, LocationModule],
   controllers: [CandidatesController],
   providers: [CandidatesService],
 })

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 
 export default function HeroSection() {
   const router = useRouter();
@@ -88,12 +89,13 @@ export default function HeroSection() {
               </div>
               <div className="flex-1 flex min-w-0 items-center gap-3 px-4 border-b border-slate-200 pb-4">
                 <MapPin className="w-6 h-6 shrink-0 text-slate-900" />
-                <input
-                  type="text"
-                  placeholder="Florence, Italy"
-                  className="flex-1 outline-none text-slate-900 placeholder-slate-400"
+                <LocationAutocomplete
                   value={location}
-                  onChange={(event) => setLocation(event.target.value)}
+                  onChange={(loc) => setLocation(loc?.formattedAddress || '')}
+                  placeholder="Florence, Italy"
+                  hideIcon={true}
+                  className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 [&>div>input]:border-none [&>div>input]:bg-transparent [&>div>input]:p-0 [&>div>input]:h-auto [&>div>input]:text-base [&>div>input]:leading-6 [&>div>input]:text-slate-900 [&>div>input]:placeholder:text-slate-400 [&>div>input]:focus-visible:ring-0 [&>div>input]:focus-visible:ring-offset-0 [&>div>button]:right-0"
+                  inputClassName="border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
                 />
               </div>
               <Button

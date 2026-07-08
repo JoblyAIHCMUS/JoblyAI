@@ -54,6 +54,11 @@ const mockPreShortlistService = {
   validateQuestions: vi.fn(),
 };
 
+const mockLocationService = {
+  getOrCreateLocation: vi.fn(),
+  autocomplete: vi.fn(),
+};
+
 describe('Jobs Integration (Controller + Service)', () => {
   let controller: JobsController;
   let service: JobsService;
@@ -65,7 +70,8 @@ describe('Jobs Integration (Controller + Service)', () => {
     service = new JobsService(
       mockPrisma as any,
       mockEventEmitter as any,
-      mockPreShortlistService as any
+      mockPreShortlistService as any,
+      mockLocationService as any
     );
 
     controller = new JobsController(service, mockEventEmitter as any);

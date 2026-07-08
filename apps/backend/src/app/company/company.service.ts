@@ -22,12 +22,14 @@ import {
   CompanyUpdateDto,
   GetCompaniesQueryDTO,
 } from './dto/company.dto';
+import { LocationService } from '../location/location.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
-    private readonly gcsService: GcsService
+    private readonly gcsService: GcsService,
+    private readonly locationService: LocationService
   ) {}
 
   async getAll(): Promise<Company[]> {
@@ -67,8 +69,24 @@ export class CompanyService {
     if (location) {
       const locationCondition = {
         OR: [
-          { location: { contains: location, mode: 'insensitive' as const } },
-          { locations: { has: location } },
+          {
+            location: {
+              formattedAddress: {
+                contains: location,
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+          {
+            locations: {
+              some: {
+                formattedAddress: {
+                  contains: location,
+                  mode: 'insensitive' as const,
+                },
+              },
+            },
+          },
         ],
       };
       if (whereClause.AND && Array.isArray(whereClause.AND)) {
@@ -105,6 +123,8 @@ export class CompanyService {
       this.prisma.company.findMany({
         where: whereClause,
         include: {
+          location: true,
+          locations: true,
           _count: {
             select: {
               jobPostings: {
@@ -119,29 +139,9 @@ export class CompanyService {
       }),
     ]);
 
-    const mappedCompanies = companies.map((company) => ({
-      id: String(company.id),
-      name: company.name,
-      slug: company.slug,
-      websiteUrl: company.websiteUrl,
-      sizeRange: company.sizeRange,
-      industry: company.industry,
-      description: company.description || '',
-      location: company.location,
-      logoUrl: company.logoUrl || '',
-      locations: company.locations,
-      logo: {
-        imageUrl: company.logoUrl || '',
-        alt: `${company.name} logo`,
-        rounded: 'square' as const,
-      },
-      jobs: company._count.jobPostings,
-      tag: {
-        id: String(company.id),
-        label: company.industry || 'Technology',
-        tone: this.getTagTone(company.industry),
-      },
-    }));
+    const mappedCompanies = companies.map((company) =>
+      this.mapToCompanyResponse(company)
+    );
 
     return {
       companies: mappedCompanies,
@@ -165,6 +165,8 @@ export class CompanyService {
     const company = await this.prisma.company.findUnique({
       where: { id },
       include: {
+        location: true,
+        locations: true,
         employers: {
           include: {
             employer: {
@@ -191,13 +193,15 @@ export class CompanyService {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
 
-    return company;
+    return this.mapToCompanyResponse(company);
   }
 
   async getBySlug(slug: string): Promise<any> {
     const company = await this.prisma.company.findFirst({
       where: { slug: this.toSlug(slug) },
       include: {
+        location: true,
+        locations: true,
         employers: {
           include: {
             employer: {
@@ -224,7 +228,7 @@ export class CompanyService {
       throw new NotFoundException(`Company with slug '${slug}' not found`);
     }
 
-    return company;
+    return this.mapToCompanyResponse(company);
   }
 
   async getTopCompaniesWithMostJobs(limit: number): Promise<Company[]> {
@@ -342,7 +346,7 @@ export class CompanyService {
     return !!company;
   }
 
-  async create(dto: CompanyCreateDto, creatorUserId: string): Promise<Company> {
+  async create(dto: CompanyCreateDto, creatorUserId: string): Promise<any> {
     // Check if creator is already an employer in another company
     const existingEmployer = await this.prisma.employer.findUnique({
       where: { employerId: creatorUserId },
@@ -355,17 +359,48 @@ export class CompanyService {
       );
     }
 
+    // Resolve location and locations before transaction
+    let resolvedLocationId: string | undefined = undefined;
+    if (dto.location) {
+      const locRecord = await this.locationService.getOrCreateLocation(
+        dto.location
+      );
+      resolvedLocationId = locRecord.id;
+    } else if (dto.locationId) {
+      resolvedLocationId = dto.locationId;
+    }
+
+    const resolvedLocationIds: string[] = [];
+    if (dto.locationIds) {
+      resolvedLocationIds.push(...dto.locationIds);
+    }
+    if (dto.locations) {
+      for (const loc of dto.locations) {
+        const locRecord = await this.locationService.getOrCreateLocation(loc);
+        resolvedLocationIds.push(locRecord.id);
+      }
+    }
+
     try {
       // Create company and employer in a transaction
       const company = await this.prisma.$transaction(async (tx) => {
         // Create the company
         const slug = await this.generateUniqueSlug(dto.name);
+        const { location, locations, locationId, locationIds, ...companyData } =
+          dto;
+
         const newCompany = await tx.company.create({
           data: {
-            ...dto,
+            ...companyData,
             slug,
             images: dto.images || [],
-            locations: dto.locations || [],
+            locationId: resolvedLocationId || undefined,
+            locations:
+              resolvedLocationIds.length > 0
+                ? {
+                    connect: resolvedLocationIds.map((id) => ({ id })),
+                  }
+                : undefined,
           },
         });
 
@@ -382,10 +417,19 @@ export class CompanyService {
         return tx.company.update({
           where: { id: newCompany.id },
           data: { adminId: employerRecord.id },
+          include: {
+            location: true,
+            locations: true,
+            _count: {
+              select: {
+                jobPostings: true,
+              },
+            },
+          },
         });
       });
 
-      return company;
+      return this.mapToCompanyResponse(company);
     } catch (error) {
       this.mapPrismaError(error, dto.name);
     }
@@ -399,7 +443,7 @@ export class CompanyService {
     return this.applyCompanyUpdate(id, dto, user);
   }
 
-  async patch(id: number, dto: CompanyPatchDto, user: User): Promise<Company> {
+  async patch(id: number, dto: CompanyPatchDto, user: User): Promise<any> {
     return this.applyCompanyUpdate(id, dto, user);
   }
 
@@ -407,22 +451,87 @@ export class CompanyService {
     id: number,
     dto: CompanyUpdateDto | CompanyPatchDto,
     user: User
-  ): Promise<Company> {
+  ): Promise<any> {
     await this.ensureCompanyExists(id);
     await this.ensureCompanyAccess(id, user);
 
-    try {
-      const data =
-        dto.name !== undefined
-          ? {
-              ...dto,
-              slug: await this.generateUniqueSlug(dto.name, id),
-            }
-          : dto;
+    const {
+      location,
+      locationId,
+      locations,
+      locationIds,
+      images,
+      ...companyData
+    } = dto;
 
-      return await this.prisma.company.update({ where: { id }, data });
+    let resolvedLocationId: string | null | undefined = undefined;
+    if (locationId !== undefined) {
+      resolvedLocationId = locationId;
+    }
+    if (location !== undefined) {
+      if (location === null) {
+        resolvedLocationId = null;
+      } else {
+        const locRecord = await this.locationService.getOrCreateLocation(
+          location
+        );
+        resolvedLocationId = locRecord.id;
+      }
+    }
+
+    let resolvedLocationIds: string[] | undefined = undefined;
+    if (locationIds !== undefined || locations !== undefined) {
+      resolvedLocationIds = [];
+      if (locationIds) {
+        resolvedLocationIds.push(...locationIds);
+      }
+      if (locations) {
+        for (const loc of locations) {
+          const locRecord = await this.locationService.getOrCreateLocation(loc);
+          resolvedLocationIds.push(locRecord.id);
+        }
+      }
+    }
+
+    try {
+      const data: Prisma.CompanyUpdateInput = {
+        ...companyData,
+        images: images || undefined,
+      };
+
+      if (companyData.name !== undefined) {
+        data.slug = await this.generateUniqueSlug(companyData.name, id);
+      }
+
+      if (resolvedLocationId !== undefined) {
+        data.location = resolvedLocationId
+          ? { connect: { id: resolvedLocationId } }
+          : { disconnect: true };
+      }
+
+      if (resolvedLocationIds !== undefined) {
+        data.locations = {
+          set: resolvedLocationIds.map((id) => ({ id })),
+        };
+      }
+
+      const updated = await this.prisma.company.update({
+        where: { id },
+        data,
+        include: {
+          location: true,
+          locations: true,
+          _count: {
+            select: {
+              jobPostings: true,
+            },
+          },
+        },
+      });
+
+      return this.mapToCompanyResponse(updated);
     } catch (error) {
-      this.mapPrismaError(error, dto.name);
+      this.mapPrismaError(error, companyData.name);
     }
   }
 
@@ -744,5 +853,56 @@ export class CompanyService {
     }
 
     throw error;
+  }
+
+  private mapToCompanyResponse(company: any) {
+    if (!company) return null;
+    const { location, locations, ...rest } = company;
+    return {
+      ...rest,
+      location: location?.formattedAddress || null,
+      locationDetail: location
+        ? {
+            id: location.id,
+            provider: location.provider,
+            providerId: location.providerId,
+            formattedAddress: location.formattedAddress,
+            lat: location.lat,
+            lng: location.lng,
+            city: location.city || null,
+            state: location.state || null,
+            country: location.country || null,
+            postcode: location.postcode || null,
+          }
+        : null,
+      locations: locations
+        ? locations.map((loc: any) => loc.formattedAddress)
+        : [],
+      locationDetails: locations
+        ? locations.map((loc: any) => ({
+            id: loc.id,
+            provider: loc.provider,
+            providerId: loc.providerId,
+            formattedAddress: loc.formattedAddress,
+            lat: loc.lat,
+            lng: loc.lng,
+            city: loc.city || null,
+            state: loc.state || null,
+            country: loc.country || null,
+            postcode: loc.postcode || null,
+          }))
+        : [],
+      logo: {
+        imageUrl: company.logoUrl || '',
+        alt: `${company.name} logo`,
+        rounded: 'square' as const,
+      },
+      jobs: company._count?.jobPostings ?? 0,
+      tag: {
+        id: String(company.id),
+        label: company.industry || 'Technology',
+        tone: this.getTagTone(company.industry),
+      },
+    };
   }
 }

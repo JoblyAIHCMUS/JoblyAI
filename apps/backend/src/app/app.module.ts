@@ -21,6 +21,7 @@ import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { McpModule } from './mcp/mcp.module';
 import { PreShortlistModule } from './pre-shortlist/pre-shortlist.module';
+import { LocationModule } from './location/location.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { PreShortlistModule } from './pre-shortlist/pre-shortlist.module';
     SkillsModule,
     AiModule,
     McpModule,
+    LocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

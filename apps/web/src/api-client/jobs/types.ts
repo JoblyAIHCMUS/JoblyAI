@@ -56,10 +56,13 @@ export interface JobRequirementInput {
   minYearsExperience?: number;
 }
 
+import { LocationDetail } from '../location';
+
 export interface CreateJobPayload {
   title: string;
   description: string;
-  location?: string;
+  location?: LocationDetail | null;
+  locationId?: string;
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;
@@ -75,7 +78,8 @@ export interface CreateJobPayload {
 export interface UpdateJobPayload {
   title?: string;
   description?: string;
-  location?: string;
+  location?: LocationDetail | null;
+  locationId?: string;
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;

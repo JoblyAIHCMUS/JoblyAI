@@ -17,6 +17,7 @@ import {
   JobStatus,
 } from '@prisma/client';
 import { PreShortlistQuestionInput } from './preShortlistQuestionInput';
+import { CreateLocationDto } from '../../location/dto/create-location.dto';
 
 export class JobRequirementInput {
   @IsNumber()
@@ -42,7 +43,12 @@ export class UpdateJobDTO {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsNumber()

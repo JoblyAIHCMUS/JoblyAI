@@ -7,8 +7,10 @@ import {
   IsUrl,
   Min,
   Max,
+  ValidateNested,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
+import { CreateLocationDto } from '../../location/dto/create-location.dto';
 
 export class CompanyCreateDto {
   @IsString()
@@ -39,7 +41,12 @@ export class CompanyCreateDto {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsArray()
@@ -49,7 +56,13 @@ export class CompanyCreateDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  locations?: string[];
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyUpdateDto {
@@ -81,7 +94,12 @@ export class CompanyUpdateDto {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsArray()
@@ -91,7 +109,13 @@ export class CompanyUpdateDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  locations?: string[];
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyPatchDto {
@@ -124,7 +148,12 @@ export class CompanyPatchDto {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsArray()
@@ -134,7 +163,13 @@ export class CompanyPatchDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  locations?: string[];
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyAddEmployeeDto {
