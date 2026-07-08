@@ -27,6 +27,7 @@ export default function CompanyDetailHero({
             width={834}
             height={436}
             className="absolute top-0 right-1/3 h-auto w-[400px] max-w-none opacity-90"
+            style={{ height: 'auto' }}
           />
         </div>
 
@@ -37,6 +38,7 @@ export default function CompanyDetailHero({
             width={834}
             height={436}
             className="absolute left-2/3 top-1/2 h-auto w-[834px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-90"
+            style={{ height: 'auto' }}
           />
         </div>
       </div>
@@ -74,9 +76,11 @@ export default function CompanyDetailHero({
                   )}
                 </div>
 
-                <div className="inline-flex w-fit rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 sm:px-4 sm:py-2 sm:text-sm sm:hidden">
-                  {company.openJobsCount} open jobs
-                </div>
+                {company.openJobsCount > 0 && (
+                  <div className="inline-flex w-fit rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 sm:px-4 sm:py-2 sm:text-sm sm:hidden">
+                    {company.openJobsCount} open jobs
+                  </div>
+                )}
               </div>
 
               <div className="min-w-0 space-y-3">
@@ -85,44 +89,63 @@ export default function CompanyDetailHero({
                     <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
                       {company.name}
                     </h1>
-                    <div className="hidden w-fit rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 md:inline-flex">
-                      {company.openJobsCount} open jobs
-                    </div>
-                  </div>
-                  <a
-                    href={company.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-flex text-sm text-indigo-700 underline-offset-2 transition-colors hover:text-indigo-800 hover:underline"
-                  >
-                    <Globe className="h-5 w-5" />
-                    {company.website}
-                  </a>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-                  {company.stats.map((stat) => {
-                    const Icon =
-                      statIconMap[stat.label as keyof typeof statIconMap] ??
-                      Globe;
-
-                    return (
-                      <div key={stat.label} className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
-                            {stat.label}
-                          </p>
-                          <p className="text-sm font-medium text-slate-900 sm:text-base">
-                            {stat.value}
-                          </p>
-                        </div>
+                    {company.openJobsCount > 0 && (
+                      <div className="hidden w-fit rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 md:inline-flex">
+                        {company.openJobsCount} open jobs
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
+                  {company.website && (
+                    <a
+                      href={company.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1.5 text-sm text-indigo-700 underline-offset-2 transition-colors hover:text-indigo-800 hover:underline"
+                    >
+                      <Globe className="h-5 w-5" />
+                      {company.website}
+                    </a>
+                  )}
                 </div>
+
+                {company.stats && company.stats.length > 0 && (
+                  <div
+                    className={`grid gap-3 sm:grid-cols-2 lg:gap-6 ${
+                      company.stats.length === 1
+                        ? 'lg:grid-cols-1'
+                        : company.stats.length === 2
+                        ? 'lg:grid-cols-2'
+                        : company.stats.length === 3
+                        ? 'lg:grid-cols-3'
+                        : 'lg:grid-cols-4'
+                    }`}
+                  >
+                    {company.stats.map((stat) => {
+                      const Icon =
+                        statIconMap[stat.label as keyof typeof statIconMap] ??
+                        Globe;
+
+                      return (
+                        <div
+                          key={stat.label}
+                          className="flex items-start gap-3"
+                        >
+                          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <div>
+                            <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
+                              {stat.label}
+                            </p>
+                            <p className="text-sm font-medium text-slate-900 sm:text-base">
+                              {stat.value}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>

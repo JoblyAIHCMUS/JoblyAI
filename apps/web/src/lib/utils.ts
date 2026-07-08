@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { generateHTML } from '@tiptap/html';
+import StarterKit from '@tiptap/starter-kit';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -308,4 +310,72 @@ export function formatDate(
   } catch {
     return 'Unknown';
   }
+}
+
+/**
+ * Converts a TipTap JSON node structure to an HTML string using TipTap's official package.
+ */
+export function convertTiptapJsonToHtml(node: any): string {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+
+  try {
+    return generateHTML(node, [StarterKit]);
+  } catch (error) {
+    console.error('Failed to generate HTML from Tiptap JSON:', error);
+    return '';
+  }
+}
+
+/**
+ * Checks if a description is in TipTap JSON format or HTML format and renders it accordingly.
+ */
+export function renderDescription(
+  description: string | null | undefined
+): string {
+  if (!description) return '';
+
+  const trimmed = description.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === 'object') {
+        return convertTiptapJsonToHtml(parsed);
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  return description;
+}
+
+/**
+ * Strips HTML tags or parses TipTap JSON format to return clean plain text.
+ */
+export function stripHtmlTags(html: string | null | undefined): string {
+  if (!html) return '';
+
+  const trimmed = html.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === 'object') {
+        const getText = (node: any): string => {
+          if (!node) return '';
+          if (node.type === 'text') return node.text || '';
+          if (node.content) return node.content.map(getText).join(' ');
+          return '';
+        };
+        return getText(parsed).replace(/\s+/g, ' ').trim();
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

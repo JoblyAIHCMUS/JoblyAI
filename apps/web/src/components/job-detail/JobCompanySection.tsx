@@ -38,15 +38,19 @@ export default function JobCompanySection({
             {/* Company header */}
             <div className="flex items-start gap-3">
               {/* Logo */}
-              <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white">
+              <Link
+                href={companyUrl}
+                className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white hover:opacity-90 transition-opacity"
+              >
                 <Image
                   src={company.logoUrl || '/placeholder-logo.png'}
                   alt={`${company.name} logo`}
                   fill
+                  sizes="64px"
                   className="object-contain p-1"
                   unoptimized
                 />
-              </div>
+              </Link>
 
               {/* Name + link */}
               <div className="flex flex-col">
@@ -76,6 +80,7 @@ export default function JobCompanySection({
                   src={mainPhoto}
                   alt={`${company.name} office`}
                   fill
+                  sizes="(max-width: 1024px) 100vw, 316px"
                   className="object-cover"
                   unoptimized
                 />
@@ -92,6 +97,7 @@ export default function JobCompanySection({
                         src={photo}
                         alt={`${company.name} office ${index + 2}`}
                         fill
+                        sizes="(max-width: 1024px) 33vw, 100px"
                         className="object-cover"
                         unoptimized
                       />

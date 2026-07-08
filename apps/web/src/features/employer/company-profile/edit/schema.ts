@@ -130,6 +130,14 @@ export const companyUpdateSchema = z
         'Company description cannot be empty'
       ),
     logoUrl: z.string().optional().nullable(),
+    location: z.string().optional(),
+    locations: z
+      .array(z.string().trim().min(1, 'Location cannot be empty'))
+      .optional(),
+    images: z
+      .array(z.string().url('Invalid image URL'))
+      .max(5, 'Maximum of 5 company images')
+      .optional(),
   })
   .strict();
 

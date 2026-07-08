@@ -337,12 +337,15 @@ model Company {
   industry    String?
   description String?
   logoUrl     String?
+  location    String?
   adminId     Int?         @unique
   admin       Employer?    @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   employers   Employer[]   @relation("CompanyEmployers")
   jobPostings JobPosting[]
+  images      String[]
+  locations   String[]
 }
 
 model Employer {

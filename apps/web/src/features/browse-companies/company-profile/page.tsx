@@ -51,7 +51,9 @@ export default function BrowseCompaniesCompanyProfilePage({
     <div className="w-full bg-white">
       <CompanyDetailHero company={displayCompany} />
       <CompanyOverviewSection company={displayCompany} />
-      <CompanyTeamSection company={displayCompany} />
+      {displayCompany.team && displayCompany.team.length > 0 && (
+        <CompanyTeamSection company={displayCompany} />
+      )}
       <JobDetailSimilarJobs
         title="Open Jobs"
         companyId={Number(companyId)}

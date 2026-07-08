@@ -7,6 +7,15 @@ export const company = [
     description: 'Aenean lectus.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/fpt-software.png',
+    locations: [
+      'Hanoi, Vietnam',
+      'Ho Chi Minh City, Vietnam',
+      'Da Nang, Vietnam',
+    ],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/fpt1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/fpt2.jpg',
+    ],
   },
   {
     name: 'VNG Corporation',
@@ -16,6 +25,11 @@ export const company = [
     description:
       'Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero.',
     logoUrl: 'https://storage.googleapis.com/jobly-public/assets/logos/vng.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Viettel Group',
@@ -26,6 +40,11 @@ export const company = [
       'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis. Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/viettel.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'CMC Corporation',
@@ -35,6 +54,11 @@ export const company = [
     description:
       'Nullam sit amet turpis elementum ligula vehicula consequat. Morbi a ipsum. Integer a nibh. In quis justo. Maecenas rhoncus aliquam lacus.',
     logoUrl: 'https://storage.googleapis.com/jobly-public/assets/logos/cmc.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'VNPT',
@@ -45,6 +69,11 @@ export const company = [
       'Ut at dolor quis odio consequat varius. Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi. Nam ultrices, libero non mattis pulvinar, nulla pede ullamcorper augue, a suscipit nulla elit ac nulla. Sed vel enim sit amet nunc viverra dapibus. Nulla suscipit ligula in lacus. Curabitur at ipsum ac tellus semper interdum. Mauris ullamcorper purus sit amet nulla.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/vnpt.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Cốc Cốc',
@@ -55,6 +84,11 @@ export const company = [
       'Praesent id massa id nisl venenatis lacinia. Aenean sit amet justo. Morbi ut odio. Cras mi pede, malesuada in, imperdiet et, commodo vulputate, justo. In blandit ultrices enim.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/coccoc.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Bkav',
@@ -65,6 +99,11 @@ export const company = [
       'Suspendisse potenti. In eleifend quam a odio. In hac habitasse platea dictumst. Maecenas ut massa quis augue luctus tincidunt. Nulla mollis molestie lorem. Quisque ut erat. Curabitur gravida nisi at nibh. In hac habitasse platea dictumst. Aliquam augue quam, sollicitudin vitae, consectetuer eget, rutrum at, lorem. Integer tincidunt ante vel ipsum.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/bkav.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'MobiFone',
@@ -75,6 +114,11 @@ export const company = [
       'Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus. Phasellus in felis. Donec semper sapien a libero. Nam dui. Proin leo odio, porttitor id, consequat in, consequat ut, nulla. Sed accumsan felis. Ut at dolor quis odio consequat varius.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/mobifone.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Apple',
@@ -85,6 +129,11 @@ export const company = [
       'Pellentesque viverra pede ac diam. Cras pellentesque volutpat dui. Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/apple.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Microsoft',
@@ -95,6 +144,11 @@ export const company = [
       'Etiam pretium iaculis justo. In hac habitasse platea dictumst. Etiam faucibus cursus urna. Ut tellus. Nulla ut erat id mauris vulputate elementum. Nullam varius.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/microsoft.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Google',
@@ -105,6 +159,11 @@ export const company = [
       'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti. Nullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris. Morbi non lectus.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/google.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Amazon',
@@ -115,6 +174,11 @@ export const company = [
       'Duis at velit eu est congue elementum. In hac habitasse platea dictumst. Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/amazon.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Meta',
@@ -125,6 +189,11 @@ export const company = [
       'Duis at velit eu est congue elementum. In hac habitasse platea dictumst. Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo. Aliquam quis turpis eget elit sodales scelerisque. Mauris sit amet eros. Suspendisse accumsan tortor quis turpis. Sed ante. Vivamus tortor. Duis mattis egestas metus.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/meta.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'NVIDIA',
@@ -135,6 +204,11 @@ export const company = [
       'Donec dapibus. Duis at velit eu est congue elementum. In hac habitasse platea dictumst.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/nvidia.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Samsung Electronics',
@@ -145,6 +219,11 @@ export const company = [
       'Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/samsung.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Tencent',
@@ -155,6 +234,11 @@ export const company = [
       'Proin risus. Praesent lectus. Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis. Duis consequat dui nec nisi volutpat eleifend.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/tencent.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Alibaba Group',
@@ -165,6 +249,11 @@ export const company = [
       'Nulla nisl. Nunc nisl. Duis bibendum, felis sed interdum venenatis, turpis enim blandit mi, in porttitor pede justo eu massa. Donec dapibus. Duis at velit eu est congue elementum. In hac habitasse platea dictumst. Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/alibabagroup.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Oracle',
@@ -174,6 +263,11 @@ export const company = [
     description: 'Morbi ut odio.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/oracle.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'TSMC',
@@ -184,6 +278,11 @@ export const company = [
       'Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis. Fusce posuere felis sed lacus. Morbi sem mauris, laoreet ut, rhoncus aliquet, pulvinar sed, nisl. Nunc rhoncus dui vel sem. Sed sagittis.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/tsmc.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
   {
     name: 'Adobe',
@@ -194,5 +293,10 @@ export const company = [
       'Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo. Aliquam quis turpis eget elit sodales scelerisque. Mauris sit amet eros. Suspendisse accumsan tortor quis turpis.',
     logoUrl:
       'https://storage.googleapis.com/jobly-public/assets/logos/adobe.png',
+    locations: ['Ho Chi Minh City, Vietnam', 'Hanoi, Vietnam'],
+    images: [
+      'https://storage.googleapis.com/jobly-public/assets/images/vng1.jpg',
+      'https://storage.googleapis.com/jobly-public/assets/images/vng2.jpg',
+    ],
   },
 ];

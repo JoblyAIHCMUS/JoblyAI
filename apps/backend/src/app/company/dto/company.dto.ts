@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -33,6 +34,20 @@ export class CompanyCreateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locations?: string[];
 }
 
 export class CompanyUpdateDto {
@@ -61,6 +76,20 @@ export class CompanyUpdateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locations?: string[];
 }
 
 export class CompanyPatchDto {
@@ -90,6 +119,20 @@ export class CompanyPatchDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locations?: string[];
 }
 
 export class CompanyAddEmployeeDto {
