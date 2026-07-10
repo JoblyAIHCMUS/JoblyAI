@@ -74,4 +74,26 @@ describe('getJobHandler', () => {
       'Forbidden: job does not belong to your company'
     );
   });
+
+  it('returns preShortlistThreshold in structuredContent', async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: 1,
+      title: 'Backend Engineer',
+      description: 'desc',
+      companyId: 42,
+      preShortlistThreshold: 75,
+      category: { id: 1, name: 'Backend' },
+      company: { id: 42, name: 'Acme' },
+      requirements: [],
+      _count: { applications: 0 },
+    });
+    const state = buildState(findUnique);
+
+    const result = await getJobHandler(state, { id: 1 });
+
+    expect(result.structuredContent).toMatchObject({
+      preShortlistThreshold: 75,
+    });
+    expect(result.isError).toBeUndefined();
+  });
 });
