@@ -34,16 +34,13 @@ describe('removePreShortlistQuestionsHandler', () => {
       companyId: 100,
       _count: { applications: 0 },
     });
-    const questionFindMany = vi.fn().mockResolvedValue([
-      { id: 'q1' },
-      { id: 'q2' },
-    ]);
+    const questionFindMany = vi
+      .fn()
+      .mockResolvedValue([{ id: 'q1' }, { id: 'q2' }]);
     const deleteMany = vi.fn().mockResolvedValue({ count: 2 });
-    const remainingFindMany = vi.fn().mockResolvedValue([
-      { id: 'q3' },
-      { id: 'q4' },
-      { id: 'q5' },
-    ]);
+    const remainingFindMany = vi
+      .fn()
+      .mockResolvedValue([{ id: 'q3' }, { id: 'q4' }, { id: 'q5' }]);
     const update = vi.fn();
     const $transaction = vi.fn(async (cb) => {
       const tx = {
@@ -82,9 +79,18 @@ describe('removePreShortlistQuestionsHandler', () => {
       select: { id: true },
     });
     expect(update).toHaveBeenCalledTimes(3);
-    expect(update).toHaveBeenNthCalledWith(1, { where: { id: 'q3' }, data: { order: 0 } });
-    expect(update).toHaveBeenNthCalledWith(2, { where: { id: 'q4' }, data: { order: 1 } });
-    expect(update).toHaveBeenNthCalledWith(3, { where: { id: 'q5' }, data: { order: 2 } });
+    expect(update).toHaveBeenNthCalledWith(1, {
+      where: { id: 'q3' },
+      data: { order: 0 },
+    });
+    expect(update).toHaveBeenNthCalledWith(2, {
+      where: { id: 'q4' },
+      data: { order: 1 },
+    });
+    expect(update).toHaveBeenNthCalledWith(3, {
+      where: { id: 'q5' },
+      data: { order: 2 },
+    });
     expect(result.structuredContent).toEqual({
       removed: 2,
       remaining: 3,

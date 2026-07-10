@@ -38,10 +38,9 @@ describe('addPreShortlistQuestionsHandler', () => {
     });
     const count = vi.fn().mockResolvedValue(3); // 3 existing
     const createMany = vi.fn().mockResolvedValue({ count: 2 });
-    const findMany = vi.fn().mockResolvedValue([
-      { id: 'new1' },
-      { id: 'new2' },
-    ]);
+    const findMany = vi
+      .fn()
+      .mockResolvedValue([{ id: 'new1' }, { id: 'new2' }]);
     const state = buildState({ findUnique, count, createMany, findMany });
 
     const result = await addPreShortlistQuestionsHandler(state, {

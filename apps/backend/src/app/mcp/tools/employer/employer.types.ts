@@ -45,10 +45,9 @@ export const UpdatePreShortlistQuestionInputSchema = z
     question: z.string().min(5).max(10_000).optional(),
     expectedAnswer: z.string().min(1).max(10_000).optional(),
   })
-  .refine(
-    (d) => d.question !== undefined || d.expectedAnswer !== undefined,
-    { message: 'At least one of question or expectedAnswer must be provided' }
-  );
+  .refine((d) => d.question !== undefined || d.expectedAnswer !== undefined, {
+    message: 'At least one of question or expectedAnswer must be provided',
+  });
 export type UpdatePreShortlistQuestionInput = z.infer<
   typeof UpdatePreShortlistQuestionInputSchema
 >;

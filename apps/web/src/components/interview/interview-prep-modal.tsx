@@ -134,7 +134,10 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0" hideCloseButton>
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] flex flex-col p-0"
+        hideCloseButton
+      >
         <DialogHeader className="p-6 pb-2">
           <div className="flex items-center justify-between">
             <div className="space-y-1">

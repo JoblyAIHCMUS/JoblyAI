@@ -117,7 +117,7 @@ export function registerRemovePreShortlistQuestionsTool(
     'remove_pre_shortlist_questions',
     {
       description:
-        'Delete one or more pre-shortlist questions by id. Remaining questions are auto-renumbered (the `order` field is compacted to 0, 1, 2, ...). Fails if the job has any applications, if any `questionIds` don\'t belong to the job, or on cross-company attempts.',
+        "Delete one or more pre-shortlist questions by id. Remaining questions are auto-renumbered (the `order` field is compacted to 0, 1, 2, ...). Fails if the job has any applications, if any `questionIds` don't belong to the job, or on cross-company attempts.",
       inputSchema: RemovePreShortlistQuestionsInputSchema,
       outputSchema,
       annotations: { readOnlyHint: false, openWorldHint: false },
