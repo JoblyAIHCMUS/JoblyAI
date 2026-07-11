@@ -1,0 +1,212 @@
+name: Deploy Fullstack JoblyAI to GCP Production
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      deploy_choice:
+        description: 'Deploy Option'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - 'both'       # Deploy cả Backend & Web (Có chạy Migrate)
+          - 'api'        # Chỉ deploy Backend API (Không chạy Migrate)
+          - 'web'        # Chỉ deploy Frontend Web (Không chạy Migrate)
+          - 'migrate'    # Chỉ chạy Database Migration & Seed (Prisma)
+
+env:
+  GCP_PROJECT_ID: 'steady-atlas-499014-n2'
+  GCP_REGION: 'asia-southeast1'
+  AR_REPO_NAME: 'joblyai-ar'
+  RUN_API_SERVICE: 'joblyai-run-svc-api'
+  RUN_WEB_SERVICE: 'joblyai-run-svc-web'
+  CLOUDSQL_CONNECTION: 'steady-atlas-499014-n2:asia-southeast1:joblyai-db'
+  VM_PUBLIC_IP: '34.143.182.149'
+  DOMAIN_URL: 'https://jobly.ai.vn'
+  GCS_PUBLIC_BUCKET: 'joblyai-public'
+  GCS_PRIVATE_BUCKET: 'joblyai-private'
+
+jobs:
+  migrate-db:
+    # Chạy khi PR được merge vào main HOẶC khi trigger thủ công chọn 'migrate' hoặc 'both'
+    if: |
+      github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop' ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'migrate' || github.event.inputs.deploy_choice == 'both')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ env.CLOUDSQL_CONNECTION }} --port 5432 &
+          sleep 5
+
+      - name: Run Prisma Migrations
+        env:
+          DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@127.0.0.1:5432/jobly_db
+        run: |
+          pnpm --filter @jobly/backend prisma:generate
+          npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
+
+      - name: Run Seed Data
+        env:
+          DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@127.0.0.1:5432/jobly_db
+          SEED_MODE: system
+        run: |
+          pnpm --filter @jobly/backend exec ts-node prisma/seed.ts
+
+  deploy-backend:
+    needs: migrate-db
+    # Chạy nếu migrate-db thành công HOẶC migrate-db bị skip (khi chỉ deploy api/web không cần migrate)
+    # Đồng thời thỏa mãn điều kiện là PR merge từ develop HOẶC chạy thủ công chọn 'api' hoặc 'both'
+    if: |
+      always() &&
+      !failed() &&
+      !cancelled() &&
+      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
+      (
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'api' || github.event.inputs.deploy_choice == 'both'))
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCP
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-backend:${{ github.sha }}
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Backend to Cloud Run
+        run: |
+          BACKEND_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-backend:${{ github.sha }}"
+          
+          gcloud run deploy ${{ env.RUN_API_SERVICE }} \
+            --image=$BACKEND_IMAGE \
+            --region=${{ env.GCP_REGION }} \
+            --allow-unauthenticated \
+            --port=3000 \
+            --add-cloudsql-instances=${{ env.CLOUDSQL_CONNECTION }} \
+            --no-cpu-throttling \
+            --session-affinity \
+            --timeout=3600 \
+            --min-instances=0 \
+            --max-instances=5 \
+            --memory=1Gi \
+            --cpu=1 \
+            --set-env-vars="NODE_ENV=production,SCYLLA_HOST=${{ env.VM_PUBLIC_IP }},SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=${{ env.GCP_PROJECT_ID }},GCS_PUBLIC_BUCKET=${{ env.GCS_PUBLIC_BUCKET }},GCS_PRIVATE_BUCKET=${{ env.GCS_PRIVATE_BUCKET }},BETTER_AUTH_URL=${{ env.DOMAIN_URL }},APP_URL=${{ env.DOMAIN_URL }},WEB_URL=${{ env.DOMAIN_URL }},WS_REDIS_ADAPTER=true" \
+            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest,GEOAPIFY_API_KEY=geoapify-api-key:latest"
+
+  deploy-web:
+    needs: migrate-db
+    # Chạy nếu migrate-db thành công HOẶC migrate-db bị skip (khi chỉ deploy api/web không cần migrate)
+    # Đồng thời thỏa mãn điều kiện là PR merge từ develop HOẶC chạy thủ công chọn 'web' hoặc 'both'
+    if: |
+      always() &&
+      !failed() &&
+      !cancelled() &&
+      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
+      (
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'web' || github.event.inputs.deploy_choice == 'both'))
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCP
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Web Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ env.DOMAIN_URL }}
+          push: true
+          tags: |
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-web:${{ github.sha }}
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Web to Cloud Run
+        run: |
+          WEB_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-web:${{ github.sha }}"
+          
+          gcloud run deploy ${{ env.RUN_WEB_SERVICE }} \
+            --image=$WEB_IMAGE \
+            --region=${{ env.GCP_REGION }} \
+            --allow-unauthenticated \
+            --port=3000 \
+            --memory=512Mi \
+            --cpu=1 \
+            --min-instances=0 \
+            --max-instances=5 \
+            --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_URL=${{ env.DOMAIN_URL }}"
