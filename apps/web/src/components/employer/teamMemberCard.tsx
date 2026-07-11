@@ -78,6 +78,9 @@ export function TeamMemberCard({
             </>
           ) : (
             <>
+              {isEditable && (
+                <span className="w-3 shrink-0" aria-hidden="true" />
+              )}
               <p className="body-body-2-regular text-slate-500 text-xs sm:text-sm">
                 {role}
               </p>
@@ -87,7 +90,7 @@ export function TeamMemberCard({
                   className="text-slate-400 hover:text-slate-600 shrink-0"
                   aria-label="Edit role"
                 >
-                  <Pencil className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  <Pencil className="h-3 w-3 sm:h-3.5 sm:h-3.5" />
                 </button>
               )}
             </>
@@ -95,7 +98,10 @@ export function TeamMemberCard({
         </div>
       </div>
 
-      <p className="body-body-3-regular text-slate-400 text-xs truncate">
+      <p
+        className="body-body-3-regular text-slate-400 text-xs w-full min-w-0 break-all text-center"
+        title={email}
+      >
         {email}
       </p>
     </Card>
