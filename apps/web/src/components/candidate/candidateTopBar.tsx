@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Bell, Menu, X, CheckCheck } from 'lucide-react';
 
@@ -33,6 +34,8 @@ export function CandidateTopBar() {
   const email = candidateProfile?.email;
   const initials = getInitials(fullName || 'Candidate');
   const avatarUrl = candidateProfile?.avatarUrl;
+  const [avatarError, setAvatarError] = useState(false);
+  const showAvatarFallback = !avatarUrl || avatarError;
 
   return (
     <>
@@ -51,16 +54,17 @@ export function CandidateTopBar() {
             href="/candidate/profile"
             className="flex items-center gap-4 hover:opacity-80 transition-opacity"
           >
-            {avatarUrl ? (
+            {showAvatarFallback ? (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 font-[family-name:var(--family-primary)] text-sm font-semibold leading-none text-indigo-700 cursor-pointer">
+                {initials}
+              </div>
+            ) : (
               <img
                 src={avatarUrl}
                 alt={fullName}
                 className="h-12 w-12 rounded-full object-cover cursor-pointer"
+                onError={() => setAvatarError(true)}
               />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e9ebfd] font-[family-name:var(--family-primary)] text-sm font-semibold text-[#4640de] cursor-pointer">
-                {initials}
-              </div>
             )}
 
             <div className="min-w-0 hidden md:block ">
