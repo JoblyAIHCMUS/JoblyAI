@@ -29,7 +29,20 @@ export default function CompanyOverviewSection({
   company: CompanyProfile;
 }) {
   const [mainImage, ...galleryImages] = company.gallery || [];
+  const [mainImageError, setMainImageError] = useState(false);
+  const [galleryImageErrors, setGalleryImageErrors] = useState<Set<string>>(
+    new Set()
+  );
   const [showAllLocations, setShowAllLocations] = useState(false);
+
+  const handleGalleryImageError = (url: string) => {
+    setGalleryImageErrors((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  };
   const maxVisibleLocations = 4;
   const hasMoreLocations =
     (company.officeLocations || []).length > maxVisibleLocations;
@@ -94,29 +107,34 @@ export default function CompanyOverviewSection({
                   : 'w-full'
               }
             >
-              {mainImage ? (
+              {mainImage && !mainImageError ? (
                 <div className="overflow-hidden rounded-[2px]">
                   <img
                     src={mainImage}
                     alt={`${company.name} office main view`}
                     className="h-full min-h-[300px] w-full object-cover"
                     loading="lazy"
+                    onError={() => setMainImageError(true)}
                   />
                 </div>
               ) : null}
 
               {galleryImages.length > 0 && (
                 <div className="grid gap-3">
-                  {galleryImages.slice(0, 3).map((image, index) => (
-                    <div key={image} className="overflow-hidden rounded-[2px]">
-                      <img
-                        src={image}
-                        alt={`${company.name} office ${index + 2}`}
-                        className="h-[160px] w-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
+                  {galleryImages.slice(0, 3).map(
+                    (image, index) =>
+                      !galleryImageErrors.has(image) && (
+                        <div key={image} className="overflow-hidden rounded-[2px]">
+                          <img
+                            src={image}
+                            alt={`${company.name} office ${index + 2}`}
+                            className="h-[160px] w-full object-cover"
+                            loading="lazy"
+                            onError={() => handleGalleryImageError(image)}
+                          />
+                        </div>
+                      )
+                  )}
                 </div>
               )}
             </div>
