@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 import { Briefcase, CalendarDays, Globe, MapPin, Users } from 'lucide-react';
 import type { CompanyProfile } from '@/types/companyProfile';
 
@@ -10,36 +13,48 @@ const statIconMap = {
   Industry: Briefcase,
 };
 
+const PATTERN_URL =
+  'https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg';
+
 export default function CompanyDetailHero({
   company,
 }: {
   company: CompanyProfile;
 }) {
+  const [logoError, setLogoError] = useState(false);
+  const [patternError, setPatternError] = useState(false);
+
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-16 sm:pt-20 lg:pt-24">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[#F8F8FD]" />
 
         <div className="absolute left-0 top-5 hidden h-[600px] w-[260px] overflow-hidden lg:block">
-          <Image
-            src="/landing/Pattern.svg"
-            alt="Pattern left"
-            width={834}
-            height={436}
-            className="absolute top-0 right-1/3 h-auto w-[400px] max-w-none opacity-90"
-            style={{ height: 'auto' }}
-          />
+          {!patternError && (
+            <Image
+              src={PATTERN_URL}
+              alt="Pattern left"
+              width={834}
+              height={436}
+              className="absolute top-0 right-1/3 h-auto w-[400px] max-w-none opacity-90"
+              style={{ height: 'auto' }}
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
 
         <div className="absolute right-0 top-20 h-[600px] w-[260px] overflow-hidden opacity-60 sm:w-[260px] sm:opacity-100 lg:w-[244px] lg:opacity-100">
-          <Image
-            src="/landing/Pattern.svg"
-            alt="Pattern right"
-            width={834}
-            height={436}
-            className="absolute left-2/3 top-1/2 h-auto w-[834px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-90"
-            style={{ height: 'auto' }}
-          />
+          {!patternError && (
+            <Image
+              src={PATTERN_URL}
+              alt="Pattern right"
+              width={834}
+              height={436}
+              className="absolute left-2/3 top-1/2 h-auto w-[834px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-90"
+              style={{ height: 'auto' }}
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -63,13 +78,14 @@ export default function CompanyDetailHero({
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start">
               <div className="flex items-start justify-between gap-4 sm:block">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded from-indigo-600 to-cyan-400 text-2xl font-semibold text-white sm:h-20 sm:w-20 sm:rounded-xl sm:text-4xl">
-                  {company.logoUrl ? (
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-indigo-100 text-2xl font-semibold leading-none text-indigo-700 sm:h-20 sm:w-20 sm:rounded-xl sm:text-4xl">
+                  {company.logoUrl && !logoError ? (
                     <img
                       src={company.logoUrl}
                       alt={`${company.name} logo`}
                       className="h-full w-full object-cover"
                       loading="lazy"
+                      onError={() => setLogoError(true)}
                     />
                   ) : (
                     company.name.slice(0, 1).toUpperCase()

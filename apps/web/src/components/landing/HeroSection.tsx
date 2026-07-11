@@ -11,6 +11,8 @@ export default function HeroSection() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
+  const [patternError, setPatternError] = useState(false);
+  const [groupError, setGroupError] = useState(false);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,21 +38,16 @@ export default function HeroSection() {
       {/* Decorative Pattern Background - Bottom Right */}
       <div className="absolute bottom-0 right-0 w-full max-w-7xl pointer-events-none">
         <div className="relative w-full h-full flex justify-end items-end">
-          <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
-            alt="decorative pattern"
-            width={900}
-            height={600}
-            className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
-          />
-          {/* <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/hero-image.png"
-            alt="Job seeker professional"
-            width={500}
-            height={600}
-            className="object-contain absolute bottom-0 right-0 z-10 hidden lg:block"
-            priority
-          /> */}
+          {!patternError && (
+            <Image
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
+              alt="decorative pattern"
+              width={900}
+              height={600}
+              className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -61,11 +58,14 @@ export default function HeroSection() {
             Discover more than{' '}
             <span className="text-indigo-600">5000+ Jobs</span>
           </h1>
-          <img
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Group.svg"
-            alt="decorative group"
-            className="mb-6 mx-auto lg:mx-0"
-          />
+          {!groupError && (
+            <img
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Group.svg"
+              alt="decorative group"
+              className="mb-6 mx-auto lg:mx-0"
+              onError={() => setGroupError(true)}
+            />
+          )}
           <p className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 opacity-70">
             Great platform for the job seeker that searching for new career
             heights and passionate about startups.

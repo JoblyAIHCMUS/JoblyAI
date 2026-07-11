@@ -2,18 +2,27 @@
 import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 
 export default function LatestJobsSection() {
   const { fetchJobs, data, loading } = useListJobs();
   const { data: user } = useUser();
+  const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchJobs({ pageSize: 8, sort: 'NEWEST' });
   }, [fetchJobs]);
 
   const latestJobs = data?.jobs || [];
+  const handleLogoError = (url: string) => {
+    setFailedLogos((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  };
 
   return (
     <section className="py-16 px-4 md:px-8 lg:px-12 bg-slate-50">
@@ -48,11 +57,13 @@ export default function LatestJobsSection() {
                   className="p-4 md:p-6 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition flex gap-3 md:gap-6"
                 >
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-300 rounded-full flex-shrink-0 overflow-hidden">
-                    {job.company.logoUrl ? (
+                    {job.company.logoUrl &&
+                    !failedLogos.has(job.company.logoUrl) ? (
                       <img
                         src={job.company.logoUrl}
                         alt={job.company.name}
                         className="w-full h-full object-cover"
+                        onError={() => handleLogoError(job.company.logoUrl!)}
                       />
                     ) : null}
                   </div>

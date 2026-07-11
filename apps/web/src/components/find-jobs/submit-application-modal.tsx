@@ -72,6 +72,7 @@ export const SubmitApplicationModal = ({
   onError,
 }: SubmitApplicationModalProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [logoError, setLogoError] = useState(false);
   const [applicationSubmitError, setApplicationSubmitError] = useState<
     string | null
   >(null);
@@ -419,7 +420,7 @@ export const SubmitApplicationModal = ({
 
         {/* Job Header */}
         <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:mb-6 sm:flex-row sm:gap-6 sm:pb-6">
-          {job.logoUrl ? (
+          {job.logoUrl && !logoError ? (
             <div className="flex-shrink-0">
               <img
                 src={job.logoUrl}
@@ -427,22 +428,27 @@ export const SubmitApplicationModal = ({
                 width={64}
                 height={64}
                 className="h-16 w-16 rounded-lg object-contain sm:h-20 sm:w-20"
+                onError={() => setLogoError(true)}
               />
             </div>
-          ) : null}
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xl font-semibold text-slate-900 sm:h-20 sm:w-20 sm:text-2xl">
+              {job.company.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <h2 className="break-words text-xl font-semibold text-slate-950 sm:text-2xl">
               {job.title}
             </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+            <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-600">
               <span className="min-w-0 break-words">{job.company}</span>
               {job.location && (
                 <>
-                  <Dot className="h-1 w-1 text-slate-400" />
+                  <Dot className="h-10 w-10 shrink-0 text-slate-400" />
                   <span className="min-w-0 break-words">{job.location}</span>
                 </>
               )}
-              <Dot className="h-1 w-1 text-slate-400" />
+              <Dot className="h-10 w-10 shrink-0 text-slate-400" />
               <span className="min-w-0 break-words">
                 {formatJobType(job.jobType)}
               </span>

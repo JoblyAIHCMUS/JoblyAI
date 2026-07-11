@@ -3,18 +3,27 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { getCardPreviewText } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 
 export default function FeaturedJobsSection() {
   const { fetchJobs, data, loading } = useListJobs();
   const { data: user } = useUser();
+  const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchJobs({ pageSize: 8 });
   }, [fetchJobs]);
 
   const featuredJobs = data?.jobs || [];
+  const handleLogoError = (url: string) => {
+    setFailedLogos((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  };
 
   return (
     <section className="py-16 px-4 md:px-8 lg:px-12 bg-white">
@@ -51,11 +60,13 @@ export default function FeaturedJobsSection() {
                     className="min-w-[280px] w-[280px] p-5 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition snap-start flex-shrink-0 block"
                   >
                     <div className="w-12 h-12 bg-slate-300 rounded-full mb-4 overflow-hidden">
-                      {job.company.logoUrl ? (
+                      {job.company.logoUrl &&
+                      !failedLogos.has(job.company.logoUrl) ? (
                         <img
                           src={job.company.logoUrl}
                           alt={job.company.name}
                           className="w-full h-full object-cover"
+                          onError={() => handleLogoError(job.company.logoUrl!)}
                         />
                       ) : null}
                     </div>
@@ -100,11 +111,13 @@ export default function FeaturedJobsSection() {
                     className="p-5 md:p-6 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition block"
                   >
                     <div className="w-12 h-12 bg-slate-300 rounded-full mb-4 overflow-hidden">
-                      {job.company.logoUrl ? (
+                      {job.company.logoUrl &&
+                      !failedLogos.has(job.company.logoUrl) ? (
                         <img
                           src={job.company.logoUrl}
                           alt={job.company.name}
                           className="w-full h-full object-cover"
+                          onError={() => handleLogoError(job.company.logoUrl!)}
                         />
                       ) : null}
                     </div>
