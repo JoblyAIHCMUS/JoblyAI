@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Users, Building2 } from 'lucide-react';
@@ -25,20 +26,25 @@ export function CompanyProfileBasicInfo({
   industry,
   isCompanyAdmin = false,
 }: CompanyProfileBasicInfoProps) {
+  const [logoError, setLogoError] = useState(false);
+  const showLogoFallback = !logoUrl || logoError;
+  const companyInitial = (name || 'C').charAt(0).toUpperCase();
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6 md:gap-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 md:gap-8 min-w-0 flex-1">
         <div className="shrink-0">
-          {logoUrl ? (
+          {showLogoFallback ? (
+            <div className="flex w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 items-center justify-center rounded-lg sm:rounded-xl bg-indigo-100 border border-slate-200 text-2xl sm:text-3xl md:text-4xl font-bold leading-none text-indigo-700">
+              {companyInitial}
+            </div>
+          ) : (
             <img
               src={logoUrl}
               alt={name + ' logo'}
               className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg sm:rounded-xl object-cover bg-slate-100 border border-slate-200"
+              onError={() => setLogoError(true)}
             />
-          ) : (
-            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <Building2 className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-slate-400" />
-            </div>
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -59,7 +65,7 @@ export function CompanyProfileBasicInfo({
             {/* Employees */}
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:w-7 text-blue-600" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
                 <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
@@ -73,7 +79,7 @@ export function CompanyProfileBasicInfo({
             {/* Industry */}
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-blue-100 flex-shrink-0">
-                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:w-7 text-blue-600" />
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 text-blue-600" />
               </span>
               <div className="flex flex-col">
                 <span className="label-label-3-medium text-slate-500 text-xs sm:text-sm">
