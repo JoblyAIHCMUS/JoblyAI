@@ -112,7 +112,13 @@ export default function JobDetailPage() {
         try {
           if (user) {
             const apps = await fetchApplications({ page: 1, pageSize: 100 });
-            const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+            const activeStatuses = [
+              'APPLIED',
+              'PRE_SHORTLIST_PENDING',
+              'PRE_SHORTLIST_SUBMITTED',
+              'INTERVIEW',
+              'OFFER',
+            ];
             const applied = (apps.applications || []).some(
               (a) => a.jobId === jobData.id && activeStatuses.includes(a.status)
             );
@@ -121,7 +127,7 @@ export default function JobDetailPage() {
           } else {
             setHasApplied(false);
           }
-        } catch (err) {
+        } catch {
           // Ignore errors (e.g., unauthenticated) and assume not applied
           setHasApplied(false);
         }
