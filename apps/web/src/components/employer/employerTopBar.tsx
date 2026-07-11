@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Bell, Plus, Menu } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -23,6 +24,9 @@ export function EmployerTopBar() {
   const company = profile?.company;
   const canPostJob = Boolean(company?.id) && !isPending;
   const { toggleSidebar, isMobile } = useSidebar();
+  const [logoError, setLogoError] = useState(false);
+  const showLogoFallback = !company?.logoUrl || logoError;
+  const companyInitial = (company?.name ?? 'C').charAt(0).toUpperCase();
 
   const {
     visibleNotifications,
@@ -64,18 +68,24 @@ export function EmployerTopBar() {
           )}
 
           {/* Company logo or placeholder */}
-          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 caption-caption-1-medium flex-shrink-0">
-            {company?.logoUrl ? (
+          <div
+            className={cn(
+              'h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center caption-caption-1-medium flex-shrink-0',
+              showLogoFallback
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-slate-200 text-slate-500'
+            )}
+          >
+            {showLogoFallback ? (
+              <span className="text-base sm:text-lg font-semibold leading-none">
+                {companyInitial}
+              </span>
+            ) : (
               <img
                 src={company.logoUrl}
                 alt={company.name}
                 className="h-12 w-12 rounded-full object-cover"
-              />
-            ) : (
-              <img
-                src="https://placehold.co/48x48"
-                alt="Company logo placeholder"
-                className="h-12 w-12 rounded-full object-cover"
+                onError={() => setLogoError(true)}
               />
             )}
           </div>
