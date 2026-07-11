@@ -82,7 +82,7 @@ export function EmployerTopBar() {
               </span>
             ) : (
               <img
-                src={company.logoUrl}
+                src={company.logoUrl ?? undefined}
                 alt={company.name}
                 className="h-12 w-12 rounded-full object-cover"
                 onError={() => setLogoError(true)}

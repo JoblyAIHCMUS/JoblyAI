@@ -60,7 +60,7 @@ export default function CompaniesSection() {
                     width={128}
                     height={64}
                     className="object-contain"
-                    onError={() => handleLogoError(company.logoUrl)}
+                    onError={() => handleLogoError(company.logoUrl!)}
                   />
                 ) : (
                   <div className="text-center text-sm font-medium text-slate-600">

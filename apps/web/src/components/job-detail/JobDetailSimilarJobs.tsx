@@ -30,7 +30,7 @@ function SimilarJobCard({ job }: { job: JobPosting }) {
         ) : (
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
             <Image
-              src={job.company.logoUrl}
+              src={job.company.logoUrl as string}
               alt={job.company.name}
               fill
               className="object-cover"

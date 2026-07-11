@@ -63,7 +63,7 @@ export default function LatestJobsSection() {
                         src={job.company.logoUrl}
                         alt={job.company.name}
                         className="w-full h-full object-cover"
-                        onError={() => handleLogoError(job.company.logoUrl)}
+                        onError={() => handleLogoError(job.company.logoUrl!)}
                       />
                     ) : null}
                   </div>
