@@ -57,7 +57,11 @@ export class MatchingService {
   }
 
   /**
-   * Finds jobs that match a specific resume using vector similarity, with filters
+   * Finds jobs that match a specific resume using vector similarity, with filters.
+   * The match score is always the pgvector cosine distance between the resume
+   * and the job posting embeddings — it is a quick, candidate-facing approximation.
+   * The detailed per-requirement score from MatchExplanationService is reserved
+   * for the employer-side match analysis feature.
    */
   async findJobsForResume(resumeId: number, query: GetJobsQueryDTO) {
     const limit = query.pageSize || 10;
@@ -142,9 +146,12 @@ export class MatchingService {
       paramIndex++;
     }
 
-    // Sort by distance (pgvector)
+    // Sort: MOST_RELEVANT (default) uses pgvector distance; other sorts map
+    // to JobPosting columns. Column names are hard-coded literals — safe.
     let orderBy = `distance ASC`;
-    if (query.location) {
+    const isMostRelevant = !query.sort || query.sort === 'MOST_RELEVANT';
+
+    if (isMostRelevant && query.location) {
       const locationParamIndex =
         params.findIndex(
           (p) =>
@@ -161,6 +168,25 @@ export class MatchingService {
           'location'
         )} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
       }
+    }
+
+    switch (query.sort) {
+      case 'NEWEST':
+        orderBy = `"createdAt" DESC`;
+        break;
+      case 'OLDEST':
+        orderBy = `"createdAt" ASC`;
+        break;
+      case 'SALARY_ASC':
+        orderBy = `"salaryMin" ASC`;
+        break;
+      case 'SALARY_DESC':
+        orderBy = `"salaryMax" DESC`;
+        break;
+      case 'MOST_RELEVANT':
+      default:
+        // keep pgvector orderBy (with location-priority if applicable)
+        break;
     }
 
     const matchedJobs: any[] = await this.prisma.$queryRawUnsafe(
