@@ -32,10 +32,9 @@ env:
 
 jobs:
   migrate-db:
-    # Chạy khi PR được merge vào main HOẶC khi trigger thủ công chọn 'migrate' hoặc 'both'
-    if: |
-      github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop' ||
-      github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'migrate' || github.event.inputs.deploy_choice == 'both')
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'migrate' || github.event.inputs.deploy_choice == 'both'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -84,11 +83,8 @@ jobs:
 
   deploy-backend:
     needs: migrate-db
-    # Chạy nếu migrate-db thành công HOẶC migrate-db bị skip (khi chỉ deploy api/web không cần migrate)
-    # Đồng thời thỏa mãn điều kiện là PR merge từ develop HOẶC chạy thủ công chọn 'api' hoặc 'both'
-    if: |
+    if: >-
       always() &&
-      !failed() &&
       !cancelled() &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
       (
@@ -150,11 +146,8 @@ jobs:
 
   deploy-web:
     needs: migrate-db
-    # Chạy nếu migrate-db thành công HOẶC migrate-db bị skip (khi chỉ deploy api/web không cần migrate)
-    # Đồng thời thỏa mãn điều kiện là PR merge từ develop HOẶC chạy thủ công chọn 'web' hoặc 'both'
-    if: |
+    if: >-
       always() &&
-      !failed() &&
       !cancelled() &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
       (
