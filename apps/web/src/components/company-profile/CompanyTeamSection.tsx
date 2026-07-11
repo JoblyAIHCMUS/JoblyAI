@@ -32,7 +32,8 @@ export default function CompanyTeamSection({
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-4 pb-2">
             {company.team.map((member) => {
-              const showFallback = !member.avatarUrl || failedAvatars.has(member.avatarUrl);
+              const showFallback =
+                !member.avatarUrl || failedAvatars.has(member.avatarUrl);
               return (
                 <Link
                   key={member.id}
@@ -57,7 +58,9 @@ export default function CompanyTeamSection({
                     <h3 className="text-xl font-medium tracking-tight text-slate-900">
                       {member.name}
                     </h3>
-                    <p className="mt-1 text-base text-slate-600">{member.role}</p>
+                    <p className="mt-1 text-base text-slate-600">
+                      {member.role}
+                    </p>
                   </div>
                 </Link>
               );

@@ -93,7 +93,9 @@ export function EmployerSidebar() {
     useGetEmployerProfile();
   const [avatarError, setAvatarError] = useState(false);
   const showAvatarFallback = !employerProfile?.avatarUrl || avatarError;
-  const userInitial = (employerProfile?.fullName || 'U').charAt(0).toUpperCase();
+  const userInitial = (employerProfile?.fullName || 'U')
+    .charAt(0)
+    .toUpperCase();
 
   const handleLogoutClick = () => {
     logout.mutate(undefined, {

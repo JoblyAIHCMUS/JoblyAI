@@ -60,7 +60,8 @@ export default function FeaturedJobsSection() {
                     className="min-w-[280px] w-[280px] p-5 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition snap-start flex-shrink-0 block"
                   >
                     <div className="w-12 h-12 bg-slate-300 rounded-full mb-4 overflow-hidden">
-                      {job.company.logoUrl && !failedLogos.has(job.company.logoUrl) ? (
+                      {job.company.logoUrl &&
+                      !failedLogos.has(job.company.logoUrl) ? (
                         <img
                           src={job.company.logoUrl}
                           alt={job.company.name}
@@ -110,7 +111,8 @@ export default function FeaturedJobsSection() {
                     className="p-5 md:p-6 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition block"
                   >
                     <div className="w-12 h-12 bg-slate-300 rounded-full mb-4 overflow-hidden">
-                      {job.company.logoUrl && !failedLogos.has(job.company.logoUrl) ? (
+                      {job.company.logoUrl &&
+                      !failedLogos.has(job.company.logoUrl) ? (
                         <img
                           src={job.company.logoUrl}
                           alt={job.company.name}

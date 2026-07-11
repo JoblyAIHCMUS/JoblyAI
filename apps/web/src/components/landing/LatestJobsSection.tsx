@@ -57,7 +57,8 @@ export default function LatestJobsSection() {
                   className="p-4 md:p-6 border border-slate-200 rounded-lg bg-white hover:shadow-lg transition flex gap-3 md:gap-6"
                 >
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-300 rounded-full flex-shrink-0 overflow-hidden">
-                    {job.company.logoUrl && !failedLogos.has(job.company.logoUrl) ? (
+                    {job.company.logoUrl &&
+                    !failedLogos.has(job.company.logoUrl) ? (
                       <img
                         src={job.company.logoUrl}
                         alt={job.company.name}

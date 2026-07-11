@@ -23,7 +23,11 @@ export function Logo({ size = 'md', className = '' }: LogoProps) {
       className={`flex-shrink-0 rounded-full overflow-hidden ${sizeConfig.className} ${className}`}
     >
       {hasError ? (
-        <div className="w-full h-full bg-indigo-600" aria-label="JoblyAI Logo" role="img" />
+        <div
+          className="w-full h-full bg-indigo-600"
+          aria-label="JoblyAI Logo"
+          role="img"
+        />
       ) : (
         <Image
           src="https://storage.googleapis.com/joblyai-public/assets/public/jobly-logo-v1.svg"

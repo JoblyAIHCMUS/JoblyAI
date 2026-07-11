@@ -124,7 +124,10 @@ export default function CompanyOverviewSection({
                   {galleryImages.slice(0, 3).map(
                     (image, index) =>
                       !galleryImageErrors.has(image) && (
-                        <div key={image} className="overflow-hidden rounded-[2px]">
+                        <div
+                          key={image}
+                          className="overflow-hidden rounded-[2px]"
+                        >
                           <img
                             src={image}
                             alt={`${company.name} office ${index + 2}`}
