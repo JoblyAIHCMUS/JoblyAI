@@ -1,10 +1,6 @@
 name: Deploy Fullstack JoblyAI to GCP Production
 
 on:
-  pull_request:
-    branches:
-      - main
-    types: [closed]
   workflow_dispatch:
     inputs:
       deploy_choice:
@@ -32,9 +28,8 @@ env:
 
 jobs:
   migrate-db:
-    if: >-
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'migrate' || github.event.inputs.deploy_choice == 'both'))
+    if: |
+      github.event.inputs.deploy_choice == 'migrate' || github.event.inputs.deploy_choice == 'both'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -83,14 +78,11 @@ jobs:
 
   deploy-backend:
     needs: migrate-db
-    if: >-
+    if: |
       always() &&
       !cancelled() &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
-      (
-        (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
-        (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'api' || github.event.inputs.deploy_choice == 'both'))
-      )
+      (github.event.inputs.deploy_choice == 'api' || github.event.inputs.deploy_choice == 'both')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -146,14 +138,11 @@ jobs:
 
   deploy-web:
     needs: migrate-db
-    if: >-
+    if: |
       always() &&
       !cancelled() &&
       (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped') &&
-      (
-        (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop') ||
-        (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy_choice == 'web' || github.event.inputs.deploy_choice == 'both'))
-      )
+      (github.event.inputs.deploy_choice == 'web' || github.event.inputs.deploy_choice == 'both')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
