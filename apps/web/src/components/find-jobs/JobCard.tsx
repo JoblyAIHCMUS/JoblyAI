@@ -79,6 +79,7 @@ export default function JobCard({
   onApplySuccess,
 }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const { data: user } = useUser();
   const router = useRouter();
   const userRole = user?.role ?? null;
@@ -131,14 +132,15 @@ export default function JobCard({
         >
           <div
             className={
-              'flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900'
+              'flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-lg font-semibold text-slate-900'
             }
           >
-            {job.company.logoUrl ? (
+            {job.company.logoUrl && !logoError ? (
               <img
                 src={job.company.logoUrl}
                 alt={job.company.name || job.title}
                 className="h-full w-full object-cover"
+                onError={() => setLogoError(true)}
               />
             ) : (
               <span className="text-lg font-semibold text-slate-900">
