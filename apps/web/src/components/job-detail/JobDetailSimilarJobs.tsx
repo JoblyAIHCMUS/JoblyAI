@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -16,23 +16,26 @@ function SimilarJobCard({ job }: { job: JobPosting }) {
       ? `/candidate/find-jobs/${job.id}`
       : `/find-jobs/${job.id}`;
 
+  const [logoError, setLogoError] = useState(false);
   const companyInitial = job.company.name.charAt(0);
+  const showLogoFallback = !job.company.logoUrl || logoError;
 
   return (
     <Link href={jobHref} className="block">
       <article className="flex items-start gap-4 p-5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all h-full">
-        {job.company.logoUrl ? (
+        {showLogoFallback ? (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-lg font-semibold leading-none text-indigo-700">
+            {companyInitial.toUpperCase()}
+          </div>
+        ) : (
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
             <Image
               src={job.company.logoUrl}
               alt={job.company.name}
               fill
               className="object-cover"
+              onError={() => setLogoError(true)}
             />
-          </div>
-        ) : (
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-lg font-semibold text-slate-900">
-            {companyInitial}
           </div>
         )}
         <div className="min-w-0">
