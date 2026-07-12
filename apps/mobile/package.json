@@ -35,6 +35,7 @@
     "expo-splash-screen": "*",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "*",
+    "expo-web-browser": "~14.0.0",
     "jest-expo": "*",
     "lucide-react-native": "^1.16.0",
     "metro-config": "*",
