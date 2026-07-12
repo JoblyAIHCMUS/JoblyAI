@@ -400,10 +400,10 @@ export default function JobListingEditPage() {
                   htmlFor="location"
                   className="label-label-1-semibold text-sm sm:text-base"
                 >
-                  Location
+                  Location <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-xs text-slate-500 mt-1">
-                  Where is the job based?
+                  Required unless the role is remote
                 </p>
               </div>
               <div className="grid grid-rows-[auto_auto] gap-3 sm:gap-4">
