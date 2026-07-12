@@ -9,15 +9,27 @@ function hasSession(request: NextRequest) {
   return SESSION_COOKIE_NAMES.some((name) => request.cookies.get(name)?.value);
 }
 
-function getRole(request: NextRequest) {
-  return request.cookies.get('user-role')?.value ?? null;
+async function getSessionRole(request: NextRequest): Promise<string | null> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  try {
+    const res = await fetch(`${baseUrl}/api/auth/get-session`, {
+      headers: { cookie: cookieHeader },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { user?: { role?: string } } | null;
+    return data?.user?.role ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const authenticated = hasSession(request);
-  const role = getRole(request);
+  const role = await getSessionRole(request);
 
   // ===== ROOT REDIRECT =====
   if (pathname === '/' && authenticated) {

@@ -123,9 +123,6 @@ export function useLogout() {
       // stuck on a "Loading..." screen on slow networks).
       queryClient.setQueryData(['user'], null);
 
-      // Clean up non-HttpOnly cookies just in case backend redirect didn't catch them
-      document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
-
       // Redirect to login (backend will clear HttpOnly session cookies via signOut)
       router.push('/login');
     },
@@ -146,7 +143,6 @@ export function useLogout() {
         console.log('✅ User logged out (auth error detected)');
         queryClient.cancelQueries({ queryKey: ['user'] });
         queryClient.setQueryData(['user'], null);
-        document.cookie = 'user-role=; Path=/; Max-Age=0; SameSite=Lax';
         router.push('/login');
       } else {
         // Unknown error

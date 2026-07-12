@@ -45,13 +45,6 @@ export class AuthController {
     return { message: 'This is an admin only route' };
   }
 
-  @Get('employer-and-admin-check')
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('employer', 'admin')
-  employerAndAdminRoute() {
-    return { message: 'This route is for employer and admins' };
-  }
-
   /**
    * Handle all auth routes through better-auth
    * Better-auth provides: /sign-in, /sign-up, /sign-out, /session, etc.
@@ -189,50 +182,11 @@ export class AuthController {
       }
     }
 
-    // ✅ SET ROLE COOKIE for middleware access (sign-in & sign-up & google/github callback)
-    // IMPORTANT: Append to existing Set-Cookie headers, don't replace!
-    // NOTE: Google/GitHub OAuth responses will be handled by Better Auth callback
-    const isAuthSuccess =
-      (req.method === 'POST' &&
-        (req.originalUrl || req.url).includes('/sign-up')) ||
-      (req.method === 'POST' &&
-        (req.originalUrl || req.url).includes('/sign-in') &&
-        authRes.status === 200) ||
-      (req.method === 'GET' &&
-        (req.originalUrl || req.url).includes('/callback') &&
-        authRes.status === 200);
-
-    if (isAuthSuccess) {
-      try {
-        const jsonBody = JSON.parse(body);
-        if (jsonBody.user?.role) {
-          // CRITICAL: Use append() instead of setHeader() to avoid overwriting Better Auth cookies
-          const roleCookieValue = `user-role=${
-            jsonBody.user.role
-          }; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`;
-          res.appendHeader('Set-Cookie', roleCookieValue);
-          console.log(
-            `[AUTH] Set role cookie for user ${jsonBody.user.id}: ${jsonBody.user.role}`
-          );
-        }
-      } catch (error) {
-        // If parsing fails, just continue without setting role cookie
-        console.warn(
-          '[AUTH] Failed to parse auth response or set role cookie:',
-          error
-        );
-      }
-    }
-
-    // ✅ CLEAR ROLE COOKIE on logout (sign-out)
+    // ✅ CLEAR SESSION COOKIES on logout (sign-out)
     const isSignOut =
       (req.originalUrl || req.url || '').includes('/sign-out') &&
       authRes.status === 200;
     if (isSignOut) {
-      // Clear the role cookie by setting it with max-age=0
-      const clearRoleCookie = 'user-role=; Path=/; SameSite=Lax; Max-Age=0';
-      res.appendHeader('Set-Cookie', clearRoleCookie);
-
       // REDUNDANT CLEAR: Ensure session cookies are cleared even if proxying logic had issues
       res.appendHeader(
         'Set-Cookie',
@@ -243,7 +197,7 @@ export class AuthController {
         '__Secure-better-auth.session_token=; Path=/; SameSite=Lax; Max-Age=0; HttpOnly; Secure'
       );
 
-      console.log('[AUTH] Cleared role and session cookies on sign-out');
+      console.log('[AUTH] Cleared session cookies on sign-out');
     }
 
     return res.send(body);
