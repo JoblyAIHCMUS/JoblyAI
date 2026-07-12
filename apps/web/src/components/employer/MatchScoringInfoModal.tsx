@@ -83,9 +83,8 @@ export function MatchScoringInfoModal({
             <p className="mt-2 text-xs text-tertiary">
               Each skill is embedded as a{' '}
               <strong>768-dimensional vector</strong>. The requirement is
-              embedded using the bare skill name (e.g. &quot;JavaScript&quot;)
-              — no years or experience context is added to the embedding
-              input.
+              embedded using the bare skill name (e.g. &quot;JavaScript&quot;) —
+              no years or experience context is added to the embedding input.
             </p>
           </Section>
 
@@ -135,9 +134,9 @@ export function MatchScoringInfoModal({
             </div>
             <p className="text-xs font-semibold text-tertiary">
               Per-requirement scores are clamped at 0 — no penalty for unrelated
-              skills. (The raw cosine formula can in theory be negative, but
-              the backend clamps negative values to 0 before any score is
-              surfaced to the UI, so users only ever see 0 to 1.)
+              skills. (The raw cosine formula can in theory be negative, but the
+              backend clamps negative values to 0 before any score is surfaced
+              to the UI, so users only ever see 0 to 1.)
             </p>
           </Section>
 
@@ -151,9 +150,9 @@ export function MatchScoringInfoModal({
             </div>
             <p className="text-xs text-tertiary">
               Each requirement&apos;s score is the highest similarity to any of
-              the candidate&apos;s skills (see step 2 — that&apos;s the MAX
-              over candidate skills). The overall score is the simple mean of
-              those per-requirement maxima — not a max-over-max.
+              the candidate&apos;s skills (see step 2 — that&apos;s the MAX over
+              candidate skills). The overall score is the simple mean of those
+              per-requirement maxima — not a max-over-max.
             </p>
           </Section>
 
@@ -276,8 +275,8 @@ export function MatchScoringInfoModal({
               </li>
               <li>
                 For each requirement: checks the hard constraint (4 layers
-                described in section 6), then runs cosine similarity between
-                the requirement embedding and <em>every</em> candidate skill
+                described in section 6), then runs cosine similarity between the
+                requirement embedding and <em>every</em> candidate skill
                 embedding, taking the maximum.
               </li>
               <li>
@@ -302,9 +301,9 @@ export function MatchScoringInfoModal({
             </ol>
             <p className="mt-3">
               The result is cached and reused on subsequent views. The cache is
-              automatically invalidated when the scoring mode changes, when
-              the resume is re-uploaded, or when the job posting is updated.
-              You can also force a fresh calculation with the{' '}
+              automatically invalidated when the scoring mode changes, when the
+              resume is re-uploaded, or when the job posting is updated. You can
+              also force a fresh calculation with the{' '}
               <strong>Recalculate</strong> button above.
             </p>
           </Section>
