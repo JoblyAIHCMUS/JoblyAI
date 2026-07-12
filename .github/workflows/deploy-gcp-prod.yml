@@ -9,10 +9,10 @@ on:
         default: 'both'
         type: choice
         options:
-          - 'both'       # Deploy cả Backend & Web (Có chạy Migrate)
-          - 'api'        # Chỉ deploy Backend API (Không chạy Migrate)
-          - 'web'        # Chỉ deploy Frontend Web (Không chạy Migrate)
-          - 'migrate'    # Chỉ chạy Database Migration & Seed (Prisma)
+          - 'both' # Deploy cả Backend & Web (Có chạy Migrate)
+          - 'api' # Chỉ deploy Backend API (Không chạy Migrate)
+          - 'web' # Chỉ deploy Frontend Web (Không chạy Migrate)
+          - 'migrate' # Chỉ chạy Database Migration & Seed (Prisma)
 
 env:
   GCP_PROJECT_ID: 'steady-atlas-499014-n2'
@@ -119,7 +119,7 @@ jobs:
       - name: Deploy Backend to Cloud Run
         run: |
           BACKEND_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-backend:${{ github.sha }}"
-          
+
           gcloud run deploy ${{ env.RUN_API_SERVICE }} \
             --image=$BACKEND_IMAGE \
             --region=${{ env.GCP_REGION }} \
@@ -181,7 +181,7 @@ jobs:
       - name: Deploy Web to Cloud Run
         run: |
           WEB_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPO_NAME }}/jobly-web:${{ github.sha }}"
-          
+
           gcloud run deploy ${{ env.RUN_WEB_SERVICE }} \
             --image=$WEB_IMAGE \
             --region=${{ env.GCP_REGION }} \
