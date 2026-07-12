@@ -1,0 +1,16 @@
+diff --git a/expo-module.config.json b/expo-module.config.json
+index ca57a472b8bf087f40042e71b94e77a431534607..b76fc4bc01a37191121280e8cd06e5df932b7779 100644
+--- a/expo-module.config.json
++++ b/expo-module.config.json
+@@ -1,9 +1,9 @@
+ {
+   "platforms": ["ios", "android"],
+   "ios": {
+-    "modulesClassNames": ["WebBrowserModule"]
++    "modules": ["WebBrowserModule"]
+   },
+   "android": {
+-    "modulesClassNames": ["expo.modules.webbrowser.WebBrowserModule"]
++    "modules": ["expo.modules.webbrowser.WebBrowserModule"]
+   }
+ }
