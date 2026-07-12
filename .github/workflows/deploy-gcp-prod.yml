@@ -134,7 +134,7 @@ jobs:
             --memory=1Gi \
             --cpu=1 \
             --set-env-vars="NODE_ENV=production,SCYLLA_HOST=${{ env.VM_PUBLIC_IP }},SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=${{ env.GCP_PROJECT_ID }},GCS_PUBLIC_BUCKET=${{ env.GCS_PUBLIC_BUCKET }},GCS_PRIVATE_BUCKET=${{ env.GCS_PRIVATE_BUCKET }},BETTER_AUTH_URL=${{ env.DOMAIN_URL }},APP_URL=${{ env.DOMAIN_URL }},WEB_URL=${{ env.DOMAIN_URL }},WS_REDIS_ADAPTER=true" \
-            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest,GEOAPIFY_API_KEY=geoapify-api-key:latest"
+            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest,GEOAPIFY_API_KEY=geoapify-api-key:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest"
 
   deploy-web:
     needs: migrate-db
