@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { getResumeRecommendations } from '@/api-client/matching';
 import { PaginatedJobsResponse, ListJobsQuery } from '@/api-client/jobs/types';
 
@@ -17,8 +18,15 @@ export function useRecommendJobs(options?: UseRecommendJobsOptions) {
 
   const fetchRecommendations = useCallback(
     async (resumeId: number, query?: ListJobsQuery) => {
+      const toastId = `recommendations-loading-${resumeId}`;
       setLoading(true);
       setError(null);
+      toast.info('Calculating match scores for each job...', {
+        id: toastId,
+        description:
+          'This usually takes 5-10 seconds. We are scoring each job against your resume.',
+        duration: Infinity,
+      });
       try {
         const result = await getResumeRecommendations(resumeId, query);
         setData(result);
@@ -30,6 +38,7 @@ export function useRecommendJobs(options?: UseRecommendJobsOptions) {
         throw err;
       } finally {
         setLoading(false);
+        toast.dismiss(toastId);
       }
     },
     [options]
