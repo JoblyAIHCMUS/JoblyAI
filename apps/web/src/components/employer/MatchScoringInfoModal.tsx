@@ -7,9 +7,48 @@ interface MatchScoringInfoModalProps {
   onClose: () => void;
 }
 
-const GEMINI_EMBEDDING_URL = 'https://ai.google.dev/gemini-api/docs/embeddings';
-const COSINE_SIMILARITY_URL =
-  'https://www.ibm.com/think/topics/cosine-similarity';
+// Sparse, individually-verifiable source list. Each entry is rendered as
+// its own <li> in the Sources section so the user can check any of them
+// independently. Order: academic → industry documentation → industry
+// deployment → general explainer.
+const SOURCES = [
+  {
+    reference:
+      'Rajesh, D. B. & Kumar, A. (2025). "Collaborative filtering models: ' +
+      'an experimental and detailed comparative study." Scientific Reports ' +
+      '(Nature), 15, 31667. DOI: 10.1038/s41598-025-15096-4. — ' +
+      '"This is the most popular and widely used similarity metric." ' +
+      '(Rajesh & Kumar, 2025, on cosine similarity)',
+    label: 'View on PubMed Central',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12391434/',
+  },
+  {
+    reference:
+      'OpenAI. (2025). "Vector embeddings." OpenAI API Documentation. ' +
+      '— "We use the cosine similarity between the embedding vectors of the ' +
+      'query and each document."',
+    label: 'OpenAI Embeddings Guide',
+    url: 'https://platform.openai.com/docs/guides/embeddings',
+  },
+  {
+    reference:
+      'Linden, G., Smith, B. & York, J. (2003). "Amazon.com Recommendations: ' +
+      'Item-to-Item Collaborative Filtering." IEEE Internet Computing, ' +
+      '7(1), 76–80. — "It\'s possible to compute the similarity between ' +
+      'two items in various ways, but a common method is to use the cosine ' +
+      'measure we described earlier, in which each vector corresponds to an ' +
+      'item rather than a customer." (Linden, Smith & York, 2003)',
+    label: 'View paper (PDF)',
+    url: 'https://www.cs.umd.edu/~samir/498/Amazon-Recommendations.pdf',
+  },
+  {
+    reference:
+      'IBM. (n.d.). "Cosine Similarity." IBM Think — General-audience ' +
+      'explainer of the cosine-similarity formula.',
+    label: 'IBM Think — Cosine Similarity',
+    url: 'https://www.ibm.com/think/topics/cosine-similarity',
+  },
+];
 
 export function MatchScoringInfoModal({
   isOpen,
@@ -41,10 +80,12 @@ export function MatchScoringInfoModal({
               &quot;ReactJS&quot; produce nearly identical vectors, while
               &quot;React&quot; and &quot;Marketing&quot; are far apart.
             </p>
-            <SourceLink
-              label="Google Gemini Embedding docs"
-              url={GEMINI_EMBEDDING_URL}
-            />
+            <p className="mt-2 text-xs text-tertiary">
+              Each skill is embedded as a{' '}
+              <strong>768-dimensional vector</strong>. The requirement is
+              embedded using the bare skill name (e.g. &quot;JavaScript&quot;) —
+              no years or experience context is added to the embedding input.
+            </p>
           </Section>
 
           <Section title="2. Per-Skill Similarity" badge="Embedding mode">
@@ -75,8 +116,8 @@ export function MatchScoringInfoModal({
 
           <Section title="3. Cosine Similarity" badge="Embedding mode">
             <p>
-              Measures the angle between two vectors. Scores range from{' '}
-              <strong>-1</strong> to <strong>1</strong>:
+              Measures the angle between two vectors. In this product scores
+              range from <strong>0</strong> to <strong>1</strong>:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>
@@ -87,21 +128,16 @@ export function MatchScoringInfoModal({
                 <strong>0</strong> — unrelated (e.g., &quot;React&quot; vs
                 &quot;Marketing&quot;)
               </li>
-              <li>
-                <strong>-1</strong> — opposite meaning
-              </li>
             </ul>
             <div className="my-2 rounded-md bg-slate-100 px-3 py-2 font-mono text-xs">
               cosine(a, b) = (a · b) / (||a|| × ||b||)
             </div>
             <p className="text-xs font-semibold text-tertiary">
               Per-requirement scores are clamped at 0 — no penalty for unrelated
-              skills.
+              skills. (The raw cosine formula can in theory be negative, but the
+              backend clamps negative values to 0 before any score is surfaced
+              to the UI, so users only ever see 0 to 1.)
             </p>
-            <SourceLink
-              label="Cosine similarity (IBM)"
-              url={COSINE_SIMILARITY_URL}
-            />
           </Section>
 
           <Section title="4. Overall Score" badge="Embedding mode">
@@ -112,6 +148,12 @@ export function MatchScoringInfoModal({
             <div className="my-2 rounded-md bg-slate-100 px-3 py-2 font-mono text-xs">
               overallScore = (Σ similarity_i / n) × 100
             </div>
+            <p className="text-xs text-tertiary">
+              Each requirement&apos;s score is the highest similarity to any of
+              the candidate&apos;s skills (see step 2 — that&apos;s the MAX over
+              candidate skills). The overall score is the simple mean of those
+              per-requirement maxima — not a max-over-max.
+            </p>
           </Section>
 
           {/* EXACT MATCH MODE */}
@@ -129,7 +171,7 @@ export function MatchScoringInfoModal({
           {/* BOTH MODES */}
           <Section
             title="6. Hard Constraint Check"
-            badge="Both modes — badge (embedding) + score (exact match)"
+            badge="Both modes — badge trigger"
           >
             <p>
               A multi-layer string-matching algorithm that checks two data
@@ -210,6 +252,77 @@ export function MatchScoringInfoModal({
               etc.).
             </p>
           </Section>
+
+          <Section
+            title="8. How this explanation was generated"
+            badge="Service"
+          >
+            <p>
+              The breakdown above is produced by{' '}
+              <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                MatchExplanationService
+              </code>{' '}
+              in the backend, which:
+            </p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>
+                Fetches the job requirements, candidate skills, and parsed
+                resume.
+              </li>
+              <li>
+                Generates a Gemini Embedding 2 vector for each candidate skill
+                (batched, 768 dimensions).
+              </li>
+              <li>
+                For each requirement: checks the hard constraint (4 layers
+                described in section 6), then runs cosine similarity between the
+                requirement embedding and <em>every</em> candidate skill
+                embedding, taking the maximum.
+              </li>
+              <li>
+                Computes the overall score as the mean of all per-requirement
+                maxima (see section 4).
+              </li>
+              <li>
+                Persists the result in{' '}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  Application.matchExplanation
+                </code>{' '}
+                (JSON) along with{' '}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  matchPercentage
+                </code>{' '}
+                and{' '}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  scoringMode
+                </code>
+                .
+              </li>
+            </ol>
+            <p className="mt-3">
+              The result is cached and reused on subsequent views. The cache is
+              automatically invalidated when the scoring mode changes, when the
+              resume is re-uploaded, or when the job posting is updated. You can
+              also force a fresh calculation with the{' '}
+              <strong>Recalculate</strong> button above.
+            </p>
+          </Section>
+
+          <Section title="Sources" badge="References">
+            <p className="text-xs text-slate-600">
+              Each reference below can be opened and verified independently.
+            </p>
+            <ul className="mt-3 space-y-4">
+              {SOURCES.map((src) => (
+                <li key={src.url}>
+                  <p className="text-xs leading-relaxed text-slate-700">
+                    {src.reference}
+                  </p>
+                  <SourceLink label={src.label} url={src.url} />
+                </li>
+              ))}
+            </ul>
+          </Section>
         </div>
       </ModalBody>
     </Modal>
@@ -240,7 +353,15 @@ function Section({
   );
 }
 
-function SourceLink({ label, url }: { label: string; url: string }) {
+function SourceLink({
+  label,
+  url,
+  reference,
+}: {
+  label?: string;
+  url: string;
+  reference?: string;
+}) {
   return (
     <p className="mt-2 text-xs text-tertiary">
       Source:{' '}
@@ -249,8 +370,9 @@ function SourceLink({ label, url }: { label: string; url: string }) {
         target="_blank"
         rel="noopener noreferrer"
         className="text-[var(--ai-accent)] underline"
+        title={reference}
       >
-        {label}
+        {label || reference || url}
       </a>
     </p>
   );
