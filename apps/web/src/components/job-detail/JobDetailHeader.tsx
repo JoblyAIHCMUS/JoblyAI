@@ -56,6 +56,8 @@ export default function JobDetailHeader({
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
+  const [patternError, setPatternError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: user } = useUser();
@@ -149,22 +151,28 @@ export default function JobDetailHeader({
       {/* Background patterns */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute right-0 top-0 hidden h-[436px] w-[520px] overflow-hidden lg:block opacity-60">
-          <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
-            alt=""
-            width={834}
-            height={436}
-            className="absolute left-0 top-5 h-auto w-[834px] max-w-none"
-          />
+          {!patternError && (
+            <Image
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
+              alt=""
+              width={834}
+              height={436}
+              className="absolute left-0 top-5 h-auto w-[834px] max-w-none"
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
         <div className="absolute left-0 top-14 hidden h-[436px] w-[244px] overflow-hidden lg:block opacity-60">
-          <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
-            alt=""
-            width={834}
-            height={436}
-            className="absolute -left-[600px] top-5 h-auto w-[834px] max-w-none"
-          />
+          {!patternError && (
+            <Image
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
+              alt=""
+              width={834}
+              height={436}
+              className="absolute -left-[600px] top-5 h-auto w-[834px] max-w-none"
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -206,21 +214,37 @@ export default function JobDetailHeader({
           {/* Left: Logo + Info */}
           <div className="flex w-full min-w-0 items-start justify-between gap-3 sm:gap-4 lg:gap-6">
             <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-4 lg:gap-6">
-              <div className="relative h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-100">
-                <Image
-                  src={company.logoUrl || '/placeholder-logo.png'}
-                  alt={`${company.name} company logo`}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
+              <Link
+                href={`/browse-companies/${company.id}`}
+                className="relative h-14 w-14 sm:h-16 sm:w-16 lg:h-[72px] lg:w-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white hover:opacity-90 transition-opacity"
+              >
+                {company.logoUrl && !logoError ? (
+                  <Image
+                    src={company.logoUrl}
+                    alt={`${company.name} company logo`}
+                    fill
+                    sizes="(max-width: 768px) 56px, (max-width: 1024px) 64px, 72px"
+                    className="object-contain p-1"
+                    unoptimized
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-2xl font-bold leading-none text-indigo-700 sm:text-3xl">
+                    {company.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <h1 className="text-[22px] sm:text-[26px] lg:text-[32px] font-semibold leading-tight text-slate-900 break-words">
                   {jobTitle}
                 </h1>
                 <div className="flex items-center gap-2 text-slate-500 text-sm sm:text-base flex-wrap">
-                  <span>{company.name}</span>
+                  <Link
+                    href={`/browse-companies/${company.id}`}
+                    className="hover:text-indigo-600 font-medium transition-colors"
+                  >
+                    {company.name}
+                  </Link>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />
                   <span>{address}</span>
                   <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-400 shrink-0" />

@@ -154,7 +154,8 @@ model JobPosting {
   id          Int                         @id @default(autoincrement())
   title       String
   description String
-  location    String?
+  locationId  String?
+  location    Location?                   @relation(fields: [locationId], references: [id], onDelete: SetNull)
   salaryMin   Decimal?
   salaryMax   Decimal?
   currency    String?                     @default("USD")
@@ -225,7 +226,8 @@ model Experience {
 
   companyName String
   jobTitle    String
-  location    String?
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
   startDate   DateTime
   endDate     DateTime?
   description String?
@@ -337,12 +339,16 @@ model Company {
   industry    String?
   description String?
   logoUrl     String?
+  locationId  String?
+  location    Location?    @relation("CompanyLocation", fields: [locationId], references: [id], onDelete: SetNull)
   adminId     Int?         @unique
   admin       Employer?    @relation("CompanyAdmin", fields: [adminId], references: [id], onDelete: SetNull)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   employers   Employer[]   @relation("CompanyEmployers")
   jobPostings JobPosting[]
+  images      String[]
+  locations   Location[]   @relation("CompanyLocations")
 }
 
 model Employer {
@@ -646,4 +652,27 @@ model PreShortlistAnswer {
   @@unique([applicationId, questionId])
   @@index([applicationId])
   @@map("pre_shortlist_answer")
+}
+
+model Location {
+  id               String       @id @default(cuid())
+  provider         String       // e.g. "geoapify", "manual"
+  providerId       String       // unique id from provider or raw text for legacy
+  formattedAddress String
+  lat              Float
+  lng              Float
+  city             String?
+  state            String?
+  country          String?
+  postcode         String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  jobPostings      JobPosting[]
+  experiences      Experience[]
+  companies        Company[]    @relation("CompanyLocation")
+  companyLocations Company[]    @relation("CompanyLocations")
+
+  @@unique([provider, providerId])
+  @@map("location")
 }

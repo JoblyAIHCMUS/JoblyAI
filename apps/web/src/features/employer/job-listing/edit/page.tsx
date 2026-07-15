@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import { Input } from '@/components/ui/input';
 import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
@@ -117,7 +118,7 @@ export default function JobListingEditPage() {
       description: '',
       type: 'FULL_TIME' as const,
       remote: false,
-      location: '',
+      location: null,
       categoryId: '',
       currency: 'none' as const,
       salaryMin: undefined,
@@ -134,6 +135,7 @@ export default function JobListingEditPage() {
     setValue,
     getValues,
     reset,
+    control,
     formState: { errors },
   } = methods;
 
@@ -162,7 +164,7 @@ export default function JobListingEditPage() {
       description: jobData.description,
       type: jobData.type,
       remote: jobData.remote,
-      location: jobData.location || '',
+      location: jobData.locationDetail || null,
       categoryId: String(jobData.category.id),
       currency: (jobData.currency
         ? jobData.currency.toLowerCase()
@@ -398,22 +400,29 @@ export default function JobListingEditPage() {
                   htmlFor="location"
                   className="label-label-1-semibold text-sm sm:text-base"
                 >
-                  Location
+                  Location <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-xs text-slate-500 mt-1">
-                  Where is the job based?
+                  Required unless the role is remote
                 </p>
               </div>
               <div className="grid grid-rows-[auto_auto] gap-3 sm:gap-4">
                 <div className="space-y-1">
-                  <Input
-                    id="location"
-                    placeholder="e.g. 123 This Street, That Town, The Other Country"
-                    disabled={remote}
-                    className={`h-10 sm:h-12 text-sm sm:text-base ${
-                      errors.location ? 'border-red-500' : ''
-                    }`}
-                    {...register('location')}
+                  <Controller
+                    name="location"
+                    control={control}
+                    render={({ field }) => (
+                      <LocationAutocomplete
+                        value={field.value}
+                        onChange={(loc) => field.onChange(loc)}
+                        placeholder="e.g. 123 This Street, That Town, The Other Country"
+                        error={!!errors.location}
+                        className={`w-full ${
+                          remote ? 'opacity-50 pointer-events-none' : ''
+                        }`}
+                        inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                      />
+                    )}
                   />
                   {errors.location && (
                     <p className="text-xs sm:text-sm text-red-500">
@@ -429,7 +438,7 @@ export default function JobListingEditPage() {
                     checked={remote}
                     onCheckedChange={(checked) => {
                       setValue('remote', checked);
-                      if (checked) setValue('location', '');
+                      if (checked) setValue('location', null);
                     }}
                   />
                   <Label

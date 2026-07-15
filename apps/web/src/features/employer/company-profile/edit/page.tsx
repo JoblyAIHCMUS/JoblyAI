@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { ArrowLeft, Plus, X, ImagePlus, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -86,6 +88,7 @@ export default function EmployerCompanyProfileEditPage() {
     formState: { errors, isValidating },
     setValue,
     getValues,
+    control,
   } = useForm<CompanyUpdateFormData>({
     resolver: zodResolver(companyUpdateSchema),
     mode: 'onBlur',
@@ -96,6 +99,9 @@ export default function EmployerCompanyProfileEditPage() {
       industry: '',
       companyDescription: '',
       logoUrl: null,
+      location: null,
+      locations: [],
+      images: [],
     },
   });
 
@@ -104,6 +110,58 @@ export default function EmployerCompanyProfileEditPage() {
   const logoUrl = watch('logoUrl');
   const scale = watch('scale');
   const industry = watch('industry');
+  const locations = watch('locations') || [];
+  const images = watch('images') || [];
+
+  const [uploadingImages, setUploadingImages] = useState(false);
+
+  const handleCompanyImagesUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const currentImages = getValues('images') || [];
+    if (currentImages.length + files.length > 5) {
+      toast.error('You can upload a maximum of 5 company images.');
+      return;
+    }
+
+    setUploadingImages(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of files) {
+        // Step 1: Request presigned upload URL
+        const uploadUrlResponse = await createUploadUrl({
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'logos', // Using 'logos' folder as it is public and supports images
+        });
+
+        // Step 2: Upload file directly to storage
+        await uploadToPresignedUrl(uploadUrlResponse.uploadUrl, file, {
+          contentType: file.type,
+          folder: 'logos',
+        });
+
+        uploadedUrls.push(uploadUrlResponse.fileUrl);
+      }
+
+      setValue('images', [...currentImages, ...uploadedUrls], {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      toast.success(`Successfully uploaded ${files.length} image(s).`);
+    } catch (err) {
+      console.error('Failed to upload company images:', err);
+      toast.error('Failed to upload one or more images. Please try again.');
+    } finally {
+      setUploadingImages(false);
+      // Reset input value so same files can be selected again
+      e.target.value = '';
+    }
+  };
 
   // S3 upload hooks for logo
   const { createUploadUrl, loading: loadingUploadUrl } = useCreateUploadUrl();
@@ -214,6 +272,9 @@ export default function EmployerCompanyProfileEditPage() {
       setValue('industry', company.industry || '');
       setValue('companyDescription', company.description || '');
       setValue('logoUrl', company.logoUrl || null);
+      setValue('location', company.locationDetail || null);
+      setValue('locations', company.locationDetails || []);
+      setValue('images', company.images || []);
       setLogoFileKey(
         company.logoUrl ? company.logoUrl.split('/').pop() || null : null
       );
@@ -266,6 +327,9 @@ export default function EmployerCompanyProfileEditPage() {
       sizeRange: data.scale || undefined,
       industry: data.industry || undefined,
       description: data.companyDescription || undefined,
+      location: data.location || undefined,
+      locations: (data.locations || []).filter(Boolean) as any[],
+      images: data.images || [],
     };
     try {
       await submitUpdate(companyId, payload);
@@ -359,7 +423,10 @@ export default function EmployerCompanyProfileEditPage() {
           !errors.companyName &&
           !errors.scale &&
           !errors.industry &&
-          !errors.website
+          !errors.website &&
+          !errors.locations &&
+          !errors.images &&
+          !uploadingImages
         );
       case 1:
         // Description is now optional
@@ -522,6 +589,81 @@ export default function EmployerCompanyProfileEditPage() {
 
           <Separator />
 
+          {/* Company Gallery */}
+          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
+            <div className="pt-0 md:pt-3">
+              <Label className="label-label-1-semibold">Company Gallery</Label>
+              <p className="text-xs text-slate-500 mt-1">
+                Upload up to 5 photos of your office, workspace, or team.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {images.map((imgUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative group aspect-square rounded-[var(--radius-xl)] overflow-hidden border border-gray-200 bg-slate-50 flex items-center justify-center"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`Company photo ${index + 1}`}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = images.filter((_, i) => i !== index);
+                        setValue('images', newImages, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                      className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-white/80 hover:bg-white text-black shadow-md transition-colors"
+                      aria-label="Remove image"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {images.length < 5 && (
+                  <label className="cursor-pointer aspect-square rounded-[var(--radius-xl)] border border-dashed border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center gap-1.5 transition-colors">
+                    {uploadingImages ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <ImagePlus className="h-5 w-5 text-slate-400" />
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Upload Photo
+                        </span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingImages}
+                      onChange={handleCompanyImagesUpload}
+                    />
+                  </label>
+                )}
+              </div>
+              {errors.images && (
+                <p className="text-xs sm:text-sm text-red-500 mt-1">
+                  {errors.images.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Company Details */}
           <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 sm:gap-6 items-start">
             <div className="pt-0 md:pt-3">
@@ -653,6 +795,94 @@ export default function EmployerCompanyProfileEditPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location" className="label-label-1-semibold">
+                  Primary Location
+                </Label>
+                <Controller
+                  name="location"
+                  control={control}
+                  render={({ field }) => (
+                    <LocationAutocomplete
+                      value={field.value}
+                      onChange={(loc) => field.onChange(loc)}
+                      placeholder="e.g. Ho Chi Minh City, Vietnam"
+                      error={!!errors.location}
+                      className="w-full"
+                      inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                    />
+                  )}
+                />
+                {errors.location && (
+                  <p className="text-xs sm:text-sm text-red-500">
+                    {errors.location.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Additional Locations */}
+              <div className="space-y-3">
+                <Label className="label-label-1-semibold block">
+                  Additional Locations
+                </Label>
+
+                {locations.map((loc, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <LocationAutocomplete
+                      value={loc}
+                      placeholder={`Branch Office #${index + 1}`}
+                      className="flex-1"
+                      inputClassName="h-10 sm:h-12 text-sm sm:text-base"
+                      onChange={(newLoc) => {
+                        const newLocs = [...locations];
+                        newLocs[index] = newLoc;
+                        setValue('locations', newLocs, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 text-slate-500 hover:text-red-500 flex-shrink-0"
+                      onClick={() => {
+                        const newLocs = locations.filter((_, i) => i !== index);
+                        setValue('locations', newLocs, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-1"
+                  onClick={() => {
+                    setValue('locations', [...locations, null], {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Location
+                </Button>
+
+                {errors.locations && (
+                  <p className="text-xs sm:text-sm text-red-500">
+                    {errors.locations.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>

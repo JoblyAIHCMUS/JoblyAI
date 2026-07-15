@@ -2,14 +2,15 @@
 import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KeyboardEvent } from 'react';
-
 import { useState, useEffect } from 'react';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 
 interface FindJobsHeroSectionProps {
   searchTerm?: string;
   location?: string;
   setSearchTerm?: (term: string) => void;
   setLocation?: (location: string) => void;
+  placeholder?: string;
 }
 
 export default function FindJobsHeroSection({
@@ -17,6 +18,7 @@ export default function FindJobsHeroSection({
   location,
   setSearchTerm,
   setLocation,
+  placeholder,
 }: FindJobsHeroSectionProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || '');
   const [localLocation, setLocalLocation] = useState(location || '');
@@ -52,7 +54,7 @@ export default function FindJobsHeroSection({
                 <div className="flex flex-1 flex-col gap-2 pt-2.5">
                   <input
                     type="text"
-                    placeholder="Job title or keyword"
+                    placeholder={placeholder || 'Job title or keyword'}
                     className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
                     value={localSearchTerm}
                     onChange={(e) => setLocalSearchTerm(e.target.value)}
@@ -67,13 +69,16 @@ export default function FindJobsHeroSection({
               <div className="flex flex-1 items-center gap-4 px-2 sm:px-4">
                 <MapPin className="h-6 w-6 text-slate-900" />
                 <div className="flex flex-1 flex-col gap-2 pt-2.5">
-                  <input
-                    type="text"
-                    placeholder="Location"
-                    className="w-full border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                  <LocationAutocomplete
                     value={localLocation}
-                    onChange={(e) => setLocalLocation(e.target.value)}
+                    onChange={(loc) =>
+                      setLocalLocation(loc?.formattedAddress || '')
+                    }
                     onKeyDown={handleKeyDown}
+                    placeholder="Location"
+                    hideIcon={true}
+                    className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 [&>div>input]:border-none [&>div>input]:shadow-none [&>div>input]:bg-transparent [&>div>input]:p-0 [&>div>input]:h-auto [&>div>input]:text-base [&>div>input]:leading-6 [&>div>input]:text-slate-900 [&>div>input]:placeholder:text-slate-400 [&>div>input]:focus-visible:ring-0 [&>div>input]:focus-visible:ring-offset-0 [&>div>button]:right-0"
+                    inputClassName="border-none shadow-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
                   />
                   <div className="h-px w-full bg-slate-300" />
                 </div>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { Logo } from '@/components/ui/jobly-logo';
 import {
   Building2,
@@ -162,6 +163,7 @@ export function CandidateSidebar() {
   const hasUnreadMessages = useUnreadDot(currentUser?.id);
   const { mutate: handleLogout, isPending: loading } = useLogout();
   const { toast } = useToast();
+  const [patternError, setPatternError] = useState(false);
 
   const handleLogoutClick = () => {
     handleLogout(undefined, {
@@ -233,14 +235,17 @@ export function CandidateSidebar() {
             </SidebarMenu>
           </SidebarGroup>
           <div className="pointer-events-none relative hidden h-48 overflow-hidden group-data-[collapsible=icon]:hidden md:block">
-            <Image
-              src="https://storage.googleapis.com/joblyai-public/assets/public/applicant/Pattern.png"
-              alt=""
-              fill
-              loading="eager"
-              sizes="(max-width: 768px) 0px, 192px"
-              className="object-contain object-right-bottom opacity-95"
-            />
+            {!patternError && (
+              <Image
+                src="https://storage.googleapis.com/joblyai-public/assets/public/applicant/Pattern.png"
+                alt=""
+                fill
+                loading="eager"
+                sizes="(max-width: 768px) 0px, 192px"
+                className="object-contain object-right-bottom opacity-95"
+                onError={() => setPatternError(true)}
+              />
+            )}
           </div>
         </div>
       </SidebarContent>

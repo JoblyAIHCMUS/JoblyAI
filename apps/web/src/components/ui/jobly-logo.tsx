@@ -1,4 +1,7 @@
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -13,18 +16,28 @@ const sizeMap = {
 
 export function Logo({ size = 'md', className = '' }: LogoProps) {
   const sizeConfig = sizeMap[size];
+  const [hasError, setHasError] = useState(false);
 
   return (
     <div
       className={`flex-shrink-0 rounded-full overflow-hidden ${sizeConfig.className} ${className}`}
     >
-      <Image
-        src="https://storage.googleapis.com/joblyai-public/assets/public/jobly-logo-v1.svg"
-        alt="JoblyAI Logo"
-        width={sizeConfig.width}
-        height={sizeConfig.height}
-        className="w-full h-full object-cover"
-      />
+      {hasError ? (
+        <div
+          className="w-full h-full bg-indigo-600"
+          aria-label="JoblyAI Logo"
+          role="img"
+        />
+      ) : (
+        <Image
+          src="https://storage.googleapis.com/joblyai-public/assets/public/jobly-logo-v1.svg"
+          alt="JoblyAI Logo"
+          width={sizeConfig.width}
+          height={sizeConfig.height}
+          className="w-full h-full object-cover"
+          onError={() => setHasError(true)}
+        />
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 
 import {
@@ -91,6 +91,11 @@ export function EmployerSidebar() {
   const hasUnreadMessages = useUnreadDot(currentUser?.id);
   const { data: employerProfile, fetchEmployerProfile } =
     useGetEmployerProfile();
+  const [avatarError, setAvatarError] = useState(false);
+  const showAvatarFallback = !employerProfile?.avatarUrl || avatarError;
+  const userInitial = (employerProfile?.fullName || 'U')
+    .charAt(0)
+    .toUpperCase();
 
   const handleLogoutClick = () => {
     logout.mutate(undefined, {
@@ -343,12 +348,26 @@ export function EmployerSidebar() {
       {/* Profile - always at bottom */}
       <SidebarFooter className="border-t border-[color:var(--border-primary)] p-3 sm:p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
         <div className="flex items-center gap-2.5 sm:gap-3 group-data-[collapsible=icon]:justify-center min-h-fit sm:min-h-16">
-          <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-full bg-slate-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
-            <img
-              src={employerProfile?.avatarUrl || 'https://placehold.co/48x48'}
-              alt={employerProfile?.fullName || 'User'}
-              className="h-full w-full rounded-full object-cover"
-            />
+          <div
+            className={cn(
+              'h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-full flex items-center justify-center group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8',
+              showAvatarFallback
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-slate-200 text-slate-500'
+            )}
+          >
+            {showAvatarFallback ? (
+              <span className="text-base sm:text-lg font-semibold leading-none">
+                {userInitial}
+              </span>
+            ) : (
+              <img
+                src={employerProfile?.avatarUrl}
+                alt={employerProfile?.fullName || 'User'}
+                className="h-full w-full rounded-full object-cover"
+                onError={() => setAvatarError(true)}
+              />
+            )}
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
             <span className="text-xs sm:text-sm font-medium text-[color:var(--text-primary)] leading-4 sm:leading-6">

@@ -8,7 +8,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { CreateLocationDto } from '../../location/dto/create-location.dto';
+import { Type } from 'class-transformer';
 
 export class QueryExperienceDto {
   @IsNumber()
@@ -58,7 +61,12 @@ export class CreateExperienceDto {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsEnum(CandidateExperienceType)
@@ -106,7 +114,12 @@ export class UpdateExperienceDto {
 
   @IsOptional()
   @IsString()
-  location?: string;
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
 
   @IsOptional()
   @IsEnum(CandidateExperienceType)

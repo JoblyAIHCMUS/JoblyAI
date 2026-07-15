@@ -67,11 +67,14 @@ export interface UpdateEducationPayload extends CreateEducationPayload {
   id: number;
 }
 
+import type { LocationDetail } from '../location';
+
 export interface CreateExperiencePayload {
   companyName: string;
   type?: EmploymentType; // e.g. 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'
   jobTitle: string;
-  location?: string;
+  location?: LocationDetail;
+  locationId?: string;
   startDate: string;
   endDate?: string;
   description?: string;

@@ -1,11 +1,16 @@
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
   Min,
+  Max,
+  ValidateNested,
 } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import { CreateLocationDto } from '../../location/dto/create-location.dto';
 
 export class CompanyCreateDto {
   @IsString()
@@ -33,6 +38,31 @@ export class CompanyCreateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyUpdateDto {
@@ -61,6 +91,31 @@ export class CompanyUpdateDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyPatchDto {
@@ -90,6 +145,31 @@ export class CompanyPatchDto {
   @IsString()
   @IsUrl()
   logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  locationId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  location?: CreateLocationDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locationIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLocationDto)
+  locations?: CreateLocationDto[];
 }
 
 export class CompanyAddEmployeeDto {
@@ -124,4 +204,57 @@ export class CompanyLogoDto {
   @IsNotEmpty()
   @IsUrl()
   fileUrl!: string;
+}
+
+export class GetCompaniesQueryDTO {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) {
+      return value.filter((v) => v);
+    }
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  industry?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) {
+      return value.filter((v) => v);
+    }
+    if (typeof value === 'string') {
+      return value.trim() ? [value] : undefined;
+    }
+    return undefined;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  sizeRange?: string[];
 }

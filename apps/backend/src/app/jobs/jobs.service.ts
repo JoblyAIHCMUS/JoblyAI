@@ -16,11 +16,13 @@ import { InjectPrisma } from '../decorators/inject.decorator';
 import { CreateJobDTO } from './dto/createJobDTO';
 import { UpdateJobDTO } from './dto/updateJobDTO';
 import { PreShortlistService } from '../pre-shortlist/pre-shortlist.service';
+import { LocationService } from '../location/location.service';
 
 type JobWithRelations = Prisma.JobPostingGetPayload<{
   include: {
     category: true;
     company: true;
+    location: true;
     requirements: {
       include: {
         skill: true;
@@ -39,7 +41,8 @@ export class JobsService {
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
     private readonly eventEmitter: EventEmitter2,
-    private readonly preShortlistService: PreShortlistService
+    private readonly preShortlistService: PreShortlistService,
+    private readonly locationService: LocationService
   ) {}
 
   async getsPaginatedJobsPostings(
@@ -73,14 +76,41 @@ export class JobsService {
     }
 
     if (q) {
-      whereClause.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-      ];
+      const searchTerms = q
+        .trim()
+        .split(/\s+/)
+        .filter((term) => term.length > 0);
+
+      if (searchTerms.length > 0) {
+        const keywordConditions = searchTerms.map((term) => ({
+          OR: [
+            { title: { contains: term, mode: 'insensitive' as const } },
+            { description: { contains: term, mode: 'insensitive' as const } },
+            {
+              company: {
+                name: { contains: term, mode: 'insensitive' as const },
+              },
+            },
+          ],
+        }));
+
+        if (whereClause.AND && Array.isArray(whereClause.AND)) {
+          const existingConditions =
+            whereClause.AND as Prisma.JobPostingWhereInput[];
+          existingConditions.push(...keywordConditions);
+        } else {
+          whereClause.AND = keywordConditions;
+        }
+      }
     }
 
     if (location) {
-      whereClause.location = { contains: location, mode: 'insensitive' };
+      const mainLocation = location.split(',')[0].trim();
+      if (mainLocation) {
+        whereClause.location = {
+          formattedAddress: { contains: mainLocation, mode: 'insensitive' },
+        };
+      }
     }
 
     if (remote !== undefined) whereClause.remote = remote;
@@ -146,7 +176,8 @@ export class JobsService {
       }
     }
 
-    const orderBy = this.buildOrderBy(sort, q);
+    const normalizedSearch = q?.trim().split(/\s+/).join(' & ');
+    const orderBy = this.buildOrderBy(sort, normalizedSearch);
 
     const [total, jobs] = await this.prisma.$transaction([
       this.prisma.jobPosting.count({ where: whereClause }),
@@ -155,6 +186,7 @@ export class JobsService {
         include: {
           category: true,
           company: true,
+          location: true,
           // We must include this to flatten it later for the interface
           requirements: {
             include: {
@@ -197,14 +229,29 @@ export class JobsService {
     dto: CreateJobDTO,
     userId: string
   ): Promise<JobPostingInterface> {
-    const { requirements, preShortlistQuestions, ...jobData } = dto;
+    const {
+      requirements,
+      preShortlistQuestions,
+      location,
+      locationId,
+      ...jobData
+    } = dto;
 
     this.preShortlistService.validateQuestions(preShortlistQuestions);
     const threshold = dto.preShortlistThreshold ?? 0;
 
+    let resolvedLocationId: string | undefined = locationId;
+    if (location) {
+      const locRecord = await this.locationService.getOrCreateLocation(
+        location
+      );
+      resolvedLocationId = locRecord.id;
+    }
+
     const createdJob = await this.prisma.jobPosting.create({
       data: {
         ...jobData,
+        locationId: resolvedLocationId || undefined,
         postedById: userId,
         preShortlistThreshold: threshold,
         preShortlistQuestions:
@@ -231,6 +278,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -262,6 +310,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -290,6 +339,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -385,6 +435,7 @@ export class JobsService {
         include: {
           category: true,
           company: true,
+          location: true,
           requirements: {
             include: {
               skill: true,
@@ -434,6 +485,7 @@ export class JobsService {
         include: {
           category: true,
           company: true,
+          location: true,
           requirements: {
             include: {
               skill: true,
@@ -487,6 +539,8 @@ export class JobsService {
       requirements,
       preShortlistQuestions,
       preShortlistThreshold,
+      location,
+      locationId,
       ...jobData
     } = dto;
 
@@ -503,10 +557,26 @@ export class JobsService {
       }
     }
 
+    let resolvedLocationId: string | null | undefined = undefined;
+    if (locationId !== undefined) {
+      resolvedLocationId = locationId;
+    }
+    if (location !== undefined) {
+      if (location === null) {
+        resolvedLocationId = null;
+      } else {
+        const locRecord = await this.locationService.getOrCreateLocation(
+          location
+        );
+        resolvedLocationId = locRecord.id;
+      }
+    }
+
     const updatedJob = await this.prisma.jobPosting.update({
       where: { id },
       data: {
         ...jobData,
+        locationId: resolvedLocationId,
         preShortlistThreshold: preShortlistThreshold ?? undefined,
         preShortlistQuestions: preShortlistQuestions
           ? {
@@ -533,6 +603,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -590,6 +661,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -631,7 +703,9 @@ export class JobsService {
     } else if (companyId) {
       whereClause.companyId = companyId;
     } else if (location) {
-      whereClause.location = { contains: location, mode: 'insensitive' };
+      whereClause.location = {
+        formattedAddress: { contains: location, mode: 'insensitive' },
+      };
     }
 
     const jobs = await this.prisma.jobPosting.findMany({
@@ -639,6 +713,7 @@ export class JobsService {
       include: {
         category: true,
         company: true,
+        location: true,
         requirements: {
           include: {
             skill: true,
@@ -915,12 +990,27 @@ export class JobsService {
   }
 
   private mapToJobResponse(job: JobWithRelations): JobPostingInterface {
-    const { requirements, postedById, _count, ...rest } = job;
+    const { requirements, postedById, _count, location, ...rest } = job;
 
     return {
       ...rest,
       employerId: postedById,
       applicantsCount: _count?.applications,
+      location: location?.formattedAddress || null,
+      locationDetail: location
+        ? {
+            id: location.id,
+            provider: location.provider,
+            providerId: location.providerId,
+            formattedAddress: location.formattedAddress,
+            lat: location.lat,
+            lng: location.lng,
+            city: location.city || null,
+            state: location.state || null,
+            country: location.country || null,
+            postcode: location.postcode || null,
+          }
+        : null,
       // Map requirements with full details including years and importance
       requirements: requirements
         ? requirements.map((jr) => ({

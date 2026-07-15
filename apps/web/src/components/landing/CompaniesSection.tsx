@@ -1,10 +1,21 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { useTopCompanies } from '@/hooks/useTopCompanies';
 
 export default function CompaniesSection() {
   const { companies, loading } = useTopCompanies(5);
+  const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
+
+  const handleLogoError = (url: string) => {
+    setFailedLogos((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -33,26 +44,32 @@ export default function CompaniesSection() {
           Top companies hiring
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8 place-items-center">
-          {companies.map((company) => (
-            <div
-              key={company.id}
-              className="relative flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 w-32 h-16"
-            >
-              {company.logoUrl ? (
-                <Image
-                  src={company.logoUrl}
-                  alt={`${company.name} logo`}
-                  width={128}
-                  height={64}
-                  className="object-contain"
-                />
-              ) : (
-                <div className="text-center text-sm font-medium text-slate-600">
-                  {company.name}
-                </div>
-              )}
-            </div>
-          ))}
+          {companies.map((company) => {
+            const logoFailed = company.logoUrl
+              ? failedLogos.has(company.logoUrl)
+              : true;
+            return (
+              <div
+                key={company.id}
+                className="relative flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 w-32 h-16"
+              >
+                {company.logoUrl && !logoFailed ? (
+                  <Image
+                    src={company.logoUrl}
+                    alt={`${company.name} logo`}
+                    width={128}
+                    height={64}
+                    className="object-contain"
+                    onError={() => handleLogoError(company.logoUrl!)}
+                  />
+                ) : (
+                  <div className="text-center text-sm font-medium text-slate-600">
+                    {company.name}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

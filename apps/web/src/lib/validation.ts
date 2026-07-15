@@ -191,13 +191,20 @@ export const createExperienceSchema = () => {
           message: 'Employment type is required',
         }),
       location: z
-        .string()
-        .optional()
-        .or(z.literal(''))
-        .refine(
-          (val) => !val || val.length <= 200,
-          'Location must be less than 200 characters'
-        ),
+        .object({
+          id: z.string().optional(),
+          provider: z.string(),
+          providerId: z.string(),
+          formattedAddress: z.string(),
+          lat: z.number(),
+          lng: z.number(),
+          city: z.string().nullable().optional(),
+          state: z.string().nullable().optional(),
+          country: z.string().nullable().optional(),
+          postcode: z.string().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
       startDate: z
         .date({
           error: 'Start date is required',

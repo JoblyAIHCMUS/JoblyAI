@@ -9,6 +9,11 @@ import { cn } from '@/lib/utils';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
@@ -79,6 +84,7 @@ export default function JobCard({
   onApplySuccess,
 }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const { data: user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -137,14 +143,15 @@ export default function JobCard({
         >
           <div
             className={
-              'flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-slate-900'
+              'flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-lg font-semibold text-slate-900'
             }
           >
-            {job.company.logoUrl ? (
+            {job.company.logoUrl && !logoError ? (
               <img
                 src={job.company.logoUrl}
                 alt={job.company.name || job.title}
                 className="h-full w-full object-cover"
+                onError={() => setLogoError(true)}
               />
             ) : (
               <span className="text-lg font-semibold text-slate-900">
@@ -160,22 +167,48 @@ export default function JobCard({
               </h3>
               {job.matchPercentage !== undefined &&
                 job.matchPercentage !== null && (
-                  <div
-                    className={cn(
-                      'px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1',
-                      job.matchPercentage >= 80
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : job.matchPercentage >= 50
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-slate-50 text-slate-600 border-slate-200'
-                    )}
-                    title={`AI Match Score: ${Math.round(
-                      job.matchPercentage
-                    )}%`}
-                  >
-                    <Star size={10} className="fill-current" />
-                    {Math.round(job.matchPercentage)}% Match
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          'px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1',
+                          job.matchPercentage >= 80
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : job.matchPercentage >= 50
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                        )}
+                      >
+                        <Star size={10} className="fill-current" />
+                        {Math.round(job.matchPercentage)}% Match
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="max-w-sm p-4 shadow-lg"
+                    >
+                      <p className="font-semibold text-sm mb-2">
+                        How this score is calculated
+                      </p>
+                      <p className="text-xs leading-relaxed mb-2">
+                        This match score is an AI-generated estimate based on
+                        how closely your resume aligns with the job posting. It
+                        gives you a quick sense of fit, but it is only an
+                        approximation.
+                      </p>
+                      <p className="text-xs leading-relaxed mb-2">
+                        The score looks at the overlap between the skills,
+                        experience, and keywords in your resume and those
+                        mentioned in the job. A higher score means a stronger
+                        match on paper, but it cannot capture everything.
+                      </p>
+                      <p className="text-xs leading-relaxed font-medium">
+                        Always read the full job description and required
+                        qualifications before deciding whether to apply. The
+                        description has details that the score may not reflect.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
             </div>
             <p className="body-body-1-regular mt-1 text-slate-600">
