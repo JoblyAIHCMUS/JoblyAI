@@ -8,7 +8,8 @@
     "lint": "nx affected -t lint test",
     "ios": "expo run:ios",
     "format": "prettier --write . --ignore-unknown",
-    "format:check": "prettier --check . --ignore-unknown"
+    "format:check": "prettier --check . --ignore-unknown",
+    "audit": "node scripts/audit.mjs"
   },
   "private": true,
   "devDependencies": {

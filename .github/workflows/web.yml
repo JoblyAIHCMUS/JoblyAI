@@ -52,8 +52,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # 3a. Run format check
       - run: pnpm nx format:check --base=origin/development --head=HEAD
-      # 3b. Package audit
-      - run: pnpm audit --audit-level=high
+      # 3b. Package audit (pnpm 10's built-in audit hits the retired npm
+      # /security/audits endpoint, so we use the OSV-based script in package.json)
+      - run: pnpm run audit --audit-level=high
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
@@ -136,8 +137,8 @@ jobs:
       # 3. Install Dependencies
       - run: pnpm install --frozen-lockfile
 
-      # 3b. Package audit
-      - run: pnpm audit --audit-level=moderate
+      # 3b. Package audit (see comment in job 1 about pnpm 10's audit endpoint)
+      - run: pnpm run audit --audit-level=moderate
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
       # 5. Build Web App
