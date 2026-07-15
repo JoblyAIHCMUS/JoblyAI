@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -87,11 +87,17 @@ export default function JobCard({
   const [logoError, setLogoError] = useState(false);
   const { data: user } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const userRole = user?.role ?? null;
-  const jobHref =
+  const activeResumeId = searchParams.get('resumeId');
+  const baseHref =
     userRole === 'candidate'
       ? `/candidate/find-jobs/${job.id}`
       : `/find-jobs/${job.id}`;
+  const jobHref =
+    userRole === 'candidate' && activeResumeId
+      ? `${baseHref}?resumeId=${activeResumeId}`
+      : baseHref;
 
   // Gate apply button by role - only candidates can apply
   const isGuest = !user;

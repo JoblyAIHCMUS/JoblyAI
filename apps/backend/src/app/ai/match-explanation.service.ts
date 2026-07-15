@@ -1,8 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { AiProviderService } from './ai-provider.service';
 import { ParsedResume } from './resume-parser.service';
+
+const JOB_RESUME_CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface CachedJobResumeExplanation {
+  value: MatchExplanation;
+  expiresAt: number;
+}
 
 export interface EmbeddingMatchResult {
   similarity: number;
@@ -37,6 +49,10 @@ export interface JobScoreResult {
 @Injectable()
 export class MatchExplanationService {
   private readonly logger = new Logger(MatchExplanationService.name);
+  private readonly jobResumeCache = new Map<
+    string,
+    CachedJobResumeExplanation
+  >();
 
   private readonly REQUIREMENT_EMBEDDING_CACHE_SIZE = 1000;
   private readonly requirementEmbeddingCache = new Map<string, number[]>();
@@ -115,24 +131,113 @@ export class MatchExplanationService {
       throw new NotFoundException(`Application ${applicationId} not found`);
     }
 
+    const effectiveMode =
+      scoringMode ||
+      (application.scoringMode as 'exact' | 'embedding') ||
+      'embedding';
+
+    const explanation = await this.buildMatchExplanation(
+      {
+        jobId: application.jobId,
+        resumeId: application.resumeId,
+        candidateId: application.candidateId,
+      },
+      effectiveMode
+    );
+
+    // Store in database — also set matchPercentage and scoringMode
+    await this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        matchExplanation: explanation as any,
+        matchPercentage: explanation.overallScore,
+        scoringMode: effectiveMode,
+      },
+    });
+
+    this.logger.log(
+      `Match explanation calculated for application ${applicationId}: overallScore=${explanation.overallScore}, ${explanation.requirementMatches.length} requirements processed`
+    );
+
+    return explanation;
+  }
+
+  /**
+   * Compute a MatchExplanation for a (jobId, resumeId) pair, intended for
+   * candidate-side previews where no Application row exists yet.
+   *
+   * The result is cached in memory for a short TTL so repeat opens of the
+   * same job/resume within the window are effectively free.
+   */
+  async getJobResumeMatchExplanation(
+    jobId: number,
+    resumeId: number,
+    requesterId: string
+  ): Promise<MatchExplanation> {
+    const cacheKey = `${jobId}:${resumeId}`;
+    const cached = this.jobResumeCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.value;
+    }
+
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { id: true, candidateId: true },
+    });
+
+    if (!resume) {
+      throw new NotFoundException(`Resume ${resumeId} not found`);
+    }
+
+    if (resume.candidateId !== requesterId) {
+      throw new ForbiddenException(
+        'You can only view match analysis for your own resumes'
+      );
+    }
+
+    this.logger.log(
+      `Calculating match explanation for job ${jobId} and resume ${resumeId}`
+    );
+
+    const explanation = await this.buildMatchExplanation(
+      { jobId, resumeId, candidateId: resume.candidateId },
+      'embedding'
+    );
+
+    this.jobResumeCache.set(cacheKey, {
+      value: explanation,
+      expiresAt: Date.now() + JOB_RESUME_CACHE_TTL_MS,
+    });
+
+    return explanation;
+  }
+
+  /**
+   * Shared per-requirement matching engine used by both the application-bound
+   * (employer) and the standalone job/resume (candidate) flows.
+   */
+  private async buildMatchExplanation(
+    input: { jobId: number; resumeId: number; candidateId: string },
+    scoringMode: 'exact' | 'embedding'
+  ): Promise<MatchExplanation> {
     const [job, resume, candidateSkills, candidateExperience] =
       await Promise.all([
         this.prisma.jobPosting.findUnique({
-          where: { id: application.jobId },
+          where: { id: input.jobId },
           include: {
             requirements: { include: { skill: true } },
           },
         }),
         this.prisma.resume.findUnique({
-          where: { id: application.resumeId },
+          where: { id: input.resumeId },
           select: { id: true, parsedText: true },
         }),
         this.prisma.candidateSkill.findMany({
-          where: { candidateId: application.candidateId },
+          where: { candidateId: input.candidateId },
           include: { skill: true },
         }),
         this.prisma.experience.findMany({
-          where: { candidateId: application.candidateId },
+          where: { candidateId: input.candidateId },
           orderBy: { startDate: 'desc' },
         }),
       ]);
@@ -156,11 +261,6 @@ export class MatchExplanationService {
     // Calculate career span years
     const experienceYears = this.calculateCareerSpan(candidateExperience);
 
-    // Per-Requirement Matching — use provided scoringMode, fallback to DB value, then 'embedding'
-    const effectiveMode =
-      scoringMode ||
-      (application.scoringMode as 'exact' | 'embedding') ||
-      'embedding';
     const requirementMatches = await this.matchRequirements(
       job.requirements,
       candidateSkills,
@@ -169,37 +269,18 @@ export class MatchExplanationService {
       skillNames,
       resumeText,
       parsedResume,
-      effectiveMode
+      scoringMode
     );
 
-    // Calculate overall score (average of all embedding similarities)
     const overallScore = this.calculateOverallScore(requirementMatches);
-
-    // Calculate exact match score (Jaccard-style: met / total)
     const exactMatchScore = this.calculateExactMatchScore(requirementMatches);
 
-    const explanation: MatchExplanation = {
+    return {
       overallScore,
       exactMatchScore,
       experienceYears,
       requirementMatches,
     };
-
-    // Store in database — also set matchPercentage and scoringMode
-    await this.prisma.application.update({
-      where: { id: applicationId },
-      data: {
-        matchExplanation: explanation as any,
-        matchPercentage: overallScore,
-        scoringMode: effectiveMode,
-      },
-    });
-
-    this.logger.log(
-      `Match explanation calculated for application ${applicationId}: overallScore=${overallScore}, ${requirementMatches.length} requirements processed`
-    );
-
-    return explanation;
   }
 
   /**
