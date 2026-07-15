@@ -40,9 +40,12 @@ describe('GeminiSearchProvider', () => {
     };
 
     googleGenAIMocks.generateContentMock.mockReset();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      status: 200,
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 200,
+      })
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

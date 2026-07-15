@@ -185,7 +185,9 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
 `.trim();
   }
 
-  private async validateAndCleanQuestions(questions: any[]): Promise<InterviewQuestion[]> {
+  private async validateAndCleanQuestions(
+    questions: any[]
+  ): Promise<InterviewQuestion[]> {
     if (!Array.isArray(questions)) {
       return [];
     }
@@ -218,7 +220,9 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
               if (!s.url) return false;
               try {
                 const parsed = new URL(s.url);
-                return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+                return (
+                  parsed.protocol === 'http:' || parsed.protocol === 'https:'
+                );
               } catch {
                 return false;
               }
@@ -233,7 +237,9 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
         })
       );
 
-      let sources = accessibilityChecks.filter((s): s is { title: string; url: string } => s !== null);
+      let sources = accessibilityChecks.filter(
+        (s): s is { title: string; url: string } => s !== null
+      );
 
       if (sources.length === 0) {
         sources = [
