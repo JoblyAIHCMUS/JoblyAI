@@ -36,9 +36,11 @@ for (const arg of args) {
   if (arg === '--prod' || arg === '-P') prodOnly = true;
   else if (arg === '--dev' || arg === '-D') devOnly = true;
   else if (arg === '--json') asJson = true;
-  else if (arg === '--ignore-errors' || arg === '--ignore-registry-errors') ignoreErrors = true;
+  else if (arg === '--ignore-errors' || arg === '--ignore-registry-errors')
+    ignoreErrors = true;
   else if (arg === '--no-cache') noCache = true;
-  else if (arg.startsWith('--audit-level=')) auditLevel = arg.slice('--audit-level='.length);
+  else if (arg.startsWith('--audit-level='))
+    auditLevel = arg.slice('--audit-level='.length);
   else if (arg === '--help' || arg === '-h') {
     console.log(
       [
@@ -52,7 +54,7 @@ for (const arg of args) {
         '  --ignore-errors                             Exit 0 even if the OSV API fails',
         '  --no-cache                                  Bypass the on-disk OSV cache',
         '  --help, -h                                  Show this help',
-      ].join('\n'),
+      ].join('\n')
     );
     process.exit(0);
   } else {
@@ -119,7 +121,8 @@ function parseLockfile(content) {
   }
 
   // Top-level section headers (no leading whitespace)
-  const topLevel = /^(packages|importers|overrides|settings|lockfileVersion):\s*$/;
+  const topLevel =
+    /^(packages|importers|overrides|settings|lockfileVersion):\s*$/;
   // Package key in `packages:` block, 2-space indented.
   // Two forms appear in the lockfile:
   //   2-space-indented, single-quoted:  'name@version(peers)':
@@ -130,7 +133,8 @@ function parseLockfile(content) {
   const importerKey = /^ {2}'([^']+)':\s*$/;
   const importerKeyUnquoted = /^ {2}(\S+):\s*$/; // workspace paths like "." or unquoted names
   // `dependencies:` / `devDependencies:` header inside a block (4-space indent)
-  const subHeader = /^ {4}(dependencies|devDependencies|optionalDependencies):\s*$/;
+  const subHeader =
+    /^ {4}(dependencies|devDependencies|optionalDependencies):\s*$/;
   // `  <name>:` style entry under a dep header
   const entry = /^ {6}(.*):\s*$/;
   // `resolution:` opener, 4-space indent
@@ -154,7 +158,11 @@ function parseLockfile(content) {
       if (m) {
         finalizePackage();
         currentPkgKey = m[1];
-        currentPkgEntry = { deps: new Set(), dev: new Set(), optional: new Set() };
+        currentPkgEntry = {
+          deps: new Set(),
+          dev: new Set(),
+          optional: new Set(),
+        };
         continue;
       }
       if (currentPkgEntry) {
@@ -162,7 +170,8 @@ function parseLockfile(content) {
         if (sub) {
           if (sub[1] === 'dependencies') currentDepKind = 'deps';
           else if (sub[1] === 'devDependencies') currentDepKind = 'dev';
-          else if (sub[1] === 'optionalDependencies') currentDepKind = 'optional';
+          else if (sub[1] === 'optionalDependencies')
+            currentDepKind = 'optional';
           else currentDepKind = null;
           continue;
         }
@@ -206,7 +215,8 @@ function parseLockfile(content) {
         const sub = subHeader.exec(line);
         if (sub) {
           if (sub[1] === 'dependencies') currentDepKind = 'dependencies';
-          else if (sub[1] === 'devDependencies') currentDepKind = 'devDependencies';
+          else if (sub[1] === 'devDependencies')
+            currentDepKind = 'devDependencies';
           else currentDepKind = null;
           continue;
         }
@@ -244,7 +254,8 @@ function splitPkgKey(key) {
     versionPart = key.slice(atIdx + 1);
   }
   const parenIdx = versionPart.indexOf('(');
-  const version = parenIdx === -1 ? versionPart : versionPart.slice(0, parenIdx);
+  const version =
+    parenIdx === -1 ? versionPart : versionPart.slice(0, parenIdx);
   return { name, version };
 }
 
@@ -280,7 +291,11 @@ function expandFromImporter(packages, importer, kind) {
     // If there's exactly one installed version, use it; otherwise include all
     // (conservative — pnpm usually dedupes, so there's normally one).
     if (candidates.length === 1) {
-      resolvedQueue.push({ key: candidates[0].key, name: item.name, version: candidates[0].version });
+      resolvedQueue.push({
+        key: candidates[0].key,
+        name: item.name,
+        version: candidates[0].version,
+      });
     } else if (candidates.length > 1) {
       // include all installed versions of this name (conservative)
       for (const c of candidates) {
@@ -305,7 +320,11 @@ function expandFromImporter(packages, importer, kind) {
         });
       } else {
         for (const c of candidates) {
-          resolvedQueue.push({ key: c.key, name: childName, version: c.version });
+          resolvedQueue.push({
+            key: c.key,
+            name: childName,
+            version: c.version,
+          });
         }
       }
     }
@@ -356,7 +375,10 @@ async function saveCache(cache) {
   if (noCache) return;
   try {
     await mkdir(dirname(CACHE_PATH), { recursive: true });
-    await writeFile(CACHE_PATH, JSON.stringify(Object.fromEntries(cache), null, 2));
+    await writeFile(
+      CACHE_PATH,
+      JSON.stringify(Object.fromEntries(cache), null, 2)
+    );
   } catch (e) {
     console.error(`warning: could not write OSV cache: ${e.message}`);
   }
@@ -376,13 +398,16 @@ async function fetchVulnDetails(id, cache) {
 async function runWithConcurrency(items, limit, worker) {
   const results = new Array(items.length);
   let cursor = 0;
-  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (true) {
-      const i = cursor++;
-      if (i >= items.length) return;
-      results[i] = await worker(items[i], i);
+  const runners = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (true) {
+        const i = cursor++;
+        if (i >= items.length) return;
+        results[i] = await worker(items[i], i);
+      }
     }
-  });
+  );
   await Promise.all(runners);
   return results;
 }
@@ -399,9 +424,10 @@ function ghsaSeverityToLevel(s) {
 
 function cvssV3BaseScore(vector) {
   // CVSS:3.x/AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X
-  const m = /CVSS:3\.[01]\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)/.exec(
-    vector,
-  );
+  const m =
+    /CVSS:3\.[01]\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)/.exec(
+      vector
+    );
   if (!m) return null;
   const [, AV, AC, PR, UI, S, C, I, A] = m;
   const avN = { N: 0.85, A: 0.62, L: 0.55, P: 0.2 };
@@ -429,7 +455,10 @@ function cvssV3BaseScore(vector) {
   }
   if (impact <= 0) return 0;
   const exploit = 8.22 * avS * acS * prS * uiS;
-  const base = S === 'U' ? Math.min(impact + exploit, 10) : Math.min(1.08 * (impact + exploit), 10);
+  const base =
+    S === 'U'
+      ? Math.min(impact + exploit, 10)
+      : Math.min(1.08 * (impact + exploit), 10);
   return Math.round(base * 10) / 10;
 }
 
@@ -473,7 +502,12 @@ async function queryOsv(packages) {
         version: p.version,
       })),
     };
-    process.stderr.write(`  querying OSV for ${i + 1}-${Math.min(i + BATCH_SIZE, list.length)} of ${list.length} packages...\n`);
+    process.stderr.write(
+      `  querying OSV for ${i + 1}-${Math.min(
+        i + BATCH_SIZE,
+        list.length
+      )} of ${list.length} packages...\n`
+    );
     let res;
     try {
       res = await fetch(OSV_QUERYBATCH, {
@@ -570,7 +604,9 @@ function colorForSeverity(sev) {
 
 function printHuman(findings) {
   if (findings.length === 0) {
-    console.log(COLOR.bold('No vulnerabilities found at the configured audit level.'));
+    console.log(
+      COLOR.bold('No vulnerabilities found at the configured audit level.')
+    );
     return;
   }
   // group by package
@@ -583,15 +619,23 @@ function printHuman(findings) {
   const sorted = [...byPkg.entries()].sort(([a], [b]) => a.localeCompare(b));
   for (const [pkg, items] of sorted) {
     const highest = items.reduce(
-      (acc, f) => (SEVERITY_ORDER.indexOf(f.severity) > SEVERITY_ORDER.indexOf(acc) ? f.severity : acc),
-      'info',
+      (acc, f) =>
+        SEVERITY_ORDER.indexOf(f.severity) > SEVERITY_ORDER.indexOf(acc)
+          ? f.severity
+          : acc,
+      'info'
     );
     const color = colorForSeverity(highest);
     console.log(color(COLOR.bold(pkg)));
     for (const f of items.sort(
-      (a, b) => SEVERITY_ORDER.indexOf(b.severity) - SEVERITY_ORDER.indexOf(a.severity),
+      (a, b) =>
+        SEVERITY_ORDER.indexOf(b.severity) - SEVERITY_ORDER.indexOf(a.severity)
     )) {
-      console.log(`  ${color(f.severity.toUpperCase())} ${COLOR.bold(f.vulnId)} ${f.summary}`);
+      console.log(
+        `  ${color(f.severity.toUpperCase())} ${COLOR.bold(f.vulnId)} ${
+          f.summary
+        }`
+      );
       const ghsaLink = `https://github.com/advisories/${f.vulnId}`;
       console.log(`    More info: ${COLOR.gray(ghsaLink)}`);
     }
@@ -599,8 +643,10 @@ function printHuman(findings) {
   }
   console.log(
     COLOR.bold(
-      `Found ${findings.length} ${findings.length === 1 ? 'advisory' : 'advisories'} at or above "${auditLevel}" severity.`,
-    ),
+      `Found ${findings.length} ${
+        findings.length === 1 ? 'advisory' : 'advisories'
+      } at or above "${auditLevel}" severity.`
+    )
   );
 }
 
@@ -623,7 +669,7 @@ async function main() {
 
   const scopeLabel = prodOnly ? 'prod' : devOnly ? 'dev' : 'all';
   process.stderr.write(
-    `Auditing ${selected.size} unique ${scopeLabel} package versions against OSV.dev (audit level: ${auditLevel})...\n`,
+    `Auditing ${selected.size} unique ${scopeLabel} package versions against OSV.dev (audit level: ${auditLevel})...\n`
   );
 
   let findings;
