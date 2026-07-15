@@ -53,7 +53,11 @@ jobs:
       # 3a. Run format check
       - run: pnpm nx format:check --base=origin/development --head=HEAD
       # 3b. Package audit
-      - run: pnpm audit --audit-level=high
+      # Use pnpm@11 via dlx because pnpm 10's audit hits a retired npm endpoint
+      # (https://registry.npmjs.org/-/npm/v1/security/audits which returns 410).
+      # pnpm 11 calls the new bulk advisory endpoint. pnpm 10 stays as the
+      # install tool; only the audit subcommand runs pnpm 11.
+      - run: pnpm dlx --config.minimumReleaseAge=0 pnpm@11 audit --audit-level=high
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
 
@@ -137,7 +141,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # 3b. Package audit
-      - run: pnpm audit --audit-level=moderate
+      # Use pnpm@11 via dlx because pnpm 10's audit hits a retired npm endpoint
+      # (https://registry.npmjs.org/-/npm/v1/security/audits which returns 410).
+      # pnpm 11 calls the new bulk advisory endpoint. pnpm 10 stays as the
+      # install tool; only the audit subcommand runs pnpm 11.
+      - run: pnpm dlx --config.minimumReleaseAge=0 pnpm@11 audit --audit-level=moderate
       # 4. Initialize Nx
       - uses: nrwl/nx-set-shas@v4
       # 5. Build Web App
