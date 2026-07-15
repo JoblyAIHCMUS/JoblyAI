@@ -7,10 +7,14 @@ import {
   Query,
   UseGuards,
   Body,
+  Req,
 } from '@nestjs/common';
 import { MatchingService } from './matching.service';
 import { MatchExplanationService } from './match-explanation.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { RoleGuard } from '../auth/role.guard';
+import { Roles } from '../decorators/roles.decorator';
+import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 import { GetJobsQueryDTO } from '../jobs/dto/getJobsQueryDTO';
 
 @Controller('matching')
@@ -69,6 +73,21 @@ export class MatchingController {
     return this.matchExplanationService.calculateExplanation(
       id,
       body.scoringMode
+    );
+  }
+
+  @Get('job/:jobId/resume/:resumeId/explanation')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async getCandidateJobResumeExplanation(
+    @Param('jobId', ParseIntPipe) jobId: number,
+    @Param('resumeId', ParseIntPipe) resumeId: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    return this.matchExplanationService.getJobResumeMatchExplanation(
+      jobId,
+      resumeId,
+      request.user.id
     );
   }
 }
