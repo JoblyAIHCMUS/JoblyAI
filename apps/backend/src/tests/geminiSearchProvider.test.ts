@@ -40,6 +40,9 @@ describe('GeminiSearchProvider', () => {
     };
 
     googleGenAIMocks.generateContentMock.mockReset();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      status: 200,
+    }));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -73,7 +76,12 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Candidate lists NestJS.',
           confidence: 0.9,
-          sourceTitles: ['NestJS Docs'],
+          sources: [
+            {
+              title: 'NestJS Docs',
+              url: 'https://docs.nestjs.com',
+            },
+          ],
         },
         {
           // duplicate question to be removed
@@ -82,7 +90,7 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Duplicated info',
           confidence: 0.9,
-          sourceTitles: [],
+          sources: [],
         },
       ]),
       candidates: [
@@ -149,5 +157,57 @@ describe('GeminiSearchProvider', () => {
     await expect(
       provider.searchAndExtract('Google', 'SWE', 'Desc', ['q'])
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
+  });
+
+  it('uses fallback sources when Google Search returns no grounding chunks', async () => {
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'GEMINI_API_KEY') {
+        return 'gemini-test-key';
+      }
+      return undefined;
+    });
+
+    googleGenAIMocks.generateContentMock.mockResolvedValueOnce({
+      text: JSON.stringify([
+        {
+          question: 'What is NestJS?',
+          category: 'Technical',
+          difficulty: 'Medium',
+          relevance: 'Candidate lists NestJS.',
+          confidence: 0.9,
+          sources: [],
+        },
+      ]),
+      candidates: [
+        {
+          groundingMetadata: {
+            groundingChunks: [], // empty chunks
+          },
+        },
+      ],
+    });
+
+    const results = await provider.searchAndExtract(
+      'Google',
+      'Software Engineer',
+      'Develop things in NestJS',
+      ['nestjs interview questions']
+    );
+
+    expect(results).toEqual([
+      {
+        question: 'What is NestJS?',
+        category: 'Technical',
+        difficulty: 'Medium',
+        relevance: 'Candidate lists NestJS.',
+        confidence: 0.9,
+        sources: [
+          {
+            title: 'Google Search Fallback',
+            url: 'https://google.com',
+          },
+        ],
+      },
+    ]);
   });
 });

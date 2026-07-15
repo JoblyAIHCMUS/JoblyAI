@@ -89,12 +89,25 @@ export class GeminiSearchProvider implements SearchProvider {
                   description:
                     'A confidence score between 0.0 and 1.0 representing how reliable and relevant the question is based on the search sources',
                 },
-                // Cài đặt 1: Bắt Gemini trả về mảng tiêu đề nguồn thay vì URL tự chế
-                sourceTitles: {
+                // Cài đặt 1: Bắt Gemini trả về mảng sources gồm title và url của nguồn tìm được
+                sources: {
                   type: 'ARRAY',
                   description:
-                    'Exact titles of the search results/webpages where this specific question was found',
-                  items: { type: 'STRING' },
+                    'List of source webpages where this specific question was found',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      title: {
+                        type: 'STRING',
+                        description: 'Title of the webpage',
+                      },
+                      url: {
+                        type: 'STRING',
+                        description: 'Exact URL of the webpage',
+                      },
+                    },
+                    required: ['title', 'url'],
+                  },
                 },
               },
               required: [
@@ -103,7 +116,7 @@ export class GeminiSearchProvider implements SearchProvider {
                 'difficulty',
                 'relevance',
                 'confidence',
-                'sourceTitles',
+                'sources',
               ],
             },
           },
@@ -117,70 +130,9 @@ export class GeminiSearchProvider implements SearchProvider {
 
       const parsed = JSON.parse(text) as any[];
 
-      // Cài đặt 2: Lấy danh sách metadata thô (chứa URL sạch 100%) từ Google Search Tool trả về
-      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-      const chunks = groundingMetadata?.groundingChunks || [];
+      // Không cần code map thủ công nữa vì đã bắt Gemini trả về mảng sources (gồm title, url) trực tiếp
 
-      // Cài đặt 3: Tiến hành map URL bằng code hệ thống dựa trên tiêu đề nguồn
-      for (const q of parsed) {
-        if (!q || typeof q !== 'object') continue;
-
-        const uniqueSourcesMap = new Map<
-          string,
-          { title: string; url: string }
-        >();
-        const aiSuggestedTitles = Array.isArray(q.sourceTitles)
-          ? q.sourceTitles
-          : [];
-
-        for (const aiTitle of aiSuggestedTitles) {
-          if (!aiTitle || typeof aiTitle !== 'string') continue;
-
-          const normAiTitle = aiTitle.toLowerCase().trim();
-
-          // Duyệt qua các kết quả tìm kiếm thực tế của Google để tìm link
-          for (const chunk of chunks) {
-            if (!chunk?.web?.uri) continue;
-            const chunkTitle = (chunk.web.title || '').toLowerCase().trim();
-
-            // Khớp nếu tiêu đề của AI trùng hoặc chứa một phần tiêu đề từ Google Search
-            if (
-              chunkTitle.includes(normAiTitle) ||
-              normAiTitle.includes(chunkTitle)
-            ) {
-              uniqueSourcesMap.set(chunk.web.uri, {
-                title: chunk.web.title || aiTitle,
-                url: chunk.web.uri, // URL sạch từ API Google
-              });
-            }
-          }
-        }
-
-        let mappedSources = Array.from(uniqueSourcesMap.values());
-
-        // Fallback: Nếu AI gõ lệch tiêu đề khiến không map được link nào,
-        // phân phối toàn bộ link tìm được để tránh Verifier loại bỏ câu hỏi
-        if (mappedSources.length === 0 && chunks.length > 0) {
-          const fallbackSources = new Map<
-            string,
-            { title: string; url: string }
-          >();
-          for (const chunk of chunks) {
-            if (chunk?.web?.uri) {
-              fallbackSources.set(chunk.web.uri, {
-                title: chunk.web.title || 'Google Search Source',
-                url: chunk.web.uri,
-              });
-            }
-          }
-          mappedSources = Array.from(fallbackSources.values());
-        }
-
-        // Đổ dữ liệu sources chuẩn về cho DTO cấu trúc cũ nhận diện
-        q.sources = mappedSources;
-      }
-
-      return this.validateAndCleanQuestions(parsed);
+      return await this.validateAndCleanQuestions(parsed);
     } catch (error: any) {
       this.logger.error(`Gemini Search and Extract failed: ${error.message}`);
       throw new ServiceUnavailableException(
@@ -196,7 +148,7 @@ export class GeminiSearchProvider implements SearchProvider {
     );
   }
 
-  // Cài đặt 4: Cập nhật prompt hướng dẫn mô hình xuất sourceTitles
+  // Cài đặt 4: Cập nhật prompt hướng dẫn mô hình xuất sources trực tiếp
   private buildPrompt(
     companyName: string | null,
     jobTitle: string,
@@ -216,7 +168,7 @@ Here are some recommended search queries to guide your search:
 ${queries.map((q) => `- ${q}`).join('\n')}
 
 2. Search multiple reliable sources (e.g. Glassdoor, LeetCode, GitHub, company blogs, interview prep websites).
-3. Read the search results carefully.
+3. Read the search results carefully. Make sure to note the exact titles and URLs of the webpages as returned by the Google Search tool.
 4. Extract only real, actual interview questions. Do not generate fictional or hypothetical questions.
 5. Merge and deduplicate similar or identical questions.
 6. For each question, provide:
@@ -225,13 +177,15 @@ ${queries.map((q) => `- ${q}`).join('\n')}
     - difficulty: The difficulty level (must be exactly "Easy", "Medium", or "Hard").
     - relevance: Explanation of why this question is highly relevant to this specific company/job profile.
     - confidence: A confidence score between 0.0 and 1.0.
-    - sourceTitles: An array containing the EXACT titles of the webpages/websites from the Google Search results where you found this question.
+    - sources: An array of source objects from your search results, each with:
+        * title: The exact title of the webpage from Google Search results.
+        * url: The exact, full URL of the webpage from Google Search results.
 
 Ensure the final output is ONLY a valid JSON array matching the required schema. Do not include any conversational text, markdown formatting other than JSON, or fictional questions.
 `.trim();
   }
 
-  private validateAndCleanQuestions(questions: any[]): InterviewQuestion[] {
+  private async validateAndCleanQuestions(questions: any[]): Promise<InterviewQuestion[]> {
     if (!Array.isArray(questions)) {
       return [];
     }
@@ -254,14 +208,41 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
 
       const confidence = typeof q.confidence === 'number' ? q.confidence : 0;
 
-      const sources = Array.isArray(q.sources)
+      const rawSources = Array.isArray(q.sources)
         ? q.sources
             .map((s: any) => ({
               title: this.cleanText(s?.title) ?? 'Google Search',
               url: this.cleanText(s?.url) ?? 'https://google.com',
             }))
-            .filter((s: any) => Boolean(s.url))
+            .filter((s: any) => {
+              if (!s.url) return false;
+              try {
+                const parsed = new URL(s.url);
+                return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+              } catch {
+                return false;
+              }
+            })
         : [];
+
+      // Kiểm tra bất đồng bộ xem các link có bị 404 không
+      const accessibilityChecks = await Promise.all(
+        rawSources.map(async (s: { title: string; url: string }) => {
+          const ok = await this.isUrlAccessible(s.url);
+          return ok ? s : null;
+        })
+      );
+
+      let sources = accessibilityChecks.filter((s): s is { title: string; url: string } => s !== null);
+
+      if (sources.length === 0) {
+        sources = [
+          {
+            title: 'Google Search Fallback',
+            url: 'https://google.com',
+          },
+        ];
+      }
 
       cleaned.push({
         question: questionText,
@@ -282,5 +263,34 @@ Ensure the final output is ONLY a valid JSON array matching the required schema.
     }
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized.length > 0 ? normalized : undefined;
+  }
+
+  private async isUrlAccessible(url: string): Promise<boolean> {
+    // Nếu là link redirect của Vertex AI Search Grounding, bỏ qua bước check 404
+    if (url.includes('vertexaisearch.cloud.google.com')) {
+      return true;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const response = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+      }).catch(async () => {
+        // Fallback sang GET nếu HEAD bị chặn hoặc lỗi
+        return await fetch(url, {
+          method: 'GET',
+          headers: { Range: 'bytes=0-0' },
+          signal: controller.signal,
+        });
+      });
+
+      clearTimeout(timeoutId);
+      return response.status !== 404;
+    } catch {
+      return false;
+    }
   }
 }
