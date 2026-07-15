@@ -28,9 +28,37 @@ export class MatchingController {
   @UseGuards(AuthGuard)
   async getRecommendations(
     @Param('id', ParseIntPipe) resumeId: number,
-    @Query() query: GetJobsQueryDTO
+    @Query() query: GetJobsQueryDTO,
+    @Req() request: AuthenticatedRequest
   ) {
-    return this.matchingService.findJobsForResume(resumeId, query);
+    const result = await this.matchingService.findJobsForResume(
+      resumeId,
+      query
+    );
+
+    if (result.jobs.length === 0) {
+      return result;
+    }
+
+    const enrichedJobs = await Promise.all(
+      result.jobs.map(async (job) => {
+        const explanation =
+          await this.matchExplanationService.getJobResumeMatchExplanation(
+            job.id,
+            resumeId,
+            request.user.id
+          );
+        return {
+          ...job,
+          matchPercentage: explanation.overallScore,
+        };
+      })
+    );
+
+    return {
+      ...result,
+      jobs: enrichedJobs,
+    };
   }
 
   @Get('job/:id/rerank')

@@ -207,12 +207,7 @@ export class MatchingService {
         const jobDetail = jobs.find((j) => j.id === mj.id);
         if (!jobDetail) return null;
 
-        return {
-          ...this.mapToJobResponse(jobDetail),
-          matchPercentage: parseFloat(
-            (Math.max(0, 1 - mj.distance) * 100).toFixed(2)
-          ),
-        };
+        return this.mapToJobResponse(jobDetail);
       })
       .filter(Boolean);
 
