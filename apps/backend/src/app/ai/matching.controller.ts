@@ -55,6 +55,15 @@ export class MatchingController {
       })
     );
 
+    // For MOST_RELEVANT, the SQL ORDER BY used global distance; re-sort
+    // within the page by the per-requirement average so the badge order
+    // matches the score the user sees on the detail page.
+    if (query.sort === undefined || query.sort === 'MOST_RELEVANT') {
+      enrichedJobs.sort(
+        (a, b) => (b.matchPercentage ?? 0) - (a.matchPercentage ?? 0)
+      );
+    }
+
     return {
       ...result,
       jobs: enrichedJobs,

@@ -142,8 +142,27 @@ export class MatchingService {
       paramIndex++;
     }
 
-    // Sort by distance (pgvector)
+    // Sort: respect query.sort; default is MOST_RELEVANT (pgvector distance).
     let orderBy = `distance ASC`;
+    switch (query.sort) {
+      case 'NEWEST':
+        orderBy = `"createdAt" DESC`;
+        break;
+      case 'OLDEST':
+        orderBy = `"createdAt" ASC`;
+        break;
+      case 'SALARY_ASC':
+        orderBy = `"salaryMin" ASC NULLS LAST`;
+        break;
+      case 'SALARY_DESC':
+        orderBy = `"salaryMax" DESC NULLS LAST`;
+        break;
+      case 'MOST_RELEVANT':
+      default:
+        orderBy = `distance ASC`;
+        break;
+    }
+
     if (query.location) {
       const locationParamIndex =
         params.findIndex(
@@ -154,18 +173,19 @@ export class MatchingService {
         ) + 1;
       if (locationParamIndex > 0) {
         // Prioritize exact/partial location matches (case-insensitive + unaccented)
+        // on top of the chosen sort.
         const unaccentLocationSort = this.wrapUnaccent(
           `$${locationParamIndex}`
         );
         orderBy = `(CASE WHEN ${this.wrapUnaccent(
           'location'
-        )} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
+        )} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), ${orderBy}`;
       }
     }
 
     const matchedJobs: any[] = await this.prisma.$queryRawUnsafe(
       `
-      SELECT id, (embedding <=> $1::vector) as distance, count(*) OVER() AS full_count
+      SELECT id, (embedding <=> $1::vector) as distance, "createdAt", "salaryMin", "salaryMax", count(*) OVER() AS full_count
       FROM "JobPosting"
       WHERE ${whereClause}
       ORDER BY ${orderBy}
