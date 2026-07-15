@@ -28,9 +28,18 @@ export interface MatchExplanation {
   requirementMatches: RequirementMatch[];
 }
 
+export interface JobScoreResult {
+  overallScore: number;
+  exactMatchScore: number;
+  scored: boolean;
+}
+
 @Injectable()
 export class MatchExplanationService {
   private readonly logger = new Logger(MatchExplanationService.name);
+
+  private readonly REQUIREMENT_EMBEDDING_CACHE_SIZE = 1000;
+  private readonly requirementEmbeddingCache = new Map<string, number[]>();
 
   constructor(
     @InjectPrisma() private readonly prisma: PrismaClient,
@@ -191,6 +200,178 @@ export class MatchExplanationService {
     );
 
     return explanation;
+  }
+
+  /**
+   * Lazily scores a resume against a batch of jobs using the same embedding-based
+   * formula as calculateExplanation. Used by the candidate-facing "Find Jobs with
+   * Resume" recommendations flow to replace the pgvector-only matchPercentage.
+   *
+   * For each job, returns the mean of per-requirement cosine similarities (×100)
+   * between each requirement's skill embedding and the candidate's best-matching
+   * skill embedding. Does NOT write to the database.
+   *
+   * Jobs that cannot be scored (no requirements, no candidate skills, embedding
+   * failure) are returned with `scored: false` so the caller can fall back.
+   */
+  async scoreResumeAgainstJobs(
+    resumeId: number,
+    jobIds: number[]
+  ): Promise<Map<number, JobScoreResult>> {
+    const result = new Map<number, JobScoreResult>();
+    for (const id of jobIds) {
+      result.set(id, { overallScore: 0, exactMatchScore: 0, scored: false });
+    }
+
+    if (jobIds.length === 0) return result;
+
+    try {
+      const resume = await this.prisma.resume.findUnique({
+        where: { id: resumeId },
+        select: { id: true, parsedText: true, candidateId: true },
+      });
+
+      if (!resume) return result;
+
+      const [candidateSkills, allRequirements] = await Promise.all([
+        this.prisma.candidateSkill.findMany({
+          where: { candidateId: resume.candidateId },
+          include: { skill: true },
+        }),
+        this.prisma.jobRequirement.findMany({
+          where: { jobPostingId: { in: jobIds } },
+          include: { skill: true },
+        }),
+      ]);
+
+      const requirementsByJob = new Map<number, any[]>();
+      for (const req of allRequirements) {
+        const list = requirementsByJob.get(req.jobPostingId) ?? [];
+        list.push(req);
+        requirementsByJob.set(req.jobPostingId, list);
+      }
+
+      const jobIdsWithRequirements = jobIds.filter(
+        (id) => (requirementsByJob.get(id)?.length ?? 0) > 0
+      );
+      if (jobIdsWithRequirements.length === 0) return result;
+
+      const parsedResume: ParsedResume | null = resume.parsedText
+        ? (JSON.parse(resume.parsedText as string) as ParsedResume)
+        : null;
+
+      if (!parsedResume?.skills?.length) return result;
+
+      const candidateSkillNames = parsedResume.skills.map((s) => s.name);
+      const candidateSkillEmbeddings = await this.aiProvider.generateEmbeddings(
+        candidateSkillNames
+      );
+
+      if (candidateSkillEmbeddings.every((e) => e.length === 0)) return result;
+
+      const uniqueReqSkillNames = new Set<string>();
+      for (const jobId of jobIdsWithRequirements) {
+        const reqs = requirementsByJob.get(jobId);
+        if (!reqs) continue;
+        for (const req of reqs) {
+          const name = req.skill?.name;
+          if (name) uniqueReqSkillNames.add(name);
+        }
+      }
+
+      const reqEmbeddingMap = await this.getCachedRequirementEmbeddings(
+        Array.from(uniqueReqSkillNames)
+      );
+
+      for (const jobId of jobIdsWithRequirements) {
+        const reqs = requirementsByJob.get(jobId);
+        if (!reqs) continue;
+        let similaritySum = 0;
+        let metCount = 0;
+
+        for (const req of reqs) {
+          const reqSkillName = req.skill?.name || '';
+          const reqEmbedding = reqEmbeddingMap.get(
+            reqSkillName.toLowerCase().trim()
+          );
+
+          if (reqEmbedding) {
+            let maxSim = 0;
+            for (const candEmb of candidateSkillEmbeddings) {
+              if (!candEmb || candEmb.length === 0) continue;
+              const sim = this.cosineSimilarity(reqEmbedding, candEmb);
+              if (sim > maxSim) maxSim = sim;
+            }
+            similaritySum += Math.max(0, maxSim);
+          }
+
+          const exactMatched = candidateSkills.some(
+            (s) =>
+              s.skill?.name?.toLowerCase().trim() ===
+              reqSkillName.toLowerCase().trim()
+          );
+          if (exactMatched) metCount++;
+        }
+
+        const totalReqs = reqs.length;
+        const overallScore =
+          Math.round((similaritySum / totalReqs) * 10000) / 100;
+        const exactMatchScore =
+          Math.round((metCount / totalReqs) * 10000) / 100;
+
+        result.set(jobId, {
+          overallScore,
+          exactMatchScore,
+          scored: true,
+        });
+      }
+
+      return result;
+    } catch (error: any) {
+      this.logger.warn(
+        `scoreResumeAgainstJobs failed for resume ${resumeId}: ${error.message}`
+      );
+      return result;
+    }
+  }
+
+  private async getCachedRequirementEmbeddings(
+    skillNames: string[]
+  ): Promise<Map<string, number[]>> {
+    const result = new Map<string, number[]>();
+    const toFetch: string[] = [];
+    const fetchKeys: string[] = [];
+
+    for (const name of skillNames) {
+      const key = name.toLowerCase().trim();
+      const cached = this.requirementEmbeddingCache.get(key);
+      if (cached) {
+        result.set(key, cached);
+      } else {
+        toFetch.push(name);
+        fetchKeys.push(key);
+      }
+    }
+
+    if (toFetch.length > 0) {
+      const embeddings = await this.aiProvider.generateEmbeddings(toFetch);
+      for (let i = 0; i < toFetch.length; i++) {
+        const emb = embeddings[i];
+        if (emb && emb.length > 0) {
+          result.set(fetchKeys[i], emb);
+          if (
+            this.requirementEmbeddingCache.size >=
+            this.REQUIREMENT_EMBEDDING_CACHE_SIZE
+          ) {
+            const oldest = this.requirementEmbeddingCache.keys().next().value;
+            if (oldest) this.requirementEmbeddingCache.delete(oldest);
+          }
+          this.requirementEmbeddingCache.set(fetchKeys[i], emb);
+        }
+      }
+    }
+
+    return result;
   }
 
   private isWorkExperience(exp: any): boolean {

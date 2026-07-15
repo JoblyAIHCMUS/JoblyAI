@@ -8,12 +8,24 @@ import { validate } from 'class-validator';
 import { JobsService } from '../app/jobs/jobs.service';
 import { GetJobsQueryDTO } from '../app/jobs/dto/getJobsQueryDTO';
 import { PreShortlistService } from '../app/pre-shortlist/pre-shortlist.service';
+import { LocationService } from '../app/location/location.service';
 
 const mockJobDbRecord = vi.hoisted(() => ({
   id: 1,
   title: 'Software Engineer',
   description: 'Great job',
-  location: 'Remote',
+  location: {
+    id: 'loc1',
+    provider: 'manual',
+    providerId: 'Remote',
+    formattedAddress: 'Remote',
+    lat: 0,
+    lng: 0,
+    city: null,
+    state: null,
+    country: null,
+    postcode: null,
+  },
   remote: true,
   type: 'FULL_TIME',
   salaryMin: 50000,
@@ -82,6 +94,11 @@ const mockPreShortlistService = vi.hoisted(() => ({
   markEvaluationFailed: vi.fn(),
 }));
 
+const mockLocationService = vi.hoisted(() => ({
+  getOrCreateLocation: vi.fn(),
+  autocomplete: vi.fn(),
+}));
+
 describe('JobsService', () => {
   let service: JobsService;
 
@@ -101,6 +118,10 @@ describe('JobsService', () => {
           provide: PreShortlistService,
           useValue: mockPreShortlistService,
         },
+        {
+          provide: LocationService,
+          useValue: mockLocationService,
+        },
       ],
     }).compile();
 
@@ -111,6 +132,9 @@ describe('JobsService', () => {
       service as unknown as { preShortlistService: PreShortlistService }
     ).preShortlistService =
       mockPreShortlistService as unknown as PreShortlistService;
+    (
+      service as unknown as { locationService: LocationService }
+    ).locationService = mockLocationService as unknown as LocationService;
     vi.clearAllMocks();
   });
 
@@ -155,7 +179,13 @@ describe('JobsService', () => {
       const createDto = {
         title: 'Software Engineer',
         description: 'Great job',
-        location: 'Remote',
+        location: {
+          provider: 'manual',
+          providerId: 'Remote',
+          formattedAddress: 'Remote',
+          lat: 0,
+          lng: 0,
+        },
         remote: true,
         type: 'FULL_TIME' as const,
         categoryId: 1,
@@ -173,6 +203,7 @@ describe('JobsService', () => {
 
       const userId = 'employer123';
 
+      mockLocationService.getOrCreateLocation.mockResolvedValue({ id: 'loc1' });
       mockPrisma.jobPosting.create.mockResolvedValue(mockJobDbRecord);
 
       // Act
@@ -183,7 +214,7 @@ describe('JobsService', () => {
         data: {
           title: 'Software Engineer',
           description: 'Great job',
-          location: 'Remote',
+          locationId: 'loc1',
           remote: true,
           type: 'FULL_TIME',
           categoryId: 1,
@@ -214,7 +245,13 @@ describe('JobsService', () => {
       const createDto = {
         title: 'Backend Dev',
         description: 'No requirements needed',
-        location: 'Remote',
+        location: {
+          provider: 'manual',
+          providerId: 'Remote',
+          formattedAddress: 'Remote',
+          lat: 0,
+          lng: 0,
+        },
         remote: true,
         type: 'CONTRACT' as EmploymentType,
         categoryId: 2,
@@ -228,6 +265,7 @@ describe('JobsService', () => {
         salaryMin: null,
         salaryMax: null,
       };
+      mockLocationService.getOrCreateLocation.mockResolvedValue({ id: 'loc1' });
       mockPrisma.jobPosting.create.mockResolvedValue(dbRecordWithoutReqs);
 
       // Act
@@ -485,13 +523,116 @@ describe('JobsService', () => {
 
       expect(countArgs.where).toEqual(
         expect.objectContaining({
-          OR: [
-            { title: { contains: 'React', mode: 'insensitive' } },
-            { description: { contains: 'React', mode: 'insensitive' } },
-          ],
-          location: { contains: 'New York', mode: 'insensitive' },
+          AND: expect.arrayContaining([
+            {
+              OR: [
+                { title: { contains: 'React', mode: 'insensitive' } },
+                { description: { contains: 'React', mode: 'insensitive' } },
+                {
+                  company: {
+                    name: { contains: 'React', mode: 'insensitive' },
+                  },
+                },
+              ],
+            },
+          ]),
+          location: {
+            formattedAddress: { contains: 'New York', mode: 'insensitive' },
+          },
           remote: false,
         })
+      );
+    });
+
+    it('should split location query by comma and search using the first part', async () => {
+      // Arrange
+      const query = { location: 'Da Nang, Vietnam' };
+      mockPrisma.$transaction.mockResolvedValue([1, [mockJobDbRecord]]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.location).toEqual({
+        formattedAddress: { contains: 'Da Nang', mode: 'insensitive' },
+      });
+    });
+
+    it('should split multiple search terms by whitespace, normalize multiple spaces, and query in any order', async () => {
+      // Arrange
+      const query = { q: '  React   Senior  Developer  ' };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          {
+            OR: [
+              { title: { contains: 'React', mode: 'insensitive' } },
+              { description: { contains: 'React', mode: 'insensitive' } },
+              { company: { name: { contains: 'React', mode: 'insensitive' } } },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Senior', mode: 'insensitive' } },
+              { description: { contains: 'Senior', mode: 'insensitive' } },
+              {
+                company: { name: { contains: 'Senior', mode: 'insensitive' } },
+              },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Developer', mode: 'insensitive' } },
+              { description: { contains: 'Developer', mode: 'insensitive' } },
+              {
+                company: {
+                  name: { contains: 'Developer', mode: 'insensitive' },
+                },
+              },
+            ],
+          },
+        ])
+      );
+    });
+
+    it('should preserve literal plus signs like in C++ and split multiple keywords correctly', async () => {
+      // Arrange
+      const query = { q: 'C++ Developer' };
+      mockPrisma.$transaction.mockResolvedValue([0, []]);
+
+      // Act
+      await service.getsPaginatedJobsPostings(query);
+
+      // Assert
+      const countArgs = mockPrisma.jobPosting.count.mock.calls[0][0];
+      expect(countArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          {
+            OR: [
+              { title: { contains: 'C++', mode: 'insensitive' } },
+              { description: { contains: 'C++', mode: 'insensitive' } },
+              { company: { name: { contains: 'C++', mode: 'insensitive' } } },
+            ],
+          },
+          {
+            OR: [
+              { title: { contains: 'Developer', mode: 'insensitive' } },
+              { description: { contains: 'Developer', mode: 'insensitive' } },
+              {
+                company: {
+                  name: { contains: 'Developer', mode: 'insensitive' },
+                },
+              },
+            ],
+          },
+        ])
       );
     });
 

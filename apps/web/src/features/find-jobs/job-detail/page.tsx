@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { renderDescription } from '@/lib/utils';
 import { useRole } from '@/contexts/role-context';
 import { usePageTitle } from '@/contexts/page-title-context';
 import JobDetailHeader from '@/components/job-detail/JobDetailHeader';
@@ -89,11 +90,13 @@ export default function JobDetailPage() {
           company: jobData.company,
           address: jobData.location || 'Remote',
           workType: jobData.type,
-          companyDescription: jobData.company.description || '',
+          companyDescription: renderDescription(
+            jobData.company.description || ''
+          ),
           companyPhotos: jobData.company.logoUrl
             ? [jobData.company.logoUrl]
             : [],
-          companyPageUrl: jobData.company.websiteUrl || '',
+          companyPageUrl: `/browse-companies/${jobData.company.id}`,
         };
 
         setPageData(transformedData);
@@ -109,7 +112,13 @@ export default function JobDetailPage() {
         try {
           if (user) {
             const apps = await fetchApplications({ page: 1, pageSize: 100 });
-            const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+            const activeStatuses = [
+              'APPLIED',
+              'PRE_SHORTLIST_PENDING',
+              'PRE_SHORTLIST_SUBMITTED',
+              'INTERVIEW',
+              'OFFER',
+            ];
             const applied = (apps.applications || []).some(
               (a) => a.jobId === jobData.id && activeStatuses.includes(a.status)
             );
@@ -118,7 +127,7 @@ export default function JobDetailPage() {
           } else {
             setHasApplied(false);
           }
-        } catch (err) {
+        } catch {
           // Ignore errors (e.g., unauthenticated) and assume not applied
           setHasApplied(false);
         }

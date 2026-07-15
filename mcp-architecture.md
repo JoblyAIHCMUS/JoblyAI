@@ -9,10 +9,11 @@ v1 scope: foundation + whoami tool + API-key CRUD.
 v2 scope: role-gated API keys + employer read-only tools (6), one file per tool.
 v3 scope: candidate read-only tools (4: search, list applications, profile, list resumes).
 v4 scope: agent-driven resume tools (6: upload, create record, extract text, score, sync profile, save score).
+v6 scope: employer pre-shortlist question CRUD (1 read + 3 write, with prompt rubric in add tool's description for local LLM generation).
 v5+ scope: messaging, cross-role tools.
 ```
 
-**Role gating:** every MCP key carries a single role (`employer` or `candidate`) stored in Better-Auth's `apikey.permissions` JSON column. The `ApiKeyGuard` reads it on every request, the `McpEndpointController` resolves the caller's `companyId` (for `employer` keys), and the `McpFactory` conditionally registers tool groups based on the role. Employer tools (6 read-only); candidate tools (4 read-only + 6 agent-driven resume flow = 10 total).
+**Role gating:** every MCP key carries a single role (`employer` or `candidate`) stored in Better-Auth's `apikey.permissions` JSON column. The `ApiKeyGuard` reads it on every request, the `McpEndpointController` resolves the caller's `companyId` (for `employer` keys), and the `McpFactory` conditionally registers tool groups based on the role. Employer tools (6 read-only + 4 pre-shortlist (1 read + 3 write) = 10 total); candidate tools (4 read-only + 6 agent-driven resume flow = 10 total).
 
 ---
 
@@ -416,9 +417,9 @@ export interface McpState {
 
 ---
 
-## 6b. Tools — employer (read-only)
+## 6b. Tools — employer
 
-Six employer-scoped read-only tools, all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
+Ten employer-scoped tools (6 read-only + 4 pre-shortlist), all registered only when `state.role === 'employer'`. They live under `apps/backend/src/app/mcp/tools/employer/`:
 
 | File                      | Tool name         | Purpose                                                                                                                                                            |
 | ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -429,7 +430,20 @@ Six employer-scoped read-only tools, all registered only when `state.role === 'e
 | `get-job.tool.ts`         | `get_job`         | Fetch one job by id; rejects if `job.companyId !== state.companyId` (returns "Forbidden" message)                                                                  |
 | `list-applicants.tool.ts` | `list_applicants` | Paginated list of applicants for a job; rejects if `job.companyId !== state.companyId` AND filters by `postedById: state.userId`; supports status + search filters |
 
-**Switchboard:** `register-employer-tools.ts` calls all six `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
+### Pre-shortlist questions (v6, 1 read + 3 write)
+
+Four tools for employer-owned job pre-shortlist question CRUD:
+
+| File                                     | Tool name                        | Read/Write | Purpose                                                                                                                                                                                                                                       |
+| ---------------------------------------- | -------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get-pre-shortlist-questions.tool.ts`    | `get_pre_shortlist_questions`    | Read       | Fetch all screening questions for a job, ordered by `order` field; rejects if `job.companyId !== state.companyId`                                                                                                                             |
+| `add-pre-shortlist-questions.tool.ts`    | `add_pre_shortlist_questions`    | Write      | Append 1–20 questions to a job; enforces 20-question max server-side; embeds the full `buildGenerateQuestionsPrompt` rubric in the tool description (for the agent's local LLM); rejects if any application exists for the job (immutability) |
+| `update-pre-shortlist-question.tool.ts`  | `update_pre_shortlist_question`  | Write      | Edit one question's `questionText` or `expectedAnswer` by id; enforces same immutability check; rejects if `job.companyId !== state.companyId`                                                                                                |
+| `remove-pre-shortlist-questions.tool.ts` | `remove_pre_shortlist_questions` | Write      | Delete questions by id (comma-separated), then compact `order` field to 0,1,2,... in a single `$transaction`; enforces immutable check; rejects if `job.companyId !== state.companyId`                                                        |
+
+**Immutability:** all three write tools (`add`, `update`, `remove`) check `prisma.application.count({ where: { jobId } })` and reject with `'Cannot edit pre-shortlist questions after applications exist'` — this preserves the integrity of existing application evaluations.
+
+**Switchboard:** `register-employer-tools.ts` calls all ten `register*Tool(server, state)` functions. `mcp.factory.ts` calls the switchboard conditionally:
 
 ```ts
 if (state.role === 'employer') {
@@ -439,13 +453,13 @@ if (state.role === 'employer') {
 }
 ```
 
-Write tools (`create_job`, `update_job`, `change_job_status`) were removed — users manage jobs through the web UI for free. AI features are delegated to local agents.
+Write tools (`create_job`, `update_job`, `change_job_status`) were removed — users manage jobs through the web UI for free. AI features are delegated to local agents. Pre-shortlist write tools (`add_pre_shortlist_questions`, `update_pre_shortlist_question`, `remove_pre_shortlist_questions`) were added in v6 because pre-shortlist questions are configured once before applications arrive — the immutability check prevents edits after, making write access safe where job CRUD was not.
 
-**Shared Zod schemas:** `employer.types.ts` defines input shapes for remaining tools: `ListJobsInputSchema`, `ListApplicantsInputSchema`. Prisma enums: `z.enum(ApplicationStatus)`.
+**Shared Zod schemas:** `employer.types.ts` defines input shapes: `ListJobsInputSchema`, `ListApplicantsInputSchema`, `GetPreShortlistQuestionsInputSchema`, `AddPreShortlistQuestionsInputSchema`, `UpdatePreShortlistQuestionInputSchema`, `RemovePreShortlistQuestionsInputSchema`. Prisma enums: `z.enum(ApplicationStatus)`.
 
 **Ownership model:** tools enforce `companyId` scoping — `get_job` and `list_applicants` reject cross-company access with `Forbidden: job does not belong to your company`. `list_jobs` filters by `postedById === state.userId`.
 
-**Handler pattern:** same as `whoami` (§6) — each tool exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All six handlers are unit-tested directly (no `McpServer.callTool` available — see §6 "Why two exports").
+**Handler pattern:** same as `whoami` (§6) — each tool exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All ten handlers are unit-tested directly (no `McpServer.callTool` available — see §6 "Why two exports").
 
 ---
 
@@ -497,7 +511,7 @@ if (state.role === 'employer') {
 
 **Handler pattern:** same as whoami (§6) and employer tools (§6b) — each exports a pure `*Handler(state, input)` and a thin `register*Tool(server, state)` wrapper. All ten handlers are unit-tested directly.
 
-**Tool count summary:** candidate toolset = `1 whoami + 4 read-only + 6 agent-driven = 11 total`. Employer toolset = `1 whoami + 6 read-only = 7 total` (unchanged). Grand total: **18 tools** (vs 12 before this change).
+**Tool count summary:** candidate toolset = `1 whoami + 4 read-only + 6 agent-driven = 11 total` (unchanged). Employer toolset = `1 whoami + 6 read-only + 4 pre-shortlist = 11 total`. Grand total: **22 tools** (vs 18 before this change).
 
 ---
 
@@ -549,14 +563,18 @@ apps/backend/src/app/mcp/
 └── tools/
     ├── whoami.tool.ts           # whoamiHandler + registerWhoamiTool (every role)
     ├── employer/
-    │   ├── register-employer-tools.ts  # Switchboard: registers all 6 employer tools
+    │   ├── register-employer-tools.ts  # Switchboard: registers all 10 employer tools
     │   ├── employer.types.ts           # Shared Zod input schemas
     │   ├── get-my-company.tool.ts
     │   ├── list-categories.tool.ts
     │   ├── list-skills.tool.ts
     │   ├── list-jobs.tool.ts
     │   ├── get-job.tool.ts
-    │   └── list-applicants.tool.ts
+    │   ├── list-applicants.tool.ts
+    │   ├── get-pre-shortlist-questions.tool.ts
+    │   ├── add-pre-shortlist-questions.tool.ts
+    │   ├── update-pre-shortlist-question.tool.ts
+    │   └── remove-pre-shortlist-questions.tool.ts
     └── candidate/
         ├── register-candidate-tools.ts  # Switchboard: registers all 10 candidate tools
         ├── candidate.types.ts           # Shared Zod input schemas
@@ -635,12 +653,14 @@ apps/backend/src/app/mcp/
 │                                         │          │   whoami.tool.ts                            │
 │                                         │          │   ├─ whoamiHandler(state) → tool result     │
 │                                         │          │   └─ registerWhoamiTool(server, state)      │
-│                                         │          │   employer/ (read-only)                    │
+│                                         │          │   employer/ (10 tools: 6 + 4 pre-shortlist) │
 │                                         │          │   ├─ register-employer-tools.ts (switchboard)│
 │                                         │          │   ├─ employer.types.ts (zod schemas)         │
 │                                         │          │   ├─ get-my-company, list-categories, …     │
-│                                         │          │   └─ 6 tools: all scoped                   │  │
-│                                         │          │      to state.companyId                     │
+│                                         │          │   ├─ 6 read-only tools: all scoped          │  │
+│                                         │          │   │  to state.companyId                     │
+│                                         │          │   └─ 4 pre-shortlist tools (v6): get, add,  │  │
+│                                         │          │      update, remove; immutability enforced  │
 │                                         │          │   candidate/ (10 tools: 4 read + 6 write)   │
 │                                         │          │   ├─ register-candidate-tools.ts (switchboard)│
 │                                         │          │   ├─ candidate.types.ts (zod schemas)       │  │
@@ -669,32 +689,36 @@ apps/backend/src/app/mcp/
 
 ## 10. Testing
 
-76 tests across 22 MCP files, all passing. Full suite: 337/337.
+98 tests across 26 MCP files, all passing. Full suite: 337/337.
 
-| Test file                                 | Tests | What it covers                                                                                                                                                                    |
-| ----------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp-api-key-guard.test.ts`               | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                      |
-| `mcp-keys-service.test.ts`                | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                  |
-| `mcp-keys-controller.test.ts`             | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                  |
-| `mcp-whoami-tool.test.ts`                 | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                       |
-| `mcp-endpoint-controller.test.ts`         | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record |
-| `mcp-factory.test.ts`                     | 2     | `createMcpServer` registers `whoami` + 10 candidate tools for `candidate`; registers `whoami` + 6 employer tools for `employer`                                                   |
-| `mcp-get-my-company-tool.test.ts`         | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                     |
-| `mcp-list-categories-tool.test.ts`        | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                      |
-| `mcp-list-skills-tool.test.ts`            | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                |
-| `mcp-list-jobs-tool.test.ts`              | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                     |
-| `mcp-get-job-tool.test.ts`                | 3     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company                                    |
-| `mcp-list-applicants-tool.test.ts`        | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                  |
-| `mcp-get-my-profile-tool.test.ts`         | 3     | `get_my_profile` returns CandidateDescription when exists; returns all-nulls when no profile; prisma throws → tool error                                                          |
-| `mcp-list-my-resumes-tool.test.ts`        | 3     | `list_my_resumes` returns metadata-only resume list; empty list when none; prisma throws → tool error                                                                             |
-| `mcp-search-jobs-tool.test.ts`            | 3     | `search_jobs` paginates + filters (q, location, type, remote, salary, skills, categories); forces status OPEN + deletedAt null; returns isError on prisma throw                   |
-| `mcp-list-my-applications-tool.test.ts`   | 3     | `list_my_applications` paginates by `candidateId: state.userId`; optional status filter; prisma throws → tool error                                                               |
-| `mcp-generate-upload-url-tool.test.ts`    | 2     | `generate_upload_url` calls `GcsService.generatePresignedUploadUrl` with `GcsFolder.RESUMES`; returns isError when GCS throws                                                     |
-| `mcp-create-resume-record-tool.test.ts`   | 2     | `create_resume_record` creates Resume with `candidateId: state.userId`; returns isError when prisma throws                                                                        |
-| `mcp-extract-resume-text-tool.test.ts`    | 6     | `extract_resume_text` returns text + pageCount; marks isEmpty; resume-not-found; no fileKey; GCS throws; access denied                                                            |
-| `mcp-score-resume-tool.test.ts`           | 4     | `score_resume` returns text + pageCount; resume-not-found; no fileKey; access denied                                                                                              |
-| `mcp-sync-resume-to-profile-tool.test.ts` | 4     | `sync_resume_to_profile` calls `commitMerge(userId, resumeId, data)`; resume-not-found; access denied; commitMerge throws                                                         |
-| `mcp-save-resume-score-tool.test.ts`      | 4     | `save_resume_score` updates `aiScore` + `aiFeedback`; resume-not-found; access denied; prisma update throws                                                                       |
+| Test file                                         | Tests | What it covers                                                                                                                                                                                   |
+| ------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp-api-key-guard.test.ts`                       | 9     | 401 paths (missing/malformed/invalid/role_not_set/invalid_role), success path, candidate role path, `key_misconfigured` 500, `WWW-Authenticate` on every 401                                     |
+| `mcp-keys-service.test.ts`                        | 3     | `create` returns full view + one-time `key` + `role`, `list` destructures `apiKeys` and projects `role`, `delete` passes `keyId`                                                                 |
+| `mcp-keys-controller.test.ts`                     | 3     | Manual construction (`Test.createTestingModule` failed); POST accepts DTO + reads `req.user.id`, GET lists with auth header, DELETE passes `:id`                                                 |
+| `mcp-whoami-tool.test.ts`                         | 3     | Tests `whoamiHandler` directly; user-found path, user-not-found error, prisma throws → tool error; mock state includes `role` + `companyId`                                                      |
+| `mcp-endpoint-controller.test.ts`                 | 4     | Per-request transport + server, `mcpUserId` + `mcpRole` attached, `res.on('close')` cleanup, 500 on transport throw, `companyId: null` for candidate-role with no Employer record                |
+| `mcp-factory.test.ts`                             | 2     | `createMcpServer` registers `whoami` + 10 candidate tools for `candidate`; registers `whoami` + 10 employer tools for `employer`                                                                 |
+| `mcp-get-my-company-tool.test.ts`                 | 3     | `get_my_company` returns `{ companyId, name, slug }` for a company; returns all-nulls when no employer record                                                                                    |
+| `mcp-list-categories-tool.test.ts`                | 3     | `list_categories` delegates to `prisma.jobCategory.findMany`                                                                                                                                     |
+| `mcp-list-skills-tool.test.ts`                    | 3     | `list_skills` delegates to `prisma.skill.findMany`                                                                                                                                               |
+| `mcp-list-jobs-tool.test.ts`                      | 3     | `list_jobs` paginates + filters by `postedById: state.userId`; uses defaults; returns isError on prisma throw                                                                                    |
+| `mcp-get-job-tool.test.ts`                        | 4     | `get_job` returns the job when same company; "Job not found" when missing; "Forbidden: job does not belong to your company" when cross-company; returns `preShortlistThreshold`                  |
+| `mcp-list-applicants-tool.test.ts`                | 3     | `list_applicants` returns applicants for owned job; "Job not found" when missing; "Forbidden" when cross-company                                                                                 |
+| `mcp-get-my-profile-tool.test.ts`                 | 3     | `get_my_profile` returns CandidateDescription when exists; returns all-nulls when no profile; prisma throws → tool error                                                                         |
+| `mcp-list-my-resumes-tool.test.ts`                | 3     | `list_my_resumes` returns metadata-only resume list; empty list when none; prisma throws → tool error                                                                                            |
+| `mcp-search-jobs-tool.test.ts`                    | 3     | `search_jobs` paginates + filters (q, location, type, remote, salary, skills, categories); forces status OPEN + deletedAt null; returns isError on prisma throw                                  |
+| `mcp-list-my-applications-tool.test.ts`           | 3     | `list_my_applications` paginates by `candidateId: state.userId`; optional status filter; prisma throws → tool error                                                                              |
+| `mcp-generate-upload-url-tool.test.ts`            | 2     | `generate_upload_url` calls `GcsService.generatePresignedUploadUrl` with `GcsFolder.RESUMES`; returns isError when GCS throws                                                                    |
+| `mcp-create-resume-record-tool.test.ts`           | 2     | `create_resume_record` creates Resume with `candidateId: state.userId`; returns isError when prisma throws                                                                                       |
+| `mcp-extract-resume-text-tool.test.ts`            | 6     | `extract_resume_text` returns text + pageCount; marks isEmpty; resume-not-found; no fileKey; GCS throws; access denied                                                                           |
+| `mcp-score-resume-tool.test.ts`                   | 4     | `score_resume` returns text + pageCount; resume-not-found; no fileKey; access denied                                                                                                             |
+| `mcp-sync-resume-to-profile-tool.test.ts`         | 4     | `sync_resume_to_profile` calls `commitMerge(userId, resumeId, data)`; resume-not-found; access denied; commitMerge throws                                                                        |
+| `mcp-save-resume-score-tool.test.ts`              | 4     | `save_resume_score` updates `aiScore` + `aiFeedback`; resume-not-found; access denied; prisma update throws                                                                                      |
+| `mcp-get-pre-shortlist-questions-tool.test.ts`    | 4     | `get_pre_shortlist_questions` returns questions ordered by `order`; empty array when none; "Job not found" when missing; "Forbidden" when cross-company                                          |
+| `mcp-add-pre-shortlist-questions-tool.test.ts`    | 6     | `add_pre_shortlist_questions` appends 1–20 questions; rejects >20; rejects if application exists; rejects cross-company; rejects when job missing; prisma throws                                 |
+| `mcp-update-pre-shortlist-question-tool.test.ts`  | 6     | `update_pre_shortlist_question` updates `questionText` + `expectedAnswer`; rejects when application exists; "Question not found"; rejects cross-company; prisma throws; rejects when job missing |
+| `mcp-remove-pre-shortlist-questions-tool.test.ts` | 5     | `remove_pre_shortlist_questions` deletes by id + compacts order; rejects when application exists; rejects cross-company; prisma throws; rejects when job missing                                 |
 
 **Test patterns worth keeping:**
 

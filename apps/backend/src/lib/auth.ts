@@ -1,16 +1,9 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { expo } from '@better-auth/expo';
-import { admin } from 'better-auth/plugins';
 import { apiKey } from '@better-auth/api-key';
 import { emailOTP } from 'better-auth/plugins';
 import { prisma, redis } from './db';
-import {
-  admin as adminRole,
-  candidate,
-  employer,
-  superAdmin,
-} from './permission';
 import { getTransporter } from './mailingService';
 import nodemailer from 'nodemailer';
 
@@ -18,6 +11,16 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        required: false,
+        defaultValue: 'candidate',
+        input: false,
+      },
+    },
+  },
   secondaryStorage: {
     get: async (key) => {
       return await redis.get(key);
@@ -62,6 +65,13 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ['google', 'github'],
+      requireLocalEmailVerified: false,
+    },
+  },
   trustedOrigins: [
     process.env.APP_URL || 'http://localhost:3000',
     process.env.WEB_URL || 'http://localhost:5173',
@@ -81,16 +91,6 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   plugins: [
     expo(),
-    admin({
-      defaultRole: 'candidate',
-      adminRoles: ['admin', 'superAdmin'],
-      roles: {
-        candidate,
-        employer,
-        admin: adminRole,
-        superAdmin,
-      },
-    }),
     apiKey({
       defaultPrefix: 'jobly_sk_',
       defaultKeyLength: 32,

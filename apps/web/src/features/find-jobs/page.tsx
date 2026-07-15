@@ -73,7 +73,13 @@ function FindJobsPageContent() {
       }
       try {
         const res = await fetchApplications({ page: 1, pageSize: 100 });
-        const activeStatuses = ['APPLIED', 'INTERVIEW', 'OFFER'];
+        const activeStatuses = [
+          'APPLIED',
+          'PRE_SHORTLIST_PENDING',
+          'PRE_SHORTLIST_SUBMITTED',
+          'INTERVIEW',
+          'OFFER',
+        ];
         const appliedIds = new Set<number>(
           (res.applications || [])
             .filter((a) => activeStatuses.includes(a.status))
@@ -257,7 +263,8 @@ function FindJobsPageContent() {
       if (!('page' in params)) {
         newParams.set('page', '1');
       }
-      router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+      const queryString = newParams.toString().replace(/\+/g, '%20');
+      router.push(`${pathname}?${queryString}`, { scroll: false });
     },
     [router, pathname]
   );
@@ -301,8 +308,9 @@ function FindJobsPageContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (localSearchTerm !== urlQ) {
-        updateURL({ q: localSearchTerm });
+      const trimmedTerm = localSearchTerm.trim();
+      if (trimmedTerm !== urlQ) {
+        updateURL({ q: trimmedTerm });
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -310,8 +318,9 @@ function FindJobsPageContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (localLocation !== urlLocation) {
-        updateURL({ location: localLocation });
+      const trimmedLocation = localLocation.trim();
+      if (trimmedLocation !== urlLocation) {
+        updateURL({ location: trimmedLocation });
       }
     }, 500);
     return () => clearTimeout(timer);

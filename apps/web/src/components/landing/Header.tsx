@@ -118,10 +118,14 @@ export default function Header() {
         {/* Desktop Header */}
         <div className="hidden lg:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4 justify-between items-center">
           <div className="flex items-center gap-12">
-            <div className="flex items-center gap-3">
-              <Logo size="md" />
-              <span className="text-2xl font-bold text-slate-900">JoblyAI</span>
-            </div>
+            <Link href="/">
+              <div className="flex items-center gap-3">
+                <Logo size="md" />
+                <span className="text-2xl font-bold text-slate-900">
+                  JoblyAI
+                </span>
+              </div>
+            </Link>
             <nav className="flex items-center gap-8">
               <Link
                 href="/find-jobs"

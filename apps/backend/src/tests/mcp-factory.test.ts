@@ -49,7 +49,7 @@ describe('createMcpServer', () => {
     );
   });
 
-  it('registers whoami and 6 employer tools for employer role', () => {
+  it('registers whoami and 10 employer tools for employer role', () => {
     createMcpServer(buildState('employer'));
 
     const names = registerSpy.mock.calls.map((c) => c[0]);
@@ -62,6 +62,10 @@ describe('createMcpServer', () => {
         'list_jobs',
         'get_job',
         'list_applicants',
+        'get_pre_shortlist_questions',
+        'add_pre_shortlist_questions',
+        'update_pre_shortlist_question',
+        'remove_pre_shortlist_questions',
       ].sort()
     );
   });

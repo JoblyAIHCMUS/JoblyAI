@@ -26,6 +26,7 @@ import {
   CompanyLogoDto,
   CompanyPatchDto,
   CompanyUpdateDto,
+  GetCompaniesQueryDTO,
 } from './dto/company.dto';
 
 export interface AuthRequest extends Request {
@@ -37,8 +38,8 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Get()
-  async getAllCompanies() {
-    return this.companyService.getAll();
+  async getCompanies(@Query() query: GetCompaniesQueryDTO) {
+    return this.companyService.getPaginatedCompanies(query);
   }
 
   @Get('check-name')

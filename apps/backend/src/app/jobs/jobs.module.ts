@@ -7,9 +7,10 @@ import { JobViewBatcher } from './listeners/job-view-batcher';
 import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
 import { AiModule } from '../ai/ai.module';
 import { PreShortlistQuestionsController } from './pre-shortlist-questions.controller';
+import { LocationModule } from '../location/location.module';
 
 @Module({
-  imports: [AuthModule, AiModule, PreShortlistModule],
+  imports: [AuthModule, AiModule, PreShortlistModule, LocationModule],
   controllers: [JobsController, PreShortlistQuestionsController],
   providers: [JobsService, JobViewListener, JobViewBatcher],
 })

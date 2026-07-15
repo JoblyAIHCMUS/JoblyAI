@@ -21,6 +21,19 @@ export interface JobRequirement {
   minYearsExperience: number | null;
 }
 
+export interface LocationDetail {
+  id: string;
+  provider: string;
+  providerId: string;
+  formattedAddress: string;
+  lat: number;
+  lng: number;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postcode: string | null;
+}
+
 export interface JobPosting {
   id: number;
   employerId: string;
@@ -29,6 +42,7 @@ export interface JobPosting {
   description: string;
   company: CompanyInfo;
   location: string | null;
+  locationDetail?: LocationDetail | null;
   remote: boolean;
   type: EmploymentType;
   requirements: JobRequirement[];

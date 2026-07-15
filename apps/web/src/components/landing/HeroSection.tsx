@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete';
 
 export default function HeroSection() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
+  const [patternError, setPatternError] = useState(false);
+  const [groupError, setGroupError] = useState(false);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,21 +38,16 @@ export default function HeroSection() {
       {/* Decorative Pattern Background - Bottom Right */}
       <div className="absolute bottom-0 right-0 w-full max-w-7xl pointer-events-none">
         <div className="relative w-full h-full flex justify-end items-end">
-          <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
-            alt="decorative pattern"
-            width={900}
-            height={600}
-            className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
-          />
-          {/* <Image
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/hero-image.png"
-            alt="Job seeker professional"
-            width={500}
-            height={600}
-            className="object-contain absolute bottom-0 right-0 z-10 hidden lg:block"
-            priority
-          /> */}
+          {!patternError && (
+            <Image
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Pattern.svg"
+              alt="decorative pattern"
+              width={900}
+              height={600}
+              className="object-contain opacity-70 w-[500px] sm:w-[650px] lg:w-[800px] xl:w-[900px] max-w-full"
+              onError={() => setPatternError(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -60,11 +58,14 @@ export default function HeroSection() {
             Discover more than{' '}
             <span className="text-indigo-600">5000+ Jobs</span>
           </h1>
-          <img
-            src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Group.svg"
-            alt="decorative group"
-            className="mb-6 mx-auto lg:mx-0"
-          />
+          {!groupError && (
+            <img
+              src="https://storage.googleapis.com/joblyai-public/assets/public/landing/Group.svg"
+              alt="decorative group"
+              className="mb-6 mx-auto lg:mx-0"
+              onError={() => setGroupError(true)}
+            />
+          )}
           <p className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 opacity-70">
             Great platform for the job seeker that searching for new career
             heights and passionate about startups.
@@ -88,12 +89,13 @@ export default function HeroSection() {
               </div>
               <div className="flex-1 flex min-w-0 items-center gap-3 px-4 border-b border-slate-200 pb-4">
                 <MapPin className="w-6 h-6 shrink-0 text-slate-900" />
-                <input
-                  type="text"
-                  placeholder="Florence, Italy"
-                  className="flex-1 outline-none text-slate-900 placeholder-slate-400"
+                <LocationAutocomplete
                   value={location}
-                  onChange={(event) => setLocation(event.target.value)}
+                  onChange={(loc) => setLocation(loc?.formattedAddress || '')}
+                  placeholder="Florence, Italy"
+                  hideIcon={true}
+                  className="border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 [&>div>input]:border-none [&>div>input]:bg-transparent [&>div>input]:p-0 [&>div>input]:h-auto [&>div>input]:text-base [&>div>input]:leading-6 [&>div>input]:text-slate-900 [&>div>input]:placeholder:text-slate-400 [&>div>input]:focus-visible:ring-0 [&>div>input]:focus-visible:ring-offset-0 [&>div>button]:right-0"
+                  inputClassName="border-none bg-transparent p-0 text-base leading-6 text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
                 />
               </div>
               <Button

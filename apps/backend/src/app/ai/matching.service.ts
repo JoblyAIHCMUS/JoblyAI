@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { InjectPrisma } from '../decorators/inject.decorator';
 import { GetJobsQueryDTO } from '../jobs/dto/getJobsQueryDTO';
+import { MatchExplanationService } from './match-explanation.service';
 
 @Injectable()
 export class MatchingService {
@@ -13,7 +14,10 @@ export class MatchingService {
   private readonly VN_ACCENTS_REPLACE =
     'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD';
 
-  constructor(@InjectPrisma() private readonly prisma: PrismaClient) {}
+  constructor(
+    @InjectPrisma() private readonly prisma: PrismaClient,
+    private readonly matchExplanationService: MatchExplanationService
+  ) {}
 
   /**
    * Calculates the semantic match percentage between a resume and a job posting
@@ -57,7 +61,13 @@ export class MatchingService {
   }
 
   /**
-   * Finds jobs that match a specific resume using vector similarity, with filters
+   * Finds jobs that match a specific resume using vector similarity, with filters.
+   * The match score is the embedding-based per-requirement score from
+   * MatchExplanationService (mean cosine similarity of requirement skill
+   * embeddings against the candidate's best skill embedding), calculated lazily
+   * for the current page only. Falls back to the pgvector cosine distance when
+   * the resume or job cannot be scored that way. The page is re-sorted: scored
+   * jobs first, then by score desc.
    */
   async findJobsForResume(resumeId: number, query: GetJobsQueryDTO) {
     const limit = query.pageSize || 10;
@@ -142,9 +152,12 @@ export class MatchingService {
       paramIndex++;
     }
 
-    // Sort by distance (pgvector)
+    // Sort: MOST_RELEVANT (default) uses pgvector distance; other sorts map
+    // to JobPosting columns. Column names are hard-coded literals — safe.
     let orderBy = `distance ASC`;
-    if (query.location) {
+    const isMostRelevant = !query.sort || query.sort === 'MOST_RELEVANT';
+
+    if (isMostRelevant && query.location) {
       const locationParamIndex =
         params.findIndex(
           (p) =>
@@ -161,6 +174,25 @@ export class MatchingService {
           'location'
         )} ILIKE ${unaccentLocationSort} THEN 0 ELSE 1 END), distance ASC`;
       }
+    }
+
+    switch (query.sort) {
+      case 'NEWEST':
+        orderBy = `"createdAt" DESC`;
+        break;
+      case 'OLDEST':
+        orderBy = `"createdAt" ASC`;
+        break;
+      case 'SALARY_ASC':
+        orderBy = `"salaryMin" ASC`;
+        break;
+      case 'SALARY_DESC':
+        orderBy = `"salaryMax" DESC`;
+        break;
+      case 'MOST_RELEVANT':
+      default:
+        // keep pgvector orderBy (with location-priority if applicable)
+        break;
     }
 
     const matchedJobs: any[] = await this.prisma.$queryRawUnsafe(
@@ -208,16 +240,53 @@ export class MatchingService {
         if (!jobDetail) return null;
 
         return {
-          ...this.mapToJobResponse(jobDetail),
+          job: this.mapToJobResponse(jobDetail),
+          pgvectorScore: parseFloat(
+            (Math.max(0, 1 - mj.distance) * 100).toFixed(2)
+          ),
+          scored: false,
           matchPercentage: parseFloat(
             (Math.max(0, 1 - mj.distance) * 100).toFixed(2)
           ),
         };
       })
-      .filter(Boolean);
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    let newScores: Map<
+      number,
+      { overallScore: number; exactMatchScore: number; scored: boolean }
+    > = new Map();
+    try {
+      newScores = await this.matchExplanationService.scoreResumeAgainstJobs(
+        resumeId,
+        jobIds
+      );
+    } catch (error: any) {
+      this.logger.warn(
+        `Failed to compute explanation scores for resume ${resumeId}, falling back to pgvector: ${error.message}`
+      );
+    }
+
+    for (const item of sortedJobs) {
+      const scored = newScores.get(item.job.id);
+      if (scored?.scored) {
+        item.matchPercentage = scored.overallScore;
+        item.scored = true;
+      }
+    }
+
+    sortedJobs.sort((a, b) => {
+      if (a.scored !== b.scored) {
+        return a.scored ? -1 : 1;
+      }
+      return b.matchPercentage - a.matchPercentage;
+    });
 
     return {
-      jobs: sortedJobs,
+      jobs: sortedJobs.map((item) => ({
+        ...item.job,
+        matchPercentage: item.matchPercentage,
+      })),
       total,
       page,
       pageSize: limit,

@@ -66,6 +66,7 @@ async function processJobs() {
     where: { deletedAt: null },
     include: {
       category: true,
+      location: true,
       requirements: {
         include: {
           skill: true,
@@ -83,7 +84,7 @@ async function processJobs() {
     const content = `Title: ${job.title} | Category: ${
       job.category?.name || ''
     } | Type: ${job.type} | Location: ${
-      job.location || 'Remote'
+      job.location?.formattedAddress || 'Remote'
     } | Description: ${job.description} | Requirements: ${skills}`;
 
     const emb = await generateEmbedding(content);

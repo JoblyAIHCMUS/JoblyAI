@@ -32,6 +32,7 @@ import { JobProcessor } from './processors/job.processor';
 import { JobListener } from './listeners/job.listener';
 import { PreShortlistEvaluationProcessor } from './processors/pre-shortlist-evaluation.processor';
 import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
+import { LocationModule } from '../location/location.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PreShortlistModule } from '../pre-shortlist/pre-shortlist.module';
     GcsModule,
     AuthModule,
     NotificationsModule,
+    LocationModule,
     forwardRef(() => PreShortlistModule),
     BullModule.registerQueue(
       { name: 'resume-extraction' },

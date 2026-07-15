@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { RichTextContent } from '@/components/ui/rich-text-content';
 
@@ -26,8 +29,23 @@ export default function JobCompanySection({
   photos,
   companyUrl = '#',
 }: JobCompanySectionProps) {
+  const [logoError, setLogoError] = useState(false);
+  const [mainPhotoError, setMainPhotoError] = useState(false);
+  const [galleryPhotoErrors, setGalleryPhotoErrors] = useState<Set<string>>(
+    new Set()
+  );
+
   const mainPhoto = photos[0];
   const galleryPhotos = photos.slice(1, 4);
+
+  const handleGalleryPhotoError = (url: string) => {
+    setGalleryPhotoErrors((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  };
 
   return (
     <section className="bg-white py-[72px]">
@@ -38,15 +56,26 @@ export default function JobCompanySection({
             {/* Company header */}
             <div className="flex items-start gap-3">
               {/* Logo */}
-              <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white">
-                <Image
-                  src={company.logoUrl || '/placeholder-logo.png'}
-                  alt={`${company.name} logo`}
-                  fill
-                  className="object-contain p-1"
-                  unoptimized
-                />
-              </div>
+              <Link
+                href={companyUrl}
+                className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-100 bg-white hover:opacity-90 transition-opacity"
+              >
+                {company.logoUrl && !logoError ? (
+                  <Image
+                    src={company.logoUrl}
+                    alt={`${company.name} logo`}
+                    fill
+                    sizes="64px"
+                    className="object-contain p-1"
+                    unoptimized
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-2xl font-bold leading-none text-indigo-700">
+                    {company.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </Link>
 
               {/* Name + link */}
               <div className="flex flex-col">
@@ -68,7 +97,7 @@ export default function JobCompanySection({
           </div>
 
           {/* Right: Office photos */}
-          {mainPhoto ? (
+          {mainPhoto && !mainPhotoError ? (
             <div className="flex flex-col gap-3 w-full lg:w-auto lg:max-w-[490px]">
               {/* Large photo */}
               <div className="relative w-full lg:w-[316px] h-[210px] rounded overflow-hidden">
@@ -76,27 +105,36 @@ export default function JobCompanySection({
                   src={mainPhoto}
                   alt={`${company.name} office`}
                   fill
+                  sizes="(max-width: 1024px) 100vw, 316px"
                   className="object-cover"
                   unoptimized
+                  onError={() => setMainPhotoError(true)}
                 />
               </div>
               {/* Grid of smaller photos */}
-              {galleryPhotos.length > 0 && (
+              {galleryPhotos.some(
+                (photo) => !galleryPhotoErrors.has(photo)
+              ) && (
                 <div className="grid grid-cols-3 gap-3">
-                  {galleryPhotos.map((photo, index) => (
-                    <div
-                      key={`${photo}-${index}`}
-                      className="relative h-[130px] rounded overflow-hidden"
-                    >
-                      <Image
-                        src={photo}
-                        alt={`${company.name} office ${index + 2}`}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ))}
+                  {galleryPhotos.map(
+                    (photo, index) =>
+                      !galleryPhotoErrors.has(photo) && (
+                        <div
+                          key={`${photo}-${index}`}
+                          className="relative h-[130px] rounded overflow-hidden"
+                        >
+                          <Image
+                            src={photo}
+                            alt={`${company.name} office ${index + 2}`}
+                            fill
+                            sizes="(max-width: 1024px) 33vw, 100px"
+                            className="object-cover"
+                            unoptimized
+                            onError={() => handleGalleryPhotoError(photo)}
+                          />
+                        </div>
+                      )
+                  )}
                 </div>
               )}
             </div>

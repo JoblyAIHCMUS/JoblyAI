@@ -70,6 +70,8 @@ export interface PreShortlistQuestion {
   question: string;
 }
 
+import { LocationDetail } from '@/api-client/location';
+
 export interface JobPosting {
   id: number;
   employerId: string;
@@ -78,6 +80,7 @@ export interface JobPosting {
   description: string;
   company: CompanyInfo;
   location: string | null;
+  locationDetail?: LocationDetail | null;
   remote: boolean;
   type: EmploymentType;
   requirements: JobRequirement[];

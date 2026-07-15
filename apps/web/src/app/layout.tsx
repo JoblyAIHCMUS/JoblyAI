@@ -24,6 +24,9 @@ const beVietnamPro = Be_Vietnam_Pro({
 export const metadata: Metadata = {
   title: 'Jobly Web',
   description: 'Jobly web frontend',
+  icons: {
+    icon: 'https://storage.googleapis.com/joblyai-public/assets/public/jobly-logo-v1.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
