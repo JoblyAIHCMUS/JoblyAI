@@ -79,10 +79,32 @@ export const useInterviewPrep = (jobId: number) => {
       }
     };
 
+    const handleFailed = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        jobId: number;
+        error?: string;
+      }>;
+      if (
+        customEvent.detail &&
+        Number(customEvent.detail.jobId) === Number(jobId)
+      ) {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: InterviewPrepStatus.FAILED,
+          };
+        });
+        setLoading(false);
+      }
+    };
+
     window.addEventListener('ai-interview-prep-ready', handleReady);
+    window.addEventListener('ai-interview-prep-failed', handleFailed);
 
     return () => {
       window.removeEventListener('ai-interview-prep-ready', handleReady);
+      window.removeEventListener('ai-interview-prep-failed', handleFailed);
     };
   }, [jobId]);
 
