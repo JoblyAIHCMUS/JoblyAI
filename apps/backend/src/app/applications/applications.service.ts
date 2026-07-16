@@ -508,9 +508,19 @@ export class ApplicationsService {
     }
 
     if (application.job.postedById !== employerId) {
-      throw new ForbiddenException(
-        'You can only view applications for your own jobs'
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: application.job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          'You can only view applications for your own jobs'
+        );
+      }
     }
 
     return this.mapToApplicationResponse(application);
@@ -526,6 +536,7 @@ export class ApplicationsService {
         job: {
           select: {
             postedById: true,
+            companyId: true,
           },
         },
       },
@@ -606,6 +617,7 @@ export class ApplicationsService {
         job: {
           select: {
             postedById: true,
+            companyId: true,
           },
         },
       },
@@ -616,9 +628,19 @@ export class ApplicationsService {
     }
 
     if (application.job.postedById !== employerId) {
-      throw new ForbiddenException(
-        'You can only manage applications for your own jobs'
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: application.job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          'You can only manage applications for your own jobs'
+        );
+      }
     }
 
     if (
@@ -694,6 +716,7 @@ export class ApplicationsService {
         job: {
           select: {
             postedById: true,
+            companyId: true,
           },
         },
       },
@@ -704,9 +727,19 @@ export class ApplicationsService {
     }
 
     if (application.job.postedById !== employerId) {
-      throw new ForbiddenException(
-        'You can only manage applications for your own jobs'
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: application.job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          'You can only manage applications for your own jobs'
+        );
+      }
     }
 
     if (application.status !== ApplicationStatus.INTERVIEW) {
@@ -772,7 +805,7 @@ export class ApplicationsService {
     // Verify that the job belongs to the employer
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
-      select: { postedById: true },
+      select: { postedById: true, companyId: true },
     });
 
     if (!job) {
@@ -780,9 +813,19 @@ export class ApplicationsService {
     }
 
     if (job.postedById !== employerId) {
-      throw new ForbiddenException(
-        'You can only view application stats for your own jobs'
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          'You can only view application stats for your own jobs'
+        );
+      }
     }
 
     // Count applications by status

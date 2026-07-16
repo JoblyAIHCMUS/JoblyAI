@@ -21,6 +21,9 @@ const mockPrisma = vi.hoisted(() => ({
     findUnique: vi.fn(),
     update: vi.fn(),
   },
+  employer: {
+    findFirst: vi.fn(),
+  },
   preShortlistQuestion: {
     findMany: vi.fn(),
   },
@@ -295,6 +298,7 @@ describe('PreShortlistService.submitAnswers', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
@@ -408,5 +412,72 @@ describe('PreShortlistService.submitAnswers', () => {
       { applicationId: 1 },
       expect.any(Object)
     );
+  });
+});
+
+describe('PreShortlistService.getQuestionsForJob', () => {
+  let service: PreShortlistService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
+    service = new PreShortlistService(
+      mockPrisma as any,
+      mockQueue,
+      mockAiGateway as any
+    );
+  });
+
+  it('returns the questions for a company admin who did not post the job', async () => {
+    // Arrange: job posted by a different user; the requester is the company admin
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      postedById: 'poster-user',
+      companyId: 1,
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      preShortlistQuestions: [
+        {
+          id: 'q1',
+          order: 1,
+          question: 'Q?',
+          expectedAnswer: 'A',
+        },
+      ],
+    });
+    // Requester has role 'admin' in the Employer table
+    mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+
+    // Act
+    const result = await service.getQuestionsForJob(433, 'company-admin-user');
+
+    // Assert
+    expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+      where: {
+        companyId: 1,
+        employerId: 'company-admin-user',
+        role: 'admin',
+      },
+      select: { id: true },
+    });
+    expect(result.enabled).toBe(true);
+    expect(result.questions).toHaveLength(1);
+  });
+
+  it('throws ForbiddenException when the requester is a company member but not the admin', async () => {
+    // Arrange
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      postedById: 'poster-user',
+      companyId: 1,
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      preShortlistQuestions: [],
+    });
+    // Requester is NOT a company admin
+    mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+    // Act & Assert
+    await expect(
+      service.getQuestionsForJob(433, 'regular-member-user')
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -395,9 +395,19 @@ export class JobsService {
 
     // Allow deletion if user is the one who posted it or if user is an admin
     if (job.postedById !== userId && userRole !== 'admin') {
-      throw new ForbiddenException(
-        `You do not have permission to delete this job`
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId: userId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          `You do not have permission to delete this job`
+        );
+      }
     }
 
     // Soft delete the job: set deletedAt and change status to CLOSED
@@ -534,9 +544,19 @@ export class JobsService {
     }
 
     if (job.postedById !== userId && userRole !== 'admin') {
-      throw new ForbiddenException(
-        `You do not have permission to update this job`
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId: userId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          `You do not have permission to update this job`
+        );
+      }
     }
 
     const {

@@ -301,13 +301,23 @@ export class PreShortlistService {
   ): Promise<void> {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
-      include: { job: { select: { postedById: true } } },
+      include: { job: { select: { postedById: true, companyId: true } } },
     });
     if (!application) throw new NotFoundException('Application not found');
     if (application.job.postedById !== employerId) {
-      throw new ForbiddenException(
-        'You can only retry evaluations for your own jobs'
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: application.job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          'You can only retry evaluations for your own jobs'
+        );
+      }
     }
     if (application.status !== ApplicationStatus.PRE_SHORTLIST_SUBMITTED) {
       throw new BadRequestException(
@@ -404,11 +414,21 @@ export class PreShortlistService {
   ): Promise<void> {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
-      select: { postedById: true },
+      select: { postedById: true, companyId: true },
     });
     if (!job) throw new NotFoundException('Job not found');
     if (job.postedById !== employerId) {
-      throw new ForbiddenException('You do not own this job');
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException('You do not own this job');
+      }
     }
   }
 

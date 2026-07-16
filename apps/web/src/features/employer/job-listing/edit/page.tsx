@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEmployerJobDetail } from '@/api-hook/jobs';
 import { useUpdateJob } from '@/api-hook/jobs';
 import { useCategories } from '@/api-hook/jobs';
@@ -645,14 +644,6 @@ export default function JobListingEditPage() {
 
           {/* Step 3: Pre-Shortlist */}
           <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
-            {!canEditQuestions && (
-              <Alert>
-                <AlertDescription>
-                  Pre-shortlist configuration is locked once applications have
-                  been received. To change these settings, create a new job.
-                </AlertDescription>
-              </Alert>
-            )}
             <PreShortlistStep
               readOnly={!canEditQuestions}
               configLocked={!canEditQuestions}
