@@ -195,14 +195,18 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
               </div>
               <Button
                 onClick={handleStart}
-                disabled={loading}
+                disabled={
+                  loading || data?.status === InterviewPrepStatus.PENDING
+                }
                 size="lg"
                 className="w-full gap-2"
               >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {data?.status === InterviewPrepStatus.PENDING
+                {(loading || data?.status === InterviewPrepStatus.PENDING) && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                {loading || data?.status === InterviewPrepStatus.PENDING
                   ? 'Generating...'
-                  : 'Generate My Kit'}
+                  : 'Generate Questions'}
               </Button>
             </div>
           ) : data.status === InterviewPrepStatus.FAILED ? (
