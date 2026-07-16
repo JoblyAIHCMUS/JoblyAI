@@ -49,6 +49,7 @@ export interface PreShortlistStatusView {
 }
 
 export interface PreShortlistQuestionsForJobView {
+  enabled: boolean;
   threshold: number;
   questions: PreShortlistQuestionView[];
 }

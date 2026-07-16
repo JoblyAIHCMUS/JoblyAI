@@ -93,6 +93,7 @@ export interface JobPosting {
   updatedAt: Date;
   matchPercentage?: number;
   preShortlistThreshold: number;
+  preShortlistEnabled: boolean;
   preShortlistQuestions: PreShortlistQuestion[];
 }
 
