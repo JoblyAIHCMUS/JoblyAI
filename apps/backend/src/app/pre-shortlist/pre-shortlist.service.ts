@@ -35,6 +35,7 @@ export interface PreShortlistQuestionForEmployer
 }
 
 export interface PreShortlistQuestionsView {
+  enabled: boolean;
   threshold: number;
   questions: PreShortlistQuestionForEmployer[];
 }
@@ -98,12 +99,14 @@ export class PreShortlistService {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
       select: {
+        preShortlistEnabled: true,
         preShortlistThreshold: true,
         preShortlistQuestions: { orderBy: { order: 'asc' } },
       },
     });
     if (!job) throw new NotFoundException('Job not found');
     return {
+      enabled: job.preShortlistEnabled,
       threshold: job.preShortlistThreshold,
       questions: job.preShortlistQuestions.map((q) => ({
         id: q.id,
@@ -335,6 +338,10 @@ export class PreShortlistService {
 
   // ---------- Helpers used by applications service ----------
 
+  // NOTE: If the employer toggles preShortlistEnabled off while applications
+  // are already in PRE_SHORTLIST_PENDING, those candidates can still submit
+  // answers via submitAnswers() — that flow doesn't re-check the toggle.
+  // This is an accepted v1 edge case; document for follow-up.
   async resolveInitialStatus(
     jobId: number,
     matchPercentage: number | null
@@ -342,13 +349,14 @@ export class PreShortlistService {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
       select: {
+        preShortlistEnabled: true,
         preShortlistThreshold: true,
         _count: { select: { preShortlistQuestions: true } },
       },
     });
     if (!job) return ApplicationStatus.APPLIED;
     if (
-      job.preShortlistThreshold > 0 &&
+      job.preShortlistEnabled &&
       job._count.preShortlistQuestions > 0 &&
       (matchPercentage ?? 0) >= job.preShortlistThreshold
     ) {

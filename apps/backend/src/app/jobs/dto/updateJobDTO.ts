@@ -97,6 +97,10 @@ export class UpdateJobDTO {
   preShortlistThreshold?: number;
 
   @IsOptional()
+  @IsBoolean()
+  preShortlistEnabled?: boolean;
+
+  @IsOptional()
   @IsArray()
   @ArrayMaxSize(20)
   @ValidateNested({ each: true })

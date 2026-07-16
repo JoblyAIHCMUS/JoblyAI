@@ -81,6 +81,7 @@ describe('getJobHandler', () => {
       title: 'Backend Engineer',
       description: 'desc',
       companyId: 42,
+      preShortlistEnabled: true,
       preShortlistThreshold: 75,
       category: { id: 1, name: 'Backend' },
       company: { id: 42, name: 'Acme' },
@@ -92,6 +93,7 @@ describe('getJobHandler', () => {
     const result = await getJobHandler(state, { id: 1 });
 
     expect(result.structuredContent).toMatchObject({
+      preShortlistEnabled: true,
       preShortlistThreshold: 75,
     });
     expect(result.isError).toBeUndefined();

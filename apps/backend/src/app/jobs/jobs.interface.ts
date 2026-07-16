@@ -52,6 +52,7 @@ export interface JobPosting {
   status: JobStatus;
   applicantsCount?: number;
   preShortlistThreshold: number;
+  preShortlistEnabled: boolean;
   preShortlistQuestions: { id: string; order: number; question: string }[];
   createdAt: Date;
   updatedAt: Date;

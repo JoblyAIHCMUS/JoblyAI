@@ -418,6 +418,7 @@ async function main() {
           salaryMin: job.salaryMin,
           salaryMax: job.salaryMax,
           preShortlistThreshold: 100,
+          preShortlistEnabled: false,
 
           // Use the correct relations from Employer record
           postedById: employer.employerId,

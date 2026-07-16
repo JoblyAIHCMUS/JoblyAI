@@ -192,7 +192,7 @@ export default function JobDetailPage() {
       {(() => {
         const preShortlistEligible =
           jobData !== null &&
-          jobData.preShortlistThreshold > 0 &&
+          jobData.preShortlistEnabled === true &&
           jobData.preShortlistQuestions.length > 0;
         const matchingApp = appsList.find((a) => a.jobId === pageData.jobId);
         const preShortlistState: 'NONE' | 'PENDING' | 'SUBMITTED' =
