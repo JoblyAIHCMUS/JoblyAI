@@ -144,7 +144,7 @@ export class GeminiSearchProvider implements SearchProvider {
   private getModel(): string {
     return (
       this.configService.get<string>('GEMINI_MAIN_MODEL')?.trim() ||
-      'gemini-2.5-flash'
+      'gemini-3.5-flash'
     );
   }
 

@@ -140,15 +140,36 @@ export const useAiSocket = (userId: string | undefined) => {
       });
     };
 
+    const handleInterviewPrepFailed = (data: {
+      jobId: number;
+      error?: string;
+    }) => {
+      console.log(
+        '[useAiSocket] 🎯 EVENT RECEIVED: INTERVIEW_PREP_FAILED',
+        data
+      );
+
+      window.dispatchEvent(
+        new CustomEvent('ai-interview-prep-failed', { detail: data })
+      );
+
+      toast.error('Failed to generate Interview Prep Kit', {
+        description: data.error || 'Please try again later.',
+        duration: 8000,
+      });
+    };
+
     // Events match the AiGateway implementation
     socket.on(`RESUME_PARSED_${userId}`, handleParsed);
     socket.on(`RESUME_SCORED_${userId}`, handleScored);
     socket.on(`INTERVIEW_PREP_READY_${userId}`, handleInterviewPrepReady);
+    socket.on(`INTERVIEW_PREP_FAILED_${userId}`, handleInterviewPrepFailed);
 
     return () => {
       socket.off(`RESUME_PARSED_${userId}`, handleParsed);
       socket.off(`RESUME_SCORED_${userId}`, handleScored);
       socket.off(`INTERVIEW_PREP_READY_${userId}`, handleInterviewPrepReady);
+      socket.off(`INTERVIEW_PREP_FAILED_${userId}`, handleInterviewPrepFailed);
     };
   }, [socket, isConnected, userId, pathname, router]);
 };

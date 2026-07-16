@@ -26,6 +26,7 @@ $DB_PASSWORD = "1234aaAA@"
 $DOMAIN_URL = "https://jobly.ai.vn"
 $GCS_PUBLIC_BUCKET = "joblyai-public"
 $GCS_PRIVATE_BUCKET = "joblyai-private"
+$GEMINI_MAIN_MODEL = "gemini-3.5-flash"
 
 # ==========================================
 # BẮT ĐẦU KỊCH BẢN TỰ ĐỘNG
@@ -97,7 +98,7 @@ if ($choice -eq "1" -or $choice -eq "3") {
         --max-instances=5 `
         --memory=1Gi `
         --cpu=1 `
-        --set-env-vars="NODE_ENV=production,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true" `
+        --set-env-vars="NODE_ENV=production,SCYLLA_HOST=$VM_PUBLIC_IP,SCYLLA_PORT=9042,SCYLLA_USER=cassandra,SCYLLA_KEYSPACE=chat_app,SCYLLA_DATACENTER=datacenter1,GCS_PROJECT_ID=$GCP_PROJECT_ID,GCS_PUBLIC_BUCKET=$GCS_PUBLIC_BUCKET,GCS_PRIVATE_BUCKET=$GCS_PRIVATE_BUCKET,BETTER_AUTH_URL=$DOMAIN_URL,APP_URL=$DOMAIN_URL,WEB_URL=$DOMAIN_URL,WS_REDIS_ADAPTER=true,GEMINI_MAIN_MODEL=$GEMINI_MAIN_MODEL" `
         --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,SCYLLA_PASSWORD=scylla-password:latest,GEMINI_API_KEY=gemini-api-key:latest,BETTER_AUTH_SECRET=better-auth-secret:latest,GEOAPIFY_API_KEY=geoapify-api-key:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest"
     
     if ($LASTEXITCODE -ne 0) {
