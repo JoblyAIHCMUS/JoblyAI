@@ -55,6 +55,9 @@ const mockJobDbRecord = vi.hoisted(() => ({
   _count: {
     applications: 5,
   },
+  preShortlistEnabled: true,
+  preShortlistThreshold: 0,
+  preShortlistQuestions: [],
 }));
 
 const mockPrisma = vi.hoisted(() => ({
@@ -223,6 +226,7 @@ describe('JobsService', () => {
           salaryMax: 100000,
           postedById: userId,
           preShortlistThreshold: 0,
+          preShortlistEnabled: true,
           requirements: {
             create: [
               { skillId: 10, importance: 'REQUIRED', minYearsExperience: 2 },
