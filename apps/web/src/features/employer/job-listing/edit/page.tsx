@@ -125,6 +125,7 @@ export default function JobListingEditPage() {
       salaryMax: undefined,
       skills: [],
       preShortlistThreshold: 0,
+      preShortlistEnabled: false,
       preShortlistQuestions: [],
     },
   });
@@ -178,6 +179,8 @@ export default function JobListingEditPage() {
       })),
       preShortlistThreshold:
         preShortlistData.threshold ?? jobData.preShortlistThreshold ?? 0,
+      preShortlistEnabled:
+        preShortlistData.enabled ?? jobData.preShortlistEnabled ?? false,
       preShortlistQuestions: (preShortlistData.questions || [])
         .slice()
         .sort((a, b) => a.order - b.order)
@@ -223,7 +226,15 @@ export default function JobListingEditPage() {
         return !errors.description && !isHtmlContentEmpty(description);
       case 2: // Pre-Shortlist
         if (!canEditQuestions) {
+          // Locked jobs: only the threshold is editable (and it's frozen in
+          // practice). Skip the questions check.
           return !errors.preShortlistThreshold;
+        }
+        // When the toggle is off, the threshold and questions sections are
+        // hidden — skip their validation so a user with hidden content
+        // (preserved from a prior edit or AI generation) can still proceed.
+        if (!currentValues.preShortlistEnabled) {
+          return true;
         }
         return (
           !errors.preShortlistThreshold &&
@@ -284,6 +295,7 @@ export default function JobListingEditPage() {
         salaryMax: data.salaryMax ?? undefined,
         requirements,
         preShortlistThreshold: data.preShortlistThreshold,
+        preShortlistEnabled: data.preShortlistEnabled,
         preShortlistQuestions: data.preShortlistQuestions,
       };
 
@@ -632,19 +644,20 @@ export default function JobListingEditPage() {
           </div>
 
           {/* Step 3: Pre-Shortlist */}
-          {!canEditQuestions && preShortlistData.questions.length > 0 ? (
-            <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
+          <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
+            {!canEditQuestions && (
               <Alert>
                 <AlertDescription>
-                  Pre-shortlist questions are locked because this job has
-                  received applications.
+                  Pre-shortlist configuration is locked once applications have
+                  been received. To change these settings, create a new job.
                 </AlertDescription>
               </Alert>
-              <PreShortlistStep readOnly />
-            </div>
-          ) : (
-            <PreShortlistStep />
-          )}
+            )}
+            <PreShortlistStep
+              readOnly={!canEditQuestions}
+              configLocked={!canEditQuestions}
+            />
+          </div>
         </Stepper>
       </FormProvider>
     </div>
