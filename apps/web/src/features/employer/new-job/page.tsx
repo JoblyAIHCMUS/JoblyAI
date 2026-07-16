@@ -91,6 +91,7 @@ export default function EmployerNewJobPage() {
       salaryMax: undefined,
       skills: [],
       preShortlistThreshold: 50,
+      preShortlistEnabled: true,
       preShortlistQuestions: [],
     },
   });
@@ -151,6 +152,12 @@ export default function EmployerNewJobPage() {
       case 1: // Job Description
         return !errors.description && !isHtmlContentEmpty(description);
       case 2: // Pre-Shortlist
+        // When the toggle is off, the threshold and questions sections are
+        // hidden — skip their validation so a user with hidden content
+        // (preserved from a prior edit or AI generation) can still proceed.
+        if (!currentValues.preShortlistEnabled) {
+          return true;
+        }
         return (
           !errors.preShortlistThreshold &&
           !errors.preShortlistQuestions &&
@@ -211,6 +218,7 @@ export default function EmployerNewJobPage() {
         companyId: employerProfile?.company?.id || 0,
         requirements,
         preShortlistThreshold: data.preShortlistThreshold,
+        preShortlistEnabled: data.preShortlistEnabled,
         preShortlistQuestions: data.preShortlistQuestions,
       };
       await submitJob(payload);
