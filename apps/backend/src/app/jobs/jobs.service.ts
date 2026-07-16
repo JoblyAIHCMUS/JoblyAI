@@ -254,6 +254,7 @@ export class JobsService {
         locationId: resolvedLocationId || undefined,
         postedById: userId,
         preShortlistThreshold: threshold,
+        preShortlistEnabled: dto.preShortlistEnabled ?? true,
         preShortlistQuestions:
           preShortlistQuestions && preShortlistQuestions.length > 0
             ? {
@@ -1022,6 +1023,7 @@ export class JobsService {
           }))
         : [],
       preShortlistThreshold: (job as any).preShortlistThreshold ?? 0,
+      preShortlistEnabled: (job as any).preShortlistEnabled ?? false,
       preShortlistQuestions:
         (job as any).preShortlistQuestions?.map((q: any) => ({
           id: q.id,
