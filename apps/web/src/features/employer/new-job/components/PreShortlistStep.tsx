@@ -13,9 +13,6 @@ import {
   Sparkles,
   Plus,
   Trash2,
-  ChevronUp,
-  ChevronDown,
-  GripVertical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -43,23 +40,17 @@ type AiBadgeState = Record<number, boolean>;
 
 interface QuestionCardProps {
   index: number;
-  total: number;
   readOnly?: boolean;
   showAiBadge: boolean;
   onEdit: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRemove: () => void;
 }
 
 function QuestionCard({
   index,
-  total,
   readOnly = false,
   showAiBadge,
   onEdit,
-  onMoveUp,
-  onMoveDown,
   onRemove,
 }: QuestionCardProps) {
   const { control, register, formState } = useFormContext<JobPostingFormData>();
@@ -104,50 +95,16 @@ function QuestionCard({
         </div>
         <div className="flex items-center gap-1">
           {!readOnly && (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                aria-hidden="true"
-                tabIndex={-1}
-              >
-                <GripVertical className="h-4 w-4 text-slate-400" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={onMoveUp}
-                disabled={index === 0}
-                aria-label="Move up"
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={onMoveDown}
-                disabled={index === total - 1}
-                aria-label="Move down"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={onRemove}
-                aria-label="Remove question"
-              >
-                <Trash2 className="h-4 w-4 text-[var(--danger-accent)]" />
-              </Button>
-            </>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={onRemove}
+              aria-label="Remove question"
+            >
+              <Trash2 className="h-4 w-4 text-[var(--danger-accent)]" />
+            </Button>
           )}
         </div>
       </div>
@@ -172,10 +129,10 @@ function QuestionCard({
           ) : (
             <div className="rounded-md bg-white">
               <Textarea
-                rows={2}
+                rows={4}
                 maxLength={MAX_LENGTH}
                 placeholder="e.g. Describe a Postgres query you optimized and the impact it had."
-                className="text-sm"
+                className="text-sm min-h-24 resize-none focus-visible:ring-0 focus-visible:border-[color:var(--indigo-400)] focus-visible:shadow-[0_0_0_3px_var(--indigo-400)]"
                 {...register(
                   `preShortlistQuestions.${index}.question` as const
                 )}
@@ -207,10 +164,10 @@ function QuestionCard({
           ) : (
             <div className="rounded-md bg-white">
               <Textarea
-                rows={2}
+                rows={4}
                 maxLength={MAX_LENGTH}
                 placeholder="e.g. A concrete optimization with a measured impact (e.g. latency drop, query time reduction)."
-                className="text-sm"
+                className="text-sm min-h-24 resize-none focus-visible:ring-0 focus-visible:border-[color:var(--indigo-400)] focus-visible:shadow-[0_0_0_3px_var(--indigo-400)]"
                 {...register(
                   `preShortlistQuestions.${index}.expectedAnswer` as const
                 )}
@@ -228,7 +185,7 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
     control,
     formState: { errors },
   } = useFormContext<JobPostingFormData>();
-  const { fields, append, remove, move, replace } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: 'preShortlistQuestions' as never,
   });
@@ -518,7 +475,6 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
             <QuestionCard
               key={field.id}
               index={idx}
-              total={fields.length}
               readOnly={readOnly}
               showAiBadge={!readOnly && aiSuggested[idx] === true}
               onEdit={() =>
@@ -526,8 +482,6 @@ export function PreShortlistStep({ readOnly = false }: { readOnly?: boolean }) {
                   prev[idx] === true ? { ...prev, [idx]: false } : prev
                 )
               }
-              onMoveUp={() => move(idx, idx - 1)}
-              onMoveDown={() => move(idx, idx + 1)}
               onRemove={() => remove(idx)}
             />
           ))}
