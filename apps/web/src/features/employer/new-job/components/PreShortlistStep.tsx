@@ -9,11 +9,7 @@ import {
   useFieldArray,
   useWatch,
 } from 'react-hook-form';
-import {
-  Sparkles,
-  Plus,
-  Trash2,
-} from 'lucide-react';
+import { Sparkles, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -298,11 +294,7 @@ export function PreShortlistStep({
   const lockMessage =
     'Pre-shortlist configuration is locked once applications have been received. To change these settings, create a new job.';
 
-  const LockOverlay = ({
-    ariaLabel,
-  }: {
-    ariaLabel: string;
-  }) => (
+  const LockOverlay = ({ ariaLabel }: { ariaLabel: string }) => (
     <div
       className="absolute inset-0 z-10 cursor-not-allowed"
       onClick={() => toast.error(lockMessage)}
@@ -488,15 +480,12 @@ export function PreShortlistStep({
                             requirements: (skills ?? []).map((s) => ({
                               skillName: s.name,
                               importance: s.importance,
-                              minYearsExperience:
-                                s.minYearsExperience ?? null,
+                              minYearsExperience: s.minYearsExperience ?? null,
                             })),
                             count: generateCount,
                           })
                         }
-                        disabled={
-                          generating || fields.length >= MAX_QUESTIONS
-                        }
+                        disabled={generating || fields.length >= MAX_QUESTIONS}
                         className="shrink-0"
                       >
                         <Sparkles className="h-4 w-4" />
@@ -572,9 +561,7 @@ export function PreShortlistStep({
                     showAiBadge={!readOnly && aiSuggested[idx] === true}
                     onEdit={() =>
                       setAiSuggested((prev) =>
-                        prev[idx] === true
-                          ? { ...prev, [idx]: false }
-                          : prev
+                        prev[idx] === true ? { ...prev, [idx]: false } : prev
                       )
                     }
                     onRemove={() => remove(idx)}

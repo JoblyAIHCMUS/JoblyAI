@@ -564,10 +564,7 @@ export class JobsService {
     // exist. Compare content instead via areQuestionsEqual.
     const isQuestionsChanging =
       preShortlistQuestions !== undefined &&
-      !this.areQuestionsEqual(
-        preShortlistQuestions,
-        job.preShortlistQuestions
-      );
+      !this.areQuestionsEqual(preShortlistQuestions, job.preShortlistQuestions);
 
     if (isEnabledChanging || isThresholdChanging || isQuestionsChanging) {
       // Non-transactional: race with a concurrent apply is accepted v1 limitation
