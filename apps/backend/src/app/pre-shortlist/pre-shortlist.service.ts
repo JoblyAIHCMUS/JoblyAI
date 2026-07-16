@@ -35,6 +35,7 @@ export interface PreShortlistQuestionForEmployer
 }
 
 export interface PreShortlistQuestionsView {
+  enabled: boolean;
   threshold: number;
   questions: PreShortlistQuestionForEmployer[];
 }
@@ -98,12 +99,14 @@ export class PreShortlistService {
     const job = await this.prisma.jobPosting.findUnique({
       where: { id: jobId },
       select: {
+        preShortlistEnabled: true,
         preShortlistThreshold: true,
         preShortlistQuestions: { orderBy: { order: 'asc' } },
       },
     });
     if (!job) throw new NotFoundException('Job not found');
     return {
+      enabled: job.preShortlistEnabled,
       threshold: job.preShortlistThreshold,
       questions: job.preShortlistQuestions.map((q) => ({
         id: q.id,
