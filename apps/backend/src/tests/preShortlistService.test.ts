@@ -253,6 +253,36 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     expect(result).toBe('APPLIED');
   });
 
+  it('returns PRE_SHORTLIST_PENDING when threshold > 0 and match% meets threshold', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
+      preShortlistThreshold: 50,
+      _count: { preShortlistQuestions: 3 },
+    });
+    const result = await service.resolveInitialStatus(1, 75);
+    expect(result).toBe('PRE_SHORTLIST_PENDING');
+  });
+
+  it('returns PRE_SHORTLIST_PENDING when threshold > 0 and match% exactly equals threshold', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
+      preShortlistThreshold: 50,
+      _count: { preShortlistQuestions: 3 },
+    });
+    const result = await service.resolveInitialStatus(1, 50);
+    expect(result).toBe('PRE_SHORTLIST_PENDING');
+  });
+
+  it('returns APPLIED when threshold > 0 and match% is null', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
+      preShortlistThreshold: 50,
+      _count: { preShortlistQuestions: 3 },
+    });
+    const result = await service.resolveInitialStatus(1, null);
+    expect(result).toBe('APPLIED');
+  });
+
   it('returns APPLIED when the job does not exist', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue(null);
     const result = await service.resolveInitialStatus(1, 95);
