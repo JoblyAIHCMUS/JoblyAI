@@ -256,7 +256,11 @@ export class MatchingService {
         const jobDetail = jobs.find((j) => j.id === mj.id);
         if (!jobDetail) return null;
 
-        return this.mapToJobResponse(jobDetail);
+        return {
+          job: this.mapToJobResponse(jobDetail),
+          matchPercentage: 0,
+          scored: false,
+        };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
 
