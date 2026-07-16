@@ -113,6 +113,7 @@ const mockPrisma = vi.hoisted(() => ({
   },
   employer: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
   },
 }));
 
@@ -169,6 +170,7 @@ describe('ApplicationsService', () => {
 
     service = module.get<ApplicationsService>(ApplicationsService);
     vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
 
     // Manually assign dependencies as standard injection might fail in some test environments
     (service as any).prisma = mockPrisma;

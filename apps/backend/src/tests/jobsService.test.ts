@@ -78,6 +78,9 @@ const mockPrisma = vi.hoisted(() => ({
     findMany: vi.fn(),
     count: vi.fn(),
   },
+  employer: {
+    findFirst: vi.fn(),
+  },
   $transaction: vi.fn(),
 }));
 
@@ -140,6 +143,7 @@ describe('JobsService', () => {
       service as unknown as { locationService: LocationService }
     ).locationService = mockLocationService as unknown as LocationService;
     vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
   });
 
   it('should be defined', () => {
@@ -353,6 +357,58 @@ describe('JobsService', () => {
         service.deleteJobById(99, 'employer123', 'employer')
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should allow delete when the user is a company admin (not the original poster)', async () => {
+      // Arrange
+      // postedById is 'employer123', but the requester is 'company_admin_user' (not the poster)
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns a record -> this user has role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+      mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.application.updateMany.mockResolvedValue({ count: 0 });
+
+      // Act
+      await service.deleteJobById(1, 'company_admin_user', 'employer');
+
+      // Assert
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'company_admin_user',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          status: 'CLOSED',
+          deletedAt: expect.any(Date),
+        }),
+      });
+    });
+
+    it('should throw ForbiddenException when the user is a company member but not the admin', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns null -> this user does NOT have role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        service.deleteJobById(1, 'regular_member', 'employer')
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'regular_member',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateJobById', () => {
@@ -474,6 +530,65 @@ describe('JobsService', () => {
           }),
         })
       );
+    });
+
+    it('should allow update when the user is a company admin (not the original poster)', async () => {
+      // Arrange
+      // postedById is 'employer123', but the requester is 'company_admin_user' (not the poster)
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns a record -> this user has role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+      mockPrisma.jobPosting.update.mockResolvedValue({
+        ...mockJobDbRecord,
+        title: 'Edited By Admin',
+      });
+
+      // Act
+      const result = await service.updateJobById(
+        1,
+        { title: 'Edited By Admin' },
+        'company_admin_user',
+        'employer'
+      );
+
+      // Assert
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'company_admin_user',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalled();
+      expect(result.title).toBe('Edited By Admin');
+    });
+
+    it('should throw ForbiddenException when the user is a company member but not the admin', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns null -> this user does NOT have role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        service.updateJobById(
+          1,
+          { title: 'Sneaky Edit' },
+          'regular_member',
+          'employer'
+        )
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'regular_member',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
     });
 
     describe('Pre-shortlist configuration lock', () => {
