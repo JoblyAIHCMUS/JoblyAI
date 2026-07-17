@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -24,15 +24,23 @@ import EditEducationModal from './components/EditEducationModal';
 import EditCertificateModal from './components/EditCertificateModal';
 import EditSkillModal from './components/EditSkillModal';
 import { CV } from './components/CV';
+import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
 import EditSocialModal from './components/EditSocialModal';
 import EditPhoneModal from './components/EditPhoneModal';
 import { useUpdateProfile } from '../../../../hooks/useUpdateProfile';
+import {
+  AiProcessingProvider,
+  useAiProcessing,
+} from '@/contexts/AiProcessingContext';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import { getPresignedUploadUrl } from '../../../../api/candidate';
 import { useUploadResume } from '@/hooks/useUploadResume';
 import { useDeleteResume } from '@/hooks/useDeleteResume';
 import { useSetDefaultResume } from '@/hooks/useSetDefaultResume';
+import { useTriggerAiParse } from '@/hooks/useTriggerAiParse';
+import { useCommitResumeMerge } from '@/hooks/useCommitResumeMerge';
+import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
   CandidateEducation,
   CandidateExperience,
@@ -182,6 +190,12 @@ function getDisplayName(profile?: CandidateProfileResponse): string {
 }
 
 function ProfileContent() {
+  const {
+    processingTasks,
+    triggerParse,
+    onParsedSuccess,
+    reconcile,
+  } = useAiProcessing();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditAboutOpen, setIsEditAboutOpen] = useState(false);
   const [isAddExperienceOpen, setIsAddExperienceOpen] = useState(false);
@@ -197,10 +211,20 @@ function ProfileContent() {
   );
   const [isEditPhoneOpen, setIsEditPhoneOpen] = useState(false);
 
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const syncInProgressRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   const {
     data: profile,
@@ -214,7 +238,79 @@ function ProfileContent() {
   const { deleteResumeRecord: deleteResume, loading: isDeleting } =
     useDeleteResume();
   const { mutateAsync: setDefaultResume } = useSetDefaultResume();
+  const { mutateAsync: triggerAiParse } = useTriggerAiParse();
+  const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
+  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const { mutateAsync: updateProfile } = useUpdateProfile();
+
+  const startAiSyncPolling = useCallback(
+    (resumeId: number) => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      const attempt = async () => {
+        try {
+          const freshProfile = await refetch();
+          const freshData = freshProfile?.data;
+          const resume = freshData?.resumes?.find((r) => r.id === resumeId);
+          if (!resume) return;
+          const parsedRaw = (resume as any).parsedText;
+          if (!parsedRaw) return;
+          const parsedData = JSON.parse(parsedRaw);
+          if (!parsedData || Object.keys(parsedData).length === 0) return;
+          if (syncInProgressRef.current.has(resumeId)) return;
+          syncInProgressRef.current.add(resumeId);
+          if (pollRef.current) clearInterval(pollRef.current);
+          onParsedSuccess(resumeId);
+          Toast.show({ type: 'success', text1: 'CV parsed — ready to sync' });
+          setActiveResumeId(resumeId);
+          setSyncModalOpen(true);
+        } catch {
+          /* next tick will retry */
+        }
+      };
+      pollRef.current = setInterval(attempt, 4000);
+      setTimeout(attempt, 500);
+    },
+    [refetch, onParsedSuccess]
+  );
+
+  const startAiCompletionPolling = useCallback(
+    (resumeId: number) => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      const attempt = async () => {
+        try {
+          const freshProfile = await refetch();
+          const freshData = freshProfile?.data;
+          const resume = freshData?.resumes?.find((r) => r.id === resumeId);
+          if (!resume) return;
+          if (resume.parsedText) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            onParsedSuccess(resumeId);
+            Toast.show({
+              type: 'success',
+              text1: 'Data extracted',
+            });
+          }
+        } catch {
+          /* next tick will retry */
+        }
+      };
+      pollRef.current = setInterval(attempt, 3000);
+      setTimeout(attempt, 500);
+    },
+    [refetch, onParsedSuccess]
+  );
+
+  useEffect(() => {
+    if (profile?.resumes) reconcile(profile.resumes);
+  }, [profile?.resumes, reconcile]);
+
+  useEffect(() => {
+    const defaultResumeId =
+      profile?.resumes?.find((r) => r.isDefault)?.id ||
+      profile?.resumes?.[0]?.id ||
+      null;
+    setSelectedResumeId(defaultResumeId);
+  }, [profile?.resumes]);
 
   const displayName = useMemo(() => getDisplayName(profile), [profile]);
   const headline = profile?.about?.title?.trim() || 'Candidate';
@@ -300,6 +396,7 @@ function ProfileContent() {
       });
       if (newResume?.id) {
         setActiveResumeId(newResume.id);
+        startAiSyncPolling(newResume.id);
       }
       await refetch();
     } catch (err: any) {
@@ -336,6 +433,29 @@ function ProfileContent() {
       console.error('Delete resume error:', err);
     } finally {
       setDeletingResumeId(null);
+    }
+  };
+
+  const handleTriggerParse = (resumeId: number) => {
+    triggerParse(resumeId);
+    triggerAiParse(resumeId)
+      .then(() => {
+        Toast.show({ type: 'info', text1: 'AI is extracting data...' });
+        startAiCompletionPolling(resumeId);
+      })
+      .catch(() => {
+        Toast.show({ type: 'error', text1: 'Failed to start AI parsing' });
+      });
+  };
+
+  const handleSyncResume = async (draftData?: any) => {
+    if (!activeResumeId) return;
+    try {
+      await commitResumeMerge({ resumeId: activeResumeId, data: draftData });
+      await refetch();
+      setSyncModalOpen(false);
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Failed to sync profile' });
     }
   };
 
@@ -560,13 +680,20 @@ function ProfileContent() {
             <SectionHeader title="CV/Resume" />
             <CV
               resumes={profile?.resumes || []}
+              selectedResumeId={selectedResumeId}
               onCVChange={handleCVUpload}
               onSelectResume={handleSelectResume}
               onDeleteResume={handleDeleteResume}
+              onTriggerParse={handleTriggerParse}
+              onSyncResume={(resumeId, parsedData) => {
+                setActiveResumeId(resumeId);
+                setSyncModalOpen(true);
+              }}
               maxResumes={5}
               isUploading={isUploading}
               isUpdating={false}
               isDeleting={isDeleting}
+              processingTasks={processingTasks}
               deletingResumeId={deletingResumeId}
               uploadError={uploadErrorMsg}
             />
@@ -885,6 +1012,44 @@ function ProfileContent() {
         onSaved={() => void refetch()}
       />
 
+      <CvSyncCompareModal
+        isOpen={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
+        currentData={profile}
+        newData={
+          activeResumeId
+            ? (() => {
+                const res = profile?.resumes?.find(
+                  (r) => r.id === activeResumeId
+                );
+                try {
+                  return res?.parsedText
+                    ? typeof res.parsedText === 'string'
+                      ? JSON.parse(res.parsedText)
+                      : res.parsedText
+                    : null;
+                } catch {
+                  return null;
+                }
+              })()
+            : null
+        }
+        onSync={handleSyncResume}
+        onExtract={() => {
+          if (activeResumeId) {
+            handleTriggerParse(activeResumeId);
+            setSyncModalOpen(false);
+          }
+        }}
+        isLoading={false}
+        isSynced={
+          !!(activeResumeId
+            ? profile?.resumes?.find((r) => r.id === activeResumeId)
+                ?.isSyncedToProfile
+            : false)
+        }
+      />
+
       <CvDeleteImpactModal
         isOpen={deleteImpactModalOpen}
         onClose={() => setDeleteImpactModalOpen(false)}
@@ -929,5 +1094,9 @@ function ProfileContent() {
 }
 
 export default function CandidatePublicProfileScreen() {
-  return <ProfileContent />;
+  return (
+    <AiProcessingProvider>
+      <ProfileContent />
+    </AiProcessingProvider>
+  );
 }

@@ -14,17 +14,21 @@ import {
   Download,
   Trash2,
   Star,
+  Code2,
   Eye,
   X,
   Upload,
   AlertCircle,
+  ArrowLeftRight,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import type { CandidateResume } from '@/types/candidate';
+import type { ProcessingTasks } from '@/contexts/AiProcessingContext';
 import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 
 interface CVProps {
   resumes: CandidateResume[];
+  selectedResumeId?: number | null;
   onCVChange: (file: {
     fileKey: string;
     fileName: string;
@@ -33,23 +37,30 @@ interface CVProps {
   }) => Promise<void>;
   onSelectResume?: (resumeId: number) => Promise<void> | void;
   onDeleteResume?: (resumeId: number) => void;
+  onTriggerParse?: (resumeId: number) => void;
+  onSyncResume?: (resumeId: number, parsedData: any) => void;
   maxResumes?: number;
   isUploading?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
+  processingTasks?: ProcessingTasks;
   deletingResumeId?: number | null;
   uploadError?: string | null;
 }
 
 export function CV({
   resumes = [],
+  selectedResumeId,
   onCVChange,
   onSelectResume,
   onDeleteResume,
+  onTriggerParse,
+  onSyncResume,
   maxResumes = 5,
   isUploading = false,
   isUpdating = false,
   isDeleting = false,
+  processingTasks = {},
   deletingResumeId = null,
   uploadError = null,
 }: CVProps) {
@@ -145,6 +156,19 @@ export function CV({
     setPendingDefaultId(null);
   };
 
+  const handleSyncPress = useCallback(
+    (resume: CandidateResume) => {
+      if (!resume.parsedText || !onSyncResume) return;
+      try {
+        const parsedData = JSON.parse(resume.parsedText);
+        onSyncResume(resume.id, parsedData);
+      } catch {
+        Toast.show({ type: 'error', text1: 'Failed to parse resume data' });
+      }
+    },
+    [onSyncResume]
+  );
+
   return (
     <View className="rounded-xl border border-[#dbe1ee] bg-white p-4 flex flex-col gap-3">
       <View className="flex flex-row items-center justify-between gap-3">
@@ -177,6 +201,11 @@ export function CV({
 
           {sortedResumes.map((resume) => {
             const isActive = resume.isDefault;
+            const isParsing = processingTasks[resume.id]?.parsing;
+            const hasParseData =
+              !!resume.parsedText &&
+              Object.keys(JSON.parse(resume.parsedText || '{}')).length > 0;
+            const canSync = hasParseData && !resume.isSyncedToProfile;
 
             return (
               <View
@@ -192,12 +221,28 @@ export function CV({
                     onPress={() => handlePreview(resume)}
                     className="flex-1"
                   >
-                    <Text
-                      className="text-sm font-semibold text-[#1f2937]"
-                      numberOfLines={1}
-                    >
-                      {resume.fileName}
-                    </Text>
+                    <View className="flex flex-row items-center gap-2">
+                      <Text
+                        className="text-sm font-semibold text-[#1f2937]"
+                        numberOfLines={1}
+                      >
+                        {resume.fileName}
+                      </Text>
+                      {canSync && (
+                        <View className="bg-amber-100 px-2 py-0.5 rounded">
+                          <Text className="text-amber-800 text-[10px] font-medium">
+                            Ready to Sync
+                          </Text>
+                        </View>
+                      )}
+                      {resume.isSyncedToProfile && (
+                        <View className="bg-blue-100 px-2 py-0.5 rounded">
+                          <Text className="text-blue-800 text-[10px] font-medium">
+                            Synced
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     {isActive && (
                       <Text className="text-[10px] text-[#4f46e5] mt-0.5">
                         Default
@@ -213,6 +258,40 @@ export function CV({
                     className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
                   >
                     <Eye size={14} color="#6b7280" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => onTriggerParse?.(resume.id)}
+                    disabled={isBusy || isParsing}
+                    className={`h-8 w-8 items-center justify-center rounded-md border ${
+                      hasParseData
+                        ? 'border-amber-400 bg-amber-50'
+                        : 'border-[#dbe1ee] bg-gray-50'
+                    }`}
+                  >
+                    {isParsing ? (
+                      <ActivityIndicator size="small" color="#4f46e5" />
+                    ) : (
+                      <Code2
+                        size={14}
+                        color={hasParseData ? '#d97706' : '#6b7280'}
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleSyncPress(resume)}
+                    disabled={isBusy || !canSync}
+                    className={`h-8 w-8 items-center justify-center rounded-md border ${
+                      canSync
+                        ? 'border-[#4f46e5] bg-[#4f46e5]'
+                        : 'border-[#dbe1ee] bg-gray-100'
+                    }`}
+                  >
+                    <ArrowLeftRight
+                      size={14}
+                      color={canSync ? 'white' : '#d1d5db'}
+                    />
                   </TouchableOpacity>
 
                   <TouchableOpacity
