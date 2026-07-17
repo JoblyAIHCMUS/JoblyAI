@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Modal,
   View,
@@ -16,10 +16,7 @@ import {
   Award,
   Share2,
   Phone,
-  User,
-  FileX,
 } from 'lucide-react-native';
-import { usePreviewDeleteImpact } from '@/hooks/usePreviewDeleteImpact';
 
 interface CvDeleteImpactModalProps {
   isOpen: boolean;
@@ -52,30 +49,7 @@ export function CvDeleteImpactModal({
   contacts = [],
   socials = [],
 }: CvDeleteImpactModalProps) {
-  const [previewBio, setPreviewBio] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string | null>(null);
-
-  const { mutateAsync: previewDelete, isPending: previewLoading } =
-    usePreviewDeleteImpact();
-
   const isLastCv = currentData?.resumes?.length === 1;
-
-  useEffect(() => {
-    if (isOpen && resumeId && !isLastCv) {
-      previewDelete(resumeId)
-        .then((result) => {
-          setPreviewBio(result.previewBio);
-          setPreviewTitle(result.previewTitle);
-        })
-        .catch(() => {
-          setPreviewBio(null);
-          setPreviewTitle(null);
-        });
-    } else {
-      setPreviewBio(null);
-      setPreviewTitle(null);
-    }
-  }, [isOpen, resumeId, isLastCv, previewDelete]);
 
   const getAffectedItems = (items: any[]) => {
     return items.filter((item) => {
@@ -83,15 +57,6 @@ export function CvDeleteImpactModal({
         ? item.sourceCvIds.map(String)
         : [];
       return sourceIds.includes(String(resumeId));
-    });
-  };
-
-  const getRemainingItems = (items: any[]) => {
-    return items.filter((item) => {
-      const sourceIds = Array.isArray(item.sourceCvIds)
-        ? item.sourceCvIds.map(String)
-        : [];
-      return !sourceIds.includes(String(resumeId));
     });
   };
 
@@ -238,34 +203,6 @@ export function CvDeleteImpactModal({
                 </View>
               )}
 
-              {!isLastCv && (previewBio || previewTitle) && (
-                <View className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-                  <Text className="text-sm font-semibold text-[#d97706] mb-2">
-                    Regenerated Profile Data:
-                  </Text>
-                  {previewTitle && (
-                    <View className="mb-2">
-                      <Text className="text-xs font-medium text-[#92400e]">
-                        New Title:
-                      </Text>
-                      <Text className="text-sm text-[#78350f]">
-                        {previewTitle}
-                      </Text>
-                    </View>
-                  )}
-                  {previewBio && (
-                    <View>
-                      <Text className="text-xs font-medium text-[#92400e]">
-                        New Bio:
-                      </Text>
-                      <Text className="text-sm text-[#78350f]">
-                        {previewBio}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
               {isLastCv && (
                 <View className="rounded-xl border border-amber-100 bg-amber-50 p-4">
                   <Text className="text-sm font-semibold text-[#d97706] mb-1">
@@ -292,7 +229,7 @@ export function CvDeleteImpactModal({
             {!isLastCv && (
               <TouchableOpacity
                 onPress={() => onConfirm(true)}
-                disabled={isLoading || previewLoading}
+                disabled={isLoading}
                 className="w-full py-3 rounded-md bg-green-500 items-center"
               >
                 {isLoading ? (
@@ -307,7 +244,7 @@ export function CvDeleteImpactModal({
 
             <TouchableOpacity
               onPress={() => onConfirm(false)}
-              disabled={isLoading || previewLoading}
+              disabled={isLoading}
               className="w-full py-3 rounded-md bg-red-500 items-center"
             >
               {isLoading ? (

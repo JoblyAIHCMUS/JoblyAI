@@ -614,7 +614,8 @@ export default function CandidateDashboard() {
       isSessionPending ||
       !user ||
       applicationsLoading ||
-      applicationsResult
+      applicationsResult ||
+      applicationsError
     ) {
       return;
     }
@@ -623,6 +624,7 @@ export default function CandidateDashboard() {
   }, [
     applicationsLoading,
     applicationsResult,
+    applicationsError,
     fetchApplications,
     isSessionPending,
     user,

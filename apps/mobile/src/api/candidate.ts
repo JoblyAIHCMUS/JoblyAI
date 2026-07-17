@@ -221,38 +221,6 @@ export async function setDefaultResume(
   return response.data;
 }
 
-export async function triggerAiParse(
-  resumeId: number
-): Promise<{ success: boolean }> {
-  const response = await apiClient.post('/ai/trigger-parse', { resumeId });
-  return response.data;
-}
-
-export async function triggerAiScore(
-  resumeId: number
-): Promise<{ success: boolean }> {
-  const response = await apiClient.post('/ai/trigger-score', { resumeId });
-  return response.data;
-}
-
-export async function commitResumeMerge(
-  resumeId: number,
-  data: any
-): Promise<any> {
-  const response = await apiClient.post('/ai/commit-merge', { resumeId, data });
-  return response.data;
-}
-
-export async function previewDeleteImpact(resumeId: number): Promise<{
-  previewBio: string | null;
-  previewTitle: string | null;
-}> {
-  const response = await apiClient.post('/ai/preview-delete-impact', {
-    resumeId,
-  });
-  return response.data;
-}
-
 export async function createDownloadUrl(
   fileKey: string
 ): Promise<{ downloadUrl: string }> {

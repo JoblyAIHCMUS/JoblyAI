@@ -17,6 +17,7 @@ import {
   useState,
 } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { NAV_THEME } from '../lib/theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../lib/query-client';
@@ -123,6 +124,30 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
       subscription.remove();
     };
   }, [tryResumeSession]);
+
+  // One-time purge: the user-role cookie was removed in PR #268, but devices
+  // that signed in before that refactor still carry a stale copy inside the
+  // Better Auth cookie blob (key "jobly_cookie" in SecureStore). Strip it so
+  // it stops being appended to every request header.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const raw = await SecureStore.getItemAsync('jobly_cookie');
+        if (!raw || cancelled) return;
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        if (!parsed || typeof parsed !== 'object') return;
+        if (!('user-role' in parsed)) return;
+        delete parsed['user-role'];
+        await SecureStore.setItemAsync('jobly_cookie', JSON.stringify(parsed));
+      } catch {
+        /* best-effort; leave cookie blob untouched on any failure */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!isReady) {
     return (
