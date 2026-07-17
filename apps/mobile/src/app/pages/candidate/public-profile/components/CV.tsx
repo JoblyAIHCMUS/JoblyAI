@@ -6,7 +6,6 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import * as DocumentPicker from '@react-native-documents/picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -15,7 +14,6 @@ import {
   Download,
   Trash2,
   Star,
-  BriefcaseBusiness,
   Eye,
   X,
   Upload,
@@ -55,7 +53,6 @@ export function CV({
   deletingResumeId = null,
   uploadError = null,
 }: CVProps) {
-  const router = useRouter();
   const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -216,14 +213,6 @@ export function CV({
                     className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
                   >
                     <Eye size={14} color="#6b7280" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => router.push('/pages/find-jobs')}
-                    disabled={isBusy}
-                    className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
-                  >
-                    <BriefcaseBusiness size={14} color="#6b7280" />
                   </TouchableOpacity>
 
                   <TouchableOpacity
