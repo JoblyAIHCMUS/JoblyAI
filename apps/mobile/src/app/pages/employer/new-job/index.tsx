@@ -92,7 +92,7 @@ export default function EmployerNewJobPage() {
       title: '',
       type: 'FULL_TIME' as const,
       remote: false,
-      location: '',
+      location: null,
       categoryId: '',
       currency: 'none' as const,
       salaryMin: undefined,
@@ -150,7 +150,9 @@ export default function EmployerNewJobPage() {
       const hasCategory = !!currentValues.categoryId;
       const hasLocation =
         currentValues.remote ||
-        (!!currentValues.location && currentValues.location.trim() !== '');
+        (!!currentValues.location &&
+          (currentValues.location as { formattedAddress?: string })
+            .formattedAddress !== undefined);
 
       const noErrorsInBasic =
         !errors.title &&
@@ -172,7 +174,6 @@ export default function EmployerNewJobPage() {
 
     return true;
   };
-
   const handleNext = async () => {
     if (currentStep === 0) {
       await trigger();
@@ -185,7 +186,9 @@ export default function EmployerNewJobPage() {
       const hasCategory = !!currentValues.categoryId;
       const hasLocation =
         currentValues.remote ||
-        (!!currentValues.location && currentValues.location.trim() !== '');
+        (!!currentValues.location &&
+          (currentValues.location as { formattedAddress?: string })
+            .formattedAddress !== undefined);
 
       // Validate salary range
       const salaryRangeValid = isSalaryRangeValid(

@@ -1,63 +1,52 @@
-import { authClient } from '../lib/auth-client';
+import { useAuth } from './useAuth';
+import type { SessionUser } from '@/types/auth';
 
-export type User = {
-  id: string;
-  email: string;
-  emailVerified: boolean;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  avatarUrl?: string;
-  role?: 'candidate' | 'employer' | 'admin';
-};
+export type User = SessionUser;
 
+/**
+ * @deprecated Use `useAuth().user` from `./useAuth` instead. This hook is a
+ * thin shim kept for backward compatibility while the rest of the app
+ * migrates.
+ */
 export function useUser() {
-  const session = authClient.useSession();
-
+  const { user, session, isPending, isAuthenticated, refetch } = useAuth();
   return {
-    ...session,
-    data: session.data?.user as User | null | undefined,
-    session: session.data ?? null,
+    data: user,
+    session,
+    isPending,
+    isAuthenticated,
+    refetch,
   };
 }
 
-/**
- * Helper to safely extract a greeting name from the user object.
- * Uses firstName first, then name, then email prefix.
- */
 export function getGreetingName(user: User | null | undefined): string {
-  if (!user) return '';
-
-  // Prefer firstName, then name, then email username.
+  if (!user) {
+    return '';
+  }
   const nameToSplit =
     user.firstName || user.name || user.email?.split('@')[0] || '';
-
   if (nameToSplit) {
     return nameToSplit.trim().split(/\s+/)[0] || '';
   }
-
   return '';
 }
 
-/**
- * Helper to get full display name from user object.
- */
 export function getFullName(user: User | null | undefined): string {
-  if (!user) return '';
-
-  // Try full name first
-  if (user.name?.trim()) return user.name.trim();
-
-  // Try firstName + lastName
+  if (!user) {
+    return '';
+  }
+  if (user.name?.trim()) {
+    return user.name.trim();
+  }
   const fullName = [user.firstName, user.lastName]
     .filter(Boolean)
     .join(' ')
     .trim();
-  if (fullName) return fullName;
-
-  // Try firstName only
-  if (user.firstName?.trim()) return user.firstName.trim();
-
-  // Fallback to email prefix
+  if (fullName) {
+    return fullName;
+  }
+  if (user.firstName?.trim()) {
+    return user.firstName.trim();
+  }
   return user.email?.split('@')[0] || '';
 }

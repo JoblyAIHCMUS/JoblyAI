@@ -2,7 +2,9 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import { authClient } from '../lib/auth-client';
 import { API_BASE_URL } from '../lib/api-base';
-import { queryClient } from '../lib/query-client';
+import { getSession, invalidateSession, clearLocalSession } from '../lib/auth';
+import { getDashboardPath } from '@/utils/auth-route';
+import type { UserRole } from '@/app/constants/role';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +15,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const cookies = authClient.getCookie();
+  const client = authClient as unknown as { getCookie?: () => string };
+  const cookies = client.getCookie?.() ?? '';
 
   if (cookies) {
     config.headers = config.headers ?? {};
@@ -28,42 +31,80 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
-// On any 401 from a non-auth endpoint, the session is no longer valid.
-// Clear local state and redirect to login so the app stops firing requests.
-let handling401 = false;
+/**
+ * 401 vs 403 contract (kept in sync with apps/web/src/lib/api.ts and
+ * apps/web/src/proxy.ts):
+ *   401 = session is gone. Sign out, clear cached profile queries, redirect
+ *         to "/".
+ *   403 = session is still valid, but the role doesn't match the resource.
+ *         Re-route to the user's role-specific dashboard, keep the session.
+ *         DO NOT sign the user out — the cookie is good; only the screen is
+ *         wrong.
+ * In both cases, dismiss the navigation stack down to root + replace so the
+ * screen that fired the request is unmounted instead of continuing to refire
+ * with the now-stale/role-mismatched cookie.
+ */
+let handlingAuthError = false;
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (
-      axios.isAxiosError(error) &&
-      error.response?.status === 401 &&
-      !handling401 &&
-      !error.config?.url?.includes('/auth/')
+      !axios.isAxiosError(error) ||
+      handlingAuthError ||
+      error.config?.url?.includes('/auth/')
     ) {
-      handling401 = true;
-      try {
-        // Best-effort sign out. May itself 401; that's fine.
+      return Promise.reject(error);
+    }
+
+    const status = error.response?.status;
+    if (status !== 401 && status !== 403) {
+      return Promise.reject(error);
+    }
+
+    handlingAuthError = true;
+    try {
+      if (status === 401) {
+        // Session is gone server-side. Best-effort sign out — local state
+        // must be cleared even if the server's /sign-out is unreachable.
         try {
-          await authClient.signOut();
+          await invalidateSession();
         } catch {
-          /* ignore */
+          /* signOut is best-effort */
         }
-        // Clear cached auth/profile queries so the app re-evaluates as logged out.
-        queryClient.removeQueries({ queryKey: ['user'] });
-        queryClient.removeQueries({ queryKey: ['employer-profile'] });
-        queryClient.removeQueries({ queryKey: ['candidate-profile'] });
-        // Send the user to the root, which the SessionResumeGate will
-        // route to /pages/login if no session is present.
-        router.dismissTo('/');
-      } finally {
-        // Reset the flag after a short delay so a real 401 after redirect
-        // (e.g. on a fresh login attempt) can still be handled.
-        setTimeout(() => {
-          handling401 = false;
-        }, 2000);
+        router.dismissAll();
+        router.replace('/');
+      } else {
+        // 403 — the cookie is still good; we just hit a screen that the
+        // current role isn't allowed on. Read the cached session (Better
+        // Auth keeps this in SecureStore on native, so this is a sync read
+        // and won't fail just because we're offline) and bounce to the
+        // role's dashboard.
+        let nextPath = '/';
+        try {
+          const session = await getSession();
+          const role = (session?.user as { role?: UserRole } | undefined)
+            ?.role;
+          nextPath = getDashboardPath(role) ?? '/';
+        } catch {
+          // If we can't read the session for any reason, fall back to "/".
+          // We deliberately do NOT sign out here — the user is still
+          // authenticated, just on the wrong screen.
+          nextPath = '/';
+        }
+        router.dismissAll();
+        router.replace(nextPath);
       }
+    } finally {
+      // Reset the latch after a short cooldown so a real 401/403 after the
+      // redirect (e.g. a fresh login attempt that returns 401) can still be
+      // handled.
+      setTimeout(() => {
+        handlingAuthError = false;
+      }, 2000);
     }
     return Promise.reject(error);
   }
 );
+
+export { clearLocalSession };

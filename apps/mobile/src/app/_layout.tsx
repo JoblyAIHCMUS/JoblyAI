@@ -1,5 +1,10 @@
 import { PortalHost } from '@rn-primitives/portal';
-import { Stack, usePathname, useRouter } from 'expo-router';
+import {
+  Stack,
+  usePathname,
+  useRootNavigationState,
+  useRouter,
+} from 'expo-router';
 import Toast from 'react-native-toast-message';
 import {
   DarkTheme,
@@ -9,20 +14,13 @@ import {
 } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { colorScheme } from 'nativewind';
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import { NAV_THEME } from '../lib/theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
-import { authClient } from '../lib/auth-client';
+import { useAuth } from '../hooks/useAuth';
 import { NotificationManager } from '../components/NotificationManager';
 import { canAccessRoute } from '@/utils/role-guard';
 import { getDashboardPath } from '@/utils/auth-route';
@@ -38,126 +36,126 @@ const GUEST_ONLY_ROUTES = new Set([
 const PUBLIC_ROUTES = new Set(['/pages/find-jobs', '/pages/browse-companies']);
 
 const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
-type SessionWithRole = {
-  user?: {
-    role?: string;
-  };
-};
 
 function SessionResumeGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isCheckingSessionRef = useRef(false);
-  const [isReady, setIsReady] = useState(false);
+  const rootNavigationState = useRootNavigationState();
   const isGuestOnly = GUEST_ONLY_ROUTES.has(pathname);
 
   const isPublic =
     PUBLIC_ROUTES.has(pathname) ||
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-  const tryResumeSession = useCallback(async () => {
-    if (isCheckingSessionRef.current) {
+  // Single source of truth for the session, role, and refetch.
+  const { session, isPending, refetch, role } = useAuth();
+  const isAuthenticated = Boolean(session);
+
+  // Single source of truth for routing based on the current session.
+  // Re-runs whenever the session, the pathname, or the route class changes,
+  // so role downgrades, logouts, and login-as-different-role all get caught
+  // without needing a full app restart.
+  //
+  // The Stack navigator is always rendered below (we never block the
+  // children with an early-return spinner). Because imperative navigation can
+  // still run before the navigator container is fully ready, we guard on the
+  // root navigation state and retry with a short backoff.
+  useEffect(() => {
+    // Wait until the root navigator is actually mounted. Expo Router's
+    // useRouter actions throw if the navigation container isn't ready yet.
+    const navigatorReady =
+      !!rootNavigationState?.key &&
+      Array.isArray(rootNavigationState.routes) &&
+      rootNavigationState.routes.length > 0;
+    if (isPending || !navigatorReady) {
       return;
     }
 
-    isCheckingSessionRef.current = true;
-
-    try {
-      const { data: session, error } = await authClient.getSession();
-
-      if (error) {
-        return;
-      }
-      // 1. Guest vào private
-      if (!session && !isPublic && !isGuestOnly) {
-        router.replace('/pages/login');
-        return;
-      }
-
-      const role = (session as SessionWithRole | null | undefined)?.user?.role;
-
-      // 2. Đã login nhưng vào login/register
-      if (session && isGuestOnly) {
-        const nextPath = getDashboardPath(role);
-
-        if (nextPath && nextPath !== pathname) {
-          router.replace(nextPath);
+    const performNavigation = (attempt: number) => {
+      try {
+        // 1. Guest and private -> bounce to login
+        if (!isAuthenticated && !isPublic && !isGuestOnly) {
+          router.replace('/pages/login');
+          return;
         }
 
-        return;
-      }
-
-      // 3. Public page -> ai cũng được ở lại
-      if (isPublic) {
-        return;
-      }
-
-      // 4. Private page -> kiểm tra quyền
-      const authorized = canAccessRoute(pathname, role);
-
-      if (!authorized) {
-        const nextPath = getDashboardPath(role);
-        if (nextPath && nextPath !== pathname) {
-          router.replace(nextPath);
+        // 2. Logged in but on login/register -> go to the right dashboard
+        if (isAuthenticated && isGuestOnly) {
+          const nextPath = getDashboardPath(role);
+          if (nextPath && nextPath !== pathname) {
+            router.replace(nextPath);
+          }
+          return;
         }
 
-        return;
+        // 3. Public page -> anyone can stay
+        if (isPublic) {
+          return;
+        }
+
+        // 4. Private page -> role check
+        const authorized = canAccessRoute(pathname, role ?? undefined);
+        if (!authorized) {
+          const nextPath = getDashboardPath(role);
+          if (nextPath && nextPath !== pathname) {
+            router.replace(nextPath);
+          }
+        }
+      } catch {
+        if (attempt < 5) {
+          scheduleNavigation(attempt + 1);
+        }
       }
-    } finally {
-      isCheckingSessionRef.current = false;
-      setIsReady(true);
-    }
-  }, [isPublic, isGuestOnly, pathname, router]);
+    };
 
-  useEffect(() => {
-    void tryResumeSession();
-  }, [tryResumeSession]);
+    const scheduleNavigation = (attempt: number) => {
+      return setTimeout(() => performNavigation(attempt), attempt * 50);
+    };
 
+    const timer = scheduleNavigation(0);
+    return () => clearTimeout(timer);
+  }, [
+    isAuthenticated,
+    isPending,
+    isPublic,
+    isGuestOnly,
+    pathname,
+    role,
+    router,
+    rootNavigationState,
+  ]);
+
+  // Re-validate when the app comes back to the foreground. The session may
+  // have been revoked server-side while the app was backgrounded.
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
-        void tryResumeSession();
+        void refetch();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [tryResumeSession]);
+  }, [refetch]);
 
-  // One-time purge: the user-role cookie was removed in PR #268, but devices
-  // that signed in before that refactor still carry a stale copy inside the
-  // Better Auth cookie blob (key "jobly_cookie" in SecureStore). Strip it so
-  // it stops being appended to every request header.
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const raw = await SecureStore.getItemAsync('jobly_cookie');
-        if (!raw || cancelled) return;
-        const parsed = JSON.parse(raw) as Record<string, unknown>;
-        if (!parsed || typeof parsed !== 'object') return;
-        if (!('user-role' in parsed)) return;
-        delete parsed['user-role'];
-        await SecureStore.setItemAsync('jobly_cookie', JSON.stringify(parsed));
-      } catch {
-        /* best-effort; leave cookie blob untouched on any failure */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (!isReady) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color="#4f46e5" />
-      </View>
-    );
-  }
-
-  return children;
+  // Always render children so the Stack navigator is mounted on the first
+  // render. While the session is being resolved, overlay a spinner that
+  // blocks stray taps so the user doesn't interact with content before we
+  // know whether to redirect them.
+  return (
+    <>
+      {children}
+      {isPending && (
+        <View
+          pointerEvents="auto"
+          className="absolute inset-0 z-50 items-center justify-center bg-background"
+        >
+          <ActivityIndicator size="large" color="#4f46e5" />
+        </View>
+      )}
+    </>
+  );
 }
 
 export default function AppLayout() {

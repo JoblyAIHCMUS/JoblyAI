@@ -12,6 +12,7 @@ import {
   AuthDivider,
 } from '../../../components/shared/GoogleAuthButton';
 import { useLogin } from '../../../../hooks/useAuth';
+import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
 
@@ -35,8 +36,8 @@ const LoginPage = () => {
         throw error;
       }
 
-      const { data: session } = await authClient.getSession();
-      const role = (session?.user as { role?: string } | undefined)?.role;
+      const session = await getSession();
+      const role = session?.user?.role;
 
       if (role === 'employer') {
         router.replace('/pages/employer/dashboard');
