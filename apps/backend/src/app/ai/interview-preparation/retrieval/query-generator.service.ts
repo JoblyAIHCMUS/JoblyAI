@@ -1,35 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { InterviewContext } from '../application/interview-context.model.js';
 
+/** Maximum number of search queries to generate */
+const MAX_QUERIES = 6;
+
 @Injectable()
 export class QueryGeneratorService {
   generateSearchQueries(context: InterviewContext): string[] {
     const companyName = this.clean(context.company);
     const roleName = this.clean(context.role);
-    const keywords = this.unique(
-      [...context.keywords, ...context.skills].map((value) => this.clean(value))
-    );
+
+    // Only use short, specific competency names — never full JD text
+    const competencies = context.mustHaveCompetencies
+      .slice(0, 5)
+      .map((c) => this.clean(c));
 
     const queries = [
+      // Core queries: company + role
       this.combineParts(companyName, roleName, 'interview questions'),
       this.combineParts(companyName, roleName, 'interview experience'),
-      this.combineParts(roleName, 'interview questions'),
-      this.combineParts(roleName, 'interview experience'),
-      ...keywords.flatMap((keyword) => [
-        this.combineParts(companyName, keyword, 'interview questions'),
-        this.combineParts(companyName, keyword, 'interview experience'),
-        this.combineParts(roleName, keyword, 'interview questions'),
-        this.combineParts(roleName, keyword, 'interview experience'),
-        this.combineParts(keyword, 'interview questions'),
-        this.combineParts(keyword, 'interview experience'),
-      ]),
+      this.combineParts(roleName, 'common interview questions'),
+      // Competency-specific queries (top 3 only)
+      ...competencies.slice(0, 3).map((c) =>
+        this.combineParts(roleName, c, 'interview questions')
+      ),
     ];
 
     return this.unique(
-      queries.filter((query): query is string =>
-        Boolean(query && query.length > 0)
+      queries.filter(
+        (query): query is string => Boolean(query && query.length > 0)
       )
-    );
+    ).slice(0, MAX_QUERIES);
   }
 
   private clean(value?: string | null): string {

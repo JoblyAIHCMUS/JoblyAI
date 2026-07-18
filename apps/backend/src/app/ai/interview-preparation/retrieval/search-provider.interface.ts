@@ -1,10 +1,9 @@
 import { InterviewQuestion } from '../dto/interview-question.model.js';
+import { InterviewContext } from '../application/interview-context.model.js';
 
 export interface SearchProvider {
   searchAndExtract(
-    companyName: string | null,
-    jobTitle: string,
-    jobDescription: string,
+    context: InterviewContext,
     queries: string[]
   ): Promise<InterviewQuestion[]>;
 }
