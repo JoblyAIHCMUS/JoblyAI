@@ -1,5 +1,6 @@
 {
   "expo": {
+    "owner": "joblyai-vn",
     "name": "JoblyAI Mobile",
     "slug": "jobly-mobile",
     "version": "1.0.0",
@@ -52,7 +53,6 @@
     "extra": {
       "router": {},
       "eas": {
-        "owner": "joblyai-vn",
         "projectId": "4626adf7-30c9-41b0-9c84-affebf310094"
       }
     }
