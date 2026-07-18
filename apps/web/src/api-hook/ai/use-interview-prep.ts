@@ -32,7 +32,7 @@ export const useInterviewPrep = (jobId: number) => {
         setLoading(false);
       } else {
         toast.info(
-          'AI is generating your interview questions. This process may take up to 40 seconds...'
+          "AI is generating your interview questions. This process takes 30-60s. You can close the window; we'll notify you when it's done."
         );
       }
     } catch (error: any) {
@@ -49,7 +49,7 @@ export const useInterviewPrep = (jobId: number) => {
       const prep = await interviewPrepService.regeneratePrep(jobId);
       setData(prep);
       toast.info(
-        'AI is regenerating your interview questions. This process may take up to 40 seconds...'
+        "AI is regenerating your interview questions. This process takes 30-60s. You can close the window; we'll notify you when it's done."
       );
     } catch (error: any) {
       toast.error(

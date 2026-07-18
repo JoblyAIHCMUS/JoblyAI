@@ -506,8 +506,8 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   Analyzing CV & JD signals...
                 </p>
                 <p className="text-xs text-muted-foreground/80">
-                  This process may take up to 40 seconds. Please do not close
-                  this window.
+                  This process takes about 30-60 seconds. You can close this
+                  modal and return later; we will notify you when it's ready.
                 </p>
               </div>
             </div>
@@ -524,8 +524,8 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   We will analyze your CV against the JD to find critical gaps,
-                  strengths, and web resources to prepare up to 9 targeted
-                  questions (Easy, Medium, Hard).
+                  strengths, and web resources to prepare targeted questions
+                  (Easy, Medium, Hard).
                 </p>
               </div>
               <Button
@@ -534,13 +534,19 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   loading || data?.status === InterviewPrepStatus.PENDING
                 }
                 size="lg"
-                className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg"
+                className="w-full max-w-[280px] gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {data?.status === InterviewPrepStatus.PENDING
-                  ? 'Generating...'
+                {data?.status === InterviewPrepStatus.PENDING || loading
+                  ? 'Generating (30-60s)...'
                   : 'Generate My Kit'}
               </Button>
+              {(data?.status === InterviewPrepStatus.PENDING || loading) && (
+                <p className="text-xs text-muted-foreground animate-pulse max-w-[280px]">
+                  Takes 30-60s. You can safely close this modal; we will notify
+                  you once it's ready.
+                </p>
+              )}
             </div>
           ) : data.status === InterviewPrepStatus.FAILED ? (
             <div className="flex flex-col items-center justify-center h-64 space-y-4 text-center">
