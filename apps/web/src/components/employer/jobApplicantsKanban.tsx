@@ -43,7 +43,7 @@ const HIRING_STAGE_COLUMNS: {
     borderColor: 'border-t-amber-500',
   },
   {
-    stage: 'Offer',
+    stage: 'Offered',
     circleColor: 'green',
     borderColor: 'border-t-green-500',
   },
@@ -105,6 +105,12 @@ export default function JobApplicantsKanban({
 
     // If dropping on the same stage, no confirmation needed
     if (applicant?.hiringStage === stage) {
+      return;
+    }
+
+    // Do not allow dragging an applicant whose application is Withdrawn,
+    // and do not allow manually dragging an applicant into the Withdrawn stage.
+    if (applicant?.hiringStage === 'Withdrawn' || stage === 'Withdrawn') {
       return;
     }
 

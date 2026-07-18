@@ -14,12 +14,13 @@ export function useDashboardInsights({
   statusMeta,
 }: DashboardInsightsParams): DashboardInsightsResult {
   const statusChartColors: Record<ApplicationStatus, string> = {
-    applied: '#7c8493',
+    applied: '#2563eb',
     viewed: '#1fb5e9',
     interviewing: '#4640de',
     offered: '#00a36c',
     rejected: '#ff6550',
-    closed: '#7c8493',
+    withdrawn: '#6b7280',
+    closed: '#9ca3af',
     'pre-shortlist-pending': '#d97706',
     'pre-shortlist-submitted': '#6366f1',
   };
@@ -216,6 +217,7 @@ export function useDashboardInsights({
       'interviewing',
       'offered',
       'rejected',
+      'withdrawn',
     ];
 
     const total = filteredApplications.length;

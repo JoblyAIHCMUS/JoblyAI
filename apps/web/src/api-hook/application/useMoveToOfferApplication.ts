@@ -32,7 +32,7 @@ export function useMoveToOfferApplication() {
       if (previousSingle) {
         queryClient.setQueryData<ApplicantDetail>(SINGLE_KEY(id), {
           ...previousSingle,
-          hiringStage: 'Offer',
+          hiringStage: 'Offered',
         });
       }
 

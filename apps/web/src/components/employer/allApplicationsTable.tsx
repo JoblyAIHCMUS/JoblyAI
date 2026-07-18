@@ -253,7 +253,12 @@ export const columns: ColumnDef<AllApplication>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"
-              disabled={isLoading}
+              disabled={
+                isLoading ||
+                application.hiringStage === 'Rejected' ||
+                application.hiringStage === 'Withdrawn' ||
+                application.hiringStage === 'Offered'
+              }
               onClick={() => meta.declineApplicant?.(application.id)}
             >
               <XCircle className="mr-2 h-4 w-4" />
