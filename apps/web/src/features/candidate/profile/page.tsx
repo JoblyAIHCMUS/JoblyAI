@@ -39,6 +39,7 @@ import {
 } from '@/api-hook/candidate';
 import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
 import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
+import { useUpdateSkill } from '@/api-hook/candidate/useUpdateSkill';
 import {
   mapUIToApiCreateExperience,
   mapUIToApiUpdateExperience,
@@ -857,11 +858,15 @@ const CandidateProfilePage = () => {
   };
 
   const { createSkillRecord } = useCreateSkill();
-  const handleAddSkill = async (skill: string) => {
-    const normalizedSkill = skill.trim().toLowerCase();
+  const handleAddSkill = async (data: {
+    title: string;
+    level?: string;
+    years?: number;
+  }) => {
+    const normalizedTitle = data.title.trim().toLowerCase();
     const alreadyExists = profile?.skills?.some(
       (existingSkill) =>
-        existingSkill.title.trim().toLowerCase() === normalizedSkill
+        existingSkill.title.trim().toLowerCase() === normalizedTitle
     );
 
     if (alreadyExists) {
@@ -871,13 +876,39 @@ const CandidateProfilePage = () => {
     }
 
     try {
-      const createdSkill = await createSkillRecord(skill);
+      const createdSkill = await createSkillRecord(data);
       setProfile((prev) => {
         if (!prev) return prev;
         return { ...prev, skills: [...(prev.skills || []), createdSkill] };
       });
     } catch (error) {
       const errorMessage = formatErrorForDisplay(error, 'Failed to add skill');
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const { updateSkillRecord } = useUpdateSkill();
+  const handleUpdateSkill = async (
+    id: number,
+    data: { level?: string; years?: number }
+  ) => {
+    try {
+      const updatedSkill = await updateSkillRecord(id, data);
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          skills: prev.skills?.map((s) =>
+            s.id === id ? { ...s, ...updatedSkill } : s
+          ),
+        };
+      });
+    } catch (error) {
+      const errorMessage = formatErrorForDisplay(
+        error,
+        'Failed to update skill'
+      );
       toast.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -1061,6 +1092,7 @@ const CandidateProfilePage = () => {
         <Skills
           skills={candidate.skills}
           handleAddSkill={handleAddSkill}
+          handleUpdateSkill={handleUpdateSkill}
           handleDeleteSkill={handleDeleteSkill}
         />
       </div>
