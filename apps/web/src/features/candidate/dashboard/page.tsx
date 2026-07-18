@@ -52,8 +52,11 @@ export default function CandidateDashboardPage() {
     reloadApplications,
   } = useCandidateDashboard();
 
-  const { withdrawApplication, loading: isWithdrawing } = useWithdrawApplication();
-  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(null);
+  const { withdrawApplication, loading: isWithdrawing } =
+    useWithdrawApplication();
+  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(
+    null
+  );
 
   const recentApplications = useMemo(
     () => filteredApplications.slice(0, 10),
@@ -96,10 +99,7 @@ export default function CandidateDashboardPage() {
     }
   };
 
-  const handleMoreActionSelect = (
-    option: string,
-    item: ApplicationItem
-  ) => {
+  const handleMoreActionSelect = (option: string, item: ApplicationItem) => {
     if (option === 'Withdraw application') {
       setWithdrawTarget(item);
     }
