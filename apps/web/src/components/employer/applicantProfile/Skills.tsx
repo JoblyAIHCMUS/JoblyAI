@@ -28,8 +28,23 @@ export default function Skills({ skills }: { skills?: CandidateSkill[] }) {
             className="px-2 sm:px-[var(--space-xs)] py-1 sm:py-[var(--space-xs2)] bg-[var(--bg-accent-primary)] rounded text-[var(--text-accent-primary)] label-label-1-semi-bold break-words text-xs sm:text-sm"
           >
             {skill.title}
-            {skill.level && (
-              <span className="text-xs opacity-75"> ({skill.level})</span>
+            {(skill.level ||
+              (skill.years !== undefined && skill.years !== null)) && (
+              <span className="text-xs opacity-75">
+                {' '}
+                (
+                {[
+                  skill.level
+                    ? skill.level.charAt(0) + skill.level.slice(1).toLowerCase()
+                    : null,
+                  skill.years !== undefined && skill.years !== null
+                    ? `${skill.years}y`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+                )
+              </span>
             )}
           </span>
         ))}

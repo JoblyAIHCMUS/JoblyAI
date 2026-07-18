@@ -1,25 +1,25 @@
 import { useState } from 'react';
-import { createSkill } from '@/api-client/candidate/skill';
+import { updateSkill } from '@/api-client/candidate/skill';
 import type { CandidateSkill } from '@/api-client/candidate/types';
-interface UseCreateSkillOptions {
+
+interface UseUpdateSkillOptions {
   onSuccess?: (data: CandidateSkill) => void;
   onError?: (error: unknown) => void;
 }
 
-export function useCreateSkill(options?: UseCreateSkillOptions) {
+export function useUpdateSkill(options?: UseUpdateSkillOptions) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null as unknown);
   const [data, setData] = useState<CandidateSkill | null>(null);
 
-  const createSkillRecord = async (data: {
-    title: string;
-    level?: string;
-    years?: number;
-  }) => {
+  const updateSkillRecord = async (
+    id: number,
+    data: { level?: string; years?: number }
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await createSkill(data);
+      const result = await updateSkill(id, data);
       setData(result);
       options?.onSuccess?.(result);
       return result;
@@ -32,5 +32,5 @@ export function useCreateSkill(options?: UseCreateSkillOptions) {
     }
   };
 
-  return { createSkillRecord, loading, error, data };
+  return { updateSkillRecord, loading, error, data };
 }

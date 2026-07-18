@@ -3,10 +3,30 @@ import type { CandidateSkill } from '@/api-client/candidate/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export async function createSkill(skill: string): Promise<CandidateSkill> {
+export async function createSkill(data: {
+  title: string;
+  level?: string;
+  years?: number;
+}): Promise<CandidateSkill> {
   const response = await axios.post<CandidateSkill>(
     `${API_BASE_URL}/api/candidate/me/skills`,
-    { title: skill },
+    data,
+    {
+      withCredentials: true,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+
+  return response.data;
+}
+
+export async function updateSkill(
+  id: number,
+  data: { level?: string; years?: number }
+): Promise<CandidateSkill> {
+  const response = await axios.patch<CandidateSkill>(
+    `${API_BASE_URL}/api/candidate/me/skills`,
+    { id, ...data },
     {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json' },
