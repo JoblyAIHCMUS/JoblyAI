@@ -27,6 +27,8 @@ const ForgotPasswordPage = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -41,6 +43,9 @@ const ForgotPasswordPage = () => {
       Alert.alert('Error', 'Please enter your email address');
       return;
     }
+
+    setOtpLoading(true);
+    setOtpError(null);
 
     try {
       const { error } = await authClient.emailOtp.requestPasswordReset({
@@ -58,11 +63,13 @@ const ForgotPasswordPage = () => {
         'Success',
         'Verification code sent to your email. Check your inbox.'
       );
-    } catch {
-      Alert.alert(
-        'Error',
-        otpError?.message || 'Failed to send verification code'
-      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to send verification code';
+      setOtpError(err instanceof Error ? err : new Error(message));
+      Alert.alert('Error', message);
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -98,7 +105,7 @@ const ForgotPasswordPage = () => {
         'Success',
         'Password reset successful! Redirecting to login...'
       );
-      router.push('/pages/(auth)/login');
+      router.replace('/pages/(auth)/login');
     } catch {
       Alert.alert(
         'Error',

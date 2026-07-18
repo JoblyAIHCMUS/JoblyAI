@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { Building2, CalendarDays, MapPin, X } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Building2, CalendarDays, ClipboardList, Eye, MapPin, X } from 'lucide-react-native';
 
 import { Text } from '../../../../../components/ui/text';
 import { StatusBadge } from './StatusBadge';
@@ -40,6 +41,9 @@ export function ApplicationCard({
 }: ApplicationCardProps) {
   const colors = getLogoColors(application.company);
   const canWithdraw = WITHDRAWABLE_STATUSES.has(application.status);
+  const needsPreShortlist = application.status === 'PRE_SHORTLIST_PENDING';
+  const hasSubmittedPreShortlist =
+    application.status === 'PRE_SHORTLIST_SUBMITTED';
   const [withdrawing, setWithdrawing] = useState(false);
 
   async function handleWithdraw() {
@@ -69,6 +73,12 @@ export function ApplicationCard({
       ]
     );
   }
+
+  const openPreShortlist = () => {
+    router.push(
+      `/pages/candidate/pre-shortlist/${application.id}` as never
+    );
+  };
 
   return (
     <View className="rounded-2xl border border-app-border-light bg-white px-4 py-4 shadow-sm shadow-black/5">
@@ -126,18 +136,44 @@ export function ApplicationCard({
         <StatusBadge status={application.status} />
       </View>
 
-      {canWithdraw && (
-        <View className="mt-3 border-t border-app-border-light pt-3">
-          <Pressable
-            onPress={handleWithdraw}
-            disabled={withdrawing}
-            className="flex-row items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5"
-          >
-            <X size={14} color="#DC2626" strokeWidth={2.5} />
-            <Text className="text-xs font-semibold text-red-600">
-              {withdrawing ? 'Withdrawing...' : 'Withdraw Application'}
-            </Text>
-          </Pressable>
+      {(needsPreShortlist || hasSubmittedPreShortlist || canWithdraw) && (
+        <View className="mt-3 gap-2 border-t border-app-border-light pt-3">
+          {needsPreShortlist && (
+            <Pressable
+              onPress={openPreShortlist}
+              className="flex-row items-center justify-center gap-1.5 rounded-xl bg-app-primary-2 px-4 py-2.5"
+            >
+              <ClipboardList size={14} color="#FFFFFF" strokeWidth={2.4} />
+              <Text className="text-xs font-semibold text-white">
+                Answer pre-shortlist questions
+              </Text>
+            </Pressable>
+          )}
+
+          {hasSubmittedPreShortlist && (
+            <Pressable
+              onPress={openPreShortlist}
+              className="flex-row items-center justify-center gap-1.5 rounded-xl border border-app-border-light bg-app-background-2 px-4 py-2.5"
+            >
+              <Eye size={14} color="#4640DE" strokeWidth={2.4} />
+              <Text className="text-xs font-semibold text-app-indigo-strong">
+                View your answers
+              </Text>
+            </Pressable>
+          )}
+
+          {canWithdraw && (
+            <Pressable
+              onPress={handleWithdraw}
+              disabled={withdrawing}
+              className="flex-row items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5"
+            >
+              <X size={14} color="#DC2626" strokeWidth={2.5} />
+              <Text className="text-xs font-semibold text-red-600">
+                {withdrawing ? 'Withdrawing...' : 'Withdraw Application'}
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
     </View>

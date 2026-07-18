@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { Menu } from 'lucide-react-native';
 import {
   SafeAreaView,
@@ -17,6 +17,8 @@ import {
 } from 'react-native-safe-area-context';
 
 import { useListJobs, useCategories, useSkillsFilter } from '@/hooks';
+import { useUser } from '@/hooks/useUser';
+import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
 import { COLORS } from '@/app/constants/theme';
 import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
@@ -27,6 +29,14 @@ import AppSidebar from '@/app/components/AppSidebar';
 
 const PAGE_SIZE = 10;
 const SALARY_MAX_CAP = 500000;
+
+const ACTIVE_APPLICATION_STATUSES = [
+  'APPLIED',
+  'PRE_SHORTLIST_PENDING',
+  'PRE_SHORTLIST_SUBMITTED',
+  'INTERVIEW',
+  'OFFER',
+] as const;
 
 function FindJobsPage() {
   const insets = useSafeAreaInsets();
@@ -61,6 +71,51 @@ function FindJobsPage() {
 
   // Fetch skills
   const { fetchSkills } = useSkillsFilter();
+
+  // Set of job IDs the candidate has an active application for. Drives the
+  // "Applied" disabled state on each JobCard. Mirrors the web's
+  // apps/web/src/features/find-jobs/page.tsx::appliedJobIds.
+  const { data: user } = useUser();
+  const { fetchApplications } = useListCandidateApplications();
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(
+    () => new Set()
+  );
+
+  // Re-fetch on every focus (initial mount + returning from the detail page
+  // after applying). This gives the snappy "the card flipped to Applied
+  // without a manual refresh" UX without needing a callback plumbed back
+  // from the detail page's apply modal.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      const loadApplications = async () => {
+        if (!user || user.role !== 'candidate') {
+          if (active) setAppliedJobIds(new Set());
+          return;
+        }
+        try {
+          const res = await fetchApplications({ page: 1, pageSize: 100 });
+          if (!active) return;
+          const appliedIds = new Set<number>(
+            (res.applications || [])
+              .filter((a) =>
+                (ACTIVE_APPLICATION_STATUSES as readonly string[]).includes(
+                  a.status
+                )
+              )
+              .map((a) => a.jobId)
+          );
+          setAppliedJobIds(appliedIds);
+        } catch {
+          // ignore errors — public browsing shows "Apply" for everything
+        }
+      };
+      void loadApplications();
+      return () => {
+        active = false;
+      };
+    }, [user, fetchApplications])
+  );
 
   useEffect(() => {
     fetchSkills(localSearchTerm);
@@ -261,7 +316,10 @@ function FindJobsPage() {
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => (
                 <View className="px-4">
-                  <JobCard job={item} />
+                  <JobCard
+                    job={item}
+                    hasApplied={appliedJobIds.has(item.id)}
+                  />
                 </View>
               )}
               contentContainerStyle={{

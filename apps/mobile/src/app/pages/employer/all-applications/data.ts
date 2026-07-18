@@ -12,6 +12,8 @@ import { JobCategory, EmploymentType } from '../../../../types/job';
 export function mapStatusToHiringStage(status: ApplicationStatus): HiringStage {
   const statusMap: Record<ApplicationStatus, HiringStage> = {
     APPLIED: 'Applied',
+    PRE_SHORTLIST_PENDING: 'Applied',
+    PRE_SHORTLIST_SUBMITTED: 'Applied',
     INTERVIEW: 'Interview',
     OFFER: 'Offer',
     REJECTED: 'Rejected',

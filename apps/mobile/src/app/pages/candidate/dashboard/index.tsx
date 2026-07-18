@@ -38,6 +38,16 @@ const STATUS_META: Record<
     color: '#7c8493',
     dotColor: '#7c8493',
   },
+  PRE_SHORTLIST_PENDING: {
+    label: 'Pre-Shortlist',
+    color: '#9ca3af',
+    dotColor: '#9ca3af',
+  },
+  PRE_SHORTLIST_SUBMITTED: {
+    label: 'Shortlist Submitted',
+    color: '#9ca3af',
+    dotColor: '#9ca3af',
+  },
   INTERVIEW: {
     label: 'Interview',
     color: '#4640de',
@@ -210,6 +220,8 @@ function StatusChartsSection({
       },
       {
         APPLIED: 0,
+        PRE_SHORTLIST_PENDING: 0,
+        PRE_SHORTLIST_SUBMITTED: 0,
         INTERVIEW: 0,
         OFFER: 0,
         REJECTED: 0,

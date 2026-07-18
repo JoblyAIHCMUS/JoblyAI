@@ -40,7 +40,13 @@ export default function JobDetailPage() {
           const applied = result.applications.some(
             (app) =>
               app.jobId === jobId &&
-              ['APPLIED', 'INTERVIEW', 'OFFER'].includes(app.status)
+              [
+                'APPLIED',
+                'PRE_SHORTLIST_PENDING',
+                'PRE_SHORTLIST_SUBMITTED',
+                'INTERVIEW',
+                'OFFER',
+              ].includes(app.status)
           );
           setHasApplied(applied);
         }

@@ -80,13 +80,14 @@ const LoginPage = () => {
     try {
       const result = await login({ email, password, rememberMe });
 
-      // Role-based redirect
+      await authClient.getSession();
+
       if (result.user.role === 'employer') {
-        router.push('/pages/employer/dashboard');
+        router.replace('/pages/employer/dashboard');
       } else if (result.user.role === 'candidate') {
-        router.push('/pages/candidate/dashboard');
+        router.replace('/pages/candidate/dashboard');
       } else {
-        router.push('/');
+        router.replace('/');
       }
     } catch (err) {
       Toast.show({
