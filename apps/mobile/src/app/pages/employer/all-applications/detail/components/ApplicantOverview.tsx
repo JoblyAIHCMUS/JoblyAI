@@ -39,7 +39,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
   const { mutateAsync: messageCandidate, isPending: isMessaging } =
     useMessageCandidate({ employerId: employerProfile?.id });
   const [showMatchExplanation, setShowMatchExplanation] = useState(false);
-  const isCalculating = !applicant.score;
+  const isCalculating = applicant.score === null;
   const {
     image,
     name,
@@ -48,7 +48,6 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
     jobCategory,
     employmentType,
     appliedDate,
-    score,
     hiringStage,
     email,
     phone,
@@ -118,7 +117,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
             className="flex flex-row items-center gap-1.5 mt-0.5"
           >
             <BarChart3 size={14} color="#4f46e5" />
-            {isCalculating ? (
+            {applicant.score === null ? (
               <View className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
                 <Text className="text-[10px] font-bold text-amber-700">
                   AI Calculating...
@@ -126,7 +125,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
               </View>
             ) : (
               <Text className="text-sm font-semibold text-app-slate-1">
-                {score.toFixed(2)}%
+                {applicant.score.toFixed(2)}%
               </Text>
             )}
           </TouchableOpacity>

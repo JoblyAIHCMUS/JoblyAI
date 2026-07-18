@@ -82,7 +82,7 @@ export interface ApplicantDetail {
   employmentType: EmploymentType;
   appliedDate: string;
   resume: string;
-  score: number;
+  score: number | null;
   hiringStage: HiringStage;
 }
 
@@ -103,6 +103,7 @@ export function mapApiResponseToApplications(
         job?: { title?: string };
         candidate?: { name?: string | null; email?: string };
         matchPercentage?: number | null;
+        matchExplanation?: { overallScore?: number | null } | null;
       };
 
     const displayName =
@@ -118,7 +119,10 @@ export function mapApiResponseToApplications(
         enriched.candidateId ?? String(app.id)
       )}`,
       appliedDate: app.createdAt.split('T')[0],
-      score: enriched.matchPercentage ?? null,
+      score:
+        enriched.matchExplanation?.overallScore ??
+        enriched.matchPercentage ??
+        null,
       hiringStage: mapStatusToHiringStage(app.status),
       appliedRole: enriched.job?.title ?? 'Unknown role',
     };
