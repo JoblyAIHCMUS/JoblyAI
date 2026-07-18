@@ -6,7 +6,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Pdf from 'react-native-pdf';
 import { COLORS } from '../../constants/theme';
-import { createDownloadUrl } from '../../../api/s3';
+import { createDownloadUrl } from '../../../api/gcs';
 
 export default function PdfViewerPage() {
   const { fileKey, fileName } = useLocalSearchParams<{

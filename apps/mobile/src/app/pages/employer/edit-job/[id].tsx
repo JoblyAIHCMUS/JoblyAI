@@ -99,7 +99,7 @@ export default function EmployerEditJobPage() {
       title: '',
       type: 'FULL_TIME' as const,
       remote: false,
-      location: '',
+      location: null,
       categoryId: '',
       currency: 'none' as const,
       salaryMin: undefined,
@@ -143,7 +143,7 @@ export default function EmployerEditJobPage() {
       setValue('description', jobData.description);
       setValue('type', jobData.type as EmploymentType);
       setValue('remote', jobData.remote);
-      setValue('location', jobData.location || '');
+      setValue('location', null);
       setValue('categoryId', jobData.category.id.toString());
       setValue(
         'currency',
@@ -185,7 +185,9 @@ export default function EmployerEditJobPage() {
       const hasCategory = !!currentValues.categoryId;
       const hasLocation =
         currentValues.remote ||
-        (!!currentValues.location && currentValues.location.trim() !== '');
+        (!!currentValues.location &&
+          (currentValues.location as { formattedAddress?: string })
+            .formattedAddress !== undefined);
 
       const noErrorsInBasic =
         !errors.title &&
@@ -220,7 +222,9 @@ export default function EmployerEditJobPage() {
       const hasCategory = !!currentValues.categoryId;
       const hasLocation =
         currentValues.remote ||
-        (!!currentValues.location && currentValues.location.trim() !== '');
+        (!!currentValues.location &&
+          (currentValues.location as { formattedAddress?: string })
+            .formattedAddress !== undefined);
 
       // Validate salary range
       const salaryRangeValid = isSalaryRangeValid(

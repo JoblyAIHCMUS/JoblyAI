@@ -53,7 +53,7 @@ type PreferenceItem = {
 export type SettingsAccount = {
   name: string;
   email: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   caption: string;
 };
 

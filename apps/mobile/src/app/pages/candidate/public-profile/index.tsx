@@ -24,7 +24,6 @@ import EditEducationModal from './components/EditEducationModal';
 import EditCertificateModal from './components/EditCertificateModal';
 import EditSkillModal from './components/EditSkillModal';
 import { CV } from './components/CV';
-import { AiFeedbackModal } from './components/AiFeedbackModal';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
 import EditSocialModal from './components/EditSocialModal';
@@ -33,14 +32,13 @@ import { useUpdateProfile } from '../../../../hooks/useUpdateProfile';
 import {
   AiProcessingProvider,
   useAiProcessing,
-} from '@/context/AiProcessingContext';
+} from '@/contexts/AiProcessingContext';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import { getPresignedUploadUrl } from '../../../../api/candidate';
 import { useUploadResume } from '@/hooks/useUploadResume';
 import { useDeleteResume } from '@/hooks/useDeleteResume';
 import { useSetDefaultResume } from '@/hooks/useSetDefaultResume';
 import { useTriggerAiParse } from '@/hooks/useTriggerAiParse';
-import { useTriggerAiScore } from '@/hooks/useTriggerAiScore';
 import { useCommitResumeMerge } from '@/hooks/useCommitResumeMerge';
 import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
@@ -192,14 +190,8 @@ function getDisplayName(profile?: CandidateProfileResponse): string {
 }
 
 function ProfileContent() {
-  const {
-    processingTasks,
-    triggerParse,
-    triggerScore,
-    onParsedSuccess,
-    onScoredSuccess,
-    reconcile,
-  } = useAiProcessing();
+  const { processingTasks, triggerParse, onParsedSuccess, reconcile } =
+    useAiProcessing();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditAboutOpen, setIsEditAboutOpen] = useState(false);
   const [isAddExperienceOpen, setIsAddExperienceOpen] = useState(false);
@@ -217,7 +209,6 @@ function ProfileContent() {
 
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [deleteImpactModalOpen, setDeleteImpactModalOpen] = useState(false);
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [activeResumeId, setActiveResumeId] = useState<number | null>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
@@ -244,7 +235,6 @@ function ProfileContent() {
     useDeleteResume();
   const { mutateAsync: setDefaultResume } = useSetDefaultResume();
   const { mutateAsync: triggerAiParse } = useTriggerAiParse();
-  const { mutateAsync: triggerAiScore } = useTriggerAiScore();
   const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
   const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const { mutateAsync: updateProfile } = useUpdateProfile();
@@ -280,7 +270,7 @@ function ProfileContent() {
   );
 
   const startAiCompletionPolling = useCallback(
-    (resumeId: number, type: 'parse' | 'score') => {
+    (resumeId: number) => {
       if (pollRef.current) clearInterval(pollRef.current);
       const attempt = async () => {
         try {
@@ -288,15 +278,12 @@ function ProfileContent() {
           const freshData = freshProfile?.data;
           const resume = freshData?.resumes?.find((r) => r.id === resumeId);
           if (!resume) return;
-          const done =
-            type === 'parse' ? !!resume.parsedText : resume.aiScore !== null;
-          if (done) {
+          if (resume.parsedText) {
             if (pollRef.current) clearInterval(pollRef.current);
-            if (type === 'parse') onParsedSuccess(resumeId);
-            else onScoredSuccess(resumeId);
+            onParsedSuccess(resumeId);
             Toast.show({
               type: 'success',
-              text1: type === 'parse' ? 'Data extracted' : 'Score ready',
+              text1: 'Data extracted',
             });
           }
         } catch {
@@ -306,7 +293,7 @@ function ProfileContent() {
       pollRef.current = setInterval(attempt, 3000);
       setTimeout(attempt, 500);
     },
-    [refetch, onParsedSuccess, onScoredSuccess]
+    [refetch, onParsedSuccess]
   );
 
   useEffect(() => {
@@ -404,10 +391,7 @@ function ProfileContent() {
         isDefault: true,
       });
       if (newResume?.id) {
-        triggerParse(newResume.id);
-        triggerScore(newResume.id);
-        triggerAiParse(newResume.id);
-        triggerAiScore(newResume.id);
+        setActiveResumeId(newResume.id);
         startAiSyncPolling(newResume.id);
       }
       await refetch();
@@ -453,22 +437,10 @@ function ProfileContent() {
     triggerAiParse(resumeId)
       .then(() => {
         Toast.show({ type: 'info', text1: 'AI is extracting data...' });
-        startAiCompletionPolling(resumeId, 'parse');
+        startAiCompletionPolling(resumeId);
       })
       .catch(() => {
         Toast.show({ type: 'error', text1: 'Failed to start AI parsing' });
-      });
-  };
-
-  const handleTriggerScore = (resumeId: number) => {
-    triggerScore(resumeId);
-    triggerAiScore(resumeId)
-      .then(() => {
-        Toast.show({ type: 'info', text1: 'AI is scoring resume...' });
-        startAiCompletionPolling(resumeId, 'score');
-      })
-      .catch(() => {
-        Toast.show({ type: 'error', text1: 'Failed to start AI scoring' });
       });
   };
 
@@ -709,7 +681,6 @@ function ProfileContent() {
               onSelectResume={handleSelectResume}
               onDeleteResume={handleDeleteResume}
               onTriggerParse={handleTriggerParse}
-              onTriggerScore={handleTriggerScore}
               onSyncResume={(resumeId, parsedData) => {
                 setActiveResumeId(resumeId);
                 setSyncModalOpen(true);
@@ -1035,35 +1006,6 @@ function ProfileContent() {
         visible={isAddSkillOpen}
         onClose={() => setIsAddSkillOpen(false)}
         onSaved={() => void refetch()}
-      />
-
-      <AiFeedbackModal
-        isOpen={feedbackModalOpen}
-        onClose={() => setFeedbackModalOpen(false)}
-        score={
-          activeResumeId
-            ? profile?.resumes?.find((r) => r.id === activeResumeId)?.aiScore ??
-              null
-            : null
-        }
-        feedback={
-          activeResumeId
-            ? (() => {
-                const res = profile?.resumes?.find(
-                  (r) => r.id === activeResumeId
-                );
-                try {
-                  return res?.aiFeedback
-                    ? typeof res.aiFeedback === 'string'
-                      ? JSON.parse(res.aiFeedback)
-                      : res.aiFeedback
-                    : null;
-                } catch {
-                  return null;
-                }
-              })()
-            : null
-        }
       />
 
       <CvSyncCompareModal

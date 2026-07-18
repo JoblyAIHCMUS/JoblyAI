@@ -3,7 +3,7 @@ import {
   createDownloadUrl,
   type CreateDownloadUrlPayload,
   type PresignedDownloadUrlResponse,
-} from '../api/s3';
+} from '../api/gcs';
 
 interface UseCreateDownloadUrlOptions {
   onSuccess?: (data: PresignedDownloadUrlResponse) => void;

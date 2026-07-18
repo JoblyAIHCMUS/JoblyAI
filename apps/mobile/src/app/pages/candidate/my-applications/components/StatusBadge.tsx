@@ -13,6 +13,16 @@ const STATUS_META: Record<
     containerClassName: 'bg-app-indigo-soft',
     textClassName: 'text-app-indigo-strong',
   },
+  PRE_SHORTLIST_PENDING: {
+    label: 'Pre-Shortlist',
+    containerClassName: 'bg-app-background-2',
+    textClassName: 'text-app-text-5',
+  },
+  PRE_SHORTLIST_SUBMITTED: {
+    label: 'Shortlist Submitted',
+    containerClassName: 'bg-app-background-2',
+    textClassName: 'text-app-text-5',
+  },
   INTERVIEW: {
     label: 'Interview',
     containerClassName: 'bg-app-amber-1/20',

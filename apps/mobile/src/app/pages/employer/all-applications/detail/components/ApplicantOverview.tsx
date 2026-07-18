@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { SvgUri } from 'react-native-svg';
-import { Mail, Phone } from 'lucide-react-native';
+import { Mail, Phone, BarChart3 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import { ApplicantDetail, hiringStageStyles } from '../../data';
 import { HiringStageProgressBar } from './HiringStageProgressBar';
+import { MatchExplanationDrawer } from './MatchExplanationDrawer';
 import { useGetEmployerProfile } from '../../../../../../hooks/useGetEmployerProfile';
 import { useMessageCandidate } from '../../../../../../hooks/messaging/useMessageCandidate';
 
@@ -37,6 +38,8 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
   const { data: employerProfile } = useGetEmployerProfile();
   const { mutateAsync: messageCandidate, isPending: isMessaging } =
     useMessageCandidate({ employerId: employerProfile?.id });
+  const [showMatchExplanation, setShowMatchExplanation] = useState(false);
+  const isCalculating = applicant.score === null;
   const {
     image,
     name,
@@ -45,7 +48,6 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
     jobCategory,
     employmentType,
     appliedDate,
-    score,
     hiringStage,
     email,
     phone,
@@ -109,9 +111,24 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
         </View>
         <View>
           <Text className="text-xs font-medium text-app-text-3">Score</Text>
-          <Text className="text-sm font-semibold text-app-slate-1 mt-0.5">
-            {score.toFixed(1)}
-          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setShowMatchExplanation(true)}
+            className="flex flex-row items-center gap-1.5 mt-0.5"
+          >
+            <BarChart3 size={14} color="#4f46e5" />
+            {applicant.score === null ? (
+              <View className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
+                <Text className="text-[10px] font-bold text-amber-700">
+                  AI Calculating...
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-sm font-semibold text-app-slate-1">
+                {applicant.score.toFixed(2)}%
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -169,6 +186,12 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
           {isMessaging ? 'Opening…' : 'Message'}
         </Text>
       </TouchableOpacity>
+
+      <MatchExplanationDrawer
+        applicationId={applicant.id}
+        isOpen={showMatchExplanation}
+        onClose={() => setShowMatchExplanation(false)}
+      />
     </View>
   );
 }

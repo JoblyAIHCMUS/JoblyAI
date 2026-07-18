@@ -10,12 +10,12 @@ export interface PresignedDownloadUrlResponse {
   expiresIn: number;
 }
 
-export type S3Folder = 'resumes' | 'avatars' | 'logos';
+export type GcsFolder = 'resumes' | 'avatars' | 'logos';
 
 export interface CreateUploadUrlPayload {
   fileName: string;
   fileType: string;
-  folder: S3Folder;
+  folder: GcsFolder;
 }
 
 export interface PresignedUploadUrlResponse {
@@ -30,44 +30,44 @@ export interface UploadResult {
   fileUrl: string;
   fileName: string;
   fileSize: number;
-  folder: S3Folder;
+  folder: GcsFolder;
   uploadedAt: Date;
 }
 
 /**
- * Get a short-lived presigned URL for downloading an S3 object.
- * Mirrors apps/web/src/api-client/s3/download.ts::generatePresignedDownloadUrl.
+ * Get a short-lived presigned URL for downloading a GCS object.
+ * Mirrors apps/web/src/api-client/gcs/download.ts::generatePresignedDownloadUrl.
  * Used by the applicant-detail screen to view or download a candidate's resume.
  */
 export async function createDownloadUrl(
   payload: CreateDownloadUrlPayload
 ): Promise<PresignedDownloadUrlResponse> {
   const response = await apiClient.post<PresignedDownloadUrlResponse>(
-    '/s3/presigned-download',
+    '/gcs/presigned-download',
     payload
   );
   return response.data;
 }
 
 /**
- * Get a presigned upload URL for uploading a file to S3.
- * Mirrors apps/web/src/api-client/s3/upload.ts::generatePresignedUploadUrl.
+ * Get a presigned upload URL for uploading a file to GCS.
+ * Mirrors apps/web/src/api-client/gcs/upload.ts::generatePresignedUploadUrl.
  */
 export async function createUploadUrl(
   payload: CreateUploadUrlPayload
 ): Promise<PresignedUploadUrlResponse> {
   const response = await apiClient.post<PresignedUploadUrlResponse>(
-    '/s3/presigned-upload',
+    '/gcs/presigned-upload',
     payload
   );
   return response.data;
 }
 
 /**
- * Upload a file to a presigned S3 URL.
- * Mirrors apps/web/src/api-client/s3/upload.ts::uploadFileToPresignedUrl.
+ * Upload a file to a presigned GCS URL.
+ * Mirrors apps/web/src/api-client/gcs/upload.ts::uploadFileToPresignedUrl.
  */
-export async function uploadFileToS3(
+export async function uploadFileToGcs(
   uploadUrl: string,
   file: Blob,
   fileType: string
@@ -80,9 +80,9 @@ export async function uploadFileToS3(
 }
 
 /**
- * Delete a file from S3.
- * Mirrors apps/web/src/api-client/s3/file.ts::deleteS3File.
+ * Delete a file from GCS.
+ * Mirrors apps/web/src/api-client/gcs/file.ts::deleteGcsFile.
  */
-export async function deleteS3File(fileKey: string): Promise<void> {
-  await apiClient.delete('/s3/file', { data: { fileKey } });
+export async function deleteGcsFile(fileKey: string): Promise<void> {
+  await apiClient.delete('/gcs/file', { data: { fileKey } });
 }

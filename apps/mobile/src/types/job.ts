@@ -1,3 +1,5 @@
+import type { LocationDetail } from './location';
+
 export interface FilterItem {
   label: string;
   value?: string | number;
@@ -107,7 +109,7 @@ export interface JobRequirementInput {
 export interface CreateJobPayload {
   title: string;
   description: string;
-  location?: string;
+  location?: LocationDetail | null;
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;
@@ -121,7 +123,7 @@ export interface CreateJobPayload {
 export interface UpdateJobPayload {
   title?: string;
   description?: string;
-  location?: string;
+  location?: LocationDetail | null;
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;

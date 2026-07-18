@@ -8,9 +8,10 @@ import type { JobPosting } from '@/types/job';
 interface JobCardProps {
   job: JobPosting;
   onPress?: () => void;
+  hasApplied?: boolean;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
   const router = useRouter();
 
   const employmentTypeLabel =
@@ -189,9 +190,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={handlePress}
-        className="rounded-lg bg-app-primary-2 py-3"
+        className={`rounded-lg py-3 ${
+          hasApplied ? 'bg-app-bg-disabled' : 'bg-app-primary-2'
+        }`}
       >
-        <Text className="text-center font-semibold text-white">Apply</Text>
+        <Text
+          className={`text-center font-semibold ${
+            hasApplied ? 'text-app-text-placeholder' : 'text-white'
+          }`}
+        >
+          {hasApplied ? 'Applied' : 'Apply'}
+        </Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );

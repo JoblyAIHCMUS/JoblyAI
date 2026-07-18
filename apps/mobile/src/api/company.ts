@@ -44,9 +44,37 @@ export interface CompanyEmployee {
   avatarUrl: string | null;
 }
 
-export async function getCompanies(options?: ApiOptions): Promise<Company[]> {
-  const response = await apiClient.get<Company[]>('/company', {
+export interface GetCompaniesParams extends ApiOptions {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  location?: string;
+  sizeRange?: string[];
+}
+
+export interface PaginatedCompaniesResponse {
+  companies: Company[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function getCompanies(
+  options?: GetCompaniesParams
+): Promise<PaginatedCompaniesResponse> {
+  const response = await apiClient.get<PaginatedCompaniesResponse>('/company', {
     signal: options?.signal,
+    params: {
+      page: options?.page,
+      pageSize: options?.pageSize,
+      q: options?.q,
+      location: options?.location,
+      sizeRange: options?.sizeRange,
+    },
+    paramsSerializer: {
+      indexes: null,
+    },
   });
   return response.data;
 }
