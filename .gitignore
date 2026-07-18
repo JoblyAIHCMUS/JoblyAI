@@ -141,8 +141,8 @@ vite.config.*.timestamp*
 **/*firebase-adminsdk*.json
 
 # Prisma
-apps/backend/src/app/generated/prisma\
-.worktrees/\
+apps/backend/src/app/generated/prisma/
+.worktrees/
 
 # Expo
 node_modules/

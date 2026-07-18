@@ -5,6 +5,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { InterviewContext } from '../app/ai/interview-preparation/application/interview-context.model';
 
 const googleGenAIMocks = vi.hoisted(() => {
   const generateContentMock = vi.fn();
@@ -33,6 +34,18 @@ import { GeminiSearchProvider } from '../app/ai/interview-preparation/retrieval/
 describe('GeminiSearchProvider', () => {
   let provider: GeminiSearchProvider;
   let configService: { get: ReturnType<typeof vi.fn> };
+  const mockContext: InterviewContext = {
+    company: 'Google',
+    role: 'Software Engineer',
+    level: 'Senior',
+    mustHaveCompetencies: ['NestJS'],
+    niceToHaveCompetencies: [],
+    successMetrics: [],
+    candidateSkills: [],
+    candidateExperienceYears: 5,
+    candidateStrengths: [],
+    gaps: [],
+  };
 
   beforeEach(async () => {
     configService = {
@@ -79,6 +92,10 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Candidate lists NestJS.',
           confidence: 0.9,
+          sampleAnswer: 'Sample answer text',
+          interviewerIntent: 'Intent text',
+          tips: 'Tips text',
+          origin: 'web_search',
           sources: [
             {
               title: 'NestJS Docs',
@@ -93,6 +110,10 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Duplicated info',
           confidence: 0.9,
+          sampleAnswer: 'Sample answer text',
+          interviewerIntent: 'Intent text',
+          tips: 'Tips text',
+          origin: 'web_search',
           sources: [],
         },
       ]),
@@ -112,12 +133,9 @@ describe('GeminiSearchProvider', () => {
       ],
     });
 
-    const results = await provider.searchAndExtract(
-      'Google',
-      'Software Engineer',
-      'Develop things in NestJS',
-      ['nestjs interview questions']
-    );
+    const results = await provider.searchAndExtract(mockContext, [
+      'nestjs interview questions',
+    ]);
 
     expect(googleGenAIMocks.generateContentMock).toHaveBeenCalledTimes(1);
     expect(results).toEqual([
@@ -127,6 +145,10 @@ describe('GeminiSearchProvider', () => {
         difficulty: 'Medium',
         relevance: 'Candidate lists NestJS.',
         confidence: 0.9,
+        sampleAnswer: 'Sample answer text',
+        interviewerIntent: 'Intent text',
+        tips: 'Tips text',
+        origin: 'web_search',
         sources: [
           {
             title: 'NestJS Docs',
@@ -141,7 +163,7 @@ describe('GeminiSearchProvider', () => {
     configService.get.mockReturnValue(undefined);
 
     await expect(
-      provider.searchAndExtract('Google', 'SWE', 'Desc', ['q'])
+      provider.searchAndExtract(mockContext, ['q'])
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -158,7 +180,7 @@ describe('GeminiSearchProvider', () => {
     );
 
     await expect(
-      provider.searchAndExtract('Google', 'SWE', 'Desc', ['q'])
+      provider.searchAndExtract(mockContext, ['q'])
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 
@@ -178,6 +200,10 @@ describe('GeminiSearchProvider', () => {
           difficulty: 'Medium',
           relevance: 'Candidate lists NestJS.',
           confidence: 0.9,
+          sampleAnswer: 'Sample answer text',
+          interviewerIntent: 'Intent text',
+          tips: 'Tips text',
+          origin: 'web_search',
           sources: [],
         },
       ]),
@@ -190,12 +216,9 @@ describe('GeminiSearchProvider', () => {
       ],
     });
 
-    const results = await provider.searchAndExtract(
-      'Google',
-      'Software Engineer',
-      'Develop things in NestJS',
-      ['nestjs interview questions']
-    );
+    const results = await provider.searchAndExtract(mockContext, [
+      'nestjs interview questions',
+    ]);
 
     expect(results).toEqual([
       {
@@ -204,6 +227,10 @@ describe('GeminiSearchProvider', () => {
         difficulty: 'Medium',
         relevance: 'Candidate lists NestJS.',
         confidence: 0.9,
+        sampleAnswer: 'Sample answer text',
+        interviewerIntent: 'Intent text',
+        tips: 'Tips text',
+        origin: 'web_search',
         sources: [
           {
             title: 'Google Search Fallback',
