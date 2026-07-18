@@ -106,7 +106,7 @@ export default function ApplicantDetails({
     setConfirmDialog({ show: false, actionType: null });
   };
 
-  const canReject = hiringStage !== 'Rejected';
+  const canReject = hiringStage !== 'Rejected' && hiringStage !== 'Withdrawn';
   const canAdvance =
     !!nextStageMap[hiringStage] &&
     hiringStage !== 'Rejected' &&

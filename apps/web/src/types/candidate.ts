@@ -6,6 +6,7 @@ export type ApplicationStatus =
   | 'interviewing'
   | 'offered'
   | 'rejected'
+  | 'withdrawn'
   | 'closed'
   | 'pre-shortlist-pending'
   | 'pre-shortlist-submitted';

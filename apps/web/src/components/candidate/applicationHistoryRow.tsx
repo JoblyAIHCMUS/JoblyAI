@@ -288,7 +288,7 @@ export function ApplicationHistoryRow({
     <TooltipProvider delayDuration={200}>
       <div
         onClick={handleRowClick}
-        className={`group w-full min-w-0 cursor-pointer rounded-[10px] px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
+        className={`group w-full min-w-0 cursor-pointer rounded-[10px] border border-transparent px-4 py-4 transition-colors hover:border-[#d6ddeb] hover:shadow-sm lg:rounded-[2px] lg:px-5 xl:px-6 ${
           tinted
             ? 'bg-[#f8f8fd] hover:bg-[#f0f0fa]'
             : 'bg-white hover:bg-[#f8f8fd]'
