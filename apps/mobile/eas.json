@@ -10,8 +10,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://jobly.ai.vn/api"
-      },
-      "autoSubmit": true
+      }
     },
     "development": {
       "developmentClient": true,
