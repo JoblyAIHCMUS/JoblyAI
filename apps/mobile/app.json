@@ -23,7 +23,13 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.jobly.mobile",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "plugins": [
       [
@@ -42,6 +48,12 @@
     ],
     "web": {
       "favicon": "./assets/images/jobly-logo.png"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4626adf7-30c9-41b0-9c84-affebf310094"
+      }
     }
   }
 }

@@ -1,0 +1,140 @@
+name: Release Mobile to Google Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Action'
+        required: true
+        default: 'android-both'
+        type: choice
+        options:
+          - android-build
+          - android-release
+          - android-both
+          - android-build-local
+          - android-release-local
+          - android-both-local
+      track:
+        description: 'Google Play track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Verify React Native node modules
+        run: |
+          test -d node_modules/react-native
+          test -d node_modules/react-native-safe-area-context
+
+      - name: Lint
+        if: ${{ !contains(github.event.inputs.mode, 'release') }}
+        run: pnpm nx run @jobly/mobile:lint
+
+      # ── Local-only setup (Java + Android SDK + prebuild) ──────────
+
+      - name: Setup Java
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        uses: android-actions/setup-android@v3
+
+      - name: Prebuild
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        working-directory: apps/mobile
+        run: pnpm exec expo prebuild --platform android --no-install
+
+      # ── Build ─────────────────────────────────────────────────────
+
+      - name: Disable autoSubmit
+        if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
+        working-directory: apps/mobile
+        run: |
+          jq 'del(.build.production.autoSubmit)' eas.json > eas.json.tmp \
+            && mv eas.json.tmp eas.json
+
+      - name: EAS Build
+        if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
+        working-directory: apps/mobile
+        run: pnpm exec eas build --profile production --platform android --wait --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android AAB (Gradle)
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        working-directory: apps/mobile/android
+        run: ./gradlew bundleRelease
+
+      - name: Upload AAB artifact
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+
+      # ── Submit ────────────────────────────────────────────────────
+
+      - name: Set Google Play track (EAS)
+        if: ${{ !contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
+        working-directory: apps/mobile
+        run: |
+          jq '.submit.production.android.track = "${{ github.event.inputs.track }}"' \
+            eas.json > eas.json.tmp && mv eas.json.tmp eas.json
+
+      - name: EAS Submit
+        if: ${{ !contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
+        working-directory: apps/mobile
+        run: pnpm exec eas submit --profile production --platform android --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Set up Ruby (for Fastlane)
+        if: ${{ contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+
+      - name: Install Fastlane
+        if: ${{ contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
+        run: gem install fastlane
+
+      - name: Fastlane Submit to Google Play
+        if: ${{ contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
+        working-directory: apps/mobile/android
+        env:
+          PLAY_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$PLAY_KEY" > play-key.json
+          fastlane supply \
+            --aab app/build/outputs/bundle/release/app-release.aab \
+            --track ${{ github.event.inputs.track }} \
+            --json_key play-key.json \
+            --package_name com.jobly.mobile
