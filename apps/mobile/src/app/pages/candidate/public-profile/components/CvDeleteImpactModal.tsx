@@ -86,15 +86,6 @@ export function CvDeleteImpactModal({
     });
   };
 
-  const getRemainingItems = (items: any[]) => {
-    return items.filter((item) => {
-      const sourceIds = Array.isArray(item.sourceCvIds)
-        ? item.sourceCvIds.map(String)
-        : [];
-      return !sourceIds.includes(String(resumeId));
-    });
-  };
-
   const affectedExperiences = getAffectedItems(experiences);
   const affectedEducations = getAffectedItems(educations);
   const affectedSkills = getAffectedItems(skills);

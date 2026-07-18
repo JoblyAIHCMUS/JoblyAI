@@ -11,6 +11,7 @@ import {
 } from 'react-hook-form';
 import { Input } from '../../../../../components/ui/input';
 import { Label } from '../../../../../components/ui/label';
+import LocationAutocomplete from '../../../../../components/LocationAutocomplete';
 import ModalPicker from '../../new-company/components/ModalPicker';
 import CategorySelector from './CategorySelector';
 import SalarySelector from './SalarySelector';
@@ -45,6 +46,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       className="flex-1 px-4 py-6"
       contentContainerClassName="gap-6 pb-8"
     >
@@ -157,18 +159,16 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
                     >
                       Location <Text className="text-red-600">*</Text>
                     </Label>
-                    <Input
-                      placeholder="e.g. San Francisco, CA"
+                    <LocationAutocomplete
                       value={locationField.value}
-                      onChangeText={locationField.onChange}
+                      onChange={locationField.onChange}
                       onBlur={locationField.onBlur}
-                      className={
-                        errors.location ? 'border-red-500 bg-red-50' : ''
-                      }
+                      placeholder="Search for a location..."
+                      error={!!errors.location}
                     />
                     {errors.location && (
                       <Text className="text-xs text-red-600">
-                        {errors.location.message}
+                        {errors.location?.message as string}
                       </Text>
                     )}
                   </View>

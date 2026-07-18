@@ -15,7 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import Logo from '../../../assets/images/jobly-logo.svg';
+import Logo from '../../../../assets/images/jobly-logo.svg';
 import { COLORS } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
 import { useRouter } from 'expo-router';

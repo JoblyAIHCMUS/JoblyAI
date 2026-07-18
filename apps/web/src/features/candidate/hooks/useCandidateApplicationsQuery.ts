@@ -64,7 +64,7 @@ function mapApiStatusToCandidateStatus(
     case 'REJECTED':
       return 'rejected';
     case 'WITHDRAWN':
-      return 'rejected';
+      return 'withdrawn';
     default:
       return 'applied';
   }

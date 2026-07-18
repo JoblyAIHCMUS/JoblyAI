@@ -146,7 +146,10 @@
       "esbuild": ">=0.28.1",
       "form-data": "4.0.6",
       "undici": "^7.28.0",
-      "nodemailer": "^9.0.1"
+      "nodemailer": "^9.0.1",
+      "adm-zip": ">=0.6.0",
+      "@xmldom/xmldom": ">=0.8.13",
+      "node-forge": ">=1.4.0"
     }
   },
   "resolutions": {

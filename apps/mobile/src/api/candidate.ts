@@ -228,13 +228,6 @@ export async function triggerAiParse(
   return response.data;
 }
 
-export async function triggerAiScore(
-  resumeId: number
-): Promise<{ success: boolean }> {
-  const response = await apiClient.post('/ai/trigger-score', { resumeId });
-  return response.data;
-}
-
 export async function commitResumeMerge(
   resumeId: number,
   data: any
@@ -256,7 +249,7 @@ export async function previewDeleteImpact(resumeId: number): Promise<{
 export async function createDownloadUrl(
   fileKey: string
 ): Promise<{ downloadUrl: string }> {
-  const response = await apiClient.post('/s3/presigned-download', { fileKey });
+  const response = await apiClient.post('/gcs/presigned-download', { fileKey });
   return response.data;
 }
 
@@ -269,7 +262,7 @@ export async function getPresignedUploadUrl(
   fileUrl: string;
   expiresIn: number;
 }> {
-  const response = await apiClient.post('/s3/presigned-upload', {
+  const response = await apiClient.post('/gcs/presigned-upload', {
     fileName,
     fileType,
     folder: 'resumes',

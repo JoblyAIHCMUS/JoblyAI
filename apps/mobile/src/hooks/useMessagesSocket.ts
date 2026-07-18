@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { authClient } from '../lib/auth-client';
 import { API_BASE_URL } from '../lib/api-base';
+import { getSessionCookie } from '../lib/auth';
 import type {
   MarkReadAck,
   NewMessageEvent,
@@ -24,7 +24,7 @@ export function getOrCreateSocket(): Socket {
     transports: ['websocket'],
     // Function form re-reads the cookie per connect; static form freezes the empty module-init value.
     auth: (cb) => {
-      const cookie = authClient.getCookie() ?? '';
+      const cookie = getSessionCookie();
       console.log('[ws] auth', { hasCookie: !!cookie });
       cb({ cookie });
     },

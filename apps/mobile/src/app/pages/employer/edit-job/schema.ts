@@ -42,14 +42,51 @@ export const jobPostingSchema = yup
       )
       .required('Please select an employment type'),
     remote: yup.boolean().required('Remote status is required'),
-    location: yup.string().when('remote', {
-      is: false,
-      then: (schema) =>
-        schema
-          .required('Location is required when not a remote position')
-          .min(1, 'Location is required when not a remote position'),
-      otherwise: (schema) => schema.optional(),
-    }),
+    location: yup
+      .object({
+        id: yup.string().optional(),
+        provider: yup.string().required(),
+        providerId: yup.string().required(),
+        formattedAddress: yup.string().required(),
+        lat: yup.number().required(),
+        lng: yup.number().required(),
+        city: yup.string().nullable().optional(),
+        state: yup.string().nullable().optional(),
+        country: yup.string().nullable().optional(),
+        postcode: yup.string().nullable().optional(),
+      })
+      .nullable()
+      .when('remote', {
+        is: false,
+        then: (schema) =>
+          schema.required(
+            'Location is required when not a remote position'
+          ) as unknown as yup.ObjectSchema<{
+            id?: string;
+            provider: string;
+            providerId: string;
+            formattedAddress: string;
+            lat: number;
+            lng: number;
+            city?: string | null;
+            state?: string | null;
+            country?: string | null;
+            postcode?: string | null;
+          } | null>,
+        otherwise: (schema) =>
+          schema.optional() as unknown as yup.ObjectSchema<{
+            id?: string;
+            provider: string;
+            providerId: string;
+            formattedAddress: string;
+            lat: number;
+            lng: number;
+            city?: string | null;
+            state?: string | null;
+            country?: string | null;
+            postcode?: string | null;
+          } | null>,
+      }),
     categoryId: yup
       .string()
       .min(1, 'Please select a category')

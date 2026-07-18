@@ -7,7 +7,7 @@ import {
 export const CANDIDATE_DASHBOARD_STATUS_META: ApplicationStatusMeta = {
   applied: {
     label: 'Applied',
-    className: 'border-[#7c8493] text-[#7c8493]',
+    className: 'border-[#2563eb] text-[#2563eb] bg-[#eff6ff]',
   },
   viewed: {
     label: 'Viewed',
@@ -25,9 +25,13 @@ export const CANDIDATE_DASHBOARD_STATUS_META: ApplicationStatusMeta = {
     label: 'Rejected',
     className: 'border-[#ff6550] text-[#ff6550]',
   },
+  withdrawn: {
+    label: 'Withdrawn',
+    className: 'border-[#6b7280] text-[#6b7280] bg-[#f3f4f6]',
+  },
   closed: {
     label: 'Job Closed',
-    className: 'border-[#7c8493] text-[#7c8493] bg-[#f8f8fd]',
+    className: 'border-[#9ca3af] text-[#9ca3af] bg-[#f9fafb]',
   },
   'pre-shortlist-pending': {
     label: 'Pre-shortlist pending',
@@ -56,5 +60,10 @@ export function isActiveApplicationStatus(status: ApplicationStatus) {
 }
 
 export function isClosedApplicationStatus(status: ApplicationStatus) {
-  return status === 'offered' || status === 'rejected' || status === 'closed';
+  return (
+    status === 'offered' ||
+    status === 'rejected' ||
+    status === 'closed' ||
+    status === 'withdrawn'
+  );
 }

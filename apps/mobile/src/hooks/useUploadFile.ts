@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { createUploadUrl, uploadFileToS3, S3Folder } from '../api/s3';
+import { createUploadUrl, uploadFileToGcs, GcsFolder } from '../api/gcs';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = [
@@ -39,7 +39,7 @@ export function useUploadFile(options?: UseUploadFileOptions) {
   const uploadToS3 = useCallback(
     async (
       file: File,
-      folder: S3Folder = 'resumes'
+      folder: GcsFolder = 'resumes'
     ): Promise<UploadFileResult> => {
       const validationError = validateFile(file);
       if (validationError) {
@@ -61,7 +61,7 @@ export function useUploadFile(options?: UseUploadFileOptions) {
 
         setProgress(50);
 
-        await uploadFileToS3(presignedResponse.uploadUrl, file, file.type);
+        await uploadFileToGcs(presignedResponse.uploadUrl, file, file.type);
 
         setProgress(90);
 

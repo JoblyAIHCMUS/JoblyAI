@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ApplicationTable } from '@/components/candidate/applicationTable';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationStatusTabs } from '@/features/candidate/applications/components/ApplicationStatusTabs';
@@ -70,7 +71,11 @@ export default function CandidateApplicationsPage() {
     jobTypeOptions,
     locationOptions,
   } = useCandidateDashboard();
-  const { withdrawApplication } = useWithdrawApplication();
+  const { withdrawApplication, loading: isWithdrawing } =
+    useWithdrawApplication();
+  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(
+    null
+  );
 
   const {
     isFilterDialogOpen,
@@ -97,21 +102,16 @@ export default function CandidateApplicationsPage() {
       : `from ${dateRangeLabel}`;
   const activityRangeText = `Here’s the status of your applications ${activityStatusText}.`;
 
-  const handleMoreActionSelect = async (
-    option: string,
-    item: ApplicationItem
-  ) => {
-    if (option !== 'Withdraw application') {
-      return;
+  const handleMoreActionSelect = (option: string, item: ApplicationItem) => {
+    if (option === 'Withdraw application') {
+      setWithdrawTarget(item);
     }
+  };
 
-    if (
-      !window.confirm('Are you sure you want to withdraw this application?')
-    ) {
-      return;
-    }
+  const handleConfirmWithdraw = async () => {
+    if (!withdrawTarget) return;
 
-    const applicationId = Number(item.id);
+    const applicationId = Number(withdrawTarget.id);
     if (Number.isNaN(applicationId)) {
       return;
     }
@@ -120,6 +120,7 @@ export default function CandidateApplicationsPage() {
       await withdrawApplication(applicationId);
       reloadApplications();
       toast.success('Successfully withdrawn application');
+      setWithdrawTarget(null);
     } catch (error) {
       console.error('[CandidateApplicationsPage] Withdraw failed', { error });
       toast.error('Failed to withdraw application. Please try again.');
@@ -224,6 +225,20 @@ export default function CandidateApplicationsPage() {
           />
         </section>
       </div>
+
+      <DeleteConfirmDialog
+        open={withdrawTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setWithdrawTarget(null);
+        }}
+        title="Withdraw Application"
+        description="Are you sure you want to withdraw this application? This action cannot be undone."
+        confirmLabel="Withdraw"
+        cancelLabel="Cancel"
+        onCancel={() => setWithdrawTarget(null)}
+        onConfirm={handleConfirmWithdraw}
+        loading={isWithdrawing}
+      />
     </div>
   );
 }

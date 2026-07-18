@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { ChevronRight, FileText, MessageCircleQuestion } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
@@ -51,7 +52,11 @@ export default function CandidateDashboardPage() {
     reloadApplications,
   } = useCandidateDashboard();
 
-  const { withdrawApplication } = useWithdrawApplication();
+  const { withdrawApplication, loading: isWithdrawing } =
+    useWithdrawApplication();
+  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(
+    null
+  );
 
   const recentApplications = useMemo(
     () => filteredApplications.slice(0, 10),
@@ -94,21 +99,16 @@ export default function CandidateDashboardPage() {
     }
   };
 
-  const handleMoreActionSelect = async (
-    option: string,
-    item: ApplicationItem
-  ) => {
-    if (option !== 'Withdraw application') {
-      return;
+  const handleMoreActionSelect = (option: string, item: ApplicationItem) => {
+    if (option === 'Withdraw application') {
+      setWithdrawTarget(item);
     }
+  };
 
-    if (
-      !window.confirm('Are you sure you want to withdraw this application?')
-    ) {
-      return;
-    }
+  const handleConfirmWithdraw = async () => {
+    if (!withdrawTarget) return;
 
-    const applicationId = Number(item.id);
+    const applicationId = Number(withdrawTarget.id);
     if (Number.isNaN(applicationId)) {
       return;
     }
@@ -117,6 +117,7 @@ export default function CandidateDashboardPage() {
       await withdrawApplication(applicationId);
       reloadApplications();
       toast.success('Successfully withdrawn application');
+      setWithdrawTarget(null);
     } catch (error) {
       console.error('[CandidateDashboardPage] Withdraw failed', { error });
       toast.error('Failed to withdraw application. Please try again.');
@@ -226,6 +227,20 @@ export default function CandidateDashboardPage() {
           )}
         </section>
       </div>
+
+      <DeleteConfirmDialog
+        open={withdrawTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setWithdrawTarget(null);
+        }}
+        title="Withdraw Application"
+        description="Are you sure you want to withdraw this application? This action cannot be undone."
+        confirmLabel="Withdraw"
+        cancelLabel="Cancel"
+        onCancel={() => setWithdrawTarget(null)}
+        onConfirm={handleConfirmWithdraw}
+        loading={isWithdrawing}
+      />
     </div>
   );
 }

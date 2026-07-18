@@ -1,5 +1,4 @@
-import { authClient } from '@/lib/auth-client';
-import { USER_ROLE } from '@/app/constants/role';
+import { useAuth } from '@/hooks/useAuth';
 
 import Sidebar from '@/app/components/landing/Sidebar';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
@@ -11,27 +10,19 @@ interface AppSidebarProps {
   currentPath?: string;
 }
 
-type SessionwithRole = {
-  user: {
-    role: string;
-  };
-};
-
 export default function AppSidebar({
   isOpen,
   onClose,
   currentPath,
 }: AppSidebarProps) {
-  const { data: session } = authClient.useSession();
+  const { isAuthenticated, role } = useAuth();
 
-  const role = (session as SessionwithRole | null | undefined)?.user?.role;
-
-  if (!session) {
+  if (!isAuthenticated) {
     return <Sidebar isOpen={isOpen} onClose={onClose} />;
   }
 
   switch (role) {
-    case USER_ROLE.CANDIDATE:
+    case 'candidate':
       return (
         <CandidateDashboardSidebar
           isOpen={isOpen}
@@ -40,7 +31,7 @@ export default function AppSidebar({
         />
       );
 
-    // case USER_ROLE.EMPLOYER:
+    // case 'employer':
     //   return (
     //     <EmployerDashboardSidebar
     //       isOpen={isOpen}
