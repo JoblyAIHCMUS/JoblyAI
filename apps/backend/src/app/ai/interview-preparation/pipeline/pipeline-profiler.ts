@@ -1,7 +1,7 @@
 export class PipelineProfiler {
   private readonly timings: Map<string, number> = new Map();
   private currentStep: string | null = null;
-  private currentStart: number = 0;
+  private currentStart = 0;
   private readonly startTotal: number;
 
   constructor() {
@@ -29,11 +29,9 @@ export class PipelineProfiler {
       this.end();
     }
     const summary: Record<string, string> = {};
-    let calculatedTotal = 0;
 
     for (const [step, duration] of this.timings.entries()) {
       summary[step] = `${duration.toFixed(1)}ms`;
-      calculatedTotal += duration;
     }
 
     const actualTotal = performance.now() - this.startTotal;
