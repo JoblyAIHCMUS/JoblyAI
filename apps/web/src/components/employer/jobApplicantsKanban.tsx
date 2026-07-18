@@ -108,6 +108,12 @@ export default function JobApplicantsKanban({
       return;
     }
 
+    // Do not allow dragging an applicant whose application is Withdrawn,
+    // and do not allow manually dragging an applicant into the Withdrawn stage.
+    if (applicant?.hiringStage === 'Withdrawn' || stage === 'Withdrawn') {
+      return;
+    }
+
     // Show confirmation dialog for stage changes
     setConfirmDialog({
       show: true,
