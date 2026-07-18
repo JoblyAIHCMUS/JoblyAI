@@ -32,7 +32,7 @@ export const useInterviewPrep = (jobId: number) => {
         setLoading(false);
       } else {
         toast.info(
-          'AI is generating your interview questions. This process may take up to 40 seconds...'
+          'AI is generating your interview questions. This may take a few moments...'
         );
       }
     } catch (error: any) {
@@ -48,9 +48,7 @@ export const useInterviewPrep = (jobId: number) => {
     try {
       const prep = await interviewPrepService.regeneratePrep(jobId);
       setData(prep);
-      toast.info(
-        'AI is regenerating your interview questions. This process may take up to 40 seconds...'
-      );
+      toast.info('AI is regenerating your interview questions...');
     } catch (error: any) {
       toast.error(
         error.response?.data?.message || 'Failed to regenerate interview prep'

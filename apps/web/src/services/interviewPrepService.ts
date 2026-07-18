@@ -16,17 +16,6 @@ export interface PublicQuestion {
     title: string;
     url: string;
   }[];
-  sampleAnswer: string;
-  interviewerIntent: string;
-  tips: string;
-  origin: 'web_search' | 'ai_generated';
-  reasoning?: string;
-}
-
-export interface GroupedQuestions {
-  easy: PublicQuestion[];
-  medium: PublicQuestion[];
-  hard: PublicQuestion[];
 }
 
 export interface InterviewPreparation {
@@ -34,7 +23,7 @@ export interface InterviewPreparation {
   candidateId: string;
   jobId: number;
   status: InterviewPrepStatus;
-  questions: GroupedQuestions | null;
+  questions: PublicQuestion[] | null;
   createdAt: string;
   updatedAt: string;
 }

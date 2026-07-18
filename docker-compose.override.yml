@@ -11,7 +11,7 @@ services:
       - .:/app
       - /app/apps/backend/node_modules
       - backend_node_modules:/app/node_modules
-      - backend_pnpm_store:/app/.pnpm-store
+      - backend_pnpm_store:/pnpm-store
       - backend_pnpm_cache:/home/node/.cache/pnpm
     environment:
       CI: 'true'
@@ -21,16 +21,12 @@ services:
       REDIS_URL: redis://redis:6379
       HOME: /home/node
       PNPM_HOME: '/home/node/.local/share/pnpm'
-      PNPM_STORE_DIR: '/app/.pnpm-store'
+      PNPM_STORE_DIR: '/pnpm-store'
     tmpfs:
       - /tmp
     ports:
       - '3000:3000'
       - '9229:9229'
-    deploy:
-      resources:
-        limits:
-          memory: 3G
 
 volumes:
   backend_node_modules:

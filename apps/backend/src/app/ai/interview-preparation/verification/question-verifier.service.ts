@@ -23,26 +23,20 @@ export class QuestionVerifierService {
         continue;
       }
 
-      const origin =
-        q.origin === 'ai_generated' ? 'ai_generated' : 'web_search';
+      // Check sources: must have at least one valid source
+      const validSources = Array.isArray(q.sources)
+        ? q.sources
+            .map((s: any) => ({
+              title: this.cleanText(s?.title) ?? 'Google Search',
+              url: this.cleanText(s?.url),
+            }))
+            .filter((s): s is { title: string; url: string } =>
+              this.isValidUrl(s.url)
+            )
+        : [];
 
-      // Check sources: must have at least one valid source if web_search
-      let validSources: { title: string; url: string }[] = [];
-      if (origin === 'web_search') {
-        validSources = Array.isArray(q.sources)
-          ? q.sources
-              .map((s: any) => ({
-                title: this.cleanText(s?.title) ?? 'Google Search',
-                url: this.cleanText(s?.url),
-              }))
-              .filter((s): s is { title: string; url: string } =>
-                this.isValidUrl(s.url)
-              )
-          : [];
-
-        if (validSources.length === 0) {
-          continue;
-        }
+      if (validSources.length === 0) {
+        continue;
       }
 
       const category = this.cleanText(q.category) ?? 'General';
@@ -51,11 +45,6 @@ export class QuestionVerifierService {
         ? (q.difficulty as 'Easy' | 'Medium' | 'Hard')
         : 'Medium';
 
-      const sampleAnswer = this.cleanText(q.sampleAnswer) ?? '';
-      const interviewerIntent = this.cleanText(q.interviewerIntent) ?? '';
-      const tips = this.cleanText(q.tips) ?? '';
-      const reasoning = this.cleanText(q.reasoning);
-
       verifiedList.push({
         question: questionText,
         category,
@@ -63,11 +52,6 @@ export class QuestionVerifierService {
         relevance,
         confidence,
         sources: validSources,
-        sampleAnswer,
-        interviewerIntent,
-        tips,
-        origin,
-        reasoning,
       });
     }
 

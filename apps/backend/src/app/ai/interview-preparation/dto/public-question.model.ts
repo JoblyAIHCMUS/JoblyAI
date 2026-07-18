@@ -8,16 +8,4 @@ export interface PublicQuestion {
     title: string;
     url: string;
   }[];
-  sampleAnswer: string;
-  interviewerIntent: string;
-  tips: string;
-  origin: 'web_search' | 'ai_generated';
-  /** Only present for ai_generated questions — explains why this question was generated based on gap analysis */
-  reasoning?: string;
-}
-
-export interface GroupedQuestions {
-  easy: PublicQuestion[];
-  medium: PublicQuestion[];
-  hard: PublicQuestion[];
 }

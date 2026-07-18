@@ -9,7 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { InterviewQuestion } from '../dto/interview-question.model.js';
 import { SearchProvider } from './search-provider.interface.js';
-import { InterviewContext } from '../application/interview-context.model.js';
 
 @Injectable()
 export class GeminiSearchProvider implements SearchProvider {
@@ -31,7 +30,9 @@ export class GeminiSearchProvider implements SearchProvider {
   }
 
   async searchAndExtract(
-    context: InterviewContext,
+    companyName: string | null,
+    jobTitle: string,
+    jobDescription: string,
     queries: string[]
   ): Promise<InterviewQuestion[]> {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY')?.trim();
@@ -40,7 +41,12 @@ export class GeminiSearchProvider implements SearchProvider {
     }
 
     const model = this.getModel();
-    const prompt = this.buildPrompt(context, queries);
+    const prompt = this.buildPrompt(
+      companyName,
+      jobTitle,
+      jobDescription,
+      queries
+    );
 
     try {
       this.logger.log(
@@ -83,26 +89,7 @@ export class GeminiSearchProvider implements SearchProvider {
                   description:
                     'A confidence score between 0.0 and 1.0 representing how reliable and relevant the question is based on the search sources',
                 },
-                sampleAnswer: {
-                  type: 'STRING',
-                  description:
-                    'A model answer that the candidate should strive for',
-                },
-                interviewerIntent: {
-                  type: 'STRING',
-                  description:
-                    'The psychological or professional reason why an interviewer asks this question',
-                },
-                tips: {
-                  type: 'STRING',
-                  description:
-                    'Practical advice on how to structure the answer or what keywords/actions to highlight',
-                },
-                origin: {
-                  type: 'STRING',
-                  enum: ['web_search'],
-                  description: 'Must be web_search',
-                },
+                // Cài đặt 1: Bắt Gemini trả về mảng sources gồm title và url của nguồn tìm được
                 sources: {
                   type: 'ARRAY',
                   description:
@@ -129,10 +116,6 @@ export class GeminiSearchProvider implements SearchProvider {
                 'difficulty',
                 'relevance',
                 'confidence',
-                'sampleAnswer',
-                'interviewerIntent',
-                'tips',
-                'origin',
                 'sources',
               ],
             },
@@ -147,7 +130,9 @@ export class GeminiSearchProvider implements SearchProvider {
 
       const parsed = JSON.parse(text) as any[];
 
-      return this.validateAndCleanQuestions(parsed);
+      // Không cần code map thủ công nữa vì đã bắt Gemini trả về mảng sources (gồm title, url) trực tiếp
+
+      return await this.validateAndCleanQuestions(parsed);
     } catch (error: any) {
       this.logger.error(`Gemini Search and Extract failed: ${error.message}`);
       throw new ServiceUnavailableException(
@@ -163,52 +148,48 @@ export class GeminiSearchProvider implements SearchProvider {
     );
   }
 
-  private buildPrompt(context: InterviewContext, queries: string[]): string {
+  // Cài đặt 4: Cập nhật prompt hướng dẫn mô hình xuất sources trực tiếp
+  private buildPrompt(
+    companyName: string | null,
+    jobTitle: string,
+    jobDescription: string,
+    queries: string[]
+  ): string {
     return `
 You are an expert recruitment system and Senior Hiring Manager.
 Your goal is to find real, actual interview questions for the following role:
-- Company: ${context.company ?? 'N/A'}
-- Job Title / Role: ${context.role ?? 'N/A'}
-- Level: ${context.level ?? 'N/A'}
-- Must-have competencies: ${context.mustHaveCompetencies.join(', ')}
+- Company: ${companyName ?? 'N/A'}
+- Job Title: ${jobTitle}
+- Job Description: ${jobDescription}
 
 To achieve this:
-1. Use the Google Search tool to search for real, actual interview questions related to this company, job title, and competencies.
+1. Use the Google Search tool to search for real interview questions related to this company, job title, and job description.
 Here are some recommended search queries to guide your search:
 ${queries.map((q) => `- ${q}`).join('\n')}
 
 2. Search multiple reliable sources (e.g. Glassdoor, LeetCode, GitHub, company blogs, interview prep websites).
 3. Read the search results carefully. Make sure to note the exact titles and URLs of the webpages as returned by the Google Search tool.
-4. Extract exactly 5 real, actual interview questions. Do not generate fictional or hypothetical questions.
-5. Classify the difficulty level of each question strictly based on Bloom's Taxonomy:
-   - "Easy": Remember & Understand (e.g. basic conceptual recall, introductory behavioral questions).
-   - "Medium": Apply & Analyze (e.g. situational problem solving, technical tasks, analysis of simple scenarios).
-   - "Hard": Evaluate & Create (e.g. system architecture design, complex problem solving, risk assessment, strategic decision-making).
-
+4. Extract only real, actual interview questions. Do not generate fictional or hypothetical questions.
+5. Merge and deduplicate similar or identical questions.
 6. For each question, provide:
     - question: The text of the interview question.
-    - category: The category or topic of the question (e.g. Technical, Behavioral, Situational).
+    - category: The category or topic of the question (e.g. Technical, Behavioral).
     - difficulty: The difficulty level (must be exactly "Easy", "Medium", or "Hard").
     - relevance: Explanation of why this question is highly relevant to this specific company/job profile.
     - confidence: A confidence score between 0.0 and 1.0.
-    - sampleAnswer: A model answer that the candidate should strive for.
-    - interviewerIntent: The professional reason why an interviewer asks this question.
-    - tips: Practical advice on how to structure the answer.
-    - origin: Must be "web_search".
     - sources: An array of source objects from your search results, each with:
         * title: The exact title of the webpage from Google Search results.
         * url: The exact, full URL of the webpage from Google Search results.
 
 Ensure the final output is ONLY a valid JSON array matching the required schema. Do not include any conversational text, markdown formatting other than JSON, or fictional questions.
-Language constraint: Strictly English.
 `.trim();
   }
 
-  private validateAndCleanQuestions(
+  private async validateAndCleanQuestions(
     questions: any[]
   ): Promise<InterviewQuestion[]> {
     if (!Array.isArray(questions)) {
-      return Promise.resolve([]);
+      return [];
     }
 
     const seenQuestions = new Set<string>();
@@ -248,8 +229,18 @@ Language constraint: Strictly English.
             })
         : [];
 
-      // Note: As per request, we have removed the slow sequential URL 404 checking completely (bỏ hẳn).
-      let sources = rawSources;
+      // Kiểm tra bất đồng bộ xem các link có bị 404 không
+      const accessibilityChecks = await Promise.all(
+        rawSources.map(async (s: { title: string; url: string }) => {
+          const ok = await this.isUrlAccessible(s.url);
+          return ok ? s : null;
+        })
+      );
+
+      let sources = accessibilityChecks.filter(
+        (s): s is { title: string; url: string } => s !== null
+      );
+
       if (sources.length === 0) {
         sources = [
           {
@@ -265,15 +256,11 @@ Language constraint: Strictly English.
         difficulty,
         relevance: this.cleanText(q.relevance) ?? '',
         confidence,
-        sampleAnswer: this.cleanText(q.sampleAnswer) ?? '',
-        interviewerIntent: this.cleanText(q.interviewerIntent) ?? '',
-        tips: this.cleanText(q.tips) ?? '',
-        origin: 'web_search',
         sources,
       });
     }
 
-    return Promise.resolve(cleaned);
+    return cleaned;
   }
 
   private cleanText(value?: string | null): string | undefined {
@@ -282,5 +269,34 @@ Language constraint: Strictly English.
     }
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized.length > 0 ? normalized : undefined;
+  }
+
+  private async isUrlAccessible(url: string): Promise<boolean> {
+    // Nếu là link redirect của Vertex AI Search Grounding, bỏ qua bước check 404
+    if (url.includes('vertexaisearch.cloud.google.com')) {
+      return true;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const response = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+      }).catch(async () => {
+        // Fallback sang GET nếu HEAD bị chặn hoặc lỗi
+        return await fetch(url, {
+          method: 'GET',
+          headers: { Range: 'bytes=0-0' },
+          signal: controller.signal,
+        });
+      });
+
+      clearTimeout(timeoutId);
+      return response.status !== 404;
+    } catch {
+      return false;
+    }
   }
 }
