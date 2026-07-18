@@ -3,7 +3,11 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://jobly.ai.vn/api"
+      },
+      "autoSubmit": true
     },
     "development": {
       "developmentClient": true,
@@ -16,10 +20,18 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://jobly.ai.vn/api"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "@GOOGLE_SERVICE_ACCOUNT_JSON",
+        "track": "internal"
+      }
+    }
   }
 }

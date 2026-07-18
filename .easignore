@@ -1,0 +1,26 @@
+.codegraph/
+.git/
+.idea/
+.vscode/
+.DS_Store
+
+# Next.js build cache (4.5 GB — not needed for mobile build)
+apps/web/.next/
+apps/web/dist/
+
+# Android prebuild artifacts (EAS rebuilds these)
+apps/mobile/android/
+
+# iOS build artifacts
+apps/mobile/ios/Pods/
+apps/mobile/ios/build/
+
+# Build outputs & cache
+dist/
+.turbo/
+.expo/
+*.tsbuildinfo
+
+# Python virtual env (if any)
+**/__pycache__/
+*.pyc
