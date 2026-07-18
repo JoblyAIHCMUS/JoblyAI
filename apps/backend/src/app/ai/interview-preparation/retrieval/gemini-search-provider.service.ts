@@ -283,33 +283,4 @@ Language constraint: Strictly English.
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized.length > 0 ? normalized : undefined;
   }
-
-  private async isUrlAccessible(url: string): Promise<boolean> {
-    // Nếu là link redirect của Vertex AI Search Grounding, bỏ qua bước check 404
-    if (url.includes('vertexaisearch.cloud.google.com')) {
-      return true;
-    }
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-      const response = await fetch(url, {
-        method: 'HEAD',
-        signal: controller.signal,
-      }).catch(async () => {
-        // Fallback sang GET nếu HEAD bị chặn hoặc lỗi
-        return await fetch(url, {
-          method: 'GET',
-          headers: { Range: 'bytes=0-0' },
-          signal: controller.signal,
-        });
-      });
-
-      clearTimeout(timeoutId);
-      return response.status !== 404;
-    } catch {
-      return false;
-    }
-  }
 }
