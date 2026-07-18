@@ -23,7 +23,7 @@ export interface ApplicantDetail {
 export const hiringStageProgress: Record<HiringStage, number> = {
   Applied: 20,
   Interview: 40,
-  Offer: 80,
+  Offered: 80,
   Rejected: 0,
   Withdrawn: 0,
 };
@@ -31,7 +31,7 @@ export const hiringStageProgress: Record<HiringStage, number> = {
 export const hiringStageColor: Record<HiringStage, string> = {
   Applied: 'bg-blue-500',
   Interview: 'bg-amber-500',
-  Offer: 'bg-green-500',
+  Offered: 'bg-green-500',
   Rejected: 'bg-red-500',
   Withdrawn: 'bg-gray-500',
 };

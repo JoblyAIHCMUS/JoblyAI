@@ -44,6 +44,8 @@ overrides:
   undici: ^7.28.0
   nodemailer: ^9.0.1
   adm-zip: '>=0.6.0'
+  '@xmldom/xmldom': '>=0.8.13'
+  node-forge: '>=1.4.0'
 
 importers:
 
@@ -6885,8 +6887,16 @@ packages:
     engines: {node: '>=18'}
 
   '@xhmikosr/os-filter-obj@3.0.0':
+<<<<<<< HEAD
     resolution: {integrity: sha512-siPY6BD5dQ2SZPl3I0OZBHL27ZqZvLEosObsZRQ1NUB8qcxegwt0T9eKtV96JMFQpIz1elhkzqOg4c/Ri6Dp9A==}
     engines: {node: ^14.14.0 || >=16.0.0}
+=======
+    resolution:
+      {
+        integrity: sha512-siPY6BD5dQ2SZPl3I0OZBHL27ZqZvLEosObsZRQ1NUB8qcxegwt0T9eKtV96JMFQpIz1elhkzqOg4c/Ri6Dp9A==,
+      }
+    engines: { node: ^14.14.0 || >=16.0.0 }
+>>>>>>> development
 
   '@xmldom/xmldom@0.8.13':
     resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
@@ -12115,8 +12125,16 @@ packages:
         optional: true
 
   node-fetch@3.3.2:
+<<<<<<< HEAD
     resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+=======
+    resolution:
+      {
+        integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==,
+      }
+    engines: { node: ^12.20.0 || ^14.13.1 || >=16.0.0 }
+>>>>>>> development
 
   node-forge@1.4.0:
     resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
@@ -17851,7 +17869,11 @@ snapshots:
 
   '@expo/plist@0.3.5':
     dependencies:
+<<<<<<< HEAD
       '@xmldom/xmldom': 0.8.13
+=======
+      '@xmldom/xmldom': 0.9.10
+>>>>>>> development
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
@@ -25781,7 +25803,10 @@ snapshots:
       nanoid: 3.3.8
       node-fetch: 2.6.7(encoding@0.1.13)
       node-forge: 1.4.0
+<<<<<<< HEAD
       node-stream-zip: 1.15.0
+=======
+>>>>>>> development
       nullthrows: 1.1.1
       ora: 5.1.0
       pkg-dir: 4.2.0
