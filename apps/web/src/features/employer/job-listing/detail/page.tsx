@@ -226,7 +226,7 @@ export default function JobListingDetailPage() {
           // Move from Applied to Interview
           await shortlist(appId);
           stageChangeApplied = true;
-        } else if (currentStage === 'Interview' && newStage === 'Offer') {
+        } else if (currentStage === 'Interview' && newStage === 'Offered') {
           // Move from Interview to Offer
           await moveToOffer(appId);
           stageChangeApplied = true;

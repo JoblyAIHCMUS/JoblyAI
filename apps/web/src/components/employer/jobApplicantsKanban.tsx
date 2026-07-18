@@ -43,7 +43,7 @@ const HIRING_STAGE_COLUMNS: {
     borderColor: 'border-t-amber-500',
   },
   {
-    stage: 'Offer',
+    stage: 'Offered',
     circleColor: 'green',
     borderColor: 'border-t-green-500',
   },
