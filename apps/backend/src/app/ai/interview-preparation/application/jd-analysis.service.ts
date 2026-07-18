@@ -89,7 +89,9 @@ export class JDAnalysisService {
         return JSON.parse(cached) as JDSignals;
       }
     } catch (cacheErr: any) {
-      this.logger.warn(`Failed to read JDSignals from Redis: ${cacheErr.message}`);
+      this.logger.warn(
+        `Failed to read JDSignals from Redis: ${cacheErr.message}`
+      );
     }
 
     const descriptionText = (jobDescription ?? '').trim();
@@ -124,11 +126,16 @@ Structured Requirements (from database):
 ${reqText}
 
 Job Description:
-${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descriptionText}`;
+${
+  descriptionText.length > 3000
+    ? descriptionText.slice(0, 3000) + '...'
+    : descriptionText
+}`;
 
     try {
-      const signals =
-        await this.aiProvider.generateStructuredData<JDSignals>(prompt);
+      const signals = await this.aiProvider.generateStructuredData<JDSignals>(
+        prompt
+      );
 
       const finalSignals = {
         level: signals.level ?? null,
@@ -142,10 +149,19 @@ ${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descr
       };
 
       try {
-        await this.redis.set(cacheKey, JSON.stringify(finalSignals), 'EX', 86400); // 24-hour cache
-        this.logger.log(`[Redis] Cached JDSignals for Job ${jobId} successfully`);
+        await this.redis.set(
+          cacheKey,
+          JSON.stringify(finalSignals),
+          'EX',
+          86400
+        ); // 24-hour cache
+        this.logger.log(
+          `[Redis] Cached JDSignals for Job ${jobId} successfully`
+        );
       } catch (cacheErr: any) {
-        this.logger.warn(`Failed to write JDSignals to Redis: ${cacheErr.message}`);
+        this.logger.warn(
+          `Failed to write JDSignals to Redis: ${cacheErr.message}`
+        );
       }
 
       return finalSignals;
@@ -170,7 +186,9 @@ ${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descr
       .slice(0, 7);
 
     const niceToHave = structuredRequirements
-      .filter((r) => r.importance === 'PREFERRED' || r.importance === 'OPTIONAL')
+      .filter(
+        (r) => r.importance === 'PREFERRED' || r.importance === 'OPTIONAL'
+      )
       .map((r) => r.name)
       .slice(0, 5);
 
@@ -187,9 +205,7 @@ ${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descr
     return parsedResume.skills.map((s) => s.name);
   }
 
-  private calculateExperienceYears(
-    parsedResume: ParsedResume | null
-  ): number {
+  private calculateExperienceYears(parsedResume: ParsedResume | null): number {
     if (!parsedResume?.experience?.length) return 0;
 
     const now = new Date();
@@ -254,9 +270,7 @@ ${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descr
     );
 
     return mustHaveCompetencies.filter((competency) => {
-      const normalizedComp = competency
-        .toLowerCase()
-        .replace(/[.\-_\s]/g, '');
+      const normalizedComp = competency.toLowerCase().replace(/[.\-_\s]/g, '');
       return !normalizedSkills.some(
         (skill) =>
           skill.includes(normalizedComp) || normalizedComp.includes(skill)
@@ -270,6 +284,8 @@ ${descriptionText.length > 3000 ? descriptionText.slice(0, 3000) + '...' : descr
   }
 
   private ensureArray(value: unknown): string[] {
-    return Array.isArray(value) ? value.filter((v) => typeof v === 'string') : [];
+    return Array.isArray(value)
+      ? value.filter((v) => typeof v === 'string')
+      : [];
   }
 }

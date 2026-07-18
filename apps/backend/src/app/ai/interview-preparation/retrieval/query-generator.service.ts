@@ -21,14 +21,14 @@ export class QueryGeneratorService {
       this.combineParts(companyName, roleName, 'interview experience'),
       this.combineParts(roleName, 'common interview questions'),
       // Competency-specific queries (top 3 only)
-      ...competencies.slice(0, 3).map((c) =>
-        this.combineParts(roleName, c, 'interview questions')
-      ),
+      ...competencies
+        .slice(0, 3)
+        .map((c) => this.combineParts(roleName, c, 'interview questions')),
     ];
 
     return this.unique(
-      queries.filter(
-        (query): query is string => Boolean(query && query.length > 0)
+      queries.filter((query): query is string =>
+        Boolean(query && query.length > 0)
       )
     ).slice(0, MAX_QUERIES);
   }

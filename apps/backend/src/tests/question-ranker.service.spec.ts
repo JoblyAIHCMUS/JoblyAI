@@ -117,6 +117,10 @@ describe('QuestionRankerService', () => {
 
   it('returns an empty grouped structure for invalid or empty input', () => {
     expect(service.rank([])).toEqual({ easy: [], medium: [], hard: [] });
-    expect(service.rank(null as unknown as [])).toEqual({ easy: [], medium: [], hard: [] });
+    expect(service.rank(null as unknown as [])).toEqual({
+      easy: [],
+      medium: [],
+      hard: [],
+    });
   });
 });

@@ -20,7 +20,9 @@ Candidate Profile:
 - Total Experience: ${context.candidateExperienceYears} years
 - Candidate Skills: ${context.candidateSkills.join(', ')}
 - Candidate Strengths: ${context.candidateStrengths.join(' | ')}
-- Identified Gaps (Required skills not found or weak in the candidate's CV): ${context.gaps.join(', ')}
+- Identified Gaps (Required skills not found or weak in the candidate's CV): ${context.gaps.join(
+      ', '
+    )}
 
 Based on the Job Description and the Candidate's Resume, generate exactly 4 personalized interview questions:
 1. Focus on the candidate's Gaps: Ask situational/problem-solving questions probing how they would handle tasks requiring these missing skills or how they plan to bridge them.

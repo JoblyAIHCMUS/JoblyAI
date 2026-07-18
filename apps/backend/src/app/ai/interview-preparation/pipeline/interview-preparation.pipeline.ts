@@ -74,7 +74,8 @@ export class InterviewPreparationPipeline {
       try {
         parsedResume = JSON.parse(resumeData.parsedText as string);
       } catch (parseErr: unknown) {
-        const message = parseErr instanceof Error ? parseErr.message : String(parseErr);
+        const message =
+          parseErr instanceof Error ? parseErr.message : String(parseErr);
         this.logger.warn(`Failed to parse resume parsedText: ${message}`);
       }
     }
@@ -126,9 +127,9 @@ export class InterviewPreparationPipeline {
     profiler.end();
 
     this.logger.log(
-      `Interview Prep Pipeline completed successfully in ${profiler.getTotalMs().toFixed(1)}ms. Timings: ${JSON.stringify(
-        profiler.getSummary()
-      )}`
+      `Interview Prep Pipeline completed successfully in ${profiler
+        .getTotalMs()
+        .toFixed(1)}ms. Timings: ${JSON.stringify(profiler.getSummary())}`
     );
 
     return groupedQuestions;
@@ -138,8 +139,12 @@ export class InterviewPreparationPipeline {
     context: InterviewContext
   ): Promise<InterviewQuestion[]> {
     const prompt = this.interviewPromptBuilder.build(context);
-    this.logger.log('Generating personalized AI questions from gap analysis...');
-    const result = await this.aiProvider.generateStructuredData<InterviewQuestion[]>(prompt);
+    this.logger.log(
+      'Generating personalized AI questions from gap analysis...'
+    );
+    const result = await this.aiProvider.generateStructuredData<
+      InterviewQuestion[]
+    >(prompt);
     if (!Array.isArray(result)) {
       return [];
     }
@@ -158,22 +163,33 @@ export class InterviewPreparationPipeline {
         return JSON.parse(cached) as InterviewQuestion[];
       }
     } catch (cacheErr: any) {
-      this.logger.warn(`Failed to read web_questions from Redis: ${cacheErr.message}`);
+      this.logger.warn(
+        `Failed to read web_questions from Redis: ${cacheErr.message}`
+      );
     }
 
     const webQuestions = await this.searchProvider
       .searchAndExtract(context, queries)
       .catch((err) => {
-        this.logger.error(`Web search question extraction failed: ${err.message}`);
+        this.logger.error(
+          `Web search question extraction failed: ${err.message}`
+        );
         return [];
       });
 
     if (webQuestions.length > 0) {
       try {
-        await this.redis.set(cacheKey, JSON.stringify(webQuestions), 'EX', 86400); // 24-hour cache
+        await this.redis.set(
+          cacheKey,
+          JSON.stringify(webQuestions),
+          'EX',
+          86400
+        ); // 24-hour cache
         this.logger.log(`[Redis] Cached web_questions successfully`);
       } catch (cacheErr: any) {
-        this.logger.warn(`Failed to write web_questions to Redis: ${cacheErr.message}`);
+        this.logger.warn(
+          `Failed to write web_questions to Redis: ${cacheErr.message}`
+        );
       }
     }
 

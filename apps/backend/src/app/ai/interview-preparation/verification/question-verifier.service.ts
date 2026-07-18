@@ -23,7 +23,8 @@ export class QuestionVerifierService {
         continue;
       }
 
-      const origin = q.origin === 'ai_generated' ? 'ai_generated' : 'web_search';
+      const origin =
+        q.origin === 'ai_generated' ? 'ai_generated' : 'web_search';
 
       // Check sources: must have at least one valid source if web_search
       let validSources: { title: string; url: string }[] = [];

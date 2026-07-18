@@ -506,7 +506,8 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   Analyzing CV & JD signals...
                 </p>
                 <p className="text-xs text-muted-foreground/80">
-                  This process may take up to 40 seconds. Please do not close this window.
+                  This process may take up to 40 seconds. Please do not close
+                  this window.
                 </p>
               </div>
             </div>
