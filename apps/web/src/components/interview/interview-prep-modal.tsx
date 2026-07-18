@@ -506,8 +506,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                   Analyzing CV & JD signals...
                 </p>
                 <p className="text-xs text-muted-foreground/80">
-                  This process takes about 30-60 seconds. You can close this
-                  modal and return later; we will notify you when it's ready.
+                  This process takes about 30-60 seconds. You can close this modal and return later; we will notify you when it's ready.
                 </p>
               </div>
             </div>
@@ -524,8 +523,8 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   We will analyze your CV against the JD to find critical gaps,
-                  strengths, and web resources to prepare targeted questions
-                  (Easy, Medium, Hard).
+                  strengths, and web resources to prepare targeted
+                  questions (Easy, Medium, Hard).
                 </p>
               </div>
               <Button
@@ -543,8 +542,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
               </Button>
               {(data?.status === InterviewPrepStatus.PENDING || loading) && (
                 <p className="text-xs text-muted-foreground animate-pulse max-w-[280px]">
-                  Takes 30-60s. You can safely close this modal; we will notify
-                  you once it's ready.
+                  Takes 30-60s. You can safely close this modal; we will notify you once it's ready.
                 </p>
               )}
             </div>
