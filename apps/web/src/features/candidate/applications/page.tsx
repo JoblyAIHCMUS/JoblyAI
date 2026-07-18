@@ -71,8 +71,11 @@ export default function CandidateApplicationsPage() {
     jobTypeOptions,
     locationOptions,
   } = useCandidateDashboard();
-  const { withdrawApplication, loading: isWithdrawing } = useWithdrawApplication();
-  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(null);
+  const { withdrawApplication, loading: isWithdrawing } =
+    useWithdrawApplication();
+  const [withdrawTarget, setWithdrawTarget] = useState<ApplicationItem | null>(
+    null
+  );
 
   const {
     isFilterDialogOpen,
@@ -99,10 +102,7 @@ export default function CandidateApplicationsPage() {
       : `from ${dateRangeLabel}`;
   const activityRangeText = `Here’s the status of your applications ${activityStatusText}.`;
 
-  const handleMoreActionSelect = (
-    option: string,
-    item: ApplicationItem
-  ) => {
+  const handleMoreActionSelect = (option: string, item: ApplicationItem) => {
     if (option === 'Withdraw application') {
       setWithdrawTarget(item);
     }
