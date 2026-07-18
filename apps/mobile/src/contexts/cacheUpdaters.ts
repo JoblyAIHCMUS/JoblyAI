@@ -11,18 +11,19 @@ export function applyNewMessageToSummary(
 ): ChatSummary[] | undefined {
   if (!old) return undefined;
   const next = old.map((c) =>
-    c.participantId === msg.senderId
+    c.chatId === msg.chatId
       ? {
           ...c,
           latestMessage: msg.content,
           lastMessageAt: msg.timestamp,
-          hasUnread: true,
+          // Recipient (other person sent it) → unread. Sender (I sent it) → read.
+          hasUnread: msg.senderId === c.participantId,
         }
       : c
   );
   return [...next].sort((a, b) => {
-    if (a.participantId === msg.senderId) return -1;
-    if (b.participantId === msg.senderId) return 1;
+    if (a.chatId === msg.chatId) return -1;
+    if (b.chatId === msg.chatId) return 1;
     return (
       new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
     );

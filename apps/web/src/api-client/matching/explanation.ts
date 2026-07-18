@@ -52,3 +52,16 @@ export const recalculateMatchExplanation = async (
   );
   return response.data;
 };
+
+export const getJobResumeMatchExplanation = async (
+  jobId: number,
+  resumeId: number
+): Promise<MatchExplanation> => {
+  const response = await axios.get(
+    `${API_BASE_URL}/api/matching/job/${Number(jobId)}/resume/${Number(
+      resumeId
+    )}/explanation`,
+    { withCredentials: true }
+  );
+  return response.data;
+};

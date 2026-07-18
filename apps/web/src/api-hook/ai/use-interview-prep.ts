@@ -32,7 +32,7 @@ export const useInterviewPrep = (jobId: number) => {
         setLoading(false);
       } else {
         toast.info(
-          'AI is generating your interview questions. This may take a few moments...'
+          'AI is generating your interview questions. This process may take up to 40 seconds...'
         );
       }
     } catch (error: any) {
@@ -48,7 +48,9 @@ export const useInterviewPrep = (jobId: number) => {
     try {
       const prep = await interviewPrepService.regeneratePrep(jobId);
       setData(prep);
-      toast.info('AI is regenerating your interview questions...');
+      toast.info(
+        'AI is regenerating your interview questions. This process may take up to 40 seconds...'
+      );
     } catch (error: any) {
       toast.error(
         error.response?.data?.message || 'Failed to regenerate interview prep'
@@ -79,10 +81,32 @@ export const useInterviewPrep = (jobId: number) => {
       }
     };
 
+    const handleFailed = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        jobId: number;
+        error?: string;
+      }>;
+      if (
+        customEvent.detail &&
+        Number(customEvent.detail.jobId) === Number(jobId)
+      ) {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: InterviewPrepStatus.FAILED,
+          };
+        });
+        setLoading(false);
+      }
+    };
+
     window.addEventListener('ai-interview-prep-ready', handleReady);
+    window.addEventListener('ai-interview-prep-failed', handleFailed);
 
     return () => {
       window.removeEventListener('ai-interview-prep-ready', handleReady);
+      window.removeEventListener('ai-interview-prep-failed', handleFailed);
     };
   }, [jobId]);
 

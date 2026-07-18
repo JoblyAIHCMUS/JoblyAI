@@ -21,6 +21,7 @@ export const Slider = React.forwardRef<
       ref={ref}
       className={cn(
         'relative flex w-full touch-none select-none items-center',
+        'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
         className
       )}
       {...props}
@@ -32,7 +33,8 @@ export const Slider = React.forwardRef<
         className={cn(
           'block h-[18px] w-[18px] rounded-full border border-slate-300 bg-white shadow-sm outline-none transition-transform',
           'hover:scale-105',
-          'focus-visible:ring-2 focus-visible:ring-[var(--ai-accent-soft)] focus-visible:ring-offset-2'
+          'focus-visible:ring-2 focus-visible:ring-[var(--ai-accent-soft)] focus-visible:ring-offset-2',
+          'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50'
         )}
         aria-label="Value"
       />

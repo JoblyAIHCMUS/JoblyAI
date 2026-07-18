@@ -1,6 +1,9 @@
 import { USER_ROLE } from '@/app/constants/role';
 
-export function canAccessRoute(pathname: string, role?: string) {
+export function canAccessRoute(
+  pathname: string,
+  role?: string | null
+): boolean {
   if (!role) {
     return false;
   }

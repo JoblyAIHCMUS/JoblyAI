@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { useUser } from '../hooks/useUser';
+import { useAuth } from '../hooks/useAuth';
 import {
   registerForPushNotifications,
   syncRefreshedPushToken,
@@ -10,7 +10,7 @@ import { getNotificationRoute } from '@/utils/notification-navigation';
 
 export function NotificationManager() {
   const router = useRouter();
-  const { data: user } = useUser();
+  const { user } = useAuth();
   const handledResponseId = useRef<string | null>(null);
 
   useEffect(() => {

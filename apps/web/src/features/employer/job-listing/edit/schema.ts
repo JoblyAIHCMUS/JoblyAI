@@ -86,6 +86,7 @@ export const jobPostingSchema = z
       .number()
       .min(0, 'Threshold must be between 0 and 100')
       .max(100, 'Threshold must be between 0 and 100'),
+    preShortlistEnabled: z.boolean(),
     preShortlistQuestions: z.array(
       z.object({
         question: z

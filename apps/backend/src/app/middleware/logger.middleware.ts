@@ -18,6 +18,11 @@ export class LoggerMiddleware implements NestMiddleware {
       const contentLength = res.get('content-length');
       const duration = Date.now() - startTime;
 
+      // Skip logging successful session checks to reduce log clutter
+      if (originalUrl.includes('/api/auth/get-session') && statusCode < 400) {
+        return;
+      }
+
       this.logger.log(
         `${method} ${originalUrl} ${statusCode} ${contentLength}b - ${duration}ms - ${userAgent} ${ip}`
       );

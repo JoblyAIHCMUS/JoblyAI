@@ -6,19 +6,15 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import * as DocumentPicker from '@react-native-documents/picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { File as ExpoFile, Paths } from 'expo-file-system/next';
 import * as Sharing from 'expo-sharing';
 import Pdf from 'react-native-pdf';
 import {
   Download,
   Trash2,
   Star,
-  Wand2,
   Code2,
-  BriefcaseBusiness,
   Eye,
   X,
   Upload,
@@ -27,7 +23,7 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import type { CandidateResume } from '@/types/candidate';
-import type { ProcessingTasks } from '@/context/AiProcessingContext';
+import type { ProcessingTasks } from '@/contexts/AiProcessingContext';
 import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 
 interface CVProps {
@@ -42,7 +38,6 @@ interface CVProps {
   onSelectResume?: (resumeId: number) => Promise<void> | void;
   onDeleteResume?: (resumeId: number) => void;
   onTriggerParse?: (resumeId: number) => void;
-  onTriggerScore?: (resumeId: number) => void;
   onSyncResume?: (resumeId: number, parsedData: any) => void;
   maxResumes?: number;
   isUploading?: boolean;
@@ -60,7 +55,6 @@ export function CV({
   onSelectResume,
   onDeleteResume,
   onTriggerParse,
-  onTriggerScore,
   onSyncResume,
   maxResumes = 5,
   isUploading = false,
@@ -70,7 +64,6 @@ export function CV({
   deletingResumeId = null,
   uploadError = null,
 }: CVProps) {
-  const router = useRouter();
   const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -209,7 +202,6 @@ export function CV({
           {sortedResumes.map((resume) => {
             const isActive = resume.isDefault;
             const isParsing = processingTasks[resume.id]?.parsing;
-            const isScoring = processingTasks[resume.id]?.scoring;
             const hasParseData =
               !!resume.parsedText &&
               Object.keys(JSON.parse(resume.parsedText || '{}')).length > 0;
@@ -259,39 +251,6 @@ export function CV({
                   </TouchableOpacity>
                 </View>
 
-                {resume.aiScore !== null &&
-                  (() => {
-                    const scorePct = Math.round((resume.aiScore ?? 0) * 100);
-                    return (
-                      <View className="flex flex-row items-center gap-1.5 mt-2">
-                        <Text className="text-[10px] text-[#6b7280]">
-                          AI Score:
-                        </Text>
-                        <View
-                          className={`px-2 py-0.5 rounded ${
-                            scorePct >= 70
-                              ? 'bg-green-100'
-                              : scorePct >= 40
-                              ? 'bg-amber-100'
-                              : 'bg-red-100'
-                          }`}
-                        >
-                          <Text
-                            className={`text-[10px] font-semibold ${
-                              scorePct >= 70
-                                ? 'text-green-700'
-                                : scorePct >= 40
-                                ? 'text-amber-700'
-                                : 'text-red-700'
-                            }`}
-                          >
-                            {scorePct}%
-                          </Text>
-                        </View>
-                      </View>
-                    );
-                  })()}
-
                 <View className="flex flex-row flex-wrap items-center gap-1.5 mt-2 pt-2 border-t border-[#f0f0f5]">
                   <TouchableOpacity
                     onPress={() => handlePreview(resume)}
@@ -321,25 +280,6 @@ export function CV({
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => onTriggerScore?.(resume.id)}
-                    disabled={isBusy || isScoring}
-                    className={`h-8 w-8 items-center justify-center rounded-md border ${
-                      resume.aiScore !== null
-                        ? 'border-green-400 bg-green-50'
-                        : 'border-indigo-200 bg-indigo-50'
-                    }`}
-                  >
-                    {isScoring ? (
-                      <ActivityIndicator size="small" color="#4f46e5" />
-                    ) : (
-                      <Wand2
-                        size={14}
-                        color={resume.aiScore !== null ? '#16a34a' : '#4f46e5'}
-                      />
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
                     onPress={() => handleSyncPress(resume)}
                     disabled={isBusy || !canSync}
                     className={`h-8 w-8 items-center justify-center rounded-md border ${
@@ -352,14 +292,6 @@ export function CV({
                       size={14}
                       color={canSync ? 'white' : '#d1d5db'}
                     />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => router.push('/pages/find-jobs')}
-                    disabled={isBusy}
-                    className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
-                  >
-                    <BriefcaseBusiness size={14} color="#6b7280" />
                   </TouchableOpacity>
 
                   <TouchableOpacity

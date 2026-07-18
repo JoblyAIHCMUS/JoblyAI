@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Stepper } from '@/components/ui/stepper';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEmployerJobDetail } from '@/api-hook/jobs';
 import { useUpdateJob } from '@/api-hook/jobs';
 import { useCategories } from '@/api-hook/jobs';
@@ -125,6 +124,7 @@ export default function JobListingEditPage() {
       salaryMax: undefined,
       skills: [],
       preShortlistThreshold: 0,
+      preShortlistEnabled: false,
       preShortlistQuestions: [],
     },
   });
@@ -178,6 +178,8 @@ export default function JobListingEditPage() {
       })),
       preShortlistThreshold:
         preShortlistData.threshold ?? jobData.preShortlistThreshold ?? 0,
+      preShortlistEnabled:
+        preShortlistData.enabled ?? jobData.preShortlistEnabled ?? false,
       preShortlistQuestions: (preShortlistData.questions || [])
         .slice()
         .sort((a, b) => a.order - b.order)
@@ -223,7 +225,15 @@ export default function JobListingEditPage() {
         return !errors.description && !isHtmlContentEmpty(description);
       case 2: // Pre-Shortlist
         if (!canEditQuestions) {
+          // Locked jobs: only the threshold is editable (and it's frozen in
+          // practice). Skip the questions check.
           return !errors.preShortlistThreshold;
+        }
+        // When the toggle is off, the threshold and questions sections are
+        // hidden — skip their validation so a user with hidden content
+        // (preserved from a prior edit or AI generation) can still proceed.
+        if (!currentValues.preShortlistEnabled) {
+          return true;
         }
         return (
           !errors.preShortlistThreshold &&
@@ -284,6 +294,7 @@ export default function JobListingEditPage() {
         salaryMax: data.salaryMax ?? undefined,
         requirements,
         preShortlistThreshold: data.preShortlistThreshold,
+        preShortlistEnabled: data.preShortlistEnabled,
         preShortlistQuestions: data.preShortlistQuestions,
       };
 
@@ -632,19 +643,12 @@ export default function JobListingEditPage() {
           </div>
 
           {/* Step 3: Pre-Shortlist */}
-          {!canEditQuestions && preShortlistData.questions.length > 0 ? (
-            <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
-              <Alert>
-                <AlertDescription>
-                  Pre-shortlist questions are locked because this job has
-                  received applications.
-                </AlertDescription>
-              </Alert>
-              <PreShortlistStep readOnly />
-            </div>
-          ) : (
-            <PreShortlistStep />
-          )}
+          <div className="space-y-4 max-w-2xl mx-auto px-3 sm:px-0">
+            <PreShortlistStep
+              readOnly={!canEditQuestions}
+              configLocked={!canEditQuestions}
+            />
+          </div>
         </Stepper>
       </FormProvider>
     </div>

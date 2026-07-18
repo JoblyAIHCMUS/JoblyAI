@@ -57,58 +57,6 @@ function getIndustry(company: Company): string {
   return company.industry?.trim() || 'Technology';
 }
 
-function normalizeSizeRange(sizeRange: string): string {
-  return sizeRange.replace(/\s+/g, '').replace(/,/g, '');
-}
-
-function getCompanySizeGroup(company: Company): CompanySizeFilter | null {
-  const normalizedSizeRange = normalizeSizeRange(company.sizeRange ?? '');
-
-  if (!normalizedSizeRange) {
-    return null;
-  }
-
-  const explicitGroup = (
-    Object.entries(COMPANY_SIZE_RANGE_MAP) as Array<
-      [Exclude<CompanySizeFilter, 'All'>, string[]]
-    >
-  ).find(([, ranges]) => ranges.includes(normalizedSizeRange))?.[0];
-
-  if (explicitGroup) {
-    return explicitGroup;
-  }
-
-  const rangeMatch = normalizedSizeRange.match(/^(\d+)-(\d+)$/);
-  if (rangeMatch) {
-    const [, minValue, maxValue] = rangeMatch;
-    const min = Number(minValue);
-    const max = Number(maxValue);
-
-    if (min >= 1 && max <= 50) {
-      return 'Startup';
-    }
-
-    if (min >= 11 && max <= 200) {
-      return 'Small';
-    }
-
-    if (min >= 201 && max <= 1000) {
-      return 'Medium';
-    }
-
-    if (min >= 1000) {
-      return 'Large';
-    }
-  }
-
-  const plusMatch = normalizedSizeRange.match(/^(\d+)\+$/);
-  if (plusMatch && Number(plusMatch[1]) >= 1000) {
-    return 'Large';
-  }
-
-  return null;
-}
-
 function getShortDescription(company: Company): string {
   const description = company.description?.trim();
 
@@ -204,54 +152,25 @@ export default function BrowseCompaniesPage() {
     useState<CompanySizeFilter>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
-  const { companies, loading, error, refetch } = useCompanies();
 
-  const filteredCompanies = useMemo(() => {
-    const normalizedSearch = appliedSearchTerm.trim().toLowerCase();
-    const normalizedLocation = appliedLocation.trim().toLowerCase();
+  const sizeRange = useMemo<string[] | undefined>(() => {
+    if (selectedCompanySize === 'All') return undefined;
+    return COMPANY_SIZE_RANGE_MAP[selectedCompanySize];
+  }, [selectedCompanySize]);
 
-    return companies.filter((company) => {
-      const industry = getIndustry(company);
-      const matchesCompanySize =
-        selectedCompanySize === 'All' ||
-        getCompanySizeGroup(company) === selectedCompanySize;
-      const searchableText = [
-        company.name,
-        industry,
-        company.description ?? '',
-        company.websiteUrl ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-      const matchesSearch =
-        !normalizedSearch || searchableText.includes(normalizedSearch);
-      const matchesLocation =
-        !normalizedLocation || searchableText.includes(normalizedLocation);
-
-      return matchesCompanySize && matchesSearch && matchesLocation;
+  const { companies, total, totalPages, loading, error, refetch } =
+    useCompanies({
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+      q: appliedSearchTerm.trim() || undefined,
+      location: appliedLocation.trim() || undefined,
+      sizeRange,
     });
-  }, [appliedLocation, appliedSearchTerm, companies, selectedCompanySize]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCompanies.length / PAGE_SIZE)
-  );
-
-  const visibleCompanies = useMemo(() => {
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
-    return filteredCompanies.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [currentPage, filteredCompanies]);
 
   useEffect(
     () => setCurrentPage(1),
     [appliedLocation, appliedSearchTerm, selectedCompanySize]
   );
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
 
   const handleSearch = () => {
     setAppliedSearchTerm(localSearchTerm);
@@ -431,7 +350,7 @@ export default function BrowseCompaniesPage() {
                 <Building2 size={20} color="#4f46e5" />
               </View>
               <Text className="text-2xl font-semibold text-[#0f172a]">
-                {filteredCompanies.length} Results
+                {total} Results
               </Text>
             </View>
 
@@ -448,7 +367,7 @@ export default function BrowseCompaniesPage() {
                   Unable to load companies. Pull to refresh.
                 </Text>
               </View>
-            ) : visibleCompanies.length === 0 ? (
+            ) : companies.length === 0 ? (
               <View className="mt-6 rounded-lg bg-[#f8fafc] px-4 py-8">
                 <Text className="text-center text-base text-[#64748b]">
                   {hasActiveSearch
@@ -458,7 +377,7 @@ export default function BrowseCompaniesPage() {
               </View>
             ) : (
               <View className="mt-6 gap-6">
-                {visibleCompanies.map((company) => (
+                {companies.map((company) => (
                   <CompanyCard
                     key={company.id}
                     company={company}
@@ -477,7 +396,7 @@ export default function BrowseCompaniesPage() {
           </View>
         </ScrollView>
 
-        {totalPages > 1 && visibleCompanies.length > 0 ? (
+        {totalPages > 1 && companies.length > 0 ? (
           <View
             className="border-t border-app-gray-1 bg-app-white-1 px-4 py-3"
             style={{ paddingBottom: 12 + insets.bottom }}

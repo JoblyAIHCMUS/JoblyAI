@@ -4,7 +4,7 @@
     "slug": "jobly-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/jobly-logo.png",
     "scheme": "jobly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,8 +17,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/jobly-logo.png",
+        "monochromeImage": "./assets/images/jobly-logo-monochrome.png",
+        "backgroundColor": "#4F46E5"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.jobly.mobile",
@@ -28,16 +29,19 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/jobly-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#4F46E5"
         }
       ],
       "expo-router",
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
       "expo-notifications"
-    ]
+    ],
+    "web": {
+      "favicon": "./assets/images/jobly-logo.png"
+    }
   }
 }

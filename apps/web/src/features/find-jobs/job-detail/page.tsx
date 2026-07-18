@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { renderDescription } from '@/lib/utils';
 import { useRole } from '@/contexts/role-context';
 import { usePageTitle } from '@/contexts/page-title-context';
@@ -10,6 +10,7 @@ import JobDetailHeader from '@/components/job-detail/JobDetailHeader';
 import JobDetailContent from '@/components/job-detail/JobDetailContent';
 import JobCompanySection from '@/components/job-detail/JobCompanySection';
 import JobDetailSimilarJobs from '@/components/job-detail/JobDetailSimilarJobs';
+import { CandidateMatchExplanationSection } from '@/components/find-jobs/CandidateMatchExplanationSection';
 import { useJobDetail } from '@/api-hook/jobs/useJobDetail';
 import { useListCandidateApplications } from '@/api-hook/application';
 import { useUser } from '@/hooks/useUser';
@@ -35,6 +36,7 @@ export default function JobDetailPage() {
   const jobId = params?.id;
   const role = useRole();
   const { setTitle } = usePageTitle();
+  const searchParams = useSearchParams();
 
   // Role-aware navigation link
   const findJobsHref =
@@ -52,6 +54,15 @@ export default function JobDetailPage() {
   const [jobData, setJobData] = useState<JobPosting | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
   const [appsList, setAppsList] = useState<ApplicationRecord[]>([]);
+
+  const resumeIdParam = searchParams.get('resumeId');
+  const matchAnalysis =
+    role === 'candidate' &&
+    jobId &&
+    resumeIdParam &&
+    !Number.isNaN(Number(resumeIdParam))
+      ? { jobId: Number(jobId), resumeId: Number(resumeIdParam) }
+      : null;
 
   useEffect(() => {
     setTitle('Job Description');
@@ -181,7 +192,7 @@ export default function JobDetailPage() {
       {(() => {
         const preShortlistEligible =
           jobData !== null &&
-          jobData.preShortlistThreshold > 0 &&
+          jobData.preShortlistEnabled === true &&
           jobData.preShortlistQuestions.length > 0;
         const matchingApp = appsList.find((a) => a.jobId === pageData.jobId);
         const preShortlistState: 'NONE' | 'PENDING' | 'SUBMITTED' =
@@ -205,6 +216,14 @@ export default function JobDetailPage() {
           />
         );
       })()}
+      {matchAnalysis && (
+        <div className="mx-auto w-full max-w-[1240px] px-4 pt-6 sm:px-6 lg:px-8">
+          <CandidateMatchExplanationSection
+            jobId={matchAnalysis.jobId}
+            resumeId={matchAnalysis.resumeId}
+          />
+        </div>
+      )}
       <JobDetailContent {...jobDetailProps} />
       <JobCompanySection
         company={pageData.company}

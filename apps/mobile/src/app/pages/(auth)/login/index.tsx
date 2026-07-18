@@ -12,6 +12,7 @@ import {
   AuthDivider,
 } from '../../../components/shared/GoogleAuthButton';
 import { useLogin } from '../../../../hooks/useAuth';
+import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
 
@@ -35,8 +36,8 @@ const LoginPage = () => {
         throw error;
       }
 
-      const { data: session } = await authClient.getSession();
-      const role = (session?.user as { role?: string } | undefined)?.role;
+      const session = await getSession();
+      const role = session?.user?.role;
 
       if (role === 'employer') {
         router.replace('/pages/employer/dashboard');
@@ -79,13 +80,14 @@ const LoginPage = () => {
     try {
       const result = await login({ email, password, rememberMe });
 
-      // Role-based redirect
+      await authClient.getSession();
+
       if (result.user.role === 'employer') {
-        router.push('/pages/employer/dashboard');
+        router.replace('/pages/employer/dashboard');
       } else if (result.user.role === 'candidate') {
-        router.push('/pages/candidate/dashboard');
+        router.replace('/pages/candidate/dashboard');
       } else {
-        router.push('/');
+        router.replace('/');
       }
     } catch (err) {
       Toast.show({

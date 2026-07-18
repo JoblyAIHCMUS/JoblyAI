@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Send, UserPlus, Star, MoreVertical, ArrowLeft } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -78,10 +78,10 @@ export function ChatWindow({
               onClick={onBackClick}
               className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
             >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:h-5 text-slate-600" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 text-slate-600" />
             </Button>
           )}
-          <Avatar className="h-10 w-10 sm:h-11 sm:h-11 md:h-12 md:w-12 flex-shrink-0">
+          <Avatar className="h-10 w-10 sm:h-11 md:h-12 md:w-12 flex-shrink-0">
             <AvatarImage
               src={conversation.avatar ?? undefined}
               alt={conversation.name ?? undefined}
@@ -98,29 +98,6 @@ export function ChatWindow({
               {conversation.role}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:h-10"
-          >
-            <UserPlus className="h-4 w-4 sm:h-5 sm:h-5 text-slate-600" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:h-10 hidden xs:flex"
-          >
-            <Star className="h-4 w-4 sm:h-5 sm:h-5 text-slate-600" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:h-10 hidden sm:flex"
-          >
-            <MoreVertical className="h-4 w-4 sm:h-5 sm:h-5 text-slate-600" />
-          </Button>
         </div>
       </div>
 
@@ -163,7 +140,7 @@ export function ChatWindow({
             onClick={handleSendMessage}
             className="bg-[var(--bg-accent-solid)] hover:bg-[var(--bg-accent-solid-hover)] text-[var(--text-white)] px-2 sm:px-4 md:px-6 h-8 sm:h-9 md:h-10 text-xs sm:text-sm md:text-base flex-shrink-0"
           >
-            <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-4 md:h-4" />
+            <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-4" />
           </Button>
         </div>
       </div>

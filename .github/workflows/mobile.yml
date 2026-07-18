@@ -61,8 +61,9 @@ jobs:
           test -d node_modules/react-native-safe-area-context
       # 3a. Run format check
       - run: pnpm nx format:check --base=origin/main --head=HEAD
-      # 3b. Package audit
-      - run: pnpm audit --audit-level=high --prod
+      # 3b. Package audit (pnpm 10's built-in audit hits the retired npm
+      # /security/audits endpoint, so we use the OSV-based script in package.json)
+      - run: pnpm run audit --audit-level=high --prod
       # 4. Run mobile lint
       - run: pnpm nx run @jobly/mobile:lint
 

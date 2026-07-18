@@ -8,7 +8,8 @@
     "lint": "nx affected -t lint test",
     "ios": "expo run:ios",
     "format": "prettier --write . --ignore-unknown",
-    "format:check": "prettier --check . --ignore-unknown"
+    "format:check": "prettier --check . --ignore-unknown",
+    "audit": "node scripts/audit.mjs"
   },
   "private": true,
   "devDependencies": {
@@ -145,7 +146,8 @@
       "esbuild": ">=0.28.1",
       "form-data": "4.0.6",
       "undici": "^7.28.0",
-      "nodemailer": "^9.0.1"
+      "nodemailer": "^9.0.1",
+      "adm-zip": ">=0.6.0"
     }
   },
   "resolutions": {

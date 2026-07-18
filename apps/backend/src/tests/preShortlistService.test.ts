@@ -21,6 +21,9 @@ const mockPrisma = vi.hoisted(() => ({
     findUnique: vi.fn(),
     update: vi.fn(),
   },
+  employer: {
+    findFirst: vi.fn(),
+  },
   preShortlistQuestion: {
     findMany: vi.fn(),
   },
@@ -193,8 +196,9 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     );
   });
 
-  it('returns APPLIED when the job has no threshold', async () => {
+  it('returns APPLIED when preShortlistEnabled is false regardless of threshold', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: false,
       preShortlistThreshold: 0,
       _count: { preShortlistQuestions: 5 },
     });
@@ -202,17 +206,49 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     expect(result).toBe('APPLIED');
   });
 
-  it('returns APPLIED when the job has no questions', async () => {
+  it('returns APPLIED when enabled=true but no questions exist', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
-      preShortlistThreshold: 50,
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
       _count: { preShortlistQuestions: 0 },
     });
     const result = await service.resolveInitialStatus(1, 95);
     expect(result).toBe('APPLIED');
   });
 
-  it('returns APPLIED when matchPercentage is below threshold', async () => {
+  it('returns PRE_SHORTLIST_PENDING when threshold=0, questions exist, any match%', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      _count: { preShortlistQuestions: 3 },
+    });
+    const result = await service.resolveInitialStatus(1, 42);
+    expect(result).toBe('PRE_SHORTLIST_PENDING');
+  });
+
+  it('returns PRE_SHORTLIST_PENDING when threshold=0, questions exist, match% is null', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      _count: { preShortlistQuestions: 3 },
+    });
+    const result = await service.resolveInitialStatus(1, null);
+    expect(result).toBe('PRE_SHORTLIST_PENDING');
+  });
+
+  it('returns APPLIED when enabled=false even with high match%', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: false,
+      preShortlistThreshold: 80,
+      _count: { preShortlistQuestions: 5 },
+    });
+    const result = await service.resolveInitialStatus(1, 95);
+    expect(result).toBe('APPLIED');
+  });
+
+  it('returns APPLIED when threshold > 0 but match% is below', async () => {
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
       preShortlistThreshold: 50,
       _count: { preShortlistQuestions: 3 },
     });
@@ -220,8 +256,9 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     expect(result).toBe('APPLIED');
   });
 
-  it('returns PRE_SHORTLIST_PENDING when matchPercentage meets threshold and questions exist', async () => {
+  it('returns PRE_SHORTLIST_PENDING when threshold > 0 and match% meets threshold', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
       preShortlistThreshold: 50,
       _count: { preShortlistQuestions: 3 },
     });
@@ -229,8 +266,9 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     expect(result).toBe('PRE_SHORTLIST_PENDING');
   });
 
-  it('returns PRE_SHORTLIST_PENDING when matchPercentage exactly equals threshold', async () => {
+  it('returns PRE_SHORTLIST_PENDING when threshold > 0 and match% exactly equals threshold', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
       preShortlistThreshold: 50,
       _count: { preShortlistQuestions: 3 },
     });
@@ -238,8 +276,9 @@ describe('PreShortlistService.resolveInitialStatus', () => {
     expect(result).toBe('PRE_SHORTLIST_PENDING');
   });
 
-  it('returns APPLIED when matchPercentage is null and threshold > 0', async () => {
+  it('returns APPLIED when threshold > 0 and match% is null', async () => {
     mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      preShortlistEnabled: true,
       preShortlistThreshold: 50,
       _count: { preShortlistQuestions: 3 },
     });
@@ -259,6 +298,7 @@ describe('PreShortlistService.submitAnswers', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
     service = new PreShortlistService(
       mockPrisma as any,
       mockQueue,
@@ -372,5 +412,72 @@ describe('PreShortlistService.submitAnswers', () => {
       { applicationId: 1 },
       expect.any(Object)
     );
+  });
+});
+
+describe('PreShortlistService.getQuestionsForJob', () => {
+  let service: PreShortlistService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
+    service = new PreShortlistService(
+      mockPrisma as any,
+      mockQueue,
+      mockAiGateway as any
+    );
+  });
+
+  it('returns the questions for a company admin who did not post the job', async () => {
+    // Arrange: job posted by a different user; the requester is the company admin
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      postedById: 'poster-user',
+      companyId: 1,
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      preShortlistQuestions: [
+        {
+          id: 'q1',
+          order: 1,
+          question: 'Q?',
+          expectedAnswer: 'A',
+        },
+      ],
+    });
+    // Requester has role 'admin' in the Employer table
+    mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+
+    // Act
+    const result = await service.getQuestionsForJob(433, 'company-admin-user');
+
+    // Assert
+    expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+      where: {
+        companyId: 1,
+        employerId: 'company-admin-user',
+        role: 'admin',
+      },
+      select: { id: true },
+    });
+    expect(result.enabled).toBe(true);
+    expect(result.questions).toHaveLength(1);
+  });
+
+  it('throws ForbiddenException when the requester is a company member but not the admin', async () => {
+    // Arrange
+    mockPrisma.jobPosting.findUnique.mockResolvedValue({
+      postedById: 'poster-user',
+      companyId: 1,
+      preShortlistEnabled: true,
+      preShortlistThreshold: 0,
+      preShortlistQuestions: [],
+    });
+    // Requester is NOT a company admin
+    mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+    // Act & Assert
+    await expect(
+      service.getQuestionsForJob(433, 'regular-member-user')
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -55,6 +55,9 @@ const mockJobDbRecord = vi.hoisted(() => ({
   _count: {
     applications: 5,
   },
+  preShortlistEnabled: true,
+  preShortlistThreshold: 0,
+  preShortlistQuestions: [],
 }));
 
 const mockPrisma = vi.hoisted(() => ({
@@ -69,10 +72,14 @@ const mockPrisma = vi.hoisted(() => ({
   },
   application: {
     updateMany: vi.fn(),
+    count: vi.fn().mockResolvedValue(0),
   },
   jobView: {
     findMany: vi.fn(),
     count: vi.fn(),
+  },
+  employer: {
+    findFirst: vi.fn(),
   },
   $transaction: vi.fn(),
 }));
@@ -136,6 +143,7 @@ describe('JobsService', () => {
       service as unknown as { locationService: LocationService }
     ).locationService = mockLocationService as unknown as LocationService;
     vi.clearAllMocks();
+    mockPrisma.employer.findFirst.mockReset();
   });
 
   it('should be defined', () => {
@@ -223,6 +231,7 @@ describe('JobsService', () => {
           salaryMax: 100000,
           postedById: userId,
           preShortlistThreshold: 0,
+          preShortlistEnabled: true,
           requirements: {
             create: [
               { skillId: 10, importance: 'REQUIRED', minYearsExperience: 2 },
@@ -348,6 +357,58 @@ describe('JobsService', () => {
         service.deleteJobById(99, 'employer123', 'employer')
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should allow delete when the user is a company admin (not the original poster)', async () => {
+      // Arrange
+      // postedById is 'employer123', but the requester is 'company_admin_user' (not the poster)
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns a record -> this user has role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+      mockPrisma.jobPosting.update.mockResolvedValue(mockJobDbRecord);
+      mockPrisma.application.updateMany.mockResolvedValue({ count: 0 });
+
+      // Act
+      await service.deleteJobById(1, 'company_admin_user', 'employer');
+
+      // Assert
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'company_admin_user',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          status: 'CLOSED',
+          deletedAt: expect.any(Date),
+        }),
+      });
+    });
+
+    it('should throw ForbiddenException when the user is a company member but not the admin', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findUnique.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns null -> this user does NOT have role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        service.deleteJobById(1, 'regular_member', 'employer')
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'regular_member',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateJobById', () => {
@@ -469,6 +530,225 @@ describe('JobsService', () => {
           }),
         })
       );
+    });
+
+    it('should allow update when the user is a company admin (not the original poster)', async () => {
+      // Arrange
+      // postedById is 'employer123', but the requester is 'company_admin_user' (not the poster)
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns a record -> this user has role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue({ id: 99 });
+      mockPrisma.jobPosting.update.mockResolvedValue({
+        ...mockJobDbRecord,
+        title: 'Edited By Admin',
+      });
+
+      // Act
+      const result = await service.updateJobById(
+        1,
+        { title: 'Edited By Admin' },
+        'company_admin_user',
+        'employer'
+      );
+
+      // Assert
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'company_admin_user',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).toHaveBeenCalled();
+      expect(result.title).toBe('Edited By Admin');
+    });
+
+    it('should throw ForbiddenException when the user is a company member but not the admin', async () => {
+      // Arrange
+      mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
+      // The Employer lookup returns null -> this user does NOT have role 'admin' in companyId=1
+      mockPrisma.employer.findFirst.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        service.updateJobById(
+          1,
+          { title: 'Sneaky Edit' },
+          'regular_member',
+          'employer'
+        )
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.employer.findFirst).toHaveBeenCalledWith({
+        where: {
+          companyId: 1,
+          employerId: 'regular_member',
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+    });
+
+    describe('Pre-shortlist configuration lock', () => {
+      // Note: the form ALWAYS sends preShortlistQuestions in the payload, so
+      // these tests include it in the DTO to match real frontend behavior.
+      // mockJobDbRecord has preShortlistEnabled: true, preShortlistThreshold: 0,
+      // preShortlistQuestions: [] — so a no-op save sends these same values.
+
+      beforeEach(() => {
+        mockPrisma.jobPosting.findFirst.mockResolvedValue(mockJobDbRecord);
+        mockPrisma.jobPosting.update.mockResolvedValue({
+          ...mockJobDbRecord,
+          title: 'Updated',
+        });
+      });
+
+      it('succeeds when no applications exist and toggle is changed', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(0);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              title: 'Updated',
+              preShortlistEnabled: false,
+              preShortlistThreshold: 0,
+              preShortlistQuestions: [],
+            },
+            'employer123',
+            'employer'
+          )
+        ).resolves.toBeDefined();
+
+        expect(mockPrisma.jobPosting.update).toHaveBeenCalled();
+      });
+
+      it('rejects when applications exist and toggle is changed', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(1);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              preShortlistEnabled: false,
+              preShortlistThreshold: 0,
+              preShortlistQuestions: [],
+            },
+            'employer123',
+            'employer'
+          )
+        ).rejects.toThrow(
+          'Pre-shortlist configuration is locked once applications have been received. To change these settings, create a new job.'
+        );
+
+        expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+      });
+
+      it('rejects when applications exist and threshold is changed', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(1);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              preShortlistEnabled: true,
+              preShortlistThreshold: 80,
+              preShortlistQuestions: [],
+            },
+            'employer123',
+            'employer'
+          )
+        ).rejects.toThrow(
+          'Pre-shortlist configuration is locked once applications have been received. To change these settings, create a new job.'
+        );
+
+        expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+      });
+
+      it('rejects when applications exist and questions differ', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(1);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              preShortlistEnabled: true,
+              preShortlistThreshold: 0,
+              preShortlistQuestions: [
+                { question: 'New question text?', expectedAnswer: 'answer' },
+              ],
+            },
+            'employer123',
+            'employer'
+          )
+        ).rejects.toThrow(
+          'Pre-shortlist configuration is locked once applications have been received. To change these settings, create a new job.'
+        );
+
+        expect(mockPrisma.jobPosting.update).not.toHaveBeenCalled();
+      });
+
+      it('succeeds when applications exist and only non-pre-shortlist fields change', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(1);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              title: 'New title only',
+              preShortlistEnabled: true,
+              preShortlistThreshold: 0,
+              preShortlistQuestions: [],
+            },
+            'employer123',
+            'employer'
+          )
+        ).resolves.toBeDefined();
+
+        expect(mockPrisma.jobPosting.update).toHaveBeenCalled();
+      });
+
+      it('succeeds when applications exist and form submits matching values (no-op save)', async () => {
+        mockPrisma.application.count.mockResolvedValueOnce(1);
+
+        await expect(
+          service.updateJobById(
+            1,
+            {
+              title: 'Same title',
+              preShortlistEnabled: true,
+              preShortlistThreshold: 0,
+              preShortlistQuestions: [],
+            },
+            'employer123',
+            'employer'
+          )
+        ).resolves.toBeDefined();
+
+        expect(mockPrisma.jobPosting.update).toHaveBeenCalled();
+      });
+
+      it('does not call validateQuestions when preShortlistQuestions is omitted from DTO', async () => {
+        // The lock check uses `preShortlistQuestions !== undefined` as a guard
+        // for the questions-change detection AND for validateQuestions.
+        // This test ensures both behave correctly when the field is omitted.
+        mockPrisma.application.count.mockResolvedValueOnce(0);
+
+        await expect(
+          service.updateJobById(
+            1,
+            { title: 'Just title' },
+            'employer123',
+            'employer'
+          )
+        ).resolves.toBeDefined();
+
+        expect(
+          mockPreShortlistService.validateQuestions
+        ).not.toHaveBeenCalled();
+      });
     });
   });
 

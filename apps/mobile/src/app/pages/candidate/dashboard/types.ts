@@ -1,5 +1,7 @@
 export type ApplicationStatus =
   | 'APPLIED'
+  | 'PRE_SHORTLIST_PENDING'
+  | 'PRE_SHORTLIST_SUBMITTED'
   | 'INTERVIEW'
   | 'OFFER'
   | 'REJECTED'

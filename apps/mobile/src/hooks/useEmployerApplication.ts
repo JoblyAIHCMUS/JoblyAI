@@ -62,7 +62,7 @@ function toApplicantDetail(raw: RawApplication): ApplicantDetail {
       (raw.job?.type as ApplicantDetail['employmentType']) ?? 'FULL_TIME',
     appliedDate: raw.createdAt.split('T')[0],
     resume: raw.resume?.fileKey || '',
-    score: raw.matchPercentage ?? 0,
+    score: raw.matchPercentage ?? null,
     hiringStage: mapStatusToHiringStage(raw.status),
   };
 }

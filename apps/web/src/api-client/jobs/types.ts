@@ -72,6 +72,7 @@ export interface CreateJobPayload {
   companyId: number;
   requirements?: JobRequirementInput[];
   preShortlistThreshold?: number;
+  preShortlistEnabled?: boolean;
   preShortlistQuestions?: PreShortlistQuestionInput[];
 }
 
@@ -90,6 +91,7 @@ export interface UpdateJobPayload {
   requirements?: JobRequirementInput[];
   status?: 'DRAFT' | 'OPEN' | 'CLOSED';
   preShortlistThreshold?: number;
+  preShortlistEnabled?: boolean;
   preShortlistQuestions?: PreShortlistQuestionInput[];
 }
 

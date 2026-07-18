@@ -254,6 +254,7 @@ export class JobsService {
         locationId: resolvedLocationId || undefined,
         postedById: userId,
         preShortlistThreshold: threshold,
+        preShortlistEnabled: dto.preShortlistEnabled ?? true,
         preShortlistQuestions:
           preShortlistQuestions && preShortlistQuestions.length > 0
             ? {
@@ -394,9 +395,19 @@ export class JobsService {
 
     // Allow deletion if user is the one who posted it or if user is an admin
     if (job.postedById !== userId && userRole !== 'admin') {
-      throw new ForbiddenException(
-        `You do not have permission to delete this job`
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId: userId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          `You do not have permission to delete this job`
+        );
+      }
     }
 
     // Soft delete the job: set deletedAt and change status to CLOSED
@@ -523,6 +534,9 @@ export class JobsService {
   ): Promise<JobPostingInterface> {
     const job = await this.prisma.jobPosting.findFirst({
       where: { id, deletedAt: null },
+      include: {
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
+      },
     });
 
     if (!job) {
@@ -530,32 +544,67 @@ export class JobsService {
     }
 
     if (job.postedById !== userId && userRole !== 'admin') {
-      throw new ForbiddenException(
-        `You do not have permission to update this job`
-      );
+      const isCompanyAdmin = await this.prisma.employer.findFirst({
+        where: {
+          companyId: job.companyId,
+          employerId: userId,
+          role: 'admin',
+        },
+        select: { id: true },
+      });
+      if (!isCompanyAdmin) {
+        throw new ForbiddenException(
+          `You do not have permission to update this job`
+        );
+      }
     }
 
     const {
       requirements,
       preShortlistQuestions,
       preShortlistThreshold,
+      preShortlistEnabled,
       location,
       locationId,
       ...jobData
     } = dto;
 
-    // Gate questions: if the job already has applications, reject the change.
-    if (preShortlistQuestions !== undefined) {
-      this.preShortlistService.validateQuestions(preShortlistQuestions);
-      const hasApplications = await this.prisma.application.count({
+    // === Pre-shortlist configuration lock ===
+    // Replaces the old partial lock that only checked preShortlistQuestions.
+    // Now locks all three pre-shortlist fields once any application exists.
+    const isEnabledChanging =
+      preShortlistEnabled !== undefined &&
+      preShortlistEnabled !== job.preShortlistEnabled;
+    const isThresholdChanging =
+      preShortlistThreshold !== undefined &&
+      preShortlistThreshold !== job.preShortlistThreshold;
+    // CRITICAL: do NOT use `preShortlistQuestions !== undefined` here — the form
+    // ALWAYS sends preShortlistQuestions in the payload (even for no-op saves),
+    // so that simpler check would fire the lock on every save once applications
+    // exist. Compare content instead via areQuestionsEqual.
+    const isQuestionsChanging =
+      preShortlistQuestions !== undefined &&
+      !this.areQuestionsEqual(preShortlistQuestions, job.preShortlistQuestions);
+
+    if (isEnabledChanging || isThresholdChanging || isQuestionsChanging) {
+      // Non-transactional: race with a concurrent apply is accepted v1 limitation
+      const appCount = await this.prisma.application.count({
         where: { jobId: id },
       });
-      if (hasApplications > 0) {
+      if (appCount > 0) {
         throw new BadRequestException(
-          'Pre-shortlist questions cannot be edited after applications exist. The threshold was still updated if you included one.'
+          'Pre-shortlist configuration is locked once applications have been received. To change these settings, create a new job.'
         );
       }
     }
+
+    // Re-add validation that was in the deleted block. Only runs when the
+    // questions field is present in the DTO; the lock check above already
+    // handled the "no questions" case.
+    if (preShortlistQuestions !== undefined) {
+      this.preShortlistService.validateQuestions(preShortlistQuestions);
+    }
+    // === End lock ===
 
     let resolvedLocationId: string | null | undefined = undefined;
     if (locationId !== undefined) {
@@ -578,6 +627,7 @@ export class JobsService {
         ...jobData,
         locationId: resolvedLocationId,
         preShortlistThreshold: preShortlistThreshold ?? undefined,
+        preShortlistEnabled: preShortlistEnabled ?? undefined,
         preShortlistQuestions: preShortlistQuestions
           ? {
               deleteMany: {},
@@ -1022,6 +1072,7 @@ export class JobsService {
           }))
         : [],
       preShortlistThreshold: (job as any).preShortlistThreshold ?? 0,
+      preShortlistEnabled: (job as any).preShortlistEnabled ?? false,
       preShortlistQuestions:
         (job as any).preShortlistQuestions?.map((q: any) => ({
           id: q.id,
@@ -1066,5 +1117,26 @@ export class JobsService {
       default:
         return { createdAt: 'desc' };
     }
+  }
+
+  private areQuestionsEqual(
+    incoming: { question: string; expectedAnswer: string }[],
+    existing:
+      | { question: string; expectedAnswer: string | null; order: number }[]
+      | undefined
+  ): boolean {
+    // Defensive: in the current call site, `existing` is always populated by
+    // the Prisma `include`, but guard against future refactors that might
+    // remove it. If `existing` is missing, treat as a change (lock fires).
+    if (!existing) return false;
+    if (incoming.length !== existing.length) return false;
+    // Both arrays are sorted by `order` (the form sorts before submit;
+    // the Prisma include uses `orderBy: { order: 'asc' }`).
+    // Compare only question + expectedAnswer content (id and order excluded).
+    return incoming.every(
+      (q, i) =>
+        q.question === existing[i].question &&
+        q.expectedAnswer === (existing[i].expectedAnswer ?? '')
+    );
   }
 }

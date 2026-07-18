@@ -12,6 +12,7 @@ import {
   AuthDivider,
 } from '../../../components/shared/GoogleAuthButton';
 import { useSignup } from '../../../../hooks/useAuth';
+import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { authClient } from '../../../../lib/auth-client';
@@ -40,7 +41,7 @@ const RegisterPage = () => {
         throw error;
       }
 
-      const { data: session } = await authClient.getSession();
+      const session = await getSession();
       const role = session?.user?.role;
 
       if (role === 'employer') {

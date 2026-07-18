@@ -61,6 +61,11 @@ export class InterviewPrepProcessor extends WorkerHost {
           this.logger.error(`Failed to update status to FAILED: ${err.message}`)
         );
 
+      this.aiGateway.notifyUser(candidateId, 'INTERVIEW_PREP_FAILED', {
+        jobId,
+        error: error.message,
+      });
+
       throw error;
     }
   }

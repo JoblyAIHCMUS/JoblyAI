@@ -33,6 +33,16 @@ export class InterviewPrepService {
         jobId,
         resumeId: application.resumeId,
       });
+    } else if (prep.status === 'FAILED') {
+      prep = await this.prisma.interviewPreparation.update({
+        where: { candidateId_jobId: { candidateId, jobId } },
+        data: { status: 'PENDING', questions: Prisma.DbNull },
+      });
+      await this.prepQueue.add('generate-questions', {
+        candidateId,
+        jobId,
+        resumeId: application.resumeId,
+      });
     }
 
     return prep;

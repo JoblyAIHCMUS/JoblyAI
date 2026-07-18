@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import Logo from '../../../assets/images/jobly-logo.svg';
+import Logo from '../../../../assets/images/jobly-logo.svg';
 import { COLORS } from '../../constants/theme';
 
 interface HeaderProps {

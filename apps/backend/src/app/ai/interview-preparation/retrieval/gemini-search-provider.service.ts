@@ -85,15 +85,18 @@ export class GeminiSearchProvider implements SearchProvider {
                 },
                 sampleAnswer: {
                   type: 'STRING',
-                  description: 'A model answer that the candidate should strive for',
+                  description:
+                    'A model answer that the candidate should strive for',
                 },
                 interviewerIntent: {
                   type: 'STRING',
-                  description: 'The psychological or professional reason why an interviewer asks this question',
+                  description:
+                    'The psychological or professional reason why an interviewer asks this question',
                 },
                 tips: {
                   type: 'STRING',
-                  description: 'Practical advice on how to structure the answer or what keywords/actions to highlight',
+                  description:
+                    'Practical advice on how to structure the answer or what keywords/actions to highlight',
                 },
                 origin: {
                   type: 'STRING',
@@ -156,7 +159,7 @@ export class GeminiSearchProvider implements SearchProvider {
   private getModel(): string {
     return (
       this.configService.get<string>('GEMINI_MAIN_MODEL')?.trim() ||
-      'gemini-2.5-flash'
+      'gemini-3.5-flash'
     );
   }
 
@@ -279,5 +282,34 @@ Language constraint: Strictly English.
     }
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized.length > 0 ? normalized : undefined;
+  }
+
+  private async isUrlAccessible(url: string): Promise<boolean> {
+    // Nếu là link redirect của Vertex AI Search Grounding, bỏ qua bước check 404
+    if (url.includes('vertexaisearch.cloud.google.com')) {
+      return true;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const response = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+      }).catch(async () => {
+        // Fallback sang GET nếu HEAD bị chặn hoặc lỗi
+        return await fetch(url, {
+          method: 'GET',
+          headers: { Range: 'bytes=0-0' },
+          signal: controller.signal,
+        });
+      });
+
+      clearTimeout(timeoutId);
+      return response.status !== 404;
+    } catch {
+      return false;
+    }
   }
 }
