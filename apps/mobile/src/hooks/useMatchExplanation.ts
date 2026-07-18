@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { getMatchExplanation, type MatchExplanation } from '../api/matchExplanation';
+import {
+  getMatchExplanation,
+  type MatchExplanation,
+} from '../api/matchExplanation';
 
 export function useMatchExplanation(
   applicationId: string | number | null | undefined

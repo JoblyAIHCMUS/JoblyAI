@@ -50,7 +50,10 @@ export default function PreShortlistPage() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={['top', 'left', 'right']}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <CandidateHeader
           title="Pre-Shortlist"
@@ -74,7 +77,10 @@ export default function PreShortlistPage() {
 
   if (isError || !data) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={['top', 'left', 'right']}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <CandidateHeader
           title="Pre-Shortlist"
@@ -120,9 +126,9 @@ export default function PreShortlistPage() {
     );
   }
 
-  const isReadOnly = (
-    READ_ONLY_STATUSES as readonly string[]
-  ).includes(data.status);
+  const isReadOnly = (READ_ONLY_STATUSES as readonly string[]).includes(
+    data.status
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>

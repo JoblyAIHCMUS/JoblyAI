@@ -122,8 +122,7 @@ export function PreShortlistForm({
         .map((q, idx) => {
           const value = answers[q.id] ?? '';
           const trimmed = value.trim();
-          const tooShort =
-            trimmed.length > 0 && trimmed.length < MIN_LENGTH;
+          const tooShort = trimmed.length > 0 && trimmed.length < MIN_LENGTH;
           const tooLong = value.length > MAX_LENGTH;
           const isInvalid = tooShort || tooLong;
           return (
@@ -147,9 +146,7 @@ export function PreShortlistForm({
                 placeholder="Type your answer here (20-2000 characters)..."
                 placeholderTextColor="#9CA3AF"
                 className={`mt-2 min-h-[120px] rounded-xl border bg-app-background-2 px-3 py-2.5 text-sm text-app-text-4 ${
-                  isInvalid
-                    ? 'border-app-red-2'
-                    : 'border-app-border-light'
+                  isInvalid ? 'border-app-red-2' : 'border-app-border-light'
                 }`}
                 textAlignVertical="top"
               />

@@ -81,12 +81,7 @@ function getAuthErrorMessage(error: unknown, fallback: string): string {
 }
 
 export function useAuth() {
-  const {
-    data: session,
-    isPending,
-    error,
-    refetch,
-  } = authClient.useSession();
+  const { data: session, isPending, error, refetch } = authClient.useSession();
 
   const user = useMemo<SessionUser | null>(() => {
     const raw = session?.user;
@@ -134,11 +129,12 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      const { data: result, error: signInError } = await authClient.signIn.email({
-        email: payload.email,
-        password: payload.password,
-        rememberMe: payload.rememberMe,
-      });
+      const { data: result, error: signInError } =
+        await authClient.signIn.email({
+          email: payload.email,
+          password: payload.password,
+          rememberMe: payload.rememberMe,
+        });
       if (signInError) {
         throw signInError;
       }

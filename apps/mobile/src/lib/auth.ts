@@ -97,7 +97,9 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   return session?.user ?? null;
 }
 
-export function getCurrentRole(user: SessionUser | null | undefined): Role | null {
+export function getCurrentRole(
+  user: SessionUser | null | undefined
+): Role | null {
   return user?.role ?? null;
 }
 

@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
-import { Building2, CalendarDays, ClipboardList, Eye, MapPin, X } from 'lucide-react-native';
+import {
+  Building2,
+  CalendarDays,
+  ClipboardList,
+  Eye,
+  MapPin,
+  X,
+} from 'lucide-react-native';
 
 import { Text } from '../../../../../components/ui/text';
 import { StatusBadge } from './StatusBadge';
@@ -75,9 +82,7 @@ export function ApplicationCard({
   }
 
   const openPreShortlist = () => {
-    router.push(
-      `/pages/candidate/pre-shortlist/${application.id}` as never
-    );
+    router.push(`/pages/candidate/pre-shortlist/${application.id}` as never);
   };
 
   return (

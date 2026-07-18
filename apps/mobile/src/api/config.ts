@@ -83,8 +83,7 @@ apiClient.interceptors.response.use(
         let nextPath = '/';
         try {
           const session = await getSession();
-          const role = (session?.user as { role?: UserRole } | undefined)
-            ?.role;
+          const role = (session?.user as { role?: UserRole } | undefined)?.role;
           nextPath = getDashboardPath(role) ?? '/';
         } catch {
           // If we can't read the session for any reason, fall back to "/".

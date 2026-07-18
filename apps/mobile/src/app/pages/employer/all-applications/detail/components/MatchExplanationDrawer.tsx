@@ -61,9 +61,11 @@ export function MatchExplanationDrawer({
   isOpen,
   onClose,
 }: MatchExplanationDrawerProps) {
-  const { data: explanation, isLoading, isError } = useMatchExplanation(
-    isOpen ? applicationId : null
-  );
+  const {
+    data: explanation,
+    isLoading,
+    isError,
+  } = useMatchExplanation(isOpen ? applicationId : null);
 
   return (
     <Modal visible={isOpen} transparent animationType="slide">

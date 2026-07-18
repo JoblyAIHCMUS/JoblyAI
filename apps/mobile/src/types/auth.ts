@@ -31,7 +31,12 @@ export type SessionPayload = {
   session: SessionRecord;
 };
 
-export type AuthErrorKind = 'network' | 'invalid_credentials' | 'unauthorized' | 'rate_limited' | 'unknown';
+export type AuthErrorKind =
+  | 'network'
+  | 'invalid_credentials'
+  | 'unauthorized'
+  | 'rate_limited'
+  | 'unknown';
 
 export type AuthError = {
   kind: AuthErrorKind;

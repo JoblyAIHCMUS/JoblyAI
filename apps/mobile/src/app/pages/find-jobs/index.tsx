@@ -316,10 +316,7 @@ function FindJobsPage() {
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => (
                 <View className="px-4">
-                  <JobCard
-                    job={item}
-                    hasApplied={appliedJobIds.has(item.id)}
-                  />
+                  <JobCard job={item} hasApplied={appliedJobIds.has(item.id)} />
                 </View>
               )}
               contentContainerStyle={{

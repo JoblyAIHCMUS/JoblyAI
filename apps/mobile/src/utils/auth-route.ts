@@ -1,8 +1,6 @@
 import { USER_ROLE, type UserRole } from '@/app/constants/role';
 
-export function getDashboardPath(
-  role?: string | null
-): string | null {
+export function getDashboardPath(role?: string | null): string | null {
   switch (role) {
     case USER_ROLE.CANDIDATE:
       return '/pages/candidate/dashboard';

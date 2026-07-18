@@ -190,12 +190,8 @@ function getDisplayName(profile?: CandidateProfileResponse): string {
 }
 
 function ProfileContent() {
-  const {
-    processingTasks,
-    triggerParse,
-    onParsedSuccess,
-    reconcile,
-  } = useAiProcessing();
+  const { processingTasks, triggerParse, onParsedSuccess, reconcile } =
+    useAiProcessing();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditAboutOpen, setIsEditAboutOpen] = useState(false);
   const [isAddExperienceOpen, setIsAddExperienceOpen] = useState(false);
