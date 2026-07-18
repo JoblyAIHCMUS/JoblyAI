@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 14.0.0",
+    "version": ">= 21.0.0",
     "appVersionSource": "remote"
   },
   "build": {
@@ -10,8 +10,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://jobly.ai.vn/api"
-      },
-      "autoSubmit": true
+      }
     },
     "development": {
       "developmentClient": true,

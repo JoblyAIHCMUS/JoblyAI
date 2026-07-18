@@ -1,7 +1,8 @@
 {
   "expo": {
+    "owner": "joblyai-vn",
     "name": "JoblyAI Mobile",
-    "slug": "jobly-mobile",
+    "slug": "joblyai-vn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/jobly-logo.png",
