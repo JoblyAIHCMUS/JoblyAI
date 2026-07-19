@@ -27,7 +27,12 @@ type RawApplication = {
   };
   resume?: { fileKey?: string };
   matchPercentage?: number | null;
-  candidate?: { name?: string | null; email?: string; phone?: string; avatarUrl?: string | null };
+  candidate?: {
+    name?: string | null;
+    email?: string;
+    phone?: string;
+    avatarUrl?: string | null;
+  };
 };
 
 function toApplicantDetail(raw: RawApplication): ApplicantDetail {

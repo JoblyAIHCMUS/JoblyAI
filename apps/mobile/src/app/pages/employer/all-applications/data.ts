@@ -103,7 +103,11 @@ export function mapApiResponseToApplications(
       app as PaginatedApplicationsResponse['applications'][number] & {
         candidateId?: string;
         job?: { title?: string };
-        candidate?: { name?: string | null; email?: string; avatarUrl?: string | null };
+        candidate?: {
+          name?: string | null;
+          email?: string;
+          avatarUrl?: string | null;
+        };
         matchPercentage?: number | null;
         matchExplanation?: { overallScore?: number | null } | null;
       };

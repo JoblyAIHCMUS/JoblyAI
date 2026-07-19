@@ -300,7 +300,10 @@ export default function EmployerEditCompanyPage() {
 
   if (loadingCompany || (companyId && loadingEmployees)) {
     return (
-      <SafeAreaView className="flex-1 bg-white flex items-center justify-center" edges={['left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white flex items-center justify-center"
+        edges={['left', 'right']}
+      >
         <ActivityIndicator size="large" color="#4F46E5" />
       </SafeAreaView>
     );
@@ -308,7 +311,10 @@ export default function EmployerEditCompanyPage() {
 
   if (currentUser && !isCompanyAdmin) {
     return (
-      <SafeAreaView className="flex-1 bg-white flex items-center justify-center px-6" edges={['left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white flex items-center justify-center px-6"
+        edges={['left', 'right']}
+      >
         <Text className="text-4xl font-bold text-slate-900 mb-2">403</Text>
         <Text className="text-slate-600 text-center text-base">
           You do not have permission to access this page.
@@ -319,7 +325,10 @@ export default function EmployerEditCompanyPage() {
 
   if (errorCompany || !company) {
     return (
-      <SafeAreaView className="flex-1 bg-white flex items-center justify-center" edges={['left', 'right']}>
+      <SafeAreaView
+        className="flex-1 bg-white flex items-center justify-center"
+        edges={['left', 'right']}
+      >
         <Text className="text-center text-slate-900 font-semibold">
           {errorCompany ? 'Failed to load company' : 'Company not found'}
         </Text>
