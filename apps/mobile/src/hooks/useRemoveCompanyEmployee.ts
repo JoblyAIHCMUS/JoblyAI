@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { removeCompanyEmployee, type RemoveCompanyEmployeePayload } from '../api/company';
+import {
+  removeCompanyEmployee,
+  type RemoveCompanyEmployeePayload,
+} from '../api/company';
 
 interface UseRemoveCompanyEmployeeOptions {
   onSuccess?: () => void;

@@ -81,8 +81,7 @@ export function TeamManager({
                 canManage={canManage}
                 isOwner={isOwner}
                 isSelf={
-                  member.email.toLowerCase() ===
-                  currentUserEmail?.toLowerCase()
+                  member.email.toLowerCase() === currentUserEmail?.toLowerCase()
                 }
                 disabled={busy}
                 onRoleChange={(newRole) =>

@@ -77,9 +77,7 @@ export function TeamMemberCard({
           ) : (
             <Select
               value={role}
-              onValueChange={(value) =>
-                onRoleChange?.(value as TeamMemberRole)
-              }
+              onValueChange={(value) => onRoleChange?.(value as TeamMemberRole)}
             >
               <SelectTrigger
                 className="h-7 w-28 sm:w-32 justify-center gap-1 border-none shadow-none text-xs sm:text-sm text-slate-500"

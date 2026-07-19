@@ -66,8 +66,7 @@ export const TeamStep: React.FC<TeamStepProps> = ({
               canManage={canManage}
               isOwner={false}
               isSelf={
-                member.email.toLowerCase() ===
-                currentUserEmail.toLowerCase()
+                member.email.toLowerCase() === currentUserEmail.toLowerCase()
               }
               onRoleChange={(newRole) => onRoleChange(member.email, newRole)}
               onRemove={() => onRemoveMember(member.email)}

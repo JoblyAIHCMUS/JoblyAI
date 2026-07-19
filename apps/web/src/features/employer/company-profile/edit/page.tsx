@@ -24,10 +24,7 @@ import { useCreateUploadUrl } from '@/api-hook/gcs/useCreateUploadUrl';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs/useUploadToPresignedUrl';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import {
-  TeamManager,
-  TeamMemberData,
-} from '@/components/employer/teamManager';
+import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
 import type { TeamMemberRole } from '@/components/employer/teamMemberCard';
 import {
   convertUserToTeamMember,
@@ -327,9 +324,7 @@ export default function EmployerCompanyProfileEditPage() {
         const refreshedEmployees = await fetchCompanyEmployees(companyId);
         setTeamMembers(mapEmployeesToTeamMembers(refreshedEmployees));
       } catch {
-        setTeamMembers((prev) =>
-          prev.filter((m) => m.email !== member.email)
-        );
+        setTeamMembers((prev) => prev.filter((m) => m.email !== member.email));
         toast.warning('Member was removed, but team list refresh failed.');
       }
 

@@ -196,7 +196,10 @@ export default function EmployerEditCompanyPage() {
     }
   };
 
-  const handleRoleChange = async (member: TeamMemberData, newRole: CompanyRole) => {
+  const handleRoleChange = async (
+    member: TeamMemberData,
+    newRole: CompanyRole
+  ) => {
     if (!companyId) return;
     setBusy((prev) => ({ ...prev, [member.email]: true }));
     try {
@@ -481,8 +484,7 @@ export default function EmployerEditCompanyPage() {
                 canManage={!!currentUser?.isCompanyAdmin}
                 ownerEmail={
                   teamMembers.find(
-                    (m) =>
-                      m.membershipId === currentUser?.company?.adminId
+                    (m) => m.membershipId === currentUser?.company?.adminId
                   )?.email ?? null
                 }
                 currentUserEmail={currentUser?.email ?? ''}
