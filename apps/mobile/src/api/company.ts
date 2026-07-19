@@ -150,6 +150,8 @@ export async function getCompanyById(
   return response.data;
 }
 
+// --- Employee management ---
+
 export type CompanyRole = 'admin' | 'employee';
 
 export interface UpdateCompanyEmployeeRolePayload {
@@ -177,4 +179,27 @@ export async function removeCompanyEmployee(
   payload: RemoveCompanyEmployeePayload
 ): Promise<void> {
   await apiClient.delete(`/company/${companyId}/employees`, { data: payload });
+}
+
+// --- Logo ---
+
+export interface UpdateCompanyLogoPayload {
+  fileKey: string;
+  fileUrl: string;
+}
+
+export async function updateCompanyLogo(
+  id: number,
+  payload: UpdateCompanyLogoPayload
+): Promise<Company> {
+  const response = await apiClient.patch<Company>(
+    `/company/${id}/logo`,
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteCompanyLogo(id: number): Promise<Company> {
+  const response = await apiClient.delete<Company>(`/company/${id}/logo`);
+  return response.data;
 }

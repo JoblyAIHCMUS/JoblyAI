@@ -38,6 +38,8 @@ import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
 import { useUpdateCompanyEmployeeRole } from '../../../../hooks/useUpdateCompanyEmployeeRole';
 import { useRemoveCompanyEmployee } from '../../../../hooks/useRemoveCompanyEmployee';
 import type { CompanyRole } from '../../../../api/company';
+import { createUploadUrl, uploadFileToGcs } from '../../../../api/gcs';
+import { updateCompanyLogo, deleteCompanyLogo } from '../../../../api/company';
 
 export default function EmployerEditCompanyPage() {
   const router = useRouter();
@@ -52,6 +54,7 @@ export default function EmployerEditCompanyPage() {
   const [removingMember, setRemovingMember] = useState<TeamMemberData | null>(
     null
   );
+  const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null);
 
   const { submitRoleUpdate } = useUpdateCompanyEmployeeRole();
   const { submitRemove } = useRemoveCompanyEmployee();
@@ -166,6 +169,7 @@ export default function EmployerEditCompanyPage() {
       setValue('industry', company.industry || '');
       setValue('companyDescription', company.description || '');
       setValue('logoUrl', company.logoUrl || null);
+      setOriginalLogoUrl(company.logoUrl || null);
     }
   }, [company, setValue]);
 
@@ -276,6 +280,11 @@ export default function EmployerEditCompanyPage() {
     setRemovingMember(null);
   };
 
+  const isLocalFile = (url: string | null): boolean => {
+    if (!url) return false;
+    return url.startsWith('file://') || url.startsWith('content://');
+  };
+
   const onSubmit = async (data: CompanyUpdateFormData) => {
     if (!companyId) {
       Toast.show({
@@ -287,14 +296,47 @@ export default function EmployerEditCompanyPage() {
     }
 
     try {
-      // Prepare payload for backend
+      // Handle logo change if needed
+      const newLogoUrl = data.logoUrl;
+      if (newLogoUrl !== originalLogoUrl) {
+        if (isLocalFile(newLogoUrl) && newLogoUrl) {
+          // Upload new logo to GCS
+          const response = await fetch(newLogoUrl);
+          const blob = await response.blob();
+          const fileName = `logo_${Date.now()}.jpg`;
+          const fileType = blob.type || 'image/jpeg';
+
+          const uploadUrlRes = await createUploadUrl({
+            fileName,
+            fileType,
+            folder: 'logos',
+          });
+
+          await uploadFileToGcs(uploadUrlRes.uploadUrl, blob, fileType);
+
+          const updatedCompany = await updateCompanyLogo(companyId, {
+            fileKey: uploadUrlRes.fileKey,
+            fileUrl: uploadUrlRes.fileUrl,
+          });
+
+          const newLogo = updatedCompany.logoUrl || null;
+          setOriginalLogoUrl(newLogo);
+          setValue('logoUrl', newLogo);
+        } else if (!newLogoUrl && originalLogoUrl) {
+          // Logo was removed
+          await deleteCompanyLogo(companyId);
+          setOriginalLogoUrl(null);
+          setValue('logoUrl', null);
+        }
+      }
+
+      // Prepare payload for backend - logo handled separately above
       const payload = {
         name: data.companyName,
         websiteUrl: data.website || undefined,
         sizeRange: data.scale || undefined,
         industry: data.industry || undefined,
         description: data.companyDescription || undefined,
-        logoUrl: data.logoUrl || undefined,
       };
 
       // Update company

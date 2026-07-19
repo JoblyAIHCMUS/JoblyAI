@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Patch,
   Post,
@@ -97,5 +98,13 @@ export class EmployerController {
   ) {
     const { id: userId } = req.user;
     return await this.employerService.updateAvatar(userId, updateDto);
+  }
+
+  @Delete('/me/avatar')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async deleteAvatar(@Request() req: AuthRequest) {
+    const { id: userId } = req.user;
+    return await this.employerService.deleteAvatar(userId);
   }
 }

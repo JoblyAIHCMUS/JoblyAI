@@ -22,6 +22,7 @@ import ConfirmLogoChange from '@/components/ui/confirmLogoChange';
 import { ConfirmDialog } from '@/components/ui/confirmDialog';
 import { useCreateUploadUrl } from '@/api-hook/gcs/useCreateUploadUrl';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs/useUploadToPresignedUrl';
+import { deleteGcsFile } from '@/api-client/gcs/file';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
@@ -47,6 +48,7 @@ import {
   useUpdateCompanyEmployeeRole,
 } from '@/api-hook/company';
 import { useUpdateCompanyLogo } from '@/api-hook/company/useUpdateCompanyLogo';
+import { useDeleteCompanyLogo } from '@/api-hook/company/useDeleteCompanyLogo';
 import { type LogoUploaderHandle } from '@/components/employer/logoUploader';
 import { companyUpdateSchema, type CompanyUpdateFormData } from './schema';
 import { useUser } from '@/hooks/useUser';
@@ -118,6 +120,32 @@ export default function EmployerCompanyProfileEditPage() {
   const images = watch('images') || [];
 
   const [uploadingImages, setUploadingImages] = useState(false);
+
+  const extractFileKeyFromUrl = (url: string): string | null => {
+    try {
+      const urlParts = url.split('/');
+      const assetsIndex = urlParts.indexOf('assets');
+      if (assetsIndex !== -1) {
+        return urlParts.slice(assetsIndex).join('/');
+      }
+    } catch {
+      // ignore URL parse errors
+    }
+    return null;
+  };
+
+  const handleRemoveCompanyImage = (index: number) => {
+    const imgUrl = images[index];
+    const fileKey = extractFileKeyFromUrl(imgUrl);
+    if (fileKey) {
+      void deleteGcsFile({ fileKey });
+    }
+    const newImages = images.filter((_, i) => i !== index);
+    setValue('images', newImages, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   const handleCompanyImagesUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -195,6 +223,8 @@ export default function EmployerCompanyProfileEditPage() {
       toast.error('Failed to update company logo. Please try again.');
     },
   });
+
+  const { deleteLogoRecord } = useDeleteCompanyLogo();
 
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
   const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
@@ -466,6 +496,20 @@ export default function EmployerCompanyProfileEditPage() {
     setSelectedLogoPreview(null);
   };
 
+  const handleRemoveCurrentLogo = async () => {
+    if (!companyId) return;
+    try {
+      await deleteLogoRecord(companyId);
+      setValue('logoUrl', null);
+      setLogoFileKey(null);
+      logoUploaderRef.current?.resetPreview();
+      await fetchEmployerProfile();
+      toast.success('Company logo removed successfully');
+    } catch {
+      toast.error('Failed to remove company logo');
+    }
+  };
+
   const canProceed = (stepIndex: number): boolean => {
     const currentValues = getValues();
     switch (stepIndex) {
@@ -602,6 +646,13 @@ export default function EmployerCompanyProfileEditPage() {
                     alt="Current company logo"
                     className="h-[124px] w-[124px] object-cover rounded-[var(--radius-xl)] border border-gray-200"
                   />
+                  <button
+                    type="button"
+                    onClick={handleRemoveCurrentLogo}
+                    className="mt-2 text-xs font-medium text-red-500 hover:text-red-700 underline"
+                  >
+                    Remove Logo
+                  </button>
                 </div>
               )}
               {/* New Logo Uploader */}
@@ -621,9 +672,14 @@ export default function EmployerCompanyProfileEditPage() {
                       setValue('logoUrl', url);
                       setLogoFileKey(fileKey || null);
                     } else {
-                      // If removing logo
+                      // If removing logo - also update backend
                       setValue('logoUrl', null);
                       setLogoFileKey(null);
+                      if (companyId) {
+                        deleteLogoRecord(companyId).catch(() => {
+                          toast.error('Failed to remove logo from server');
+                        });
+                      }
                     }
                   }}
                 />
@@ -665,13 +721,7 @@ export default function EmployerCompanyProfileEditPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        const newImages = images.filter((_, i) => i !== index);
-                        setValue('images', newImages, {
-                          shouldValidate: true,
-                          shouldDirty: true,
-                        });
-                      }}
+                      onClick={() => handleRemoveCompanyImage(index)}
                       className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-white/80 hover:bg-white text-black shadow-md transition-colors"
                       aria-label="Remove image"
                     >

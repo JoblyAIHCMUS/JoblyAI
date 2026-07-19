@@ -6,7 +6,7 @@ import ConfirmAvatarChange from '@/components/ui/confirmAvatarChange';
 import { cn } from '@/lib/utils';
 import { useCreateUploadUrl } from '@/api-hook/gcs';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs';
-import { useUpdateAvatar } from '@/api-hook/candidate';
+import { useUpdateAvatar, useDeleteAvatar } from '@/api-hook/candidate';
 import { useToast } from '@/hooks/useToast';
 import { formatErrorForDisplay } from '@/lib/errors';
 import {
@@ -18,6 +18,7 @@ import {
 interface ProfilePhotoSectionProps {
   photoUrl?: string;
   onAvatarUpdated?: (newUrl: string) => void;
+  onAvatarRemoved?: () => void;
   disabled?: boolean;
 }
 
@@ -33,6 +34,7 @@ interface ProfilePhotoSectionProps {
 export function ProfilePhotoSection({
   photoUrl,
   onAvatarUpdated,
+  onAvatarRemoved,
   disabled = false,
 }: ProfilePhotoSectionProps) {
   const { toast } = useToast();
@@ -46,6 +48,7 @@ export function ProfilePhotoSection({
   const { uploadToPresignedUrl, loading: loadingUpload } =
     useUploadToPresignedUrl();
   const { updateAvatarRecord, loading: loadingUpdate } = useUpdateAvatar();
+  const { deleteAvatarRecord, loading: loadingDelete } = useDeleteAvatar();
 
   const handleFileSelect = (file: File) => {
     // Validate file type against backend ALLOWED_FILE_TYPES for avatars
@@ -143,8 +146,26 @@ export function ProfilePhotoSection({
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    try {
+      await deleteAvatarRecord();
+      onAvatarRemoved?.();
+      toast.success('Profile picture removed successfully');
+    } catch (error) {
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to remove profile picture')
+      );
+    }
+  };
+
   const isLoading =
-    isUploading || loadingUploadUrl || loadingUpload || loadingUpdate;
+    isUploading ||
+    loadingUploadUrl ||
+    loadingUpload ||
+    loadingUpdate ||
+    loadingDelete;
+
+  const showRemove = !!photoUrl && photoUrl !== 'https://placehold.co/124x124';
 
   return (
     <>
@@ -160,17 +181,29 @@ export function ProfilePhotoSection({
 
       <div className="flex justify-start items-start gap-8">
         {/* Avatar Display */}
-        <Avatar className="size-32 border-[2.58px] border-primary bg-accent-primary">
-          <AvatarImage
-            key={photoUrl}
-            src={photoUrl}
-            alt="Profile"
-            className="object-cover"
-          />
-          <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-lg font-semibold">
-            PP
-          </AvatarFallback>
-        </Avatar>
+        <div className="flex flex-col items-center gap-2">
+          <Avatar className="size-32 border-[2.58px] border-primary bg-accent-primary">
+            <AvatarImage
+              key={photoUrl}
+              src={photoUrl}
+              alt="Profile"
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-lg font-semibold">
+              PP
+            </AvatarFallback>
+          </Avatar>
+          {showRemove && (
+            <button
+              type="button"
+              onClick={handleRemoveAvatar}
+              disabled={isLoading}
+              className="text-xs font-medium text-red-500 hover:text-red-700 underline disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Remove
+            </button>
+          )}
+        </div>
 
         {/* Upload Area */}
         <div

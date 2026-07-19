@@ -190,6 +190,14 @@ export async function updateCompanyEmployeeRole(
   return response.data;
 }
 
+export async function deleteCompanyLogo(id: number): Promise<Company> {
+  const response = await axios.delete<Company>(
+    `${API_BASE_URL}/api/company/${id}/logo`,
+    { withCredentials: true }
+  );
+  return response.data;
+}
+
 export async function checkCompanyNameExists(name: string): Promise<boolean> {
   try {
     const response = await axios.get<{ exists: boolean }>(

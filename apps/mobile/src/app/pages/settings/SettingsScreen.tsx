@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  Pencil,
   Sparkles,
   User,
 } from 'lucide-react-native';
@@ -22,6 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -113,19 +115,6 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   recommendations: true,
   messages: true,
 };
-
-function getInitials(value: string): string {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
-
-  if (parts.length === 0) {
-    return 'JA';
-  }
-
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-}
 
 function SettingRow({
   icon: Icon,
@@ -220,9 +209,17 @@ function getSettingsErrorMessage(error: unknown, fallback: string): string {
 export default function SettingsScreen({
   role,
   account,
+  onRemoveAvatar,
+  isRemovingAvatar,
+  onChangeAvatar,
+  isChangingAvatar,
 }: {
   role: SettingsRole;
   account: SettingsAccount;
+  onRemoveAvatar?: () => Promise<void>;
+  isRemovingAvatar?: boolean;
+  onChangeAvatar?: () => Promise<void>;
+  isChangingAvatar?: boolean;
 }) {
   const router = useRouter();
   const config = ROLE_CONFIG[role];
@@ -322,8 +319,29 @@ export default function SettingsScreen({
     }
   };
 
+  const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+    account.name
+  )}`;
   const avatarUri =
     account.avatarUrl && !avatarImageFailed ? account.avatarUrl : null;
+
+  const handleRemoveAvatar = async () => {
+    if (!onRemoveAvatar) return;
+    try {
+      await onRemoveAvatar();
+    } catch {
+      // Error handled by mutation hook
+    }
+  };
+
+  const handleChangeAvatar = async () => {
+    if (!onChangeAvatar) return;
+    try {
+      await onChangeAvatar();
+    } catch {
+      // Error handled by mutation hook
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-app-background-2" edges={['top']}>
@@ -361,18 +379,27 @@ export default function SettingsScreen({
 
         <View className="mb-5 rounded-lg border border-app-border-3 bg-white p-4">
           <View className="flex-row items-center">
-            <View className="h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-app-indigo-soft">
-              {avatarUri ? (
-                <Image
-                  source={{ uri: avatarUri }}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                  onError={() => setAvatarImageFailed(true)}
-                />
-              ) : (
-                <Text className="text-lg font-bold text-app-primary-1">
-                  {getInitials(account.name)}
-                </Text>
+            <View className="relative">
+              <View className="h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-app-indigo-soft">
+                {avatarUri ? (
+                  <Image
+                    source={{ uri: avatarUri }}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                    onError={() => setAvatarImageFailed(true)}
+                  />
+                ) : (
+                  <SvgUri uri={dicebearUrl} width="100%" height="100%" />
+                )}
+              </View>
+              {onChangeAvatar && (
+                <TouchableOpacity
+                  onPress={handleChangeAvatar}
+                  disabled={isChangingAvatar}
+                  className="absolute -bottom-0.5 -right-0.5 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
+                >
+                  <Pencil size={10} color="#fff" strokeWidth={2.4} />
+                </TouchableOpacity>
               )}
             </View>
             <View className="ml-4 flex-1">
@@ -388,6 +415,17 @@ export default function SettingsScreen({
               <Text className="mt-1 text-xs font-semibold text-app-primary-1">
                 {account.caption}
               </Text>
+              {!!account.avatarUrl && (
+                <TouchableOpacity
+                  onPress={handleRemoveAvatar}
+                  disabled={isRemovingAvatar}
+                  className="mt-2"
+                >
+                  <Text className="text-xs font-medium text-red-500 underline">
+                    {isRemovingAvatar ? 'Removing...' : 'Remove'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
