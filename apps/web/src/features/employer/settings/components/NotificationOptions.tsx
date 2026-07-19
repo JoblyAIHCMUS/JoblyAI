@@ -55,7 +55,8 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
             className="text-xs sm:text-sm md:text-base font-normal font-['Be_Vietnam_Pro'] max-w-[336px]"
             style={{ color: 'var(--text-secondary, #475569)' }}
           >
-            These are notifications for candidates who have applied to your job postings.
+            These are notifications for candidates who have applied to your job
+            postings.
           </div>
         </div>
       </div>
@@ -80,7 +81,8 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
             className="text-xs sm:text-sm md:text-base font-normal font-['Be_Vietnam_Pro'] max-w-[336px]"
             style={{ color: 'var(--text-secondary, #475569)' }}
           >
-            These are notifications when candidates or applicants send you a message.
+            These are notifications when candidates or applicants send you a
+            message.
           </div>
         </div>
       </div>

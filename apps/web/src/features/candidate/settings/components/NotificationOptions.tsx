@@ -133,4 +133,3 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
     </div>
   </div>
 );
-

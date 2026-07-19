@@ -47,10 +47,20 @@ export default function BrowseCompaniesCompanyProfilePage({
     );
   }
 
+  const hasOverviewContent = !!(
+    displayCompany.description ||
+    (displayCompany.contacts && displayCompany.contacts.length > 0) ||
+    (displayCompany.gallery && displayCompany.gallery.length > 0) ||
+    displayCompany.officeSummary ||
+    (displayCompany.officeLocations && displayCompany.officeLocations.length > 0)
+  );
+
   return (
     <div className="w-full bg-white">
       <CompanyDetailHero company={displayCompany} />
-      <CompanyOverviewSection company={displayCompany} />
+      {hasOverviewContent && (
+        <CompanyOverviewSection company={displayCompany} />
+      )}
       {displayCompany.team && displayCompany.team.length > 0 && (
         <CompanyTeamSection company={displayCompany} />
       )}
