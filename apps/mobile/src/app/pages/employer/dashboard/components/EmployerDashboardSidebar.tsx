@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Image,
   PanResponder,
   Text,
   TouchableOpacity,
@@ -15,7 +14,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SvgUri } from 'react-native-svg';
+import Avatar from '../../../../../components/Avatar';
 import {
   Building2,
   ClipboardList,
@@ -50,12 +49,6 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const hasUnreadMessages = useUnreadDot(employerProfile?.id);
   const company = employerProfile?.company;
   const isUnaffiliated = !company && !isPending && !error;
-  const avatarUrl = employerProfile?.avatarUrl?.trim();
-  const isSvgAvatar =
-    !!avatarUrl &&
-    (avatarUrl.endsWith('.svg') ||
-      avatarUrl.includes('/svg') ||
-      avatarUrl.includes('image/svg+xml'));
 
   // Keep width ref updated for the PanResponder closure
   const widthRef = useRef(width);
@@ -292,19 +285,11 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
 
           <View className="mt-auto pb-4">
             <View className="flex-row items-center px-4 mb-4">
-              <View className="w-14 h-14 overflow-hidden rounded-full bg-[#D1D5DB]">
-                {avatarUrl ? (
-                  isSvgAvatar ? (
-                    <SvgUri uri={avatarUrl} width={56} height={56} />
-                  ) : (
-                    <Image
-                      source={{ uri: avatarUrl }}
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                  )
-                ) : null}
-              </View>
+              <Avatar
+                url={employerProfile?.avatarUrl ?? null}
+                name={employerProfile?.fullName || 'User'}
+                size={56}
+              />
               <View className="ml-4">
                 <Text className="text-[19px] font-bold text-[#111827]">
                   {employerProfile?.fullName || 'Loading...'}

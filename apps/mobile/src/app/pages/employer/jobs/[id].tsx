@@ -92,9 +92,7 @@ export default function JobDetailsScreen() {
         ).candidate;
         const candidateName =
           candidateData?.name || candidateData?.email || `Candidate #${app.id}`;
-        const avatarUrl =
-          candidateData?.avatarUrl ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.id}`;
+        const avatarUrl = candidateData?.avatarUrl ?? null;
 
         return {
           id: String(app.id),
@@ -269,12 +267,12 @@ export default function JobDetailsScreen() {
             isError={isError}
             jobId={id}
           />
-        ) : (
+        ) : numericId !== null ? (
           <JobAnalyticsTab
-            jobId={numericId!}
+            jobId={numericId}
             totalApplications={totalApplications}
           />
-        )}
+        ) : null}
       </View>
     </SafeAreaView>
   );

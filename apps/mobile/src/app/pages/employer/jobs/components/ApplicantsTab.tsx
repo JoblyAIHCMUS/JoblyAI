@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
@@ -10,7 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
-import { SvgUri } from 'react-native-svg';
+import Avatar from '../../../../../components/Avatar';
 import { PipelineView } from './PipelineView';
 
 export type ApplicantStatus =
@@ -23,7 +22,7 @@ export type ApplicantStatus =
 export interface Applicant {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   rating: number;
   status: ApplicantStatus;
   appliedDate: string;
@@ -63,23 +62,16 @@ const getStatusColors = (status: ApplicantStatus) => {
 
 function ApplicantListItem({ applicant }: { applicant: Applicant }) {
   const statusColors = getStatusColors(applicant.status);
-  const isSvg =
-    applicant.avatarUrl?.includes('.svg') ||
-    applicant.avatarUrl?.includes('/svg');
 
   return (
     <View className="flex-row items-center justify-between py-4 border-b border-app-border-light">
       <View className="flex-row items-center flex-1">
-        {isSvg ? (
-          <View className="w-14 h-14 rounded-full mr-4 bg-app-gray-1 overflow-hidden">
-            <SvgUri width="100%" height="100%" uri={applicant.avatarUrl} />
-          </View>
-        ) : (
-          <Image
-            source={{ uri: applicant.avatarUrl }}
-            className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
-          />
-        )}
+        <Avatar
+          url={applicant.avatarUrl}
+          name={applicant.name}
+          size={56}
+          className="mr-4"
+        />
         <View className="flex-1">
           <Text className="text-lg font-semibold text-app-slate-1 mb-1">
             {applicant.name}

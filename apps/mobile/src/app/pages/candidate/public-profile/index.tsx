@@ -3,7 +3,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
-  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -17,6 +16,7 @@ import {
   InstagramIcon,
   TwitterIcon,
 } from '../../../components/shared/svgs/Icons';
+import Avatar from '../../../../components/Avatar';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import EditAboutModal from './components/EditAboutModal';
 import EditExperienceModal from './components/EditExperienceModal';
@@ -40,7 +40,6 @@ import { useDeleteResume } from '@/hooks/useDeleteResume';
 import { useSetDefaultResume } from '@/hooks/useSetDefaultResume';
 import { useTriggerAiParse } from '@/hooks/useTriggerAiParse';
 import { useCommitResumeMerge } from '@/hooks/useCommitResumeMerge';
-import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
   CandidateEducation,
   CandidateExperience,
@@ -127,20 +126,6 @@ function SimplePlus() {
     <View className="items-center justify-center">
       <View className="h-2.5 w-0.5 rounded-full bg-[#4f46e5]" />
       <View className="absolute h-0.5 w-2.5 rounded-full bg-[#4f46e5]" />
-    </View>
-  );
-}
-
-function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
-  const imageUri = avatarUrl?.trim() || 'https://i.pravatar.cc/240?img=12';
-
-  return (
-    <View className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
-      <Image
-        source={{ uri: imageUri }}
-        className="h-full w-full"
-        resizeMode="cover"
-      />
     </View>
   );
 }
@@ -236,7 +221,6 @@ function ProfileContent() {
   const { mutateAsync: setDefaultResume } = useSetDefaultResume();
   const { mutateAsync: triggerAiParse } = useTriggerAiParse();
   const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
-  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const { mutateAsync: updateProfile } = useUpdateProfile();
 
   const startAiSyncPolling = useCallback(
@@ -248,7 +232,7 @@ function ProfileContent() {
           const freshData = freshProfile?.data;
           const resume = freshData?.resumes?.find((r) => r.id === resumeId);
           if (!resume) return;
-          const parsedRaw = (resume as any).parsedText;
+          const parsedRaw = (resume as { parsedText?: string }).parsedText;
           if (!parsedRaw) return;
           const parsedData = JSON.parse(parsedRaw);
           if (!parsedData || Object.keys(parsedData).length === 0) return;
@@ -323,13 +307,6 @@ function ProfileContent() {
   const email = profile?.email || 'Not provided';
   const phone = profile?.phoneNumber?.trim() || 'Not provided';
 
-  const instagram = socials.find((social) =>
-    social.platform.toLowerCase().includes('instagram')
-  );
-  const twitter = socials.find((social) =>
-    social.platform.toLowerCase().includes('twitter')
-  );
-
   const topExperiences = experiences.slice(0, 3);
   const topEducations = educations.slice(0, 3);
 
@@ -395,8 +372,9 @@ function ProfileContent() {
         startAiSyncPolling(newResume.id);
       }
       await refetch();
-    } catch (err: any) {
-      setUploadErrorMsg(err.message || 'Upload failed');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      setUploadErrorMsg(message);
     }
   };
 
@@ -407,7 +385,7 @@ function ProfileContent() {
     try {
       await setDefaultResume(resumeId);
       await refetch();
-    } catch (err) {
+    } catch {
       Toast.show({ type: 'error', text1: 'Failed to set default CV' });
     }
   };
@@ -444,13 +422,13 @@ function ProfileContent() {
       });
   };
 
-  const handleSyncResume = async (draftData?: any) => {
+  const handleSyncResume = async (draftData?: unknown) => {
     if (!activeResumeId) return;
     try {
       await commitResumeMerge({ resumeId: activeResumeId, data: draftData });
       await refetch();
       setSyncModalOpen(false);
-    } catch (err) {
+    } catch {
       Toast.show({ type: 'error', text1: 'Failed to sync profile' });
     }
   };
@@ -470,12 +448,6 @@ function ProfileContent() {
     } catch {
       // Error handled by hook
     }
-  };
-
-  const handleOpenEditSocial = (social?: CandidateSocial) => {
-    setEditingSocial(social || null);
-    setSocialModalMode(social ? 'add' : 'manage');
-    setIsSocialModalOpen(true);
   };
 
   const renderExperience = (experience: CandidateExperience) => {
@@ -589,7 +561,12 @@ function ProfileContent() {
           <View className="px-3">
             <View className="relative pt-14">
               <View className="absolute left-1/2 top-0 z-30 -ml-14">
-                <AvatarPhoto avatarUrl={profile?.avatarUrl} />
+                <Avatar
+                  url={profile?.avatarUrl ?? null}
+                  name={displayName}
+                  size={112}
+                  className="border-4 border-white shadow-lg"
+                />
               </View>
               <Card className="overflow-hidden">
                 <View className="relative h-20 overflow-hidden bg-[#f6cbe0]">
