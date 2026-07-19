@@ -78,6 +78,11 @@ export interface AddCompanyEmployeePayload {
   role?: string;
 }
 
+export interface UpdateCompanyEmployeeRolePayload {
+  email: string;
+  role: 'admin' | 'employee';
+}
+
 export interface CompanyEmployeeMembership {
   id: number;
   companyId: number | null;

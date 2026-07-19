@@ -7,3 +7,5 @@ export * from '@/api-hook/company/useUpdateCompany';
 export * from '@/api-hook/company/useUpdateCompanyLogo';
 export * from '@/api-hook/company/useDeleteCompany';
 export * from '@/api-hook/company/useListCompanies';
+export * from '@/api-hook/company/useRemoveCompanyEmployee';
+export * from '@/api-hook/company/useUpdateCompanyEmployeeRole';

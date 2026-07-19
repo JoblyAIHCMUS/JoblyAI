@@ -3,25 +3,38 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { TeamMemberCard } from '@/components/employer/teamMemberCard';
+import {
+  TeamMemberCard,
+  type TeamMemberRole,
+} from '@/components/employer/teamMemberCard';
 import { TeamMemberSearch } from '@/components/employer/teamMemberSearch';
 import { Plus } from 'lucide-react';
 import type { TeamMember } from '@/features/employer/new-company/data';
 
 export interface TeamMemberData extends TeamMember {
-  isEditable?: boolean;
+  membershipId?: number;
 }
 
 interface TeamManagerProps {
   members: TeamMemberData[];
-  onRoleChange?: (email: string, newRole: string) => void;
+  canManage?: boolean;
+  currentUserEmail?: string;
+  ownerMembershipId?: number | null;
+  busy?: boolean;
+  onRoleChange?: (email: string, newRole: TeamMemberRole) => void;
   onAddMember?: (member: TeamMember) => void;
+  onRemoveMember?: (member: TeamMemberData) => void;
 }
 
 export function TeamManager({
   members,
+  canManage = false,
+  currentUserEmail,
+  ownerMembershipId,
+  busy = false,
   onRoleChange,
   onAddMember,
+  onRemoveMember,
 }: TeamManagerProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -50,18 +63,35 @@ export function TeamManager({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {members.map((member) => (
-            <TeamMemberCard
-              key={member.email}
-              firstName={member.firstName}
-              lastName={member.lastName}
-              avatar={member.avatar}
-              email={member.email}
-              role={member.role}
-              isEditable={member.isEditable}
-              onRoleChange={(newRole) => onRoleChange?.(member.email, newRole)}
-            />
-          ))}
+          {members.map((member) => {
+            const isOwner =
+              ownerMembershipId != null &&
+              member.membershipId === ownerMembershipId;
+            const normalizedRole: TeamMemberRole =
+              member.role === 'admin' || isOwner ? 'admin' : 'employee';
+
+            return (
+              <TeamMemberCard
+                key={member.email}
+                firstName={member.firstName}
+                lastName={member.lastName}
+                avatar={member.avatar}
+                email={member.email}
+                role={normalizedRole}
+                canManage={canManage}
+                isOwner={isOwner}
+                isSelf={
+                  member.email.toLowerCase() ===
+                  currentUserEmail?.toLowerCase()
+                }
+                disabled={busy}
+                onRoleChange={(newRole) =>
+                  onRoleChange?.(member.email, newRole)
+                }
+                onRemove={() => onRemoveMember?.(member)}
+              />
+            );
+          })}
         </div>
       </div>
 

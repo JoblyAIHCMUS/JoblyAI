@@ -1,19 +1,30 @@
 'use client';
 
-import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Pencil, Check } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Trash2 } from 'lucide-react';
+
+export type TeamMemberRole = 'admin' | 'employee';
 
 interface TeamMemberCardProps {
   firstName: string;
   lastName: string;
   avatar?: string;
   email: string;
-  role: string;
-  isEditable?: boolean;
-  onRoleChange?: (newRole: string) => void;
+  role: TeamMemberRole;
+  canManage?: boolean;
+  isOwner?: boolean;
+  isSelf?: boolean;
+  disabled?: boolean;
+  onRoleChange?: (newRole: TeamMemberRole) => void;
+  onRemove?: () => void;
 }
 
 export function TeamMemberCard({
@@ -22,30 +33,30 @@ export function TeamMemberCard({
   avatar,
   email,
   role,
-  isEditable = false,
+  canManage = false,
+  isOwner = false,
+  isSelf = false,
+  disabled = false,
   onRoleChange,
+  onRemove,
 }: TeamMemberCardProps) {
-  const [isEditingRole, setIsEditingRole] = useState(false);
-  const [editedRole, setEditedRole] = useState(role);
-
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-
-  const handleConfirmRole = () => {
-    onRoleChange?.(editedRole);
-    setIsEditingRole(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleConfirmRole();
-    } else if (e.key === 'Escape') {
-      setEditedRole(role);
-      setIsEditingRole(false);
-    }
-  };
+  const roleLocked = !canManage || isOwner || isSelf || disabled;
+  const canRemove = canManage && !isOwner && !isSelf && !disabled;
 
   return (
-    <Card className="flex flex-col items-center p-4 sm:p-6 gap-2 sm:gap-3">
+    <Card className="relative flex flex-col items-center p-4 sm:p-6 gap-2 sm:gap-3">
+      {canRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors"
+          aria-label={`Remove ${firstName} ${lastName}`}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
+
       <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
         <AvatarImage src={avatar} alt={`${firstName} ${lastName}`} />
         <AvatarFallback className="text-base sm:text-lg">
@@ -53,53 +64,40 @@ export function TeamMemberCard({
         </AvatarFallback>
       </Avatar>
 
-      <div className="text-center min-w-0">
+      <div className="text-center min-w-0 w-full">
         <p className="label-label-1-semibold text-xs sm:text-sm">
           {firstName} {lastName}
         </p>
 
-        <div className="flex items-center justify-center gap-1.5 mt-0.5 sm:mt-1">
-          {isEditingRole ? (
-            <>
-              <Input
-                value={editedRole}
-                onChange={(e) => setEditedRole(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="h-7 text-xs sm:text-sm text-center w-28 sm:w-36"
-                autoFocus
-              />
-              <button
-                onClick={handleConfirmRole}
-                className="text-slate-500 hover:text-slate-700 shrink-0"
-                aria-label="Confirm role"
-              >
-                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
-            </>
+        <div className="flex items-center justify-center mt-0.5 sm:mt-1 h-7">
+          {roleLocked ? (
+            <p className="body-body-2-regular text-slate-500 text-xs sm:text-sm">
+              {role}
+            </p>
           ) : (
-            <>
-              {isEditable && (
-                <span className="w-3 shrink-0" aria-hidden="true" />
-              )}
-              <p className="body-body-2-regular text-slate-500 text-xs sm:text-sm">
-                {role}
-              </p>
-              {isEditable && (
-                <button
-                  onClick={() => setIsEditingRole(true)}
-                  className="text-slate-400 hover:text-slate-600 shrink-0"
-                  aria-label="Edit role"
-                >
-                  <Pencil className="h-3 w-3 sm:h-3.5 sm:h-3.5" />
-                </button>
-              )}
-            </>
+            <Select
+              value={role}
+              onValueChange={(value) =>
+                onRoleChange?.(value as TeamMemberRole)
+              }
+            >
+              <SelectTrigger
+                className="h-7 w-28 sm:w-32 justify-center gap-1 border-none shadow-none text-xs sm:text-sm text-slate-500"
+                aria-label="Member role"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">admin</SelectItem>
+                <SelectItem value="employee">employee</SelectItem>
+              </SelectContent>
+            </Select>
           )}
         </div>
       </div>
 
       <p
-        className="body-body-3-regular text-slate-400 text-xs w-full min-w-0 break-all text-center"
+        className="body-body-3-regular text-slate-400 text-xs w-full min-w-0 truncate text-center"
         title={email}
       >
         {email}
