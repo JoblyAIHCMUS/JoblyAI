@@ -1,7 +1,7 @@
 'use client';
 
-import { RichTextContent } from '@/components/ui/rich-text-content';
 import { useCompanyNavigation } from '@/hooks/useCompanyNavigation';
+import { stripHtmlTags } from '@/lib/utils';
 import type { RecommendedCompany } from '@/types/recommendedCompany';
 import CategoryBadge from './CategoryBadge';
 import CompanyLogo from './CompanyLogo';
@@ -29,10 +29,9 @@ export default function CompanyCard({
         {company.name}
       </h3>
 
-      <RichTextContent
-        html={company.description ?? ''}
-        className="mb-4 min-h-[96px] text-base leading-6 text-slate-600 line-clamp-4 [&_p]:m-0"
-      />
+      <p className="mb-4 min-h-[96px] text-base leading-6 text-slate-600 line-clamp-4">
+        {stripHtmlTags(company.description)}
+      </p>
 
       <div className="flex flex-wrap items-center gap-3">
         <CategoryBadge

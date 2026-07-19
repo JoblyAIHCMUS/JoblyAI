@@ -50,7 +50,6 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 function CategoryCard({
   cat,
-  active,
 }: {
   cat: {
     id: string | number;
@@ -59,31 +58,20 @@ function CategoryCard({
     slug: string;
     iconKey?: string | null;
   };
-  active?: boolean;
 }) {
   const Icon = (cat.iconKey && iconMap[cat.iconKey]) || Briefcase;
 
   return (
     <Link
       href={`/find-jobs?categoryId=${cat.id}`}
-      className={`p-6 md:p-8 rounded-lg border transition block ${
-        active
-          ? 'bg-indigo-600 border-indigo-600 text-white'
-          : 'bg-white border-slate-200 text-slate-900 hover:shadow-lg hover:border-indigo-300'
-      }`}
+      className="p-6 md:p-8 rounded-lg border transition-all duration-300 block group bg-white border-slate-200 text-slate-900 hover:shadow-lg hover:bg-indigo-600 hover:border-indigo-600 hover:text-white"
     >
-      <div
-        className={`w-12 h-12 rounded-md mb-8 flex items-center justify-center ${
-          active ? 'bg-indigo-500' : 'bg-indigo-100'
-        }`}
-      >
-        <Icon
-          className={`w-6 h-6 ${active ? 'text-white' : 'text-indigo-600'}`}
-        />
+      <div className="w-12 h-12 rounded-md mb-8 flex items-center justify-center bg-indigo-100 group-hover:bg-indigo-500 transition-colors duration-300">
+        <Icon className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors duration-300" />
       </div>
       <h3 className="text-xl md:text-2xl font-bold mb-4">{cat.name}</h3>
       <div className="flex items-center gap-3">
-        <p className={active ? 'text-indigo-100' : 'text-slate-600'}>
+        <p className="text-slate-600 group-hover:text-indigo-100 transition-colors duration-300">
           {cat.jobCount} jobs available
         </p>
         <ArrowRight className="w-6 h-6" />
@@ -118,13 +106,7 @@ export default function CategoriesSection() {
                   className="h-64 rounded-lg bg-slate-100 animate-pulse"
                 />
               ))
-            : categories.map((cat, index) => (
-                <CategoryCard
-                  key={cat.id}
-                  cat={cat}
-                  active={index === 2} // Mimicking the original "Marketing" active state for position 3
-                />
-              ))}
+            : categories.map((cat) => <CategoryCard key={cat.id} cat={cat} />)}
         </div>
       </div>
     </section>

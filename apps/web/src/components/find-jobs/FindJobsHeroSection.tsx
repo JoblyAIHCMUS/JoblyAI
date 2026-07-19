@@ -92,10 +92,6 @@ export default function FindJobsHeroSection({
               </Button>
             </div>
           </div>
-
-          <p className="text-center text-base font-normal leading-6 text-slate-600 opacity-70 lg:text-left">
-            Popular : UI Designer, UX Researcher, Android, Admin
-          </p>
         </div>
       </div>
     </section>
