@@ -329,7 +329,7 @@ importers:
         version: 1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.2)(better-auth@1.6.23(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(better-sqlite3@12.11.1)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@5.22.0(prisma@6.19.3(typescript@5.9.3)))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3)))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.101.0))(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(vitest@4.1.9))(better-call@1.3.5(zod@4.4.3))
       '@better-auth/expo':
         specifier: ^1.6.23
-        version: 1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(better-auth@1.6.23(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(better-sqlite3@12.11.1)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@5.22.0(prisma@6.19.3(typescript@5.9.3)))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3)))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.101.0))(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(vitest@4.1.9))(expo-constants@56.0.18)(expo-linking@8.0.12)(expo-network@8.0.8(expo@54.0.35)(react@19.1.0))
+        version: 1.6.23(4f24101f7fa1a8038468844661e49f8a)
       '@google-cloud/storage':
         specifier: ^7.21.0
         version: 7.21.0(encoding@0.1.13)
@@ -486,7 +486,7 @@ importers:
     dependencies:
       '@better-auth/expo':
         specifier: ^1.6.23
-        version: 1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(better-auth@1.6.23(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(better-sqlite3@12.11.1)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3)))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.101.0))(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(vitest@4.1.9))(expo-constants@18.0.13)(expo-linking@8.0.12)(expo-network@8.0.8(expo@54.0.35)(react@19.1.0))
+        version: 1.6.23(66a0c0d335c61eab50ec773d97236f2c)
       '@ptomasroos/react-native-multi-slider':
         specifier: ^2.2.2
         version: 2.2.2(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -562,6 +562,9 @@ importers:
       expo-system-ui:
         specifier: '*'
         version: 6.0.9(expo@54.0.35)(react-native-web@0.21.2(encoding@0.1.13)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
+      expo-web-browser:
+        specifier: ~15.0.11
+        version: 15.0.11(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
       jest-expo:
         specifier: '*'
         version: 56.0.5(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.1.0))(expo@54.0.35)(jest@30.4.2(@types/node@20.19.9)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(@types/node@20.19.9)(typescript@5.9.3)))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
@@ -14558,6 +14561,15 @@ packages:
       react-native-web:
         optional: true
 
+  expo-web-browser@15.0.11:
+    resolution:
+      {
+        integrity: sha512-r2LS4Ro6DgUPZkcaEfgt8mp9eJuoA93x11Jh7S6utFe0FEzvUNn2yFhxg8XVwESaaHGt2k5V8LuK36rsp0BeIw==,
+      }
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
+
   expo@54.0.35:
     resolution:
       {
@@ -21058,6 +21070,9 @@ packages:
       {
         integrity: sha512-WrhaRUMM8HaV+6XwESS1k7i1/QxZb4K2lpELIxLTiXXMdUP5b9207AjXp6d8Op0XulvFNC8HJdDdanQZUUI6Zg==,
       }
+    deprecated: |-
+      react-native-enriched has been renamed to react-native-enriched-html.
+      This package will not receive any further updates. Migrate with no breaking changes to https://github.com/software-mansion/react-native-enriched-html/releases/tag/v1.0.0
     peerDependencies:
       react: 19.1.0
       react-native: '*'
@@ -26450,7 +26465,7 @@ snapshots:
     optionalDependencies:
       drizzle-orm: 0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))
 
-  '@better-auth/expo@1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(better-auth@1.6.23(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(better-sqlite3@12.11.1)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@5.22.0(prisma@6.19.3(typescript@5.9.3)))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3)))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.101.0))(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(vitest@4.1.9))(expo-constants@56.0.18)(expo-linking@8.0.12)(expo-network@8.0.8(expo@54.0.35)(react@19.1.0))':
+  '@better-auth/expo@1.6.23(4f24101f7fa1a8038468844661e49f8a)':
     dependencies:
       '@better-auth/core': 1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-fetch/fetch': 1.3.1
@@ -26461,8 +26476,9 @@ snapshots:
       expo-constants: 56.0.18(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
       expo-linking: 8.0.12(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       expo-network: 8.0.8(expo@54.0.35)(react@19.1.0)
+      expo-web-browser: 15.0.11(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
 
-  '@better-auth/expo@1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(better-auth@1.6.23(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(better-sqlite3@12.11.1)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.28.17)(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3)))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.101.0))(pg@8.21.0)(prisma@6.19.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(vitest@4.1.9))(expo-constants@18.0.13)(expo-linking@8.0.12)(expo-network@8.0.8(expo@54.0.35)(react@19.1.0))':
+  '@better-auth/expo@1.6.23(66a0c0d335c61eab50ec773d97236f2c)':
     dependencies:
       '@better-auth/core': 1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-fetch/fetch': 1.3.1
@@ -26473,6 +26489,7 @@ snapshots:
       expo-constants: 18.0.13(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
       expo-linking: 8.0.12(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       expo-network: 8.0.8(expo@54.0.35)(react@19.1.0)
+      expo-web-browser: 15.0.11(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))
 
   '@better-auth/kysely-adapter@1.6.23(@better-auth/core@1.6.23(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.2)(kysely@0.28.17)':
     dependencies:
@@ -36084,6 +36101,11 @@ snapshots:
       react-native-web: 0.21.2(encoding@0.1.13)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
+
+  expo-web-browser@15.0.11(expo@54.0.35)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0)):
+    dependencies:
+      expo: 54.0.35(@babel/core@7.29.7)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(graphql@16.8.1)(react-native-webview@13.16.1(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+      react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0)
 
   expo@54.0.35(@babel/core@7.29.7)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(graphql@16.8.1)(react-native-webview@13.16.1(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@19.1.2(typescript@5.9.3))(@react-native/metro-config@0.79.7(@babel/core@7.29.7))(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
     dependencies:

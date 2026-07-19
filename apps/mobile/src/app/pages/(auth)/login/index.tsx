@@ -11,7 +11,7 @@ import {
   GoogleAuthButton,
   AuthDivider,
 } from '../../../components/shared/GoogleAuthButton';
-import { useLogin } from '../../../../hooks/useAuth';
+import { useLogin, useAuth } from '../../../../hooks/useAuth';
 import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
@@ -20,6 +20,7 @@ import { Eye, EyeOff, Check } from 'lucide-react-native';
 
 const LoginPage = () => {
   const { login, loading, error } = useLogin();
+  const { refetch } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -37,6 +38,8 @@ const LoginPage = () => {
       }
 
       const session = await getSession();
+      await refetch();
+      await new Promise((r) => setTimeout(r, 100));
       const role = session?.user?.role;
 
       if (role === 'employer') {
@@ -81,6 +84,8 @@ const LoginPage = () => {
       const result = await login({ email, password, rememberMe });
 
       await authClient.getSession();
+      await refetch();
+      await new Promise((r) => setTimeout(r, 100));
 
       if (result.user.role === 'employer') {
         router.replace('/pages/employer/dashboard');
