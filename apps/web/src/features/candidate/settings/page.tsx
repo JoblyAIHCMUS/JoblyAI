@@ -113,6 +113,16 @@ export default function CandidateSettingsPage() {
     fetchCandidateProfile();
   };
 
+  const handleAvatarRemoved = () => {
+    const firstName = methods.getValues('firstName');
+    const lastName = methods.getValues('lastName');
+    const seed = `${firstName} ${lastName}`.trim() || 'User';
+    setProfilePhoto(
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`
+    );
+    fetchCandidateProfile();
+  };
+
   const handleNotificationChange = async (key: NotificationSettingsKey) => {
     const previousSettings = notificationSettings;
     const nextSettings = {
@@ -231,6 +241,7 @@ export default function CandidateSettingsPage() {
                 <ProfilePhotoSection
                   photoUrl={profilePhoto}
                   onAvatarUpdated={handleAvatarUpdated}
+                  onAvatarRemoved={handleAvatarRemoved}
                   disabled={loadingProfile || isSaving}
                 />
               </div>

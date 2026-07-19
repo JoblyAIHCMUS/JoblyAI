@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SvgUri } from 'react-native-svg';
+import * as ImagePicker from 'expo-image-picker';
 import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -48,6 +50,15 @@ import type {
   CandidateSocial,
 } from '../../../../types/candidate';
 import { CandidateHeader } from '../../../../components/header/CandidateHeader';
+import {
+  createUploadUrl,
+  uploadFileToGcs,
+  deleteGcsFile,
+} from '../../../../api/gcs';
+import {
+  updateAvatar,
+  deleteAvatar as deleteCandidateAvatar,
+} from '../../../../api/candidate';
 
 function HeaderIcon({
   children,
@@ -131,16 +142,57 @@ function SimplePlus() {
   );
 }
 
-function AvatarPhoto({ avatarUrl }: { avatarUrl?: string }) {
-  const imageUri = avatarUrl?.trim() || 'https://i.pravatar.cc/240?img=12';
+function AvatarPhoto({
+  avatarUrl,
+  name,
+  onChangePhoto,
+  onRemovePhoto,
+  isRemoving,
+}: {
+  avatarUrl?: string;
+  name: string;
+  onChangePhoto?: () => void;
+  onRemovePhoto?: () => void;
+  isRemoving?: boolean;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showRealImage = !!avatarUrl && !imageFailed;
+  const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
 
   return (
-    <View className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
-      <Image
-        source={{ uri: imageUri }}
-        className="h-full w-full"
-        resizeMode="cover"
-      />
+    <View className="items-center">
+      <View className="relative h-28 w-28">
+        <View className="h-full w-full overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
+          {showRealImage ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              className="h-full w-full"
+              resizeMode="cover"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <SvgUri uri={dicebearUrl} width="100%" height="100%" />
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={onChangePhoto}
+          disabled={isRemoving}
+          className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
+        >
+          <Pencil size={12} color="#fff" strokeWidth={2.4} />
+        </TouchableOpacity>
+      </View>
+      {!!avatarUrl && onRemovePhoto && (
+        <TouchableOpacity
+          onPress={onRemovePhoto}
+          disabled={isRemoving}
+          className="mt-1"
+        >
+          <Text className="text-xs font-semibold text-red-500 underline">
+            {isRemoving ? 'Removing...' : 'Remove'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -213,6 +265,8 @@ function ProfileContent() {
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
+  const [isChangingAvatar, setIsChangingAvatar] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const syncInProgressRef = useRef<Set<number>>(new Set());
 
@@ -472,6 +526,89 @@ function ProfileContent() {
     }
   };
 
+  const handleChangeAvatar = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Toast.show({
+          type: 'error',
+          text1: 'Permission required',
+          text2: 'Allow access to your photo library to change your profile picture.',
+        });
+        return;
+      }
+
+      setIsChangingAvatar(true);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets[0]) {
+        setIsChangingAvatar(false);
+        return;
+      }
+
+      const asset = result.assets[0];
+      const fileName = asset.fileName || `avatar_${Date.now()}.jpg`;
+      const fileType = asset.mimeType || 'image/jpeg';
+
+      const uploadUrlRes = await createUploadUrl({
+        fileName,
+        fileType,
+        folder: 'avatars',
+      });
+
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+
+      await uploadFileToGcs(uploadUrlRes.uploadUrl, blob, fileType);
+
+      const oldAvatarUrl = profile?.avatarUrl;
+      await updateAvatar({
+        fileKey: uploadUrlRes.fileKey,
+        fileUrl: uploadUrlRes.fileUrl,
+      });
+
+      if (oldAvatarUrl && oldAvatarUrl.includes('/avatars/')) {
+        const oldKey = oldAvatarUrl.split('/avatars/')[1]?.split('?')[0];
+        if (oldKey) {
+          deleteGcsFile(oldKey).catch(() => {});
+        }
+      }
+
+      await refetch();
+      Toast.show({ type: 'success', text1: 'Profile picture updated' });
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update profile picture',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setIsChangingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatarFromProfile = async () => {
+    setIsRemovingAvatar(true);
+    try {
+      await deleteCandidateAvatar();
+      await refetch();
+      Toast.show({ type: 'success', text1: 'Profile picture removed' });
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to remove profile picture',
+        text2: error?.message || 'Please try again.',
+      });
+    } finally {
+      setIsRemovingAvatar(false);
+    }
+  };
+
   const handleOpenEditSocial = (social?: CandidateSocial) => {
     setEditingSocial(social || null);
     setSocialModalMode(social ? 'add' : 'manage');
@@ -589,7 +726,13 @@ function ProfileContent() {
           <View className="px-3">
             <View className="relative pt-14">
               <View className="absolute left-1/2 top-0 z-30 -ml-14">
-                <AvatarPhoto avatarUrl={profile?.avatarUrl} />
+                <AvatarPhoto
+                  avatarUrl={profile?.avatarUrl}
+                  name={displayName}
+                  onChangePhoto={handleChangeAvatar}
+                  onRemovePhoto={handleRemoveAvatarFromProfile}
+                  isRemoving={isRemovingAvatar}
+                />
               </View>
               <Card className="overflow-hidden">
                 <View className="relative h-20 overflow-hidden bg-[#f6cbe0]">

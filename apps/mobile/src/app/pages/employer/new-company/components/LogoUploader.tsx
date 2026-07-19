@@ -12,12 +12,13 @@ import { ImageIcon, X } from 'lucide-react-native';
 interface LogoUploaderProps {
   onValueChange?: (logoUrl: string | null, file?: any) => void;
   currentFileKey?: string | null;
+  currentLogoUrl?: string | null;
 }
 
 export const LogoUploader = React.forwardRef<
   { resetPreview: () => void },
   LogoUploaderProps
->(function LogoUploader({ onValueChange, currentFileKey }, ref) {
+>(function LogoUploader({ onValueChange, currentFileKey, currentLogoUrl }, ref) {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading] = useState(false);
 
@@ -51,6 +52,8 @@ export const LogoUploader = React.forwardRef<
     onValueChange?.(null, null);
   };
 
+  const showRemove = preview || currentLogoUrl;
+
   return (
     <View className="flex-row gap-4">
       {/* Preview */}
@@ -65,11 +68,17 @@ export const LogoUploader = React.forwardRef<
               className="w-full h-full"
               resizeMode="cover"
             />
+          ) : currentLogoUrl ? (
+            <Image
+              source={{ uri: currentLogoUrl }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
           ) : (
             <ImageIcon size={32} color="#A5B4FC" strokeWidth={1.5} />
           )}
         </View>
-        {preview && (
+        {showRemove && (
           <TouchableOpacity
             onPress={handleRemove}
             className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center"

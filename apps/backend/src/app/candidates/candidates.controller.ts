@@ -423,4 +423,12 @@ export class CandidatesController {
     const { id: userId } = req.user;
     return await this.candidatesService.updateAvatar(userId, updateDto);
   }
+
+  @Delete('/me/avatar')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async deleteAvatar(@Request() req: AuthRequest) {
+    const { id: userId } = req.user;
+    return await this.candidatesService.deleteAvatar(userId);
+  }
 }
