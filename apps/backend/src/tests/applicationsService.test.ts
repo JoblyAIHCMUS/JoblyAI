@@ -13,6 +13,8 @@ import { PreShortlistService } from '../app/pre-shortlist/pre-shortlist.service'
 // Mock ApplicationStatus enum from Prisma
 export enum ApplicationStatus {
   APPLIED = 'APPLIED',
+  PRE_SHORTLIST_PENDING = 'PRE_SHORTLIST_PENDING',
+  PRE_SHORTLIST_SUBMITTED = 'PRE_SHORTLIST_SUBMITTED',
   INTERVIEW = 'INTERVIEW',
   OFFER = 'OFFER',
   REJECTED = 'REJECTED',
@@ -23,6 +25,8 @@ export enum ApplicationStatus {
 vi.mock('@prisma/client', () => ({
   ApplicationStatus: {
     APPLIED: 'APPLIED',
+    PRE_SHORTLIST_PENDING: 'PRE_SHORTLIST_PENDING',
+    PRE_SHORTLIST_SUBMITTED: 'PRE_SHORTLIST_SUBMITTED',
     INTERVIEW: 'INTERVIEW',
     OFFER: 'OFFER',
     REJECTED: 'REJECTED',
@@ -551,15 +555,60 @@ describe('ApplicationsService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should throw BadRequestException if status is not APPLIED', async () => {
+    it('should throw BadRequestException if status is terminal', async () => {
       const mockApp = createMockApplication({
-        status: 'INTERVIEW' as ApplicationStatus,
+        status: 'OFFER' as ApplicationStatus,
       });
       mockPrisma.application.findUnique.mockResolvedValue(mockApp);
 
       await expect(
         service.withdrawApplication('candidate-123', 1)
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should withdraw application from PRE_SHORTLIST_PENDING', async () => {
+      const mockApp = createMockApplication({
+        status: 'PRE_SHORTLIST_PENDING' as ApplicationStatus,
+      });
+      const withdrawnApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(withdrawnApp);
+
+      const result = await service.withdrawApplication('candidate-123', 1);
+      expect(result.status).toBe('WITHDRAWN');
+    });
+
+    it('should withdraw application from PRE_SHORTLIST_SUBMITTED', async () => {
+      const mockApp = createMockApplication({
+        status: 'PRE_SHORTLIST_SUBMITTED' as ApplicationStatus,
+      });
+      const withdrawnApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(withdrawnApp);
+
+      const result = await service.withdrawApplication('candidate-123', 1);
+      expect(result.status).toBe('WITHDRAWN');
+    });
+
+    it('should withdraw application from INTERVIEW', async () => {
+      const mockApp = createMockApplication({
+        status: 'INTERVIEW' as ApplicationStatus,
+      });
+      const withdrawnApp = createMockApplication({
+        status: 'WITHDRAWN' as ApplicationStatus,
+      });
+
+      mockPrisma.application.findUnique.mockResolvedValue(mockApp);
+      mockPrisma.application.update.mockResolvedValue(withdrawnApp);
+
+      const result = await service.withdrawApplication('candidate-123', 1);
+      expect(result.status).toBe('WITHDRAWN');
     });
   });
 
