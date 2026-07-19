@@ -141,61 +141,6 @@ function SimplePlus() {
   );
 }
 
-function AvatarPhoto({
-  avatarUrl,
-  name,
-  onChangePhoto,
-  onRemovePhoto,
-  isRemoving,
-}: {
-  avatarUrl?: string;
-  name: string;
-  onChangePhoto?: () => void;
-  onRemovePhoto?: () => void;
-  isRemoving?: boolean;
-}) {
-  const [imageFailed, setImageFailed] = useState(false);
-  const showRealImage = !!avatarUrl && !imageFailed;
-  const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-
-  return (
-    <View className="items-center">
-      <View className="relative h-28 w-28">
-        <View className="h-full w-full overflow-hidden rounded-full border-4 border-white bg-[#dbeafe] shadow-lg">
-          {showRealImage ? (
-            <Image
-              source={{ uri: avatarUrl }}
-              className="h-full w-full"
-              resizeMode="cover"
-              onError={() => setImageFailed(true)}
-            />
-          ) : (
-            <SvgUri uri={dicebearUrl} width="100%" height="100%" />
-          )}
-        </View>
-        <TouchableOpacity
-          onPress={onChangePhoto}
-          disabled={isRemoving}
-          className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
-        >
-          <Pencil size={12} color="#fff" strokeWidth={2.4} />
-        </TouchableOpacity>
-      </View>
-      {!!avatarUrl && onRemovePhoto && (
-        <TouchableOpacity
-          onPress={onRemovePhoto}
-          disabled={isRemoving}
-          className="mt-1"
-        >
-          <Text className="text-xs font-semibold text-red-500 underline">
-            {isRemoving ? 'Removing...' : 'Remove'}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-
 function SectionAction({ onPress }: { onPress?: () => void }) {
   return (
     <HeaderIcon onPress={onPress}>
@@ -718,24 +663,26 @@ function ProfileContent() {
           <View className="px-3">
             <View className="relative pt-14">
               <View className="absolute left-1/2 top-0 z-30 -ml-14">
-                <View className="relative">
-                  <Avatar
-                    url={profile?.avatarUrl ?? null}
-                    name={displayName}
-                    size={112}
-                    className="border-4 border-white shadow-lg"
-                  />
-                  <TouchableOpacity
-                    onPress={handleChangeAvatar}
-                    className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
-                  >
-                    <Pencil size={12} color="#fff" strokeWidth={2.4} />
-                  </TouchableOpacity>
+                <View className="items-center">
+                  <View className="relative">
+                    <Avatar
+                      url={profile?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`}
+                      name={displayName}
+                      size={112}
+                      className="border-4 border-white shadow-lg"
+                    />
+                    <TouchableOpacity
+                      onPress={handleChangeAvatar}
+                      className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
+                    >
+                      <Pencil size={12} color="#fff" strokeWidth={2.4} />
+                    </TouchableOpacity>
+                  </View>
                   {!!profile?.avatarUrl && (
                     <TouchableOpacity
                       onPress={handleRemoveAvatarFromProfile}
                       disabled={isRemovingAvatar}
-                      className="mt-1 items-center"
+                      className="mt-1"
                     >
                       <Text className="text-xs font-semibold text-red-500 underline">
                         {isRemovingAvatar ? 'Removing...' : 'Remove'}
