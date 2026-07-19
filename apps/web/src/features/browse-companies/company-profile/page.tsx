@@ -52,7 +52,8 @@ export default function BrowseCompaniesCompanyProfilePage({
     (displayCompany.contacts && displayCompany.contacts.length > 0) ||
     (displayCompany.gallery && displayCompany.gallery.length > 0) ||
     displayCompany.officeSummary ||
-    (displayCompany.officeLocations && displayCompany.officeLocations.length > 0)
+    (displayCompany.officeLocations &&
+      displayCompany.officeLocations.length > 0)
   );
 
   return (
