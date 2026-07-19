@@ -106,9 +106,7 @@ export default function HeroSection() {
               </Button>
             </div>
           </form>
-          <p className="text-slate-600 text-sm opacity-70">
-            Popular : UI Designer, UX Researcher, Android, Admin
-          </p>
+
         </div>
       </div>
     </section>

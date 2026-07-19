@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTopCompanies } from '@/hooks/useTopCompanies';
 
@@ -49,9 +50,10 @@ export default function CompaniesSection() {
               ? failedLogos.has(company.logoUrl)
               : true;
             return (
-              <div
+              <Link
                 key={company.id}
-                className="relative flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 w-32 h-16"
+                href={`/browse-companies/${company.id}`}
+                className="relative flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 w-32 h-16 hover:scale-105"
               >
                 {company.logoUrl && !logoFailed ? (
                   <Image
@@ -67,7 +69,7 @@ export default function CompaniesSection() {
                     {company.name}
                   </div>
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>
