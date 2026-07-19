@@ -57,24 +57,20 @@ export default function CompanyOverviewSection({
 
   return (
     <section className="bg-white py-12 sm:py-16 lg:py-[72px]">
-      <div
-        className={`mx-auto grid w-full max-w-[1240px] gap-12 px-4 sm:px-6 lg:gap-[60px] lg:px-8 ${
-          hasSidebar
-            ? 'lg:grid-cols-[minmax(0,752px)_minmax(280px,1fr)]'
-            : 'lg:grid-cols-1 max-w-[752px]'
-        }`}
-      >
+      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-4 sm:px-6 lg:gap-[60px] lg:px-8 lg:grid-cols-[minmax(0,752px)_minmax(280px,1fr)]">
         <div className="space-y-10">
           <div className="space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
-                Company Profile
-              </h2>
-              <RichTextContent
-                html={company.description ?? ''}
-                className="text-base leading-7 text-slate-600 [&_p]:my-0 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-5 [&_h3]:mb-3 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-4"
-              />
-            </div>
+            {company.description && (
+              <div className="space-y-4">
+                <h2 className="text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
+                  Company Profile
+                </h2>
+                <RichTextContent
+                  html={company.description}
+                  className="text-base leading-7 text-slate-600 [&_p]:my-0 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-5 [&_h3]:mb-3 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-4"
+                />
+              </div>
+            )}
 
             {company.contacts && company.contacts.length > 0 && (
               <div className="space-y-4">

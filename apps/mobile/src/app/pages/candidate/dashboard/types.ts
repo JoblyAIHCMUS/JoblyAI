@@ -9,7 +9,7 @@ export type ApplicationStatus =
 
 export type ApplicationTab = 'ALL' | ApplicationStatus;
 
-export type DatePreset = 'LAST_7_DAYS' | 'TODAY' | 'LAST_30_DAYS';
+export type DatePreset = 'LAST_7_DAYS' | 'TODAY' | 'LAST_30_DAYS' | 'ALL_TIME';
 
 export interface DateRange {
   from: Date;

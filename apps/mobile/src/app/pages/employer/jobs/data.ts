@@ -11,6 +11,7 @@ export interface JobListing {
   originalId: number; // Keep track of the number ID for mutations
   title: string;
   datePosted: string;
+  createdAt: Date;
   applicants: number;
   needsFilled: number;
   needsTotal: number;
@@ -51,6 +52,7 @@ export function mapJobPostingToListing(job: JobPosting): JobListing {
     originalId: job.id,
     title: job.title,
     datePosted: formattedDate,
+    createdAt: new Date(job.createdAt),
     applicants: job.applicantsCount || 0,
     needsFilled: 0,
     needsTotal: 0,

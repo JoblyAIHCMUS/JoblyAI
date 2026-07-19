@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Share2, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
@@ -39,6 +40,7 @@ interface JobDetailHeaderProps {
   preShortlistEligible?: boolean;
   preShortlistState?: 'NONE' | 'PENDING' | 'SUBMITTED';
   applicationId?: number;
+  onApplicationSuccess?: () => void;
 }
 
 export default function JobDetailHeader({
@@ -53,6 +55,7 @@ export default function JobDetailHeader({
   preShortlistEligible: _preShortlistEligible = false,
   preShortlistState = 'NONE',
   applicationId,
+  onApplicationSuccess,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
@@ -146,6 +149,18 @@ export default function JobDetailHeader({
     if (!showPreShortlistCta || !applicationId) return;
     router.push(`/candidate/pre-shortlist/${applicationId}`);
   };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard');
+    } catch {
+      const fallbackUrl = `${window.location.origin}/find-jobs/${jobId}`;
+      await navigator.clipboard.writeText(fallbackUrl);
+      toast.success('Link copied to clipboard');
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-14 sm:pt-16 lg:pt-[72px]">
       {/* Background patterns */}
@@ -253,6 +268,7 @@ export default function JobDetailHeader({
               </div>
             </div>
             <button
+              onClick={handleShare}
               className="sm:hidden text-slate-400 hover:text-slate-600 transition-colors p-1 shrink-0"
               aria-label="Share job"
             >
@@ -263,6 +279,7 @@ export default function JobDetailHeader({
           {/* Right: Actions */}
           <div className="flex w-full sm:w-auto items-center justify-end gap-3 sm:gap-4 lg:gap-6 shrink-0">
             <button
+              onClick={handleShare}
               className="hidden sm:inline-flex text-slate-400 hover:text-slate-600 transition-colors p-1"
               aria-label="Share job"
             >
@@ -337,6 +354,7 @@ export default function JobDetailHeader({
           <SubmitApplicationModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
+            onSuccess={onApplicationSuccess}
             job={{
               id: jobId,
               title: jobTitle,

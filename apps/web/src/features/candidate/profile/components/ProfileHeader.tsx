@@ -48,6 +48,15 @@ export default function ProfileHeader({
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [title, setTitle] = React.useState(candidate.title || '');
   const [loading, setLoading] = React.useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+
+  const handleAvatarClick = () => {
+    if (candidate.avatar) {
+      setIsPreviewOpen(true);
+    } else {
+      router.push('/candidate/settings');
+    }
+  };
 
   React.useEffect(() => {
     setTitle(candidate.title || '');
@@ -73,17 +82,35 @@ export default function ProfileHeader({
     <div className="flex flex-row w-full gap-[var(--space-base)] items-stretch">
       {/* Left side: 3/5 */}
       <div className="flex-[3] relative rounded-[var(--radius-lg)] border border-[color:var(--border-primary)] bg-[color:var(--bg-primary)] overflow-hidden flex flex-col items-end pb-[var(--space-xl)]">
-        <div className="w-full h-[140px] bg-[color:#4640DE]" />
+        <div className="w-full h-[140px] bg-gradient-to-r from-indigo-600 to-violet-600" />
         <div className="absolute left-8 top-[70px]">
-          <div className="relative w-[140px] h-[140px]">
-            <div className="absolute w-[140px] h-[140px] rounded-full bg-[color:#26A4FF] border-[8px] border-[color:var(--bg-primary)]" />
-            {candidate.avatar ? (
-              <img
-                src={candidate.avatar}
-                alt="avatar"
-                className="absolute w-[140px] h-[140px] rounded-full object-cover"
-              />
-            ) : null}
+          <div
+            className="relative w-[140px] h-[140px] cursor-pointer group/avatar hover:scale-105 transition-all duration-300 select-none"
+            onClick={handleAvatarClick}
+            title={
+              candidate.avatar
+                ? 'Click to view avatar'
+                : 'Click to upload avatar'
+            }
+          >
+            <div className="absolute inset-0 rounded-full bg-slate-100 border-[8px] border-[color:var(--bg-primary)] flex items-center justify-center overflow-hidden shadow-sm group-hover/avatar:shadow-md transition-shadow">
+              {candidate.avatar ? (
+                <img
+                  src={candidate.avatar}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-4xl font-semibold text-slate-400 select-none">
+                  {candidate.name
+                    ? candidate.name.charAt(0).toUpperCase()
+                    : '?'}
+                </span>
+              )}
+            </div>
+            <div className="absolute inset-[8px] rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
+              {candidate.avatar ? 'View' : 'Upload'}
+            </div>
           </div>
         </div>
         <div className="w-full pl-[180px] pr-8 mt-6">
@@ -194,6 +221,29 @@ export default function ProfileHeader({
           />
         </div>
       </div>
+      {isPreviewOpen && candidate.avatar && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div
+            className="relative max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={candidate.avatar}
+              alt="avatar preview"
+              className="max-w-[90vw] max-h-[90vh] rounded-lg object-contain shadow-2xl border-4 border-white"
+            />
+            <button
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute -top-12 right-0 text-white hover:text-slate-300 text-sm font-semibold bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-md transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

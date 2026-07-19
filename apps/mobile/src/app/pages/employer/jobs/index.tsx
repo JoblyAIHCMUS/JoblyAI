@@ -9,18 +9,54 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
-// Components
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
 import { JobsHeader } from './components/JobsHeader';
 import { JobCard } from './components/JobCard';
+import DateFilterModal from '../../candidate/dashboard/components/DateFilterModal';
+import type { DatePreset } from '../../candidate/dashboard/types';
 
-// Hooks & Data
 import { useEmployerJobsQuery } from '../../../../hooks/useEmployerJobs';
 import { mapJobPostingToListing, JobListing } from './data';
 
+function getDefaultWeekRange() {
+  const now = new Date();
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+  const last7 = new Date(now);
+  last7.setDate(last7.getDate() - 6);
+  const start = new Date(
+    last7.getFullYear(),
+    last7.getMonth(),
+    last7.getDate()
+  );
+  const label = `${start.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })} - ${endOfDay.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })}`;
+  return { start, end: endOfDay, label };
+}
+
 export default function EmployerJobListingScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
+  const [selectedDatePreset, setSelectedDatePreset] =
+    useState<DatePreset | null>(null);
+  const defaultWeekRange = useMemo(() => getDefaultWeekRange(), []);
+  const [selectedDateRange, setSelectedDateRange] = useState(defaultWeekRange);
+  const [selectedDateLabel, setSelectedDateLabel] = useState(
+    defaultWeekRange.label
+  );
 
   const {
     data,
@@ -38,7 +74,15 @@ export default function EmployerJobListingScreen() {
     return data.pages.flatMap((page) => page.jobs.map(mapJobPostingToListing));
   }, [data]);
 
-  const totalJobs = data?.pages[0]?.total || 0;
+  const filteredJobsList = useMemo(
+    () =>
+      jobsList.filter(
+        (job) =>
+          job.createdAt >= selectedDateRange.start &&
+          job.createdAt <= selectedDateRange.end
+      ),
+    [jobsList, selectedDateRange.end, selectedDateRange.start]
+  );
 
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
@@ -50,7 +94,7 @@ export default function EmployerJobListingScreen() {
   };
 
   const renderEmpty = () => {
-    if (isLoading) return null; // Wait for initial load
+    if (isLoading) return null;
     return (
       <View className="items-center py-10">
         <Text className="text-base text-app-text-3">
@@ -66,7 +110,7 @@ export default function EmployerJobListingScreen() {
       <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
 
       <FlatList
-        data={jobsList}
+        data={filteredJobsList}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <JobCard job={item} />}
         contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 16 }}
@@ -74,11 +118,14 @@ export default function EmployerJobListingScreen() {
         ListHeaderComponent={
           <>
             <View className="-mx-4">
-              <JobsHeader />
+              <JobsHeader
+                dateLabel={selectedDateLabel}
+                onDatePress={() => setIsDateFilterOpen(true)}
+              />
             </View>
             <View className="h-[1px] bg-app-border-2 mb-4 -mx-4" />
             <Text className="text-2xl font-bold text-app-slate-1 mb-4">
-              All jobs : {isLoading ? '...' : totalJobs}
+              All jobs : {isLoading ? '...' : filteredJobsList.length}
             </Text>
           </>
         }
@@ -97,6 +144,17 @@ export default function EmployerJobListingScreen() {
             colors={['#4640DE']}
           />
         }
+      />
+
+      <DateFilterModal
+        isOpen={isDateFilterOpen}
+        onClose={() => setIsDateFilterOpen(false)}
+        currentPreset={selectedDatePreset}
+        onApply={(preset, start, end, label) => {
+          setSelectedDatePreset(preset);
+          setSelectedDateRange({ start, end });
+          setSelectedDateLabel(label);
+        }}
       />
 
       <EmployerDashboardSidebar
