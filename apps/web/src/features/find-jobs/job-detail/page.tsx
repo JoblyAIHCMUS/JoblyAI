@@ -213,6 +213,7 @@ export default function JobDetailPage() {
             applicationId={matchingApp ? matchingApp.id : undefined}
             preShortlistEligible={preShortlistEligible}
             preShortlistState={preShortlistState}
+            onApplicationSuccess={() => setHasApplied(true)}
           />
         );
       })()}

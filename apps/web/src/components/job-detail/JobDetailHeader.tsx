@@ -40,6 +40,7 @@ interface JobDetailHeaderProps {
   preShortlistEligible?: boolean;
   preShortlistState?: 'NONE' | 'PENDING' | 'SUBMITTED';
   applicationId?: number;
+  onApplicationSuccess?: () => void;
 }
 
 export default function JobDetailHeader({
@@ -54,6 +55,7 @@ export default function JobDetailHeader({
   preShortlistEligible: _preShortlistEligible = false,
   preShortlistState = 'NONE',
   applicationId,
+  onApplicationSuccess,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
@@ -352,6 +354,7 @@ export default function JobDetailHeader({
           <SubmitApplicationModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
+            onSuccess={onApplicationSuccess}
             job={{
               id: jobId,
               title: jobTitle,

@@ -26,6 +26,8 @@ import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
 import type { CandidateApplicationRecord } from '@/types/application';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
+import DateFilterModal from './components/DateFilterModal';
+import type { DatePreset } from './types';
 
 const chartTabs = ['Status', 'Timeline'] as const;
 
@@ -559,14 +561,20 @@ export default function CandidateDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const currentWeekRange = useMemo(() => getCurrentWeekRange(), []);
+  const defaultWeekRange = useMemo(() => getCurrentWeekRange(), []);
+  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
+  const [selectedDatePreset, setSelectedDatePreset] =
+    useState<DatePreset | null>(null);
+  const [selectedDateRange, setSelectedDateRange] = useState(defaultWeekRange);
+  const [selectedDateLabel, setSelectedDateLabel] = useState(
+    defaultWeekRange.label
+  );
   const greeting = getGreeting();
   const firstName =
     profile?.firstName ||
     profile?.name?.split(' ')[0] ||
     getFullName(user).split(' ')[0] ||
     '';
-  const dateRangeLabel = currentWeekRange.label;
   const {
     data: applicationsResult,
     fetchApplications,
@@ -583,11 +591,11 @@ export default function CandidateDashboard() {
       allApplications.filter((application) =>
         isWithinDateRange(
           application.createdAt,
-          currentWeekRange.start,
-          currentWeekRange.end
+          selectedDateRange.start,
+          selectedDateRange.end
         )
       ),
-    [allApplications, currentWeekRange.end, currentWeekRange.start]
+    [allApplications, selectedDateRange.end, selectedDateRange.start]
   );
 
   const recentApplications = useMemo(
@@ -667,7 +675,7 @@ export default function CandidateDashboard() {
             </Text>
             <Text className="mt-2 text-base leading-6 text-[#7c8493]">
               Here is what's happening with your job search applications from{' '}
-              {dateRangeLabel}.
+              {selectedDateLabel}.
             </Text>
             {applicationsError ? (
               <Text className="mt-3 text-sm text-[#d93025]">
@@ -678,10 +686,11 @@ export default function CandidateDashboard() {
 
           <TouchableOpacity
             activeOpacity={0.8}
+            onPress={() => setIsDateFilterOpen(true)}
             className="flex-row items-center justify-between rounded-lg border border-[#d6ddeb] bg-white px-3 py-3"
           >
-            <Text className="text-sm font-medium text-[#25324b]">
-              {dateRangeLabel}
+            <Text className="flex-1 text-sm font-medium text-[#25324b]">
+              {selectedDateLabel}
             </Text>
             <CalendarDays size={18} color="#4640de" />
           </TouchableOpacity>
@@ -726,6 +735,17 @@ export default function CandidateDashboard() {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         currentPath="/pages/candidate/dashboard"
+      />
+
+      <DateFilterModal
+        isOpen={isDateFilterOpen}
+        onClose={() => setIsDateFilterOpen(false)}
+        currentPreset={selectedDatePreset}
+        onApply={(preset, start, end, label) => {
+          setSelectedDatePreset(preset);
+          setSelectedDateRange({ start, end });
+          setSelectedDateLabel(label);
+        }}
       />
     </>
   );
