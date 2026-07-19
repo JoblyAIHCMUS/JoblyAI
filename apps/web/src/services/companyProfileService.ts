@@ -70,11 +70,7 @@ export const companyProfileService = {
               id: member.employerId,
               name: fullName,
               role: member.role || 'Member',
-              avatarUrl:
-                member.employer.avatarUrl ??
-                `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                  fullName
-                )}`,
+              avatarUrl: member.employer.avatarUrl ?? null,
             };
           })
         : override?.team ?? [];

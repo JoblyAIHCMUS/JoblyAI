@@ -35,13 +35,14 @@ export function mapApplicationRecordToApplicant(
     id: application.candidateId,
     name: null,
     email: '',
+    avatarUrl: null,
   };
 
   return {
     id: application.id.toString(),
     applicantId: application.candidateId,
     name: candidate.name || candidate.email || 'Unknown Candidate',
-    image: '', // Backend doesn't provide candidate image in ApplicationRecord
+    image: candidate.avatarUrl,
     appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
     score:
       application.matchExplanation?.overallScore ??
@@ -76,9 +77,7 @@ export function mapApplicationRecordToApplicantDetail(
     id: String(application.id),
     applicantId: application.candidateId,
     name: candidateName,
-    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-      application.candidateId
-    )}`,
+    image: application.candidate?.avatarUrl ?? null,
     email: application.candidate?.email || '',
     phone: '',
     title: application.job.title,

@@ -44,7 +44,10 @@ export default function ApplicantOverview({
     <Card className="w-full md:sticky md:top-[88px] lg:top-20">
       <CardHeader className="items-center text-center pb-3 sm:pb-4 px-3 sm:px-4 pt-4 sm:pt-6">
         <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mb-2 sm:mb-3 flex-shrink-0">
-          <AvatarImage src={applicant.image} alt={applicant.name} />
+          <AvatarImage
+            src={applicant.image ?? undefined}
+            alt={applicant.name}
+          />
           <AvatarFallback>
             {applicant.name
               .split(' ')
