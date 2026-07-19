@@ -60,7 +60,7 @@ export default function EmployerSettingsPage() {
       if (oldAvatarUrl && oldAvatarUrl.includes('/avatars/')) {
         const oldKey = oldAvatarUrl.split('/avatars/')[1]?.split('?')[0];
         if (oldKey) {
-          deleteGcsFile(oldKey).catch(() => {});
+          deleteGcsFile(oldKey).catch(() => undefined);
         }
       }
 
