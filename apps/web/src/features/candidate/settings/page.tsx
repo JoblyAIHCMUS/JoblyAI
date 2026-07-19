@@ -118,7 +118,9 @@ export default function CandidateSettingsPage() {
     const lastName = methods.getValues('lastName');
     const seed = `${firstName} ${lastName}`.trim() || 'User';
     setProfilePhoto(
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+        seed
+      )}`
     );
     fetchCandidateProfile();
   };

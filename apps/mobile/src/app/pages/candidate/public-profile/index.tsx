@@ -465,12 +465,14 @@ function ProfileContent() {
 
   const handleChangeAvatar = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         Toast.show({
           type: 'error',
           text1: 'Permission required',
-          text2: 'Allow access to your photo library to change your profile picture.',
+          text2:
+            'Allow access to your photo library to change your profile picture.',
         });
         return;
       }
@@ -666,7 +668,12 @@ function ProfileContent() {
                 <View className="items-center">
                   <View className="relative">
                     <Avatar
-                      url={profile?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`}
+                      url={
+                        profile?.avatarUrl ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                          displayName
+                        )}`
+                      }
                       name={displayName}
                       size={112}
                       className="border-4 border-white shadow-lg"

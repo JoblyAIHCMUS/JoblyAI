@@ -35,14 +35,8 @@ import { useGetCompany } from '../../../../hooks/useGetCompany';
 import { useGetCompanyEmployees } from '../../../../hooks/useGetCompanyEmployees';
 import { useUpdateCompany } from '../../../../hooks/useUpdateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
-import {
-  createUploadUrl,
-  uploadFileToGcs,
-} from '../../../../api/gcs';
-import {
-  updateCompanyLogo,
-  deleteCompanyLogo,
-} from '../../../../api/company';
+import { createUploadUrl, uploadFileToGcs } from '../../../../api/gcs';
+import { updateCompanyLogo, deleteCompanyLogo } from '../../../../api/company';
 
 export default function EmployerEditCompanyPage() {
   const router = useRouter();

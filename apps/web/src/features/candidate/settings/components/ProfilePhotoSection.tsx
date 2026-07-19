@@ -48,10 +48,7 @@ export function ProfilePhotoSection({
   const { uploadToPresignedUrl, loading: loadingUpload } =
     useUploadToPresignedUrl();
   const { updateAvatarRecord, loading: loadingUpdate } = useUpdateAvatar();
-  const {
-    deleteAvatarRecord,
-    loading: loadingDelete,
-  } = useDeleteAvatar();
+  const { deleteAvatarRecord, loading: loadingDelete } = useDeleteAvatar();
 
   const handleFileSelect = (file: File) => {
     // Validate file type against backend ALLOWED_FILE_TYPES for avatars
@@ -162,7 +159,11 @@ export function ProfilePhotoSection({
   };
 
   const isLoading =
-    isUploading || loadingUploadUrl || loadingUpload || loadingUpdate || loadingDelete;
+    isUploading ||
+    loadingUploadUrl ||
+    loadingUpload ||
+    loadingUpdate ||
+    loadingDelete;
 
   const showRemove = !!photoUrl && photoUrl !== 'https://placehold.co/124x124';
 

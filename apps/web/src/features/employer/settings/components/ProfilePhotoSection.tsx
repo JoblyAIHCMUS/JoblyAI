@@ -6,7 +6,10 @@ import ConfirmAvatarChange from '@/components/ui/confirmAvatarChange';
 import { cn } from '@/lib/utils';
 import { useCreateUploadUrl } from '@/api-hook/gcs';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs';
-import { useUpdateEmployerAvatar, useDeleteEmployerAvatar } from '@/api-hook/employer';
+import {
+  useUpdateEmployerAvatar,
+  useDeleteEmployerAvatar,
+} from '@/api-hook/employer';
 import { useToast } from '@/hooks/useToast';
 import { formatErrorForDisplay } from '@/lib/errors';
 import {
@@ -49,10 +52,8 @@ export function ProfilePhotoSection({
     useUploadToPresignedUrl();
   const { updateAvatarRecord, loading: loadingUpdate } =
     useUpdateEmployerAvatar();
-  const {
-    deleteAvatarRecord,
-    loading: loadingDelete,
-  } = useDeleteEmployerAvatar();
+  const { deleteAvatarRecord, loading: loadingDelete } =
+    useDeleteEmployerAvatar();
 
   const handleFileSelect = (file: File) => {
     // Validate file type against backend ALLOWED_FILE_TYPES for avatars
@@ -163,7 +164,11 @@ export function ProfilePhotoSection({
   };
 
   const isLoading =
-    isUploading || loadingUploadUrl || loadingUpload || loadingUpdate || loadingDelete;
+    isUploading ||
+    loadingUploadUrl ||
+    loadingUpload ||
+    loadingUpdate ||
+    loadingDelete;
 
   const showRemove = !!photoUrl && photoUrl !== 'https://placehold.co/124x124';
 
@@ -183,7 +188,11 @@ export function ProfilePhotoSection({
         {/* Avatar Display */}
         <div className="flex flex-col items-center gap-2">
           <Avatar className="size-24 sm:size-28 md:size-32 border-2 sm:border-[2.58px] border-primary bg-accent-primary flex-shrink-0">
-            <AvatarImage src={photoUrl} alt="Profile" className="object-cover" />
+            <AvatarImage
+              src={photoUrl}
+              alt="Profile"
+              className="object-cover"
+            />
             <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-base sm:text-lg font-semibold">
               PP
             </AvatarFallback>
