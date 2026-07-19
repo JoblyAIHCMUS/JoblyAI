@@ -219,7 +219,7 @@ export default function EmployerNewCompanyPage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right']}>
       {/* Header */}
       <EmployerDashboardHeader onMenuPress={() => setSidebarOpen(true)} />
 
