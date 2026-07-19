@@ -35,6 +35,9 @@ import { useGetCompany } from '../../../../hooks/useGetCompany';
 import { useGetCompanyEmployees } from '../../../../hooks/useGetCompanyEmployees';
 import { useUpdateCompany } from '../../../../hooks/useUpdateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
+import { useUpdateCompanyEmployeeRole } from '../../../../hooks/useUpdateCompanyEmployeeRole';
+import { useRemoveCompanyEmployee } from '../../../../hooks/useRemoveCompanyEmployee';
+import type { CompanyRole } from '../../../../api/company';
 import { createUploadUrl, uploadFileToGcs } from '../../../../api/gcs';
 import { updateCompanyLogo, deleteCompanyLogo } from '../../../../api/company';
 
@@ -47,7 +50,14 @@ export default function EmployerEditCompanyPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
   const [companyId, setCompanyId] = useState<number | null>(null);
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [removingMember, setRemovingMember] = useState<TeamMemberData | null>(
+    null
+  );
   const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null);
+
+  const { submitRoleUpdate } = useUpdateCompanyEmployeeRole();
+  const { submitRemove } = useRemoveCompanyEmployee();
 
   const { data: currentUser, isPending: loadingEmployer } =
     useGetEmployerProfile();
@@ -166,12 +176,13 @@ export default function EmployerEditCompanyPage() {
   // Initialize team members when employees are loaded
   useEffect(() => {
     if (companyEmployees && companyEmployees.length > 0) {
+      const ownerMembershipId = currentUser?.company?.adminId ?? null;
       const members = companyEmployees.map((emp) =>
-        convertCompanyEmployeeToTeamMember(emp)
+        convertCompanyEmployeeToTeamMember(emp, ownerMembershipId)
       );
       setTeamMembers(members);
     }
-  }, [companyEmployees]);
+  }, [companyEmployees, currentUser?.company?.adminId]);
 
   const handleNext = async () => {
     // Validate current step
@@ -189,20 +200,84 @@ export default function EmployerEditCompanyPage() {
     }
   };
 
-  const handleRoleChange = (email: string, newRole: string) => {
-    setTeamMembers((prev) =>
-      prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
-    );
+  const handleRoleChange = async (
+    member: TeamMemberData,
+    newRole: CompanyRole
+  ) => {
+    if (!companyId) return;
+    setBusy((prev) => ({ ...prev, [member.email]: true }));
+    try {
+      await submitRoleUpdate(companyId, { email: member.email, role: newRole });
+      try {
+        await queryClient.invalidateQueries({
+          queryKey: ['company-employees', companyId],
+        });
+      } catch {
+        Toast.show({
+          type: 'warning',
+          text1: 'Role was updated, but team list refresh failed.',
+        });
+      }
+      Toast.show({
+        type: 'success',
+        text1: `Updated ${member.email} to ${newRole}`,
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: `Failed to update role for ${member.email}`,
+      });
+    } finally {
+      setBusy((prev) => ({ ...prev, [member.email]: false }));
+    }
   };
 
   const handleAddMember = (member: TeamMember) => {
     if (!teamMembers.some((m) => m.email === member.email)) {
-      setTeamMembers((prev) => [...prev, { ...member, isEditable: true }]);
+      setTeamMembers((prev) => [...prev, member]);
     }
   };
 
-  const handleRemoveMember = (email: string) => {
-    setTeamMembers((prev) => prev.filter((m) => m.email !== email));
+  const handleRemovePress = (member: TeamMemberData) => {
+    setRemovingMember(member);
+  };
+
+  const handleConfirmRemove = async () => {
+    const target = removingMember;
+    if (!target || !companyId) {
+      setRemovingMember(null);
+      return;
+    }
+    setBusy((prev) => ({ ...prev, [target.email]: true }));
+    try {
+      await submitRemove(companyId, { email: target.email });
+      try {
+        await queryClient.invalidateQueries({
+          queryKey: ['company-employees', companyId],
+        });
+      } catch {
+        Toast.show({
+          type: 'warning',
+          text1: 'Member was removed, but team list refresh failed.',
+        });
+      }
+      Toast.show({
+        type: 'success',
+        text1: `Removed ${target.email} from company team`,
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: `Failed to remove ${target.email} from company`,
+      });
+    } finally {
+      setBusy((prev) => ({ ...prev, [target.email]: false }));
+      setRemovingMember(null);
+    }
+  };
+
+  const handleCancelRemove = () => {
+    setRemovingMember(null);
   };
 
   const isLocalFile = (url: string | null): boolean => {
@@ -275,7 +350,6 @@ export default function EmployerEditCompanyPage() {
       const newMembers = teamMembers.filter((member) => {
         const memberEmail = member.email.toLowerCase();
         return (
-          member.isEditable &&
           !existingEmails.has(memberEmail) &&
           memberEmail !== currentUser?.email?.toLowerCase()
         );
@@ -286,8 +360,7 @@ export default function EmployerEditCompanyPage() {
           newMembers.map((member) =>
             submitAddEmployee(companyId, {
               email: member.email,
-              role:
-                member.role && member.role !== 'None' ? member.role : undefined,
+              role: member.role || undefined,
             })
           )
         );
@@ -450,9 +523,20 @@ export default function EmployerEditCompanyPage() {
             {currentStep === 2 && (
               <TeamStep
                 members={teamMembers}
+                canManage={!!currentUser?.isCompanyAdmin}
+                ownerEmail={
+                  teamMembers.find(
+                    (m) => m.membershipId === currentUser?.company?.adminId
+                  )?.email ?? null
+                }
+                currentUserEmail={currentUser?.email ?? ''}
+                busy={busy}
+                removingMember={removingMember}
                 onRoleChange={handleRoleChange}
+                onRemove={handleRemovePress}
+                onConfirmRemove={handleConfirmRemove}
+                onCancelRemove={handleCancelRemove}
                 onAddMember={handleAddMember}
-                onRemoveMember={handleRemoveMember}
                 errors={errors}
               />
             )}

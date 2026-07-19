@@ -19,12 +19,14 @@ import {
 import { Stepper } from '@/components/ui/stepper';
 import { LogoUploader } from '@/components/employer/logoUploader';
 import ConfirmLogoChange from '@/components/ui/confirmLogoChange';
+import { ConfirmDialog } from '@/components/ui/confirmDialog';
 import { useCreateUploadUrl } from '@/api-hook/gcs/useCreateUploadUrl';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs/useUploadToPresignedUrl';
 import { deleteGcsFile } from '@/api-client/gcs/file';
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { TeamManager, TeamMemberData } from '@/components/employer/teamManager';
+import type { TeamMemberRole } from '@/components/employer/teamMemberCard';
 import {
   convertUserToTeamMember,
   type TeamMember,
@@ -41,7 +43,9 @@ import { useEffect, useState, useRef } from 'react';
 import {
   useAddCompanyEmployee,
   useGetCompanyEmployees,
+  useRemoveCompanyEmployee,
   useUpdateCompany,
+  useUpdateCompanyEmployeeRole,
 } from '@/api-hook/company';
 import { useUpdateCompanyLogo } from '@/api-hook/company/useUpdateCompanyLogo';
 import { useDeleteCompanyLogo } from '@/api-hook/company/useDeleteCompanyLogo';
@@ -58,7 +62,7 @@ export default function EmployerCompanyProfileEditPage() {
       email: member.email,
       role: member.role,
       avatar: member.avatarUrl || undefined,
-      isEditable: true,
+      membershipId: member.membershipId,
     }));
 
   const { data: currentUser } = useUser();
@@ -224,6 +228,12 @@ export default function EmployerCompanyProfileEditPage() {
 
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
   const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
+  const { submitRemoveEmployee, loading: removingMember } =
+    useRemoveCompanyEmployee();
+  const { submitUpdateEmployeeRole, loading: updatingRole } =
+    useUpdateCompanyEmployeeRole();
+  const [memberPendingRemoval, setMemberPendingRemoval] =
+    useState<TeamMemberData | null>(null);
   const {
     submitUpdate,
     loading: updatingCompany,
@@ -278,7 +288,7 @@ export default function EmployerCompanyProfileEditPage() {
 
     const owner = convertUserToTeamMember(currentUser ?? null);
     if (owner) {
-      setTeamMembers([{ ...owner, isEditable: true }]);
+      setTeamMembers([{ ...owner }]);
     }
   }, [companyEmployees, currentUser]);
 
@@ -311,10 +321,48 @@ export default function EmployerCompanyProfileEditPage() {
     }
   }, [company, setValue]);
 
-  const handleRoleChange = (email: string, newRole: string) => {
-    setTeamMembers((prev) =>
-      prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
-    );
+  const handleRoleChange = async (email: string, newRole: TeamMemberRole) => {
+    if (!companyId) return;
+
+    try {
+      await submitUpdateEmployeeRole(companyId, { email, role: newRole });
+
+      try {
+        const refreshedEmployees = await fetchCompanyEmployees(companyId);
+        setTeamMembers(mapEmployeesToTeamMembers(refreshedEmployees));
+      } catch {
+        setTeamMembers((prev) =>
+          prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
+        );
+        toast.warning('Role was updated, but team list refresh failed.');
+      }
+
+      toast.success(`Updated ${email} to ${newRole}`);
+    } catch {
+      toast.error(`Failed to update role for ${email}`);
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!companyId || !memberPendingRemoval) return;
+    const member = memberPendingRemoval;
+
+    try {
+      await submitRemoveEmployee(companyId, member.email);
+
+      try {
+        const refreshedEmployees = await fetchCompanyEmployees(companyId);
+        setTeamMembers(mapEmployeesToTeamMembers(refreshedEmployees));
+      } catch {
+        setTeamMembers((prev) => prev.filter((m) => m.email !== member.email));
+        toast.warning('Member was removed, but team list refresh failed.');
+      }
+
+      toast.success(`Removed ${member.email} from company team`);
+      setMemberPendingRemoval(null);
+    } catch {
+      toast.error(`Failed to remove ${member.email} from company`);
+    }
   };
 
   const handleAddMember = async (member: TeamMember) => {
@@ -337,7 +385,13 @@ export default function EmployerCompanyProfileEditPage() {
             return prev;
           }
 
-          return [...prev, { ...member, isEditable: true }];
+          return [
+            ...prev,
+            {
+              ...member,
+              role: member.role === 'admin' ? 'admin' : 'employee',
+            },
+          ];
         });
         toast.warning('Member was added, but team list refresh failed.');
       }
@@ -964,8 +1018,13 @@ export default function EmployerCompanyProfileEditPage() {
         <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-3xl mx-auto">
           <TeamManager
             members={teamMembers}
+            canManage={!!employer?.isCompanyAdmin}
+            currentUserEmail={employer?.email}
+            ownerMembershipId={company?.adminId ?? null}
+            busy={updatingRole || removingMember}
             onRoleChange={handleRoleChange}
             onAddMember={handleAddMember}
+            onRemoveMember={(member) => setMemberPendingRemoval(member)}
           />
         </div>
       </Stepper>
@@ -978,6 +1037,19 @@ export default function EmployerCompanyProfileEditPage() {
           onConfirm={handleLogoConfirm}
           onCancel={handleLogoCancel}
           loading={loadingUploadUrl || loadingUpload || updatingLogo}
+        />
+      )}
+
+      {/* Remove Member Confirmation Dialog */}
+      {memberPendingRemoval && (
+        <ConfirmDialog
+          title={`Remove ${memberPendingRemoval.firstName} ${memberPendingRemoval.lastName}?`}
+          description={`${memberPendingRemoval.email} will lose access to this company. You can re-add them later.`}
+          confirmLabel="Remove"
+          destructive
+          loading={removingMember}
+          onConfirm={handleRemoveMember}
+          onCancel={() => setMemberPendingRemoval(null)}
         />
       )}
     </div>

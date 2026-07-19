@@ -83,7 +83,7 @@ export default function EmployerNewCompanyPage() {
       if (prev.some((member) => member.email === owner.email)) {
         return prev;
       }
-      return [{ ...owner, isEditable: true }, ...prev];
+      return [{ ...owner }, ...prev];
     });
   }, [currentUser]);
 
@@ -118,8 +118,15 @@ export default function EmployerNewCompanyPage() {
   const handleAddMember = (member: TeamMember) => {
     setTeamMembers((prev) => {
       if (prev.some((m) => m.email === member.email)) return prev;
-      return [...prev, { ...member, isEditable: true }];
+      return [
+        ...prev,
+        { ...member, role: member.role === 'admin' ? 'admin' : 'employee' },
+      ];
     });
+  };
+
+  const handleRemoveMember = (member: TeamMemberData) => {
+    setTeamMembers((prev) => prev.filter((m) => m.email !== member.email));
   };
 
   const handleComplete = async (data: CompanyRegistrationFormData) => {
@@ -456,8 +463,11 @@ export default function EmployerNewCompanyPage() {
         <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-3xl mx-auto px-3 sm:px-0">
           <TeamManager
             members={teamMembers}
+            canManage
+            currentUserEmail={currentUser?.email}
             onRoleChange={handleRoleChange}
             onAddMember={handleAddMember}
+            onRemoveMember={handleRemoveMember}
           />
         </div>
       </Stepper>

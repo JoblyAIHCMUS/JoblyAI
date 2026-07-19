@@ -294,3 +294,106 @@ describe('EmployerService', () => {
     });
   });
 });
+
+describe('EmployerService - getProfileDetails isCompanyAdmin (multi-admin)', () => {
+  let service: EmployerService;
+
+  const baseUser = {
+    id: 'user-1',
+    email: 'james@example.com',
+    firstName: 'James',
+    lastName: 'Harden',
+    emailVerified: true,
+    banned: false,
+    banExpires: null,
+    banReason: null,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        EmployerService,
+        {
+          provide: 'PRISMA_CLIENT',
+          useValue: mockPrisma,
+        },
+        {
+          provide: GcsService,
+          useValue: mockGcsService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<EmployerService>(EmployerService);
+    vi.clearAllMocks();
+
+    vi.spyOn(service as any, 'getPersonalProfileDetails').mockResolvedValue({
+      phoneNumber: undefined,
+      dateOfBirth: undefined,
+      gender: undefined,
+      avatarUrl: undefined,
+    });
+  });
+
+  it('returns true for the company owner even with a legacy role string', async () => {
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      ...baseUser,
+      employer: {
+        id: 10,
+        role: 'Administrator', // legacy string
+        company: { id: 1, adminId: 10 },
+      },
+    });
+
+    const result = await service.getProfileDetails('user-1');
+
+    expect(result.isCompanyAdmin).toBe(true);
+  });
+
+  it('returns true for a promoted admin who is not the owner', async () => {
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      ...baseUser,
+      employer: {
+        id: 11, // not adminId
+        role: 'admin',
+        company: { id: 1, adminId: 10 },
+      },
+    });
+
+    const result = await service.getProfileDetails('user-1');
+
+    expect(result.isCompanyAdmin).toBe(true);
+  });
+
+  it('returns false for a plain employee', async () => {
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      ...baseUser,
+      employer: {
+        id: 12,
+        role: 'employee',
+        company: { id: 1, adminId: 10 },
+      },
+    });
+
+    const result = await service.getProfileDetails('user-1');
+
+    expect(result.isCompanyAdmin).toBe(false);
+  });
+
+  it('returns false when the membership has no company (removed member with stale admin role)', async () => {
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      ...baseUser,
+      employer: {
+        id: 13,
+        role: 'admin',
+        company: null,
+      },
+    });
+
+    const result = await service.getProfileDetails('user-1');
+
+    expect(result.isCompanyAdmin).toBe(false);
+  });
+});

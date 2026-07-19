@@ -36,6 +36,7 @@ import {
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useCreateCompany } from '../../../../hooks/useCreateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
+import type { CompanyRole } from '../../../../api/company';
 
 export default function EmployerNewCompanyPage() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export default function EmployerNewCompanyPage() {
       initializedRef.current = true;
       const owner = convertUserToTeamMember(currentUser);
       if (owner) {
-        setTeamMembers([{ ...owner, isEditable: false }]);
+        setTeamMembers([owner]);
       }
     }
   }, [currentUser]);
@@ -119,15 +120,16 @@ export default function EmployerNewCompanyPage() {
     }
   };
 
-  const handleRoleChange = (email: string, newRole: string) => {
+  const handleRoleChange = (email: string, newRole: CompanyRole) => {
+    const normalized: CompanyRole = newRole === 'admin' ? 'admin' : 'employee';
     setTeamMembers((prev) =>
-      prev.map((m) => (m.email === email ? { ...m, role: newRole } : m))
+      prev.map((m) => (m.email === email ? { ...m, role: normalized } : m))
     );
   };
 
   const handleAddMember = (member: TeamMember) => {
     if (!teamMembers.some((m) => m.email === member.email)) {
-      setTeamMembers((prev) => [...prev, { ...member, isEditable: true }]);
+      setTeamMembers((prev) => [...prev, member]);
     }
   };
 
@@ -164,8 +166,7 @@ export default function EmployerNewCompanyPage() {
           membersToAdd.map((member) =>
             submitAddEmployee(company.id, {
               email: member.email,
-              role:
-                member.role && member.role !== 'None' ? member.role : undefined,
+              role: member.role || undefined,
             })
           )
         );
@@ -284,6 +285,8 @@ export default function EmployerNewCompanyPage() {
             {currentStep === 2 && (
               <TeamStep
                 members={teamMembers}
+                canManage
+                currentUserEmail={currentUser?.email ?? ''}
                 onRoleChange={handleRoleChange}
                 onAddMember={handleAddMember}
                 onRemoveMember={handleRemoveMember}

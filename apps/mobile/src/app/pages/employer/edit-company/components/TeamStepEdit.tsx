@@ -2,23 +2,39 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { Label } from '../../../../../components/ui/label';
+import { DeleteConfirmationModal } from '../../../../../components/DeleteConfirmationModal';
 import TeamMemberCard from '../../new-company/components/TeamMemberCard';
 import TeamMemberSearch from '../../new-company/components/TeamMemberSearch';
 import type { TeamMemberData, TeamMember } from '../data';
+import type { CompanyRole } from '../../../../../api/company';
 
 interface TeamStepEditProps {
   members: TeamMemberData[];
-  onRoleChange: (email: string, newRole: string) => void;
+  canManage: boolean;
+  ownerEmail: string | null;
+  currentUserEmail: string;
+  busy: Record<string, boolean>;
+  removingMember: TeamMemberData | null;
+  onRoleChange: (member: TeamMemberData, newRole: CompanyRole) => void;
+  onRemove: (member: TeamMemberData) => void;
+  onConfirmRemove: () => void;
+  onCancelRemove: () => void;
   onAddMember: (member: TeamMember) => void;
-  onRemoveMember: (email: string) => void;
   errors: Record<string, any>;
 }
 
 export const TeamStepEdit: React.FC<TeamStepEditProps> = ({
   members,
+  canManage,
+  ownerEmail,
+  currentUserEmail,
+  busy,
+  removingMember,
   onRoleChange,
+  onRemove,
+  onConfirmRemove,
+  onCancelRemove,
   onAddMember,
-  onRemoveMember,
   errors,
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -58,9 +74,14 @@ export const TeamStepEdit: React.FC<TeamStepEditProps> = ({
               email={member.email}
               avatar={member.avatar}
               role={member.role}
-              isEditable={member.isEditable}
-              onRoleChange={(newRole) => onRoleChange(member.email, newRole)}
-              onRemove={() => onRemoveMember(member.email)}
+              canManage={canManage}
+              isOwner={!!ownerEmail && member.email === ownerEmail}
+              isSelf={
+                member.email.toLowerCase() === currentUserEmail.toLowerCase()
+              }
+              disabled={!!busy[member.email]}
+              onRoleChange={(newRole) => onRoleChange(member, newRole)}
+              onRemove={() => onRemove(member)}
             />
           ))}
         </View>
@@ -82,6 +103,25 @@ export const TeamStepEdit: React.FC<TeamStepEditProps> = ({
         onOpenChange={setSearchOpen}
         onSelect={onAddMember}
         excludeEmails={members.map((m) => m.email)}
+      />
+
+      {/* Remove Confirmation Modal */}
+      <DeleteConfirmationModal
+        isVisible={!!removingMember}
+        title={
+          removingMember
+            ? `Remove ${removingMember.firstName} ${removingMember.lastName}?`
+            : ''
+        }
+        description={
+          removingMember
+            ? `${removingMember.email} will lose access to this company. You can re-add them later.`
+            : ''
+        }
+        confirmLabel="Remove"
+        isDeleting={!!removingMember && !!busy[removingMember.email]}
+        onCancel={onCancelRemove}
+        onConfirm={onConfirmRemove}
       />
     </ScrollView>
   );
