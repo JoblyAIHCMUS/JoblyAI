@@ -56,6 +56,13 @@ function computeDateRange(preset: DatePreset): {
       );
       return { start, end: endOfDay, label: 'Last 30 Days' };
     }
+    case 'ALL_TIME': {
+      return {
+        start: new Date(0),
+        end: new Date(8640000000000000),
+        label: 'All Time',
+      };
+    }
   }
 }
 
@@ -71,6 +78,7 @@ const PRESETS: { key: DatePreset; title: string }[] = [
   { key: 'TODAY', title: 'Today' },
   { key: 'LAST_7_DAYS', title: 'This Week' },
   { key: 'LAST_30_DAYS', title: 'Last 30 Days' },
+  { key: 'ALL_TIME', title: 'All Time' },
 ];
 
 export default function DateFilterModal({
@@ -134,9 +142,11 @@ export default function DateFilterModal({
                   >
                     {title}
                   </Text>
-                  <Text className="mt-1 text-xs text-[#7c8493]">
-                    {subtitle}
-                  </Text>
+                  {key !== 'ALL_TIME' && (
+                    <Text className="mt-1 text-xs text-[#7c8493]">
+                      {subtitle}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               );
             })}
