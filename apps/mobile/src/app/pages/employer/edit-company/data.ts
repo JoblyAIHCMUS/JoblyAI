@@ -10,6 +10,7 @@ export interface TeamMember {
 
 export interface TeamMemberData extends TeamMember {
   isEditable?: boolean;
+  membershipId?: number;
 }
 
 // Convert User to TeamMember format
@@ -29,16 +30,25 @@ export function convertUserToTeamMember(user: any): TeamMember | null {
   };
 }
 
-// Convert CompanyEmployee to TeamMemberData format
+// Convert a CompanyEmployee (from GET /company/:id/employees) to a TeamMemberData.
+// `ownerMembershipId` is Company.adminId - the owner always normalizes to role 'admin'
+// regardless of the stored string. Everyone else normalizes to 'employee' unless their
+// stored role is exactly 'admin'.
 export function convertCompanyEmployeeToTeamMember(
-  employee: CompanyEmployee
+  employee: CompanyEmployee,
+  ownerMembershipId: number | null
 ): TeamMemberData {
+  const isOwner =
+    ownerMembershipId !== null && employee.membershipId === ownerMembershipId;
+  const normalizedRole: 'admin' | 'employee' =
+    employee.role === 'admin' || isOwner ? 'admin' : 'employee';
+
   return {
     firstName: employee.firstName,
     lastName: employee.lastName,
     email: employee.email,
-    role: employee.role,
+    role: normalizedRole,
     avatar: employee.avatarUrl || undefined,
-    isEditable: true,
+    membershipId: employee.membershipId,
   };
 }

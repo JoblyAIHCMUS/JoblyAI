@@ -149,3 +149,32 @@ export async function getCompanyById(
   });
   return response.data;
 }
+
+export type CompanyRole = 'admin' | 'employee';
+
+export interface UpdateCompanyEmployeeRolePayload {
+  email: string;
+  role: CompanyRole;
+}
+
+export interface RemoveCompanyEmployeePayload {
+  email: string;
+}
+
+export async function updateCompanyEmployeeRole(
+  companyId: number,
+  payload: UpdateCompanyEmployeeRolePayload
+): Promise<CompanyEmployeeMembership> {
+  const response = await apiClient.patch<CompanyEmployeeMembership>(
+    `/company/${companyId}/employees/role`,
+    payload
+  );
+  return response.data;
+}
+
+export async function removeCompanyEmployee(
+  companyId: number,
+  payload: RemoveCompanyEmployeePayload
+): Promise<void> {
+  await apiClient.delete(`/company/${companyId}/employees`, { data: payload });
+}

@@ -8,6 +8,7 @@ export interface TeamMember {
 
 export interface TeamMemberData extends TeamMember {
   isEditable?: boolean;
+  membershipId?: number;
 }
 
 // Convert User to TeamMember format
@@ -22,7 +23,7 @@ export function convertUserToTeamMember(user: any): TeamMember | null {
     firstName,
     lastName,
     email: user.email,
-    role: 'Administrator',
+    role: 'admin',
     avatar: user.image || user.avatarUrl || undefined,
   };
 }

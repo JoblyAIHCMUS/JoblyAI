@@ -7,6 +7,7 @@ export interface Company {
   industry: string | null;
   description: string | null;
   logoUrl: string | null;
+  adminId: number;
   createdAt: string;
   updatedAt: string;
 }

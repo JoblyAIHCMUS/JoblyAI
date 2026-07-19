@@ -43,7 +43,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
       lastName: member.lastName,
       email: member.email,
       avatar: member.avatarUrl,
-      role: 'None',
+      role: 'employee',
     }))
     .filter((user) => !excludeEmails.includes(user.email));
 
