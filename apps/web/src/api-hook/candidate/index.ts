@@ -13,6 +13,7 @@ export * from '@/api-hook/candidate/useCreateCertificate';
 export * from '@/api-hook/candidate/useUpdateCertificate';
 export * from '@/api-hook/candidate/useDeleteCertificate';
 export * from '@/api-hook/candidate/useUpdateAvatar';
+export * from '@/api-hook/candidate/useDeleteAvatar';
 export * from '@/api-hook/candidate/useCreateSocial';
 export * from '@/api-hook/candidate/useUpdateSocial';
 export * from '@/api-hook/candidate/useDeleteSocial';
