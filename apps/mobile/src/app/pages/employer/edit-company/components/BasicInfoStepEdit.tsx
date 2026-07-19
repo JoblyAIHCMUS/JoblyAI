@@ -39,11 +39,11 @@ export const BasicInfoStepEdit: React.FC<BasicInfoStepEditProps> = ({
         <Label className="text-base font-semibold text-slate-900">
           Company Logo
         </Label>
-        <LogoUploader
-          onValueChange={(url) => onLogoChange(url)}
-          ref={logoRef}
-          currentLogoUrl={logoUrl}
-        />
+      <LogoUploader
+        onValueChange={(url) => onLogoChange(url)}
+        ref={logoRef}
+        currentLogoUrl={logoUrl}
+      />
       </View>
 
       {/* Company Name */}

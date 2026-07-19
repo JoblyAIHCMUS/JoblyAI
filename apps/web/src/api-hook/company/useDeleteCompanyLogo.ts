@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
-import { deleteCompanyLogo, type Company } from '@/api-client/company';
+import {
+  deleteCompanyLogo,
+  type Company,
+} from '@/api-client/company';
 
 interface UseDeleteCompanyLogoOptions {
   onSuccess?: (data: Company) => void;

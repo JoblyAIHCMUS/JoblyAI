@@ -122,7 +122,7 @@ export class CompanyPatchDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name!: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
@@ -144,9 +144,7 @@ export class CompanyPatchDto {
   @IsOptional()
   @IsString()
   @IsUrl()
-  @Transform(({ value }) =>
-    value === '' || value === null ? undefined : value
-  )
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   logoUrl?: string;
 
   @IsOptional()

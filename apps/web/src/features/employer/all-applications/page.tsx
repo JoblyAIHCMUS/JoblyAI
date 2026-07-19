@@ -31,9 +31,7 @@ export default function EmployerAllApplicationsPage() {
           a.candidate?.name?.trim() ||
           a.candidate?.email ||
           `Candidate ${a.candidateId}`,
-        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-          a.candidateId
-        )}`,
+        image: a.candidate?.avatarUrl ?? null,
         appliedDate: a.createdAt.split('T')[0],
         score: a.matchExplanation?.overallScore ?? a.matchPercentage ?? 0,
         hiringStage: mapApplicationStatusToHiringStage(a.status),
@@ -108,7 +106,7 @@ export default function EmployerAllApplicationsPage() {
       <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {isLoading && applications.length === 0 && (
           <div className="flex items-center justify-center py-8 sm:py-10 md:py-12">
-            <div className="h-7 w-7 sm:h-8 sm:h-8 md:h-9 md:w-9 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+            <div className="h-7 w-7 sm:h-8 md:h-9 md:w-9 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
           </div>
         )}
 

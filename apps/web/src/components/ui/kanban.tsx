@@ -715,14 +715,17 @@ export function KanbanBoardCard({
   className,
   data,
   isActive = false,
+  onKeyDown,
   ref,
   ...props
-}: ComponentProps<'button'> & KanbanBoardCardProps) {
+}: ComponentProps<'div'> & KanbanBoardCardProps) {
   const [isDragging, setIsDragging] = useState(false);
   const { draggableDescribedById, onDragStart } = useDndEvents();
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       aria-describedby={draggableDescribedById}
       aria-roledescription="draggable"
       className={cn(
@@ -749,6 +752,12 @@ export function KanbanBoardCard({
       }}
       onDragEnd={() => {
         setIsDragging(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onKeyDown?.(event);
+        }
       }}
       ref={ref}
       {...props}

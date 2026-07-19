@@ -362,7 +362,7 @@ export function EmployerSidebar() {
               </span>
             ) : (
               <img
-                src={employerProfile?.avatarUrl}
+                src={employerProfile?.avatarUrl ?? undefined}
                 alt={employerProfile?.fullName || 'User'}
                 className="h-full w-full rounded-full object-cover"
                 onError={() => setAvatarError(true)}

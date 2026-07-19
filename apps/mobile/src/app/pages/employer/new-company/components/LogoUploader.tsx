@@ -18,10 +18,7 @@ interface LogoUploaderProps {
 export const LogoUploader = React.forwardRef<
   { resetPreview: () => void },
   LogoUploaderProps
->(function LogoUploader(
-  { onValueChange, currentFileKey, currentLogoUrl },
-  ref
-) {
+>(function LogoUploader({ onValueChange, currentFileKey, currentLogoUrl }, ref) {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading] = useState(false);
 

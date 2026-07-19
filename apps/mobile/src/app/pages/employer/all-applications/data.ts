@@ -74,7 +74,7 @@ export interface ApplicantDetail {
   id: string;
   applicantId: string;
   name: string;
-  image: string;
+  image: string | null;
   email: string;
   phone: string;
   title: string;
@@ -103,7 +103,11 @@ export function mapApiResponseToApplications(
       app as PaginatedApplicationsResponse['applications'][number] & {
         candidateId?: string;
         job?: { title?: string };
-        candidate?: { name?: string | null; email?: string };
+        candidate?: {
+          name?: string | null;
+          email?: string;
+          avatarUrl?: string | null;
+        };
         matchPercentage?: number | null;
         matchExplanation?: { overallScore?: number | null } | null;
       };
@@ -117,9 +121,7 @@ export function mapApiResponseToApplications(
       id: String(app.id),
       applicantId: enriched.candidateId ?? String(app.id),
       name: displayName,
-      image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-        enriched.candidateId ?? String(app.id)
-      )}`,
+      image: enriched.candidate?.avatarUrl ?? null,
       appliedDate: app.createdAt.split('T')[0],
       score:
         enriched.matchExplanation?.overallScore ??

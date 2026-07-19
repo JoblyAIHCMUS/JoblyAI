@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { deleteAvatar, type UpdateAvatarResponse } from '@/api-client/employer';
+import {
+  deleteAvatar,
+  type UpdateAvatarResponse,
+} from '@/api-client/employer';
 
 interface UseDeleteEmployerAvatarOptions {
   onSuccess?: (data: UpdateAvatarResponse) => void;
   onError?: (error: unknown) => void;
 }
 
-export function useDeleteEmployerAvatar(
-  options?: UseDeleteEmployerAvatarOptions
-) {
+export function useDeleteEmployerAvatar(options?: UseDeleteEmployerAvatarOptions) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [data, setData] = useState<UpdateAvatarResponse | null>(null);

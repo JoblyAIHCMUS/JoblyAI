@@ -319,9 +319,7 @@ export default function SettingsScreen({
     }
   };
 
-  const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-    account.name
-  )}`;
+  const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(account.name)}`;
   const avatarUri =
     account.avatarUrl && !avatarImageFailed ? account.avatarUrl : null;
 
@@ -389,7 +387,11 @@ export default function SettingsScreen({
                     onError={() => setAvatarImageFailed(true)}
                   />
                 ) : (
-                  <SvgUri uri={dicebearUrl} width="100%" height="100%" />
+                  <SvgUri
+                    uri={dicebearUrl}
+                    width="100%"
+                    height="100%"
+                  />
                 )}
               </View>
               {onChangeAvatar && (
