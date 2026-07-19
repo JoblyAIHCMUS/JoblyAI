@@ -87,7 +87,11 @@ export default function ProfileHeader({
           <div
             className="relative w-[140px] h-[140px] cursor-pointer group/avatar hover:scale-105 transition-all duration-300 select-none"
             onClick={handleAvatarClick}
-            title={candidate.avatar ? 'Click to view avatar' : 'Click to upload avatar'}
+            title={
+              candidate.avatar
+                ? 'Click to view avatar'
+                : 'Click to upload avatar'
+            }
           >
             <div className="absolute inset-0 rounded-full bg-slate-100 border-[8px] border-[color:var(--bg-primary)] flex items-center justify-center overflow-hidden shadow-sm group-hover/avatar:shadow-md transition-shadow">
               {candidate.avatar ? (
@@ -98,7 +102,9 @@ export default function ProfileHeader({
                 />
               ) : (
                 <span className="text-4xl font-semibold text-slate-400 select-none">
-                  {candidate.name ? candidate.name.charAt(0).toUpperCase() : '?'}
+                  {candidate.name
+                    ? candidate.name.charAt(0).toUpperCase()
+                    : '?'}
                 </span>
               )}
             </div>
@@ -220,7 +226,10 @@ export default function ProfileHeader({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           onClick={() => setIsPreviewOpen(false)}
         >
-          <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={candidate.avatar}
               alt="avatar preview"

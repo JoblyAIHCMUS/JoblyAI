@@ -38,7 +38,7 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
           onCheckedChange={() => onChange('applications')}
           disabled={disabled}
           aria-label="Toggle application notifications"
-          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=unchecked]:bg-white"
+          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=checked]:text-white data-[state=unchecked]:bg-white"
         />
         <div className="flex flex-col gap-1">
           <div
@@ -62,7 +62,7 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
           onCheckedChange={() => onChange('jobs')}
           disabled={disabled}
           aria-label="Toggle job notifications"
-          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=unchecked]:bg-white"
+          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=checked]:text-white data-[state=unchecked]:bg-white"
         />
         <div className="flex flex-col gap-1">
           <div
@@ -86,7 +86,7 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
           onCheckedChange={() => onChange('recommendations')}
           disabled={disabled}
           aria-label="Toggle recommendation notifications"
-          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=unchecked]:bg-white"
+          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=checked]:text-white data-[state=unchecked]:bg-white"
         />
         <div className="flex flex-col gap-1">
           <div
@@ -111,7 +111,7 @@ export const NotificationOptions: React.FC<NotificationOptionsProps> = ({
           onCheckedChange={() => onChange('messages')}
           disabled={disabled}
           aria-label="Toggle message notifications"
-          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=unchecked]:bg-white"
+          className="w-6 h-6 rounded-[5px] border-2 border-primary data-[state=checked]:bg-[var(--icon-accent-primary,#4338CA)] data-[state=checked]:text-white data-[state=unchecked]:bg-white"
         />
 
         <div className="flex flex-col gap-1">

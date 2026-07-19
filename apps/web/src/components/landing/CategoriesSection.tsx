@@ -106,12 +106,7 @@ export default function CategoriesSection() {
                   className="h-64 rounded-lg bg-slate-100 animate-pulse"
                 />
               ))
-            : categories.map((cat) => (
-                <CategoryCard
-                  key={cat.id}
-                  cat={cat}
-                />
-              ))}
+            : categories.map((cat) => <CategoryCard key={cat.id} cat={cat} />)}
         </div>
       </div>
     </section>

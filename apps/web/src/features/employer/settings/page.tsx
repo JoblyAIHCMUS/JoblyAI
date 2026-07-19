@@ -15,6 +15,7 @@ import {
 import ChangePasswordForm from './components/ChangePasswordForm';
 import { NotificationOptions } from './components/NotificationOptions';
 import { useGetEmployerProfile } from '@/api-hook/employer';
+import { useNotificationSettings } from '@/api-hook/notification';
 import { useUpdatePersonalDetails } from '@/api-hook/user/useUpdatePersonalDetails';
 import { useToast } from '@/hooks/useToast';
 import { SETTINGS_TABS } from './constants';
@@ -25,6 +26,10 @@ import {
   formatDateToYYYYMMDD,
 } from '@/lib/validation';
 import type { EmployerProfileResponse } from '@/api-client/employer';
+import type {
+  NotificationSettings,
+  NotificationSettingsKey,
+} from '@/types/notification';
 
 export default function EmployerSettingsPage() {
   const { toast } = useToast();
@@ -33,6 +38,20 @@ export default function EmployerSettingsPage() {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     'https://placehold.co/124x124'
   );
+  const [notificationSettings, setNotificationSettings] =
+    useState<NotificationSettings>({
+      applications: true,
+      jobs: true,
+      recommendations: false,
+      messages: true,
+    });
+
+  const {
+    fetchSettings: fetchNotificationSettings,
+    updateSettings: updateNotificationSettings,
+    loading: loadingNotificationSettings,
+    saving: savingNotificationSettings,
+  } = useNotificationSettings();
 
   const methods = useForm<PersonalDetailsFormData>({
     resolver: zodResolver(PersonalDetailsSchema),
@@ -121,6 +140,44 @@ export default function EmployerSettingsPage() {
     };
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    const loadNotificationSettings = async () => {
+      try {
+        const settings = await fetchNotificationSettings();
+        setNotificationSettings(settings);
+      } catch (error) {
+        toast.error(
+          formatErrorForDisplay(error, 'Failed to load notification settings')
+        );
+      }
+    };
+
+    loadNotificationSettings();
+  }, []);
+
+  const handleNotificationChange = async (key: NotificationSettingsKey) => {
+    const previousSettings = notificationSettings;
+    const nextSettings = {
+      ...notificationSettings,
+      [key]: !notificationSettings[key],
+    };
+
+    setNotificationSettings(nextSettings);
+
+    try {
+      const savedSettings = await updateNotificationSettings({
+        [key]: nextSettings[key],
+      });
+      setNotificationSettings(savedSettings);
+      toast.success('Notification settings updated');
+    } catch (error) {
+      setNotificationSettings(previousSettings);
+      toast.error(
+        formatErrorForDisplay(error, 'Failed to update notification settings')
+      );
+    }
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
@@ -231,15 +288,9 @@ export default function EmployerSettingsPage() {
 
           {/* Notifications Section */}
           <NotificationOptions
-            notifications={{
-              applications: true,
-              jobs: false,
-              recommendations: false,
-              messages: true,
-            }}
-            onChange={(key: string) => {
-              // TODO: Implement notification preferences
-            }}
+            notifications={notificationSettings}
+            onChange={handleNotificationChange}
+            disabled={loadingNotificationSettings || savingNotificationSettings}
           />
         </TabsContent>
 

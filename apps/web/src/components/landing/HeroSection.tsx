@@ -106,7 +106,6 @@ export default function HeroSection() {
               </Button>
             </div>
           </form>
-
         </div>
       </div>
     </section>
