@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Star, MoreHorizontal } from 'lucide-react-native';
-import { SvgUri } from 'react-native-svg';
 
 import { formatDate } from '../../../../../utils/date';
+import Avatar from '../../../../../components/Avatar';
 import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineCardMenu } from './PipelineCardMenu';
 import { ChangeStageModal } from './ChangeStageModal';
@@ -32,10 +32,6 @@ export function PipelineCard({
     width: 0,
     height: 0,
   });
-
-  const isSvg =
-    applicant.avatarUrl?.includes('.svg') ||
-    applicant.avatarUrl?.includes('/svg');
 
   const handleMenuPress = () => {
     moreButtonRef.current?.measure(
@@ -86,16 +82,12 @@ export function PipelineCard({
     <>
       <View className="mb-4 rounded-sm border border-app-border-1 bg-white p-4 shadow-sm">
         <View className="mb-5 flex-row items-center">
-          {isSvg ? (
-            <View className="mr-4 h-12 w-12 overflow-hidden rounded-full bg-app-gray-1">
-              <SvgUri width="100%" height="100%" uri={applicant.avatarUrl} />
-            </View>
-          ) : (
-            <Image
-              source={{ uri: applicant.avatarUrl }}
-              className="mr-4 h-12 w-12 rounded-full bg-app-gray-1"
-            />
-          )}
+          <Avatar
+            url={applicant.avatarUrl}
+            name={applicant.name}
+            size={48}
+            className="mr-4"
+          />
           <View className="min-w-0 flex-1">
             <Text className="truncate text-base font-semibold text-app-slate-1">
               {applicant.name}

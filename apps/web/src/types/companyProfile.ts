@@ -15,7 +15,7 @@ export interface CompanyTeamMember {
   id: string;
   name: string;
   role: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
 }
 
 export interface CompanyProfile {

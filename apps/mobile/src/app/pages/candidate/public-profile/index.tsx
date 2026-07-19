@@ -3,7 +3,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
-  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -19,6 +18,7 @@ import {
   InstagramIcon,
   TwitterIcon,
 } from '../../../components/shared/svgs/Icons';
+import Avatar from '../../../../components/Avatar';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import EditAboutModal from './components/EditAboutModal';
 import EditExperienceModal from './components/EditExperienceModal';
@@ -42,7 +42,6 @@ import { useDeleteResume } from '@/hooks/useDeleteResume';
 import { useSetDefaultResume } from '@/hooks/useSetDefaultResume';
 import { useTriggerAiParse } from '@/hooks/useTriggerAiParse';
 import { useCommitResumeMerge } from '@/hooks/useCommitResumeMerge';
-import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import type {
   CandidateEducation,
   CandidateExperience,
@@ -290,7 +289,6 @@ function ProfileContent() {
   const { mutateAsync: setDefaultResume } = useSetDefaultResume();
   const { mutateAsync: triggerAiParse } = useTriggerAiParse();
   const { mutateAsync: commitResumeMerge } = useCommitResumeMerge();
-  const { fetchDownloadUrl: createDownloadUrl } = useCreateDownloadUrl();
   const { mutateAsync: updateProfile } = useUpdateProfile();
 
   const startAiSyncPolling = useCallback(
@@ -302,7 +300,7 @@ function ProfileContent() {
           const freshData = freshProfile?.data;
           const resume = freshData?.resumes?.find((r) => r.id === resumeId);
           if (!resume) return;
-          const parsedRaw = (resume as any).parsedText;
+          const parsedRaw = (resume as { parsedText?: string }).parsedText;
           if (!parsedRaw) return;
           const parsedData = JSON.parse(parsedRaw);
           if (!parsedData || Object.keys(parsedData).length === 0) return;
@@ -377,13 +375,6 @@ function ProfileContent() {
   const email = profile?.email || 'Not provided';
   const phone = profile?.phoneNumber?.trim() || 'Not provided';
 
-  const instagram = socials.find((social) =>
-    social.platform.toLowerCase().includes('instagram')
-  );
-  const twitter = socials.find((social) =>
-    social.platform.toLowerCase().includes('twitter')
-  );
-
   const topExperiences = experiences.slice(0, 3);
   const topEducations = educations.slice(0, 3);
 
@@ -449,8 +440,9 @@ function ProfileContent() {
         startAiSyncPolling(newResume.id);
       }
       await refetch();
-    } catch (err: any) {
-      setUploadErrorMsg(err.message || 'Upload failed');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      setUploadErrorMsg(message);
     }
   };
 
@@ -461,7 +453,7 @@ function ProfileContent() {
     try {
       await setDefaultResume(resumeId);
       await refetch();
-    } catch (err) {
+    } catch {
       Toast.show({ type: 'error', text1: 'Failed to set default CV' });
     }
   };
@@ -498,13 +490,13 @@ function ProfileContent() {
       });
   };
 
-  const handleSyncResume = async (draftData?: any) => {
+  const handleSyncResume = async (draftData?: unknown) => {
     if (!activeResumeId) return;
     try {
       await commitResumeMerge({ resumeId: activeResumeId, data: draftData });
       await refetch();
       setSyncModalOpen(false);
-    } catch (err) {
+    } catch {
       Toast.show({ type: 'error', text1: 'Failed to sync profile' });
     }
   };
@@ -726,13 +718,31 @@ function ProfileContent() {
           <View className="px-3">
             <View className="relative pt-14">
               <View className="absolute left-1/2 top-0 z-30 -ml-14">
-                <AvatarPhoto
-                  avatarUrl={profile?.avatarUrl}
-                  name={displayName}
-                  onChangePhoto={handleChangeAvatar}
-                  onRemovePhoto={handleRemoveAvatarFromProfile}
-                  isRemoving={isRemovingAvatar}
-                />
+                <View className="relative">
+                  <Avatar
+                    url={profile?.avatarUrl ?? null}
+                    name={displayName}
+                    size={112}
+                    className="border-4 border-white shadow-lg"
+                  />
+                  <TouchableOpacity
+                    onPress={handleChangeAvatar}
+                    className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
+                  >
+                    <Pencil size={12} color="#fff" strokeWidth={2.4} />
+                  </TouchableOpacity>
+                  {!!profile?.avatarUrl && (
+                    <TouchableOpacity
+                      onPress={handleRemoveAvatarFromProfile}
+                      disabled={isRemovingAvatar}
+                      className="mt-1 items-center"
+                    >
+                      <Text className="text-xs font-semibold text-red-500 underline">
+                        {isRemovingAvatar ? 'Removing...' : 'Remove'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
               <Card className="overflow-hidden">
                 <View className="relative h-20 overflow-hidden bg-[#f6cbe0]">

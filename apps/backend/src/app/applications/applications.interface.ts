@@ -46,6 +46,7 @@ export interface Application {
     id: string;
     name: string | null;
     email: string;
+    avatarUrl: string | null;
   };
 }
 

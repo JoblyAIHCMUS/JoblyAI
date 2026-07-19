@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { MoreHorizontal, Star } from 'lucide-react-native';
-import { SvgUri } from 'react-native-svg';
 
+import Avatar from '../../../../../components/Avatar';
 import { AllApplication } from '../types';
 import { hiringStageStyles } from '../data';
 import { COLORS } from '../../../../constants/theme';
@@ -61,8 +61,6 @@ export const AllApplicationsListItem: React.FC<
   AllApplicationsListItemProps
 > = ({ application, onMenuPress, onPressIn }) => {
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
-  const isSvg =
-    application.image?.includes('.svg') || application.image?.includes('/svg');
 
   const isTerminal =
     application.hiringStage === 'Rejected' ||
@@ -95,16 +93,12 @@ export const AllApplicationsListItem: React.FC<
       className="flex-row items-center justify-between py-4 border-b border-app-border-light"
     >
       <View className="flex-row items-center flex-1 mr-3">
-        {isSvg ? (
-          <View className="w-14 h-14 rounded-full mr-4 bg-app-gray-1 overflow-hidden">
-            <SvgUri width="100%" height="100%" uri={application.image} />
-          </View>
-        ) : (
-          <Image
-            source={{ uri: application.image }}
-            className="w-14 h-14 rounded-full mr-4 bg-app-gray-1"
-          />
-        )}
+        <Avatar
+          url={application.image}
+          name={application.name}
+          size={56}
+          className="mr-4"
+        />
 
         <View className="flex-1 min-w-0">
           <Text

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
-import { SvgUri } from 'react-native-svg';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Mail, Phone, BarChart3 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
+import Avatar from '../../../../../../components/Avatar';
 import { ApplicantDetail, hiringStageStyles } from '../../data';
 import { HiringStageProgressBar } from './HiringStageProgressBar';
 import { MatchExplanationDrawer } from './MatchExplanationDrawer';
@@ -14,32 +14,11 @@ interface ApplicantOverviewProps {
   applicant: ApplicantDetail;
 }
 
-function isSvgUrl(url: string | undefined): boolean {
-  return !!url && (url.includes('.svg') || url.includes('/svg'));
-}
-
-function Avatar({ url, name }: { url: string; name: string }) {
-  if (isSvgUrl(url)) {
-    return (
-      <View className="w-20 h-20 rounded-full bg-app-gray-1 overflow-hidden">
-        <SvgUri width="100%" height="100%" uri={url} />
-      </View>
-    );
-  }
-  return (
-    <Image
-      source={{ uri: url }}
-      className="w-20 h-20 rounded-full bg-app-gray-1"
-    />
-  );
-}
-
 export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
   const { data: employerProfile } = useGetEmployerProfile();
   const { mutateAsync: messageCandidate, isPending: isMessaging } =
     useMessageCandidate({ employerId: employerProfile?.id });
   const [showMatchExplanation, setShowMatchExplanation] = useState(false);
-  const isCalculating = applicant.score === null;
   const {
     image,
     name,
@@ -70,7 +49,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
   return (
     <View className="rounded-2xl border border-app-border-2 bg-white p-4 mb-4">
       <View className="items-center mb-3">
-        <Avatar url={image} name={name} />
+        <Avatar url={image} name={name} size={80} />
         <Text
           className="text-xl font-semibold text-app-slate-1 mt-3"
           numberOfLines={2}

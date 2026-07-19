@@ -4,7 +4,6 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 import { getEmployerApplicationById } from '../api/application';
-import { HiringStage } from '../app/pages/employer/all-applications/types';
 import {
   ApplicantDetail,
   mapStatusToHiringStage,
@@ -28,7 +27,12 @@ type RawApplication = {
   };
   resume?: { fileKey?: string };
   matchPercentage?: number | null;
-  candidate?: { name?: string | null; email?: string; phone?: string };
+  candidate?: {
+    name?: string | null;
+    email?: string;
+    phone?: string;
+    avatarUrl?: string | null;
+  };
 };
 
 function toApplicantDetail(raw: RawApplication): ApplicantDetail {
@@ -43,9 +47,7 @@ function toApplicantDetail(raw: RawApplication): ApplicantDetail {
     id: String(raw.id),
     applicantId: candidateId,
     name: candidateName,
-    image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-      candidateId
-    )}`,
+    image: raw.candidate?.avatarUrl ?? null,
     email: raw.candidate?.email || '',
     phone: raw.candidate?.phone || '',
     title: appliedRole,
