@@ -563,9 +563,12 @@ export default function CandidateDashboard() {
   const scrollViewRef = useRef<ScrollView>(null);
   const defaultWeekRange = useMemo(() => getCurrentWeekRange(), []);
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
-  const [selectedDatePreset, setSelectedDatePreset] = useState<DatePreset | null>(null);
+  const [selectedDatePreset, setSelectedDatePreset] =
+    useState<DatePreset | null>(null);
   const [selectedDateRange, setSelectedDateRange] = useState(defaultWeekRange);
-  const [selectedDateLabel, setSelectedDateLabel] = useState(defaultWeekRange.label);
+  const [selectedDateLabel, setSelectedDateLabel] = useState(
+    defaultWeekRange.label
+  );
   const greeting = getGreeting();
   const firstName =
     profile?.firstName ||

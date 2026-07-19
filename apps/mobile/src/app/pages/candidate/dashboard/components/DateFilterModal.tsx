@@ -11,25 +11,49 @@ interface DateFilterModalProps {
   currentPreset: DatePreset | null;
 }
 
-function computeDateRange(preset: DatePreset): { start: Date; end: Date; label: string } {
+function computeDateRange(preset: DatePreset): {
+  start: Date;
+  end: Date;
+  label: string;
+} {
   const now = new Date();
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
 
   switch (preset) {
     case 'TODAY': {
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
       return { start: startOfDay, end: endOfDay, label: 'Today' };
     }
     case 'LAST_7_DAYS': {
       const last7 = new Date(now);
       last7.setDate(last7.getDate() - 6);
-      const start = new Date(last7.getFullYear(), last7.getMonth(), last7.getDate());
+      const start = new Date(
+        last7.getFullYear(),
+        last7.getMonth(),
+        last7.getDate()
+      );
       return { start, end: endOfDay, label: 'This Week' };
     }
     case 'LAST_30_DAYS': {
       const last30 = new Date(now);
       last30.setDate(last30.getDate() - 29);
-      const start = new Date(last30.getFullYear(), last30.getMonth(), last30.getDate());
+      const start = new Date(
+        last30.getFullYear(),
+        last30.getMonth(),
+        last30.getDate()
+      );
       return { start, end: endOfDay, label: 'Last 30 Days' };
     }
   }
@@ -62,12 +86,23 @@ export default function DateFilterModal({
   };
 
   return (
-    <Modal visible={isOpen} animationType="fade" transparent onRequestClose={onClose}>
+    <Modal
+      visible={isOpen}
+      animationType="fade"
+      transparent
+      onRequestClose={onClose}
+    >
       <View className="flex-1 bg-black/30">
-        <TouchableOpacity activeOpacity={1} onPress={onClose} className="flex-1" />
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onClose}
+          className="flex-1"
+        />
         <View className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white pb-8">
           <View className="flex-row items-center justify-between border-b border-[#d6ddeb] px-4 py-4">
-            <Text className="text-xl font-bold text-[#25324b]">Filter by Date</Text>
+            <Text className="text-xl font-bold text-[#25324b]">
+              Filter by Date
+            </Text>
             <TouchableOpacity onPress={onClose}>
               <X size={24} color={COLORS.darkText} strokeWidth={2} />
             </TouchableOpacity>
@@ -77,7 +112,9 @@ export default function DateFilterModal({
             {PRESETS.map(({ key, title }) => {
               const active = currentPreset === key;
               const { start, end } = computeDateRange(key);
-              const subtitle = `${formatDisplayDate(start)} - ${formatDisplayDate(end)}`;
+              const subtitle = `${formatDisplayDate(
+                start
+              )} - ${formatDisplayDate(end)}`;
 
               return (
                 <TouchableOpacity
@@ -97,7 +134,9 @@ export default function DateFilterModal({
                   >
                     {title}
                   </Text>
-                  <Text className="mt-1 text-xs text-[#7c8493]">{subtitle}</Text>
+                  <Text className="mt-1 text-xs text-[#7c8493]">
+                    {subtitle}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
