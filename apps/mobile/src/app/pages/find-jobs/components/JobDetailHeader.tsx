@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { ArrowLeft, Share } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { COLORS } from '@/app/constants/theme';
+import { WEB_URL } from '@/lib/api-base';
 import type { JobPosting } from '@/types/job';
 
 interface JobDetailHeaderProps {
@@ -29,11 +31,13 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
 
   const handleShare = async () => {
     try {
+      const url = `${WEB_URL}/pages/find-jobs/${job.id}`;
+      await Clipboard.setStringAsync(url);
       const { Share } = await import('react-native');
       await Share.share({
         message: `Check out this job: ${job.title} at ${
           job.company.name || 'Company'
-        }`,
+        }\n\n${url}`,
       });
     } catch {
       // User cancelled
