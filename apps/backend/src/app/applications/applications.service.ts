@@ -345,9 +345,15 @@ export class ApplicationsService {
       throw new ForbiddenException('This application does not belong to you');
     }
 
-    if (application.status !== ApplicationStatus.APPLIED) {
+    const withdrawableStatuses: ApplicationStatus[] = [
+      ApplicationStatus.APPLIED,
+      ApplicationStatus.PRE_SHORTLIST_PENDING,
+      ApplicationStatus.PRE_SHORTLIST_SUBMITTED,
+      ApplicationStatus.INTERVIEW,
+    ];
+    if (!withdrawableStatuses.includes(application.status)) {
       throw new BadRequestException(
-        'Only applications with APPLIED status can be withdrawn'
+        'This application cannot be withdrawn in its current status'
       );
     }
 

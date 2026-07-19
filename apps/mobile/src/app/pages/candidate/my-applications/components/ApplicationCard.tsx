@@ -40,7 +40,12 @@ interface ApplicationCardProps {
   onWithdrawn?: () => void;
 }
 
-const WITHDRAWABLE_STATUSES = new Set(['APPLIED', 'INTERVIEW']);
+const WITHDRAWABLE_STATUSES = new Set([
+  'APPLIED',
+  'PRE_SHORTLIST_PENDING',
+  'PRE_SHORTLIST_SUBMITTED',
+  'INTERVIEW',
+]);
 
 export function ApplicationCard({
   application,

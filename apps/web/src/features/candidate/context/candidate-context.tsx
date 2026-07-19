@@ -9,7 +9,6 @@ import {
   useMemo,
   type ReactNode,
 } from 'react';
-import { toDateInputValue } from '@/lib/candidateDate';
 import { useGetCandidateProfile } from '@/api-hook/candidate/useGetCandidateProfile';
 import type { CandidateProfileResponse } from '@/api-client/candidate/types';
 
@@ -36,26 +35,12 @@ interface CandidateContextType {
 
 const CandidateContext = createContext<CandidateContextType | null>(null);
 
-function getInitialWeekRange() {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 6);
-
-  return {
-    startDate: toDateInputValue(start),
-    endDate: toDateInputValue(end),
-  };
-}
-
 export function CandidateProvider({ children }: { children: ReactNode }) {
-  const initialRange = getInitialWeekRange();
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
     MOCK_CANDIDATES[0] ?? null
   );
-  const [selectedStartDate, setSelectedStartDate] = useState(
-    initialRange.startDate
-  );
-  const [selectedEndDate, setSelectedEndDate] = useState(initialRange.endDate);
+  const [selectedStartDate, setSelectedStartDate] = useState('');
+  const [selectedEndDate, setSelectedEndDate] = useState('');
   const [candidateProfile, setCandidateProfile] =
     useState<CandidateProfileResponse | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
