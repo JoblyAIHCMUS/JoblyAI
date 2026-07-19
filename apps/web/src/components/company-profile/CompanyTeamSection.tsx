@@ -32,8 +32,8 @@ export default function CompanyTeamSection({
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-4 pb-2">
             {company.team.map((member) => {
-              const showFallback =
-                !member.avatarUrl || failedAvatars.has(member.avatarUrl);
+              const avatarUrl = member.avatarUrl ?? undefined;
+              const showFallback = !avatarUrl || failedAvatars.has(avatarUrl);
               return (
                 <Link
                   key={member.id}
@@ -46,11 +46,11 @@ export default function CompanyTeamSection({
                       <span>{member.name.charAt(0).toUpperCase()}</span>
                     ) : (
                       <img
-                        src={member.avatarUrl}
+                        src={avatarUrl}
                         alt={member.name}
                         className="h-full w-full object-cover"
                         loading="lazy"
-                        onError={() => handleAvatarError(member.avatarUrl)}
+                        onError={() => handleAvatarError(avatarUrl ?? '')}
                       />
                     )}
                   </div>

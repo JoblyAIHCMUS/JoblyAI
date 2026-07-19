@@ -73,7 +73,7 @@ export const columns: ColumnDef<Applicant>[] = [
         >
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={row.original.image}
+              src={row.original.image ?? undefined}
               alt={row.getValue<string>('name')}
             />
             <AvatarFallback>
