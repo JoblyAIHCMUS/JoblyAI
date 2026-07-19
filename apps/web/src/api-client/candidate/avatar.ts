@@ -40,4 +40,12 @@ export async function updateAvatar(
   return response.data;
 }
 
+export async function deleteAvatar(): Promise<UpdateAvatarResponse> {
+  const response = await axios.delete<UpdateAvatarResponse>(
+    `${API_BASE_URL}/api/candidate/me/avatar`,
+    { withCredentials: true }
+  );
+  return response.data;
+}
+
 export type { UpdateAvatarPayload, UpdateAvatarResponse };

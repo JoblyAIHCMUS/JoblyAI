@@ -159,6 +159,16 @@ export class CompanyController {
     return this.companyService.updateLogo(id, dto, req.user);
   }
 
+  @Delete(':id/logo')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer', 'admin')
+  async deleteCompanyLogo(
+    @Request() req: AuthRequest,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.companyService.deleteLogo(id, req.user);
+  }
+
   @Post(':id/employees')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('employer')

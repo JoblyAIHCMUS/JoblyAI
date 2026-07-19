@@ -42,6 +42,7 @@ export const BasicInfoStepEdit: React.FC<BasicInfoStepEditProps> = ({
         <LogoUploader
           onValueChange={(url) => onLogoChange(url)}
           ref={logoRef}
+          currentLogoUrl={logoUrl}
         />
       </View>
 

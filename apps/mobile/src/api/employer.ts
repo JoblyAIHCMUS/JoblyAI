@@ -48,3 +48,24 @@ export async function searchEmployers({
 
   return response.data;
 }
+
+// --- Avatar ---
+
+export interface UpdateAvatarPayload {
+  fileKey: string;
+  fileUrl: string;
+}
+
+export async function updateAvatar(
+  payload: UpdateAvatarPayload
+): Promise<{ avatarUrl: string }> {
+  const response = await apiClient.patch<{ avatarUrl: string }>(
+    '/employer/me/avatar',
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteAvatar(): Promise<void> {
+  await apiClient.delete('/employer/me/avatar');
+}

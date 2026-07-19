@@ -1306,6 +1306,41 @@ export class CandidatesService {
     return updatedUser;
   }
 
+  async deleteAvatar(
+    userId: string
+  ): Promise<{ id: string; email: string; avatarUrl: string | null }> {
+    const user = await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Delete avatar from GCS if it exists
+    if (user.avatarUrl) {
+      try {
+        const urlParts = user.avatarUrl.split('/');
+        const fileKey = urlParts.slice(-2).join('/');
+        if (fileKey && fileKey.startsWith('avatars/')) {
+          await this.gcsService.deleteFile(`assets/${fileKey}`);
+        }
+      } catch (error) {
+        console.error(`Warning: Failed to delete avatar from GCS.`, error);
+      }
+    }
+
+    // Set avatarUrl to null in DB
+    const updatedUser = await this.prismaClient.user.update({
+      where: { id: userId },
+      data: { avatarUrl: null },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    return updatedUser;
+  }
+
   async getCandidateProfileForEmployer(
     employerId: string,
     candidateId: string

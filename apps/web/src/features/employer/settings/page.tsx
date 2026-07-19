@@ -105,6 +105,18 @@ export default function EmployerSettingsPage() {
     fetchEmployerProfile();
   };
 
+  const handleAvatarRemoved = () => {
+    const firstName = methods.getValues('firstName');
+    const lastName = methods.getValues('lastName');
+    const seed = `${firstName} ${lastName}`.trim() || 'User';
+    setProfilePhoto(
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+        seed
+      )}`
+    );
+    fetchEmployerProfile();
+  };
+
   const onSubmit = async (formData: PersonalDetailsFormData) => {
     try {
       await updateDetails({
@@ -223,6 +235,7 @@ export default function EmployerSettingsPage() {
                 <ProfilePhotoSection
                   photoUrl={profilePhoto}
                   onAvatarUpdated={handleAvatarUpdated}
+                  onAvatarRemoved={handleAvatarRemoved}
                   disabled={loadingProfile || isSaving}
                 />
               </div>

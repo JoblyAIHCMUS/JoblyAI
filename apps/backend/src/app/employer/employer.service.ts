@@ -349,4 +349,37 @@ export class EmployerService {
 
     return updatedUser;
   }
+
+  async deleteAvatar(
+    userId: string
+  ): Promise<{ id: string; email: string; avatarUrl: string | null }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (user.avatarUrl) {
+      try {
+        const urlParts = user.avatarUrl.split('/');
+        const fileKey = urlParts.slice(-2).join('/');
+        if (fileKey && fileKey.startsWith('avatars/')) {
+          await this.gcsService.deleteFile(`assets/${fileKey}`);
+        }
+      } catch (error) {
+        console.error(`Warning: Failed to delete avatar from GCS.`, error);
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: null },
+      select: { id: true, email: true, avatarUrl: true },
+    });
+
+    return updatedUser;
+  }
 }

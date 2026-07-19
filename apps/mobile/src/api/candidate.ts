@@ -363,3 +363,24 @@ export async function updateProfile(
   const response = await apiClient.patch('/candidate/me', payload);
   return response.data;
 }
+
+// --- Avatar ---
+
+export interface UpdateAvatarPayload {
+  fileKey: string;
+  fileUrl: string;
+}
+
+export async function updateAvatar(
+  payload: UpdateAvatarPayload
+): Promise<{ avatarUrl: string }> {
+  const response = await apiClient.patch<{ avatarUrl: string }>(
+    '/candidate/me/avatar',
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteAvatar(): Promise<void> {
+  await apiClient.delete('/candidate/me/avatar');
+}

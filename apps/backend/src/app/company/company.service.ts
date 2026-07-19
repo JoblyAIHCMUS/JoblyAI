@@ -589,6 +589,37 @@ export class CompanyService {
     return updatedCompany;
   }
 
+  async deleteLogo(id: number, user: User): Promise<Company> {
+    await this.ensureCompanyExists(id);
+    await this.ensureCompanyAccess(id, user);
+
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+      select: { id: true, logoUrl: true },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    if (company.logoUrl) {
+      try {
+        const urlParts = company.logoUrl.split('/');
+        const fileKey = urlParts.slice(-2).join('/');
+        if (fileKey && fileKey.startsWith('logos/')) {
+          await this.gcsService.deleteFile(`assets/${fileKey}`);
+        }
+      } catch (error) {
+        console.error(`Warning: Failed to delete logo from GCS.`, error);
+      }
+    }
+
+    return this.prisma.company.update({
+      where: { id },
+      data: { logoUrl: null },
+    });
+  }
+
   async addEmployee(
     companyId: number,
     requesterUserId: string,
