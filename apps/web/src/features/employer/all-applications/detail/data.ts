@@ -6,7 +6,7 @@ export interface ApplicantDetail {
   id: string;
   applicantId: string;
   name: string;
-  image: string;
+  image: string | null;
   email: string;
   phone: string;
   title: string;
