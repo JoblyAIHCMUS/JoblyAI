@@ -90,7 +90,7 @@ jobs:
         if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
         working-directory: apps/mobile
         run: |
-          pnpm exec eas build --profile production --platform android --wait --json --non-interactive 2>&1 | tee /tmp/eas-build-output.txt
+          pnpm exec eas build --profile production --platform android --wait --json --non-interactive | tee /tmp/eas-build-output.txt
           BUILD_ID=$(jq -s -r 'last | .id // empty' /tmp/eas-build-output.txt)
           echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
@@ -122,11 +122,11 @@ jobs:
         working-directory: apps/mobile
         run: |
           BUILD_ID="${{ steps.eas-build.outputs.build-id || github.event.inputs.build-id }}"
-          if [[ -n "$BUILD_ID" ]]; then
-            pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
-          else
-            pnpm exec eas submit --profile production --platform android --non-interactive
+          if [[ -z "$BUILD_ID" ]]; then
+            echo "No build ID available. Provide 'build-id' input or run android-both to build first." >&2
+            exit 1
           fi
+          pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
