@@ -242,6 +242,31 @@ CÁCH CHẠY BẰNG DOCKER (production-like):
   docker compose up -d backend web nginx
   # Mở http://localhost (qua nginx reverse proxy).
 
+--------------------------------------------------------------------------------
+   PHƯƠNG ÁN ĐƠN GIẢN - dùng thay thế các lệnh ở trên
+--------------------------------------------------------------------------------
+Nếu thấy các lệnh pnpm --filter / --profile phía trên dài dòng, có thể dùng
+cách rút gọn tương đương (kết quả giống hệt):
+
+  # 1) Khởi động 3 dịch vụ hạ tầng chính (Postgres, Redis, ScyllaDB):
+  docker compose up -d postgres redis scylla
+
+  # 2) Terminal 1 - vào thư mục backend và chạy dev:
+  cd apps/backend
+  pnpm start:dev
+  # Backend chạy ở http://localhost:3000/api
+
+  # 3) Terminal 2 - vào thư mục web và chạy dev:
+  cd apps/web
+  pnpm run dev
+  # Web chạy ở http://localhost:5173
+
+Lưu ý: vẫn phải chạy `pnpm install` ở thư mục gốc 1 lần trước đó, và phải
+chạy `prisma generate` + `prisma migrate dev` trước khi backend khởi động
+lần đầu.
+Ứng dụng di động (apps/mobile) là phần tuỳ chọn, nếu cần phát triển hãy
+xem mục 9 (CÀI ĐẶT MOBILE) trong HuongDanCaiDat.txt.
+
 ================================================================================
 5. BIÊN DỊCH CHƯƠNG TRÌNH (BUILD PRODUCTION)
 ================================================================================
@@ -556,6 +581,27 @@ Nếu không có tài khoản demo, đăng ký tài khoản mới qua /signup l�
   pnpm nx run-many --target=build --all
   pnpm --filter @jobly/backend run start:prod
   pnpm --filter @jobly/web run start
+
+================================================================================
+         CHEAT-SHEET RÚT GỌN (phương án đơn giản - tương đương ở trên)
+================================================================================
+
+  # Lần đầu tiên:
+  pnpm install
+  docker compose up -d postgres redis scylla
+  cp apps/backend/.env.example apps/backend/.env
+  # (sửa GEMINI_KEY, GCS_* trong .env)
+  cd apps/backend && pnpm prisma migrate reset
+
+  # Chạy dev (mỗi app 1 terminal):
+  cd apps/backend && pnpm start:dev     # Terminal 1 -> :3000/api
+  cd apps/web     && pnpm run dev       # Terminal 2 -> :5173
+
+  # Truy cập:
+  # Web:     http://localhost:5173
+  # API:     http://localhost:3000/api
+  # Swagger: http://localhost:3000/api/docs
+  # Mobile web: http://localhost:8083
 
 ================================================================================
                             HẾT - HƯỚNG DẪN SỬ DỤNG

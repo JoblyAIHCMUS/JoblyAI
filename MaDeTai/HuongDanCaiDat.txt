@@ -213,6 +213,29 @@ BƯỚC 9 - Khởi động Web (terminal mới)
 
 BƯỚC 10 - (Tuỳ chọn) Cài đặt ứng dụng di động - xem mục 9.
 
+--------------------------------------------------------------------------------
+6.1.  PHƯƠNG ÁN ĐƠN GIẢN - bỏ qua các bước phức tạp ở trên
+--------------------------------------------------------------------------------
+Nếu không muốn dùng profile hay lệnh pnpm --filter dài dòng, có thể dùng cách
+rút gọn tương đương (kết quả giống hệt 10 bước phía trên):
+
+  # 1) Khởi động 3 dịch vụ hạ tầng chính (Postgres, Redis, ScyllaDB):
+  docker compose up -d postgres redis scylla
+
+  # 2) Vào thư mục backend và chạy dev (NestJS watch mode):
+  cd apps/backend
+  pnpm start:dev
+  # Backend chạy ở http://localhost:3000/api
+
+  # 3) Mở thêm 1 terminal khác, vào thư mục web và chạy dev (Next.js):
+  cd apps/web
+  pnpm run dev
+  # Web chạy ở http://localhost:5173
+
+Lưu ý: lệnh `pnpm install` ở BƯỚC 2 vẫn BẮT BUỘC chạy một lần trước đó tại
+thư mục gốc của project. File .env vẫn cần tạo từ .env.example và Prisma
+generate + migrate vẫn phải chạy trước khi backend khởi động lần đầu.
+
 ================================================================================
 7. CẤU HÌNH BIẾN MÔI TRƯỜNG (.env)
 ================================================================================
