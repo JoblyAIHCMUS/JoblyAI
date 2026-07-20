@@ -25,6 +25,10 @@ on:
           - alpha
           - beta
           - production
+      version-name:
+        description: 'Version name (e.g., 1.1.0). Default: auto-generated from run number'
+        required: false
+        default: ''
       build-id:
         description: 'EAS build ID to submit (optional; defaults to latest)'
         required: false
@@ -74,6 +78,9 @@ jobs:
       - name: Prebuild
         if: ${{ contains(github.event.inputs.mode, 'local') }}
         working-directory: apps/mobile
+        env:
+          EXPO_APP_VERSION_CODE: ${{ github.run_number }}
+          EXPO_APP_VERSION_NAME: ${{ github.event.inputs.version-name || format('1.0.{0}', github.run_number) }}
         run: pnpm exec expo prebuild --platform android --no-install
 
       # ── Build ─────────────────────────────────────────────────────
