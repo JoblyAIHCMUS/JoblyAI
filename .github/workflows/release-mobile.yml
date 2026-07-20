@@ -129,6 +129,7 @@ jobs:
           pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
 
       - name: Set up Ruby (for Fastlane)
         if: ${{ contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
