@@ -76,10 +76,7 @@ function Calendar({
   const handleOpenYearPicker = () => {
     // Calculate offset to show the selected year, snapped to clean boundaries of 20 years
     let offset = Math.floor((currentYear - 1920) / 20) * 20;
-    offset = Math.max(
-      0,
-      Math.min(offset, actualCurrentYear - 1920 - 19)
-    );
+    offset = Math.max(0, Math.min(offset, actualCurrentYear - 1920 - 19));
     setYearStartOffset(offset);
     setShowYearPicker(true);
   };

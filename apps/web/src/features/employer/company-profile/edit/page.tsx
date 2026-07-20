@@ -163,9 +163,7 @@ export default function EmployerCompanyProfileEditPage() {
     const MAX_GALLERY_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB
     for (const file of files) {
       if (file.size > MAX_GALLERY_IMAGE_SIZE) {
-        toast.error(
-          `Image "${file.name}" is too large. Maximum size is 1MB.`
-        );
+        toast.error(`Image "${file.name}" is too large. Maximum size is 1MB.`);
         return;
       }
     }
@@ -715,7 +713,8 @@ export default function EmployerCompanyProfileEditPage() {
             <div className="pt-0 md:pt-3">
               <Label className="label-label-1-semibold">Company Gallery</Label>
               <p className="text-xs text-slate-500 mt-1">
-                Upload up to 5 photos of your office, workspace, or team (max. 1MB per image).
+                Upload up to 5 photos of your office, workspace, or team (max.
+                1MB per image).
               </p>
             </div>
             <div className="space-y-4">
