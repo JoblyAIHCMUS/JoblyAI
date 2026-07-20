@@ -46,6 +46,14 @@ apiClient.interceptors.request.use(async (config) => {
  */
 let handlingAuthError = false;
 
+let lastLoginAt = 0;
+const POST_LOGIN_GRACE_MS = 5000;
+const RETRY_DELAY_MS = 1000;
+
+export function markLogin(): void {
+  lastLoginAt = Date.now();
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -65,8 +73,19 @@ apiClient.interceptors.response.use(
     handlingAuthError = true;
     try {
       if (status === 401) {
-        // Session is gone server-side. Best-effort sign out — local state
-        // must be cleared even if the server's /sign-out is unreachable.
+        const inGrace = Date.now() - lastLoginAt < POST_LOGIN_GRACE_MS;
+        const alreadyRetried = error.config.__authRetried === true;
+        if (inGrace && !alreadyRetried) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+          try {
+            const retryConfig = { ...error.config, __authRetried: true };
+            const retried = await apiClient.request(retryConfig);
+            handlingAuthError = false;
+            return retried;
+          } catch {
+            /* retry failed — fall through to invalidation */
+          }
+        }
         try {
           await invalidateSession();
         } catch {

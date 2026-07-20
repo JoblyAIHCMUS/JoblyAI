@@ -12,7 +12,6 @@ import {
   AuthDivider,
 } from '../../../components/shared/GoogleAuthButton';
 import { useLogin, useAuth } from '../../../../hooks/useAuth';
-import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
 
@@ -37,18 +36,7 @@ const LoginPage = () => {
         throw error;
       }
 
-      const session = await getSession();
       await refetch();
-      await new Promise((r) => setTimeout(r, 100));
-      const role = session?.user?.role;
-
-      if (role === 'employer') {
-        router.replace('/pages/employer/dashboard');
-      } else if (role === 'candidate') {
-        router.replace('/pages/candidate/dashboard');
-      } else {
-        router.replace('/');
-      }
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -81,19 +69,9 @@ const LoginPage = () => {
     }
 
     try {
-      const result = await login({ email, password, rememberMe });
+      await login({ email, password, rememberMe });
 
-      await authClient.getSession();
       await refetch();
-      await new Promise((r) => setTimeout(r, 100));
-
-      if (result.user.role === 'employer') {
-        router.replace('/pages/employer/dashboard');
-      } else if (result.user.role === 'candidate') {
-        router.replace('/pages/candidate/dashboard');
-      } else {
-        router.replace('/');
-      }
     } catch (err) {
       Toast.show({
         type: 'error',
