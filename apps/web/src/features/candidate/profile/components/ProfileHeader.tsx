@@ -94,19 +94,11 @@ export default function ProfileHeader({
             }
           >
             <div className="absolute inset-0 rounded-full bg-slate-100 border-[8px] border-[color:var(--bg-primary)] flex items-center justify-center overflow-hidden shadow-sm group-hover/avatar:shadow-md transition-shadow">
-              {candidate.avatar ? (
-                <img
-                  src={candidate.avatar}
-                  alt="avatar"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-4xl font-semibold text-slate-400 select-none">
-                  {candidate.name
-                    ? candidate.name.charAt(0).toUpperCase()
-                    : '?'}
-                </span>
-              )}
+              <img
+                src={candidate.avatar || 'https://placehold.co/124x124'}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="absolute inset-[8px] rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
               {candidate.avatar ? 'View' : 'Upload'}

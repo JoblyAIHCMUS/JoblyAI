@@ -5,6 +5,7 @@ import * as React from 'react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { FileUpload, FileUploadDropzone } from '@/components/ui/file-upload';
 import { deleteGcsFile } from '@/api-client/gcs/file';
+import { toast } from 'sonner';
 
 // Match backend ALLOWED_FILE_TYPES for LOGOS: ['image/jpeg', 'image/png', 'image/svg+xml']
 const ACCEPT = '.svg,.png,.jpg,.jpeg';
@@ -143,6 +144,15 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
           maxSize={MAX_SIZE}
           value={files}
           onValueChange={handleValueChange}
+          onFileReject={(file, message) => {
+            if (message === 'File too large') {
+              toast.error(
+                `Logo "${file.name}" is too large. Maximum size is 1MB.`
+              );
+            } else {
+              toast.error(`${file.name}: ${message}`);
+            }
+          }}
           onUpload={async (newFiles, options) => {
             // Only upload the latest file
             if (newFiles.length > 0) {
@@ -201,7 +211,7 @@ export const LogoUploader = forwardRef<LogoUploaderHandle, LogoUploaderProps>(
               className="body-body-3-regular text-xs"
               style={{ color: 'var(--text-tertiary)' }}
             >
-              SVG, PNG, JPG or WEBP (max. 10 MB)
+              SVG, PNG, JPG or WEBP (max. 1MB)
             </p>
           </FileUploadDropzone>
         </FileUpload>
