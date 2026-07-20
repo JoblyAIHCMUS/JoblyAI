@@ -575,7 +575,6 @@ Nếu không có tài khoản demo, đăng ký tài khoản mới qua /signup l�
   # Truy cập:
   # Web:        http://localhost:5173
   # API:        http://localhost:3000/api
-  # Mobile web: http://localhost:8083
 
   # Build production:
   pnpm nx run-many --target=build --all
@@ -600,8 +599,6 @@ Nếu không có tài khoản demo, đăng ký tài khoản mới qua /signup l�
   # Truy cập:
   # Web:     http://localhost:5173
   # API:     http://localhost:3000/api
-  # Swagger: http://localhost:3000/api/docs
-  # Mobile web: http://localhost:8083
 
 ================================================================================
                             HẾT - HƯỚNG DẪN SỬ DỤNG
