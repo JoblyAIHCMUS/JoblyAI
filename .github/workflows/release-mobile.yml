@@ -25,6 +25,10 @@ on:
           - alpha
           - beta
           - production
+      build-id:
+        description: 'EAS build ID to submit (optional; defaults to latest)'
+        required: false
+        default: ''
 
 jobs:
   release:
@@ -82,9 +86,13 @@ jobs:
             && mv eas.json.tmp eas.json
 
       - name: EAS Build
+        id: eas-build
         if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
         working-directory: apps/mobile
-        run: pnpm exec eas build --profile production --platform android --wait --non-interactive
+        run: |
+          pnpm exec eas build --profile production --platform android --wait --json --non-interactive 2>&1 | tee /tmp/eas-build-output.txt
+          BUILD_ID=$(jq -s -r 'last | .id // empty' /tmp/eas-build-output.txt)
+          echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -112,7 +120,13 @@ jobs:
       - name: EAS Submit
         if: ${{ !contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
         working-directory: apps/mobile
-        run: pnpm exec eas submit --profile production --platform android --non-interactive
+        run: |
+          BUILD_ID="${{ steps.eas-build.outputs.build-id || github.event.inputs.build-id }}"
+          if [[ -n "$BUILD_ID" ]]; then
+            pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
+          else
+            pnpm exec eas submit --profile production --platform android --non-interactive
+          fi
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
