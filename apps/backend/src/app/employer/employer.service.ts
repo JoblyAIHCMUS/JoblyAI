@@ -233,7 +233,10 @@ export class EmployerService {
       fullName: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim(),
       email: data.email,
       verified: data.emailVerified,
-      isCompanyAdmin: data.employer.id === data.employer.company?.adminId,
+      isCompanyAdmin:
+        !!data.employer.company &&
+        (data.employer.id === data.employer.company.adminId ||
+          data.employer.role === 'admin'),
       banned: data.banned ?? false,
       banExpires: data.banExpires ?? undefined,
       bannedReason: data.banReason ?? '',

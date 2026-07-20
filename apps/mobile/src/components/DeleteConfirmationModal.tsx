@@ -15,17 +15,21 @@ interface DeleteConfirmationModalProps {
   onCancel: () => void;
   onConfirm: () => void;
   isDeleting?: boolean;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
 export const DeleteConfirmationModal: React.FC<
   DeleteConfirmationModalProps
 > = ({
   isVisible,
-  title = 'Delete Job Posting',
-  description = 'Are you sure you want to delete this job posting? This action cannot be undone.',
+  title = 'Delete Item',
+  description = 'Are you sure you want to delete this item? This action cannot be undone.',
   onCancel,
   onConfirm,
   isDeleting = false,
+  confirmLabel = 'Delete',
+  cancelLabel = 'Cancel',
 }) => {
   return (
     <Modal
@@ -61,11 +65,11 @@ export const DeleteConfirmationModal: React.FC<
               activeOpacity={0.7}
             >
               <Text className="text-center text-[#374151] font-medium">
-                Cancel
+                {cancelLabel}
               </Text>
             </TouchableOpacity>
 
-            {/* Delete Button */}
+            {/* Confirm Button */}
             <TouchableOpacity
               disabled={isDeleting}
               onPress={onConfirm}
@@ -76,7 +80,7 @@ export const DeleteConfirmationModal: React.FC<
                 <ActivityIndicator size="small" color="white" />
               ) : (
                 <Text className="text-center text-white font-semibold">
-                  Delete
+                  {confirmLabel}
                 </Text>
               )}
             </TouchableOpacity>

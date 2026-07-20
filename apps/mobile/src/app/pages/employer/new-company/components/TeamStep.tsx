@@ -5,10 +5,13 @@ import { Label } from '../../../../../components/ui/label';
 import TeamMemberCard from './TeamMemberCard';
 import TeamMemberSearch from './TeamMemberSearch';
 import type { TeamMemberData, TeamMember } from '../data';
+import type { CompanyRole } from '../../../../../api/company';
 
 interface TeamStepProps {
   members: TeamMemberData[];
-  onRoleChange: (email: string, newRole: string) => void;
+  canManage: boolean;
+  currentUserEmail: string;
+  onRoleChange: (email: string, newRole: CompanyRole) => void;
   onAddMember: (member: TeamMember) => void;
   onRemoveMember: (email: string) => void;
   errors: Record<string, any>;
@@ -16,6 +19,8 @@ interface TeamStepProps {
 
 export const TeamStep: React.FC<TeamStepProps> = ({
   members,
+  canManage,
+  currentUserEmail,
   onRoleChange,
   onAddMember,
   onRemoveMember,
@@ -58,7 +63,11 @@ export const TeamStep: React.FC<TeamStepProps> = ({
               email={member.email}
               avatar={member.avatar}
               role={member.role}
-              isEditable={member.isEditable}
+              canManage={canManage}
+              isOwner={false}
+              isSelf={
+                member.email.toLowerCase() === currentUserEmail.toLowerCase()
+              }
               onRoleChange={(newRole) => onRoleChange(member.email, newRole)}
               onRemove={() => onRemoveMember(member.email)}
             />

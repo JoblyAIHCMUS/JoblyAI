@@ -1,4 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { CompanyService } from '../app/company/company.service';
 import { GcsService } from '../app/gcs/gcs.service';
@@ -8,6 +13,16 @@ const mockPrisma = vi.hoisted(() => ({
   company: {
     count: vi.fn(),
     findMany: vi.fn(),
+    findUnique: vi.fn(),
+  },
+  user: {
+    findUnique: vi.fn(),
+  },
+  employer: {
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
   },
   $transaction: vi.fn(),
 }));
@@ -278,5 +293,374 @@ describe('CompanyService - getPaginatedCompanies', () => {
         ],
       },
     });
+  });
+});
+
+describe('CompanyService - member management authorization', () => {
+  let service: CompanyService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CompanyService,
+        {
+          provide: 'PRISMA_CLIENT',
+          useValue: mockPrisma,
+        },
+        {
+          provide: GcsService,
+          useValue: mockGcsService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<CompanyService>(CompanyService);
+    vi.clearAllMocks();
+  });
+
+  // getEmployees is used as the public entry point that runs
+  // assertRequesterIsCompanyAdminEmployer before listing members.
+
+  it('allows the company owner (adminId match) to list employees', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 10,
+      role: 'employee', // legacy string: ownership alone must suffice
+    });
+    mockPrisma.employer.findMany.mockResolvedValueOnce([]);
+
+    const result = await service.getEmployees(1, 'user-owner');
+
+    expect(result).toEqual([]);
+  });
+
+  it('allows a member with role admin to list employees (multi-admin)', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 11, // not the owner
+      role: 'admin',
+    });
+    mockPrisma.employer.findMany.mockResolvedValueOnce([]);
+
+    const result = await service.getEmployees(1, 'user-promoted-admin');
+
+    expect(result).toEqual([]);
+  });
+
+  it('rejects a plain employee member', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 12,
+      role: 'employee',
+    });
+
+    await expect(service.getEmployees(1, 'user-employee')).rejects.toThrow(
+      ForbiddenException
+    );
+  });
+
+  it('rejects a requester with no membership in the company', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce(null);
+
+    await expect(service.getEmployees(1, 'user-outsider')).rejects.toThrow(
+      ForbiddenException
+    );
+  });
+
+  it('throws NotFoundException for a missing company', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce(null);
+
+    await expect(service.getEmployees(999, 'user-owner')).rejects.toThrow(
+      NotFoundException
+    );
+  });
+});
+
+describe('CompanyService - updateEmployeeRole', () => {
+  let service: CompanyService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CompanyService,
+        {
+          provide: 'PRISMA_CLIENT',
+          useValue: mockPrisma,
+        },
+        {
+          provide: GcsService,
+          useValue: mockGcsService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<CompanyService>(CompanyService);
+    vi.clearAllMocks();
+  });
+
+  const mockOwnerRequester = () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 10,
+      role: 'admin',
+    });
+  };
+
+  it('promotes an employee to admin', async () => {
+    mockOwnerRequester();
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-2',
+      email: 'james@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 11,
+      companyId: 1,
+    });
+    mockPrisma.employer.update.mockResolvedValueOnce({
+      id: 11,
+      companyId: 1,
+      employerId: 'user-2',
+      role: 'admin',
+    });
+
+    const result = await service.updateEmployeeRole(
+      1,
+      'user-owner',
+      'james@example.com',
+      'admin'
+    );
+
+    expect(mockPrisma.employer.update).toHaveBeenCalledWith({
+      where: { employerId: 'user-2' },
+      data: { role: 'admin' },
+    });
+    expect(result.role).toBe('admin');
+  });
+
+  it('demotes a non-owner admin to employee', async () => {
+    mockOwnerRequester();
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-2',
+      email: 'james@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 11, // not the owner (adminId = 10)
+      companyId: 1,
+    });
+    mockPrisma.employer.update.mockResolvedValueOnce({
+      id: 11,
+      companyId: 1,
+      employerId: 'user-2',
+      role: 'employee',
+    });
+
+    await service.updateEmployeeRole(
+      1,
+      'user-owner',
+      'james@example.com',
+      'employee'
+    );
+
+    expect(mockPrisma.employer.update).toHaveBeenCalledWith({
+      where: { employerId: 'user-2' },
+      data: { role: 'employee' },
+    });
+  });
+
+  it('rejects demoting the company owner', async () => {
+    mockOwnerRequester();
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-owner',
+      email: 'owner@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 10, // matches company.adminId
+      companyId: 1,
+    });
+
+    await expect(
+      service.updateEmployeeRole(
+        1,
+        'user-owner',
+        'owner@example.com',
+        'employee'
+      )
+    ).rejects.toThrow(BadRequestException);
+
+    expect(mockPrisma.employer.update).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundException for an unknown user email', async () => {
+    mockOwnerRequester();
+    mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+
+    await expect(
+      service.updateEmployeeRole(1, 'user-owner', 'ghost@example.com', 'admin')
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('throws NotFoundException when the target is not a member of this company', async () => {
+    mockOwnerRequester();
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-3',
+      email: 'outsider@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 13,
+      companyId: 2, // different company
+    });
+
+    await expect(
+      service.updateEmployeeRole(
+        1,
+        'user-owner',
+        'outsider@example.com',
+        'admin'
+      )
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('rejects when the requester is not a company admin', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 12,
+      role: 'employee',
+    });
+
+    await expect(
+      service.updateEmployeeRole(
+        1,
+        'user-employee',
+        'james@example.com',
+        'admin'
+      )
+    ).rejects.toThrow(ForbiddenException);
+  });
+});
+
+describe('CompanyService - removeEmployee', () => {
+  let service: CompanyService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CompanyService,
+        {
+          provide: 'PRISMA_CLIENT',
+          useValue: mockPrisma,
+        },
+        {
+          provide: GcsService,
+          useValue: mockGcsService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<CompanyService>(CompanyService);
+    vi.clearAllMocks();
+  });
+
+  it('removes a member by unlinking them from the company', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 10,
+      role: 'admin',
+    });
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-2',
+      email: 'james@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 11,
+      companyId: 1,
+    });
+    mockPrisma.employer.update.mockResolvedValueOnce({
+      id: 11,
+      companyId: null,
+    });
+
+    await service.removeEmployee(1, 'user-owner', 'james@example.com');
+
+    expect(mockPrisma.employer.update).toHaveBeenCalledWith({
+      where: { employerId: 'user-2' },
+      data: { companyId: null },
+    });
+  });
+
+  it('lets a promoted (non-owner) admin remove a member', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 11, // not owner, but role admin
+      role: 'admin',
+    });
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-3',
+      email: 'sarah@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 12,
+      companyId: 1,
+    });
+    mockPrisma.employer.update.mockResolvedValueOnce({
+      id: 12,
+      companyId: null,
+    });
+
+    await service.removeEmployee(1, 'user-promoted-admin', 'sarah@example.com');
+
+    expect(mockPrisma.employer.update).toHaveBeenCalledWith({
+      where: { employerId: 'user-3' },
+      data: { companyId: null },
+    });
+  });
+
+  it('rejects removing the company owner', async () => {
+    mockPrisma.company.findUnique.mockResolvedValueOnce({
+      id: 1,
+      adminId: 10,
+    });
+    mockPrisma.employer.findFirst.mockResolvedValueOnce({
+      id: 10,
+      role: 'admin',
+    });
+    mockPrisma.user.findUnique.mockResolvedValueOnce({
+      id: 'user-owner',
+      email: 'owner@example.com',
+    });
+    mockPrisma.employer.findUnique.mockResolvedValueOnce({
+      id: 10, // matches company.adminId
+      companyId: 1,
+    });
+
+    await expect(
+      service.removeEmployee(1, 'user-owner', 'owner@example.com')
+    ).rejects.toThrow(BadRequestException);
+
+    expect(mockPrisma.employer.update).not.toHaveBeenCalled();
   });
 });

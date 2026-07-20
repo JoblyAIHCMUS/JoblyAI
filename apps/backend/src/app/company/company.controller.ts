@@ -26,6 +26,7 @@ import {
   CompanyLogoDto,
   CompanyPatchDto,
   CompanyUpdateDto,
+  CompanyUpdateEmployeeRoleDto,
   GetCompaniesQueryDTO,
 } from './dto/company.dto';
 
@@ -197,6 +198,22 @@ export class CompanyController {
     return {
       message: `Employer with email ${dto.email} removed from company ${companyId}`,
     };
+  }
+
+  @Patch(':id/employees/role')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('employer')
+  async updateEmployeeRole(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Body() dto: CompanyUpdateEmployeeRoleDto,
+    @Req() request: AuthenticatedRequest
+  ) {
+    return this.companyService.updateEmployeeRole(
+      companyId,
+      request.user.id,
+      dto.email,
+      dto.role
+    );
   }
 
   @Patch(':id/admin')

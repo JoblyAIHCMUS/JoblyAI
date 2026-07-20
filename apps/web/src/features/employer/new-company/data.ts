@@ -21,7 +21,7 @@ export function convertUserToTeamMember(user: User | null): TeamMember | null {
     firstName,
     lastName,
     email: user.email,
-    role: 'Administrator',
+    role: 'admin',
     avatar: user.image || undefined,
   };
 }

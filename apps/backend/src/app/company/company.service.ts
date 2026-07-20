@@ -728,6 +728,50 @@ export class CompanyService {
     });
   }
 
+  async updateEmployeeRole(
+    companyId: number,
+    requesterUserId: string,
+    employerEmail: string,
+    role: 'admin' | 'employee'
+  ) {
+    const company = await this.assertRequesterIsCompanyAdminEmployer(
+      companyId,
+      requesterUserId
+    );
+
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email: employerEmail },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${employerEmail} not found`);
+    }
+
+    const membership = await this.prisma.employer.findUnique({
+      where: { employerId: user.id },
+      select: { id: true, companyId: true },
+    });
+
+    if (membership?.companyId !== companyId) {
+      throw new NotFoundException(
+        `Employer with email ${employerEmail} is not an employee of company ${companyId}`
+      );
+    }
+
+    if (company.adminId === membership.id && role === 'employee') {
+      throw new BadRequestException(
+        'Cannot demote the company owner. Ownership grants admin access regardless of role.'
+      );
+    }
+
+    return this.prisma.employer.update({
+      where: { employerId: user.id },
+      data: { role },
+    });
+  }
+
   async grantCompanyAdmin(
     companyId: number,
     employerEmail: string
@@ -858,13 +902,15 @@ export class CompanyService {
         companyId,
         employerId: requesterUserId,
       },
-      select: { id: true },
+      select: { id: true, role: true },
     });
 
-    if (
-      !requesterEmployerMembership ||
-      company.adminId !== requesterEmployerMembership.id
-    ) {
+    const isCompanyAdmin =
+      !!requesterEmployerMembership &&
+      (company.adminId === requesterEmployerMembership.id ||
+        requesterEmployerMembership.role === 'admin');
+
+    if (!isCompanyAdmin) {
       throw new ForbiddenException(
         'Only the company admin employer can perform this action'
       );

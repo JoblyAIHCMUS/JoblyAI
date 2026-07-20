@@ -78,6 +78,8 @@ export default function EmployerSettingsPage() {
 
       if (data.avatarUrl) {
         setProfilePhoto(data.avatarUrl);
+      } else {
+        setProfilePhoto('https://placehold.co/124x124');
       }
 
       reset({
@@ -106,14 +108,7 @@ export default function EmployerSettingsPage() {
   };
 
   const handleAvatarRemoved = () => {
-    const firstName = methods.getValues('firstName');
-    const lastName = methods.getValues('lastName');
-    const seed = `${firstName} ${lastName}`.trim() || 'User';
-    setProfilePhoto(
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-        seed
-      )}`
-    );
+    setProfilePhoto('https://placehold.co/124x124');
     fetchEmployerProfile();
   };
 

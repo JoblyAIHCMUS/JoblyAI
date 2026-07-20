@@ -6,6 +6,7 @@ import type {
   CompanyEmployeeMembership,
   CreateCompanyPayload,
   PatchCompanyPayload,
+  UpdateCompanyEmployeeRolePayload,
   UpdateCompanyPayload,
   ListCompaniesQuery,
   PaginatedCompaniesResponse,
@@ -155,6 +156,33 @@ export async function getCompanyEmployees(
   const response = await axios.get<CompanyEmployee[]>(
     `${API_BASE_URL}/api/company/${companyId}/employees`,
     {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
+
+export async function removeCompanyEmployee(
+  companyId: number,
+  email: string
+): Promise<void> {
+  await axios.delete(`${API_BASE_URL}/api/company/${companyId}/employees`, {
+    data: { email },
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: true,
+  });
+}
+
+export async function updateCompanyEmployeeRole(
+  companyId: number,
+  payload: UpdateCompanyEmployeeRolePayload
+): Promise<CompanyEmployeeMembership> {
+  const response = await axios.patch<CompanyEmployeeMembership>(
+    `${API_BASE_URL}/api/company/${companyId}/employees/role`,
+    payload,
+    {
+      headers: { 'Content-Type': 'application/json' },
       withCredentials: true,
     }
   );

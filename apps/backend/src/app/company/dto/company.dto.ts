@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -190,6 +191,16 @@ export class CompanyGrantAdminDto {
   @IsString()
   @IsNotEmpty()
   email!: string;
+}
+
+export class CompanyUpdateEmployeeRoleDto {
+  @IsString()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsIn(['admin', 'employee'])
+  role!: 'admin' | 'employee';
 }
 
 export class CompanyDeleteDto {
