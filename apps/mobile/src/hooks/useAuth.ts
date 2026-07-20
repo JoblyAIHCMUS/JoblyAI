@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { authClient } from '../lib/auth-client';
+import { markLogin } from '../api/config';
 import {
   clearLocalSession,
   getSession,
@@ -141,6 +142,7 @@ export function useLogin() {
       if (!result) {
         throw new Error('Login successful but no user data returned');
       }
+      markLogin();
       // signIn.email doesn't return the session; Better Auth has already
       // stored it in SecureStore on the device, so read it back from there.
       const session = await getSession();

@@ -46,6 +46,7 @@
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
       "expo-notifications",
+      "expo-secure-store",
       "expo-web-browser"
     ],
     "web": {
