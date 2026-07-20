@@ -1,0 +1,605 @@
+================================================================================
+                        HƯỚNG DẪN SỬ DỤNG
+              ĐỀ TÀI: HỆ THỐNG TUYỂN DỤNG THÔNG MINH JOBLYAI
+================================================================================
+
+Tài liệu này hướng dẫn cách BIÊN DỊCH (build) và CHẠY (run) chương trình
+JoblyAI, cũng như mô tả cấu trúc thư mục và luồng sử dụng chính của hệ
+thống. Đọc kèm file "HuongDanCaiDat.txt" để biết cách cài đặt môi trường.
+
+--------------------------------------------------------------------------------
+MỤC LỤC
+--------------------------------------------------------------------------------
+1.  Cấu trúc thư mục mã nguồn
+2.  Các cổng (port) dịch vụ
+3.  Chuẩn bị trước khi chạy
+4.  Chạy môi trường phát triển (Development)
+5.  Biên dịch chương trình (Build production)
+6.  Chạy môi trường production
+7.  Truy cập các thành phần của hệ thống
+8.  Tài khoản demo (sau khi seed)
+9.  Các lệnh Nx / pnpm hữu ích
+10. Kiểm thử (test) và kiểm tra chất lượng code
+11. Sửa lỗi thường gặp (Troubleshooting)
+12. Dọn dẹp môi trường
+
+================================================================================
+1. CẤU TRÚC THƯ MỤC MÃ NGUỒN
+================================================================================
+
+  MaDeTai/
+  ├── HuongDanCaiDat.txt       (file hướng dẫn cài đặt)
+  ├── HuongDanSuDung.txt       (file hướng dẫn sử dụng - file này)
+  └── src/
+      ├── apps/
+      │   ├── backend/         -> Mã nguồn Backend (NestJS API)
+      │   │   ├── src/
+      │   │   │   ├── main.ts                 (điểm vào, port 3000)
+      │   │   │   ├── app/                    (module gốc + tất cả feature)
+      │   │   │   │   ├── app.module.ts
+      │   │   │   │   ├── ai/                 (Gemini AI: parse, score, match, prep)
+      │   │   │   │   ├── auth/               (đăng nhập, OAuth, guard)
+      │   │   │   │   ├── candidates/         (quản lý hồ sơ ứng viên)
+      │   │   │   │   ├── employer/           (chức năng nhà tuyển dụng)
+      │   │   │   │   ├── jobs/               (đăng tin, tìm kiếm job)
+      │   │   │   │   ├── applications/       (ứng tuyển, pre-shortlist)
+      │   │   │   │   ├── company/            (quản lý công ty)
+      │   │   │   │   ├── messages/           (chat realtime - Socket.io)
+      │   │   │   │   ├── notifications/      (thông báo + FCM push)
+      │   │   │   │   ├── pre-shortlist/      (câu hỏi sàng lọc)
+      │   │   │   │   ├── mcp/                (Model Context Protocol)
+      │   │   │   │   ├── s3/, gcs/           (lưu trữ file)
+      │   │   │   │   ├── location/           (Geoapify)
+      │   │   │   │   ├── skills/             (danh mục kỹ năng)
+      │   │   │   │   ├── common/, utils/, decorators/, types/
+      │   │   │   │   └── generated/prisma/   (client Prisma - auto-gen)
+      │   │   │   ├── lib/                    (auth, db, mailing, s3, gcs)
+      │   │   │   └── assets/openapi.yaml     (OpenAPI spec cho Swagger)
+      │   │   ├── prisma/
+      │   │   │   ├── schema.prisma           (35+ models, pgvector)
+      │   │   │   ├── migrations/
+      │   │   │   └── seed.ts
+      │   │   ├── scylladb/schema.cql         (schema chat)
+      │   │   ├── package.json
+      │   │   ├── tsconfig.json
+      │   │   ├── webpack.config.js
+      │   │   ├── nest-cli.json
+      │   │   ├── eslint.config.mjs
+      │   │   └── Dockerfile
+      │   │
+      │   ├── web/             -> Mã nguồn Web (Next.js)
+      │   │   ├── src/
+      │   │   │   ├── app/                    (App Router)
+      │   │   │   │   ├── page.tsx            (trang chủ)
+      │   │   │   │   ├── layout.tsx
+      │   │   │   │   ├── providers.tsx
+      │   │   │   │   ├── login/               (đăng nhập)
+      │   │   │   │   ├── signup/              (đăng ký)
+      │   │   │   │   ├── forgot-password/
+      │   │   │   │   ├── find-jobs/           (tìm việc)
+      │   │   │   │   ├── candidate/           (dashboard ứng viên)
+      │   │   │   │   ├── employer/            (dashboard nhà tuyển dụng)
+      │   │   │   │   ├── browse-companies/
+      │   │   │   │   └── api/                 (Next API routes)
+      │   │   │   ├── components/              (ui, auth, layouts, ...)
+      │   │   │   ├── features/                (candidate, employer, jobs, ...)
+      │   │   │   ├── hooks/                   (useAuth, useUser, useAiSocket,...)
+      │   │   │   ├── api-client/              (HTTP client cho từng module)
+      │   │   │   ├── api-hook/                (React Query hooks)
+      │   │   │   ├── contexts/, lib/, types/, services/, mocks/
+      │   │   ├── public/
+      │   │   ├── next.config.js
+      │   │   ├── tailwind.config.ts
+      │   │   ├── postcss.config.js
+      │   │   ├── package.json
+      │   │   ├── tsconfig.json
+      │   │   └── Dockerfile
+      │   │
+      │   └── mobile/          -> Mã nguồn Mobile (React Native + Expo)
+      │       ├── src/
+      │       │   ├── app/                    (Expo Router)
+      │       │   │   ├── _layout.tsx
+      │       │   │   ├── index.tsx
+      │       │   │   ├── (auth)/              (login, register, forgot-password)
+      │       │   │   ├── candidate/           (dashboard, messages, ...)
+      │       │   │   ├── employer/            (jobs, applications, ...)
+      │       │   │   ├── find-jobs/, browse-companies/
+      │       │   ├── components/, hooks/, contexts/, lib/, api/, types/, ...
+      │       ├── assets/
+      │       ├── android/                     (project Android gốc)
+      │       ├── ios/                         (project iOS gốc)
+      │       ├── app.json
+      │       ├── eas.json                     (cấu hình EAS Build)
+      │       ├── babel.config.js
+      │       ├── metro.config.js
+      │       ├── tailwind.config.js
+      │       ├── nativewind-env.d.ts
+      │       └── package.json
+      │
+      └── libs/
+          └── shared-types/     -> Thư viện dùng chung (TypeScript types)
+
+  Ngoài ra ở thư mục gốc còn có:
+      - package.json            (workspace + scripts toàn cục)
+      - pnpm-workspace.yaml
+      - pnpm-lock.yaml          (khoá phiên bản các package)
+      - nx.json                 (cấu hình Nx monorepo)
+      - tsconfig.base.json
+      - docker-compose.yml      (Postgres, Redis, ScyllaDB, backend, web, nginx)
+      - docker-compose.override.yml
+      - nginx.conf
+      - eslint.config.mjs, .prettierrc
+      - vitest.workspace.ts
+
+================================================================================
+2. CÁC CỔNG (PORT) DỊCH VỤ
+================================================================================
+
+  ┌────────────────────────┬──────────┬────────────────────────────────┐
+  │ Dịch vụ                │ Port     │ URL / Địa chỉ                  │
+  ├────────────────────────┼──────────┼────────────────────────────────┤
+  │ Backend API (NestJS)   │ 3000     │ http://localhost:3000/api      │
+  │ Swagger UI (API docs)  │ 3000     │ http://localhost:3000/api/docs │
+  │ Web App (Next.js)      │ 5173     │ http://localhost:5173          │
+  │ Web App (Docker)       │ 3001     │ http://localhost:3001          │
+  │ Mobile Metro bundler   │ 8081     │ http://localhost:8081          │
+  │ Mobile Web preview     │ 8083     │ http://localhost:8083          │
+  │ PostgreSQL             │ 5432     │ localhost:5432 (db: jobly_db)  │
+  │ Redis                  │ 6379     │ localhost:6379                 │
+  │ ScyllaDB               │ 9042     │ localhost:9042                 │
+  │ Prisma Studio          │ 5555     │ http://localhost:5555          │
+  │ Nginx (production)     │ 80/443   │ http://localhost               │
+  └────────────────────────┴──────────┴────────────────────────────────┘
+
+================================================================================
+3. CHUẨN BỊ TRƯỚC KHI CHẠY
+================================================================================
+
+Lần đầu chạy dự án (sau khi đã cài đặt môi trường - xem HuongDanCaiDat.txt):
+
+  Bước 1.  Cài dependencies:
+                pnpm install
+
+  Bước 2.  Khởi động Docker Desktop, đợi icon "running".
+
+  Bước 3.  Tạo file .env:
+                cp apps/backend/.env.example apps/backend/.env
+                # Sửa các giá trị GEMINI_KEY, GCS_*, OAuth,... trong file này
+
+  Bước 4.  Khởi động hạ tầng DB (Postgres / Redis / ScyllaDB):
+                docker compose --profile local-db up -d postgres redis scylla scylla-init
+                docker compose ps        # kiểm tra cả 4 container "Up"
+
+  Bước 5.  Sinh Prisma Client + chạy migration:
+                pnpm --filter @jobly/backend exec prisma generate
+                pnpm --filter @jobly/backend exec prisma migrate dev
+
+  Bước 6.  (Tuỳ chọn) seed dữ liệu mẫu (danh mục + kỹ năng):
+                docker compose exec -e SEED_MODE=system backend sh -lc \
+                  "cd /app/apps/backend && pnpm exec ts-node prisma/seed.ts"
+                # Hoặc mở script ./scripts/run_database_with_data.sh (Linux/macOS)
+                # Trên Windows có thể chạy trực tiếp:
+                pnpm --filter @jobly/backend exec ts-node prisma/seed.ts
+
+Sau bước 6, môi trường đã sẵn sàng để chạy dev hoặc build.
+
+================================================================================
+4. CHẠY MÔI TRƯỜNG PHÁT TRIỂN (DEVELOPMENT)
+================================================================================
+
+Khuyến nghị mở 3 terminal riêng biệt cho 3 service.
+
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ Terminal 1 - BACKEND (NestJS)                                        │
+  │                                                                      │
+  │   pnpm --filter @jobly/backend run start:dev                         │
+  │                                                                      │
+  │   Hoặc:                                                              │
+  │   pnpm nx serve @jobly/backend --configuration=development           │
+  │                                                                      │
+  │   Khi chạy thành công sẽ thấy:                                       │
+  │   "Nest application successfully started"                            │
+  │   "Listening on http://localhost:3000"                               │
+  └──────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ Terminal 2 - WEB (Next.js)                                           │
+  │                                                                      │
+  │   pnpm --filter @jobly/web run dev                                   │
+  │                                                                      │
+  │   Hoặc:                                                              │
+  │   pnpm nx dev @jobly/web                                             │
+  │                                                                      │
+  │   Mở http://localhost:5173 để xem giao diện web.                     │
+  │   Nếu dùng local domain: ./scripts/setup_local_domain.sh             │
+  │   rồi mở http://joblyAI-local.com:5173                               │
+  └──────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ Terminal 3 - MOBILE (Expo / React Native)                            │
+  │                                                                      │
+  │   # Chạy bản web preview (không cần emulator) - dễ test nhất:        │
+  │   pnpm --filter @jobly/mobile run dev                                │
+  │                                                                      │
+  │   # Chạy Metro bundler cho native (iOS/Android):                     │
+  │   pnpm --filter @jobly/mobile start                                  │
+  │                                                                      │
+  │   # Sau khi Metro chạy, mở thêm terminal để build app:               │
+  │   pnpm --filter @jobly/mobile run android                            │
+  │   pnpm --filter @jobly/mobile run ios        (chỉ macOS)             │
+  └──────────────────────────────────────────────────────────────────────┘
+
+CÁCH CHẠY TẤT CẢ CÙNG LÚC (1 lệnh duy nhất):
+  pnpm start
+  # Tương đương: pnpm nx run-many --target=serve --all
+  # Sẽ chạy: backend, web, mobile web preview.
+
+CÁCH CHẠY BẰNG DOCKER (production-like):
+  # Hạ tầng + backend + web + nginx:
+  docker compose --profile local-db up -d postgres redis scylla scylla-init
+  pnpm --filter @jobly/backend exec prisma generate
+  pnpm --filter @jobly/backend exec prisma migrate dev
+  docker compose up -d backend web nginx
+  # Mở http://localhost (qua nginx reverse proxy).
+
+--------------------------------------------------------------------------------
+   PHƯƠNG ÁN ĐƠN GIẢN - dùng thay thế các lệnh ở trên
+--------------------------------------------------------------------------------
+Nếu thấy các lệnh pnpm --filter / --profile phía trên dài dòng, có thể dùng
+cách rút gọn tương đương (kết quả giống hệt):
+
+  # 1) Khởi động 3 dịch vụ hạ tầng chính (Postgres, Redis, ScyllaDB):
+  docker compose up -d postgres redis scylla
+
+  # 2) Terminal 1 - vào thư mục backend và chạy dev:
+  cd apps/backend
+  pnpm start:dev
+  # Backend chạy ở http://localhost:3000/api
+
+  # 3) Terminal 2 - vào thư mục web và chạy dev:
+  cd apps/web
+  pnpm run dev
+  # Web chạy ở http://localhost:5173
+
+Lưu ý: vẫn phải chạy `pnpm install` ở thư mục gốc 1 lần trước đó, và phải
+chạy `prisma generate` + `prisma migrate dev` trước khi backend khởi động
+lần đầu.
+Ứng dụng di động (apps/mobile) là phần tuỳ chọn, nếu cần phát triển hãy
+xem mục 9 (CÀI ĐẶT MOBILE) trong HuongDanCaiDat.txt.
+
+================================================================================
+5. BIÊN DỊCH CHƯƠNG TRÌNH (BUILD PRODUCTION)
+================================================================================
+
+5.1. Build Backend
+        pnpm --filter @jobly/backend run build
+        # tương đương: prisma generate && nest build
+        # Kết quả: apps/backend/dist/ (file dist/main.js là entry point)
+        # Chạy bản build:  node apps/backend/dist/main.js
+
+5.2. Build Web
+        pnpm --filter @jobly/web run build
+        # tương đương: next build
+        # Kết quả: apps/web/.next/ (chế độ standalone - chạy được trong Docker)
+        # Chạy thử bản build:
+        pnpm --filter @jobly/web run start
+
+5.3. Build tất cả (monorepo)
+        pnpm nx run-many --target=build --all
+        # Hoặc từng app theo tên:
+        pnpm nx build @jobly/backend
+        pnpm nx build @jobly/web
+        pnpm nx build @jobly/mobile
+
+5.4. Build Docker image cho backend
+        docker build -t jobly-backend -f apps/backend/Dockerfile .
+        # Multi-stage build, image cuối cùng dùng 'node dist/main.js'
+
+5.5. Build Docker image cho web
+        docker build -t jobly-web -f apps/web/Dockerfile \
+          --build-arg NEXT_PUBLIC_API_URL=https://your-domain.com .
+        # Image cuối cùng dùng 'node apps/web/server.js'
+
+5.6. Build app mobile bằng EAS (Expo Application Services)
+        # Cần cài eas-cli:  pnpm install -g eas-cli
+        # Đăng nhập:  eas login
+        cd apps/mobile
+        eas build --platform android --profile production
+        eas build --platform ios     --profile production
+        # File .apk / .aab / .ipa sẽ được tạo trên Expo cloud.
+
+================================================================================
+6. CHẠY MÔI TRƯỜNG PRODUCTION
+================================================================================
+
+Sau khi build xong, có 2 cách chạy production:
+
+  Cách 1 - Chạy trực tiếp bằng Node (cần đã build):
+        # Terminal 1
+        pnpm --filter @jobly/backend run start:prod
+        # tương đương: node dist/main
+        # Lắng nghe ở http://localhost:3000/api
+
+        # Terminal 2
+        pnpm --filter @jobly/web run start
+        # Next.js standalone:  http://localhost:3000
+
+  Cách 2 - Chạy bằng Docker Compose (khuyến nghị cho môi trường thật):
+        # 1. Khởi động hạ tầng
+        docker compose up -d postgres redis scylla scylla-init
+        # 2. Chạy migration lần đầu
+        pnpm --filter @jobly/backend exec prisma migrate deploy
+        # 3. Khởi động backend + web + nginx
+        docker compose up -d backend web nginx
+        # 4. Truy cập qua nginx (port 80)
+        #    - Web:  http://localhost/
+        #    - API:  http://localhost/api
+        #    - Socket.io:  ws://localhost/socket.io/
+
+  Cách 3 - Deploy GCP (đã có sẵn script):
+        # Xem file deploy-gcp-prod.sh / deploy-gcp-prod.ps1
+        bash deploy-gcp-prod.sh
+        # Hoặc dùng GitHub Actions: .github/workflows/deploy-gcp-prod.yml
+
+================================================================================
+7. TRUY CẬP CÁC THÀNH PHẦN CỦA HỆ THỐNG
+================================================================================
+
+7.1. Trang chủ / Landing page
+        http://localhost:5173
+        Giới thiệu dự án, nút Đăng ký / Đăng nhập.
+
+7.2. Trang đăng ký / đăng nhập
+        http://localhost:5173/signup
+        http://localhost:5173/login
+        Hỗ trợ đăng ký bằng email/mật khẩu; OAuth Google/GitHub (nếu đã cấu
+        hình khoá ở .env). Khi đăng ký thành công, hệ thống phân quyền theo
+        vai trò CANDIDATE hoặc EMPLOYER.
+
+7.3. Trang ứng viên (Candidate)
+        http://localhost:5173/candidate
+        - Upload CV (PDF/DOCX) -> AI tự động phân tích cấu trúc CV.
+        - Xem điểm AI chấm CV (0-1) + gợi ý cải thiện.
+        - Đồng bộ dữ liệu CV vào hồ sơ (Diff/Merge) có preview.
+        - Tìm việc theo bộ lọc (vị trí, kỹ năng, mức lương, địa điểm).
+        - Xem danh sách công việc phù hợp (matching AI) và điểm match%.
+        - Ứng tuyển, theo dõi trạng thái, trả lời câu hỏi pre-shortlist.
+        - Nhận tin nhắn từ nhà tuyển dụng qua chat thời gian thực.
+        - Nhận thông báo đẩy (qua Firebase Cloud Messaging).
+
+7.4. Trang nhà tuyển dụng (Employer)
+        http://localhost:5173/employer
+        - Đăng tin tuyển dụng, kèm câu hỏi sàng lọc (pre-shortlist).
+        - Quản lý hồ sơ công ty (logo, thông tin, vị trí).
+        - Xem danh sách ứng viên, lọc theo kỹ năng / kinh nghiệm / điểm AI.
+        - Xem CV dạng PDF trong trình duyệt (pdfjs-dist).
+        - Tạo phỏng vấn: AI sinh bộ câu hỏi phỏng vấn dựa trên JD + CV.
+        - Nhắn tin trực tiếp với ứng viên, push notification.
+
+7.5. Prisma Studio (xem / sửa DB qua web)
+        pnpm --filter @jobly/backend exec prisma studio
+        Mở http://localhost:5555
+
+7.6. Mobile App
+        - Web preview: http://localhost:8083 (sau khi chạy pnpm dev @jobly/mobile)
+        - Android emulator / thiết bị thật: cài qua Expo Go hoặc file .apk
+        - iOS simulator / thiết bị thật: cài qua Expo Go hoặc TestFlight
+
+================================================================================
+8. TÀI KHOẢN DEMO (SAU KHI SEED)
+================================================================================
+
+Nếu chạy seed với SEED_MODE=development, hệ thống sẽ tạo sẵn một số tài
+khoản mẫu. Mật khẩu mặc định thường là "password123" - xem chi tiết trong
+file apps/backend/prisma/seed.ts (cuối file có script tạo user).
+
+Các vai trò chính:
+  - CANDIDATE  : tài khoản ứng viên
+  - EMPLOYER   : tài khoản nhà tuyển dụng (gắn với Company)
+
+Nếu không có tài khoản demo, đăng ký tài khoản mới qua /signup là nhanh nhất.
+
+================================================================================
+9. CÁC LỆNH NX / PNPM HỮU ÍCH
+================================================================================
+
+  # Xem đồ thị phụ thuộc giữa các project
+  pnpm nx graph
+
+  # Build / lint / test tất cả các project
+  pnpm nx run-many --target=build   --all
+  pnpm nx run-many --target=lint    --all
+  pnpm nx run-many --target=test    --all
+  pnpm nx run-many --target=typecheck --all
+
+  # Xem các target có sẵn của 1 project
+  pnpm nx show project @jobly/backend
+  pnpm nx show project @jobly/web
+  pnpm nx show project @jobly/mobile
+
+  # Chạy 1 target của 1 project
+  pnpm nx dev          @jobly/web
+  pnpm nx build        @jobly/backend
+  pnpm nx lint         @jobly/mobile
+  pnpm nx run @jobly/mobile:run-android
+  pnpm nx run @jobly/mobile:run-ios
+  pnpm nx run @jobly/mobile:pod-install
+
+  # Prisma
+  pnpm --filter @jobly/backend exec prisma generate
+  pnpm --filter @jobly/backend exec prisma migrate dev
+  pnpm --filter @jobly/backend exec prisma studio
+  pnpm --filter @jobly/backend exec prisma migrate reset    # XOÁ TOÀN BỘ DB
+
+  # Format code
+  pnpm format
+  pnpm format:check
+
+================================================================================
+10. KIỂM THỬ (TEST) VÀ KIỂM TRA CHẤT LƯỢNG CODE
+================================================================================
+
+  # Chạy toàn bộ test
+  pnpm nx run-many --target=test --all
+
+  # Test riêng từng project
+  pnpm --filter @jobly/backend test
+  pnpm --filter @jobly/backend test:watch
+  pnpm --filter @jobly/backend test:cov     # có coverage report
+  pnpm --filter @jobly/backend test:ui      # giao diện Vitest
+
+  # Kiểm tra lint (ESLint)
+  pnpm nx run-many --target=lint --all
+
+  # Kiểm tra kiểu (TypeScript)
+  pnpm nx run-many --target=typecheck --all
+
+  # Quality gate (lint + test + build) cho backend
+  pnpm nx run @jobly/backend:quality-gate
+
+================================================================================
+11. SỬA LỖI THƯỜNG GẶP (TROUBLESHOOTING)
+================================================================================
+
+11.1. Lỗi "Cannot find module '@prisma/client'" hoặc
+       "Prisma Client not generated"
+        -> Chạy:  pnpm --filter @jobly/backend exec prisma generate
+
+11.2. Lỗi kết nối Database
+        -> Kiểm tra container Postgres đang chạy:  docker compose ps
+        -> Nếu container bị down:                  docker compose up -d postgres
+        -> Nếu sai mật khẩu, kiểm tra DATABASE_URL trong apps/backend/.env
+        -> Reset volume (mất dữ liệu):             docker compose down -v
+
+11.3. Lỗi "ECONNREFUSED 127.0.0.1:6379" (Redis)
+        -> Chạy:   docker compose up -d redis
+        -> Hoặc đổi REDIS_URL=redis://redis:6379 nếu chạy trong Docker.
+
+11.4. Lỗi CORS khi gọi API từ web
+        -> Đảm bảo WEB_URL trong apps/backend/.env khớp với URL của web
+           (mặc định http://localhost:5173 hoặc http://joblyAI-local.com:5173).
+        -> Nếu web chạy ở port khác, cập nhật lại WEB_URL.
+
+11.5. Lỗi "GEMINI_KEY invalid" / AI không hoạt động
+        -> Vào https://aistudio.google.com/apikey kiểm tra key còn hạn
+           không, có bị quota exceeded không.
+        -> Đảm bảo biến trong .env là GEMINI_KEY (không phải GEMINI_API_KEY).
+
+11.6. Lỗi Prisma migration: "Drift detected"
+        -> Chạy:   pnpm --filter @jobly/backend exec prisma migrate reset
+           (xoá dữ liệu + chạy lại từ đầu, CHỈ dùng trong dev).
+
+11.7. Port đã được sử dụng
+        -> Tìm tiến trình đang chiếm:
+             Windows:  netstat -ano | findstr :3000
+             macOS/Linux: lsof -i :3000
+        -> Đổi port trong .env (PORT=3001 chẳng hạn) hoặc tắt tiến trình
+           đang chiếm.
+
+11.8. Mobile không kết nối được backend
+        -> Mobile chạy trên thiết bị thật:  dùng IP LAN của máy tính
+           (không phải localhost), ví dụ:
+              EXPO_PUBLIC_API_URL=http://192.168.1.10:3000/api
+        -> Mobile chạy trên Android emulator: dùng 10.0.2.2 thay cho localhost.
+        -> Mobile chạy trên iOS simulator: localhost vẫn dùng được.
+
+11.9. Build bị lỗi Out of Memory
+        -> Tăng bộ nhớ cho Node:
+             export NODE_OPTIONS=--max-old-space-size=4096    (macOS/Linux)
+             $env:NODE_OPTIONS="--max-old-space-size=4096"    (Windows PowerShell)
+
+11.10. Backend build NestJS báo lỗi webpack
+        -> Xoá cache build:   pnpm nx reset
+        -> Cài lại:           pnpm install
+
+11.11. Lỗi upload CV/ảnh lên GCS
+        -> Kiểm tra file gcs-key.json tồn tại ở apps/backend/gcs-key.json
+           và đường dẫn GCS_KEY_FILE trỏ đúng.
+        -> Đảm bảo Service Account có quyền Storage Admin trong project GCP.
+
+11.12. Sau khi pull code mới về, nhiều thứ lỗi
+        -> Chạy lại tuần tự:
+             pnpm install
+             pnpm --filter @jobly/backend exec prisma generate
+             pnpm --filter @jobly/backend exec prisma migrate dev
+             pnpm nx reset          # xoá cache Nx nếu cần
+
+================================================================================
+12. DỌN DẸP MÔI TRƯỜNG
+================================================================================
+
+12.1. Dừng tất cả container Docker
+        docker compose down
+
+12.2. Xoá toàn bộ volume (mất dữ liệu DB)
+        docker compose down -v
+
+12.3. Xoá cache build & dist
+        pnpm nx reset
+        # hoặc thủ công:
+        rm -rf dist apps/*/dist apps/web/.next apps/mobile/.expo \
+               .nx coverage
+
+12.4. Gỡ node_modules để reinstall sạch
+        # Tìm và xoá toàn bộ thư mục node_modules trong workspace:
+        # Windows PowerShell:
+        Get-ChildItem -Path . -Recurse -Directory -Force -ErrorAction SilentlyContinue |
+          Where-Object { $_.Name -eq 'node_modules' } |
+          ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+        # macOS / Linux:
+        find . -type d -name node_modules -prune -exec rm -rf {} +
+
+        # Sau đó cài lại:
+        pnpm install
+
+12.5. Dừng dev server
+        Nhấn Ctrl+C trong mỗi terminal đang chạy.
+
+================================================================================
+                 LUỒNG SỬ DỤNG NHANH (CHEAT-SHEET)
+================================================================================
+
+  # Lần đầu tiên:
+  pnpm install
+  docker compose --profile local-db up -d postgres redis scylla scylla-init
+  cp apps/backend/.env.example apps/backend/.env
+  # (sửa GEMINI_KEY, GCS_* trong .env)
+  pnpm --filter @jobly/backend exec prisma generate
+  pnpm --filter @jobly/backend exec prisma migrate dev
+
+  # Chạy dev (3 terminal):
+  pnpm --filter @jobly/backend run start:dev
+  pnpm --filter @jobly/web run dev
+  pnpm --filter @jobly/mobile run dev
+
+  # Truy cập:
+  # Web:        http://localhost:5173
+  # API:        http://localhost:3000/api
+
+  # Build production:
+  pnpm nx run-many --target=build --all
+  pnpm --filter @jobly/backend run start:prod
+  pnpm --filter @jobly/web run start
+
+================================================================================
+         CHEAT-SHEET RÚT GỌN (phương án đơn giản - tương đương ở trên)
+================================================================================
+
+  # Lần đầu tiên:
+  pnpm install
+  docker compose up -d postgres redis scylla
+  cp apps/backend/.env.example apps/backend/.env
+  # (sửa GEMINI_KEY, GCS_* trong .env)
+  cd apps/backend && pnpm prisma migrate reset
+
+  # Chạy dev (mỗi app 1 terminal):
+  cd apps/backend && pnpm start:dev     # Terminal 1 -> :3000/api
+  cd apps/web     && pnpm run dev       # Terminal 2 -> :5173
+
+  # Truy cập:
+  # Web:     http://localhost:5173
+  # API:     http://localhost:3000/api
+
+================================================================================
+                            HẾT - HƯỚNG DẪN SỬ DỤNG
+================================================================================

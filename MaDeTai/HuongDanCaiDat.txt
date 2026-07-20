@@ -1,0 +1,381 @@
+================================================================================
+                        HƯỚNG DẪN CÀI ĐẶT
+              ĐỀ TÀI: HỆ THỐNG TUYỂN DỤNG THÔNG MINH JOBLYAI
+================================================================================
+
+Tài liệu này hướng dẫn chi tiết cách cài đặt môi trường, công cụ, thư viện và
+các dịch vụ cần thiết để chạy được hệ thống JoblyAI trên máy tính cá nhân.
+
+--------------------------------------------------------------------------------
+MỤC LỤC
+--------------------------------------------------------------------------------
+1.  Giới thiệu dự án
+2.  Yêu cầu phần cứng
+3.  Yêu cầu hệ điều hành
+4.  Công cụ & môi trường phát triển cần cài đặt
+5.  Các dịch vụ bên thứ ba cần đăng ký
+6.  Hướng dẫn cài đặt từng bước
+7.  Cấu hình biến môi trường (.env)
+8.  Khởi tạo cơ sở dữ liệu
+9.  Cài đặt ứng dụng di động (tuỳ chọn)
+10. Kiểm tra cài đặt thành công
+
+================================================================================
+1. GIỚI THIỆU DỰ ÁN
+================================================================================
+
+JoblyAI là hệ thống tuyển dụng thông minh sử dụng trí tuệ nhân tạo (Google
+Gemini) để tự động hoá quy trình: phân tích CV, chấm điểm hồ sơ, gợi ý công
+việc phù hợp, tạo câu hỏi phỏng vấn, đồng thời cung cấp nền tảng nhắn tin
+thời gian thực giữa nhà tuyển dụng và ứng viên.
+
+Hệ thống gồm 3 ứng dụng chính:
+  - Backend API   : NestJS + Prisma + PostgreSQL (NestJS 11, Prisma 6)
+  - Web App       : Next.js 16 (React 19) - giao diện web
+  - Mobile App    : React Native 0.81 + Expo 54 - ứng dụng iOS/Android
+
+Quản lý bằng Nx monorepo và pnpm.
+
+================================================================================
+2. YÊU CẦU PHẦN CỨNG
+================================================================================
+
+  - CPU      : 4 nhân trở lên (khuyến nghị Intel i5 / AMD Ryzen 5 trở lên)
+  - RAM      : Tối thiểu 8 GB (khuyến nghị 16 GB để chạy đồng thời Docker)
+  - Ổ cứng   : Trống tối thiểu 20 GB (Node modules, Docker volumes, build)
+  - Internet : Bắt buộc (tải package, gọi API Gemini, OAuth, v.v.)
+
+================================================================================
+3. YÊU CẦU HỆ ĐIỀU HÀNH
+================================================================================
+
+  - Windows 10/11 (64-bit)        - Có WSL2 được khuyến nghị
+  - macOS 12 (Monterey) trở lên   - Bắt buộc nếu muốn build iOS
+  - Ubuntu 20.04 / 22.04 LTS hoặc Linux tương đương
+
+================================================================================
+4. CÔNG CỤ & MÔI TRƯỜNG PHÁT TRIỂN CẦN CÀI ĐẶT
+================================================================================
+
+4.1. Git
+    - Tải tại https://git-scm.com/downloads
+    - Kiểm tra:  git --version  (yêu cầu >= 2.30)
+
+4.2. Node.js (bắt buộc đúng phiên bản 22.x)
+    - Tải tại https://nodejs.org/ (chọn bản 22 LTS)
+    - Hoặc dùng nvm (khuyến nghị):
+          # macOS / Linux
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          nvm install 22
+          nvm use 22
+          # Windows: dùng nvm-windows tải tại https://github.com/coreybutler/nvm-windows
+    - Kiểm tra:  node -v        (yêu cầu v22.x)
+
+4.3. pnpm (>= 9, dự án dùng 10.x) - Trình quản lý gói chính
+    - Cài đặt tự động qua Corepack (đã có sẵn khi cài Node 22):
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+    - Hoặc cài đứng:
+          npm install -g pnpm
+    - Kiểm tra:  pnpm -v       (yêu cầu >= 9.0.0)
+
+4.4. Docker Desktop
+    - Tải tại https://www.docker.com/products/docker-desktop/
+    - Dùng để chạy: PostgreSQL (pgvector), Redis, ScyllaDB.
+    - Kiểm tra:  docker --version
+                 docker compose version
+    - Lưu ý Windows: bật WSL2 backend trong Docker Desktop settings.
+
+4.5. PostgreSQL Client (tuỳ chọn, để xem DB bằng giao diện)
+    - DBeaver  : https://dbeaver.io/download/
+    - Hoặc pgAdmin: https://www.pgadmin.org/
+
+4.6. Công cụ cho Mobile (chỉ cần nếu phát triển ứng dụng di động)
+    - Android Studio (https://developer.android.com/studio)
+        + Bộ cài JDK 17+
+        + Android SDK + emulator
+        + adb (công cụ dòng lệnh)
+    - Xcode (chỉ trên macOS): https://apps.apple.com/us/app/xcode/id497799835
+        + Cài thêm CocoaPods:  sudo gem install cocoapods   (hoặc  brew install cocoapods)
+    - Expo Go (cài trên điện thoại thật từ App Store / Google Play)
+
+4.7. Trình soạn thảo mã nguồn (khuyến nghị)
+    - Visual Studio Code: https://code.visualstudio.com/
+    - Extension gợi ý: ESLint, Prettier, Prisma, Tailwind CSS IntelliSense
+
+4.8. CÁC THƯ VIỆN / PACKAGE CẦN THIẾT
+    - Toàn bộ thư viện mã nguồn mở của dự án được quản lý bằng pnpm.
+    - Sau khi clone source về, chỉ cần chạy MỘT lệnh duy nhất để cài đặt
+      toàn bộ dependencies cho cả 3 ứng dụng (backend, web, mobile) và
+      các thư viện chia sẻ (libs/*):
+          pnpm install
+    - Lệnh này sẽ tự động:
+          + Tải tất cả package đã khai báo trong package.json
+          + Sinh Prisma Client (qua postinstall)
+          + Liên kết các workspace package nội bộ
+    - KHÔNG cần cài đặt thủ công từng thư viện (NestJS, React, Prisma,
+      Mantine, Reanimated, v.v.) - pnpm sẽ tự động giải quyết phiên bản
+      theo pnpm-lock.yaml đi kèm.
+    - File pnpm-lock.yaml đã được commit sẵn trong source -> đảm bảo
+      mọi thành viên dùng cùng phiên bản package.
+
+================================================================================
+5. CÁC DỊCH VỤ BÊN THỨ BA CẦN ĐĂNG KÝ
+================================================================================
+
+Dự án cần các khoá API / tài khoản dịch vụ sau. Nếu không có, một số tính
+năng sẽ không hoạt động (AI, upload, đăng nhập mạng xã hội, push noti).
+
+5.1. Google Gemini API (BẮT BUỘC cho các tính năng AI)
+    - Truy cập https://aistudio.google.com/apikey
+    - Tạo API Key mới
+    - Dùng cho: phân tích CV, chấm điểm, matching, sinh câu hỏi phỏng vấn
+    - Biến môi trường: GEMINI_KEY
+
+5.2. Google Cloud Storage (GCS) - BẮT BUỘC để upload CV / ảnh
+    - Tạo project tại https://console.cloud.google.com/
+    - Bật Cloud Storage API
+    - Tạo 2 bucket: 1 public (avatar/logo), 1 private (CV)
+    - Tạo Service Account, tải file JSON key
+    - Biến môi trường: GCS_PROJECT_ID, GCS_PUBLIC_BUCKET, GCS_PRIVATE_BUCKET,
+      GCS_KEY_FILE
+
+5.3. Google OAuth (tuỳ chọn, cho đăng nhập bằng Google)
+    - Tạo OAuth Client tại https://console.cloud.google.com/apis/credentials
+    - Authorized redirect URI: http://localhost:3000/api/auth/callback/google
+    - Biến: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+
+5.4. Mailtrap hoặc SMTP server (tuỳ chọn, cho quên mật khẩu)
+    - Đăng ký miễn phí tại https://mailtrap.io/ (hộp thư test)
+    - Lấy thông tin host/port/user/pass trong mục Inboxes
+    - Biến: MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASSWORD
+
+5.5. Firebase Cloud Messaging (tuỳ chọn, cho push notification mobile)
+    - Tạo project tại https://console.firebase.google.com/
+    - Tải file service-account.json
+    - Biến: FIREBASE_SERVICE_ACCOUNT_PATH
+
+================================================================================
+6. HƯỚNG DẪN CÀI ĐẶT TỪNG BƯỚC
+================================================================================
+
+BƯỚC 1 - Clone mã nguồn
+    git clone https://github.com/JoblyAIHCMUS/JoblyAI.git
+    cd JoblyAI
+
+BƯỚC 2 - Cài đặt thư viện (xem mục 4.8)
+    # Bật pnpm qua Corepack (khuyến nghị)
+    corepack enable
+    corepack prepare pnpm@10.33.0 --activate
+
+    # Cài toàn bộ dependencies của monorepo
+    pnpm install
+    # Lệnh này cài thư viện cho: apps/backend, apps/web, apps/mobile, libs/*
+    # Thời gian ước tính: 5-15 phút tuỳ máy.
+
+BƯỚC 3 - Khởi động Docker Desktop
+    - Mở Docker Desktop và đợi icon chuyển sang trạng thái "running".
+    - Kiểm tra:  docker info
+
+BƯỚC 4 - Khởi động các dịch vụ hạ tầng (Postgres, Redis, ScyllaDB)
+    Dùng profile "local-db" để chỉ bật DB (không bật backend/web chạy trong Docker):
+        docker compose --profile local-db up -d postgres redis scylla scylla-init
+    - Postgres mất ~10s, Redis mất ~3s, ScyllaDB mất ~60s (lần đầu).
+    - Kiểm tra container đang chạy:  docker compose ps
+
+BƯỚC 5 - Tạo và cấu hình file .env cho backend
+    Sao chép file mẫu:
+        cp apps/backend/.env.example apps/backend/.env
+    Mở file apps/backend/.env bằng VS Code và điền các giá trị thật (xem mục 7).
+    Sau khi điền xong, sinh Prisma Client:
+        pnpm --filter @jobly/backend exec prisma generate
+
+BƯỚC 6 - Khởi tạo cơ sở dữ liệu (chạy migration)
+        pnpm --filter @jobly/backend exec prisma migrate dev
+    - Lệnh này tạo schema + áp dụng toàn bộ migration trong
+      apps/backend/prisma/migrations/.
+
+BƯỚC 7 - (Tuỳ chọn) Seed dữ liệu mẫu
+    # Seed dữ liệu hệ thống (danh mục + kỹ năng):
+    docker compose exec -e SEED_MODE=system backend sh -lc \
+      "cd /app/apps/backend && pnpm exec ts-node prisma/seed.ts"
+    # Hoặc dùng script có sẵn trong ./scripts/
+
+BƯỚC 8 - Khởi động Backend
+        pnpm --filter @jobly/backend run start:dev
+    - Backend sẽ chạy ở địa chỉ: http://localhost:3000/api
+
+BƯỚC 9 - Khởi động Web (terminal mới)
+        pnpm --filter @jobly/web run dev
+    - Web sẽ chạy ở địa chỉ: http://localhost:5173
+    - Hoặc dùng local domain: chạy script ./scripts/setup_local_domain.sh
+      rồi mở http://joblyAI-local.com:5173
+
+BƯỚC 10 - (Tuỳ chọn) Cài đặt ứng dụng di động - xem mục 9.
+
+--------------------------------------------------------------------------------
+6.1.  PHƯƠNG ÁN ĐƠN GIẢN - bỏ qua các bước phức tạp ở trên
+--------------------------------------------------------------------------------
+Nếu không muốn dùng profile hay lệnh pnpm --filter dài dòng, có thể dùng cách
+rút gọn tương đương (kết quả giống hệt 10 bước phía trên):
+
+  # 1) Khởi động 3 dịch vụ hạ tầng chính (Postgres, Redis, ScyllaDB):
+  docker compose up -d postgres redis scylla
+
+  # 2) Vào thư mục backend và chạy dev (NestJS watch mode):
+  cd apps/backend
+  pnpm start:dev
+  # Backend chạy ở http://localhost:3000/api
+
+  # 3) Mở thêm 1 terminal khác, vào thư mục web và chạy dev (Next.js):
+  cd apps/web
+  pnpm run dev
+  # Web chạy ở http://localhost:5173
+
+Lưu ý: lệnh `pnpm install` ở BƯỚC 2 vẫn BẮT BUỘC chạy một lần trước đó tại
+thư mục gốc của project. File .env vẫn cần tạo từ .env.example và Prisma
+generate + migrate vẫn phải chạy trước khi backend khởi động lần đầu.
+
+================================================================================
+7. CẤU HÌNH BIẾN MÔI TRƯỜNG (.env)
+================================================================================
+
+File: apps/backend/.env
+Mật khẩu và key không được commit lên git. Tạo file này từ .env.example
+và điền giá trị thật. Các biến quan trọng:
+
+  # ---- Server ----
+  PORT=3000
+  NODE_ENV=development
+  APP_URL=http://localhost:3000
+  WEB_URL=http://localhost:5173
+
+  # ---- Database (Postgres) ----
+  DATABASE_URL=postgres://jobly:jobly@localhost:5432/jobly_db
+  POSTGRES_USER=jobly
+  POSTGRES_PASSWORD=jobly
+  POSTGRES_DB=jobly_db
+
+  # ---- Redis ----
+  REDIS_URL=redis://localhost:6379
+
+  # ---- ScyllaDB (chat messages) ----
+  SCYLLA_HOST=localhost
+  SCYLLA_PORT=9042
+  SCYLLA_KEYSPACE=jobly
+
+  # ---- Better Auth ----
+  BETTER_AUTH_SECRET=change-this-to-a-random-string
+  BETTER_AUTH_URL=http://localhost:3000
+
+  # ---- Google Gemini (BẮT BUỘC) ----
+  GEMINI_KEY=<api-key-của-bạn>
+  GEMINI_MAIN_MODEL=gemini-3-flash-preview
+  GEMINI_FALLBACK_MODEL_1=gemini-2.5-flash
+  GEMINI_FALLBACK_MODEL_2=gemini-2.5-flash-lite
+
+  # ---- Google Cloud Storage ----
+  GCS_PROJECT_ID=<gcp-project-id>
+  GCS_PUBLIC_BUCKET=<bucket-public>
+  GCS_PRIVATE_BUCKET=<bucket-private>
+  GCS_KEY_FILE=./gcs-key.json
+
+  # ---- OAuth (tuỳ chọn) ----
+  GITHUB_CLIENT_ID=<id>
+  GITHUB_CLIENT_SECRET=<secret>
+  GOOGLE_CLIENT_ID=<id>
+  GOOGLE_CLIENT_SECRET=<secret>
+
+  # ---- Mailing (tuỳ chọn) ----
+  MAILER_HOST=smtp.mailtrap.io
+  MAILER_PORT=2525
+  MAILER_USER=<user>
+  MAILER_PASSWORD=<password>
+
+Lưu ý: nếu chạy trong Docker, dùng hostname "postgres", "redis", "scylla"
+thay cho "localhost" trong DATABASE_URL / REDIS_URL / SCYLLA_HOST.
+
+================================================================================
+8. KHỞI TẠO CƠ SỞ DỮ LIỆU
+================================================================================
+
+8.1. PostgreSQL (chính - Prisma)
+    - Migration:  pnpm --filter @jobly/backend exec prisma migrate dev
+    - Studio:     pnpm --filter @jobly/backend exec prisma studio
+                  (mở giao diện web ở http://localhost:5555)
+    - Schema:     apps/backend/prisma/schema.prisma (678 dòng, 35+ models)
+
+8.2. ScyllaDB (chat messages)
+    - Schema tự động nạp qua container scylla-init
+      (file apps/backend/scylladb/schema.cql)
+    - Kiểm tra:  docker exec -it scylla_jobly cqlsh
+                 cqlsh> DESCRIBE KEYSPACES;
+
+================================================================================
+9. CÀI ĐẶT ỨNG DỤNG DI ĐỘNG (TUỲ CHỌN)
+================================================================================
+
+Chỉ cần thiết nếu muốn chạy app iOS/Android.
+
+9.1. Cài Java JDK 17 + Android Studio
+    - Tải Android Studio: https://developer.android.com/studio
+    - Trong SDK Manager cài: Android SDK 34, Build Tools 34.0.0,
+      Platform Tools, một system image (Pixel 5/7) để chạy emulator.
+    - Đặt biến môi trường ANDROID_HOME trỏ tới thư mục SDK.
+
+9.2. Cài CocoaPods (chỉ macOS, cần cho iOS)
+        sudo gem install cocoapods
+        # hoặc
+        brew install cocoapods
+
+9.3. Chạy Metro Bundler (terminal riêng)
+        pnpm --filter @jobly/mobile start
+
+9.4. Chạy trên Android (cần ANDROID_HOME)
+        pnpm --filter @jobly/mobile run android
+        # hoặc
+        pnpm nx run @jobly/mobile:run-android
+
+9.5. Chạy trên iOS (chỉ macOS)
+        pnpm --filter @jobly/mobile exec pod-install
+        pnpm --filter @jobly/mobile run ios
+        # hoặc
+        pnpm nx run @jobly/mobile:run-ios
+
+9.7. Cấu hình API URL cho mobile
+    - File eas.json / app.json có biến EXPO_PUBLIC_API_URL trỏ tới backend.
+    - Nếu chạy backend ở localhost, trên điện thoại thật dùng IP LAN của máy
+      tính, ví dụ:  EXPO_PUBLIC_API_URL=http://192.168.1.10:3000/api
+
+================================================================================
+10. KIỂM TRA CÀI ĐẶT THÀNH CÔNG
+================================================================================
+
+10.1. Kiểm tra công cụ
+        node -v             # v22.x
+        pnpm -v             # >= 9
+        docker --version
+        git --version
+
+10.2. Kiểm tra hạ tầng Docker
+        docker compose ps
+    # Phải thấy 4 container Up: postgres_jobly, redis_jobly,
+    # scylla_jobly, scylla_init_jobly
+
+10.3. Kiểm tra Backend
+        curl http://localhost:3000/api
+    # Phải trả về JSON (thường là {"status":"ok"} hoặc message chào mừng)
+    # Swagger docs: mở http://localhost:3000/api/docs trên trình duyệt.
+
+10.4. Kiểm tra Web
+    - Mở http://localhost:5173
+    - Trang chủ JoblyAI phải hiển thị, nút đăng ký/đăng nhập hoạt động.
+
+10.5. Kiểm tra Mobile (nếu đã cài)
+    - Android/iOS: app phải khởi động trong emulator.
+
+Nếu mọi bước trên đều ổn, môi trường phát triển đã sẵn sàng.
+
+================================================================================
+                            HẾT - HƯỚNG DẪN CÀI ĐẶT
+================================================================================
