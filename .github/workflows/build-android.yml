@@ -1,0 +1,78 @@
+name: Build Android AAB
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup monorepo symlinks
+        run: node tools/scripts/eas-build-post-install.mjs . apps/mobile
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/apps/mobile/android/app/release.keystore
+
+      - name: Setup signing properties
+        run: |
+          cat >> apps/mobile/android/gradle.properties << EOF
+          ANDROID_KEYSTORE_PATH=release.keystore
+          ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build AAB
+        working-directory: apps/mobile/android
+        env:
+          EXPO_PUBLIC_API_URL: https://jobly.ai.vn/api
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
