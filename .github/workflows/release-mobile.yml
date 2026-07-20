@@ -91,7 +91,7 @@ jobs:
         working-directory: apps/mobile
         run: |
           pnpm exec eas build --profile production --platform android --wait --json --non-interactive | tee /tmp/eas-build-output.txt
-          BUILD_ID=$(jq -s -r 'last | .id // empty' /tmp/eas-build-output.txt)
+          BUILD_ID=$(jq -s -r 'last | .id // empty' /tmp/eas-build-output.txt | xargs)
           echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
