@@ -20,6 +20,14 @@ function Calendar({
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearStartOffset, setYearStartOffset] = useState(0);
 
+  // Synchronize internal month view when selected prop changes
+  const propSelected = (props as Record<string, any>).selected;
+  React.useEffect(() => {
+    if (propSelected instanceof Date && !isNaN(propSelected.getTime())) {
+      setMonth(propSelected);
+    }
+  }, [propSelected]);
+
   // Store the actual current year (today) separate from the selected month
   const actualCurrentYear = new Date().getFullYear();
 
@@ -66,12 +74,13 @@ function Calendar({
   };
 
   const handleOpenYearPicker = () => {
-    // Calculate offset to show the selected year
-    const offset = Math.max(
+    // Calculate offset to show the selected year, snapped to clean boundaries of 20 years
+    let offset = Math.floor((currentYear - 1920) / 20) * 20;
+    offset = Math.max(
       0,
-      Math.min(currentYear - 1920 - 19, actualCurrentYear - 1920)
+      Math.min(offset, actualCurrentYear - 1920 - 19)
     );
-    setYearStartOffset(Math.floor(offset / 20) * 20);
+    setYearStartOffset(offset);
     setShowYearPicker(true);
   };
 
@@ -289,9 +298,19 @@ function Calendar({
               for (let i = 1; i <= daysInMonth; i++) {
                 days.push(i);
               }
+              // Pad with nulls to always render exactly 6 rows (42 cells) to keep height fixed
+              while (days.length < 42) {
+                days.push(null);
+              }
 
               return days.map((day, idx) => (
-                <div key={idx} className="calendar-day-cell">
+                <div
+                  key={idx}
+                  className={cn(
+                    'calendar-day-cell',
+                    !day && 'pointer-events-none'
+                  )}
+                >
                   {day ? (
                     <button
                       onClick={() => {

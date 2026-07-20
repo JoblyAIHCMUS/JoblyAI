@@ -155,12 +155,13 @@ export function PersonalDetailsForm({
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <div className="relative w-full">
                 <Input
-                  type="date"
+                  type="text"
                   {...register('dateOfBirth')}
                   placeholder="YYYY-MM-DD"
                   disabled={isFieldDisabled}
+                  onClick={() => setIsDatePickerOpen(true)}
                   className={cn(
-                    'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-xs sm:text-sm md:text-base pr-10 w-full',
+                    'bg-primary text-primary border-primary placeholder:text-secondary font-["Be_Vietnam_Pro"] text-xs sm:text-sm md:text-base pr-10 w-full cursor-pointer',
                     errors.dateOfBirth && 'border-red-400'
                   )}
                 />

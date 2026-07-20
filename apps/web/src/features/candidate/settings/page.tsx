@@ -79,6 +79,8 @@ export default function CandidateSettingsPage() {
 
       if (data.avatarUrl) {
         setProfilePhoto(data.avatarUrl);
+      } else {
+        setProfilePhoto('https://placehold.co/124x124');
       }
 
       reset({
@@ -114,14 +116,7 @@ export default function CandidateSettingsPage() {
   };
 
   const handleAvatarRemoved = () => {
-    const firstName = methods.getValues('firstName');
-    const lastName = methods.getValues('lastName');
-    const seed = `${firstName} ${lastName}`.trim() || 'User';
-    setProfilePhoto(
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-        seed
-      )}`
-    );
+    setProfilePhoto('https://placehold.co/124x124');
     fetchCandidateProfile();
   };
 

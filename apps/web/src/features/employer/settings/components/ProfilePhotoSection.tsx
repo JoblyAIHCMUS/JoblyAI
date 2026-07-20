@@ -3,6 +3,7 @@
 import React, { useRef, ChangeEvent, useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import ConfirmAvatarChange from '@/components/ui/confirmAvatarChange';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { cn } from '@/lib/utils';
 import { useCreateUploadUrl } from '@/api-hook/gcs';
 import { useUploadToPresignedUrl } from '@/api-hook/gcs';
@@ -45,6 +46,7 @@ export function ProfilePhotoSection({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const { createUploadUrl, loading: loadingUploadUrl } = useCreateUploadUrl();
@@ -193,14 +195,18 @@ export function ProfilePhotoSection({
               alt="Profile"
               className="object-cover"
             />
-            <AvatarFallback className="bg-accent-primary text-icon-accent-primary text-base sm:text-lg font-semibold">
-              PP
+            <AvatarFallback className="bg-accent-primary p-0 flex-shrink-0">
+              <img
+                src="https://placehold.co/124x124"
+                alt="Profile"
+                className="object-cover size-full"
+              />
             </AvatarFallback>
           </Avatar>
           {showRemove && (
             <button
               type="button"
-              onClick={handleRemoveAvatar}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={isLoading}
               className="text-xs font-medium text-red-500 hover:text-red-700 underline disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -299,6 +305,22 @@ export function ProfilePhotoSection({
           loading={isLoading}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Remove profile picture"
+        description="Are you sure you want to remove your profile picture?"
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        loading={isLoading}
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={async () => {
+          await handleRemoveAvatar();
+          setShowDeleteConfirm(false);
+        }}
+      />
     </>
   );
 }
