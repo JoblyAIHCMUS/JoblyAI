@@ -126,10 +126,11 @@ jobs:
             echo "No build ID available. Provide 'build-id' input or run android-both to build first." >&2
             exit 1
           fi
+          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}" > /tmp/gcp-key.json
+          export GOOGLE_SERVICE_ACCOUNT_JSON=/tmp/gcp-key.json
           pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
 
       - name: Set up Ruby (for Fastlane)
         if: ${{ contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
