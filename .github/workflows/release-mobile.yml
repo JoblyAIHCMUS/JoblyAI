@@ -78,6 +78,25 @@ jobs:
 
       # ── Build ─────────────────────────────────────────────────────
 
+      - name: Setup monorepo symlinks
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: node tools/scripts/eas-build-post-install.mjs . apps/mobile
+
+      - name: Decode keystore
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/apps/mobile/android/app/release.keystore
+
+      - name: Setup signing properties
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: |
+          cat >> apps/mobile/android/gradle.properties << EOF
+          ANDROID_KEYSTORE_PATH=release.keystore
+          ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
       - name: Disable autoSubmit
         if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
         working-directory: apps/mobile
@@ -99,7 +118,9 @@ jobs:
       - name: Build Android AAB (Gradle)
         if: ${{ contains(github.event.inputs.mode, 'local') }}
         working-directory: apps/mobile/android
-        run: ./gradlew bundleRelease
+        env:
+          EXPO_PUBLIC_API_URL: https://jobly.ai.vn/api
+        run: ./gradlew bundleRelease --no-daemon
 
       - name: Upload AAB artifact
         if: ${{ contains(github.event.inputs.mode, 'local') }}
