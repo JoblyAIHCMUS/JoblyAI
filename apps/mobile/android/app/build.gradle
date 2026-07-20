@@ -104,8 +104,16 @@ android {
         applicationId 'com.jobly.mobile'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+
+        def gitCommitCount = "git rev-list --count HEAD".execute(null, rootDir).text.trim().toInteger()
+        def gitBranch = "git rev-parse --abbrev-ref HEAD".execute(null, rootDir).text.trim()
+        def gitBranchClean = gitBranch.replaceAll("[^a-zA-Z0-9.-]", "-")
+        def gitHash = "git rev-parse --short HEAD".execute(null, rootDir).text.trim()
+        def isDevBranch = gitBranch != "main" && gitBranch != "master"
+        def devOffset = isDevBranch ? 100000 : 0
+
+        versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : (gitCommitCount + devOffset)
+        versionName project.hasProperty('versionName') ? project.property('versionName') : "${gitBranchClean}-${gitHash}-v1"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
