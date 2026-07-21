@@ -127,15 +127,38 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
 
   // Re-validate when the app comes back to the foreground. The session may
   // have been revoked server-side while the app was backgrounded.
+  //
+  // We debounce by 500ms and coalesce in-flight refetches so the foreground
+  // event triggered by the Android 13+ notification permission dialog
+  // dismissal doesn't race with the in-flight `registerDevice()` call. If
+  // the session actually changed while the app was backgrounded, a 500ms
+  // delay is imperceptible and the next real API call will catch it.
   useEffect(() => {
+    const refetchTimeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
+    const inFlightRef = { current: false };
+
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        void refetch();
+      if (state !== 'active') return;
+
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current);
       }
+      refetchTimeoutRef.current = setTimeout(() => {
+        refetchTimeoutRef.current = null;
+        if (inFlightRef.current) return;
+        inFlightRef.current = true;
+        void refetch().finally(() => {
+          inFlightRef.current = false;
+        });
+      }, 500);
     });
 
     return () => {
       subscription.remove();
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current);
+        refetchTimeoutRef.current = null;
+      }
     };
   }, [refetch]);
 
