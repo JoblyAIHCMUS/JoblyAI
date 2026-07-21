@@ -47,8 +47,10 @@ apiClient.interceptors.request.use(async (config) => {
 let handlingAuthError = false;
 
 let lastLoginAt = 0;
-const POST_LOGIN_GRACE_MS = 5000;
+const POST_LOGIN_GRACE_MS = 30_000;
 const RETRY_DELAY_MS = 1000;
+
+const SKIP_AUTH_REDIRECT_URLS = ['/auth/', '/devices/register'];
 
 export function markLogin(): void {
   lastLoginAt = Date.now();
@@ -60,7 +62,7 @@ apiClient.interceptors.response.use(
     if (
       !axios.isAxiosError(error) ||
       handlingAuthError ||
-      error.config?.url?.includes('/auth/')
+      SKIP_AUTH_REDIRECT_URLS.some((path) => error.config?.url?.includes(path))
     ) {
       return Promise.reject(error);
     }
