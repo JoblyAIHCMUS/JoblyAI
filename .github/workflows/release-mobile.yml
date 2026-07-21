@@ -25,6 +25,14 @@ on:
           - alpha
           - beta
           - production
+      version-name:
+        description: 'Version name (e.g., 1.1.0). Default: auto-generated from run number'
+        required: false
+        default: ''
+      build-id:
+        description: 'EAS build ID to submit (optional; defaults to latest)'
+        required: false
+        default: ''
 
 jobs:
   release:
@@ -70,9 +78,31 @@ jobs:
       - name: Prebuild
         if: ${{ contains(github.event.inputs.mode, 'local') }}
         working-directory: apps/mobile
+        env:
+          EXPO_APP_VERSION_CODE: ${{ github.run_number }}
+          EXPO_APP_VERSION_NAME: ${{ github.event.inputs.version-name || format('1.0.{0}', github.run_number) }}
         run: pnpm exec expo prebuild --platform android --no-install
 
       # ── Build ─────────────────────────────────────────────────────
+
+      - name: Setup monorepo symlinks
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: node tools/scripts/eas-build-post-install.mjs . apps/mobile
+
+      - name: Decode keystore
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/apps/mobile/android/app/release.keystore
+
+      - name: Setup signing properties
+        if: ${{ contains(github.event.inputs.mode, 'local') }}
+        run: |
+          cat >> apps/mobile/android/gradle.properties << EOF
+          ANDROID_KEYSTORE_PATH=release.keystore
+          ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
 
       - name: Disable autoSubmit
         if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
@@ -82,16 +112,22 @@ jobs:
             && mv eas.json.tmp eas.json
 
       - name: EAS Build
+        id: eas-build
         if: ${{ !contains(github.event.inputs.mode, 'local') && !contains(github.event.inputs.mode, 'release') }}
         working-directory: apps/mobile
-        run: pnpm exec eas build --profile production --platform android --wait --non-interactive
+        run: |
+          pnpm exec eas build --profile production --platform android --wait --json --non-interactive | tee /tmp/eas-build-output.txt
+          BUILD_ID=$(jq -s -r 'last | .id // empty' /tmp/eas-build-output.txt | xargs)
+          echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android AAB (Gradle)
         if: ${{ contains(github.event.inputs.mode, 'local') }}
         working-directory: apps/mobile/android
-        run: ./gradlew bundleRelease
+        env:
+          EXPO_PUBLIC_API_URL: https://jobly.ai.vn/api
+        run: ./gradlew bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64 --no-daemon
 
       - name: Upload AAB artifact
         if: ${{ contains(github.event.inputs.mode, 'local') }}
@@ -112,7 +148,15 @@ jobs:
       - name: EAS Submit
         if: ${{ !contains(github.event.inputs.mode, 'local') && (contains(github.event.inputs.mode, 'release') || contains(github.event.inputs.mode, 'both')) }}
         working-directory: apps/mobile
-        run: pnpm exec eas submit --profile production --platform android --non-interactive
+        run: |
+          BUILD_ID="${{ steps.eas-build.outputs.build-id || github.event.inputs.build-id }}"
+          if [[ -z "$BUILD_ID" ]]; then
+            echo "No build ID available. Provide 'build-id' input or run android-both to build first." >&2
+            exit 1
+          fi
+          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}" > /tmp/gcp-key.json
+          export GOOGLE_SERVICE_ACCOUNT_JSON=/tmp/gcp-key.json
+          pnpm exec eas submit --profile production --platform android --non-interactive --id "$BUILD_ID"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
