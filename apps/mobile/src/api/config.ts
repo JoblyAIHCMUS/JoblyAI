@@ -12,7 +12,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Needed for cookie-based auth
+  withCredentials: false,
 });
 
 // Mirror of better-auth/expo's `getCookie` helper. We re-implement it here so

@@ -20,6 +20,7 @@ export function getOrCreateSocket(): Socket {
 
   _socket = io(wsBaseUrl, {
     path: '/socket.io',
+    withCredentials: false,
     // RN can't do HTTP long-polling.
     transports: ['websocket'],
     // Function form re-reads the cookie per connect; static form freezes the empty module-init value.
