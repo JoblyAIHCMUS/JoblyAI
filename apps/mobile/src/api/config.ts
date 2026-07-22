@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { authClient } from '../lib/auth-client';
 import { API_BASE_URL } from '../lib/api-base';
 import { getSession, invalidateSession, clearLocalSession } from '../lib/auth';
@@ -11,12 +12,49 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Needed for cookie-based auth
+  withCredentials: false,
 });
 
+// Mirror of better-auth/expo's `getCookie` helper. We re-implement it here so
+// the request interceptor can `await` it (the upstream `authClient.getCookie()`
+// is sync and depends on a sync SecureStore JSI shim that can return a
+// Promise in some Android prod builds, which silently yields an empty cookie
+// and triggers a 401 on the first post-login bootstrap call).
+const SECURE_STORE_COOKIE_KEY = 'jobly_cookie';
+
+function parseStoredCookieValue(raw: string | null): string {
+  if (!raw) return '';
+  let parsed: Record<string, { value: string; expires?: string }> = {};
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return '';
+  }
+  const now = Date.now();
+  return Object.entries(parsed)
+    .filter(([, v]) => {
+      if (!v?.value) return false;
+      if (!v.expires) return true;
+      return new Date(v.expires).getTime() > now;
+    })
+    .map(([k, v]) => `${k}=${v.value}`)
+    .join('; ');
+}
+
+async function readSessionCookieHeader(): Promise<string> {
+  try {
+    const raw = await SecureStore.getItemAsync(SECURE_STORE_COOKIE_KEY);
+    return parseStoredCookieValue(raw);
+  } catch {
+    // Fall back to the upstream sync getter if the async read throws for
+    // any reason (e.g. SecureStore unavailable on a weird platform).
+    const client = authClient as unknown as { getCookie?: () => string };
+    return client.getCookie?.() ?? '';
+  }
+}
+
 apiClient.interceptors.request.use(async (config) => {
-  const client = authClient as unknown as { getCookie?: () => string };
-  const cookies = client.getCookie?.() ?? '';
+  const cookies = await readSessionCookieHeader();
 
   if (cookies) {
     config.headers = config.headers ?? {};
@@ -49,11 +87,30 @@ let handlingAuthError = false;
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const requestUrl = error.config?.url ?? '';
+    // Skip auth-related endpoints (sign-in/up/out, session) and known
+    // post-login bootstrap calls. A 401 on `/devices/register` in
+    // particular must NOT nuke the session — it fires immediately after
+    // the user dismisses the Android 13+ notification permission dialog,
+    // where the freshly-minted session can race with the server-side
+    // session cache. Nuking here would bounce the user from the
+    // dashboard back to the login page. If the session really is gone,
+    // the next real API call (candidate profile, applications, etc.)
+    // will still catch it.
+    const skipUrl =
+      requestUrl.includes('/auth/') ||
+      requestUrl.includes('/devices/register');
+
     if (
       !axios.isAxiosError(error) ||
       handlingAuthError ||
-      error.config?.url?.includes('/auth/')
+      skipUrl
     ) {
+      if (requestUrl.includes('/devices/register') && error.response?.status === 401) {
+        console.warn(
+          '[api] Ignoring 401 on /devices/register (post-login bootstrap call)'
+        );
+      }
       return Promise.reject(error);
     }
 
