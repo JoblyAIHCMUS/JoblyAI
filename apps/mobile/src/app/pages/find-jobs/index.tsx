@@ -193,7 +193,8 @@ function FindJobsPage() {
           ? urlCategories.map((c) => Number(c))
           : undefined,
       salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-      salaryMax: urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : undefined,
+      salaryMax:
+        urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : undefined,
       currency: urlSalaryCurrency ?? undefined,
       skills: urlSkills.length > 0 ? urlSkills : undefined,
     };

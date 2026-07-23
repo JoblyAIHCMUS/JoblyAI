@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
@@ -54,7 +48,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onCategoryChange,
   onReset,
 }) => {
-
   const toggleType = (type: EmploymentType) => {
     const updated = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)

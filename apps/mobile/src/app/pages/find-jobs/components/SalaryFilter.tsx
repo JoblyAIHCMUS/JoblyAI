@@ -94,9 +94,8 @@ const SalaryFilter: React.FC<SalaryFilterProps> = ({
   };
 
   const currentLabel = currency ?? 'All';
-  const inputMaxLength = currency !== null
-    ? String(capFor(currency)).length
-    : 1;
+  const inputMaxLength =
+    currency !== null ? String(capFor(currency)).length : 1;
 
   return (
     <View>
