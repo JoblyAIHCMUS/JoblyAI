@@ -98,15 +98,13 @@ apiClient.interceptors.response.use(
     // the next real API call (candidate profile, applications, etc.)
     // will still catch it.
     const skipUrl =
-      requestUrl.includes('/auth/') ||
-      requestUrl.includes('/devices/register');
+      requestUrl.includes('/auth/') || requestUrl.includes('/devices/register');
 
-    if (
-      !axios.isAxiosError(error) ||
-      handlingAuthError ||
-      skipUrl
-    ) {
-      if (requestUrl.includes('/devices/register') && error.response?.status === 401) {
+    if (!axios.isAxiosError(error) || handlingAuthError || skipUrl) {
+      if (
+        requestUrl.includes('/devices/register') &&
+        error.response?.status === 401
+      ) {
         console.warn(
           '[api] Ignoring 401 on /devices/register (post-login bootstrap call)'
         );
