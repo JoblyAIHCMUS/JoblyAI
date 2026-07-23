@@ -134,7 +134,9 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   // the session actually changed while the app was backgrounded, a 500ms
   // delay is imperceptible and the next real API call will catch it.
   useEffect(() => {
-    const refetchTimeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
+    const refetchTimeoutRef = {
+      current: null as ReturnType<typeof setTimeout> | null,
+    };
     const inFlightRef = { current: false };
 
     const subscription = AppState.addEventListener('change', (state) => {
