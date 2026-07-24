@@ -134,6 +134,20 @@ export class UserService {
     if (updateDto.gender !== undefined) data.gender = updateDto.gender;
     if (updateDto.avatarUrl !== undefined) data.avatarUrl = updateDto.avatarUrl;
 
+    // Keep User.name synced with [firstName, lastName] (legacy field used by
+    // employer app views, chat, and auth /me). OAuth users have firstName/lastName
+    // null so this is a no-op for them; email/password users always get a
+    // recomputed name. Read current values to handle partial patches correctly.
+    // If both fields end up empty (e.g. client sent { firstName: '', lastName: '' }),
+    // preserve the existing user.name rather than clobbering it with null — this
+    // protects OAuth users whose firstName/lastName are null but name is set.
+    if (data.firstName !== undefined || data.lastName !== undefined) {
+      const nextFirst = data.firstName !== undefined ? data.firstName : user.firstName;
+      const nextLast = data.lastName !== undefined ? data.lastName : user.lastName;
+      const computed = [nextFirst, nextLast].filter(Boolean).join(' ').trim();
+      data.name = computed || user.name || null;
+    }
+
     // If no fields to update, return current user
     if (Object.keys(data).length === 0) {
       return this.mapUserToResponse(user);

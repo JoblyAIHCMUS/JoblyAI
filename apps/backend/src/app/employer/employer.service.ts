@@ -259,6 +259,22 @@ export class EmployerService {
       }
 
       if (Object.keys(userData).length > 0) {
+        // Read current firstName/lastName to handle partial patches. Also
+        // fetch name so we can preserve it if both new fields are empty
+        // (avoids clobbering an OAuth user's existing display name with null).
+        const currentUser = await tx.user.findUnique({
+          where: { id: userId },
+          select: { firstName: true, lastName: true, name: true },
+        });
+        if (currentUser) {
+          const nextFirst =
+            userData.firstName !== undefined ? userData.firstName : currentUser.firstName;
+          const nextLast =
+            userData.lastName !== undefined ? userData.lastName : currentUser.lastName;
+          const computed = [nextFirst, nextLast].filter(Boolean).join(' ').trim();
+          userData.name = computed || currentUser.name || null;
+        }
+
         await tx.user.update({
           where: { id: userId },
           data: userData,
