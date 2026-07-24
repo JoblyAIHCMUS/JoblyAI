@@ -1,25 +1,22 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
-import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { COLORS } from '@/app/constants/theme';
 import type { JobCategory, EmploymentType } from '@/types/job';
+import SalaryFilter from './SalaryFilter';
+import type { SupportedCurrency } from '@/app/pages/find-jobs/constants';
 
 interface FilterPanelProps {
   isOpen: boolean;
   onClose: () => void;
   categories: JobCategory[];
+  salaryCurrency: SupportedCurrency | null;
   salaryMin: number;
   salaryMax: number;
+  onSalaryCurrencyChange: (currency: SupportedCurrency | null) => void;
   onSalaryChange: (min: number, max: number) => void;
+  onSalaryApply: () => void;
   selectedTypes: EmploymentType[];
   onTypeChange: (types: EmploymentType[]) => void;
   selectedCategories: (number | string)[];
@@ -35,35 +32,22 @@ const EMPLOYMENT_TYPES: { label: string; value: EmploymentType }[] = [
   { label: 'Freelance', value: 'FREELANCE' },
 ];
 
-const SALARY_MAX_CAP = 500000;
-
 const FilterPanel: React.FC<FilterPanelProps> = ({
   isOpen,
   onClose,
   categories,
+  salaryCurrency,
   salaryMin,
   salaryMax,
+  onSalaryCurrencyChange,
   onSalaryChange,
+  onSalaryApply,
   selectedTypes,
   onTypeChange,
   selectedCategories,
   onCategoryChange,
   onReset,
 }) => {
-  const [localSalaryMin, setLocalSalaryMin] = useState(salaryMin);
-  const [localSalaryMax, setLocalSalaryMax] = useState(salaryMax);
-  const { width } = useWindowDimensions();
-
-  const handleSalarySubmit = () => {
-    onSalaryChange(localSalaryMin, localSalaryMax);
-  };
-
-  const handleSalaryChangeFinish = (values: number[]) => {
-    setLocalSalaryMin(values[0]);
-    setLocalSalaryMax(values[1]);
-    onSalaryChange(values[0], values[1]);
-  };
-
   const toggleType = (type: EmploymentType) => {
     const updated = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
@@ -118,63 +102,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           >
             {/* Salary Range */}
             <View className="border-b border-app-gray-1 px-4 py-4">
-              <Text className="mb-4 text-lg font-semibold text-app-dark-text">
-                Salary Range
-              </Text>
-              <View className="mb-4 flex-row items-center justify-center">
-                <MultiSlider
-                  values={[localSalaryMin, localSalaryMax]}
-                  onValuesChange={(values) => {
-                    setLocalSalaryMin(values[0]);
-                    setLocalSalaryMax(values[1]);
-                  }}
-                  onValuesChangeFinish={handleSalaryChangeFinish}
-                  min={0}
-                  max={SALARY_MAX_CAP}
-                  step={10000}
-                  sliderLength={width - 120}
-                  trackStyle={{
-                    height: 4,
-                    backgroundColor: COLORS.gray1,
-                  }}
-                  selectedStyle={{
-                    backgroundColor: COLORS.primary2,
-                  }}
-                  markerStyle={{
-                    height: 20,
-                    width: 20,
-                    borderRadius: 10,
-                    backgroundColor: COLORS.primary2,
-                    borderWidth: 3,
-                    borderColor: COLORS.white,
-                  }}
-                  pressedMarkerStyle={{
-                    height: 24,
-                    width: 24,
-                    borderRadius: 11,
-                    backgroundColor: COLORS.primary2,
-                    borderWidth: 3,
-                    borderColor: COLORS.white,
-                  }}
-                  containerStyle={{ width: '100%' }}
-                />
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-sm text-app-gray-3">
-                  ${(localSalaryMin / 1000).toFixed(0)}k
-                </Text>
-                <Text className="text-sm text-app-gray-3">
-                  ${(localSalaryMax / 1000).toFixed(0)}k
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={handleSalarySubmit}
-                className="mt-4 rounded-lg bg-app-primary-2 py-3"
-              >
-                <Text className="text-center font-semibold text-white">
-                  Apply Salary Range
-                </Text>
-              </TouchableOpacity>
+              <SalaryFilter
+                currency={salaryCurrency}
+                min={salaryMin}
+                max={salaryMax}
+                onCurrencyChange={onSalaryCurrencyChange}
+                onValuesChange={onSalaryChange}
+                onApply={onSalaryApply}
+              />
             </View>
 
             {/* Employment Type */}

@@ -26,9 +26,10 @@ import SortDropdown from './components/SortDropdown';
 import FilterPanel from './components/FilterPanel';
 import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
 import AppSidebar from '@/app/components/AppSidebar';
+import { capFor } from './constants';
+import type { SupportedCurrency } from './constants';
 
 const PAGE_SIZE = 10;
-const SALARY_MAX_CAP = 500000;
 
 const ACTIVE_APPLICATION_STATUSES = [
   'APPLIED',
@@ -49,7 +50,9 @@ function FindJobsPage() {
   const [urlQ, setUrlQ] = useState('');
   const [urlLocation, setUrlLocation] = useState('');
   const [urlMinSalary, setUrlMinSalary] = useState(0);
-  const [urlMaxSalary, setUrlMaxSalary] = useState(SALARY_MAX_CAP);
+  const [urlMaxSalary, setUrlMaxSalary] = useState(capFor(null));
+  const [urlSalaryCurrency, setUrlSalaryCurrency] =
+    useState<SupportedCurrency | null>(null);
   const [urlCategories, setUrlCategories] = useState<(number | string)[]>([]);
   const [urlTypes, setUrlTypes] = useState<EmploymentType[]>([]);
   const [urlSkills, setUrlSkills] = useState<string[]>([]);
@@ -59,6 +62,8 @@ function FindJobsPage() {
   const [localLocation, setLocalLocation] = useState(urlLocation);
   const [localSalaryMin, setLocalSalaryMin] = useState(urlMinSalary);
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
+  const [localSalaryCurrency, setLocalSalaryCurrency] =
+    useState<SupportedCurrency | null>(urlSalaryCurrency);
 
   // Fetch jobs
   const { fetchJobs, data: jobsData, loading: loadingJobs } = useListJobs();
@@ -143,17 +148,29 @@ function FindJobsPage() {
     return () => clearTimeout(timer);
   }, [localLocation, urlLocation]);
 
-  // Debounce salary
+  // Debounce salary (min/max/currency together)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (localSalaryMin !== urlMinSalary || localSalaryMax !== urlMaxSalary) {
+      if (
+        localSalaryMin !== urlMinSalary ||
+        localSalaryMax !== urlMaxSalary ||
+        localSalaryCurrency !== urlSalaryCurrency
+      ) {
         setUrlMinSalary(localSalaryMin);
         setUrlMaxSalary(localSalaryMax);
+        setUrlSalaryCurrency(localSalaryCurrency);
         setUrlPage(1);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [localSalaryMin, localSalaryMax, urlMinSalary, urlMaxSalary]);
+  }, [
+    localSalaryMin,
+    localSalaryMax,
+    localSalaryCurrency,
+    urlMinSalary,
+    urlMaxSalary,
+    urlSalaryCurrency,
+  ]);
 
   // Fetch jobs when filters change
   useEffect(() => {
@@ -176,7 +193,9 @@ function FindJobsPage() {
           ? urlCategories.map((c) => Number(c))
           : undefined,
       salaryMin: urlMinSalary > 0 ? urlMinSalary : undefined,
-      salaryMax: urlMaxSalary < SALARY_MAX_CAP ? urlMaxSalary : undefined,
+      salaryMax:
+        urlMaxSalary < capFor(urlSalaryCurrency) ? urlMaxSalary : undefined,
+      currency: urlSalaryCurrency ?? undefined,
       skills: urlSkills.length > 0 ? urlSkills : undefined,
     };
 
@@ -188,6 +207,7 @@ function FindJobsPage() {
     urlLocation,
     urlMinSalary,
     urlMaxSalary,
+    urlSalaryCurrency,
     urlCategories,
     urlTypes,
     urlSkills,
@@ -204,15 +224,21 @@ function FindJobsPage() {
     setLocalSalaryMax(max);
   };
 
+  const handleSalaryApply = () => {
+    setFilterPanelOpen(false);
+  };
+
   const handleReset = () => {
     setLocalSearchTerm('');
     setLocalLocation('');
     setLocalSalaryMin(0);
-    setLocalSalaryMax(SALARY_MAX_CAP);
+    setLocalSalaryMax(capFor(null));
+    setLocalSalaryCurrency(null);
     setUrlQ('');
     setUrlLocation('');
     setUrlMinSalary(0);
-    setUrlMaxSalary(SALARY_MAX_CAP);
+    setUrlMaxSalary(capFor(null));
+    setUrlSalaryCurrency(null);
     setUrlCategories([]);
     setUrlTypes([]);
     setUrlSkills([]);
@@ -416,9 +442,12 @@ function FindJobsPage() {
         isOpen={filterPanelOpen}
         onClose={() => setFilterPanelOpen(false)}
         categories={categories}
+        salaryCurrency={localSalaryCurrency}
         salaryMin={localSalaryMin}
         salaryMax={localSalaryMax}
+        onSalaryCurrencyChange={setLocalSalaryCurrency}
         onSalaryChange={handleSalaryChange}
+        onSalaryApply={handleSalaryApply}
         selectedTypes={urlTypes}
         onTypeChange={(types) => {
           setUrlTypes(types);

@@ -33,6 +33,8 @@ export interface Application {
     postedBy: {
       id: string;
       name: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
       email: string;
     };
   };
@@ -45,6 +47,8 @@ export interface Application {
   candidate?: {
     id: string;
     name: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     email: string;
     avatarUrl: string | null;
   };
