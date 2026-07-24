@@ -6,6 +6,7 @@ import type { Applicant } from '@/features/employer/job-listing/detail/data';
 import type { HiringStage } from '@/features/employer/hiringStage';
 import { type ApplicantDetail } from '@/features/employer/all-applications/detail/data';
 import { type EmploymentType } from '@/features/employer/job-listing/data';
+import { computeDisplayName } from '@/api-client/application/displayName';
 
 /**
  * Map backend ApplicationStatus to frontend HiringStage
@@ -41,7 +42,7 @@ export function mapApplicationRecordToApplicant(
   return {
     id: application.id.toString(),
     applicantId: application.candidateId,
-    name: candidate.name || candidate.email || 'Unknown Candidate',
+    name: computeDisplayName(candidate) || candidate.email || 'Unknown Candidate',
     image: candidate.avatarUrl,
     appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
     score:
@@ -69,7 +70,7 @@ export function mapApplicationRecordToApplicantDetail(
   application: ApplicationRecord
 ): ApplicantDetail {
   const candidateName =
-    application.candidate?.name?.trim() ||
+    computeDisplayName(application.candidate ?? {}) ||
     application.candidate?.email ||
     `Candidate ${application.candidateId}`;
 
