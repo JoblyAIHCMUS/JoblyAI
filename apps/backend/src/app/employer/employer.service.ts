@@ -268,10 +268,17 @@ export class EmployerService {
         });
         if (currentUser) {
           const nextFirst =
-            userData.firstName !== undefined ? userData.firstName : currentUser.firstName;
+            userData.firstName !== undefined
+              ? userData.firstName
+              : currentUser.firstName;
           const nextLast =
-            userData.lastName !== undefined ? userData.lastName : currentUser.lastName;
-          const computed = [nextFirst, nextLast].filter(Boolean).join(' ').trim();
+            userData.lastName !== undefined
+              ? userData.lastName
+              : currentUser.lastName;
+          const computed = [nextFirst, nextLast]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
           userData.name = computed || currentUser.name || null;
         }
 

@@ -57,7 +57,10 @@ describe('EmployerService.updateProfile — name sync', () => {
     mockPrisma.user.findUnique.mockResolvedValue(CURRENT_USER);
     mockPrisma.user.update.mockResolvedValue(CURRENT_USER);
     mockPrisma.employer.findUnique.mockResolvedValue(EXISTING_EMPLOYER);
-    mockPrisma.employer.update.mockResolvedValue({ id: 1, employerId: 'user-1' });
+    mockPrisma.employer.update.mockResolvedValue({
+      id: 1,
+      employerId: 'user-1',
+    });
   });
 
   it('updates User.name when both firstName and lastName are patched', async () => {

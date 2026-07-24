@@ -142,8 +142,10 @@ export class UserService {
     // preserve the existing user.name rather than clobbering it with null — this
     // protects OAuth users whose firstName/lastName are null but name is set.
     if (data.firstName !== undefined || data.lastName !== undefined) {
-      const nextFirst = data.firstName !== undefined ? data.firstName : user.firstName;
-      const nextLast = data.lastName !== undefined ? data.lastName : user.lastName;
+      const nextFirst =
+        data.firstName !== undefined ? data.firstName : user.firstName;
+      const nextLast =
+        data.lastName !== undefined ? data.lastName : user.lastName;
       const computed = [nextFirst, nextLast].filter(Boolean).join(' ').trim();
       data.name = computed || user.name || null;
     }

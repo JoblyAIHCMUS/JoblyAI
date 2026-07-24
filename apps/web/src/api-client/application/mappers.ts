@@ -42,7 +42,8 @@ export function mapApplicationRecordToApplicant(
   return {
     id: application.id.toString(),
     applicantId: application.candidateId,
-    name: computeDisplayName(candidate) || candidate.email || 'Unknown Candidate',
+    name:
+      computeDisplayName(candidate) || candidate.email || 'Unknown Candidate',
     image: candidate.avatarUrl,
     appliedDate: application.createdAt.split('T')[0], // Format as YYYY-MM-DD
     score:
