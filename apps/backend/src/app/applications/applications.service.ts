@@ -31,6 +31,8 @@ type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
           select: {
             id: true;
             name: true;
+            firstName: true;
+            lastName: true;
             email: true;
           };
         };
@@ -254,6 +256,8 @@ export class ApplicationsService {
                 select: {
                   id: true,
                   name: true,
+                  firstName: true,
+                  lastName: true,
                   email: true,
                 },
               },
@@ -434,6 +438,8 @@ export class ApplicationsService {
                 select: {
                   id: true,
                   name: true,
+                  firstName: true,
+                  lastName: true,
                   email: true,
                 },
               },
@@ -451,6 +457,8 @@ export class ApplicationsService {
             select: {
               id: true,
               name: true,
+              firstName: true,
+              lastName: true,
               email: true,
               avatarUrl: true,
             },
@@ -906,6 +914,8 @@ export class ApplicationsService {
         candidate: {
           id: application.candidate.id,
           name: application.candidate.name,
+          firstName: application.candidate.firstName,
+          lastName: application.candidate.lastName,
           email: application.candidate.email,
           avatarUrl: application.candidate.avatarUrl,
         },

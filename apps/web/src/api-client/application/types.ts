@@ -28,6 +28,8 @@ export interface ApplicationJob {
   postedBy: {
     id: string;
     name: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     email: string;
   };
 }
@@ -42,6 +44,8 @@ export interface ApplicationResume {
 export interface ApplicationCandidate {
   id: string;
   name: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email: string;
   avatarUrl: string | null;
 }

@@ -4,6 +4,7 @@ import {
 } from '../../../../types/application';
 import { AllApplication, HiringStage } from './types';
 import { JobCategory, EmploymentType } from '../../../../types/job';
+import { computeDisplayName } from '../../../../api/displayName';
 
 /**
  * Map backend ApplicationStatus to frontend HiringStage.
@@ -105,6 +106,8 @@ export function mapApiResponseToApplications(
         job?: { title?: string };
         candidate?: {
           name?: string | null;
+          firstName?: string | null;
+          lastName?: string | null;
           email?: string;
           avatarUrl?: string | null;
         };
@@ -113,7 +116,7 @@ export function mapApiResponseToApplications(
       };
 
     const displayName =
-      enriched.candidate?.name?.trim() ||
+      computeDisplayName(enriched.candidate ?? {}) ||
       enriched.candidate?.email ||
       `Candidate ${enriched.candidateId ?? app.id}`;
 
