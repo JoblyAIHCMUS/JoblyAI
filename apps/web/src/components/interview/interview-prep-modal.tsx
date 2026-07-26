@@ -92,23 +92,23 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
             className="border border-muted rounded-xl bg-card/50 overflow-hidden shadow-sm hover:shadow transition-all"
           >
             <AccordionTrigger className="text-left font-semibold px-4 py-3 hover:no-underline">
-              <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-3 pr-4 text-left">
+                <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-3 pr-4 text-left">
                 <span className="text-foreground font-medium text-[15px]">
                   {q.question}
                 </span>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col items-end gap-1.5">
                   {q.origin === 'ai_generated' ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-900/50">
-                      <Cpu className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 whitespace-nowrap shrink-0">
+                      <Cpu className="w-3.5 h-3.5 shrink-0" />
                       AI Tailored
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/50">
-                      <Globe className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/50 whitespace-nowrap shrink-0">
+                      <Globe className="w-3.5 h-3.5 shrink-0" />
                       Web Verified
                     </span>
                   )}
-                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full whitespace-nowrap">
                     {q.category}
                   </span>
                 </div>
