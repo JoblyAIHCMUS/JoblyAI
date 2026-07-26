@@ -92,7 +92,7 @@ export const InterviewPrepModal: React.FC<InterviewPrepModalProps> = ({
             className="border border-muted rounded-xl bg-card/50 overflow-hidden shadow-sm hover:shadow transition-all"
           >
             <AccordionTrigger className="text-left font-semibold px-4 py-3 hover:no-underline">
-                <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-3 pr-4 text-left">
+              <div className="flex w-full flex-col md:flex-row md:items-center justify-between gap-3 pr-4 text-left">
                 <span className="text-foreground font-medium text-[15px]">
                   {q.question}
                 </span>
