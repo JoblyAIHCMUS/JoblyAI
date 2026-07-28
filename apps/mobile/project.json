@@ -15,6 +15,27 @@
         "command": "npx expo run:ios --device --scheme JoblyAIMobile",
         "cwd": "{projectRoot}"
       }
+    },
+    "prod-run-android": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:android",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "prod-run-ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:ios --scheme JoblyAIMobile",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "prod-run-ios-device": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:ios --device --scheme JoblyAIMobile",
+        "cwd": "{projectRoot}"
+      }
     }
   }
 }
