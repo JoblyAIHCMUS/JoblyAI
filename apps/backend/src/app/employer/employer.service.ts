@@ -250,7 +250,7 @@ export class EmployerService {
     updateDto: UpdateEmployerDto
   ): Promise<QueryResponseEmployerDto> {
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const userData: Record<string, string | null> = {};
+      const userData: Record<string, string> = {};
       if (updateDto.firstName !== undefined) {
         userData.firstName = updateDto.firstName;
       }
