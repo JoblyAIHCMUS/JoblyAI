@@ -18,6 +18,7 @@ COPY nx.json tsconfig.base.json tsconfig.json eslint.config.mjs ./
 # Copy ALL package.json files for workspace discovery
 COPY apps/web/package.json ./apps/web/
 COPY apps/backend/package.json ./apps/backend/
+COPY libs/shared-types/package.json ./libs/shared-types/
 
 # Install ALL dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
@@ -25,6 +26,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store,uid=1000,gid=1000,mode=0777 \
 
 # Copy source code
 COPY apps/backend ./apps/backend
+COPY libs ./libs
 
 # 1. Generate Prisma Client
 RUN cd apps/backend && PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x pnpm exec prisma generate
