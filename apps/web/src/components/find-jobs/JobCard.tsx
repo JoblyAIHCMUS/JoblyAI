@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePostSubmitEligibility } from '@/hooks/usePostSubmitEligibility';
 import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
@@ -124,17 +125,17 @@ export default function JobCard({
     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
     : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
-  const handleApplicationSuccess = (record: ApplicationRecord) => {
-    onApplySuccess?.(job.id);
-    if (
-      record.status === 'PRE_SHORTLIST_PENDING' &&
-      record.preShortlistQuestionsCount > 0
-    ) {
+  const { handleApplicationSuccess } = usePostSubmitEligibility({
+    job,
+    onEligible: (record) => {
+      onApplySuccess?.(job.id);
       setEligibleApp(record);
-      return;
-    }
-    toast.success(`Application submitted for ${job.title}`);
-  };
+    },
+    onNotEligible: () => {
+      onApplySuccess?.(job.id);
+      toast.success(`Application submitted for ${job.title}`);
+    },
+  });
 
   const handleApplicationError = (error: string) => {
     toast.error(error);
