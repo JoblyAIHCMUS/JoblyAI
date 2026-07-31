@@ -166,7 +166,7 @@ export default function JobDetailPage() {
     );
   }
 
-  if (error || !pageData || !jobDetailProps) {
+  if (error || !pageData || !jobDetailProps || !jobData) {
     return (
       <div className="w-full bg-white flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -213,6 +213,7 @@ export default function JobDetailPage() {
             applicationId={matchingApp ? matchingApp.id : undefined}
             preShortlistEligible={preShortlistEligible}
             preShortlistState={preShortlistState}
+            job={jobData}
             onApplicationSuccess={() => setHasApplied(true)}
           />
         );

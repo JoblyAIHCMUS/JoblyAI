@@ -131,29 +131,52 @@ export class SkillsService {
   }
 
   /**
-   * Search skills by query pattern
+   * Minimum word_similarity() score (0..1) for a row to be returned.
+   * 0.4 catches up to 2-character typos on 8+ char queries
+   * (e.g. "javascrpt" -> "JavaScript" ~0.7, "postgrasql" -> "PostgreSQL" ~0.57)
+   * while still dropping noise on unrelated terms.
+   */
+  private static readonly SKILL_SEARCH_SIMILARITY_THRESHOLD = 0.4;
+
+  /**
+   * Search skills by name with 1-2 character typo tolerance, ranked by
+   * similarity. Uses PostgreSQL pg_trgm's word_similarity() against a
+   * functional GIN index on lower("name") (see migration
+   * 20260730090000_add_pg_trgm_skill_index).
+   *
+   * Returns [] for empty / whitespace / < 3 char queries (trigrams need
+   * at least 3 characters; the UI gracefully shows an empty dropdown).
    */
   async searchSkills(query: string, limit = 10): Promise<SkillResponse[]> {
-    if (!query || query.trim().length === 0) {
-      return [];
-    }
+    const trimmed = query?.trim() ?? '';
+    if (trimmed.length < 3) return [];
 
-    const searchTerm = query.trim();
+    // Filter via word_similarity() directly (NOT the `%>` operator).
+    //
+    // We originally used the `%>` operator as a prefilter, but it is bound
+    // to the `pg_trgm.word_similarity_threshold` GUC, which defaults to
+    // 0.6 server-wide — that made it impossible to lower the threshold
+    // without a session-level SET. The explicit `word_similarity() > X`
+    // predicate gives us full control of the threshold.
+    //
+    // word_similarity(arg1, arg2) = greatest similarity between arg1 and
+    // any continuous extent of arg2. We MUST use the same arg order in
+    // WHERE and ORDER BY so ranking is consistent with filtering.
+    //
+    // Per pg_trgm docs, `word_similarity()` + `LIMIT` triggers a GIN
+    // index nearest-neighbor scan, so performance is comparable to the
+    // `%>`-based plan.
+    const rows = await this.prisma.$queryRaw<
+      Array<{ id: number; name: string }>
+    >`
+      SELECT id, name
+      FROM "Skill"
+      WHERE word_similarity(lower(${trimmed}), lower("name"))
+          > ${SkillsService.SKILL_SEARCH_SIMILARITY_THRESHOLD}
+      ORDER BY word_similarity(lower(${trimmed}), lower("name")) DESC, name ASC
+      LIMIT ${limit}
+    `;
 
-    // Search skills with name containing the query (case-insensitive)
-    const skills = await this.prisma.skill.findMany({
-      where: {
-        name: {
-          contains: searchTerm,
-          mode: 'insensitive',
-        },
-      },
-      take: limit,
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return skills;
+    return rows;
   }
 }
