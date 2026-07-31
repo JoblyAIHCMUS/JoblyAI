@@ -6,10 +6,14 @@ import Link from 'next/link';
 import { Share2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
+import type { ApplicationRecord } from '@/api-client/application';
+import type { JobPosting } from '@/api-client/jobs/types';
+import { usePostSubmitEligibility } from '@/hooks/usePostSubmitEligibility';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { PreShortlistEligibilityModal } from '@/components/find-jobs/PreShortlistEligibilityModal';
 import { InterviewPrepModal } from '@/components/interview/interview-prep-modal';
 import type { EmploymentType } from '@/types/job';
 
@@ -40,6 +44,7 @@ interface JobDetailHeaderProps {
   preShortlistEligible?: boolean;
   preShortlistState?: 'NONE' | 'PENDING' | 'SUBMITTED';
   applicationId?: number;
+  job: JobPosting;
   onApplicationSuccess?: () => void;
 }
 
@@ -55,12 +60,16 @@ export default function JobDetailHeader({
   preShortlistEligible: _preShortlistEligible = false,
   preShortlistState = 'NONE',
   applicationId,
+  job,
   onApplicationSuccess,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [patternError, setPatternError] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(
+    null
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: user } = useUser();
@@ -160,6 +169,17 @@ export default function JobDetailHeader({
       toast.success('Link copied to clipboard');
     }
   };
+
+  const { handleApplicationSuccess } = usePostSubmitEligibility({
+    job,
+    onEligible: (record) => {
+      onApplicationSuccess?.();
+      setEligibleApp(record);
+    },
+    onNotEligible: () => {
+      onApplicationSuccess?.();
+    },
+  });
 
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-14 sm:pt-16 lg:pt-[72px]">
@@ -354,7 +374,7 @@ export default function JobDetailHeader({
           <SubmitApplicationModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onSuccess={onApplicationSuccess}
+            onSuccess={handleApplicationSuccess}
             job={{
               id: jobId,
               title: jobTitle,
@@ -369,6 +389,17 @@ export default function JobDetailHeader({
             onClose={() => setIsPrepModalOpen(false)}
             jobId={jobId}
             jobTitle={jobTitle}
+          />
+          <PreShortlistEligibilityModal
+            open={!!eligibleApp}
+            applicationId={eligibleApp?.id ?? null}
+            questionCount={eligibleApp?.preShortlistQuestionsCount ?? 0}
+            onClose={() => setEligibleApp(null)}
+            onAnswer={() => {
+              const id = eligibleApp?.id;
+              setEligibleApp(null);
+              if (id) router.push(`/candidate/pre-shortlist/${id}`);
+            }}
           />
         </>
       )}

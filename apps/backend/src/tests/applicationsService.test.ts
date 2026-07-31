@@ -343,7 +343,7 @@ describe('ApplicationsService', () => {
   });
 
   describe('createApplication with pre-shortlist', () => {
-    it('uses PRE_SHORTLIST_PENDING when resolveInitialStatus says so', async () => {
+    it('returns APPLIED immediately and defers pre-shortlist resolution to the background worker', async () => {
       const mockApp = createMockApplication();
       mockPrisma.jobPosting.findUnique.mockResolvedValue({
         id: 1,
@@ -355,31 +355,18 @@ describe('ApplicationsService', () => {
       });
       mockPrisma.application.findFirst.mockResolvedValue(null);
       mockPrisma.application.create.mockResolvedValue(mockApp);
-      mockPrisma.application.update.mockResolvedValue({
-        ...mockApp,
-        status: 'PRE_SHORTLIST_PENDING',
-      });
-      // First findUnique is the job; second is the resume; third is for fresh matchPercentage
-      // (after calculateExplanation). We just need the next-after-resolve call to
-      // return a non-null matchPercentage.
-      mockPrisma.application.findUnique.mockResolvedValueOnce({
-        matchPercentage: 85,
-      } as any);
-
-      mockPreShortlistService.resolveInitialStatus.mockResolvedValue(
-        'PRE_SHORTLIST_PENDING' as any
-      );
 
       const result = await service.createApplication('candidate-123', {
         jobId: 1,
         resumeId: 1,
       });
-      expect(result.status).toBe('PRE_SHORTLIST_PENDING');
-      expect(mockPrisma.application.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ status: 'PRE_SHORTLIST_PENDING' }),
-        })
-      );
+
+      // The POST returns synchronously with status APPLIED. The match-score
+      // calculation and pre-shortlist status resolution are deferred to a
+      // fire-and-forget background worker (calculateMatchScoreAndUpdateStatus)
+      // so the slow LLM call does not block the request. The frontend polls
+      // the application detail endpoint to surface the eventual status.
+      expect(result.status).toBe('APPLIED');
     });
   });
 
