@@ -11,6 +11,7 @@ import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { PreShortlistEligibilityModal } from '@/components/find-jobs/PreShortlistEligibilityModal';
 import { InterviewPrepModal } from '@/components/interview/interview-prep-modal';
 import type { EmploymentType } from '@/types/job';
 
@@ -62,6 +63,7 @@ export default function JobDetailHeader({
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [patternError, setPatternError] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: user } = useUser();
@@ -163,8 +165,13 @@ export default function JobDetailHeader({
   };
 
   const handleApplicationSuccess = (record: ApplicationRecord) => {
-    if (!record) return;
     onApplicationSuccess?.();
+    if (
+      record.status === 'PRE_SHORTLIST_PENDING' &&
+      record.preShortlistQuestionsCount > 0
+    ) {
+      setEligibleApp(record);
+    }
   };
 
   return (
@@ -375,6 +382,17 @@ export default function JobDetailHeader({
             onClose={() => setIsPrepModalOpen(false)}
             jobId={jobId}
             jobTitle={jobTitle}
+          />
+          <PreShortlistEligibilityModal
+            open={!!eligibleApp}
+            applicationId={eligibleApp?.id ?? null}
+            questionCount={eligibleApp?.preShortlistQuestionsCount ?? 0}
+            onClose={() => setEligibleApp(null)}
+            onAnswer={() => {
+              const id = eligibleApp?.id;
+              setEligibleApp(null);
+              if (id) router.push(`/candidate/pre-shortlist/${id}`);
+            }}
           />
         </>
       )}
