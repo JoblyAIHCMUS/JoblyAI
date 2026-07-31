@@ -51,14 +51,18 @@ export class MatchingController {
         return {
           ...job,
           matchPercentage: explanation.overallScore,
+          exactMatchPercentage: explanation.exactMatchScore,
         };
       })
     );
 
-    // For MOST_RELEVANT, the SQL ORDER BY used global distance; re-sort
-    // within the page by the per-requirement average so the badge order
-    // matches the score the user sees on the detail page.
-    if (query.sort === undefined || query.sort === 'MOST_RELEVANT') {
+    // Re-sort within the page so the badge order matches the score the user sees.
+    const sortBy = query.sort || 'MOST_RELEVANT';
+    if (sortBy === 'EXACT_MATCH_SCORE') {
+      enrichedJobs.sort(
+        (a, b) => (b.exactMatchPercentage ?? 0) - (a.exactMatchPercentage ?? 0)
+      );
+    } else if (sortBy === 'EMBEDDING_SCORE' || sortBy === 'MOST_RELEVANT') {
       enrichedJobs.sort(
         (a, b) => (b.matchPercentage ?? 0) - (a.matchPercentage ?? 0)
       );

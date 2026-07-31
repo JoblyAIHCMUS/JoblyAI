@@ -121,7 +121,9 @@ function FindJobsPageContent() {
 
   // --- Derived State from URL (The Source of Truth) ---
   const urlPage = Number(searchParams.get('page')) || 1;
-  const urlSort = (searchParams.get('sort') as SortOption) || 'MOST_RELEVANT';
+  const urlSort =
+    (searchParams.get('sort') as SortOption) ||
+    (searchParams.get('resumeId') ? 'EMBEDDING_SCORE' : 'MOST_RELEVANT');
   const urlQ = searchParams.get('q') || '';
   const urlResumeId = searchParams.get('resumeId');
   const urlLocation = searchParams.get('location') || '';
