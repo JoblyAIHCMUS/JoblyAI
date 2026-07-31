@@ -332,6 +332,9 @@ export class ApplicationsService {
                 email: true,
               },
             },
+            _count: {
+              select: { preShortlistQuestions: true },
+            },
           },
         },
         resume: {
