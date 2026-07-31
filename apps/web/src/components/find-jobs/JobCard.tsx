@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { ApplicationRecord } from '@/api-client/application';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
@@ -119,9 +120,10 @@ export default function JobCard({
     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
     : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
-  const handleApplicationSuccess = (message: string) => {
+  const handleApplicationSuccess = (record: ApplicationRecord) => {
     onApplySuccess?.(job.id);
-    toast.success(message);
+    if (!record) return;
+    toast.success(`Application submitted for ${job.title}`);
   };
 
   const handleApplicationError = (error: string) => {
