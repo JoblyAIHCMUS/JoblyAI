@@ -87,7 +87,9 @@ export default function JobCard({
 }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
-  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(null);
+  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(
+    null
+  );
   const { data: user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
