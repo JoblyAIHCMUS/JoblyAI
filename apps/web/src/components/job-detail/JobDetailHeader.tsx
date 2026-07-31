@@ -63,7 +63,9 @@ export default function JobDetailHeader({
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [patternError, setPatternError] = useState(false);
   const [logoError, setLogoError] = useState(false);
-  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(null);
+  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(
+    null
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: user } = useUser();
