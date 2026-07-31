@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { MapPin, Briefcase, DollarSign, Star } from 'lucide-react-native';
+import { MapPin, DollarSign, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { COLORS } from '@/app/constants/theme';
 import type { JobPosting } from '@/types/job';
@@ -13,6 +13,7 @@ interface JobCardProps {
 
 const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
   const router = useRouter();
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const employmentTypeLabel =
     {
@@ -103,16 +104,15 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
       <View className="mb-3 flex-row items-start justify-between">
         <View className="flex-1">
           <View className="mb-2 flex-row items-center gap-3">
-            {job.company.logoUrl ? (
+            {job.company.logoUrl && !logoFailed ? (
               <Image
                 source={{ uri: job.company.logoUrl }}
                 className="h-10 w-10 rounded-lg"
                 resizeMode="cover"
+                onError={() => setLogoFailed(true)}
               />
             ) : (
-              <View className="h-10 w-10 items-center justify-center rounded-lg bg-app-gray-1">
-                <Briefcase size={20} color={COLORS.gray3} />
-              </View>
+              <View className="h-10 w-10 rounded-lg bg-app-gray-1" />
             )}
             <View className="flex-1">
               <Text
@@ -125,6 +125,14 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
                 {job.category.name}
               </Text>
             </View>
+          </View>
+
+          {/* Salary */}
+          <View className="mb-2 flex-row items-center gap-2">
+            <DollarSign size={16} color={COLORS.primary2} strokeWidth={2} />
+            <Text className="text-sm font-bold text-app-primary-2">
+              {salaryRange}
+            </Text>
           </View>
 
           <View className="flex-row items-center gap-2">
@@ -151,12 +159,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
             )}
           </View>
         )}
-
-        {/* Salary */}
-        <View className="flex-row items-center gap-2">
-          <DollarSign size={16} color={COLORS.gray3} strokeWidth={2} />
-          <Text className="text-sm text-app-gray-3">{salaryRange}</Text>
-        </View>
 
         {/* Employment type and category */}
         <View className="flex-row flex-wrap items-center gap-2">
