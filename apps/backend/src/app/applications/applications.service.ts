@@ -168,35 +168,19 @@ export class ApplicationsService {
       throw new BadRequestException('Could not process application');
     }
 
-    // Calculate match explanation (deterministic score with justification)
-    try {
-      await this.matchExplanationService.calculateExplanation(application.id);
-    } catch (error) {
-      console.error(
-        `Failed to calculate match explanation for application ${application.id}:`,
-        error
-      );
-    }
-
-    // Re-load the application to get the updated matchPercentage
-    const fresh = await this.prisma.application.findUnique({
-      where: { id: application.id },
-      select: { matchPercentage: true },
-    });
-
-    // Resolve the pre-shortlist status based on threshold + match score
-    const initialStatus = await this.preShortlistService.resolveInitialStatus(
-      dto.jobId,
-      fresh?.matchPercentage ?? null
+    // Fire-and-forget the match-score calculation so the POST returns
+    // immediately. The match percentage and pre-shortlist status will be
+    // updated asynchronously when the background work completes. The
+    // frontend polls the application detail endpoint to surface the new
+    // status (pre-shortlist eligibility modal).
+    this.calculateMatchScoreAndUpdateStatus(application.id, dto.jobId).catch(
+      (error) => {
+        console.error(
+          `Background match score failed for application ${application.id}:`,
+          error,
+        );
+      },
     );
-
-    if (initialStatus !== application.status) {
-      application = await this.prisma.application.update({
-        where: { id: application.id },
-        data: { status: initialStatus },
-        include,
-      });
-    }
 
     try {
       this.eventEmitter.emit('job.viewed', { jobId: job.id });
@@ -224,6 +208,45 @@ export class ApplicationsService {
     ]);
 
     return this.mapToApplicationResponse(application);
+  }
+
+  /**
+   * Background worker: calculates the match score for an application and
+   * promotes its status to PRE_SHORTLIST_PENDING if the candidate is
+   * eligible. Called fire-and-forget from createApplication so the POST
+   * response is not blocked on the slow LLM call. Any error is caught
+   * and logged; the application stays in APPLIED status.
+   */
+  private async calculateMatchScoreAndUpdateStatus(
+    applicationId: number,
+    jobId: number,
+  ): Promise<void> {
+    try {
+      await this.matchExplanationService.calculateExplanation(applicationId);
+    } catch (error) {
+      console.error(
+        `Failed to calculate match explanation for application ${applicationId}:`,
+        error,
+      );
+      return;
+    }
+
+    const fresh = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { matchPercentage: true },
+    });
+
+    const initialStatus = await this.preShortlistService.resolveInitialStatus(
+      jobId,
+      fresh?.matchPercentage ?? null,
+    );
+
+    if (initialStatus === ApplicationStatus.PRE_SHORTLIST_PENDING) {
+      await this.prisma.application.update({
+        where: { id: applicationId },
+        data: { status: initialStatus },
+      });
+    }
   }
 
   async listApplications(
