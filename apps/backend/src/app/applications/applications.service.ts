@@ -177,9 +177,9 @@ export class ApplicationsService {
       (error) => {
         console.error(
           `Background match score failed for application ${application.id}:`,
-          error,
+          error
         );
-      },
+      }
     );
 
     try {
@@ -219,14 +219,14 @@ export class ApplicationsService {
    */
   private async calculateMatchScoreAndUpdateStatus(
     applicationId: number,
-    jobId: number,
+    jobId: number
   ): Promise<void> {
     try {
       await this.matchExplanationService.calculateExplanation(applicationId);
     } catch (error) {
       console.error(
         `Failed to calculate match explanation for application ${applicationId}:`,
-        error,
+        error
       );
       return;
     }
@@ -238,7 +238,7 @@ export class ApplicationsService {
 
     const initialStatus = await this.preShortlistService.resolveInitialStatus(
       jobId,
-      fresh?.matchPercentage ?? null,
+      fresh?.matchPercentage ?? null
     );
 
     if (initialStatus === ApplicationStatus.PRE_SHORTLIST_PENDING) {
