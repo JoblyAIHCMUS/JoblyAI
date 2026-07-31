@@ -7,6 +7,8 @@ import { Share2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ApplicationRecord } from '@/api-client/application';
+import type { JobPosting } from '@/api-client/jobs/types';
+import { usePostSubmitEligibility } from '@/hooks/usePostSubmitEligibility';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
@@ -42,6 +44,7 @@ interface JobDetailHeaderProps {
   preShortlistEligible?: boolean;
   preShortlistState?: 'NONE' | 'PENDING' | 'SUBMITTED';
   applicationId?: number;
+  job: JobPosting;
   onApplicationSuccess?: () => void;
 }
 
@@ -57,6 +60,7 @@ export default function JobDetailHeader({
   preShortlistEligible: _preShortlistEligible = false,
   preShortlistState = 'NONE',
   applicationId,
+  job,
   onApplicationSuccess,
 }: JobDetailHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -166,15 +170,16 @@ export default function JobDetailHeader({
     }
   };
 
-  const handleApplicationSuccess = (record: ApplicationRecord) => {
-    onApplicationSuccess?.();
-    if (
-      record.status === 'PRE_SHORTLIST_PENDING' &&
-      record.preShortlistQuestionsCount > 0
-    ) {
+  const { handleApplicationSuccess } = usePostSubmitEligibility({
+    job,
+    onEligible: (record) => {
+      onApplicationSuccess?.();
       setEligibleApp(record);
-    }
-  };
+    },
+    onNotEligible: () => {
+      onApplicationSuccess?.();
+    },
+  });
 
   return (
     <section className="relative overflow-hidden bg-[#F8F8FD] pt-14 sm:pt-16 lg:pt-[72px]">
