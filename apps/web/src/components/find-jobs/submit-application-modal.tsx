@@ -21,6 +21,7 @@ import { SubmitApplicationSchema } from '@/lib/validation';
 import type { SubmitApplicationFormData } from '@/lib/validation';
 import { z } from 'zod';
 import Link from 'next/link';
+import type { ApplicationRecord } from '@/api-client/application';
 import { useCreateApplication } from '@/api-hook/application/useCreateApplication';
 import { useUploadFile } from '@/api-hook/gcs';
 import {
@@ -60,7 +61,7 @@ interface SubmitApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   job: JobApplication;
-  onSuccess?: (message: string) => void;
+  onSuccess?: (record: ApplicationRecord) => void;
   onError?: (error: string) => void;
 }
 
@@ -166,9 +167,9 @@ export const SubmitApplicationModal = ({
   const { submitApplication, loading: applicationLoading } =
     useCreateApplication({
       onSuccess: (data) => {
-        const successMsg = `Application submitted successfully for job`;
+        const successMsg = `Application submitted successfully for ${job.title}`;
         setApplicationSubmitSuccess(successMsg);
-        onSuccess?.(successMsg);
+        onSuccess?.(data);
         reset();
         setUploadedFile(null);
         setApplicationSubmitError(null);

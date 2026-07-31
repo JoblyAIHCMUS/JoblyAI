@@ -6,14 +6,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { ApplicationRecord } from '@/api-client/application';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
+import { PreShortlistEligibilityModal } from '@/components/find-jobs/PreShortlistEligibilityModal';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePostSubmitEligibility } from '@/hooks/usePostSubmitEligibility';
 import { useUser } from '@/hooks/useUser';
 
 function formatJobType(type: string): string {
@@ -85,6 +88,9 @@ export default function JobCard({
 }: JobCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [eligibleApp, setEligibleApp] = useState<ApplicationRecord | null>(
+    null
+  );
   const { data: user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,10 +125,17 @@ export default function JobCard({
     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
     : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer';
 
-  const handleApplicationSuccess = (message: string) => {
-    onApplySuccess?.(job.id);
-    toast.success(message);
-  };
+  const { handleApplicationSuccess } = usePostSubmitEligibility({
+    job,
+    onEligible: (record) => {
+      onApplySuccess?.(job.id);
+      setEligibleApp(record);
+    },
+    onNotEligible: () => {
+      onApplySuccess?.(job.id);
+      toast.success(`Application submitted for ${job.title}`);
+    },
+  });
 
   const handleApplicationError = (error: string) => {
     toast.error(error);
@@ -267,20 +280,33 @@ export default function JobCard({
       </article>
 
       {canApplyRole ? (
-        <SubmitApplicationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          job={{
-            id: job.id,
-            title: job.title,
-            company: job.company.name,
-            location: job.location,
-            jobType: job.type,
-            logoUrl: job.company.logoUrl || undefined,
-          }}
-          onSuccess={handleApplicationSuccess}
-          onError={handleApplicationError}
-        />
+        <>
+          <SubmitApplicationModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            job={{
+              id: job.id,
+              title: job.title,
+              company: job.company.name,
+              location: job.location,
+              jobType: job.type,
+              logoUrl: job.company.logoUrl || undefined,
+            }}
+            onSuccess={handleApplicationSuccess}
+            onError={handleApplicationError}
+          />
+          <PreShortlistEligibilityModal
+            open={!!eligibleApp}
+            applicationId={eligibleApp?.id ?? null}
+            questionCount={eligibleApp?.preShortlistQuestionsCount ?? 0}
+            onClose={() => setEligibleApp(null)}
+            onAnswer={() => {
+              const id = eligibleApp?.id;
+              setEligibleApp(null);
+              if (id) router.push(`/candidate/pre-shortlist/${id}`);
+            }}
+          />
+        </>
       ) : null}
     </>
   );

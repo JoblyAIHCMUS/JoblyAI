@@ -17,14 +17,12 @@ COPY eslint.config.mjs .prettierrc .prettierignore ./
 # Copy ALL package.json files for workspace discovery BEFORE install
 COPY apps/web/package.json ./apps/web/
 COPY apps/backend/package.json ./apps/backend/
-COPY libs/shared-types/package.json ./libs/shared-types/
 
 # Install all dependencies first
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY apps/web ./apps/web
-COPY libs ./libs
 
 # Build Next.js
 ENV CI=true
