@@ -259,6 +259,7 @@ export class MatchingService {
         return {
           job: this.mapToJobResponse(jobDetail),
           matchPercentage: 0,
+          exactMatchPercentage: 0,
           scored: false,
         };
       })
@@ -283,21 +284,29 @@ export class MatchingService {
       const scored = newScores.get(item.job.id);
       if (scored?.scored) {
         item.matchPercentage = scored.overallScore;
+        item.exactMatchPercentage = scored.exactMatchScore;
         item.scored = true;
       }
     }
 
-    sortedJobs.sort((a, b) => {
-      if (a.scored !== b.scored) {
-        return a.scored ? -1 : 1;
-      }
-      return b.matchPercentage - a.matchPercentage;
-    });
+    const sortBy = query.sort || 'MOST_RELEVANT';
+    if (sortBy === 'EXACT_MATCH_SCORE') {
+      sortedJobs.sort((a, b) => {
+        if (a.scored !== b.scored) return a.scored ? -1 : 1;
+        return (b.exactMatchPercentage ?? 0) - (a.exactMatchPercentage ?? 0);
+      });
+    } else if (sortBy === 'EMBEDDING_SCORE' || sortBy === 'MOST_RELEVANT') {
+      sortedJobs.sort((a, b) => {
+        if (a.scored !== b.scored) return a.scored ? -1 : 1;
+        return (b.matchPercentage ?? 0) - (a.matchPercentage ?? 0);
+      });
+    }
 
     return {
       jobs: sortedJobs.map((item) => ({
         ...item.job,
         matchPercentage: item.matchPercentage,
+        exactMatchPercentage: item.exactMatchPercentage,
       })),
       total,
       page,

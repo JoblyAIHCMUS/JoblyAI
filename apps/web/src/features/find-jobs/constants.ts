@@ -8,6 +8,19 @@ export const SORT_OPTIONS: SortOption[] = [
   'SALARY_DESC',
 ];
 
+export const RESUME_SORT_OPTIONS: SortOption[] = [
+  'EMBEDDING_SCORE',
+  'EXACT_MATCH_SCORE',
+  'NEWEST',
+  'OLDEST',
+  'SALARY_ASC',
+  'SALARY_DESC',
+];
+
+export function getSortOptions(hasResume: boolean): SortOption[] {
+  return hasResume ? RESUME_SORT_OPTIONS : SORT_OPTIONS;
+}
+
 export const FILTER_GROUPS: FilterGroupData[] = [
   {
     title: 'Type of Employment',
