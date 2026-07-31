@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Share2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
+import type { ApplicationRecord } from '@/api-client/application';
 import { useUser } from '@/hooks/useUser';
 import { sanitizeRedirectPath } from '@/lib/utils';
 import { formatJobType } from '@/features/find-jobs/job-detail/job.utils';
@@ -159,6 +160,11 @@ export default function JobDetailHeader({
       await navigator.clipboard.writeText(fallbackUrl);
       toast.success('Link copied to clipboard');
     }
+  };
+
+  const handleApplicationSuccess = (record: ApplicationRecord) => {
+    if (!record) return;
+    onApplicationSuccess?.();
   };
 
   return (
@@ -354,7 +360,7 @@ export default function JobDetailHeader({
           <SubmitApplicationModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onSuccess={onApplicationSuccess}
+            onSuccess={handleApplicationSuccess}
             job={{
               id: jobId,
               title: jobTitle,
