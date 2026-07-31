@@ -23,6 +23,7 @@ import { COLORS } from '@/app/constants/theme';
 import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
 import SortDropdown from './components/SortDropdown';
+import FilterButton from './components/FilterButton';
 import FilterPanel from './components/FilterPanel';
 import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
 import AppSidebar from '@/app/components/AppSidebar';
@@ -228,6 +229,15 @@ function FindJobsPage() {
     setFilterPanelOpen(false);
   };
 
+  const activeFilterCount =
+    (urlTypes.length > 0 ? 1 : 0) +
+    (urlCategories.length > 0 ? 1 : 0) +
+    (urlMinSalary > 0 ||
+    urlMaxSalary < capFor(urlSalaryCurrency) ||
+    urlSalaryCurrency !== null
+      ? 1
+      : 0);
+
   const handleReset = () => {
     setLocalSearchTerm('');
     setLocalLocation('');
@@ -278,35 +288,27 @@ function FindJobsPage() {
             </Text>
           </View>
 
-          {/* Search Bar */}
-          <SearchBar
-            searchTerm={localSearchTerm}
-            location={localLocation}
-            onSearchTermChange={setLocalSearchTerm}
-            onLocationChange={setLocalLocation}
-          />
-
-          {/* Filter and Sort Controls */}
-          <View className="flex-row gap-2 px-4 py-3">
-            <TouchableOpacity
+          {/* Search Row: search + location + filter button */}
+          <View className="flex-row items-center gap-2 bg-white px-4 pb-2 pt-2">
+            <SearchBar
+              searchTerm={localSearchTerm}
+              location={localLocation}
+              onSearchTermChange={setLocalSearchTerm}
+              onLocationChange={setLocalLocation}
+            />
+            <FilterButton
+              count={activeFilterCount}
               onPress={() => setFilterPanelOpen(true)}
-              className="flex-1 rounded-lg border border-app-gray-1 bg-white px-4 py-3"
-            >
-              <Text className="text-center text-sm font-semibold text-app-dark-text">
-                Filters
-              </Text>
-            </TouchableOpacity>
-            <View className="flex-1">
-              <SortDropdown
-                selectedSort={urlSort}
-                onSortChange={handleSelectSort}
-              />
-            </View>
+            />
           </View>
 
-          {/* Results count */}
-          <View className="px-4 py-2">
+          {/* Results count + Sort */}
+          <View className="flex-row items-center justify-between bg-white px-4 pb-2">
             <Text className="text-sm text-app-gray-3">{total} jobs found</Text>
+            <SortDropdown
+              selectedSort={urlSort}
+              onSortChange={handleSelectSort}
+            />
           </View>
 
           {/* Jobs List */}
