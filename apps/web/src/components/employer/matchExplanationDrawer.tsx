@@ -6,13 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Loader2,
   RefreshCw,
   CheckCircle2,
@@ -43,24 +36,18 @@ export function MatchExplanationDrawer({
   const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
   const [loading, setLoading] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
-  const [scoringMode, setScoringMode] = useState<'exact' | 'embedding'>(
-    'embedding'
-  );
   const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && applicationId) {
       fetchExplanation();
     }
-  }, [isOpen, applicationId, scoringMode]);
+  }, [isOpen, applicationId]);
 
   const fetchExplanation = async () => {
     setLoading(true);
     try {
-      const data = await getMatchExplanation(
-        Number(applicationId),
-        scoringMode
-      );
+      const data = await getMatchExplanation(Number(applicationId));
       setExplanation(data);
     } catch (error) {
       console.error('Failed to fetch match explanation:', error);
@@ -72,10 +59,7 @@ export function MatchExplanationDrawer({
   const handleRecalculate = async () => {
     setRecalculating(true);
     try {
-      const data = await recalculateMatchExplanation(
-        Number(applicationId),
-        scoringMode
-      );
+      const data = await recalculateMatchExplanation(Number(applicationId));
       setExplanation(data);
     } catch (error) {
       console.error('Failed to recalculate match explanation:', error);
@@ -125,20 +109,6 @@ export function MatchExplanationDrawer({
             >
               <Info className="h-4 w-4" />
             </Button>
-            <Select
-              value={scoringMode}
-              onValueChange={(value: 'exact' | 'embedding') =>
-                setScoringMode(value)
-              }
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="exact">Exact Match</SelectItem>
-                <SelectItem value="embedding">Embedding</SelectItem>
-              </SelectContent>
-            </Select>
             <Button
               variant="outline"
               size="sm"
@@ -165,35 +135,44 @@ export function MatchExplanationDrawer({
             </div>
           ) : explanation ? (
             <div className="space-y-6 pr-2.5">
-              {/* Score */}
-              <div className="rounded-lg border p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <h3 className="font-semibold">
-                    {scoringMode === 'exact'
-                      ? 'Exact Match Score'
-                      : 'Embedding Score'}
-                  </h3>
+              {/* Score — Side by Side */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <h3 className="font-semibold">Embedding Score</h3>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className={`text-4xl font-bold ${getScoreColor(
+                        (explanation.overallScore ?? 0) / 100
+                      )}`}
+                    >
+                      {(explanation.overallScore ?? 0).toFixed(2)}%
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      semantic similarity
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className={`text-4xl font-bold ${getScoreColor(
-                      (scoringMode === 'exact'
-                        ? explanation.exactMatchScore ?? 0
-                        : explanation.overallScore ?? 0) / 100
-                    )}`}
-                  >
-                    {(scoringMode === 'exact'
-                      ? explanation.exactMatchScore ?? 0
-                      : explanation.overallScore ?? 0
-                    ).toFixed(2)}
-                    %
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {scoringMode === 'exact'
-                      ? 'requirements met'
-                      : 'semantic similarity'}
-                  </span>
+
+                <div className="rounded-lg border p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                    <h3 className="font-semibold">Exact Match Score</h3>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className={`text-4xl font-bold ${getScoreColor(
+                        (explanation.exactMatchScore ?? 0) / 100
+                      )}`}
+                    >
+                      {(explanation.exactMatchScore ?? 0).toFixed(2)}%
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      requirements met
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -215,80 +194,103 @@ export function MatchExplanationDrawer({
 
               <Separator />
 
-              {/* Requirement Breakdown */}
+              {/* Requirement Breakdown — Side by Side */}
               <div>
                 <div className="mb-3 flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-green-500" />
                   <h3 className="font-semibold">Requirements</h3>
-                  <Badge variant="outline" className="ml-auto text-xs">
-                    {scoringMode === 'exact'
-                      ? 'Exact match only'
-                      : 'Embedding only'}
-                  </Badge>
                 </div>
-                <div className="space-y-3">
-                  {explanation.requirementMatches.map((req, index) => (
-                    <div key={index} className="rounded-lg border p-3">
-                      <div className="mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{req.skillName}</span>
-                          {getImportanceBadge(req.importance)}
-                        </div>
-                        {req.hardConstraintMet && (
-                          <Badge
-                            variant="default"
-                            className="bg-green-500 text-white hover:bg-green-600"
-                          >
-                            <CheckCircle2 className="mr-1 h-3 w-3" />
-                            Strong Match
-                          </Badge>
-                        )}
-                      </div>
-                      {req.minYearsRequired ? (
-                        <div className="mb-1 text-xs text-muted-foreground">
-                          Min experience: {req.minYearsRequired} years
-                        </div>
-                      ) : null}
-
-                      {/* Hard constraint status - show in exact mode */}
-                      {scoringMode === 'exact' && (
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            Hard constraint:
-                          </span>
-                          <span
-                            className={`text-sm font-semibold ${
-                              req.hardConstraintMet
-                                ? 'text-green-600'
-                                : 'text-red-600'
-                            }`}
-                          >
-                            {req.hardConstraintMet ? 'Met' : 'Not met'}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Embedding similarity - show in embedding mode */}
-                      {scoringMode === 'embedding' && (
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            Similarity:
-                          </span>
-                          <span
-                            className={`text-sm font-semibold ${getScoreColor(
-                              req.embeddingSimilarity
-                            )}`}
-                          >
-                            {`${(req.embeddingSimilarity * 100).toFixed(2)}%`}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="text-sm text-muted-foreground">
-                        {req.justification}
-                      </div>
+                <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr]">
+                  {/* Embedding column */}
+                  <div>
+                    <div className="mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        Embedding
+                      </Badge>
                     </div>
-                  ))}
+                    <div className="space-y-2">
+                      {explanation.requirementMatches.map((req, index) => (
+                        <div
+                          key={`emb-${index}`}
+                          className="rounded-lg border p-3"
+                        >
+                          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {req.skillName}
+                              </span>
+                              {getImportanceBadge(req.importance)}
+                            </div>
+                            <span
+                              className={`text-sm font-semibold ${getScoreColor(
+                                req.embeddingSimilarity
+                              )}`}
+                            >
+                              {(req.embeddingSimilarity * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                          {req.minYearsRequired ? (
+                            <div className="text-xs text-muted-foreground">
+                              Min experience: {req.minYearsRequired} years
+                            </div>
+                          ) : null}
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            {req.justification}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator
+                    orientation="vertical"
+                    className="hidden sm:block"
+                  />
+
+                  {/* Exact Match column */}
+                  <div>
+                    <div className="mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        Exact Match
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      {explanation.requirementMatches.map((req, index) => (
+                        <div
+                          key={`exact-${index}`}
+                          className="rounded-lg border p-3"
+                        >
+                          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {req.skillName}
+                              </span>
+                              {getImportanceBadge(req.importance)}
+                            </div>
+                            {req.hardConstraintMet ? (
+                              <Badge
+                                variant="default"
+                                className="bg-green-500 text-white hover:bg-green-600"
+                              >
+                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                Met
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">Not met</Badge>
+                            )}
+                          </div>
+                          {req.minYearsRequired ? (
+                            <div className="text-xs text-muted-foreground">
+                              Min experience: {req.minYearsRequired} years
+                            </div>
+                          ) : null}
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            {req.justification}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
