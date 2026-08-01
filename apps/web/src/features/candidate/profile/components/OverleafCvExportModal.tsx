@@ -30,10 +30,10 @@ export function OverleafCvExportModal({
           <div>
             <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-600" />
-              Xem trước CV chuẩn PDF (Overleaf Style)
+              CV Preview
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 mt-1">
-              Hồ sơ của bạn được tự động dàn trang chuẩn A4 và ngắt trang thông minh để không bị đứt dòng chữ.
+              Your profile is automatically formatted into standard A4.
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -52,7 +52,7 @@ export function OverleafCvExportModal({
             onClick={onClose}
             className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-md transition-colors"
           >
-            Đóng
+            Close
           </button>
 
           <button
@@ -63,7 +63,7 @@ export function OverleafCvExportModal({
             className="flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-md transition-colors shadow-md cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            {isExportingPdf ? 'Đang xuất PDF...' : 'Tải File PDF'}
+            {isExportingPdf ? 'Exporting PDF...' : 'Download PDF'}
           </button>
         </DialogFooter>
       </DialogContent>
