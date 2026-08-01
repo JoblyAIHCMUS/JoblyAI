@@ -204,7 +204,9 @@ export default function ProfileHeader({
                   title="Export Profile in Overleaf Style PDF"
                 >
                   <Download size={16} />
-                  <span>{isExportingPdf ? 'Exporting PDF...' : 'Export CV (PDF)'}</span>
+                  <span>
+                    {isExportingPdf ? 'Exporting PDF...' : 'Export CV (PDF)'}
+                  </span>
                 </button>
               )}
               <button

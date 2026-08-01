@@ -1,5 +1,12 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Download, Sparkles } from 'lucide-react';
 import type { CandidateProfileUI } from '../types';
 import { ProfilePdfTemplate } from './ProfilePdfTemplate';
@@ -42,7 +49,11 @@ export function OverleafCvExportModal({
         <div className="flex-1 overflow-y-auto p-6 bg-slate-100/60 m-0">
           <div className="flex flex-col items-center gap-4">
             <div className="bg-white shadow-xl rounded border border-slate-300 overflow-hidden max-w-full">
-              <ProfilePdfTemplate ref={pdfRef} candidate={candidate} aboutText={aboutText} />
+              <ProfilePdfTemplate
+                ref={pdfRef}
+                candidate={candidate}
+                aboutText={aboutText}
+              />
             </div>
           </div>
         </div>

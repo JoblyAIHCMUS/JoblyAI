@@ -1237,7 +1237,16 @@ const CandidateProfilePage = () => {
       />
 
       {/* Dedicated off-screen container for direct PDF file export */}
-      <div style={{ position: 'fixed', left: '-9999px', top: '0', width: '794px', zIndex: -9999, pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: '0',
+          width: '794px',
+          zIndex: -9999,
+          pointerEvents: 'none',
+        }}
+      >
         <ProfilePdfTemplate
           ref={pdfContainerRef}
           candidate={candidate}
