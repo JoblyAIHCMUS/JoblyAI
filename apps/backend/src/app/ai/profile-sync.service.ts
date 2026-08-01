@@ -187,6 +187,64 @@ export class ProfileSyncService {
     const resumeEmbedding = await this.aiProvider.generateEmbedding(resumeText);
 
     return this.prisma.$transaction(async (tx) => {
+      // 0. Delete any existing profile items that the user explicitly removed in the sync compare draft
+      const removedMap = (data as any)?.removedExistingIds as
+        | Record<string, (string | number)[]>
+        | undefined;
+
+      if (removedMap) {
+        const { experience: delExp, education: delEdu, skills: delSkills, certificates: delCert, contacts: delContact, socials: delSocial } = removedMap;
+
+        if (delExp && delExp.length > 0) {
+          const validIds = delExp.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.experience.deleteMany({
+              where: { id: { in: validIds }, candidateId },
+            });
+          }
+        }
+        if (delEdu && delEdu.length > 0) {
+          const validIds = delEdu.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.education.deleteMany({
+              where: { id: { in: validIds }, candidateId },
+            });
+          }
+        }
+        if (delSkills && delSkills.length > 0) {
+          const validIds = delSkills.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.candidateSkill.deleteMany({
+              where: { skillId: { in: validIds }, candidateId },
+            });
+          }
+        }
+        if (delCert && delCert.length > 0) {
+          const validIds = delCert.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.certificate.deleteMany({
+              where: { id: { in: validIds }, candidateId },
+            });
+          }
+        }
+        if (delContact && delContact.length > 0) {
+          const validIds = delContact.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.candidateContact.deleteMany({
+              where: { id: { in: validIds }, candidateId },
+            });
+          }
+        }
+        if (delSocial && delSocial.length > 0) {
+          const validIds = delSocial.filter((id) => typeof id === 'number') as number[];
+          if (validIds.length > 0) {
+            await tx.candidateSocial.deleteMany({
+              where: { id: { in: validIds }, candidateId },
+            });
+          }
+        }
+      }
+
       // 1.1 Update description record (Regular fields)
       await tx.candidateDescription.upsert({
         where: { candidateId },
