@@ -11,7 +11,13 @@ import type { JobPosting } from '@/types/job';
 import RequiredSkills from './RequiredSkills';
 
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
-  body: { color: '#6B7280', fontSize: 14, lineHeight: 20, marginTop: 0, marginBottom: 0 },
+  body: {
+    color: '#6B7280',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 0,
+    marginBottom: 0,
+  },
   h2: {
     fontSize: 24,
     fontWeight: '700',

@@ -108,22 +108,13 @@ export function normalizeDescriptionHtml(description: string): string {
   if (!description || typeof description !== 'string') return '';
 
   return description
-    .replace(
-      /<p[^>]*>(?:\s|&nbsp;|&#10;|&#xA;|<br\s*\/?>)*<\/p>/gi,
-      ''
-    )
+    .replace(/<p[^>]*>(?:\s|&nbsp;|&#10;|&#xA;|<br\s*\/?>)*<\/p>/gi, '')
     .replace(
       /(<\/(?:p|div|ul|ol|h[1-6]|blockquote|pre|section)>)(?:(?:\s|&nbsp;|&#10;|&#xA;)*<br\s*\/?>)+(?:\s|&nbsp;|&#10;|&#xA;)*(?=<(?:p|div|ul|ol|h[1-6]|blockquote|pre|section)\b)/gi,
       '$1'
     )
-    .replace(
-      /^(?:(?:\s|&nbsp;|&#10;|&#xA;)*<br\s*\/?>)+/i,
-      ''
-    )
-    .replace(
-      /(?:<br\s*\/?>\s*)+$/i,
-      ''
-    )
+    .replace(/^(?:(?:\s|&nbsp;|&#10;|&#xA;)*<br\s*\/?>)+/i, '')
+    .replace(/(?:<br\s*\/?>\s*)+$/i, '')
     .replace(/(?:&(?:#10|#xA);)+(?=\s*<)/gi, '')
     .replace(/(?:&(?:#10|#xA);)+\s*$/gi, '')
     .trim();

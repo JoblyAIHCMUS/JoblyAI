@@ -41,13 +41,8 @@ const IMPORTANCE_GROUPS = [
  * Receives all data as props and renders UI without any business logic or hooks.
  */
 export default function JobDetailContent(props: JobDetailContentProps) {
-  const {
-    description,
-    formattedSalary,
-    aboutRole,
-    category,
-    requiredSkills,
-  } = props;
+  const { description, formattedSalary, aboutRole, category, requiredSkills } =
+    props;
 
   return (
     <section className="bg-white">
