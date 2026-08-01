@@ -7,13 +7,11 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   ActivityIndicator,
   Image,
   Alert,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from '@react-native-documents/picker';
 import { COLORS } from '@/app/constants/theme';
 import { useApplyToJob } from '@/hooks/useApplyToJob';
@@ -41,8 +39,6 @@ export default function ApplyJobModal({
   job,
   onSuccess,
 }: ApplyJobModalProps) {
-  const [jobTitle, setJobTitle] = useState('');
-  const [coverLetter, setCoverLetter] = useState('');
   const [resumeOptions, setResumeOptions] = useState<ResumeChoice[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [loadingResumes, setLoadingResumes] = useState(false);
@@ -99,8 +95,6 @@ export default function ApplyJobModal({
 
   useEffect(() => {
     if (visible) {
-      setJobTitle('');
-      setCoverLetter('');
       setResumeOptions([]);
       setSelectedResumeId(null);
       loadResumes();
@@ -290,51 +284,7 @@ export default function ApplyJobModal({
               </Text>
             </View>
 
-            {/* Job Title Field */}
-            <View className="mb-4">
-              <Text className="mb-2 text-sm font-semibold text-app-dark-text">
-                Current or previous job title
-              </Text>
-              <TextInput
-                value={jobTitle}
-                onChangeText={setJobTitle}
-                placeholder="What's your current or previous job title?"
-                placeholderTextColor={COLORS.textPlaceholder}
-                className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
-                maxLength={200}
-              />
-            </View>
 
-            <View className="border-b border-app-gray-1" />
-
-            {/* Cover Letter Field */}
-            <View className="my-4">
-              <Text className="mb-2 text-sm font-semibold text-app-dark-text">
-                Additional information/Cover letter
-              </Text>
-              <TextInput
-                value={coverLetter}
-                onChangeText={setCoverLetter}
-                placeholder="Add a cover letter or anything else you want to share"
-                placeholderTextColor={COLORS.textPlaceholder}
-                multiline
-                numberOfLines={5}
-                textAlignVertical="top"
-                maxLength={1000}
-                className="rounded-lg border border-app-gray-1 bg-white px-4 py-3 text-sm text-app-dark-text"
-                style={{ minHeight: 100 }}
-              />
-              <View className="mt-2 flex-row items-center justify-between">
-                <Text className="text-xs text-app-gray-3">
-                  Maximum 1000 characters
-                </Text>
-                <Text className="text-xs text-app-gray-3">
-                  {coverLetter.length} / 1000
-                </Text>
-              </View>
-            </View>
-
-            <View className="border-b border-app-gray-1" />
 
             {/* Resume Section */}
             <View className="py-4">

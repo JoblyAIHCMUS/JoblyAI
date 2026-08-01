@@ -135,12 +135,6 @@ export default function ApplicantDetails({
                 Resume
               </TabsTrigger>
               <TabsTrigger
-                value="cover-letter"
-                className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
-              >
-                Cover Letter
-              </TabsTrigger>
-              <TabsTrigger
                 value="hiring-process"
                 className="text-xs sm:text-sm py-2 px-2 sm:px-3 whitespace-nowrap"
               >
@@ -167,12 +161,6 @@ export default function ApplicantDetails({
 
             <TabsContent value="resume" className="mt-4 sm:mt-6">
               <ApplicantResumeViewer fileKey={applicant.resume} />
-            </TabsContent>
-
-            <TabsContent value="cover-letter" className="mt-4 sm:mt-6">
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Cover letter details coming soon.
-              </p>
             </TabsContent>
 
             <TabsContent value="hiring-process" className="mt-4 sm:mt-6">
