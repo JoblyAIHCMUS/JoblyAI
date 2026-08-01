@@ -1,7 +1,6 @@
 import type { JobDetailContentProps } from '@/types/jobDetail';
 import type { JobPosting } from '@/types/job';
 import {
-  parseDescription,
   calculateApplicationProgress,
   formatSalary,
   getCategoryColor,
@@ -11,7 +10,7 @@ import {
 
 /**
  * Maps a JobPosting from the API to JobDetailContentProps for the UI.
- * Handles all data transformation including parsing, formatting, and validation.
+ * Handles all data transformation, formatting, and validation.
  *
  * This is the clean architecture boundary:
  * - Input: API response (JobPosting)
@@ -23,7 +22,6 @@ export function mapJobPostingToDetailContent(
   appliedCount = 0,
   capacity = 1 // Default to 1 to avoid division by zero in progress calculation
 ): JobDetailContentProps {
-  const descriptionContent = parseDescription(job.description);
   const applicationProgress = calculateApplicationProgress(
     appliedCount,
     capacity
@@ -39,7 +37,7 @@ export function mapJobPostingToDetailContent(
   const postedOn = formatDate(job.createdAt);
 
   return {
-    descriptionContent,
+    description: job.description,
     aboutRole: {
       appliedCount,
       capacity,

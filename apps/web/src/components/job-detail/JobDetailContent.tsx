@@ -1,31 +1,6 @@
-import { CheckCircle2 } from 'lucide-react';
-import DOMPurify from 'dompurify';
 import type { JobDetailContentProps } from '@/types/jobDetail';
 import { RichTextContent } from '@/components/ui/rich-text-content';
-
-function CheckItem({ text }: { text: string }) {
-  // Handle both plain text and HTML content from editor
-  const sanitized = DOMPurify.sanitize(text, {
-    ALLOWED_TAGS: ['strong', 'em', 'u', 's', 'code', 'a'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
-  });
-
-  const isHtml = sanitized !== text || text.includes('<');
-
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-      {isHtml ? (
-        <p
-          className="text-sm sm:text-base leading-6 text-slate-900 [&_a]:text-indigo-600 [&_a]:hover:underline"
-          dangerouslySetInnerHTML={{ __html: sanitized }}
-        />
-      ) : (
-        <p className="text-sm sm:text-base leading-6 text-slate-900">{text}</p>
-      )}
-    </div>
-  );
-}
+import { normalizeDescriptionHtml } from '@/lib/utils';
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -55,26 +30,6 @@ function CategoryPill({
   );
 }
 
-/**
- * Renders content that can be either plain text list items or rich HTML.
- * Supports both legacy (string[]) and modern (string/HTML) formats.
- */
-function RichContentSection({ content }: { content: string[] | string }) {
-  // If content is a string (HTML), render it as rich content
-  if (typeof content === 'string') {
-    return <RichTextContent html={content} />;
-  }
-
-  // If content is an array, render each item with CheckItem
-  return (
-    <div className="flex flex-col gap-2">
-      {content.map((item) => (
-        <CheckItem key={item} text={item} />
-      ))}
-    </div>
-  );
-}
-
 const IMPORTANCE_GROUPS = [
   { value: 'REQUIRED', label: 'Required', headingClass: 'text-red-700' },
   { value: 'PREFERRED', label: 'Preferred', headingClass: 'text-amber-700' },
@@ -87,7 +42,7 @@ const IMPORTANCE_GROUPS = [
  */
 export default function JobDetailContent(props: JobDetailContentProps) {
   const {
-    descriptionContent,
+    description,
     formattedSalary,
     aboutRole,
     category,
@@ -103,45 +58,8 @@ export default function JobDetailContent(props: JobDetailContentProps) {
             {/* Description */}
             <div className="flex flex-col gap-4">
               <SectionHeading>Description</SectionHeading>
-              <RichTextContent html={descriptionContent.overview} />
+              <RichTextContent html={normalizeDescriptionHtml(description)} />
             </div>
-
-            {/* Responsibilities */}
-            {descriptionContent.responsibilities &&
-              (Array.isArray(descriptionContent.responsibilities)
-                ? descriptionContent.responsibilities.length > 0
-                : descriptionContent.responsibilities) && (
-                <div className="flex flex-col gap-4">
-                  <SectionHeading>Responsibilities</SectionHeading>
-                  <RichContentSection
-                    content={descriptionContent.responsibilities}
-                  />
-                </div>
-              )}
-
-            {/* Who You Are */}
-            {descriptionContent.whoYouAre &&
-              (Array.isArray(descriptionContent.whoYouAre)
-                ? descriptionContent.whoYouAre.length > 0
-                : descriptionContent.whoYouAre) && (
-                <div className="flex flex-col gap-4">
-                  <SectionHeading>Who You Are</SectionHeading>
-                  <RichContentSection content={descriptionContent.whoYouAre} />
-                </div>
-              )}
-
-            {/* Nice-To-Haves */}
-            {descriptionContent.niceToHaves &&
-              (Array.isArray(descriptionContent.niceToHaves)
-                ? descriptionContent.niceToHaves.length > 0
-                : descriptionContent.niceToHaves) && (
-                <div className="flex flex-col gap-4">
-                  <SectionHeading>Nice-To-Haves</SectionHeading>
-                  <RichContentSection
-                    content={descriptionContent.niceToHaves}
-                  />
-                </div>
-              )}
           </div>
 
           {/* ─── Right Column ─── */}
