@@ -6,6 +6,96 @@ interface ProfilePdfTemplateProps {
   aboutText?: string;
 }
 
+/**
+ * Canonical display names for skills, keyed by lowercase for fast lookup.
+ * Sourced from prisma/data/Skill.ts so names match exactly what was seeded.
+ */
+const SKILL_DISPLAY_MAP: Record<string, string> = {
+  // Web / Markup
+  'html': 'HTML', 'css': 'CSS', 'xml': 'XML', 'json': 'JSON', 'yaml': 'YAML',
+  'svg': 'SVG', 'jsx': 'JSX', 'tsx': 'TSX', 'sass/less': 'SASS/LESS',
+  // Languages
+  'javascript': 'JavaScript', 'typescript': 'TypeScript', 'python': 'Python',
+  'java': 'Java', 'go': 'Go', 'rust': 'Rust', 'kotlin': 'Kotlin', 'swift': 'Swift',
+  'scala': 'Scala', 'julia': 'Julia', 'php': 'PHP', 'ruby on rails': 'Ruby on Rails',
+  'c#': 'C#', 'c++': 'C++', 'r': 'R', 'matlab': 'MATLAB', 'solidity': 'Solidity',
+  'verilog': 'Verilog', 'vhdl': 'VHDL', 'objective-c': 'Objective-C',
+  'sql': 'SQL',
+  // Frameworks / Libraries
+  'react': 'React', 'react.js': 'React', 'reactjs': 'React',
+  'next.js': 'Next.js', 'nextjs': 'Next.js',
+  'nuxt.js': 'Nuxt.js', 'nuxtjs': 'Nuxt.js',
+  'node.js': 'Node.js', 'nodejs': 'Node.js',
+  'express': 'Express', 'express.js': 'Express',
+  'angular': 'Angular', 'vue.js': 'Vue.js', 'vuejs': 'Vue.js',
+  'svelte': 'Svelte', 'django': 'Django', 'flask': 'Flask',
+  'spring boot': 'Spring Boot', 'laravel': 'Laravel',
+  'tailwind css': 'Tailwind CSS', 'bootstrap': 'Bootstrap',
+  'material ui': 'Material UI', 'three.js': 'Three.js', 'd3.js': 'D3.js',
+  'react native': 'React Native', 'flutter': 'Flutter', 'ionic': 'Ionic',
+  'electron': 'Electron', 'tauri': 'Tauri',
+  'langchain': 'LangChain', 'llamaindex': 'LlamaIndex',
+  'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch', 'keras': 'Keras',
+  'scikit-learn': 'Scikit-learn', 'opencv': 'OpenCV',
+  // Databases
+  'mysql': 'MySQL', 'postgresql': 'PostgreSQL', 'mongodb': 'MongoDB',
+  'redis': 'Redis', 'mariadb': 'MariaDB', 'dynamodb': 'DynamoDB',
+  'cassandra': 'Cassandra', 'elasticsearch': 'Elasticsearch',
+  'kafka': 'Kafka', 'rabbitmq': 'RabbitMQ', 'graphql': 'GraphQL',
+  // Cloud / DevOps
+  'aws': 'AWS', 'gcp': 'GCP', 'docker': 'Docker', 'kubernetes': 'Kubernetes',
+  'terraform': 'Terraform', 'ansible': 'Ansible', 'jenkins': 'Jenkins',
+  'github actions': 'GitHub Actions', 'gitlab ci/cd': 'GitLab CI/CD',
+  'git': 'Git', 'firebase': 'Firebase',
+  // APIs / Protocols
+  'rest apis': 'REST APIs', 'grpc': 'gRPC', 'jwt': 'JWT',
+  'oauth 2.0': 'OAuth 2.0', 'ssl/tls': 'SSL/TLS', 'saml': 'SAML',
+  'webgl': 'WebGL', 'webassembly': 'WebAssembly',
+  // Testing
+  'jest': 'Jest', 'cypress': 'Cypress', 'selenium': 'Selenium',
+  'pytest': 'PyTest', 'junit': 'JUnit', 'mocha': 'Mocha', 'chai': 'Chai',
+  'playwright': 'Playwright',
+  // Build tools
+  'webpack': 'Webpack', 'vite': 'Vite', 'babel': 'Babel',
+  'eslint': 'ESLint', 'prettier': 'Prettier',
+  // Data / ML
+  'mlops': 'MLOps', 'mlflow': 'MLflow', 'rag': 'RAG', 'vba': 'VBA',
+  'bigquery': 'BigQuery', 'snowflake': 'Snowflake', 'databricks': 'Databricks',
+  // Security
+  'siem': 'SIEM', 'sast': 'SAST', 'dast': 'DAST', 'sca': 'SCA',
+  'owasp': 'OWASP', 'soc 2': 'SOC 2', 'pci dss': 'PCI DSS',
+  'gdpr': 'GDPR', 'ccpa': 'CCPA', 'nist': 'NIST',
+  'iam': 'IAM', 'mfa': 'MFA', 'sso': 'SSO', 'pam': 'PAM',
+  'dlp': 'DLP', 'casb': 'CASB', 'edr': 'EDR', 'xdr': 'XDR',
+  'ids/ips': 'IDS/IPS', 'vpn configuration': 'VPN Configuration',
+  // Tools & Design
+  'figma': 'Figma', 'jira': 'JIRA', 'sap': 'SAP',
+  'hris': 'HRIS', 'erp systems': 'ERP Systems',
+  'autocad': 'AutoCAD', 'solidworks': 'SolidWorks',
+  'fpga design': 'FPGA Design', 'scada': 'SCADA',
+  'plc programming': 'PLC Programming',
+  // General
+  'manual qa testing': 'Manual QA Testing',
+  'qa': 'QA', 'ui/ux design': 'UI/UX Design',
+  'ui/ux': 'UI/UX', 'seo': 'SEO', 'sem': 'SEM',
+  'english': 'English', 'vietnamese': 'Vietnamese',
+  'postman': 'Postman', 'streamlit': 'Streamlit',
+};
+
+/**
+ * Returns the canonical display name for a skill.
+ * Lookup is case-insensitive; falls back to capitalizing the first letter.
+ */
+function formatSkillName(raw: string): string {
+  const key = raw.trim().toLowerCase();
+  if (SKILL_DISPLAY_MAP[key]) return SKILL_DISPLAY_MAP[key];
+  // Fallback: capitalize first letter of the raw value
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+/** Known tech acronyms that should be fully uppercased. */
+
+
 export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTemplateProps>(
   ({ candidate, aboutText }, ref) => {
     const formatDate = (dateStr?: string) => {
@@ -203,18 +293,18 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           {((candidate.skills && candidate.skills.length > 0) || (candidate.certificates && candidate.certificates.length > 0)) && (
             <div className="flex flex-col gap-3">
               <SectionHeader title="SKILLS & CERTIFICATIONS" />
-              <div className="flex flex-col gap-2 text-[10.5pt] text-slate-900">
+              <div className="flex flex-col gap-1.5 text-[10.5pt] text-slate-900">
                 {candidate.skills && candidate.skills.length > 0 && (
                   <div data-pdf-block="true">
                     <span className="font-bold text-black">Technical Skills: </span>
                     <span>
-                      {candidate.skills.map((s) => (s.level ? `${s.title} (${s.level})` : s.title)).join(', ')}
+                      {candidate.skills.map((s) => formatSkillName(s.title)).join(', ')}
                     </span>
                   </div>
                 )}
 
                 {candidate.certificates && candidate.certificates.length > 0 && (
-                  <div className="flex flex-col gap-0.5 mt-1" data-pdf-block="true">
+                  <div className="flex flex-col gap-0.5" data-pdf-block="true">
                     <span className="font-bold text-black">Certifications:</span>
                     <div className="flex flex-col gap-0.5 text-[10pt]">
                       {candidate.certificates.map((cert) => (
