@@ -4,7 +4,10 @@ import type { CandidateProfileUI } from '../types';
  * Utility to generate valid, compilable LaTeX source code (.tex)
  * based on Jake's Resume / Harvard LaTeX CV template.
  */
-export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioText?: string): string {
+export function generateCandidateLatexCode(
+  candidate: CandidateProfileUI,
+  bioText?: string
+): string {
   const sanitize = (text?: string): string => {
     if (!text) return '';
     return text
@@ -25,7 +28,10 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return sanitize(dateStr);
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
     } catch {
       return sanitize(dateStr);
     }
@@ -35,7 +41,12 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
   const title = sanitize(candidate.title || '');
   const email = sanitize(candidate.email || '');
   const phone = sanitize(candidate.phone || '');
-  const bio = bioText || (Array.isArray(candidate.about) ? candidate.about.join(' ') : candidate.about) || '';
+  const bio =
+    bioText ||
+    (Array.isArray(candidate.about)
+      ? candidate.about.join(' ')
+      : candidate.about) ||
+    '';
 
   const contactList: string[] = [];
   if (phone) contactList.push(phone);
@@ -148,8 +159,12 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
 `;
     candidate.educations.forEach((edu) => {
       const school = sanitize(edu.school);
-      const dates = `${formatDate(edu.startDate)} -- ${edu.endDate ? formatDate(edu.endDate) : 'Present'}`;
-      const degree = sanitize([edu.degree, edu.fieldOfStudy].filter(Boolean).join(' in '));
+      const dates = `${formatDate(edu.startDate)} -- ${
+        edu.endDate ? formatDate(edu.endDate) : 'Present'
+      }`;
+      const degree = sanitize(
+        [edu.degree, edu.fieldOfStudy].filter(Boolean).join(' in ')
+      );
       const gpa = edu.grade ? sanitize(`GPA: ${edu.grade}`) : '';
 
       tex += `    \\resumeSubheading
@@ -159,10 +174,15 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
       if (edu.description) {
         tex += `      \\resumeItemListStart
 `;
-        edu.description.split('\n').filter(Boolean).forEach((line) => {
-          tex += `        \\resumeItem{${sanitize(line.replace(/^[-•*]\s*/, ''))}}
+        edu.description
+          .split('\n')
+          .filter(Boolean)
+          .forEach((line) => {
+            tex += `        \\resumeItem{${sanitize(
+              line.replace(/^[-•*]\s*/, '')
+            )}}
 `;
-        });
+          });
         tex += `      \\resumeItemListEnd
 `;
       }
@@ -180,7 +200,9 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
 `;
     candidate.experiences.forEach((exp) => {
       const company = sanitize(exp.companyName);
-      const dates = `${formatDate(exp.startDate)} -- ${exp.endDate ? formatDate(exp.endDate) : 'Present'}`;
+      const dates = `${formatDate(exp.startDate)} -- ${
+        exp.endDate ? formatDate(exp.endDate) : 'Present'
+      }`;
       const role = sanitize(exp.jobTitle);
       const locStr =
         typeof exp.location === 'object' && exp.location
@@ -196,10 +218,15 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
       if (exp.description) {
         tex += `      \\resumeItemListStart
 `;
-        exp.description.split('\n').filter(Boolean).forEach((line) => {
-          tex += `        \\resumeItem{${sanitize(line.replace(/^[-•*]\s*/, ''))}}
+        exp.description
+          .split('\n')
+          .filter(Boolean)
+          .forEach((line) => {
+            tex += `        \\resumeItem{${sanitize(
+              line.replace(/^[-•*]\s*/, '')
+            )}}
 `;
-        });
+          });
         tex += `      \\resumeItemListEnd
 `;
       }
@@ -230,7 +257,9 @@ export function generateCandidateLatexCode(candidate: CandidateProfileUI, bioTex
       const certList = candidate.certificates
         .map(
           (c) =>
-            `${sanitize(c.name)} (${sanitize(c.issuer)}, ${formatDate(c.issueDate)})`
+            `${sanitize(c.name)} (${sanitize(c.issuer)}, ${formatDate(
+              c.issueDate
+            )})`
         )
         .join('; ');
       tex += `      \\textbf{Certifications}{: ${certList}}

@@ -28,7 +28,12 @@ export async function exportElementToPdf(
   element: HTMLElement,
   options: ExportPdfOptions = {}
 ) {
-  const { fileName = 'Candidate_Profile.pdf', onStart, onSuccess, onError } = options;
+  const {
+    fileName = 'Candidate_Profile.pdf',
+    onStart,
+    onSuccess,
+    onError,
+  } = options;
 
   try {
     if (onStart) onStart();
@@ -37,7 +42,7 @@ export async function exportElementToPdf(
     const PAGE_H_PX = Math.round((WIDTH_PX * 297) / 210); // A4 height in CSS px (~1123)
 
     // Margins: 40 CSS px ≈ 10 mm (matches template py-10 = 40px)
-    const MARGIN_TOP_CSS = 40;   // block starts 40px PAST the page boundary → becomes top margin
+    const MARGIN_TOP_CSS = 40; // block starts 40px PAST the page boundary → becomes top margin
     const MARGIN_BOT_CANVAS = MARGIN_TOP_CSS * 2; // canvas px to trim from page bottom (scale=2)
 
     // ── 1. Create sandbox clone ─────────────────────────────────────────────
@@ -74,7 +79,9 @@ export async function exportElementToPdf(
 
       // Fresh query each iteration (DOM has been modified by previous spacers)
       const blockEls = Array.from(
-        clone.querySelectorAll<HTMLElement>('[data-pdf-block="true"], [data-pdf-header="true"]')
+        clone.querySelectorAll<HTMLElement>(
+          '[data-pdf-block="true"], [data-pdf-header="true"]'
+        )
       );
 
       // Find block with highest `top` that still straddles `boundary`
@@ -94,7 +101,11 @@ export async function exportElementToPdf(
         const blockCrosses = top < boundary && bottom > boundary;
 
         // Case B: orphan header (header finishes very close to page bottom)
-        const headerOrphan = isHeader && top < boundary && bottom <= boundary && bottom > boundary - 60;
+        const headerOrphan =
+          isHeader &&
+          top < boundary &&
+          bottom <= boundary &&
+          bottom > boundary - 60;
 
         if ((blockCrosses || headerOrphan) && top > bestTop) {
           // SAFETY: only insert a spacer if the block started at least 5% into the page.
@@ -116,7 +127,10 @@ export async function exportElementToPdf(
         const spacerHeightWithMargin = spacerHeight + MARGIN_TOP_CSS;
 
         // Guard: spacer must be reasonable (> 1px, < full page height)
-        if (spacerHeightWithMargin > 1 && spacerHeightWithMargin < PAGE_H_PX * 2) {
+        if (
+          spacerHeightWithMargin > 1 &&
+          spacerHeightWithMargin < PAGE_H_PX * 2
+        ) {
           const spacer = document.createElement('div');
           spacer.setAttribute('data-pdf-spacer', 'true');
           spacer.style.cssText = [
@@ -183,12 +197,29 @@ export async function exportElementToPdf(
 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, sliceH);
-      ctx.drawImage(canvas, 0, startY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+      ctx.drawImage(
+        canvas,
+        0,
+        startY,
+        canvas.width,
+        sliceH,
+        0,
+        0,
+        canvas.width,
+        sliceH
+      );
 
       if (i > 0) pdf.addPage();
 
       const sliceHMM = (sliceH * PDF_W_MM) / canvas.width;
-      pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, PDF_W_MM, sliceHMM);
+      pdf.addImage(
+        pageCanvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        0,
+        0,
+        PDF_W_MM,
+        sliceHMM
+      );
     }
 
     pdf.save(fileName);
