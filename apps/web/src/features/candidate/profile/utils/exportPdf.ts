@@ -36,6 +36,10 @@ export async function exportElementToPdf(
     const WIDTH_PX = element.offsetWidth || 794;
     const PAGE_H_PX = Math.round((WIDTH_PX * 297) / 210); // A4 height in CSS px (~1123)
 
+    // Margins: 40 CSS px ≈ 10 mm (matches template py-10 = 40px)
+    const MARGIN_TOP_CSS = 40;   // block starts 40px PAST the page boundary → becomes top margin
+    const MARGIN_BOT_CANVAS = MARGIN_TOP_CSS * 2; // canvas px to trim from page bottom (scale=2)
+
     // ── 1. Create sandbox clone ─────────────────────────────────────────────
     const sandbox = document.createElement('div');
     sandbox.style.cssText = [
@@ -107,12 +111,16 @@ export async function exportElementToPdf(
       if (bestBlock !== null) {
         const spacerHeight = boundary - bestTop;
 
+        // Push the block PAST the boundary by MARGIN_TOP_CSS so it starts
+        // with a top margin on the next page.
+        const spacerHeightWithMargin = spacerHeight + MARGIN_TOP_CSS;
+
         // Guard: spacer must be reasonable (> 1px, < full page height)
-        if (spacerHeight > 1 && spacerHeight < PAGE_H_PX) {
+        if (spacerHeightWithMargin > 1 && spacerHeightWithMargin < PAGE_H_PX * 2) {
           const spacer = document.createElement('div');
           spacer.setAttribute('data-pdf-spacer', 'true');
           spacer.style.cssText = [
-            `height:${spacerHeight}px`,
+            `height:${spacerHeightWithMargin}px`,
             'width:100%',
             'display:block',
             'background:#ffffff',
@@ -157,7 +165,12 @@ export async function exportElementToPdf(
 
     for (let i = 0; i < totalPages; i++) {
       const startY = i * PAGE_H_CANVAS;
-      const endY = Math.min((i + 1) * PAGE_H_CANVAS, canvas.height);
+      // Trim bottom margin on all pages except the last one.
+      // The trimmed pixels are white spacer, so no content is lost.
+      const isLastPage = i === totalPages - 1;
+      const endY = isLastPage
+        ? Math.min((i + 1) * PAGE_H_CANVAS, canvas.height)
+        : Math.min((i + 1) * PAGE_H_CANVAS - MARGIN_BOT_CANVAS, canvas.height);
       const sliceH = endY - startY;
 
       if (sliceH <= 0) continue;
