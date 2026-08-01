@@ -31,6 +31,41 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
       candidate.socials.forEach((s) => contactItems.push(`${s.platform}: ${s.username || s.url}`));
     }
 
+    // Reusable bullet list — uses explicit "•" character so html2canvas
+    // renders it identically to the browser preview (no list-disc CSS dependency).
+    const BulletList = ({ lines, className = '' }: { lines: string[]; className?: string }) => (
+      <div className={`flex flex-col gap-0.5 text-[10pt] text-slate-900 ${className}`}>
+        {lines.map((line, idx) => (
+          <div key={idx} className="flex items-start gap-1.5 leading-snug">
+            <span
+              className="flex-shrink-0 text-black"
+              style={{ fontSize: '10pt', lineHeight: '1.45', marginTop: '0px' }}
+            >
+              •
+            </span>
+            <span>{line.replace(/^[-•*]\s*/, '')}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    // Reusable section header with underline rule
+    const SectionHeader = ({ title, isHeader = true }: { title: string; isHeader?: boolean }) => (
+      <div
+        className="flex flex-col"
+        data-pdf-block="true"
+        {...(isHeader ? { 'data-pdf-header': 'true' } : {})}
+      >
+        <h2
+          className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
+          style={{ letterSpacing: '0.06em' }}
+        >
+          {title}
+        </h2>
+        <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
+      </div>
+    );
+
     return (
       <div
         ref={ref}
@@ -44,7 +79,7 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           lineHeight: '1.45',
         }}
       >
-        {/* ── HEADER ── Keep as one unbreakable block */}
+        {/* ── HEADER ── */}
         <div className="flex flex-col items-center text-center gap-1 mb-4 pb-1" data-pdf-block="true">
           <h1
             className="text-2xl font-bold tracking-wider text-black uppercase m-0 leading-none"
@@ -74,17 +109,7 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           {/* ── SUMMARY ── */}
           {bio.trim() && (
             <div className="flex flex-col gap-2">
-              {/* Section header: orphan protection so header isn't left alone at bottom */}
-              <div className="flex flex-col" data-pdf-header="true" data-pdf-block="true">
-                <h2
-                  className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
-                  style={{ letterSpacing: '0.06em' }}
-                >
-                  SUMMARY
-                </h2>
-                <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
-              </div>
-              {/* Each paragraph is a separate breakable block */}
+              <SectionHeader title="SUMMARY" />
               <div className="flex flex-col gap-1">
                 {bio.split('\n').filter(Boolean).map((paragraph, pIdx) => (
                   <p key={pIdx} className="text-[10.5pt] text-slate-900 leading-relaxed m-0" data-pdf-block="true">
@@ -98,19 +123,9 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           {/* ── EDUCATION ── */}
           {candidate.educations && candidate.educations.length > 0 && (
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col" data-pdf-header="true" data-pdf-block="true">
-                <h2
-                  className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
-                  style={{ letterSpacing: '0.06em' }}
-                >
-                  EDUCATION
-                </h2>
-                <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
-              </div>
+              <SectionHeader title="EDUCATION" />
               <div className="flex flex-col gap-4">
                 {candidate.educations.map((edu) => (
-                  // ← data-pdf-block on the WHOLE item so spacer is inserted
-                  //   as a flex sibling (valid HTML), never inside a <ul>
                   <div key={edu.id} className="flex flex-col gap-0.5" data-pdf-block="true">
                     <div className="flex justify-between items-baseline text-[11pt]">
                       <span className="font-bold text-black">{edu.school}</span>
@@ -127,11 +142,10 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
                       )}
                     </div>
                     {edu.description && (
-                      <ul className="list-disc pl-5 text-[10pt] text-slate-900 m-0 mt-1 space-y-0.5">
-                        {edu.description.split('\n').filter(Boolean).map((line, lIdx) => (
-                          <li key={lIdx}>{line.replace(/^[-•*]\s*/, '')}</li>
-                        ))}
-                      </ul>
+                      <BulletList
+                        lines={edu.description.split('\n').filter(Boolean)}
+                        className="mt-1"
+                      />
                     )}
                   </div>
                 ))}
@@ -142,15 +156,7 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           {/* ── EXPERIENCE ── */}
           {candidate.experiences && candidate.experiences.length > 0 && (
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col" data-pdf-header="true" data-pdf-block="true">
-                <h2
-                  className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
-                  style={{ letterSpacing: '0.06em' }}
-                >
-                  EXPERIENCE
-                </h2>
-                <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
-              </div>
+              <SectionHeader title="EXPERIENCE" />
               <div className="flex flex-col gap-4">
                 {candidate.experiences.map((exp) => {
                   const locStr =
@@ -160,31 +166,31 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
                         ? exp.location
                         : '';
                   return (
-                    // ← data-pdf-block on the WHOLE item (title + bullets together)
                     <div key={exp.id} className="flex flex-col gap-0.5" data-pdf-block="true">
                       <div className="flex justify-between items-baseline text-[11pt]">
                         <span className="font-bold text-black">{exp.companyName}</span>
                         <span className="text-xs text-black font-serif font-medium">
-                          {locStr ? `${locStr}` : ''}
+                          {locStr || ''}
                         </span>
                       </div>
                       <div className="flex justify-between items-baseline text-[10pt]">
                         <span className="italic text-slate-900 font-medium">
                           {exp.jobTitle}
-                          {exp.type && <span className="not-italic text-slate-700 font-normal"> ({exp.type.replace('_', ' ')})</span>}
+                          {exp.type && (
+                            <span className="not-italic text-slate-700 font-normal">
+                              {' '}({exp.type.replace('_', ' ')})
+                            </span>
+                          )}
                         </span>
                         <span className="text-xs text-black italic">
                           {formatDate(exp.startDate)} -- {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                         </span>
                       </div>
                       {exp.description && (
-                        <ul className="list-disc pl-5 text-[10pt] text-slate-900 m-0 mt-1 space-y-1">
-                          {exp.description.split('\n').filter(Boolean).map((line, lIdx) => (
-                            <li key={lIdx} className="leading-snug">
-                              {line.replace(/^[-•*]\s*/, '')}
-                            </li>
-                          ))}
-                        </ul>
+                        <BulletList
+                          lines={exp.description.split('\n').filter(Boolean)}
+                          className="mt-1"
+                        />
                       )}
                     </div>
                   );
@@ -196,15 +202,7 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
           {/* ── SKILLS & CERTIFICATIONS ── */}
           {((candidate.skills && candidate.skills.length > 0) || (candidate.certificates && candidate.certificates.length > 0)) && (
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col" data-pdf-header="true" data-pdf-block="true">
-                <h2
-                  className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
-                  style={{ letterSpacing: '0.06em' }}
-                >
-                  SKILLS &amp; CERTIFICATIONS
-                </h2>
-                <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
-              </div>
+              <SectionHeader title="SKILLS & CERTIFICATIONS" />
               <div className="flex flex-col gap-2 text-[10.5pt] text-slate-900">
                 {candidate.skills && candidate.skills.length > 0 && (
                   <div data-pdf-block="true">
@@ -216,15 +214,19 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
                 )}
 
                 {candidate.certificates && candidate.certificates.length > 0 && (
-                  <div className="flex flex-col gap-0.5 mt-1">
-                    <span className="font-bold text-black" data-pdf-block="true">Certifications: </span>
-                    <ul className="list-disc pl-5 m-0 space-y-0.5 text-[10pt]">
+                  <div className="flex flex-col gap-0.5 mt-1" data-pdf-block="true">
+                    <span className="font-bold text-black">Certifications:</span>
+                    <div className="flex flex-col gap-0.5 text-[10pt]">
                       {candidate.certificates.map((cert) => (
-                        <li key={cert.id} data-pdf-block="true">
-                          <span className="font-semibold">{cert.name}</span> -- {cert.issuer} ({formatDate(cert.issueDate)}{cert.expiryDate ? ` -- ${formatDate(cert.expiryDate)}` : ''})
-                        </li>
+                        <div key={cert.id} className="flex items-start gap-1.5">
+                          <span className="flex-shrink-0 text-black" style={{ fontSize: '10pt', lineHeight: '1.45' }}>•</span>
+                          <span>
+                            <span className="font-semibold">{cert.name}</span>
+                            {' '}-- {cert.issuer} ({formatDate(cert.issueDate)}{cert.expiryDate ? ` -- ${formatDate(cert.expiryDate)}` : ''})
+                          </span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
               </div>
