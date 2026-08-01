@@ -66,9 +66,8 @@ function FindJobsPage() {
   const [localSalaryCurrency, setLocalSalaryCurrency] =
     useState<SupportedCurrency | null>(urlSalaryCurrency);
   const [draftTypes, setDraftTypes] = useState<EmploymentType[]>(urlTypes);
-  const [draftCategories, setDraftCategories] = useState<(number | string)[]>(
-    urlCategories,
-  );
+  const [draftCategories, setDraftCategories] =
+    useState<(number | string)[]>(urlCategories);
 
   // Fetch jobs
   const { fetchJobs, data: jobsData, loading: loadingJobs } = useListJobs();
