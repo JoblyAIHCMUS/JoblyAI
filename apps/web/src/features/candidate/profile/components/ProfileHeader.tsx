@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flag, Mail, Smartphone, Edit } from 'lucide-react';
+import { Flag, Mail, Smartphone, Edit, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SideBar from './sideBar';
 import type { CandidateSocial, CandidateContact } from '@/types/candidate';
@@ -24,6 +24,9 @@ interface ProfileHeaderProps {
   handleAddContact?: (contact: CandidateContact) => Promise<void> | void;
   handleUpdateContacts?: (contacts: CandidateContact[]) => Promise<void> | void;
   handleDeleteContact?: (id: number) => Promise<void> | void;
+  onExportPdf?: () => void;
+  onOpenExportModal?: () => void;
+  isExportingPdf?: boolean;
 }
 
 export default function ProfileHeader({
@@ -36,6 +39,9 @@ export default function ProfileHeader({
   handleDeleteContact,
   handleUpdateAbout,
   descriptionId, // Add this to receive the ID from page.tsx
+  onExportPdf,
+  onOpenExportModal,
+  isExportingPdf,
 }: ProfileHeaderProps & {
   handleUpdateAbout?: (aboutData: {
     id: number;
@@ -189,12 +195,25 @@ export default function ProfileHeader({
                 </div>
               )}
             </div>
-            <button
-              className="text-accent-primary px-[var(--space-xs)] py-[var(--space-base)] rounded-[var(--radius-md)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]"
-              onClick={() => router.push('/candidate/settings')}
-            >
-              Edit Profile
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {(onOpenExportModal || onExportPdf) && (
+                <button
+                  className="flex items-center gap-1.5 text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-1.5 rounded-[var(--radius-md)] label-label-1-semi-bold disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+                  onClick={onOpenExportModal || onExportPdf}
+                  disabled={isExportingPdf}
+                  title="Export Profile in Overleaf Style PDF"
+                >
+                  <Sparkles size={16} className="text-amber-300" />
+                  <span>{isExportingPdf ? 'Exporting PDF...' : 'Export CV (PDF)'}</span>
+                </button>
+              )}
+              <button
+                className="text-accent-primary px-[var(--space-xs)] py-[var(--space-base)] rounded-[var(--radius-md)] label-label-1-semi-bold hover:bg-[color:var(--indigo-50)]"
+                onClick={() => router.push('/candidate/settings')}
+              >
+                Edit Profile
+              </button>
+            </div>
           </div>
         </div>
       </div>
