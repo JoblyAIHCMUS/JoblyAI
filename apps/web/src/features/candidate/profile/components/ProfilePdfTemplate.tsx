@@ -111,15 +111,55 @@ export const ProfilePdfTemplate = React.forwardRef<HTMLDivElement, ProfilePdfTem
 
     const bio = aboutText || (Array.isArray(candidate.about) ? candidate.about.join('\n') : candidate.about) || '';
 
+    // Build contact items with deduplication.
+    // - No verbose labels (EMAIL:, PHONE:, GITHUB:)
+    // - URLs stripped of https:// for compact display
+    // - candidate.email / candidate.phone are the "primary" — contacts/socials dedup against them
     const contactItems: string[] = [];
-    if (candidate.phone) contactItems.push(candidate.phone);
-    if (candidate.email) contactItems.push(candidate.email);
-    if (candidate.contacts && candidate.contacts.length > 0) {
-      candidate.contacts.forEach((c) => contactItems.push(c.type ? `${c.type}: ${c.value}` : c.value));
+    const seenKeys = new Set<string>();
+
+    const addContactItem = (key: string, display: string) => {
+      const normalized = key.trim().toLowerCase();
+      if (!normalized || seenKeys.has(normalized)) return;
+      seenKeys.add(normalized);
+      contactItems.push(display.trim());
+    };
+
+    // Primary fields first (shown without any label)
+    if (candidate.email) addContactItem(candidate.email, candidate.email);
+    if (candidate.phone) addContactItem(candidate.phone, candidate.phone);
+
+    // Extra contacts — show value only (skip type label)
+    if (candidate.contacts) {
+      for (const c of candidate.contacts) {
+        const val = (c.value || '').trim();
+        if (!val) continue;
+        addContactItem(val, val);
+      }
     }
-    if (candidate.socials && candidate.socials.length > 0) {
-      candidate.socials.forEach((s) => contactItems.push(`${s.platform}: ${s.username || s.url}`));
+
+    // Socials — strip protocol, prefer username@platform or clean URL
+    if (candidate.socials) {
+      for (const s of candidate.socials) {
+        const url = (s.url || '').trim();
+        const username = (s.username || '').trim();
+        const platform = (s.platform || '').trim();
+        // key for dedup = raw URL or username
+        const key = url || username;
+        if (!key) continue;
+        // Display: clean URL (no https://) or "Platform: username"
+        let display: string;
+        if (url) {
+          display = url.replace(/^https?:\/\//, '');
+        } else if (username && platform) {
+          display = `${platform}: ${username}`;
+        } else {
+          display = username || url;
+        }
+        addContactItem(key, display);
+      }
     }
+
 
     // Reusable bullet list — uses explicit "•" character so html2canvas
     // renders it identically to the browser preview (no list-disc CSS dependency).
