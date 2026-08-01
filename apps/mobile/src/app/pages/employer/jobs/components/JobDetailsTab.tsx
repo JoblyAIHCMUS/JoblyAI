@@ -24,6 +24,7 @@ import {
   getCategoryColors,
 } from '../constants';
 import { COLORS } from '../../../../constants/theme';
+import { normalizeDescriptionHtml } from '@/app/pages/find-jobs/utils';
 
 const IMPORTANCE_GROUPS: {
   key: RequirementImportance;
@@ -87,25 +88,31 @@ function SkillPill({ skill }: { skill: JobRequirement }) {
 }
 
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
-  body: { color: '#0F172A', fontSize: 15, lineHeight: 24 },
+  body: {
+    color: '#0F172A',
+    fontSize: 15,
+    lineHeight: 24,
+    marginTop: 0,
+    marginBottom: 0,
+  },
   h2: {
     fontSize: 22,
     fontWeight: '700',
-    marginTop: 24,
+    marginTop: 12,
     marginBottom: 8,
     color: '#0F172A',
   },
   h3: {
     fontSize: 18,
     fontWeight: '600',
-    marginTop: 16,
+    marginTop: 10,
     marginBottom: 6,
     color: '#0F172A',
   },
-  p: { marginTop: 8, marginBottom: 8 },
+  p: { marginBottom: 8 },
   ul: { paddingLeft: 8 },
   ol: { paddingLeft: 8 },
-  li: { marginBottom: 4 },
+  li: { marginBottom: 2 },
   strong: { fontWeight: '700' },
   em: { fontStyle: 'italic' },
   blockquote: {
@@ -215,7 +222,9 @@ export default function JobDetailsTab({
           <RenderHtml
             contentWidth={htmlContentWidth}
             source={{
-              html: job.description || '<p>No description provided.</p>',
+              html: normalizeDescriptionHtml(
+                job.description || '<p>No description provided.</p>'
+              ),
             }}
             tagsStyles={htmlTagStyles}
           />
