@@ -303,17 +303,17 @@ export const ProfilePdfTemplate = React.forwardRef<
     isHeader?: boolean;
   }) => (
     <div
-      className="flex flex-col"
+      className="flex flex-col gap-[10px] pb-[8px]"
       data-pdf-block="true"
       {...(isHeader ? { 'data-pdf-header': 'true' } : {})}
     >
       <h2
-        className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 leading-tight font-serif"
+        className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 p-0 leading-tight font-serif"
         style={{ letterSpacing: '0.06em' }}
       >
         {title}
       </h2>
-      <div className="w-full h-[1.5px] bg-black mt-1 mb-2" />
+      <div className="w-full h-[1.5px] bg-black" />
     </div>
   );
 
