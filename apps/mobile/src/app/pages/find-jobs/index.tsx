@@ -23,6 +23,7 @@ import { COLORS } from '@/app/constants/theme';
 import JobCard from './components/JobCard';
 import SearchBar from './components/SearchBar';
 import SortDropdown from './components/SortDropdown';
+import FilterButton from './components/FilterButton';
 import FilterPanel from './components/FilterPanel';
 import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
 import AppSidebar from '@/app/components/AppSidebar';
@@ -64,6 +65,9 @@ function FindJobsPage() {
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
   const [localSalaryCurrency, setLocalSalaryCurrency] =
     useState<SupportedCurrency | null>(urlSalaryCurrency);
+  const [draftTypes, setDraftTypes] = useState<EmploymentType[]>(urlTypes);
+  const [draftCategories, setDraftCategories] =
+    useState<(number | string)[]>(urlCategories);
 
   // Fetch jobs
   const { fetchJobs, data: jobsData, loading: loadingJobs } = useListJobs();
@@ -148,30 +152,6 @@ function FindJobsPage() {
     return () => clearTimeout(timer);
   }, [localLocation, urlLocation]);
 
-  // Debounce salary (min/max/currency together)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (
-        localSalaryMin !== urlMinSalary ||
-        localSalaryMax !== urlMaxSalary ||
-        localSalaryCurrency !== urlSalaryCurrency
-      ) {
-        setUrlMinSalary(localSalaryMin);
-        setUrlMaxSalary(localSalaryMax);
-        setUrlSalaryCurrency(localSalaryCurrency);
-        setUrlPage(1);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [
-    localSalaryMin,
-    localSalaryMax,
-    localSalaryCurrency,
-    urlMinSalary,
-    urlMaxSalary,
-    urlSalaryCurrency,
-  ]);
-
   // Fetch jobs when filters change
   useEffect(() => {
     const selectedEmploymentTypes = urlTypes
@@ -224,9 +204,58 @@ function FindJobsPage() {
     setLocalSalaryMax(max);
   };
 
-  const handleSalaryApply = () => {
+  const syncDraftFilters = () => {
+    setLocalSalaryMin(urlMinSalary);
+    setLocalSalaryMax(urlMaxSalary);
+    setLocalSalaryCurrency(urlSalaryCurrency);
+    setDraftTypes(urlTypes);
+    setDraftCategories(urlCategories);
+  };
+
+  const handleOpenFilterPanel = () => {
+    syncDraftFilters();
+    setFilterPanelOpen(true);
+  };
+
+  const handleCloseFilterPanel = () => {
+    syncDraftFilters();
     setFilterPanelOpen(false);
   };
+
+  const handleDoneFilters = () => {
+    setUrlMinSalary(localSalaryMin);
+    setUrlMaxSalary(localSalaryMax);
+    setUrlSalaryCurrency(localSalaryCurrency);
+    setUrlTypes(draftTypes);
+    setUrlCategories(draftCategories);
+    setUrlPage(1);
+    setFilterPanelOpen(false);
+  };
+
+  const handleResetFiltersDraft = () => {
+    setLocalSalaryMin(0);
+    setLocalSalaryMax(capFor(null));
+    setLocalSalaryCurrency(null);
+    setDraftTypes([]);
+    setDraftCategories([]);
+  };
+
+  const handleTypeChange = (types: EmploymentType[]) => {
+    setDraftTypes(types);
+  };
+
+  const handleCategoryChange = (categoryIds: (number | string)[]) => {
+    setDraftCategories(categoryIds);
+  };
+
+  const activeFilterCount =
+    (urlTypes.length > 0 ? 1 : 0) +
+    (urlCategories.length > 0 ? 1 : 0) +
+    (urlMinSalary > 0 ||
+    urlMaxSalary < capFor(urlSalaryCurrency) ||
+    urlSalaryCurrency !== null
+      ? 1
+      : 0);
 
   const handleReset = () => {
     setLocalSearchTerm('');
@@ -234,6 +263,8 @@ function FindJobsPage() {
     setLocalSalaryMin(0);
     setLocalSalaryMax(capFor(null));
     setLocalSalaryCurrency(null);
+    setDraftTypes([]);
+    setDraftCategories([]);
     setUrlQ('');
     setUrlLocation('');
     setUrlMinSalary(0);
@@ -278,35 +309,27 @@ function FindJobsPage() {
             </Text>
           </View>
 
-          {/* Search Bar */}
-          <SearchBar
-            searchTerm={localSearchTerm}
-            location={localLocation}
-            onSearchTermChange={setLocalSearchTerm}
-            onLocationChange={setLocalLocation}
-          />
-
-          {/* Filter and Sort Controls */}
-          <View className="flex-row gap-2 px-4 py-3">
-            <TouchableOpacity
-              onPress={() => setFilterPanelOpen(true)}
-              className="flex-1 rounded-lg border border-app-gray-1 bg-white px-4 py-3"
-            >
-              <Text className="text-center text-sm font-semibold text-app-dark-text">
-                Filters
-              </Text>
-            </TouchableOpacity>
-            <View className="flex-1">
-              <SortDropdown
-                selectedSort={urlSort}
-                onSortChange={handleSelectSort}
-              />
-            </View>
+          {/* Search Row: search + location + filter button */}
+          <View className="flex-row items-center gap-2 bg-white px-4 pb-2 pt-2">
+            <SearchBar
+              searchTerm={localSearchTerm}
+              location={localLocation}
+              onSearchTermChange={setLocalSearchTerm}
+              onLocationChange={setLocalLocation}
+            />
+            <FilterButton
+              count={activeFilterCount}
+              onPress={handleOpenFilterPanel}
+            />
           </View>
 
-          {/* Results count */}
-          <View className="px-4 py-2">
+          {/* Results count + Sort */}
+          <View className="flex-row items-center justify-between bg-white px-4 pb-2">
             <Text className="text-sm text-app-gray-3">{total} jobs found</Text>
+            <SortDropdown
+              selectedSort={urlSort}
+              onSortChange={handleSelectSort}
+            />
           </View>
 
           {/* Jobs List */}
@@ -440,25 +463,19 @@ function FindJobsPage() {
       {/* Filter Panel Modal */}
       <FilterPanel
         isOpen={filterPanelOpen}
-        onClose={() => setFilterPanelOpen(false)}
+        onClose={handleCloseFilterPanel}
         categories={categories}
         salaryCurrency={localSalaryCurrency}
         salaryMin={localSalaryMin}
         salaryMax={localSalaryMax}
         onSalaryCurrencyChange={setLocalSalaryCurrency}
         onSalaryChange={handleSalaryChange}
-        onSalaryApply={handleSalaryApply}
-        selectedTypes={urlTypes}
-        onTypeChange={(types) => {
-          setUrlTypes(types);
-          setUrlPage(1);
-        }}
-        selectedCategories={urlCategories}
-        onCategoryChange={(categoryIds) => {
-          setUrlCategories(categoryIds);
-          setUrlPage(1);
-        }}
-        onReset={handleReset}
+        selectedTypes={draftTypes}
+        onTypeChange={handleTypeChange}
+        selectedCategories={draftCategories}
+        onCategoryChange={handleCategoryChange}
+        onReset={handleResetFiltersDraft}
+        onDone={handleDoneFilters}
       />
     </>
   );
