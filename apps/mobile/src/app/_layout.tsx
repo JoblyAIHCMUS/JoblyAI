@@ -184,7 +184,7 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
 }
 
 export default function AppLayout() {
-  const currentColorScheme = colorScheme.get() ?? 'light';
+  const currentColorScheme = 'light' as const;
   const baseTheme = currentColorScheme === 'dark' ? DarkTheme : DefaultTheme;
   const theme: Theme = {
     ...baseTheme,
