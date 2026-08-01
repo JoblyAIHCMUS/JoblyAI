@@ -16,12 +16,12 @@ interface FilterPanelProps {
   salaryMax: number;
   onSalaryCurrencyChange: (currency: SupportedCurrency | null) => void;
   onSalaryChange: (min: number, max: number) => void;
-  onSalaryApply: () => void;
   selectedTypes: EmploymentType[];
   onTypeChange: (types: EmploymentType[]) => void;
   selectedCategories: (number | string)[];
   onCategoryChange: (categoryIds: (number | string)[]) => void;
   onReset: () => void;
+  onDone: () => void;
 }
 
 const EMPLOYMENT_TYPES: { label: string; value: EmploymentType }[] = [
@@ -41,12 +41,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   salaryMax,
   onSalaryCurrencyChange,
   onSalaryChange,
-  onSalaryApply,
   selectedTypes,
   onTypeChange,
   selectedCategories,
   onCategoryChange,
   onReset,
+  onDone,
 }) => {
   const toggleType = (type: EmploymentType) => {
     const updated = selectedTypes.includes(type)
@@ -108,7 +108,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 max={salaryMax}
                 onCurrencyChange={onSalaryCurrencyChange}
                 onValuesChange={onSalaryChange}
-                onApply={onSalaryApply}
               />
             </View>
 
@@ -176,10 +175,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Footer buttons */}
           <View className="flex-row gap-3 border-t border-app-gray-1 px-4 py-4">
             <TouchableOpacity
-              onPress={() => {
-                onReset();
-                onClose();
-              }}
+              onPress={onReset}
               className="flex-1 rounded-lg border border-app-gray-1 bg-white py-3"
             >
               <Text className="text-center font-semibold text-app-gray-2">
@@ -187,7 +183,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={onClose}
+              onPress={onDone}
               className="flex-1 rounded-lg bg-app-primary-2 py-3"
             >
               <Text className="text-center font-semibold text-white">Done</Text>

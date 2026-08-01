@@ -33,9 +33,12 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setIsOpen(true)}
-        className="flex-row items-center gap-2 rounded-lg border border-app-gray-1 bg-white px-4 py-3"
+        className="h-11 flex-row items-center gap-2 rounded-lg border border-app-gray-1 bg-white px-3 py-0"
       >
-        <Text className="flex-1 text-sm font-semibold text-app-dark-text">
+        <Text
+          numberOfLines={1}
+          className="text-sm font-semibold text-app-dark-text"
+        >
           {selectedLabel}
         </Text>
         <ChevronDown size={18} color={COLORS.gray3} strokeWidth={2} />

@@ -25,7 +25,6 @@ interface SalaryFilterProps {
   max: number;
   onCurrencyChange: (currency: SupportedCurrency | null) => void;
   onValuesChange: (min: number, max: number) => void;
-  onApply: () => void;
 }
 
 const SalaryFilter: React.FC<SalaryFilterProps> = ({
@@ -34,7 +33,6 @@ const SalaryFilter: React.FC<SalaryFilterProps> = ({
   max,
   onCurrencyChange,
   onValuesChange,
-  onApply,
 }) => {
   const { width } = useWindowDimensions();
   const [localMin, setLocalMin] = useState(min);
@@ -42,7 +40,7 @@ const SalaryFilter: React.FC<SalaryFilterProps> = ({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [inputsExpanded, setInputsExpanded] = useState(false);
 
-  // Sync internal values when parent (debounced URL state) changes them.
+  // Sync internal values when parent draft values change.
   useEffect(() => {
     setLocalMin(min);
     setLocalMax(max);
@@ -215,14 +213,6 @@ const SalaryFilter: React.FC<SalaryFilterProps> = ({
               </View>
             </View>
           ) : null}
-          <TouchableOpacity
-            onPress={onApply}
-            className="mt-4 rounded-lg bg-app-primary-2 py-3"
-          >
-            <Text className="text-center font-semibold text-white">
-              Apply Salary Range
-            </Text>
-          </TouchableOpacity>
         </>
       ) : null}
 
