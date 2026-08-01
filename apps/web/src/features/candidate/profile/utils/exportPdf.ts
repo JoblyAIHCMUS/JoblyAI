@@ -3,6 +3,8 @@ import jsPDF from 'jspdf';
 
 export interface ExportPdfOptions {
   fileName?: string;
+  marginTop?: number; // Top margin in px for page 2+ (default: 40px ≈ 10.6mm)
+  marginBottom?: number; // Bottom margin in px for all pages (default: 40px ≈ 10.6mm)
   onStart?: () => void;
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
@@ -30,6 +32,8 @@ export async function exportElementToPdf(
 ) {
   const {
     fileName = 'Candidate_Profile.pdf',
+    marginTop = 40,
+    marginBottom = 40,
     onStart,
     onSuccess,
     onError,
@@ -41,9 +45,8 @@ export async function exportElementToPdf(
     const WIDTH_PX = element.offsetWidth || 794;
     const PAGE_H_PX = Math.round((WIDTH_PX * 297) / 210); // A4 height in CSS px (~1123)
 
-    // Margins: 40 CSS px ≈ 10 mm (matches template py-10 = 40px)
-    const MARGIN_TOP_CSS = 40; // block starts 40px PAST the page boundary → becomes top margin
-    const MARGIN_BOT_CANVAS = MARGIN_TOP_CSS * 2; // canvas px to trim from page bottom (scale=2)
+    const MARGIN_TOP_CSS = marginTop; // block starts marginTop px PAST page boundary → top margin
+    const MARGIN_BOT_CSS = marginBottom; // content stops marginBottom px BEFORE page boundary → bottom margin
 
     // ── 1. Create sandbox clone ─────────────────────────────────────────────
     const sandbox = document.createElement('div');
@@ -72,6 +75,7 @@ export async function exportElementToPdf(
 
     for (let page = 0; page < 30; page++) {
       const boundary = (page + 1) * PAGE_H_PX;
+      const effectiveBoundary = boundary - MARGIN_BOT_CSS;
       const cloneHeight = clone.getBoundingClientRect().height;
 
       // No more pages needed beyond clone height
@@ -84,8 +88,7 @@ export async function exportElementToPdf(
         )
       );
 
-      // Find block with highest `top` that still straddles `boundary`
-      // (highest top = closest to boundary = smallest spacer needed)
+      // Find block with highest `top` that straddles `effectiveBoundary`
       let bestBlock: HTMLElement | null = null;
       let bestTop = -Infinity;
 
@@ -97,20 +100,17 @@ export async function exportElementToPdf(
 
         if (rect.height < 2) continue;
 
-        // Case A: block body straddles the boundary
-        const blockCrosses = top < boundary && bottom > boundary;
+        // Block body crosses the effective bottom margin line
+        const blockCrosses = top < effectiveBoundary && bottom > effectiveBoundary;
 
-        // Case B: orphan header (header finishes very close to page bottom)
+        // Orphan header (header finishes very close to page bottom)
         const headerOrphan =
           isHeader &&
           top < boundary &&
           bottom <= boundary &&
-          bottom > boundary - 60;
+          bottom > effectiveBoundary - 20;
 
         if ((blockCrosses || headerOrphan) && top > bestTop) {
-          // SAFETY: only insert a spacer if the block started at least 5% into the page.
-          // If a block starts near the TOP of the page and is very tall (> PAGE),
-          // we cannot push it to next page — accept the cut to avoid infinite spacer loop.
           const pageStart = page * PAGE_H_PX;
           if (top > pageStart + PAGE_H_PX * 0.05) {
             bestBlock = block;
@@ -179,12 +179,7 @@ export async function exportElementToPdf(
 
     for (let i = 0; i < totalPages; i++) {
       const startY = i * PAGE_H_CANVAS;
-      // Trim bottom margin on all pages except the last one.
-      // The trimmed pixels are white spacer, so no content is lost.
-      const isLastPage = i === totalPages - 1;
-      const endY = isLastPage
-        ? Math.min((i + 1) * PAGE_H_CANVAS, canvas.height)
-        : Math.min((i + 1) * PAGE_H_CANVAS - MARGIN_BOT_CANVAS, canvas.height);
+      const endY = Math.min((i + 1) * PAGE_H_CANVAS, canvas.height);
       const sliceH = endY - startY;
 
       if (sliceH <= 0) continue;

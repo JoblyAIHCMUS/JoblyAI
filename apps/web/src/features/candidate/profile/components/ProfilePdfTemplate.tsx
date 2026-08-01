@@ -278,17 +278,17 @@ export const ProfilePdfTemplate = React.forwardRef<
     className?: string;
   }) => (
     <div
-      className={`flex flex-col gap-0.5 text-[10pt] text-slate-900 ${className}`}
+      className={`flex flex-col gap-1 text-[10pt] text-slate-900 pl-3.5 ${className}`}
     >
       {lines.map((line, idx) => (
-        <div key={idx} className="flex items-start gap-1.5 leading-snug">
+        <div key={idx} className="flex items-start gap-2 leading-relaxed" data-pdf-block="true">
           <span
-            className="flex-shrink-0 text-black"
-            style={{ fontSize: '10pt', lineHeight: '1.45', marginTop: '0px' }}
+            className="flex-shrink-0 text-black select-none"
+            style={{ fontSize: '9pt', lineHeight: '1.5', marginTop: '1px' }}
           >
             •
           </span>
-          <span>{line.replace(/^[-•*]\s*/, '')}</span>
+          <span className="leading-relaxed">{line.replace(/^[-•*]\s*/, '')}</span>
         </div>
       ))}
     </div>
