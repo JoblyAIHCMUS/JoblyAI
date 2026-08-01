@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flag, Mail, Smartphone, Edit, Sparkles } from 'lucide-react';
+import { Flag, Mail, Smartphone, Edit, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SideBar from './sideBar';
 import type { CandidateSocial, CandidateContact } from '@/types/candidate';
@@ -203,7 +203,7 @@ export default function ProfileHeader({
                   disabled={isExportingPdf}
                   title="Export Profile in Overleaf Style PDF"
                 >
-                  <Sparkles size={16} className="text-amber-300" />
+                  <Download size={16} />
                   <span>{isExportingPdf ? 'Exporting PDF...' : 'Export CV (PDF)'}</span>
                 </button>
               )}

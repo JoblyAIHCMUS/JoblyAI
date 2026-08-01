@@ -145,14 +145,14 @@ const CandidateProfilePage = () => {
   const handleExportPdf = async () => {
     if (!pdfContainerRef.current) return;
     setIsExportingPdf(true);
-    const toastId = toast.loading('Exporting profile to PDF (LaTeX style)...');
+    const toastId = toast.loading('Exporting CV to PDF...');
     try {
       const candidateName = profile?.name || candidate?.name || 'Candidate';
-      const fileName = `${candidateName.replace(/\s+/g, '_')}_LaTeX_Profile.pdf`;
+      const fileName = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
       await exportElementToPdf(pdfContainerRef.current, {
         fileName,
       });
-      toast.success('LaTeX-style PDF exported successfully!', { id: toastId });
+      toast.success('CV has been exported successfully', { id: toastId });
     } catch (error) {
       console.error('Failed to export PDF:', error);
       toast.error('Failed to export PDF. Please try again.', { id: toastId });
