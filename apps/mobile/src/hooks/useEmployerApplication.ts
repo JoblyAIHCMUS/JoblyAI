@@ -14,7 +14,7 @@ const SINGLE_KEY = (id: string | number) =>
   ['employer-application', id] as const;
 const LIST_KEY = ['employer-applications'] as const;
 
-type RawApplication = {
+export type RawApplication = {
   id: number | string;
   candidateId?: string;
   status: ApplicationStatus;
@@ -29,16 +29,22 @@ type RawApplication = {
   matchPercentage?: number | null;
   candidate?: {
     name?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     email?: string;
-    phone?: string;
+    phoneNumber?: string | null;
     avatarUrl?: string | null;
   };
 };
 
-function toApplicantDetail(raw: RawApplication): ApplicantDetail {
+export function toApplicantDetail(raw: RawApplication): ApplicantDetail {
   const candidateId = raw.candidateId ?? String(raw.id);
   const candidateName =
     raw.candidate?.name?.trim() ||
+    [raw.candidate?.firstName, raw.candidate?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() ||
     raw.candidate?.email ||
     `Candidate ${candidateId}`;
   const appliedRole = raw.job?.title ?? 'Unknown role';
@@ -49,7 +55,7 @@ function toApplicantDetail(raw: RawApplication): ApplicantDetail {
     name: candidateName,
     image: raw.candidate?.avatarUrl ?? null,
     email: raw.candidate?.email || '',
-    phone: raw.candidate?.phone || '',
+    phone: raw.candidate?.phoneNumber || '',
     title: appliedRole,
     jobListingId: String(raw.jobId ?? raw.id),
     appliedRole,

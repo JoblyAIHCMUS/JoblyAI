@@ -81,7 +81,7 @@ export function mapApplicationRecordToApplicantDetail(
     name: candidateName,
     image: application.candidate?.avatarUrl ?? null,
     email: application.candidate?.email || '',
-    phone: '',
+    phone: application.candidate?.phoneNumber || '',
     title: application.job.title,
     jobListingId: String(application.jobId),
     appliedRole: application.job.title,

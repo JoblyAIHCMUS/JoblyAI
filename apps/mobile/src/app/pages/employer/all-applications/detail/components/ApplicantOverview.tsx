@@ -96,7 +96,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
             className="flex flex-row items-center gap-1.5 mt-0.5"
           >
             <BarChart3 size={14} color="#4f46e5" />
-            {applicant.score === null ? (
+            {applicant.score == null ? (
               <View className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
                 <Text className="text-[10px] font-bold text-amber-700">
                   AI Calculating...
@@ -107,6 +107,9 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
                 {applicant.score.toFixed(2)}%
               </Text>
             )}
+            <Text className="text-[10px] font-medium text-app-primary-1 underline">
+              Click here to view analysis
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

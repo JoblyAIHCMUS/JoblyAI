@@ -47,6 +47,7 @@ export interface ApplicationCandidate {
   firstName?: string | null;
   lastName?: string | null;
   email: string;
+  phoneNumber?: string | null;
   avatarUrl: string | null;
 }
 

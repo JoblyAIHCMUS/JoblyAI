@@ -34,6 +34,7 @@ import { getGreetingName, useUser } from '@/hooks/useUser';
 import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
 import { useLogout } from '@/hooks/useAuth';
 import { useUnreadDot } from '@/hooks/messaging/useUnreadDot';
+import { useSidebarVisibility } from '@/contexts/SidebarContext';
 
 interface CandidateDashboardSidebarProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ const CandidateDashboardSidebar = ({
   const { data: candidateProfile } = useGetCandidateProfile();
   const { logout, loading: isLoggingOut } = useLogout();
   const hasUnreadMessages = useUnreadDot(candidateProfile?.id);
+  const { setOpen } = useSidebarVisibility();
 
   const widthRef = useRef(width);
   useEffect(() => {
@@ -60,6 +62,7 @@ const CandidateDashboardSidebar = ({
   }, [width]);
 
   useEffect(() => {
+    setOpen(isOpen);
     if (isOpen) {
       setIsVisible(true);
       translateX.value = withTiming(0, {
@@ -80,7 +83,7 @@ const CandidateDashboardSidebar = ({
         }
       );
     }
-  }, [isOpen, translateX, width]);
+  }, [isOpen, translateX, width, setOpen]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],

@@ -13,6 +13,7 @@ import {
   Briefcase,
   Clock,
   AlertTriangle,
+  Target,
 } from 'lucide-react-native';
 import { useMatchExplanation } from '../../../../../../hooks/useMatchExplanation';
 
@@ -65,7 +66,7 @@ export function MatchExplanationDrawer({
     data: explanation,
     isLoading,
     isError,
-  } = useMatchExplanation(isOpen ? applicationId : null);
+  } = useMatchExplanation(applicationId);
 
   return (
     <Modal visible={isOpen} transparent animationType="slide">
@@ -135,6 +136,31 @@ export function MatchExplanationDrawer({
 
                 <View className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
                   <View className="flex flex-row items-center gap-2 mb-2">
+                    <Target size={16} color="#7c3aed" />
+                    <Text className="text-sm font-semibold text-[#1f2937]">
+                      Exact Match Score
+                    </Text>
+                  </View>
+                  <View className="flex flex-row items-baseline gap-2">
+                    <Text
+                      className="text-4xl font-bold"
+                      style={{
+                        color: getSimilarityColor(
+                          (explanation.exactMatchScore ?? 0) / 100
+                        ),
+                      }}
+                    >
+                      {(explanation.exactMatchScore ?? 0).toFixed(2)}
+                      <Text className="text-xl text-[#94a3b8]">%</Text>
+                    </Text>
+                    <Text className="text-xs text-[#6b7280]">
+                      requirements met
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+                  <View className="flex flex-row items-center gap-2 mb-2">
                     <Clock size={16} color="#ca8a04" />
                     <Text className="text-sm font-semibold text-[#1f2937]">
                       Experience
@@ -164,57 +190,59 @@ export function MatchExplanationDrawer({
                       </Text>
                     </View>
                   ) : (
-                    <View className="gap-2">
+                    <View className="gap-3">
                       {explanation.requirementMatches.map((req, index) => (
                         <View
                           key={index}
-                          className="rounded-xl border border-[#e2e8f0] bg-white p-3"
+                          className="rounded-xl border border-[#e2e8f0] bg-white p-3 pb-4"
                         >
-                          <View className="flex flex-row items-center justify-between gap-2">
-                            <View className="flex flex-row items-center gap-2 flex-1 flex-wrap">
-                              <Text className="text-sm font-semibold text-[#1f2937]">
-                                {req.skillName}
+                          <Text className="text-sm font-semibold text-[#1f2937] mb-1.5">
+                            {req.skillName}
+                          </Text>
+                          <View className="flex flex-row items-center gap-2 flex-wrap">
+                            <View className="flex flex-row items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
+                              <Text className="text-[10px] text-[#6b7280]">
+                                embedding
                               </Text>
-                              <View
-                                className={`px-2 py-0.5 rounded border ${getImportanceClasses(
-                                  req.importance
-                                )}`}
+                              <Text
+                                className="text-[10px] font-semibold"
+                                style={{
+                                  color: getSimilarityColor(
+                                    req.embeddingSimilarity
+                                  ),
+                                }}
                               >
-                                <Text className="text-[10px] font-medium">
-                                  {getImportanceLabel(req.importance)}
-                                </Text>
-                              </View>
+                                {(req.embeddingSimilarity * 100).toFixed(0)}%
+                              </Text>
                             </View>
-                            {req.hardConstraintMet && (
-                              <View className="bg-green-100 px-2 py-0.5 rounded">
-                                <Text className="text-[10px] font-semibold text-green-700">
-                                  Strong match
-                                </Text>
-                              </View>
-                            )}
+                            <View
+                              className={`flex flex-row items-center gap-1 px-2 py-0.5 rounded border ${
+                                req.hardConstraintMet
+                                  ? 'bg-green-50 border-green-200'
+                                  : 'bg-red-50 border-red-200'
+                              }`}
+                            >
+                              <Text className="text-[10px] text-[#6b7280]">
+                                exact
+                              </Text>
+                              <Text
+                                className={`text-[10px] font-semibold ${
+                                  req.hardConstraintMet
+                                    ? 'text-green-700'
+                                    : 'text-red-600'
+                                }`}
+                              >
+                                {req.hardConstraintMet ? 'met' : 'not met'}
+                              </Text>
+                            </View>
                           </View>
                           {req.minYearsRequired ? (
-                            <Text className="mt-1 text-xs text-[#6b7280]">
+                            <Text className="mt-1.5 text-xs text-[#6b7280]">
                               Min experience: {req.minYearsRequired} years
                             </Text>
                           ) : null}
-                          <View className="mt-1 flex flex-row items-center gap-2">
-                            <Text className="text-xs text-[#6b7280]">
-                              Similarity:
-                            </Text>
-                            <Text
-                              className="text-sm font-semibold"
-                              style={{
-                                color: getSimilarityColor(
-                                  req.embeddingSimilarity
-                                ),
-                              }}
-                            >
-                              {(req.embeddingSimilarity * 100).toFixed(0)}%
-                            </Text>
-                          </View>
                           {req.justification ? (
-                            <Text className="mt-1 text-sm text-[#6b7280]">
+                            <Text className="mt-1 text-xs text-[#6b7280]">
                               {req.justification}
                             </Text>
                           ) : null}
