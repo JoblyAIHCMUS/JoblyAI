@@ -66,6 +66,9 @@ import { formatErrorForDisplay } from '@/lib/errors';
 import { CvSyncCompareModal } from './components/CvSyncCompareModal';
 import { CvDeleteImpactModal } from './components/CvDeleteImpactModal';
 import { AiFeedbackModal } from './components/AiFeedbackModal';
+import { ProfilePdfTemplate } from './components/ProfilePdfTemplate';
+import { exportElementToPdf } from './utils/exportPdf';
+import { OverleafCvExportModal } from './components/OverleafCvExportModal';
 import {
   commitResumeMerge,
   triggerAiParse,
@@ -133,7 +136,30 @@ const CandidateProfilePage = () => {
   }, [processingTasks]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   const cvRef = useRef<CVRef>(null);
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
+  const modalPdfRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (!pdfContainerRef.current) return;
+    setIsExportingPdf(true);
+    const toastId = toast.loading('Exporting CV to PDF...');
+    try {
+      const candidateName = profile?.name || candidate?.name || 'Candidate';
+      const fileName = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
+      await exportElementToPdf(pdfContainerRef.current, {
+        fileName,
+      });
+      toast.success('CV has been exported successfully', { id: toastId });
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+      toast.error('Failed to export PDF. Please try again.', { id: toastId });
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   // Handle opening modals via URL parameters (for redirection from other pages)
   useEffect(() => {
@@ -1041,6 +1067,9 @@ const CandidateProfilePage = () => {
           handleDeleteContact={handleDeleteContact}
           handleUpdateAbout={handleUpdateAbout}
           descriptionId={profile?.about?.id}
+          onExportPdf={handleExportPdf}
+          onOpenExportModal={() => setExportModalOpen(true)}
+          isExportingPdf={isExportingPdf}
         />
       </div>
 
@@ -1196,6 +1225,34 @@ const CandidateProfilePage = () => {
             : null
         }
       />
+
+      <OverleafCvExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        candidate={candidate}
+        aboutText={profile?.about?.bio}
+        pdfRef={modalPdfRef}
+        onExportPdf={handleExportPdf}
+        isExportingPdf={isExportingPdf}
+      />
+
+      {/* Dedicated off-screen container for direct PDF file export */}
+      <div
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: '0',
+          width: '794px',
+          zIndex: -9999,
+          pointerEvents: 'none',
+        }}
+      >
+        <ProfilePdfTemplate
+          ref={pdfContainerRef}
+          candidate={candidate}
+          aboutText={profile?.about?.bio}
+        />
+      </div>
     </div>
   );
 };
