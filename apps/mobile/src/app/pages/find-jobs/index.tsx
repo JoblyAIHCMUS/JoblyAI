@@ -65,6 +65,10 @@ function FindJobsPage() {
   const [localSalaryMax, setLocalSalaryMax] = useState(urlMaxSalary);
   const [localSalaryCurrency, setLocalSalaryCurrency] =
     useState<SupportedCurrency | null>(urlSalaryCurrency);
+  const [draftTypes, setDraftTypes] = useState<EmploymentType[]>(urlTypes);
+  const [draftCategories, setDraftCategories] = useState<(number | string)[]>(
+    urlCategories,
+  );
 
   // Fetch jobs
   const { fetchJobs, data: jobsData, loading: loadingJobs } = useListJobs();
@@ -149,30 +153,6 @@ function FindJobsPage() {
     return () => clearTimeout(timer);
   }, [localLocation, urlLocation]);
 
-  // Debounce salary (min/max/currency together)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (
-        localSalaryMin !== urlMinSalary ||
-        localSalaryMax !== urlMaxSalary ||
-        localSalaryCurrency !== urlSalaryCurrency
-      ) {
-        setUrlMinSalary(localSalaryMin);
-        setUrlMaxSalary(localSalaryMax);
-        setUrlSalaryCurrency(localSalaryCurrency);
-        setUrlPage(1);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [
-    localSalaryMin,
-    localSalaryMax,
-    localSalaryCurrency,
-    urlMinSalary,
-    urlMaxSalary,
-    urlSalaryCurrency,
-  ]);
-
   // Fetch jobs when filters change
   useEffect(() => {
     const selectedEmploymentTypes = urlTypes
@@ -225,8 +205,48 @@ function FindJobsPage() {
     setLocalSalaryMax(max);
   };
 
-  const handleSalaryApply = () => {
+  const syncDraftFilters = () => {
+    setLocalSalaryMin(urlMinSalary);
+    setLocalSalaryMax(urlMaxSalary);
+    setLocalSalaryCurrency(urlSalaryCurrency);
+    setDraftTypes(urlTypes);
+    setDraftCategories(urlCategories);
+  };
+
+  const handleOpenFilterPanel = () => {
+    syncDraftFilters();
+    setFilterPanelOpen(true);
+  };
+
+  const handleCloseFilterPanel = () => {
+    syncDraftFilters();
     setFilterPanelOpen(false);
+  };
+
+  const handleDoneFilters = () => {
+    setUrlMinSalary(localSalaryMin);
+    setUrlMaxSalary(localSalaryMax);
+    setUrlSalaryCurrency(localSalaryCurrency);
+    setUrlTypes(draftTypes);
+    setUrlCategories(draftCategories);
+    setUrlPage(1);
+    setFilterPanelOpen(false);
+  };
+
+  const handleResetFiltersDraft = () => {
+    setLocalSalaryMin(0);
+    setLocalSalaryMax(capFor(null));
+    setLocalSalaryCurrency(null);
+    setDraftTypes([]);
+    setDraftCategories([]);
+  };
+
+  const handleTypeChange = (types: EmploymentType[]) => {
+    setDraftTypes(types);
+  };
+
+  const handleCategoryChange = (categoryIds: (number | string)[]) => {
+    setDraftCategories(categoryIds);
   };
 
   const activeFilterCount =
@@ -244,6 +264,8 @@ function FindJobsPage() {
     setLocalSalaryMin(0);
     setLocalSalaryMax(capFor(null));
     setLocalSalaryCurrency(null);
+    setDraftTypes([]);
+    setDraftCategories([]);
     setUrlQ('');
     setUrlLocation('');
     setUrlMinSalary(0);
@@ -298,7 +320,7 @@ function FindJobsPage() {
             />
             <FilterButton
               count={activeFilterCount}
-              onPress={() => setFilterPanelOpen(true)}
+              onPress={handleOpenFilterPanel}
             />
           </View>
 
@@ -442,25 +464,19 @@ function FindJobsPage() {
       {/* Filter Panel Modal */}
       <FilterPanel
         isOpen={filterPanelOpen}
-        onClose={() => setFilterPanelOpen(false)}
+        onClose={handleCloseFilterPanel}
         categories={categories}
         salaryCurrency={localSalaryCurrency}
         salaryMin={localSalaryMin}
         salaryMax={localSalaryMax}
         onSalaryCurrencyChange={setLocalSalaryCurrency}
         onSalaryChange={handleSalaryChange}
-        onSalaryApply={handleSalaryApply}
-        selectedTypes={urlTypes}
-        onTypeChange={(types) => {
-          setUrlTypes(types);
-          setUrlPage(1);
-        }}
-        selectedCategories={urlCategories}
-        onCategoryChange={(categoryIds) => {
-          setUrlCategories(categoryIds);
-          setUrlPage(1);
-        }}
-        onReset={handleReset}
+        selectedTypes={draftTypes}
+        onTypeChange={handleTypeChange}
+        selectedCategories={draftCategories}
+        onCategoryChange={handleCategoryChange}
+        onReset={handleResetFiltersDraft}
+        onDone={handleDoneFilters}
       />
     </>
   );
