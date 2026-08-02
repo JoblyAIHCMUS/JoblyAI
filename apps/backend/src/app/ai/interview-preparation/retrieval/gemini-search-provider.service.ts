@@ -8,7 +8,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { InterviewQuestion } from '../dto/interview-question.model.js';
-import { SearchProvider } from './search-provider.interface.js';
+import {
+  SearchProvider,
+  SearchProviderOptions,
+} from './search-provider.interface.js';
 import { InterviewContext } from '../application/interview-context.model.js';
 import {
   DEFAULT_SOURCES_FILTER_CONFIG,
@@ -53,7 +56,8 @@ export class GeminiSearchProvider implements SearchProvider {
 
   async searchAndExtract(
     context: InterviewContext,
-    queries: string[]
+    queries: string[],
+    options?: SearchProviderOptions
   ): Promise<InterviewQuestion[]> {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY')?.trim();
     if (!apiKey) {
@@ -61,7 +65,7 @@ export class GeminiSearchProvider implements SearchProvider {
     }
 
     const model = this.getModel();
-    const prompt = this.buildPrompt(context, queries);
+    const prompt = this.buildPrompt(context, queries, options);
 
     try {
       this.logger.log(
@@ -210,7 +214,11 @@ export class GeminiSearchProvider implements SearchProvider {
     return { whitelist, blacklist };
   }
 
-  private buildPrompt(context: InterviewContext, queries: string[]): string {
+  private buildPrompt(
+    context: InterviewContext,
+    queries: string[],
+    options?: SearchProviderOptions
+  ): string {
     const { whitelist, blacklist } = this.getSourceRulesConfig();
 
     const whitelistPrompt =
@@ -227,6 +235,13 @@ export class GeminiSearchProvider implements SearchProvider {
             .join('\n')}`
         : '';
 
+    const excludePrompt =
+      options?.excludeQuestions && options.excludeQuestions.length > 0
+        ? `EXCLUDE PREVIOUS QUESTIONS (Do NOT return any of these previously generated questions or close paraphrases):\n${options.excludeQuestions
+            .map((q) => `- ${q}`)
+            .join('\n')}`
+        : '';
+
     return `
 You are an expert recruitment system and Senior Hiring Manager.
 Your goal is to find real, actual interview questions for the following role:
@@ -240,12 +255,14 @@ To achieve this:
 Here are some recommended search queries to guide your search:
 ${queries.map((q) => `- ${q}`).join('\n')}
 
-2. Source Domain Constraints:
+2. Source Domain Constraints & Exclusions:
 ${whitelistPrompt}
 ${blacklistPrompt}
+${excludePrompt}
 
 3. Read the search results carefully. Make sure to note the exact titles and URLs of the webpages as returned by the Google Search tool.
-4. Extract exactly 5 real, actual interview questions. Do not generate fictional or hypothetical questions.
+4. Extract 6 to 8 real, actual interview questions. Do not generate fictional or hypothetical questions.
+
 5. Classify the difficulty level of each question strictly based on Bloom's Taxonomy:
    - "Easy": Remember & Understand (e.g. basic conceptual recall, introductory behavioral questions).
    - "Medium": Apply & Analyze (e.g. situational problem solving, technical tasks, analysis of simple scenarios).

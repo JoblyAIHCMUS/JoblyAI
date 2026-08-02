@@ -18,16 +18,25 @@ export class InterviewPrepProcessor extends WorkerHost {
   }
 
   async process(job: Job<any>): Promise<any> {
-    const { candidateId, jobId, resumeId } = job.data;
+    const { candidateId, jobId, resumeId, isRegenerate, excludeQuestions } =
+      job.data;
 
     try {
       this.logger.log(
-        `Generating interview questions for candidate ${candidateId} and job ${jobId}`
+        `Generating interview questions for candidate ${candidateId} and job ${jobId} (isRegenerate: ${Boolean(
+          isRegenerate
+        )})`
       );
 
       const response = await this.interviewPreparationPipeline.run(
         jobId,
-        resumeId
+        resumeId,
+        {
+          bypassCache: Boolean(isRegenerate),
+          excludeQuestions: Array.isArray(excludeQuestions)
+            ? excludeQuestions
+            : [],
+        }
       );
       this.logger.log('response', response);
       await this.prisma.interviewPreparation.update({

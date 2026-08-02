@@ -14,6 +14,11 @@ import { InterviewContext } from '../application/interview-context.model.js';
 import { InterviewQuestion } from '../dto/interview-question.model.js';
 import Redis from 'ioredis';
 
+export interface PipelineRunOptions {
+  bypassCache?: boolean;
+  excludeQuestions?: string[];
+}
+
 @Injectable()
 export class InterviewPreparationPipeline {
   private readonly logger = new Logger(InterviewPreparationPipeline.name);
@@ -30,7 +35,11 @@ export class InterviewPreparationPipeline {
     @Inject('REDIS_CLIENT') private readonly redis: Redis
   ) {}
 
-  async run(jobId: number, resumeId: number): Promise<GroupedQuestions> {
+  async run(
+    jobId: number,
+    resumeId: number,
+    options?: PipelineRunOptions
+  ): Promise<GroupedQuestions> {
     const profiler = new PipelineProfiler();
     this.logger.debug('=== Interview Preparation Pipeline Started ===');
 
@@ -93,10 +102,16 @@ export class InterviewPreparationPipeline {
     profiler.end();
     this.logger.debug('Interview Context Inferred:', interviewContext);
 
-    // Step 3: Search Query Generation
+    // Step 3: Search Query Generation (including site: targeted whitelist domain queries)
     profiler.start('query_generation');
-    const searchQueries =
-      this.queryGeneratorService.generateSearchQueries(interviewContext);
+    const sourceRules =
+      typeof (this.searchProvider as any).getSourceRulesConfig === 'function'
+        ? (this.searchProvider as any).getSourceRulesConfig()
+        : null;
+    const searchQueries = this.queryGeneratorService.generateSearchQueries(
+      interviewContext,
+      sourceRules?.whitelist
+    );
     profiler.end();
     this.logger.debug('Search Queries:', searchQueries);
 
@@ -105,8 +120,13 @@ export class InterviewPreparationPipeline {
     const cacheKeyWeb = `web_questions:${jobId}`;
 
     const [webQuestions, aiQuestions] = await Promise.all([
-      // Luồng 1: Web Search Grounding (Hoặc đọc từ Cache)
-      this.getWebQuestionsCached(cacheKeyWeb, interviewContext, searchQueries),
+      // Luồng 1: Web Search Grounding (Hoặc đọc từ Cache / Bypass nếu requested)
+      this.getWebQuestionsCached(
+        cacheKeyWeb,
+        interviewContext,
+        searchQueries,
+        options
+      ),
       // Luồng 2: Personalized AI Generation based on gaps
       this.generatePersonalizedQuestions(interviewContext).catch((err) => {
         this.logger.error(`Personalized AI generation failed: ${err.message}`);
@@ -154,26 +174,35 @@ export class InterviewPreparationPipeline {
   private async getWebQuestionsCached(
     cacheKey: string,
     context: InterviewContext,
-    queries: string[]
+    queries: string[],
+    options?: PipelineRunOptions
   ): Promise<InterviewQuestion[]> {
-    try {
-      const cached = await this.redis.get(cacheKey);
-      if (cached) {
-        this.logger.log(`[Redis] Cache hit for web_questions on Job`);
-        return JSON.parse(cached) as InterviewQuestion[];
+    if (!options?.bypassCache) {
+      try {
+        const cached = await this.redis.get(cacheKey);
+        if (cached) {
+          this.logger.log(`[Redis] Cache hit for web_questions on Job`);
+          return JSON.parse(cached) as InterviewQuestion[];
+        }
+      } catch (cacheErr: unknown) {
+        const msg =
+          cacheErr instanceof Error ? cacheErr.message : String(cacheErr);
+        this.logger.warn(`Failed to read web_questions from Redis: ${msg}`);
       }
-    } catch (cacheErr: any) {
-      this.logger.warn(
-        `Failed to read web_questions from Redis: ${cacheErr.message}`
+    } else {
+      this.logger.log(
+        `[Redis] Bypassing cache for web_questions as requested by options`
       );
+      await this.redis.del(cacheKey).catch(() => null);
     }
 
     const webQuestions = await this.searchProvider
-      .searchAndExtract(context, queries)
-      .catch((err) => {
-        this.logger.error(
-          `Web search question extraction failed: ${err.message}`
-        );
+      .searchAndExtract(context, queries, {
+        excludeQuestions: options?.excludeQuestions,
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Web search question extraction failed: ${msg}`);
         return [];
       });
 
@@ -186,10 +215,10 @@ export class InterviewPreparationPipeline {
           86400
         ); // 24-hour cache
         this.logger.log(`[Redis] Cached web_questions successfully`);
-      } catch (cacheErr: any) {
-        this.logger.warn(
-          `Failed to write web_questions to Redis: ${cacheErr.message}`
-        );
+      } catch (cacheErr: unknown) {
+        const msg =
+          cacheErr instanceof Error ? cacheErr.message : String(cacheErr);
+        this.logger.warn(`Failed to write web_questions to Redis: ${msg}`);
       }
     }
 
