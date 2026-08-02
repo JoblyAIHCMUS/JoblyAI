@@ -17,6 +17,7 @@ import {
   Heading3,
   Quote,
 } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 interface RichTextEditorProps {
   content: string;
@@ -122,7 +123,11 @@ export const RichTextEditor = React.forwardRef<
           >
             <Bold
               size={18}
-              color={styleState?.bold.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.bold.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -137,7 +142,11 @@ export const RichTextEditor = React.forwardRef<
           >
             <Italic
               size={18}
-              color={styleState?.italic.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.italic.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -152,7 +161,11 @@ export const RichTextEditor = React.forwardRef<
           >
             <Strikethrough
               size={18}
-              color={styleState?.strikeThrough.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.strikeThrough.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -169,7 +182,9 @@ export const RichTextEditor = React.forwardRef<
           >
             <Heading2
               size={18}
-              color={styleState?.h2?.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.h2?.isActive ? COLORS.typePartTime : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -184,7 +199,9 @@ export const RichTextEditor = React.forwardRef<
           >
             <Heading3
               size={18}
-              color={styleState?.h3?.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.h3?.isActive ? COLORS.typePartTime : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -198,7 +215,9 @@ export const RichTextEditor = React.forwardRef<
             <List
               size={18}
               color={
-                styleState?.unorderedList?.isActive ? '#3B82F6' : '#64748B'
+                styleState?.unorderedList?.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
               }
               strokeWidth={2.5}
             />
@@ -210,7 +229,11 @@ export const RichTextEditor = React.forwardRef<
           >
             <ListOrdered
               size={18}
-              color={styleState?.orderedList?.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.orderedList?.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -221,7 +244,11 @@ export const RichTextEditor = React.forwardRef<
           >
             <Quote
               size={18}
-              color={styleState?.blockQuote?.isActive ? '#3B82F6' : '#64748B'}
+              color={
+                styleState?.blockQuote?.isActive
+                  ? COLORS.typePartTime
+                  : COLORS.slate500
+              }
               strokeWidth={2.5}
             />
           </TouchableOpacity>
@@ -238,7 +265,7 @@ export const RichTextEditor = React.forwardRef<
         style={{
           minHeight: 150,
           padding: 12,
-          color: '#0f172a',
+          color: COLORS.brandDark,
           fontSize: 16,
         }}
       />

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
+import { COLORS } from '../app/constants/theme';
 
 interface DeleteConfirmationModalProps {
   isVisible: boolean;
@@ -38,20 +39,32 @@ export const DeleteConfirmationModal: React.FC<
       animationType="fade"
       onRequestClose={onCancel}
     >
-      <View className="flex-1 bg-black/30 justify-center items-center">
+      <View
+        className="flex-1 justify-center items-center"
+        style={{ backgroundColor: COLORS.overlay }}
+      >
         <View className="bg-white rounded-3xl w-5/6 max-w-sm px-6 py-8 shadow-lg items-center">
           {/* Alert Icon */}
-          <View className="w-12 h-12 rounded-full bg-[#FEE2E2] items-center justify-center mb-4">
-            <AlertCircle size={24} color="#DC2626" strokeWidth={2} />
+          <View
+            className="w-12 h-12 rounded-full items-center justify-center mb-4"
+            style={{ backgroundColor: COLORS.tagRedBg }}
+          >
+            <AlertCircle size={24} color={COLORS.tagRedText} strokeWidth={2} />
           </View>
 
           {/* Title */}
-          <Text className="text-lg font-semibold text-[#111827] mb-2 text-center">
+          <Text
+            className="text-lg font-semibold mb-2 text-center"
+            style={{ color: COLORS.darkText }}
+          >
             {title}
           </Text>
 
           {/* Description */}
-          <Text className="text-sm text-[#6B7280] mb-6 text-center">
+          <Text
+            className="text-sm mb-6 text-center"
+            style={{ color: COLORS.gray3 }}
+          >
             {description}
           </Text>
 
@@ -61,10 +74,14 @@ export const DeleteConfirmationModal: React.FC<
             <TouchableOpacity
               disabled={isDeleting}
               onPress={onCancel}
-              className="flex-1 py-2 rounded-lg border border-[#D1D5DB] bg-white"
+              className="flex-1 py-2 rounded-lg border bg-white"
+              style={{ borderColor: COLORS.borderUnchecked }}
               activeOpacity={0.7}
             >
-              <Text className="text-center text-[#374151] font-medium">
+              <Text
+                className="text-center font-medium"
+                style={{ color: COLORS.gray2 }}
+              >
                 {cancelLabel}
               </Text>
             </TouchableOpacity>
@@ -73,7 +90,8 @@ export const DeleteConfirmationModal: React.FC<
             <TouchableOpacity
               disabled={isDeleting}
               onPress={onConfirm}
-              className="flex-1 py-2 rounded-lg bg-[#DC2626]"
+              className="flex-1 py-2 rounded-lg"
+              style={{ backgroundColor: COLORS.tagRedText }}
               activeOpacity={0.7}
             >
               {isDeleting ? (

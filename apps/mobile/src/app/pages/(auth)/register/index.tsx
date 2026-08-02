@@ -16,6 +16,7 @@ import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { authClient } from '../../../../lib/auth-client';
+import { COLORS } from '../../../constants/theme';
 
 type UserType = 'job-seeker' | 'employer';
 
@@ -248,9 +249,9 @@ const RegisterPage = () => {
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
-                  <EyeOff size={20} color="#64748b" />
+                  <EyeOff size={20} color={COLORS.slate500} />
                 ) : (
-                  <Eye size={20} color="#64748b" />
+                  <Eye size={20} color={COLORS.slate500} />
                 )}
               </TouchableOpacity>
             }
@@ -271,9 +272,9 @@ const RegisterPage = () => {
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color="#64748b" />
+                  <EyeOff size={20} color={COLORS.slate500} />
                 ) : (
-                  <Eye size={20} color="#64748b" />
+                  <Eye size={20} color={COLORS.slate500} />
                 )}
               </TouchableOpacity>
             }

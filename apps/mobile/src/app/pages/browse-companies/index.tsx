@@ -75,15 +75,15 @@ function CompanyLogo({ company }: { company: Company }) {
     return (
       <Image
         source={{ uri: company.logoUrl }}
-        className="h-16 w-16 rounded-xl border border-[#e2e8f0] bg-app-white-1"
+        className="h-16 w-16 rounded-xl border border-app-slate-2 bg-app-white-1"
         resizeMode="contain"
       />
     );
   }
 
   return (
-    <View className="h-16 w-16 items-center justify-center rounded-xl bg-[#eef0ff]">
-      <Text className="text-lg font-bold text-[#4640de]">{initials}</Text>
+    <View className="h-16 w-16 items-center justify-center rounded-xl bg-app-bg-selected">
+      <Text className="text-lg font-bold text-app-primary-1">{initials}</Text>
     </View>
   );
 }
@@ -105,32 +105,32 @@ function CompanyCard({
     >
       <View className="mb-4 flex-row items-start justify-between gap-4">
         <CompanyLogo company={company} />
-        <View className="rounded-sm bg-[#eef0ff] px-3 py-1">
-          <Text className="text-sm text-[#4640de]">View</Text>
+        <View className="rounded-sm bg-app-bg-selected px-3 py-1">
+          <Text className="text-sm text-app-primary-1">View</Text>
         </View>
       </View>
 
-      <Text className="mb-3 text-2xl font-semibold leading-7 text-[#0f172a]">
+      <Text className="mb-3 text-2xl font-semibold leading-7 text-app-slate-1">
         {company.name}
       </Text>
 
       <Text
-        className="mb-4 text-base leading-6 text-[#64748b]"
+        className="mb-4 text-base leading-6 text-app-text-5"
         numberOfLines={4}
       >
         {getShortDescription(company)}
       </Text>
 
       <View className="flex-row flex-wrap items-center gap-3">
-        <View className="rounded-sm border border-[#ffb836] px-3 py-1">
-          <Text className="text-sm font-semibold text-[#ffb836]">
+        <View className="rounded-sm border border-app-amber-1 px-3 py-1">
+          <Text className="text-sm font-semibold text-app-amber-1">
             {industry}
           </Text>
         </View>
 
         {company.sizeRange ? (
-          <View className="rounded-sm bg-[#eef2ff] px-3 py-1">
-            <Text className="text-sm font-semibold text-[#4f46e5]">
+          <View className="rounded-sm bg-app-background-1 px-3 py-1">
+            <Text className="text-sm font-semibold text-app-primary-2">
               {company.sizeRange}
             </Text>
           </View>
@@ -225,7 +225,7 @@ export default function BrowseCompaniesPage() {
               className="h-10 w-10 items-center justify-center"
               onPress={() => setSidebarOpen(true)}
             >
-              <Menu size={24} color="#25324b" />
+              <Menu size={24} color={COLORS.textStrong} />
             </TouchableOpacity>
 
             <Text className="flex-1 pl-3 text-lg font-bold text-app-text-4">
@@ -241,41 +241,44 @@ export default function BrowseCompaniesPage() {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          <View className="bg-[#f8f8fd] px-4 pb-10 pt-8">
+          <View
+            className="px-4 pb-10 pt-8"
+            style={{ backgroundColor: COLORS.surfaceSoft }}
+          >
             <View className="rounded-[5px] bg-app-white-1 p-4 shadow-sm">
               <View className="flex-row items-center gap-4 px-1">
-                <Search size={22} color="#0f172a" />
+                <Search size={22} color={COLORS.brandDark} />
                 <View className="flex-1 pt-2">
                   <TextInput
                     value={localSearchTerm}
                     onChangeText={setLocalSearchTerm}
                     placeholder="Company name or keyword"
-                    placeholderTextColor="#94a3b8"
-                    className="p-0 text-base text-[#0f172a]"
+                    placeholderTextColor={COLORS.slate400}
+                    className="p-0 text-base text-app-slate-1"
                     returnKeyType="search"
                   />
-                  <View className="mt-2 h-px bg-[#cbd5e1]" />
+                  <View className="mt-2 h-px bg-app-border-2" />
                 </View>
               </View>
 
               <View className="mt-4 flex-row items-center gap-4 px-1">
-                <MapPin size={22} color="#0f172a" />
+                <MapPin size={22} color={COLORS.brandDark} />
                 <View className="flex-1 pt-2">
                   <TextInput
                     value={localLocation}
                     onChangeText={setLocalLocation}
                     placeholder="Location"
-                    placeholderTextColor="#94a3b8"
-                    className="p-0 text-base text-[#0f172a]"
+                    placeholderTextColor={COLORS.slate400}
+                    className="p-0 text-base text-app-slate-1"
                     returnKeyType="search"
                   />
-                  <View className="mt-2 h-px bg-[#cbd5e1]" />
+                  <View className="mt-2 h-px bg-app-border-2" />
                 </View>
               </View>
 
               <TouchableOpacity
                 activeOpacity={0.85}
-                className="mt-5 h-12 items-center justify-center rounded-[5px] bg-[#4f46e5]"
+                className="mt-5 h-12 items-center justify-center rounded-[5px] bg-app-primary-2"
                 onPress={handleSearch}
               >
                 <Text className="text-base font-semibold text-white">
@@ -285,7 +288,7 @@ export default function BrowseCompaniesPage() {
             </View>
 
             <View className="mt-4 flex-row flex-wrap justify-center gap-1">
-              <Text className="text-base leading-6 text-[#64748b]">
+              <Text className="text-base leading-6 text-app-text-5">
                 Popular :
               </Text>
               {POPULAR_SEARCHES.map((value) => (
@@ -294,7 +297,7 @@ export default function BrowseCompaniesPage() {
                   activeOpacity={0.7}
                   onPress={() => handlePopularSearch(value)}
                 >
-                  <Text className="text-base leading-6 text-[#64748b]">
+                  <Text className="text-base leading-6 text-app-text-5">
                     {value}
                     {value === POPULAR_SEARCHES[POPULAR_SEARCHES.length - 1]
                       ? ''
@@ -306,10 +309,10 @@ export default function BrowseCompaniesPage() {
           </View>
 
           <View className="bg-app-white-1 px-4 py-10">
-            <Text className="text-3xl font-semibold leading-9 text-[#0f172a]">
+            <Text className="text-3xl font-semibold leading-9 text-app-slate-1">
               {companiesSectionTitle}
             </Text>
-            <Text className="mt-2 text-base leading-6 text-[#64748b]">
+            <Text className="mt-2 text-base leading-6 text-app-text-5">
               {companiesSectionDescription}
             </Text>
 
@@ -329,13 +332,13 @@ export default function BrowseCompaniesPage() {
                     onPress={() => setSelectedCompanySize(companySize)}
                     className={`rounded-full border px-4 py-2 ${
                       active
-                        ? 'border-[#4f46e5] bg-[#eef0ff]'
+                        ? 'border-app-primary-2 bg-app-bg-selected'
                         : 'border-app-border-1 bg-app-white-1'
                     }`}
                   >
                     <Text
                       className={`text-sm font-semibold ${
-                        active ? 'text-[#4f46e5]' : 'text-[#64748b]'
+                        active ? 'text-app-primary-2' : 'text-app-text-5'
                       }`}
                     >
                       {companySize}
@@ -346,10 +349,10 @@ export default function BrowseCompaniesPage() {
             </ScrollView>
 
             <View className="mt-6 flex-row items-center gap-3">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-[#eef0ff]">
-                <Building2 size={20} color="#4f46e5" />
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-app-bg-selected">
+                <Building2 size={20} color={COLORS.primary2} />
               </View>
-              <Text className="text-2xl font-semibold text-[#0f172a]">
+              <Text className="text-2xl font-semibold text-app-slate-1">
                 {total} Results
               </Text>
             </View>
@@ -357,19 +360,19 @@ export default function BrowseCompaniesPage() {
             {loading && companies.length === 0 ? (
               <View className="items-center py-12">
                 <ActivityIndicator size="large" color={COLORS.primary2} />
-                <Text className="mt-4 text-sm text-[#64748b]">
+                <Text className="mt-4 text-sm text-app-text-5">
                   Loading companies...
                 </Text>
               </View>
             ) : error ? (
-              <View className="mt-6 rounded-lg bg-[#fff1f0] px-4 py-8">
-                <Text className="text-center text-sm text-[#dc2626]">
+              <View className="mt-6 rounded-lg bg-app-tag-red-bg px-4 py-8">
+                <Text className="text-center text-sm text-app-tag-red-text">
                   Unable to load companies. Pull to refresh.
                 </Text>
               </View>
             ) : companies.length === 0 ? (
-              <View className="mt-6 rounded-lg bg-[#f8fafc] px-4 py-8">
-                <Text className="text-center text-base text-[#64748b]">
+              <View className="mt-6 rounded-lg bg-app-bg-input px-4 py-8">
+                <Text className="text-center text-base text-app-text-5">
                   {hasActiveSearch
                     ? 'No companies match your search.'
                     : 'No companies match your filters.'}

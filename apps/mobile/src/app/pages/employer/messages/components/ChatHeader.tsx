@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import Avatar from '../../../../../components/Avatar';
+import { COLORS } from '@/app/constants/theme';
 
 interface ChatHeaderProps {
   name: string;
@@ -29,7 +30,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           activeOpacity={0.7}
           className="mr-3"
         >
-          <ArrowLeft size={24} color="#1E293B" />
+          <ArrowLeft size={24} color={COLORS.slate900} />
         </TouchableOpacity>
         <View className="mr-3">
           <Avatar url={avatar} name={name} size={40} />

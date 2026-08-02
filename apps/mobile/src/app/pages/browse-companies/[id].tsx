@@ -84,7 +84,7 @@ export default function CandidateCompanyProfilePage() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-[#f9fbff]"
+      className="flex-1 bg-app-background-2"
       edges={['top', 'left', 'right']}
     >
       <Stack.Screen options={{ headerShown: false }} />
@@ -124,7 +124,7 @@ export default function CandidateCompanyProfilePage() {
           </Text>
           <TouchableOpacity
             activeOpacity={0.8}
-            className="mt-5 rounded-lg bg-[#4640de] px-5 py-3"
+            className="mt-5 rounded-lg bg-app-primary-2 px-5 py-3"
             onPress={() => router.back()}
           >
             <Text className="font-bold text-white">Go back</Text>

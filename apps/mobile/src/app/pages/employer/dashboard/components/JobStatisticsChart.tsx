@@ -11,6 +11,7 @@ import {
 import { BarChart } from 'react-native-gifted-charts';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatsDataSet } from '../utils/statsAggregation';
+import { COLORS } from '../../../../constants/theme';
 
 type TabName = 'Overview' | 'Jobs View' | 'Jobs Applied';
 
@@ -96,15 +97,15 @@ export const JobStatisticsChart = ({
         <View className="relative">
           <TouchableOpacity
             onPress={() => setShowDropdown(true)}
-            className="border border-[#CBD5E1] rounded-md px-4 flex-row items-center justify-center bg-white h-[44px] gap-x-1"
+            className="border border-app-border-2 rounded-md px-4 flex-row items-center justify-center bg-white h-[44px] gap-x-1"
           >
-            <Text className="text-[#0F172A] font-medium text-base">
+            <Text className="text-app-slate-1 font-medium text-base">
               {groupByLabels[groupBy]}
             </Text>
             <MaterialIcons
               name="keyboard-arrow-down"
               size={24}
-              color="#475569"
+              color={COLORS.textMuted}
             />
           </TouchableOpacity>
 
@@ -116,12 +117,12 @@ export const JobStatisticsChart = ({
           >
             <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
               <View className="flex-1 bg-black/10 items-center justify-center">
-                <View className="bg-white rounded-lg border border-[#CBD5E1] shadow-xl w-48 overflow-hidden">
+                <View className="bg-white rounded-lg border border-app-border-2 shadow-xl w-48 overflow-hidden">
                   {options.map((option) => (
                     <TouchableOpacity
                       key={option.value}
                       onPress={() => handleOptionSelect(option.value)}
-                      className={`px-4 py-3 border-b border-[#F1F5F9] last:border-b-0 ${
+                      className={`px-4 py-3 border-b border-app-slate-gray last:border-b-0 ${
                         groupBy === option.value ? 'bg-indigo-50' : ''
                       }`}
                     >
@@ -129,7 +130,7 @@ export const JobStatisticsChart = ({
                         className={`text-base font-medium ${
                           groupBy === option.value
                             ? 'text-indigo-600'
-                            : 'text-[#0F172A]'
+                            : 'text-app-slate-1'
                         }`}
                       >
                         {option.label}
@@ -167,7 +168,7 @@ export const JobStatisticsChart = ({
               onPress={() => setActiveTab(tab)}
               className="pb-2"
             >
-              <Text className="text-[#475569] font-semibold text-lg">
+              <Text className="text-app-text-3 font-semibold text-lg">
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -177,7 +178,7 @@ export const JobStatisticsChart = ({
 
       <View className="relative min-h-[220px] justify-center">
         {loading ? (
-          <ActivityIndicator size="large" color="#4F46E5" />
+          <ActivityIndicator size="large" color={COLORS.primary2} />
         ) : data.length > 0 ? (
           <BarChart
             stackData={displayData}
@@ -194,7 +195,7 @@ export const JobStatisticsChart = ({
             noOfSections={3}
             maxValue={MAX_VALUE}
             xAxisLabelTextStyle={{
-              color: '#475569',
+              color: COLORS.textMuted,
               fontSize: groupBy === 'month' ? 12 : 16,
               textAlign: 'center',
               marginTop: 4,
@@ -214,13 +215,13 @@ export const JobStatisticsChart = ({
           {activeTab !== 'Jobs Applied' && (
             <View className="flex-row items-center gap-x-2">
               <View className="w-4 h-4 rounded bg-amber-500" />
-              <Text className="text-[#475569] text-base">Job View</Text>
+              <Text className="text-app-text-3 text-base">Job View</Text>
             </View>
           )}
           {activeTab !== 'Jobs View' && (
             <View className="flex-row items-center gap-x-2">
               <View className="w-4 h-4 rounded bg-purple-500" />
-              <Text className="text-[#475569] text-base">Job Applied</Text>
+              <Text className="text-app-text-3 text-base">Job Applied</Text>
             </View>
           )}
         </View>

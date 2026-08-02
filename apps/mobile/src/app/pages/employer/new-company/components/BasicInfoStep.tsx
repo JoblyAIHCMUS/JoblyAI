@@ -8,6 +8,7 @@ import LogoUploader from './LogoUploader';
 import ModalPicker from './ModalPicker';
 import { SCALES, INDUSTRIES } from '../constants';
 import type { CompanyRegistrationFormData } from '../schema';
+import { COLORS } from '@/app/constants/theme';
 
 interface BasicInfoStepProps {
   control: Control<CompanyRegistrationFormData>;
@@ -136,7 +137,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 >
                   {selectedScale?.label || 'Select company size'}
                 </Text>
-                <ChevronDown size={20} color="#64748B" strokeWidth={2} />
+                <ChevronDown
+                  size={20}
+                  color={COLORS.slate500}
+                  strokeWidth={2}
+                />
               </TouchableOpacity>
               {errors.scale && (
                 <Text className="text-xs text-red-600">
@@ -184,7 +189,11 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 >
                   {selectedIndustry?.label || 'Select industry'}
                 </Text>
-                <ChevronDown size={20} color="#64748B" strokeWidth={2} />
+                <ChevronDown
+                  size={20}
+                  color={COLORS.slate500}
+                  strokeWidth={2}
+                />
               </TouchableOpacity>
               {errors.industry && (
                 <Text className="text-xs text-red-600">

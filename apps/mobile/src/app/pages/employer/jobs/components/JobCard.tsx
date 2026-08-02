@@ -6,6 +6,7 @@ import { JobListing } from '../data';
 import { JobCardMenu } from './JobCardMenu';
 import { DeleteConfirmationModal } from '../../../../../components/DeleteConfirmationModal';
 import { useJobActions } from '../../../../../hooks/useEmployerJobs';
+import { COLORS } from '../../../../constants/theme';
 
 interface JobCardProps {
   job: JobListing;
@@ -110,7 +111,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           >
             {job.title}
           </Text>
-          <ActivityIndicator size="small" color="#4640DE" />
+          <ActivityIndicator size="small" color={COLORS.primary} />
         </View>
 
         <View className="flex-row justify-between mb-4 border-b border-app-border-2 pb-4">
@@ -189,7 +190,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleMenuPress}
           >
-            <MoreHorizontal size={24} color="#0F172A" />
+            <MoreHorizontal size={24} color={COLORS.brandDark} />
           </TouchableOpacity>
         </View>
 

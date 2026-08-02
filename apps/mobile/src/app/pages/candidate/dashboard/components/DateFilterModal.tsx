@@ -100,15 +100,21 @@ export default function DateFilterModal({
       transparent
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/30">
+      <View className="flex-1" style={{ backgroundColor: COLORS.overlay }}>
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}
           className="flex-1"
         />
         <View className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white pb-8">
-          <View className="flex-row items-center justify-between border-b border-[#d6ddeb] px-4 py-4">
-            <Text className="text-xl font-bold text-[#25324b]">
+          <View
+            className="flex-row items-center justify-between border-b px-4 py-4"
+            style={{ borderBottomColor: COLORS.border }}
+          >
+            <Text
+              className="text-xl font-bold"
+              style={{ color: COLORS.textStrong }}
+            >
               Filter by Date
             </Text>
             <TouchableOpacity onPress={onClose}>
@@ -129,21 +135,25 @@ export default function DateFilterModal({
                   key={key}
                   activeOpacity={0.7}
                   onPress={() => handleSelect(key)}
-                  className={`mb-2 rounded-xl border px-4 py-4 ${
-                    active
-                      ? 'border-[#4640de] bg-[#eef0ff]'
-                      : 'border-[#d6ddeb] bg-white'
-                  }`}
+                  className="mb-2 rounded-xl border px-4 py-4"
+                  style={{
+                    borderColor: active ? COLORS.primary : COLORS.border,
+                    backgroundColor: active ? COLORS.bgSelected : COLORS.white,
+                  }}
                 >
                   <Text
-                    className={`text-base font-semibold ${
-                      active ? 'text-[#4640de]' : 'text-[#25324b]'
-                    }`}
+                    className="text-base font-semibold"
+                    style={{
+                      color: active ? COLORS.primary : COLORS.textStrong,
+                    }}
                   >
                     {title}
                   </Text>
                   {key !== 'ALL_TIME' && (
-                    <Text className="mt-1 text-xs text-[#7c8493]">
+                    <Text
+                      className="mt-1 text-xs"
+                      style={{ color: COLORS.textLight }}
+                    >
                       {subtitle}
                     </Text>
                   )}

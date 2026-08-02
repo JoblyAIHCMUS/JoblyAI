@@ -14,6 +14,7 @@ import {
   type PreShortlistApplicationStatus,
 } from '../../../../../api/preShortlist';
 import { useSubmitPreShortlistAnswers } from '../../../../../hooks/useSubmitPreShortlistAnswers';
+import { COLORS } from '@/app/constants/theme';
 
 const MIN_LENGTH = 20;
 const MAX_LENGTH = 2000;
@@ -144,7 +145,7 @@ export function PreShortlistForm({
                 numberOfLines={5}
                 maxLength={MAX_LENGTH}
                 placeholder="Type your answer here (20-2000 characters)..."
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={COLORS.textPlaceholder}
                 className={`mt-2 min-h-[120px] rounded-xl border bg-app-background-2 px-3 py-2.5 text-sm text-app-text-4 ${
                   isInvalid ? 'border-app-red-2' : 'border-app-border-light'
                 }`}
@@ -172,7 +173,7 @@ export function PreShortlistForm({
       {readOnly ? (
         <View className="rounded-2xl border border-app-border-light bg-app-indigo-soft p-4">
           <View className="flex-row items-center gap-2">
-            <CheckCircle2 size={18} color="#4F46E5" />
+            <CheckCircle2 size={18} color={COLORS.primary2} />
             <Text className="text-sm font-semibold text-app-indigo-strong">
               Your answers have been submitted
             </Text>
@@ -185,7 +186,7 @@ export function PreShortlistForm({
             onPress={() => router.push('/pages/candidate/my-applications')}
             className="mt-4 flex-row items-center justify-center gap-1.5 rounded-xl border border-app-border-light bg-white px-4 py-2.5"
           >
-            <ArrowLeft size={14} color="#1F2937" strokeWidth={2.2} />
+            <ArrowLeft size={14} color={COLORS.darkText} strokeWidth={2.2} />
             <Text className="text-sm font-semibold text-app-text-4">
               Back to applications
             </Text>
@@ -205,7 +206,7 @@ export function PreShortlistForm({
         >
           {submit.isPending ? (
             <View className="flex-row items-center gap-2">
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={COLORS.white} />
               <Text className="text-sm font-semibold text-white">
                 Submitting...
               </Text>

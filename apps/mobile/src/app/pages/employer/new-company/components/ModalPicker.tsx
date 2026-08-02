@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { X } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 export interface PickerOption {
   value: string;
@@ -56,7 +57,7 @@ export const ModalPicker: React.FC<ModalPickerProps> = ({
           <View className="flex-row items-center justify-between px-4 py-4 border-b border-slate-200">
             <Text className="text-lg font-bold text-slate-900">{title}</Text>
             <TouchableOpacity onPress={() => onOpenChange(false)}>
-              <X size={24} color="#64748B" strokeWidth={2} />
+              <X size={24} color={COLORS.slate500} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 

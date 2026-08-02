@@ -29,6 +29,7 @@ import { usePrefetchEmployerApplication } from '../../../../hooks/usePrefetchEmp
 
 import { AllApplication, HiringStage } from './types';
 import { mapApiResponseToApplications, nextStageMap } from './data';
+import { COLORS } from '@/app/constants/theme';
 
 const REJECT_FEEDBACK =
   'Thank you for applying. We have decided to move forward with other candidates at this time.';
@@ -223,7 +224,7 @@ export default function AllApplicationsPage() {
     if (!isFetchingNextPage) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#4640DE" />
+        <ActivityIndicator size="small" color={COLORS.primary} />
       </View>
     );
   };
@@ -232,7 +233,7 @@ export default function AllApplicationsPage() {
     if (isLoading) return null;
     if (isError) {
       return (
-        <View className="mx-4 my-4 rounded-md border border-app-red-1 p-4 bg-[#FEF2F2]">
+        <View className="mx-4 my-4 rounded-md border border-app-red-1 p-4 bg-app-tag-red-bg">
           <Text className="text-sm text-app-red-1 mb-2">
             Failed to load applications. Please try again.
           </Text>
@@ -261,7 +262,7 @@ export default function AllApplicationsPage() {
         <Stack.Screen options={{ headerShown: false }} />
         <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#4640DE" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
         <EmployerDashboardSidebar
           isOpen={isSidebarOpen}
@@ -305,7 +306,7 @@ export default function AllApplicationsPage() {
           <RefreshControl
             refreshing={isRefetching && !isFetchingNextPage}
             onRefresh={refetch}
-            colors={['#4640DE']}
+            colors={[COLORS.primary]}
           />
         }
       />

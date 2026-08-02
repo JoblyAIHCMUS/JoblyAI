@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Calendar } from 'lucide-react-native';
+import { COLORS } from '../../../../constants/theme';
 
 interface JobsHeaderProps {
   dateLabel: string;
@@ -26,7 +27,7 @@ export const JobsHeader = ({ dateLabel, onDatePress }: JobsHeaderProps) => {
           <Text className="text-base text-app-gray-2 font-medium">
             {dateLabel}
           </Text>
-          <Calendar size={20} color="#4640DE" />
+          <Calendar size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
     </View>

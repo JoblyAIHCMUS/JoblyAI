@@ -7,6 +7,7 @@ import { Input } from '../../../../../components/ui/input';
 import { Label } from '../../../../../components/ui/label';
 import ModalPicker from '../../new-company/components/ModalPicker';
 import { CURRENCIES } from '../constants';
+import { COLORS } from '@/app/constants/theme';
 
 type CurrencyCode = 'none' | 'usd' | 'eur' | 'gbp' | 'vnd' | 'jpy' | 'cny';
 
@@ -110,7 +111,7 @@ export const SalarySelector: React.FC<SalarySelectorProps> = ({
           <Text className="text-base text-slate-900 font-medium">
             {selectedCurrency ? selectedCurrency.label : 'Select currency'}
           </Text>
-          <ChevronDown size={20} color="#64748B" />
+          <ChevronDown size={20} color={COLORS.slate500} />
         </TouchableOpacity>
 
         <ModalPicker

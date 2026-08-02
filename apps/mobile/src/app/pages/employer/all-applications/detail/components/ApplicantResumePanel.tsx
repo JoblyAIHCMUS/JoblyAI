@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 import { useCreateDownloadUrl } from '../../../../../../hooks/useCreateDownloadUrl';
+import { COLORS } from '@/app/constants/theme';
 
 interface ApplicantResumePanelProps {
   fileKey: string;
@@ -80,7 +81,7 @@ export function ApplicantResumePanel({
 
       <View className="rounded-xl border border-app-border-3 bg-app-slate-gray p-6 items-center justify-center min-h-[120px] mb-4">
         {loading ? (
-          <ActivityIndicator size="large" color="#4640DE" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         ) : (
           <Text className="text-sm text-app-text-3 text-center">
             Tap a button below to view or download the resume.

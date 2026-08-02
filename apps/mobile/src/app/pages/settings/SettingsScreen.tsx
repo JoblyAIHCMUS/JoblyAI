@@ -398,7 +398,7 @@ export default function SettingsScreen({
                   disabled={isChangingAvatar}
                   className="absolute -bottom-0.5 -right-0.5 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
                 >
-                  <Pencil size={10} color="#fff" strokeWidth={2.4} />
+                  <Pencil size={10} color={COLORS.white} strokeWidth={2.4} />
                 </TouchableOpacity>
               )}
             </View>

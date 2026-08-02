@@ -51,11 +51,11 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
             ) : (
               <View
                 className="w-full h-full items-center justify-center"
-                style={{ backgroundColor: '#2DD4BF20' }}
+                style={{ backgroundColor: `${COLORS.badgeGreenText}20` }}
               >
                 <View
                   className="w-6 h-6 rounded-md"
-                  style={{ backgroundColor: '#2DD4BF' }}
+                  style={{ backgroundColor: COLORS.badgeGreenText }}
                 />
               </View>
             )}

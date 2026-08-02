@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { updateCandidateProfile } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 export default function EditProfileModal({
   visible,
@@ -61,35 +62,35 @@ export default function EditProfileModal({
         <View className="w-full rounded-lg bg-white p-4">
           <Text className="mb-2 text-lg font-semibold">Edit Profile</Text>
 
-          <Text className="text-xs font-medium text-[#556070]">Full name</Text>
+          <Text className="text-xs font-medium text-app-text-3">Full name</Text>
           <TextInput
             value={name}
             onChangeText={setName}
             className="mb-2 rounded border px-3 py-2"
           />
 
-          <Text className="text-xs font-medium text-[#556070]">Headline</Text>
+          <Text className="text-xs font-medium text-app-text-3">Headline</Text>
           <TextInput
             value={headline}
             onChangeText={setHeadline}
             className="mb-2 rounded border px-3 py-2"
           />
 
-          <Text className="text-xs font-medium text-[#556070]">Location</Text>
+          <Text className="text-xs font-medium text-app-text-3">Location</Text>
           <TextInput
             value={location}
             onChangeText={setLocation}
             className="mb-2 rounded border px-3 py-2"
           />
 
-          <Text className="text-xs font-medium text-[#556070]">Phone</Text>
+          <Text className="text-xs font-medium text-app-text-3">Phone</Text>
           <TextInput
             value={phone}
             onChangeText={setPhone}
             className="mb-2 rounded border px-3 py-2"
           />
 
-          <Text className="text-xs font-medium text-[#556070]">Email</Text>
+          <Text className="text-xs font-medium text-app-text-3">Email</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -114,10 +115,10 @@ export default function EditProfileModal({
             <TouchableOpacity
               onPress={handleSave}
               disabled={saving}
-              className="items-center justify-center rounded bg-[#5758e7] px-4 py-2"
+              className="items-center justify-center rounded bg-app-primary-2 px-4 py-2"
             >
               {saving ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.white} />
               ) : (
                 <Text className="text-white">Save</Text>
               )}

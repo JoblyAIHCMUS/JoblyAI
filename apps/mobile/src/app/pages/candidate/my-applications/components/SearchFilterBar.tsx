@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { COLORS } from '@/app/constants/theme';
 
 interface SearchFilterBarProps {
   searchQuery: string;
@@ -24,11 +25,11 @@ export function SearchFilterBar({
     <View className="gap-2">
       <View className="flex-row items-center gap-2">
         <View className="h-11 flex-1 flex-row items-center rounded-xl border border-app-border-light bg-white px-3">
-          <Search size={16} color="#7C8493" strokeWidth={2} />
+          <Search size={16} color={COLORS.textLight} strokeWidth={2} />
           <Input
             className="h-11 flex-1 border-0 bg-transparent pl-2 text-sm text-app-text-4"
             placeholder="Search company, title, location..."
-            placeholderTextColor="#7C8493"
+            placeholderTextColor={COLORS.textLight}
             value={searchQuery}
             onChangeText={onSearchChange}
             returnKeyType="search"
@@ -41,7 +42,7 @@ export function SearchFilterBar({
           className="h-11 rounded-xl border-app-border-light bg-white px-4"
           onPress={onFilterPress}
         >
-          <Filter size={16} color="#202430" strokeWidth={2} />
+          <Filter size={16} color={COLORS.text} strokeWidth={2} />
           <Text className="text-sm font-semibold text-app-text-4">Filter</Text>
 
           {activeFilterCount > 0 ? (

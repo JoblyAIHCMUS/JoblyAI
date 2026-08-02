@@ -4,6 +4,7 @@ import { Zap } from 'lucide-react-native';
 
 import { HiringStage } from '../../types';
 import { hiringStageStyles, nextStageMap } from '../../data';
+import { COLORS } from '@/app/constants/theme';
 
 interface HiringProcessPanelProps {
   hiringStage: HiringStage;
@@ -57,7 +58,7 @@ export function HiringProcessPanel({
         {roundedScore >= 60 && (
           <View className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <Zap size={14} color="#78350f" />
+              <Zap size={14} color={COLORS.warningText} />
               <Text className="text-xs font-bold text-amber-900">
                 Employer Consideration Highlight
               </Text>

@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Trash2, ChevronDown } from 'lucide-react-native';
 import ModalPicker from './ModalPicker';
 import type { CompanyRole } from '../../../../../api/company';
+import { COLORS } from '@/app/constants/theme';
 
 const ROLE_OPTIONS = [
   { value: 'admin', label: 'admin' },
@@ -88,7 +89,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             className="flex-row items-center gap-1 px-3 py-2 bg-slate-50 rounded-lg active:bg-slate-100"
           >
             <Text className="text-xs font-medium text-slate-700">{role}</Text>
-            <ChevronDown size={14} color="#475569" strokeWidth={1.5} />
+            <ChevronDown size={14} color={COLORS.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
           <ModalPicker
             open={pickerOpen}
@@ -108,7 +109,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
           disabled={disabled}
           className="p-2 rounded-lg active:bg-red-50"
         >
-          <Trash2 size={18} color="#EF4444" strokeWidth={1.5} />
+          <Trash2 size={18} color={COLORS.error} strokeWidth={1.5} />
         </TouchableOpacity>
       )}
     </View>

@@ -11,6 +11,7 @@ import {
   parseDateInput,
 } from '../../dashboard/utils';
 import type { DatePreset, DateRangeInput } from '../../dashboard/types';
+import { COLORS } from '@/app/constants/theme';
 
 const QUICK_PRESETS: Array<{ key: DatePreset; label: string }> = [
   { key: 'TODAY', label: 'Today' },
@@ -142,7 +143,7 @@ export function ApplicationsFilterSheet({
                   <Input
                     className="h-12 rounded-xl border-app-border-light bg-white px-3 text-sm text-app-text-4"
                     placeholder="MM/DD/YYYY"
-                    placeholderTextColor="#7C8493"
+                    placeholderTextColor={COLORS.textLight}
                     value={dateRange.from}
                     onChangeText={(value) =>
                       onChangeDateRange({ ...dateRange, from: value })
@@ -157,7 +158,7 @@ export function ApplicationsFilterSheet({
                   <Input
                     className="h-12 rounded-xl border-app-border-light bg-white px-3 text-sm text-app-text-4"
                     placeholder="MM/DD/YYYY"
-                    placeholderTextColor="#7C8493"
+                    placeholderTextColor={COLORS.textLight}
                     value={dateRange.to}
                     onChangeText={(value) =>
                       onChangeDateRange({ ...dateRange, to: value })

@@ -62,7 +62,7 @@ export default function AllApplicationsDetailPage() {
           </TouchableOpacity>
         </View>
         <View className="flex-1 items-center justify-center px-4">
-          <View className="rounded-2xl border border-app-red-1 bg-[#FEF2F2] p-4 w-full max-w-md">
+          <View className="rounded-2xl border border-app-red-1 bg-app-tag-red-bg p-4 w-full max-w-md">
             <Text className="text-base font-semibold text-app-red-1 mb-1">
               {message}
             </Text>

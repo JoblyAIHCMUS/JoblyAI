@@ -12,6 +12,7 @@ import { useLocationAutocomplete } from '../hooks/useLocationAutocomplete';
 import { getOrCreateLocation } from '../api/location';
 import { cn } from '../lib/utils';
 import type { LocationDetail } from '../types/location';
+import { COLORS } from '../app/constants/theme';
 
 interface LocationAutocompleteProps {
   value?: LocationDetail | null;
@@ -132,9 +133,9 @@ export function LocationAutocomplete({
       <View className="relative justify-center">
         <View className="pointer-events-none absolute left-3 z-10">
           {loading || resolving ? (
-            <ActivityIndicator size="small" color="#94A3B8" />
+            <ActivityIndicator size="small" color={COLORS.slate400} />
           ) : (
-            <MapPin size={16} color="#94A3B8" />
+            <MapPin size={16} color={COLORS.slate400} />
           )}
         </View>
         <TextInput
@@ -155,7 +156,7 @@ export function LocationAutocomplete({
             className="absolute right-3 rounded-full p-0.5"
             hitSlop={8}
           >
-            <X size={16} color="#94A3B8" />
+            <X size={16} color={COLORS.slate400} />
           </Pressable>
         )}
       </View>
@@ -164,7 +165,7 @@ export function LocationAutocomplete({
         <View className="mt-1 max-h-60 rounded-md border border-slate-200 bg-white">
           {loading && (
             <View className="items-center py-3">
-              <ActivityIndicator size="small" color="#94A3B8" />
+              <ActivityIndicator size="small" color={COLORS.slate400} />
             </View>
           )}
           {!loading && suggestions.length === 0 && (
@@ -179,7 +180,7 @@ export function LocationAutocomplete({
                 onPress={() => void handleSelect(suggestion)}
                 className="flex-row items-center gap-3 border-b border-slate-100 px-3 py-2.5 active:bg-slate-100"
               >
-                <MapPin size={16} color="#94A3B8" />
+                <MapPin size={16} color={COLORS.slate400} />
                 <Text
                   className="flex-1 text-sm text-slate-700"
                   numberOfLines={1}

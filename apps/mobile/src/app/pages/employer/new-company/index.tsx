@@ -33,6 +33,7 @@ import {
   companyRegistrationSchema,
   type CompanyRegistrationFormData,
 } from './schema';
+import { COLORS } from '../../../constants/theme';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useCreateCompany } from '../../../../hooks/useCreateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
@@ -205,17 +206,17 @@ export default function EmployerNewCompanyPage() {
     currentStepIndicatorSize: 40,
     separatorStrokeWidth: 3,
     currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#4F46E5',
-    stepIndicatorCurrentColor: '#4F46E5',
-    stepIndicatorLabelCurrentColor: '#e2e8f0',
-    stepIndicatorFinishedColor: '#4F46E5',
-    stepIndicatorUnFinishedColor: '#e2e8f0',
-    separatorFinishedColor: '#4F46E5',
-    separatorUnFinishedColor: '#e2e8f0',
+    stepStrokeCurrentColor: COLORS.primary2,
+    stepIndicatorCurrentColor: COLORS.primary2,
+    stepIndicatorLabelCurrentColor: COLORS.slate200,
+    stepIndicatorFinishedColor: COLORS.primary2,
+    stepIndicatorUnFinishedColor: COLORS.slate200,
+    separatorFinishedColor: COLORS.primary2,
+    separatorUnFinishedColor: COLORS.slate200,
     labelFontFamily: 'System',
     labelFontSize: 12,
-    labelColor: '#64748B',
-    currentStepLabelColor: '#4F46E5',
+    labelColor: COLORS.slate500,
+    currentStepLabelColor: COLORS.primary2,
     stepIndicatorLabelFontSize: 12,
   };
 
@@ -327,7 +328,7 @@ export default function EmployerNewCompanyPage() {
             }`}
           >
             {loading ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
               <Text className="text-white font-semibold">
                 {currentStep === NEW_COMPANY_STEPS.length - 1
