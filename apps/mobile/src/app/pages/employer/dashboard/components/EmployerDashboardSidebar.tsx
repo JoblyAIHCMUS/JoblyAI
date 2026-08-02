@@ -32,6 +32,7 @@ import Toast from 'react-native-toast-message';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
 import { useLogout } from '../../../../../hooks/useAuth';
 import { useUnreadDot } from '../../../../../hooks/messaging/useUnreadDot';
+import { useSidebarVisibility } from '@/contexts/SidebarContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { data: employerProfile, isPending, error } = useGetEmployerProfile();
   const { logout, loading: isLoggingOut } = useLogout();
   const hasUnreadMessages = useUnreadDot(employerProfile?.id);
+  const { setOpen } = useSidebarVisibility();
   const company = employerProfile?.company;
   const isUnaffiliated = !company && !isPending && !error;
 
@@ -57,6 +59,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
   }, [width]);
 
   useEffect(() => {
+    setOpen(isOpen);
     if (isOpen) {
       setIsVisible(true);
       translateX.value = withTiming(0, {
@@ -77,7 +80,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
         }
       );
     }
-  }, [isOpen, width, translateX]);
+  }, [isOpen, width, translateX, setOpen]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],

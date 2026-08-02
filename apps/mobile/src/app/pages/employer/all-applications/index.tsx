@@ -46,15 +46,18 @@ type OpenMenu = (
 
 function PrefetchableListItem({
   application,
+  onPress,
   onMenuPress,
 }: {
   application: AllApplication;
+  onPress: () => void;
   onMenuPress: OpenMenu;
 }) {
   const prefetch = usePrefetchEmployerApplication(application.id);
   return (
     <AllApplicationsListItem
       application={application}
+      onPress={onPress}
       onMenuPress={onMenuPress}
       onPressIn={prefetch}
     />
@@ -277,7 +280,11 @@ export default function AllApplicationsPage() {
         data={applications}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <PrefetchableListItem application={item} onMenuPress={openMenu} />
+          <PrefetchableListItem
+            application={item}
+            onPress={() => handleView(item)}
+            onMenuPress={openMenu}
+          />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}

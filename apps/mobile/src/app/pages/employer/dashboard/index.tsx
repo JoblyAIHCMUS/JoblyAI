@@ -74,7 +74,7 @@ export default function EmployerDashboard() {
         text1: 'Dashboard error',
         text2: message,
       });
-      // eslint-disable-next-line no-console
+
       console.error('Error loading dashboard data:', error);
     }
   }, [fetchApplications, fetchAnalytics, groupBy, periods]);

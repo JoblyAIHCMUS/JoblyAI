@@ -22,6 +22,9 @@ import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
 import { useAuth } from '../hooks/useAuth';
 import { NotificationManager } from '../components/NotificationManager';
+import FloatingTabNavigation from './components/FloatingTabNavigation';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SidebarVisibilityProvider } from '../contexts/SidebarContext';
 import { canAccessRoute } from '@/utils/role-guard';
 import { getDashboardPath } from '@/utils/auth-route';
 import '../global.css';
@@ -170,7 +173,12 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
   // know whether to redirect them.
   return (
     <>
-      {children}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SidebarVisibilityProvider>
+          {children}
+          <FloatingTabNavigation />
+        </SidebarVisibilityProvider>
+      </GestureHandlerRootView>
       {isPending && (
         <View
           pointerEvents="auto"
