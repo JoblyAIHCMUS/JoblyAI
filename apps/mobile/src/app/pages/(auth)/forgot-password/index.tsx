@@ -11,6 +11,7 @@ import { authClient } from '../../../../lib/auth-client';
 
 import { Eye, EyeOff, Check, ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { COLORS } from '../../../constants/theme';
 
 const ForgotPasswordPage = () => {
   const {
@@ -180,9 +181,9 @@ const ForgotPasswordPage = () => {
                     onPress={() => setShowNewPassword(!showNewPassword)}
                   >
                     {showNewPassword ? (
-                      <EyeOff size={20} color="#64748b" />
+                      <EyeOff size={20} color={COLORS.slate500} />
                     ) : (
-                      <Eye size={20} color="#64748b" />
+                      <Eye size={20} color={COLORS.slate500} />
                     )}
                   </TouchableOpacity>
                 }
@@ -201,9 +202,9 @@ const ForgotPasswordPage = () => {
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff size={20} color="#64748b" />
+                      <EyeOff size={20} color={COLORS.slate500} />
                     ) : (
-                      <Eye size={20} color="#64748b" />
+                      <Eye size={20} color={COLORS.slate500} />
                     )}
                   </TouchableOpacity>
                 }
@@ -229,7 +230,7 @@ const ForgotPasswordPage = () => {
                       <View className="flex-row items-center">
                         <Check
                           size={12}
-                          color="#15803d"
+                          color={COLORS.successDark}
                           strokeWidth={3}
                           className="mr-1"
                         />
@@ -297,7 +298,11 @@ const ForgotPasswordPage = () => {
               onPress={() => router.push('/pages/(auth)/login')}
               className="flex-row items-center"
             >
-              <ArrowLeft size={16} color="#4338CA" className="mr-2" />
+              <ArrowLeft
+                size={16}
+                color={COLORS.indigoStrong}
+                className="mr-2"
+              />
               <Text className="text-sm font-semibold text-indigo-700">
                 Back to Login
               </Text>

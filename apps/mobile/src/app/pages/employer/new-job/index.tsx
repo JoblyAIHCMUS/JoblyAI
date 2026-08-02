@@ -32,6 +32,7 @@ import type {
   RequirementImportance,
 } from '../../../../types/job';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
+import { COLORS } from '../../../constants/theme';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -296,17 +297,17 @@ export default function EmployerNewJobPage() {
     currentStepIndicatorSize: 40,
     separatorStrokeWidth: 2,
     currentStepStrokeWidth: 3,
-    stepStrokeCurrentColor: '#4F46E5',
-    stepIndicatorCurrentColor: '#4F46E5',
-    stepIndicatorLabelCurrentColor: '#e2e8f0',
-    stepIndicatorFinishedColor: '#4F46E5',
-    stepIndicatorUnFinishedColor: '#e2e8f0',
-    separatorFinishedColor: '#4F46E5',
-    separatorUnFinishedColor: '#e2e8f0',
+    stepStrokeCurrentColor: COLORS.primary2,
+    stepIndicatorCurrentColor: COLORS.primary2,
+    stepIndicatorLabelCurrentColor: COLORS.slate200,
+    stepIndicatorFinishedColor: COLORS.primary2,
+    stepIndicatorUnFinishedColor: COLORS.slate200,
+    separatorFinishedColor: COLORS.primary2,
+    separatorUnFinishedColor: COLORS.slate200,
     labelAlign: 'center' as const,
     labelSize: 12,
-    currentStepLabelColor: '#4F46E5',
-    stepLabelColor: '#64748B',
+    currentStepLabelColor: COLORS.primary2,
+    stepLabelColor: COLORS.slate500,
   };
 
   return (

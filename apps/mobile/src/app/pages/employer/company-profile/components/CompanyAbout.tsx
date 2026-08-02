@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
+import { COLORS } from '../../../../constants/theme';
 
 interface CompanyAboutProps {
   description: string | null;
@@ -8,20 +9,20 @@ interface CompanyAboutProps {
 
 // Custom tag styles for RenderHtml (matching web and job details page)
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
-  body: { color: '#0F172A', fontSize: 16, lineHeight: 20 },
+  body: { color: COLORS.brandDark, fontSize: 16, lineHeight: 20 },
   h2: {
     fontSize: 28,
     fontWeight: '700',
     marginTop: 24,
     marginBottom: 8,
-    color: '#0F172A',
+    color: COLORS.brandDark,
   },
   h3: {
     fontSize: 20,
     fontWeight: '600',
     marginTop: 12,
     marginBottom: 6,
-    color: '#0F172A',
+    color: COLORS.brandDark,
   },
   p: { marginTop: 8, marginBottom: 8 },
   ul: { paddingLeft: 8 },
@@ -31,13 +32,13 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
   em: { fontStyle: 'italic' },
   blockquote: {
     borderLeftWidth: 4,
-    borderLeftColor: '#CBD5E1',
+    borderLeftColor: COLORS.borderMuted,
     paddingLeft: 12,
     fontStyle: 'italic',
-    color: '#475569',
+    color: COLORS.textMuted,
   },
   code: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
@@ -45,7 +46,7 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
     fontSize: 14,
   },
   pre: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     padding: 12,
     borderRadius: 8,
     overflow: 'hidden',

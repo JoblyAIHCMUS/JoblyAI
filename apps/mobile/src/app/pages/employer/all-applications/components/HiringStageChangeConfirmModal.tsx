@@ -100,13 +100,13 @@ export const HiringStageChangeConfirmModal: React.FC<
               onPress={onConfirm}
               className="flex-1 py-2 rounded-lg"
               style={{
-                backgroundColor: isAdvance ? '#22C55E' : COLORS.error,
+                backgroundColor: isAdvance ? COLORS.typeFullTime : COLORS.error,
                 opacity: loading ? 0.7 : 1,
               }}
               activeOpacity={0.7}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
                 <Text className="text-center text-white font-semibold">
                   {isAdvance ? 'Advance' : 'Reject'}

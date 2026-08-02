@@ -16,6 +16,7 @@ import {
   Target,
 } from 'lucide-react-native';
 import { useMatchExplanation } from '../../../../../../hooks/useMatchExplanation';
+import { COLORS } from '@/app/constants/theme';
 
 interface MatchExplanationDrawerProps {
   applicationId: string | number;
@@ -24,11 +25,11 @@ interface MatchExplanationDrawerProps {
 }
 
 function getSimilarityColor(similarity: number) {
-  if (similarity >= 0.8) return '#15803d';
-  if (similarity >= 0.6) return '#1d4ed8';
-  if (similarity >= 0.4) return '#a16207';
-  if (similarity >= 0) return '#c2410c';
-  return '#b91c1c';
+  if (similarity >= 0.8) return COLORS.successDark;
+  if (similarity >= 0.6) return COLORS.infoDark;
+  if (similarity >= 0.4) return COLORS.warningMedium;
+  if (similarity >= 0) return COLORS.orangeDark;
+  return COLORS.dangerDark;
 }
 
 function getImportanceLabel(importance: string) {
@@ -75,15 +76,15 @@ export function MatchExplanationDrawer({
           className="w-full max-w-lg rounded-xl bg-white overflow-hidden"
           style={{ maxHeight: '92%' }}
         >
-          <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-[#dbe1ee]">
+          <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-app-border-light">
             <View className="flex flex-row items-center gap-2">
-              <Briefcase size={20} color="#4f46e5" />
-              <Text className="text-lg font-semibold text-[#1f2937]">
+              <Briefcase size={20} color={COLORS.primary2} />
+              <Text className="text-lg font-semibold text-app-dark-text">
                 Match Analysis
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={8}>
-              <X size={20} color="#6b7280" />
+              <X size={20} color={COLORS.gray3} />
             </TouchableOpacity>
           </View>
 
@@ -91,28 +92,28 @@ export function MatchExplanationDrawer({
             className="px-5 py-4"
             showsVerticalScrollIndicator={false}
           >
-            <Text className="mb-4 text-sm text-[#6b7280]">
+            <Text className="mb-4 text-sm text-app-gray-3">
               Detailed breakdown of how this candidate matches the job
               requirements.
             </Text>
 
             {isLoading ? (
               <View className="items-center justify-center py-12">
-                <ActivityIndicator size="large" color="#4f46e5" />
+                <ActivityIndicator size="large" color={COLORS.primary2} />
               </View>
             ) : isError || !explanation ? (
               <View className="items-center justify-center py-12">
-                <AlertTriangle size={28} color="#d97706" />
-                <Text className="mt-2 text-sm text-[#6b7280] text-center">
+                <AlertTriangle size={28} color={COLORS.warningText} />
+                <Text className="mt-2 text-sm text-app-gray-3 text-center">
                   No match explanation available.
                 </Text>
               </View>
             ) : (
               <View className="gap-4 pb-4">
-                <View className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+                <View className="rounded-xl border border-app-slate-2 bg-app-bg-input p-4">
                   <View className="flex flex-row items-center gap-2 mb-2">
-                    <CheckCircle2 size={16} color="#16a34a" />
-                    <Text className="text-sm font-semibold text-[#1f2937]">
+                    <CheckCircle2 size={16} color={COLORS.typeFullTime} />
+                    <Text className="text-sm font-semibold text-app-dark-text">
                       Embedding Score
                     </Text>
                   </View>
@@ -126,18 +127,18 @@ export function MatchExplanationDrawer({
                       }}
                     >
                       {(explanation.overallScore ?? 0).toFixed(2)}
-                      <Text className="text-xl text-[#94a3b8]">%</Text>
+                      <Text className="text-xl text-app-slate-3">%</Text>
                     </Text>
-                    <Text className="text-xs text-[#6b7280]">
+                    <Text className="text-xs text-app-gray-3">
                       semantic similarity
                     </Text>
                   </View>
                 </View>
 
-                <View className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+                <View className="rounded-xl border border-app-slate-2 bg-app-bg-input p-4">
                   <View className="flex flex-row items-center gap-2 mb-2">
-                    <Target size={16} color="#7c3aed" />
-                    <Text className="text-sm font-semibold text-[#1f2937]">
+                    <Target size={16} color={COLORS.typeContract} />
+                    <Text className="text-sm font-semibold text-app-dark-text">
                       Exact Match Score
                     </Text>
                   </View>
@@ -151,24 +152,24 @@ export function MatchExplanationDrawer({
                       }}
                     >
                       {(explanation.exactMatchScore ?? 0).toFixed(2)}
-                      <Text className="text-xl text-[#94a3b8]">%</Text>
+                      <Text className="text-xl text-app-slate-3">%</Text>
                     </Text>
-                    <Text className="text-xs text-[#6b7280]">
+                    <Text className="text-xs text-app-gray-3">
                       requirements met
                     </Text>
                   </View>
                 </View>
 
-                <View className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+                <View className="rounded-xl border border-app-slate-2 bg-app-bg-input p-4">
                   <View className="flex flex-row items-center gap-2 mb-2">
-                    <Clock size={16} color="#ca8a04" />
-                    <Text className="text-sm font-semibold text-[#1f2937]">
+                    <Clock size={16} color={COLORS.badgeOrange} />
+                    <Text className="text-sm font-semibold text-app-dark-text">
                       Experience
                     </Text>
                   </View>
-                  <Text className="text-sm text-[#6b7280]">
+                  <Text className="text-sm text-app-gray-3">
                     Career span:{' '}
-                    <Text className="font-medium text-[#1f2937]">
+                    <Text className="font-medium text-app-dark-text">
                       {explanation.experienceYears} years
                     </Text>
                   </Text>
@@ -176,15 +177,15 @@ export function MatchExplanationDrawer({
 
                 <View>
                   <View className="flex flex-row items-center gap-2 mb-2">
-                    <Briefcase size={16} color="#4f46e5" />
-                    <Text className="text-sm font-semibold text-[#1f2937]">
+                    <Briefcase size={16} color={COLORS.primary2} />
+                    <Text className="text-sm font-semibold text-app-dark-text">
                       Requirements
                     </Text>
                   </View>
 
                   {explanation.requirementMatches.length === 0 ? (
-                    <View className="rounded-xl border border-[#e2e8f0] p-4">
-                      <Text className="text-sm text-[#6b7280]">
+                    <View className="rounded-xl border border-app-slate-2 p-4">
+                      <Text className="text-sm text-app-gray-3">
                         This job doesn&apos;t list any specific skill
                         requirements.
                       </Text>
@@ -194,14 +195,14 @@ export function MatchExplanationDrawer({
                       {explanation.requirementMatches.map((req, index) => (
                         <View
                           key={index}
-                          className="rounded-xl border border-[#e2e8f0] bg-white p-3 pb-4"
+                          className="rounded-xl border border-app-slate-2 bg-white p-3 pb-4"
                         >
-                          <Text className="text-sm font-semibold text-[#1f2937] mb-1.5">
+                          <Text className="text-sm font-semibold text-app-dark-text mb-1.5">
                             {req.skillName}
                           </Text>
                           <View className="flex flex-row items-center gap-2 flex-wrap">
                             <View className="flex flex-row items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-                              <Text className="text-[10px] text-[#6b7280]">
+                              <Text className="text-[10px] text-app-gray-3">
                                 embedding
                               </Text>
                               <Text
@@ -222,7 +223,7 @@ export function MatchExplanationDrawer({
                                   : 'bg-red-50 border-red-200'
                               }`}
                             >
-                              <Text className="text-[10px] text-[#6b7280]">
+                              <Text className="text-[10px] text-app-gray-3">
                                 exact
                               </Text>
                               <Text
@@ -237,12 +238,12 @@ export function MatchExplanationDrawer({
                             </View>
                           </View>
                           {req.minYearsRequired ? (
-                            <Text className="mt-1.5 text-xs text-[#6b7280]">
+                            <Text className="mt-1.5 text-xs text-app-gray-3">
                               Min experience: {req.minYearsRequired} years
                             </Text>
                           ) : null}
                           {req.justification ? (
-                            <Text className="mt-1 text-xs text-[#6b7280]">
+                            <Text className="mt-1 text-xs text-app-gray-3">
                               {req.justification}
                             </Text>
                           ) : null}

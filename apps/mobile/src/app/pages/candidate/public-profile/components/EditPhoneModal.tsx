@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useUpdateProfile } from '../../../../../hooks/useUpdateProfile';
+import { COLORS } from '@/app/constants/theme';
 
 interface EditPhoneModalProps {
   visible: boolean;
@@ -44,21 +45,24 @@ export default function EditPhoneModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 items-center justify-end bg-black/40">
+      <View
+        className="flex-1 items-center justify-end"
+        style={{ backgroundColor: COLORS.overlay }}
+      >
         <View className="w-full max-h-[50%] rounded-t-2xl bg-white p-4">
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">
               Edit Phone Number
             </Text>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Phone Number
             </Text>
             <TextInput
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               placeholder="+1 (555) 000-0000"
-              className="mb-6 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-6 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
               keyboardType="phone-pad"
             />
 
@@ -66,19 +70,19 @@ export default function EditPhoneModal({
               <TouchableOpacity
                 onPress={onClose}
                 disabled={isPending}
-                className="rounded-lg border border-[#d1d5db] px-4 py-2.5"
+                className="rounded-lg border border-app-border-unchecked px-4 py-2.5"
               >
-                <Text className="text-sm font-medium text-[#374151]">
+                <Text className="text-sm font-medium text-app-gray-2">
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={isPending}
-                className="flex-1 flex-row items-center justify-center rounded-lg bg-[#4f46e5] px-4 py-2.5"
+                className="flex-1 flex-row items-center justify-center rounded-lg bg-app-primary-2 px-4 py-2.5"
               >
                 {isPending ? (
-                  <ActivityIndicator size="small" color="white" />
+                  <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
                   <Text className="text-sm font-semibold text-white">Save</Text>
                 )}

@@ -15,6 +15,7 @@ import { useLogin, useAuth } from '../../../../hooks/useAuth';
 import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
+import { COLORS } from '../../../constants/theme';
 
 import { Eye, EyeOff, Check } from 'lucide-react-native';
 
@@ -166,9 +167,9 @@ const LoginPage = () => {
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
-                  <EyeOff size={20} color="#64748b" />
+                  <EyeOff size={20} color={COLORS.slate500} />
                 ) : (
-                  <Eye size={20} color="#64748b" />
+                  <Eye size={20} color={COLORS.slate500} />
                 )}
               </TouchableOpacity>
             }

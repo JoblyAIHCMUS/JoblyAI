@@ -9,6 +9,7 @@ import { HiringStageProgressBar } from './HiringStageProgressBar';
 import { MatchExplanationDrawer } from './MatchExplanationDrawer';
 import { useGetEmployerProfile } from '../../../../../../hooks/useGetEmployerProfile';
 import { useMessageCandidate } from '../../../../../../hooks/messaging/useMessageCandidate';
+import { COLORS } from '@/app/constants/theme';
 
 interface ApplicantOverviewProps {
   applicant: ApplicantDetail;
@@ -95,7 +96,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
             onPress={() => setShowMatchExplanation(true)}
             className="flex flex-row items-center gap-1.5 mt-0.5"
           >
-            <BarChart3 size={14} color="#4f46e5" />
+            <BarChart3 size={14} color={COLORS.primary2} />
             {applicant.score == null ? (
               <View className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
                 <Text className="text-[10px] font-bold text-amber-700">
@@ -135,7 +136,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
           Contact
         </Text>
         <View className="flex-row items-center mb-1.5">
-          <Mail size={16} color="#64748B" />
+          <Mail size={16} color={COLORS.slate500} />
           <Text
             className="ml-2 text-sm text-app-slate-1 flex-1"
             numberOfLines={1}
@@ -145,7 +146,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
         </View>
         {phone ? (
           <View className="flex-row items-center">
-            <Phone size={16} color="#64748B" />
+            <Phone size={16} color={COLORS.slate500} />
             <Text
               className="ml-2 text-sm text-app-slate-1 flex-1"
               numberOfLines={1}
@@ -163,7 +164,7 @@ export function ApplicantOverview({ applicant }: ApplicantOverviewProps) {
         className="w-full py-3 rounded-xl bg-app-primary-1 items-center flex-row justify-center"
         style={{ opacity: isMessaging ? 0.5 : 1 }}
       >
-        <Mail size={16} color="#FFFFFF" />
+        <Mail size={16} color={COLORS.white} />
         <Text className="ml-2 text-sm font-semibold text-white">
           {isMessaging ? 'Opening…' : 'Message'}
         </Text>

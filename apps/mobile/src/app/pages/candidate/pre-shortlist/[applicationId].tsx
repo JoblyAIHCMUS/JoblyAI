@@ -89,7 +89,7 @@ export default function PreShortlistPage() {
         />
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           <View className="mt-2 flex-row items-center gap-2">
-            <AlertCircle size={20} color={COLORS.error ?? '#DC2626'} />
+            <AlertCircle size={20} color={COLORS.error} />
             <Text className="text-lg font-semibold text-app-text-4">
               Could not load pre-shortlist questions
             </Text>

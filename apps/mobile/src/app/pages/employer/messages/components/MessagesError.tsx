@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 interface MessagesErrorProps {
   message: string;
@@ -10,7 +11,7 @@ interface MessagesErrorProps {
 const MessagesError: React.FC<MessagesErrorProps> = ({ message, onRetry }) => {
   return (
     <View className="items-center py-16 px-6">
-      <AlertCircle size={40} color="#EF4444" />
+      <AlertCircle size={40} color={COLORS.error} />
       <Text className="text-base font-semibold text-app-slate-1 mt-4 text-center">
         Unable to load messages
       </Text>

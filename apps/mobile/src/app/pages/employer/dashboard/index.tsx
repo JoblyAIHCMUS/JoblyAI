@@ -136,7 +136,7 @@ export default function EmployerDashboard() {
         <View className="pb-10">
           <DashboardHeader />
           {loadError && (
-            <View className="mx-4 mt-3 rounded-lg border border-app-red-1 bg-[#fff1f0] px-3 py-2">
+            <View className="mx-4 mt-3 rounded-lg border border-app-red-1 bg-app-tag-red-bg px-3 py-2">
               <Text className="text-sm font-medium text-app-red-1">
                 {loadError}
               </Text>

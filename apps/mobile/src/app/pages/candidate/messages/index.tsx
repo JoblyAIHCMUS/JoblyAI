@@ -73,6 +73,7 @@ export default function MessagesScreen() {
         <CandidateDashboardSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          currentPath="/pages/candidate/messages"
         />
       </>
     );
@@ -96,6 +97,7 @@ export default function MessagesScreen() {
         <CandidateDashboardSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          currentPath="/pages/candidate/messages"
         />
       </SafeAreaView>
     );
@@ -144,6 +146,7 @@ export default function MessagesScreen() {
       <CandidateDashboardSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        currentPath="/pages/candidate/messages"
       />
     </SafeAreaView>
   );

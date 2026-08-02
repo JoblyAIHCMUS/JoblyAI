@@ -9,10 +9,11 @@ import {
 } from '../utils';
 import type { JobPosting } from '@/types/job';
 import RequiredSkills from './RequiredSkills';
+import { COLORS } from '@/app/constants/theme';
 
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
   body: {
-    color: '#6B7280',
+    color: COLORS.gray3,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 0,
@@ -23,14 +24,14 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
     fontWeight: '700',
     marginTop: 12,
     marginBottom: 8,
-    color: '#111827',
+    color: COLORS.darkText,
   },
   h3: {
     fontSize: 20,
     fontWeight: '600',
     marginTop: 10,
     marginBottom: 6,
-    color: '#111827',
+    color: COLORS.darkText,
   },
   p: { marginBottom: 8 },
   ul: { paddingLeft: 8 },
@@ -40,13 +41,13 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
   em: { fontStyle: 'italic' },
   blockquote: {
     borderLeftWidth: 4,
-    borderLeftColor: '#CBD5E1',
+    borderLeftColor: COLORS.borderMuted,
     paddingLeft: 12,
     fontStyle: 'italic',
-    color: '#475569',
+    color: COLORS.textMuted,
   },
   code: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
@@ -54,7 +55,7 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
     fontSize: 14,
   },
   pre: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     padding: 12,
     borderRadius: 8,
     overflow: 'hidden',

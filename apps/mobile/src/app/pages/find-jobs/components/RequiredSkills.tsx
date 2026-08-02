@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import type { JobRequirement, RequirementImportance } from '@/types/job';
+import { COLORS } from '@/app/constants/theme';
 
 interface RequiredSkillsProps {
   requirements: JobRequirement[];
@@ -10,9 +11,21 @@ const importanceConfig: Record<
   RequirementImportance,
   { label: string; bgColor: string; textColor: string }
 > = {
-  REQUIRED: { label: 'Required', bgColor: '#FEE2E2', textColor: '#DC2626' },
-  PREFERRED: { label: 'Preferred', bgColor: '#FEF3C7', textColor: '#D97706' },
-  OPTIONAL: { label: 'Optional', bgColor: '#DBEAFE', textColor: '#2563EB' },
+  REQUIRED: {
+    label: 'Required',
+    bgColor: COLORS.tagRedBg,
+    textColor: COLORS.tagRedText,
+  },
+  PREFERRED: {
+    label: 'Preferred',
+    bgColor: COLORS.tagOrangeBg,
+    textColor: COLORS.warningText,
+  },
+  OPTIONAL: {
+    label: 'Optional',
+    bgColor: COLORS.bgSelected,
+    textColor: COLORS.infoText,
+  },
 };
 
 const RequiredSkills: React.FC<RequiredSkillsProps> = ({ requirements }) => {

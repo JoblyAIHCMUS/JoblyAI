@@ -12,6 +12,7 @@ import {
 import { X, Search } from 'lucide-react-native';
 import { useSearchEmployers } from '../../../../../hooks/useSearchEmployers';
 import type { TeamMember } from '../data';
+import { COLORS } from '@/app/constants/theme';
 
 interface TeamMemberSearchProps {
   open: boolean;
@@ -73,24 +74,24 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
               Add Team Members
             </Text>
             <TouchableOpacity onPress={() => handleOpenChange(false)}>
-              <X size={24} color="#64748B" strokeWidth={2} />
+              <X size={24} color={COLORS.slate500} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
           {/* Search Input */}
           <View className="px-4 py-3 border-b border-slate-200">
             <View className="flex-row items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
-              <Search size={18} color="#64748B" strokeWidth={1.5} />
+              <Search size={18} color={COLORS.slate500} strokeWidth={1.5} />
               <TextInput
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 className="flex-1 text-slate-900 text-base"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={COLORS.slate400}
               />
               {searchQuery && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <X size={18} color="#64748B" strokeWidth={1.5} />
+                  <X size={18} color={COLORS.slate500} strokeWidth={1.5} />
                 </TouchableOpacity>
               )}
             </View>
@@ -134,7 +135,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             ListEmptyComponent={
               <View className="px-4 py-8 flex items-center justify-center">
                 {loading && searchQuery ? (
-                  <ActivityIndicator size="small" color="#4F46E5" />
+                  <ActivityIndicator size="small" color={COLORS.primary2} />
                 ) : (
                   <Text className="text-sm text-slate-500 text-center">
                     {searchQuery

@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { StatsSummary } from '../utils/statsAggregation';
+import { COLORS } from '../../../../constants/theme';
 
 type FeatherIconName = ComponentProps<typeof Feather>['name'];
 
@@ -34,7 +35,11 @@ export const DetailedStatCards = ({
     const hasDiff = diff !== null;
     const diffValue = hasDiff ? (diff as number) : 0;
     const isPositive = hasDiff && diffValue >= 0;
-    const diffColor = !hasDiff ? '#94A3B8' : isPositive ? '#22C55E' : '#EC4899';
+    const diffColor = !hasDiff
+      ? COLORS.slate400
+      : isPositive
+      ? COLORS.typeFullTime
+      : COLORS.typeFreelance;
 
     return (
       <View className="bg-white rounded-2xl p-5 border border-app-border-2 shadow-sm flex-row justify-between items-center">
@@ -44,7 +49,7 @@ export const DetailedStatCards = ({
           </Text>
           <View className="flex-row items-baseline gap-x-2">
             {loading ? (
-              <ActivityIndicator size="small" color="#25324B" />
+              <ActivityIndicator size="small" color={COLORS.textStrong} />
             ) : (
               <Text className="text-4xl font-extrabold text-app-text-4">
                 {total.toLocaleString()}
@@ -76,7 +81,7 @@ export const DetailedStatCards = ({
         <View
           className={`w-10 h-10 rounded-full ${iconBg} items-center justify-center`}
         >
-          <Feather name={icon} size={20} color="white" />
+          <Feather name={icon} size={20} color={COLORS.white} />
         </View>
       </View>
     );

@@ -6,7 +6,7 @@ import {
   type GlassTabItem,
 } from 'expo-glass-tabs';
 import { useMemo } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../../hooks/useAuth';
@@ -14,6 +14,9 @@ import { useUnreadDot } from '../../hooks/messaging/useUnreadDot';
 import { useGetCandidateProfile } from '../../hooks/useGetCandidateProfile';
 import { useGetEmployerProfile } from '../../hooks/useGetEmployerProfile';
 import { useSidebarVisibility } from '../../contexts/SidebarContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../constants/theme';
+import type { UserRole } from '../constants/role';
 
 type NavigationItem = GlassTabItem & { href: string };
 
@@ -41,7 +44,7 @@ function makeIconWithBadge(
             width: 7,
             height: 7,
             borderRadius: 3.5,
-            backgroundColor: '#EF4444',
+            backgroundColor: COLORS.error,
           }}
         />
       )}
@@ -130,6 +133,113 @@ function isDetailOrThread(pathname: string) {
   return DETAIL_THREAD_PATTERNS.some((re) => re.test(pathname));
 }
 
+const EXPANDED_TAB_BAR_HEIGHT = 58;
+const BLUR_BLEED = 44;
+const MIN_BOTTOM_OFFSET = 12;
+const CONTENT_GAP = 8;
+
+// Keep scroll content clear of expo-glass-tabs' fixed pill and blur footprint.
+export function getFloatingTabContentInset(bottomInset: number): number {
+  const bottomOffset = Math.max(bottomInset - 16, MIN_BOTTOM_OFFSET);
+  const blurBleed = Platform.OS === 'android' ? 0 : BLUR_BLEED;
+  return bottomOffset + EXPANDED_TAB_BAR_HEIGHT + blurBleed + CONTENT_GAP;
+}
+
+export function isFloatingTabRoute(
+  pathname: string,
+  role: UserRole | null
+): boolean {
+  if (isDetailOrThread(pathname)) return false;
+
+  if (role === 'candidate') {
+    return (
+      pathname.startsWith('/pages/candidate') ||
+      pathname.startsWith('/pages/find-jobs')
+    );
+  }
+
+  return role === 'employer' && pathname.startsWith('/pages/employer');
+}
+
+function AndroidFloatingTabBar({
+  tabs,
+  activeIndex,
+  onSelect,
+}: {
+  tabs: NavigationItem[];
+  activeIndex: number;
+  onSelect: (index: number) => void;
+}) {
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const bottomOffset = Math.max(bottomInset - 16, MIN_BOTTOM_OFFSET);
+
+  return (
+    <View pointerEvents="box-none" style={styles.androidContainer}>
+      <View
+        style={[styles.androidBar, { marginBottom: bottomOffset }]}
+        accessibilityRole="tablist"
+      >
+        {tabs.map((item, index) => {
+          const isFocused = index === activeIndex;
+          const tint = isFocused ? COLORS.primary2 : COLORS.slate400;
+
+          return (
+            <Pressable
+              key={item.name}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isFocused }}
+              onPress={() => onSelect(index)}
+              style={[styles.androidTab, isFocused && styles.androidTabActive]}
+            >
+              {item.renderIcon?.({ tint, size: 21 })}
+              <Text style={[styles.androidLabel, { color: tint }]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  androidContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  androidBar: {
+    height: EXPANDED_TAB_BAR_HEIGHT,
+    marginHorizontal: 12,
+    paddingHorizontal: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: EXPANDED_TAB_BAR_HEIGHT / 2,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    backgroundColor: COLORS.surfaceFallback,
+    elevation: 8,
+  },
+  androidTab: {
+    flex: 1,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    paddingTop: 4,
+  },
+  androidTabActive: {
+    backgroundColor: COLORS.navHighlight,
+  },
+  androidLabel: {
+    marginTop: 2,
+    fontSize: 9.5,
+    fontWeight: '600',
+  },
+});
+
 export default function FloatingTabNavigation() {
   const { role } = useAuth();
   const pathname = usePathname();
@@ -145,20 +255,7 @@ export default function FloatingTabNavigation() {
 
   const items = role === 'employer' ? EMPLOYER_TABS : CANDIDATE_TABS;
 
-  const isVisible = (() => {
-    if (isSidebarOpen) return false;
-    if (isDetailOrThread(pathname)) return false;
-    if (role === 'candidate') {
-      return (
-        pathname.startsWith('/pages/candidate') ||
-        pathname.startsWith('/pages/find-jobs')
-      );
-    }
-    if (role === 'employer') {
-      return pathname.startsWith('/pages/employer');
-    }
-    return false;
-  })();
+  const isVisible = !isSidebarOpen && isFloatingTabRoute(pathname, role);
 
   const tabs = useMemo(() => {
     return items.map((item) => ({
@@ -185,16 +282,26 @@ export default function FloatingTabNavigation() {
     if (item) router.navigate(item.href as never);
   };
 
+  if (Platform.OS === 'android') {
+    return (
+      <AndroidFloatingTabBar
+        tabs={tabs}
+        activeIndex={activeIndex}
+        onSelect={handleTabPress}
+      />
+    );
+  }
+
   return (
     <TabBarMinimizeProvider>
       <GlassTabBar
         onIndexSelected={handleTabPress}
         theme={{
-          activeTint: '#4F46E5',
-          inactiveTint: '#94A3B8',
-          highlight: 'rgba(79, 70, 229, 0.12)',
-          glassTint: 'rgba(255, 255, 255, 0.72)',
-          solidFallback: 'rgba(241, 245, 249, 0.96)',
+          activeTint: COLORS.primary2,
+          inactiveTint: COLORS.slate400,
+          highlight: COLORS.navHighlight,
+          glassTint: COLORS.glassSurface,
+          solidFallback: COLORS.surfaceFallback,
         }}
       >
         {tabs.map((item, index) => (

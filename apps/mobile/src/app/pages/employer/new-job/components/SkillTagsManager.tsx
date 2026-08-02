@@ -14,6 +14,7 @@ import { Input } from '../../../../../components/ui/input';
 import { Label } from '../../../../../components/ui/label';
 import ModalPicker from '../../new-company/components/ModalPicker';
 import { useSearchSkills } from '../../../../../hooks/useSearchSkills';
+import { COLORS } from '@/app/constants/theme';
 
 export type SkillImportance = 'REQUIRED' | 'PREFERRED' | 'OPTIONAL';
 
@@ -130,7 +131,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
           onPress={() => setIsAdding(true)}
           className="flex-row items-center gap-2 px-4 py-3 rounded-lg border-2 border-indigo-600"
         >
-          <Plus size={18} color="#4F46E5" />
+          <Plus size={18} color={COLORS.primary2} />
           <Text className="text-base font-medium text-indigo-600">
             Add Skills
           </Text>
@@ -184,7 +185,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
               <Text className="text-base font-medium text-slate-900">
                 {IMPORTANCE_LABELS[newImportance]}
               </Text>
-              <ChevronDown size={18} color="#64748B" />
+              <ChevronDown size={18} color={COLORS.slate500} />
             </TouchableOpacity>
 
             <ModalPicker
@@ -268,7 +269,7 @@ export const SkillTagsManager: React.FC<SkillTagsManagerProps> = ({
                       onPress={() => handleRemove(skill.name)}
                       className="ml-2 p-1"
                     >
-                      <X size={16} color="#4F46E5" />
+                      <X size={16} color={COLORS.primary2} />
                     </TouchableOpacity>
                   </View>
                 ))}

@@ -18,6 +18,7 @@ import type { DatePreset } from '../../candidate/dashboard/types';
 
 import { useEmployerJobsQuery } from '../../../../hooks/useEmployerJobs';
 import { mapJobPostingToListing, JobListing } from './data';
+import { COLORS } from '../../../constants/theme';
 
 function getDefaultWeekRange() {
   const now = new Date();
@@ -88,7 +89,7 @@ export default function EmployerJobListingScreen() {
     if (!isFetchingNextPage) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#4640DE" />
+        <ActivityIndicator size="small" color={COLORS.primary} />
       </View>
     );
   };
@@ -141,7 +142,7 @@ export default function EmployerJobListingScreen() {
           <RefreshControl
             refreshing={isRefetching && !isFetchingNextPage}
             onRefresh={refetch}
-            colors={['#4640DE']}
+            colors={[COLORS.primary]}
           />
         }
       />

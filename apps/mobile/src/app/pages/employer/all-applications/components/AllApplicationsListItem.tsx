@@ -126,7 +126,7 @@ export const AllApplicationsListItem: React.FC<
             onPress={handleMenuPress}
             className="ml-1"
           >
-            <MoreHorizontal size={20} color="#64748B" />
+            <MoreHorizontal size={20} color={COLORS.slate500} />
           </TouchableOpacity>
         )}
       </View>

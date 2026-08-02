@@ -58,6 +58,7 @@ import {
   updateAvatar,
   deleteAvatar as deleteCandidateAvatar,
 } from '../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 function HeaderIcon({
   children,
@@ -69,7 +70,8 @@ function HeaderIcon({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      className="h-8 w-8 items-center justify-center rounded-full border border-[#dbe1ee] bg-white"
+      className="h-8 w-8 items-center justify-center rounded-full border bg-white"
+      style={{ borderColor: COLORS.borderLight }}
       onPress={onPress}
     >
       {children}
@@ -86,7 +88,10 @@ function SectionHeader({
 }) {
   return (
     <View className="mb-2 flex-row items-center justify-between">
-      <Text className="text-lg font-semibold tracking-[-0.2px] text-[#1f2937]">
+      <Text
+        className="text-lg font-semibold tracking-[-0.2px]"
+        style={{ color: COLORS.darkText }}
+      >
         {title}
       </Text>
       {action}
@@ -103,7 +108,8 @@ function Card({
 }) {
   return (
     <View
-      className={`rounded-xl border border-[#dbe1ee] bg-white ${className}`}
+      className={`rounded-xl border bg-white ${className}`}
+      style={{ borderColor: COLORS.borderLight }}
     >
       {children}
     </View>
@@ -111,32 +117,41 @@ function Card({
 }
 
 function SimpleEdit() {
-  return <Pencil size={12} color="#4f46e5" strokeWidth={2.4} />;
+  return <Pencil size={12} color={COLORS.primary2} strokeWidth={2.4} />;
 }
 
 function SimpleLocation() {
   return (
-    <View className="h-3 w-2 rounded-t-full rounded-b border border-[#667085]" />
+    <View
+      className="h-3 w-2 rounded-t-full rounded-b border"
+      style={{ borderColor: COLORS.textMuted }}
+    />
   );
 }
 
 function SimpleFlag() {
-  return <BadgeCheck size={14} color="#11a7a2" strokeWidth={2.2} />;
+  return <BadgeCheck size={14} color={COLORS.tealText} strokeWidth={2.2} />;
 }
 
 function SimpleMail() {
-  return <Mail size={16} color="#667085" strokeWidth={2} />;
+  return <Mail size={16} color={COLORS.textMuted} strokeWidth={2} />;
 }
 
 function SimplePhone() {
-  return <Phone size={16} color="#667085" strokeWidth={2} />;
+  return <Phone size={16} color={COLORS.textMuted} strokeWidth={2} />;
 }
 
 function SimplePlus() {
   return (
     <View className="items-center justify-center">
-      <View className="h-2.5 w-0.5 rounded-full bg-[#4f46e5]" />
-      <View className="absolute h-0.5 w-2.5 rounded-full bg-[#4f46e5]" />
+      <View
+        className="h-2.5 w-0.5 rounded-full"
+        style={{ backgroundColor: COLORS.primary2 }}
+      />
+      <View
+        className="absolute h-0.5 w-2.5 rounded-full"
+        style={{ backgroundColor: COLORS.primary2 }}
+      />
     </View>
   );
 }
@@ -561,30 +576,36 @@ function ProfileContent() {
           <TwitterIcon />
         </View>
         <View className="flex-1">
-          <Text className="text-base font-bold tracking-tight text-[#1f2535]">
+          <Text
+            className="text-base font-bold tracking-tight"
+            style={{ color: COLORS.darkText }}
+          >
             {experience.jobTitle}
           </Text>
           <View className="mt-1 flex-row items-center gap-1">
-            <Text className="text-sm font-semibold text-[#4d5465]">
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: COLORS.textMuted }}
+            >
               {experience.companyName}
             </Text>
             {!!experience.type && (
-              <Text className="text-sm text-[#6b7280]">
+              <Text className="text-sm text-app-gray-3">
                 {' '}
                 &middot; {formatEmploymentType(experience.type)}
               </Text>
             )}
           </View>
-          <Text className="mt-1 text-sm text-[#6b7280]">
+          <Text className="mt-1 text-sm text-app-gray-3">
             {formatDateRange(experience.startDate, experience.endDate)}
           </Text>
           {!!experience.location && (
-            <Text className="mt-0.5 text-sm text-[#6b7280]">
+            <Text className="mt-0.5 text-sm text-app-gray-3">
               {experience.location}
             </Text>
           )}
           {!!experience.description && (
-            <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
+            <Text className="mt-1.5 text-sm leading-5 text-app-text-3">
               {experience.description}
             </Text>
           )}
@@ -596,33 +617,42 @@ function ProfileContent() {
   const renderEducation = (education: CandidateEducation) => {
     return (
       <View key={education.id} className="flex-row gap-3 pb-2.5">
-        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#981b1e]">
+        <View
+          className="h-9 w-9 items-center justify-center rounded-full"
+          style={{ backgroundColor: COLORS.tagRedText }}
+        >
           <Text className="text-xs font-bold text-white">
             {education.school.slice(0, 2).toUpperCase()}
           </Text>
         </View>
         <View className="flex-1">
-          <Text className="text-base font-bold tracking-[-0.2px] text-[#1f2535]">
+          <Text
+            className="text-base font-bold tracking-[-0.2px]"
+            style={{ color: COLORS.darkText }}
+          >
             {education.school}
           </Text>
           <View className="mt-1 flex-row items-center gap-1">
-            <Text className="text-sm font-semibold text-[#4d5465]">
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: COLORS.textMuted }}
+            >
               {[education.degree, education.fieldOfStudy]
                 .filter(Boolean)
                 .join(', ') || 'Education'}
             </Text>
             {!!education.grade && (
-              <Text className="text-sm text-[#6b7280]">
+              <Text className="text-sm text-app-gray-3">
                 {' '}
                 &middot; GPA: {education.grade}
               </Text>
             )}
           </View>
-          <Text className="mt-1 text-sm text-[#6b7280]">
+          <Text className="mt-1 text-sm text-app-gray-3">
             {formatDateRange(education.startDate, education.endDate)}
           </Text>
           {!!education.description && (
-            <Text className="mt-1.5 text-sm leading-5 text-[#57606d]">
+            <Text className="mt-1.5 text-sm leading-5 text-app-text-3">
               {education.description}
             </Text>
           )}
@@ -640,8 +670,8 @@ function ProfileContent() {
 
       {isPending && !profile ? (
         <View className="flex-1 items-center justify-center gap-3">
-          <ActivityIndicator size="large" color="#4f46e5" />
-          <Text className="text-sm font-medium text-[#4c5466]">
+          <ActivityIndicator size="large" color={COLORS.primary2} />
+          <Text className="text-sm font-medium text-app-text-3">
             Loading your profile...
           </Text>
         </View>
@@ -682,7 +712,11 @@ function ProfileContent() {
                       onPress={handleChangeAvatar}
                       className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-indigo-500 shadow-sm"
                     >
-                      <Pencil size={12} color="#fff" strokeWidth={2.4} />
+                      <Pencil
+                        size={12}
+                        color={COLORS.white}
+                        strokeWidth={2.4}
+                      />
                     </TouchableOpacity>
                   </View>
                   {!!profile?.avatarUrl && (
@@ -714,15 +748,15 @@ function ProfileContent() {
                   </TouchableOpacity>
                 </View>
                 <View className="items-start px-3 pb-3 pt-18">
-                  <Text className="text-2xl font-bold tracking-tight text-[#20263a]">
+                  <Text className="text-2xl font-bold tracking-tight text-app-dark-text">
                     {displayName}
                   </Text>
-                  <Text className="mt-1 text-sm font-medium text-[#6c7281]">
+                  <Text className="mt-1 text-sm font-medium text-app-text-3">
                     {headline}
                   </Text>
                   <View className="mt-1.5 flex-row items-center gap-2">
                     <SimpleLocation />
-                    <Text className="text-sm font-medium text-[#5f6575]">
+                    <Text className="text-sm font-medium text-app-text-3">
                       {location}
                     </Text>
                   </View>
@@ -731,8 +765,8 @@ function ProfileContent() {
                     onPress={handleToggleOpportunities}
                     className={`mt-2 rounded-sm px-3 py-2 ${
                       profile?.openForOpportunities
-                        ? 'bg-[#d1f6ef]'
-                        : 'bg-[#f3f4f6]'
+                        ? 'bg-app-emerald-1'
+                        : 'bg-app-bg-disabled'
                     }`}
                   >
                     <View className="flex-row items-center justify-center gap-2">
@@ -740,8 +774,8 @@ function ProfileContent() {
                       <Text
                         className={`text-sm font-medium tracking-wide ${
                           profile?.openForOpportunities
-                            ? 'text-[#11a7a2]'
-                            : 'text-[#6b7280]'
+                            ? 'text-app-teal-1'
+                            : 'text-app-gray-3'
                         }`}
                       >
                         {profile?.openForOpportunities
@@ -757,8 +791,8 @@ function ProfileContent() {
 
           {error && (
             <View className="mt-4 px-3">
-              <Card className="px-3 py-2.5 bg-[#fef2f2] border-[#fecaca]">
-                <Text className="text-sm text-[#b91c1c]">
+              <Card className="px-3 py-2.5 bg-app-tag-red-bg border-app-tag-red-bg">
+                <Text className="text-sm text-app-tag-red-text">
                   Failed to load profile from backend. Pull down to retry.
                 </Text>
               </Card>
@@ -773,7 +807,7 @@ function ProfileContent() {
               }
             />
             <Card className="px-3 py-2.5">
-              <Text className="text-sm leading-5 tracking-tight text-[#4c5466]">
+              <Text className="text-sm leading-5 tracking-tight text-app-text-3">
                 {aboutText}
               </Text>
             </Card>
@@ -818,7 +852,7 @@ function ProfileContent() {
             />
             <Card className="px-3 py-2.5">
               {topExperiences.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   No experience added yet.
                 </Text>
               ) : (
@@ -826,7 +860,7 @@ function ProfileContent() {
                   <View key={experience.id}>
                     {renderExperience(experience)}
                     {index < topExperiences.length - 1 && (
-                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                      <View className="my-2.5 h-px bg-app-border-1" />
                     )}
                   </View>
                 ))
@@ -836,7 +870,7 @@ function ProfileContent() {
                   activeOpacity={0.8}
                   className="mt-2.5 items-center"
                 >
-                  <Text className="text-xs font-bold text-[#5758e7]">
+                  <Text className="text-xs font-bold text-app-primary-2">
                     Show {experiences.length - topExperiences.length} more
                     experiences
                   </Text>
@@ -861,7 +895,7 @@ function ProfileContent() {
             />
             <Card className="px-3 py-2.5">
               {topEducations.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   No education added yet.
                 </Text>
               ) : (
@@ -869,7 +903,7 @@ function ProfileContent() {
                   <View key={education.id}>
                     {renderEducation(education)}
                     {index < topEducations.length - 1 && (
-                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                      <View className="my-2.5 h-px bg-app-border-1" />
                     )}
                   </View>
                 ))
@@ -879,7 +913,7 @@ function ProfileContent() {
                   activeOpacity={0.8}
                   className="mt-2.5 items-center"
                 >
-                  <Text className="text-xs font-bold text-[#5758e7]">
+                  <Text className="text-xs font-bold text-app-primary-2">
                     Show {educations.length - topEducations.length} more
                     educations
                   </Text>
@@ -901,40 +935,40 @@ function ProfileContent() {
             />
             <Card className="px-3 py-2.5">
               {certificates.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   No certifications added yet.
                 </Text>
               ) : (
                 certificates.slice(0, 3).map((cert, index) => (
                   <View key={cert.id}>
                     <View className="flex-row items-start gap-3 pb-2.5">
-                      <View className="h-9 w-9 items-center justify-center rounded-full bg-[#3b82f6]">
+                      <View className="h-9 w-9 items-center justify-center rounded-full bg-app-type-part-time">
                         <Text className="text-xs font-bold text-white">
                           {cert.name.slice(0, 2).toUpperCase()}
                         </Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="text-base font-bold tracking-tight text-[#1f2535]">
+                        <Text className="text-base font-bold tracking-tight text-app-dark-text">
                           {cert.name}
                         </Text>
-                        <Text className="mt-1 text-sm font-semibold text-[#4d5465]">
+                        <Text className="mt-1 text-sm font-semibold text-app-text-3">
                           {cert.issuer}
                         </Text>
-                        <Text className="mt-1 text-sm text-[#6b7280]">
+                        <Text className="mt-1 text-sm text-app-gray-3">
                           Issued {formatDate(cert.issueDate)}
                           {cert.expiryDate
                             ? ` · Expires ${formatDate(cert.expiryDate)}`
                             : ''}
                         </Text>
                         {!!cert.credentialId && (
-                          <Text className="mt-1 text-xs text-[#9ca3af]">
+                          <Text className="mt-1 text-xs text-app-text-placeholder">
                             ID: {cert.credentialId}
                           </Text>
                         )}
                       </View>
                     </View>
                     {index < Math.min(certificates.length, 3) - 1 && (
-                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                      <View className="my-2.5 h-px bg-app-border-1" />
                     )}
                   </View>
                 ))
@@ -956,16 +990,16 @@ function ProfileContent() {
             <Card className="px-3 py-2.5">
               <View className="flex-row flex-wrap gap-2">
                 {skills.length === 0 ? (
-                  <Text className="text-sm text-[#6b7280]">
+                  <Text className="text-sm text-app-gray-3">
                     No skills added yet.
                   </Text>
                 ) : (
                   skills.map((skill) => (
                     <View
                       key={skill.id}
-                      className="rounded-sm border border-[#dfe4fb] bg-[#f3f5ff] px-3 py-1.5"
+                      className="rounded-sm border border-app-bg-selected bg-app-bg-selected px-3 py-1.5"
                     >
-                      <Text className="text-xs font-medium text-[#4e5cf0]">
+                      <Text className="text-xs font-medium text-app-primary-2">
                         {skill.name || skill.title || 'Skill'}
                       </Text>
                     </View>
@@ -988,20 +1022,24 @@ function ProfileContent() {
               <View className="flex-row items-center gap-3 py-2">
                 <SimpleMail />
                 <View>
-                  <Text className="text-xs font-medium text-[#556070]">
+                  <Text className="text-xs font-medium text-app-text-3">
                     Email
                   </Text>
-                  <Text className="mt-1 text-sm text-[#4e5cf0]">{email}</Text>
+                  <Text className="mt-1 text-sm text-app-primary-2">
+                    {email}
+                  </Text>
                 </View>
               </View>
-              <View className="my-3 h-px bg-[#dfe3f1]" />
+              <View className="my-3 h-px bg-app-border-1" />
               <View className="flex-row items-center gap-3 py-2">
                 <SimplePhone />
                 <View>
-                  <Text className="text-xs font-medium text-[#556070]">
+                  <Text className="text-xs font-medium text-app-text-3">
                     Phone
                   </Text>
-                  <Text className="mt-1 text-sm text-[#1f2937]">{phone}</Text>
+                  <Text className="mt-1 text-sm text-app-dark-text">
+                    {phone}
+                  </Text>
                 </View>
               </View>
             </Card>
@@ -1035,7 +1073,7 @@ function ProfileContent() {
             />
             <Card className="px-3 py-3">
               {socials.length === 0 ? (
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   No social links added yet.
                 </Text>
               ) : (
@@ -1055,23 +1093,23 @@ function ProfileContent() {
                       ) : social.platform.toLowerCase().includes('twitter') ? (
                         <TwitterIcon />
                       ) : (
-                        <View className="h-9 w-9 items-center justify-center rounded-full bg-[#6b7280]">
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-app-gray-3">
                           <Text className="text-xs font-bold text-white">
                             {social.platform.slice(0, 2).toUpperCase()}
                           </Text>
                         </View>
                       )}
                       <View className="flex-1">
-                        <Text className="text-xs font-medium text-[#556070] uppercase">
+                        <Text className="text-xs font-medium text-app-text-3 uppercase">
                           {social.platform}
                         </Text>
-                        <Text className="mt-1 text-sm text-[#4e5cf0]">
+                        <Text className="mt-1 text-sm text-app-primary-2">
                           {social.url.replace(/^https?:\/\//, '')}
                         </Text>
                       </View>
                     </View>
                     {index < socials.length - 1 && (
-                      <View className="my-2.5 h-px bg-[#dfe3f1]" />
+                      <View className="my-2.5 h-px bg-app-border-1" />
                     )}
                   </TouchableOpacity>
                 ))

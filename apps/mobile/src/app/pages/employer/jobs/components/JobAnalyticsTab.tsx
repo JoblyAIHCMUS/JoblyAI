@@ -12,6 +12,7 @@ import {
 import { LineChart } from 'react-native-gifted-charts';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useJobViewsAnalyticsForJob } from '../../../../../hooks/useJobViewsAnalyticsForJob';
+import { COLORS } from '@/app/constants/theme';
 
 type TimeMode = 'week' | 'month' | 'year';
 
@@ -150,7 +151,7 @@ export default function JobAnalyticsTab({
         <Text className="text-xl font-bold text-app-slate-1 mb-2">{title}</Text>
         <View className="flex-row items-baseline gap-x-2">
           {isLoading ? (
-            <ActivityIndicator size="small" color="#25324B" />
+            <ActivityIndicator size="small" color={COLORS.textStrong} />
           ) : (
             <Text className="text-4xl font-extrabold text-app-text-4">
               {total.toLocaleString()}
@@ -196,15 +197,15 @@ export default function JobAnalyticsTab({
           <View className="relative">
             <TouchableOpacity
               onPress={() => setShowDropdown(true)}
-              className="border border-[#CBD5E1] rounded-md px-4 flex-row items-center justify-center bg-white h-[44px] gap-x-1"
+              className="border border-app-border-2 rounded-md px-4 flex-row items-center justify-center bg-white h-[44px] gap-x-1"
             >
-              <Text className="text-[#0F172A] font-medium text-base">
+              <Text className="text-app-slate-1 font-medium text-base">
                 {groupByLabels[timeMode]}
               </Text>
               <MaterialIcons
                 name="keyboard-arrow-down"
                 size={24}
-                color="#475569"
+                color={COLORS.textMuted}
               />
             </TouchableOpacity>
           </View>
@@ -218,7 +219,7 @@ export default function JobAnalyticsTab({
         >
           <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
             <View className="flex-1 bg-black/10 items-center justify-center">
-              <View className="bg-white rounded-lg border border-[#CBD5E1] shadow-xl w-48 overflow-hidden">
+              <View className="bg-white rounded-lg border border-app-border-2 shadow-xl w-48 overflow-hidden">
                 {options.map((option) => (
                   <TouchableOpacity
                     key={option.value}
@@ -226,7 +227,7 @@ export default function JobAnalyticsTab({
                       setTimeMode(option.value);
                       setShowDropdown(false);
                     }}
-                    className={`px-4 py-3 border-b border-[#F1F5F9] last:border-b-0 ${
+                    className={`px-4 py-3 border-b border-app-slate-gray last:border-b-0 ${
                       timeMode === option.value ? 'bg-indigo-50' : ''
                     }`}
                   >
@@ -234,7 +235,7 @@ export default function JobAnalyticsTab({
                       className={`text-base font-medium ${
                         timeMode === option.value
                           ? 'text-indigo-600'
-                          : 'text-[#0F172A]'
+                          : 'text-app-slate-1'
                       }`}
                     >
                       {option.label}
@@ -248,7 +249,7 @@ export default function JobAnalyticsTab({
 
         <View className="relative min-h-[220px] justify-center">
           {isLoading ? (
-            <ActivityIndicator size="large" color="#4F46E5" />
+            <ActivityIndicator size="large" color={COLORS.primary2} />
           ) : isError ? (
             <View className="items-center justify-center h-[220px] gap-y-2">
               <Text className="text-app-text-5">Couldn't load view stats.</Text>
@@ -285,7 +286,7 @@ export default function JobAnalyticsTab({
               xAxisLabelTextStyle={
                 timeMode === 'month'
                   ? {
-                      color: '#475569',
+                      color: COLORS.textMuted,
                       fontSize: 12,
                       marginTop: 4,
                       width: 60,
@@ -294,16 +295,16 @@ export default function JobAnalyticsTab({
                     }
                   : timeMode === 'year'
                   ? {
-                      color: '#475569',
+                      color: COLORS.textMuted,
                       fontSize: 12,
                       marginTop: 4,
                       width: 60,
                       marginLeft: -20,
                       textAlign: 'center',
                     }
-                  : { color: '#475569', fontSize: 12 }
+                  : { color: COLORS.textMuted, fontSize: 12 }
               }
-              yAxisTextStyle={{ color: '#475569', fontSize: 12 }}
+              yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 12 }}
               noOfSections={4}
               maxValue={Math.ceil(maxValue)}
               isAnimated

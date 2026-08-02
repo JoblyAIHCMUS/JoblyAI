@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { registerDevice, type DevicePlatform } from '../api/notifications';
+import { COLORS } from '../app/constants/theme';
 
 const NOTIFICATION_CHANNEL_ID = 'default';
 
@@ -23,7 +24,7 @@ export async function registerForPushNotifications() {
     name: 'Default',
     importance: Notifications.AndroidImportance.MAX,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#4f46e5',
+    lightColor: COLORS.primary2,
     sound: 'default',
   });
 

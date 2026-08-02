@@ -9,6 +9,7 @@ import {
   ArrowLeftCircle,
 } from 'lucide-react-native';
 import { JobStatus } from '../data';
+import { COLORS } from '../../../../constants/theme';
 
 interface JobCardMenuProps {
   isVisible: boolean;
@@ -41,13 +42,13 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
         label: 'View Details',
         icon: Eye,
         onPress: onViewDetails,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       },
       {
         label: 'Edit Job Posting',
         icon: Pencil,
         onPress: onEditJobPosting,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       },
     ];
 
@@ -56,39 +57,39 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
         label: 'Publish Job Posting',
         icon: Send,
         onPress: onPublishJobPosting,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
       baseItems.push({
         label: 'Mark as Closed',
         icon: X,
         onPress: onMarkAsClosed,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
     } else if (status === 'Live') {
       baseItems.push({
         label: 'Revert to Draft',
         icon: ArrowLeftCircle,
         onPress: onRevertToDraft,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
       baseItems.push({
         label: 'Close Job Posting',
         icon: X,
         onPress: onMarkAsClosed,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
     } else if (status === 'Closed') {
       baseItems.push({
         label: 'Revert to Draft',
         icon: ArrowLeftCircle,
         onPress: onRevertToDraft,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
       baseItems.push({
         label: 'Reopen Job Posting',
         icon: Send,
         onPress: onPublishJobPosting,
-        color: '#0F172A',
+        color: COLORS.brandDark,
       });
     }
 
@@ -96,7 +97,7 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
       label: 'Delete',
       icon: Trash2,
       onPress: onDelete,
-      color: '#DC2626',
+      color: COLORS.tagRedText,
     });
     return baseItems;
   };
@@ -150,7 +151,7 @@ export const JobCardMenu: React.FC<JobCardMenuProps> = ({
                     />
                     <Text
                       className={`text-base font-medium ${
-                        item.color === '#DC2626'
+                        item.color === COLORS.tagRedText
                           ? 'text-app-red-2'
                           : 'text-app-slate-1'
                       }`}

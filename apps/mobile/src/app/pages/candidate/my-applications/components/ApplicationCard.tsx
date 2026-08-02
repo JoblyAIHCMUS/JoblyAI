@@ -15,6 +15,7 @@ import { StatusBadge } from './StatusBadge';
 import type { ApplicationItem } from '../../dashboard/types';
 import { formatLongDate, getInitials } from '../../dashboard/utils';
 import { withdrawCandidateApplication } from '../../../../../api/application';
+import { COLORS } from '@/app/constants/theme';
 
 const LOGO_COLORS = [
   { bg: 'bg-indigo-100', text: 'text-indigo-700' },
@@ -121,21 +122,25 @@ export function ApplicationCard({
 
           <View className="flex-row flex-wrap items-center gap-x-3 gap-y-1">
             <View className="flex-row items-center gap-1.5">
-              <Building2 size={13} color="#7C8493" strokeWidth={2.1} />
+              <Building2 size={13} color={COLORS.textLight} strokeWidth={2.1} />
               <Text className="text-xs text-app-text-5">
                 {application.company}
               </Text>
             </View>
 
             <View className="flex-row items-center gap-1.5">
-              <MapPin size={13} color="#7C8493" strokeWidth={2.1} />
+              <MapPin size={13} color={COLORS.textLight} strokeWidth={2.1} />
               <Text className="text-xs text-app-text-5">
                 {application.location}
               </Text>
             </View>
 
             <View className="flex-row items-center gap-1.5">
-              <CalendarDays size={13} color="#7C8493" strokeWidth={2.1} />
+              <CalendarDays
+                size={13}
+                color={COLORS.textLight}
+                strokeWidth={2.1}
+              />
               <Text className="text-xs text-app-text-5">
                 {formatLongDate(application.appliedAt)}
               </Text>
@@ -153,7 +158,7 @@ export function ApplicationCard({
               onPress={openPreShortlist}
               className="flex-row items-center justify-center gap-1.5 rounded-xl bg-app-primary-2 px-4 py-2.5"
             >
-              <ClipboardList size={14} color="#FFFFFF" strokeWidth={2.4} />
+              <ClipboardList size={14} color={COLORS.white} strokeWidth={2.4} />
               <Text className="text-xs font-semibold text-white">
                 Answer pre-shortlist questions
               </Text>
@@ -165,7 +170,7 @@ export function ApplicationCard({
               onPress={openPreShortlist}
               className="flex-row items-center justify-center gap-1.5 rounded-xl border border-app-border-light bg-app-background-2 px-4 py-2.5"
             >
-              <Eye size={14} color="#4640DE" strokeWidth={2.4} />
+              <Eye size={14} color={COLORS.primary} strokeWidth={2.4} />
               <Text className="text-xs font-semibold text-app-indigo-strong">
                 View your answers
               </Text>
@@ -178,7 +183,7 @@ export function ApplicationCard({
               disabled={withdrawing}
               className="flex-row items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5"
             >
-              <X size={14} color="#DC2626" strokeWidth={2.5} />
+              <X size={14} color={COLORS.tagRedText} strokeWidth={2.5} />
               <Text className="text-xs font-semibold text-red-600">
                 {withdrawing ? 'Withdrawing...' : 'Withdraw Application'}
               </Text>
