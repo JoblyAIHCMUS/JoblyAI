@@ -91,11 +91,14 @@ function ConfirmDeleteItemDialog({
           </DialogTitle>
           <DialogDescription className="text-slate-600 mt-2 leading-relaxed">
             Are you sure you want to remove{' '}
-            <strong className="text-slate-900 font-semibold">{itemTitle || 'this item'}</strong>{' '}
+            <strong className="text-slate-900 font-semibold">
+              {itemTitle || 'this item'}
+            </strong>{' '}
             from the resulting profile preview?
             <br />
             <span className="text-xs text-slate-500 block mt-2 italic">
-              Note: This will not change your database profile until you click "Approve & Sync Data".
+              Note: This will not change your database profile until you click
+              "Approve & Sync Data".
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -642,7 +645,11 @@ export function CvSyncCompareModal({
       ?.map((oldItem: any, index: number) => {
         const itemKey =
           title === 'Skills'
-            ? oldItem.skillId ?? oldItem.id ?? oldItem.name ?? oldItem.title ?? index
+            ? oldItem.skillId ??
+              oldItem.id ??
+              oldItem.name ??
+              oldItem.title ??
+              index
             : oldItem.id ?? index;
 
         const isRemoved = removedExistingIds[sectionKey]?.includes(itemKey);
@@ -763,7 +770,8 @@ export function CvSyncCompareModal({
                         <div
                           className={cn(
                             'flex-1 transition-all',
-                            isRemoved && 'opacity-50 line-through grayscale-[0.5]'
+                            isRemoved &&
+                              'opacity-50 line-through grayscale-[0.5]'
                           )}
                         >
                           {renderItem(item, i, status)}
@@ -946,7 +954,7 @@ export function CvSyncCompareModal({
                           {Array.isArray(currentData?.about)
                             ? currentData.about[0] || 'No biography added yet.'
                             : currentData?.about?.bio ||
-                            'No biography added yet.'}
+                              'No biography added yet.'}
                         </p>
                       </div>
                     </div>
@@ -1036,11 +1044,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'p-4 border rounded-xl bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1051,8 +1059,8 @@ export function CvSyncCompareModal({
                           status === 'MATCHED'
                             ? 'text-amber-900'
                             : status === 'NEW'
-                              ? 'text-indigo-900'
-                              : 'text-slate-800'
+                            ? 'text-indigo-900'
+                            : 'text-slate-800'
                         )}
                       >
                         {exp.jobTitle}
@@ -1062,9 +1070,9 @@ export function CvSyncCompareModal({
                         className={cn(
                           'text-[9px] py-0 h-4',
                           status === 'NEW' &&
-                          'bg-indigo-600 text-white border-none',
+                            'bg-indigo-600 text-white border-none',
                           status === 'MATCHED' &&
-                          'border-amber-200 text-amber-700'
+                            'border-amber-200 text-amber-700'
                         )}
                       >
                         {exp.type || 'N/A'}
@@ -1076,8 +1084,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-600'
                           : status === 'NEW'
-                            ? 'text-indigo-600'
-                            : 'text-accent-primary'
+                          ? 'text-indigo-600'
+                          : 'text-accent-primary'
                       )}
                     >
                       {exp.companyName}
@@ -1091,11 +1099,11 @@ export function CvSyncCompareModal({
                         'text-[11px] leading-relaxed',
                         status === 'MATCHED' || status === 'NEW'
                           ? cn(
-                            'font-medium p-2 rounded border',
-                            status === 'MATCHED'
-                              ? 'text-amber-800/80 bg-amber-50/30 border-amber-100/50'
-                              : 'text-indigo-800/80 bg-indigo-50/30 border-indigo-100/50'
-                          )
+                              'font-medium p-2 rounded border',
+                              status === 'MATCHED'
+                                ? 'text-amber-800/80 bg-amber-50/30 border-amber-100/50'
+                                : 'text-indigo-800/80 bg-indigo-50/30 border-indigo-100/50'
+                            )
                           : 'text-slate-500 line-clamp-2'
                       )}
                     >
@@ -1135,11 +1143,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'p-4 border rounded-xl bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1149,8 +1157,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-900'
                           : status === 'NEW'
-                            ? 'text-indigo-900'
-                            : 'text-slate-800'
+                          ? 'text-indigo-900'
+                          : 'text-slate-800'
                       )}
                     >
                       {edu.school}
@@ -1161,8 +1169,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-600 font-bold'
                           : status === 'NEW'
-                            ? 'text-indigo-600 font-bold'
-                            : 'text-slate-500'
+                          ? 'text-indigo-600 font-bold'
+                          : 'text-slate-500'
                       )}
                     >
                       {edu.degree}{' '}
@@ -1215,11 +1223,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'flex items-center justify-between p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1229,8 +1237,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-900 font-bold'
                           : status === 'NEW'
-                            ? 'text-indigo-900 font-bold'
-                            : 'text-slate-700'
+                          ? 'text-indigo-900 font-bold'
+                          : 'text-slate-700'
                       )}
                     >
                       {status === 'EXISTING' || !status ? s.title : s.name}
@@ -1240,9 +1248,9 @@ export function CvSyncCompareModal({
                       className={cn(
                         'text-[9px] h-4',
                         status === 'NEW' &&
-                        'bg-indigo-600 text-white border-none uppercase font-bold',
+                          'bg-indigo-600 text-white border-none uppercase font-bold',
                         status === 'MATCHED' &&
-                        'bg-amber-100 text-amber-700 border-amber-200 uppercase font-bold'
+                          'bg-amber-100 text-amber-700 border-amber-200 uppercase font-bold'
                       )}
                     >
                       {s.level} • {s.years}y
@@ -1278,11 +1286,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'p-3 border rounded-lg bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1292,8 +1300,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-900'
                           : status === 'NEW'
-                            ? 'text-indigo-900'
-                            : 'text-slate-800'
+                          ? 'text-indigo-900'
+                          : 'text-slate-800'
                       )}
                     >
                       {c.name}
@@ -1304,8 +1312,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-600 font-bold'
                           : status === 'NEW'
-                            ? 'text-indigo-600 font-bold'
-                            : 'text-slate-500'
+                          ? 'text-indigo-600 font-bold'
+                          : 'text-slate-500'
                       )}
                     >
                       {c.issuer}
@@ -1342,11 +1350,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1356,8 +1364,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-900 font-bold'
                           : status === 'NEW'
-                            ? 'text-indigo-900 font-bold'
-                            : 'text-slate-700'
+                          ? 'text-indigo-900 font-bold'
+                          : 'text-slate-700'
                       )}
                     >
                       {c.type}: {c.value}
@@ -1389,11 +1397,11 @@ export function CvSyncCompareModal({
                     className={cn(
                       'p-2 px-3 border rounded-lg bg-white shadow-sm transition-colors',
                       status === 'EXISTING' &&
-                      'opacity-60 grayscale-[0.5] border-slate-200',
+                        'opacity-60 grayscale-[0.5] border-slate-200',
                       status === 'MATCHED' &&
-                      'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
+                        'border-amber-200 ring-1 ring-amber-50 hover:border-amber-300',
                       status === 'NEW' &&
-                      'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
+                        'border-indigo-200 ring-1 ring-indigo-50 hover:border-indigo-300',
                       !status && 'hover:border-slate-300'
                     )}
                   >
@@ -1403,8 +1411,8 @@ export function CvSyncCompareModal({
                         status === 'MATCHED'
                           ? 'text-amber-900 font-bold'
                           : status === 'NEW'
-                            ? 'text-indigo-900 font-bold'
-                            : 'text-slate-700'
+                          ? 'text-indigo-900 font-bold'
+                          : 'text-slate-700'
                       )}
                     >
                       {s.platform}: {s.url}

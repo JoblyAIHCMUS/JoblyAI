@@ -9,9 +9,7 @@ interface UseExportCandidatePdfOptions {
 /**
  * Custom hook for exporting candidate profile to vector PDF via NestJS Puppeteer backend.
  */
-export function useExportCandidatePdf(
-  options?: UseExportCandidatePdfOptions
-) {
+export function useExportCandidatePdf(options?: UseExportCandidatePdfOptions) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
 

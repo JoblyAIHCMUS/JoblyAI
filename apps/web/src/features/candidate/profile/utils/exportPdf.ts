@@ -16,7 +16,10 @@ import { exportCandidatePdfApi } from '@/api-client/candidate';
  * Exports candidate profile to a vector PDF via NestJS Puppeteer backend.
  * Provides 1-click direct file download with 100% real text (ATS-friendly) & 0 cut errors.
  */
-export async function exportPdfViaBackend(candidateData: any, fileName?: string) {
+export async function exportPdfViaBackend(
+  candidateData: any,
+  fileName?: string
+) {
   const candidateName = candidateData?.name || 'Candidate';
   const name = fileName || `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
 
@@ -122,7 +125,8 @@ export async function exportElementToPdf(
         if (rect.height < 2) continue;
 
         // Block body crosses the effective bottom margin line
-        const blockCrosses = top < effectiveBoundary && bottom > effectiveBoundary;
+        const blockCrosses =
+          top < effectiveBoundary && bottom > effectiveBoundary;
 
         // Orphan header (header finishes very close to page bottom)
         const headerOrphan =

@@ -36,16 +36,17 @@ export interface AuthRequest extends Request {
 export class CandidatesController {
   constructor(
     private readonly candidatesService: CandidatesService,
-    private readonly pdfExporterService: PdfExporterService,
+    private readonly pdfExporterService: PdfExporterService
   ) {}
 
   private buildContentDisposition(rawCandidateName?: string): string {
     const rawName = (rawCandidateName || 'Candidate').trim();
-    const safeName = rawName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9_-]/g, '_')
-      .replace(/_+/g, '_') || 'Candidate';
+    const safeName =
+      rawName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_') || 'Candidate';
     const asciiFileName = `CV_${safeName}.pdf`;
     const utf8FileName = encodeURIComponent(`CV_${rawName}.pdf`);
     return `attachment; filename="${asciiFileName}"; filename*=UTF-8''${utf8FileName}`;
@@ -57,16 +58,28 @@ export class CandidatesController {
   @Roles('candidate')
   async exportPdf(@Request() req: { user: User }, @Res() res: any) {
     try {
-      const candidateProfile = await this.candidatesService.getProfileDetails(req.user.id);
-      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(candidateProfile);
+      const candidateProfile = await this.candidatesService.getProfileDetails(
+        req.user.id
+      );
+      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(
+        candidateProfile
+      );
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', this.buildContentDisposition(candidateProfile.name));
+      res.setHeader(
+        'Content-Disposition',
+        this.buildContentDisposition(candidateProfile.name)
+      );
       res.setHeader('Content-Length', pdfBuffer.length);
       res.end(pdfBuffer);
     } catch (err: any) {
       console.error('[CandidatesController] exportPdf error:', err);
-      res.status(500).json({ statusCode: 500, message: err?.message || 'Failed to export PDF' });
+      res
+        .status(500)
+        .json({
+          statusCode: 500,
+          message: err?.message || 'Failed to export PDF',
+        });
     }
   }
 
@@ -74,15 +87,25 @@ export class CandidatesController {
   @Post('/export-pdf')
   async exportPdfFromPayload(@Body() body: any, @Res() res: any) {
     try {
-      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(body || {});
+      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(
+        body || {}
+      );
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', this.buildContentDisposition(body?.name));
+      res.setHeader(
+        'Content-Disposition',
+        this.buildContentDisposition(body?.name)
+      );
       res.setHeader('Content-Length', pdfBuffer.length);
       res.end(pdfBuffer);
     } catch (err: any) {
       console.error('[CandidatesController] exportPdfFromPayload error:', err);
-      res.status(500).json({ statusCode: 500, message: err?.message || 'Failed to export PDF' });
+      res
+        .status(500)
+        .json({
+          statusCode: 500,
+          message: err?.message || 'Failed to export PDF',
+        });
     }
   }
 

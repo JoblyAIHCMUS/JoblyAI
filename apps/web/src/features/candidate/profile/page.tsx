@@ -158,7 +158,10 @@ const CandidateProfilePage = () => {
       }
       toast.success('CV has been exported successfully', { id: toastId });
     } catch (error) {
-      console.warn('Backend PDF export failed, falling back to native print:', error);
+      console.warn(
+        'Backend PDF export failed, falling back to native print:',
+        error
+      );
       try {
         const candidateName = profile?.name || candidate?.name || 'Candidate';
         const fileName = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;

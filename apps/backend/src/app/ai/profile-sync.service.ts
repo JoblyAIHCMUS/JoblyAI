@@ -193,10 +193,19 @@ export class ProfileSyncService {
         | undefined;
 
       if (removedMap) {
-        const { experience: delExp, education: delEdu, skills: delSkills, certificates: delCert, contacts: delContact, socials: delSocial } = removedMap;
+        const {
+          experience: delExp,
+          education: delEdu,
+          skills: delSkills,
+          certificates: delCert,
+          contacts: delContact,
+          socials: delSocial,
+        } = removedMap;
 
         if (delExp && delExp.length > 0) {
-          const validIds = delExp.filter((id) => typeof id === 'number') as number[];
+          const validIds = delExp.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.experience.deleteMany({
               where: { id: { in: validIds }, candidateId },
@@ -204,7 +213,9 @@ export class ProfileSyncService {
           }
         }
         if (delEdu && delEdu.length > 0) {
-          const validIds = delEdu.filter((id) => typeof id === 'number') as number[];
+          const validIds = delEdu.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.education.deleteMany({
               where: { id: { in: validIds }, candidateId },
@@ -212,7 +223,9 @@ export class ProfileSyncService {
           }
         }
         if (delSkills && delSkills.length > 0) {
-          const validIds = delSkills.filter((id) => typeof id === 'number') as number[];
+          const validIds = delSkills.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.candidateSkill.deleteMany({
               where: { skillId: { in: validIds }, candidateId },
@@ -220,7 +233,9 @@ export class ProfileSyncService {
           }
         }
         if (delCert && delCert.length > 0) {
-          const validIds = delCert.filter((id) => typeof id === 'number') as number[];
+          const validIds = delCert.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.certificate.deleteMany({
               where: { id: { in: validIds }, candidateId },
@@ -228,7 +243,9 @@ export class ProfileSyncService {
           }
         }
         if (delContact && delContact.length > 0) {
-          const validIds = delContact.filter((id) => typeof id === 'number') as number[];
+          const validIds = delContact.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.candidateContact.deleteMany({
               where: { id: { in: validIds }, candidateId },
@@ -236,7 +253,9 @@ export class ProfileSyncService {
           }
         }
         if (delSocial && delSocial.length > 0) {
-          const validIds = delSocial.filter((id) => typeof id === 'number') as number[];
+          const validIds = delSocial.filter(
+            (id) => typeof id === 'number'
+          ) as number[];
           if (validIds.length > 0) {
             await tx.candidateSocial.deleteMany({
               where: { id: { in: validIds }, candidateId },

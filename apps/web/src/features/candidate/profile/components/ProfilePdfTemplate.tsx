@@ -281,14 +281,20 @@ export const ProfilePdfTemplate = React.forwardRef<
       className={`flex flex-col gap-1 text-[10pt] text-slate-900 pl-3.5 ${className}`}
     >
       {lines.map((line, idx) => (
-        <div key={idx} className="flex items-start gap-2 leading-relaxed" data-pdf-block="true">
+        <div
+          key={idx}
+          className="flex items-start gap-2 leading-relaxed"
+          data-pdf-block="true"
+        >
           <span
             className="flex-shrink-0 text-black select-none"
             style={{ fontSize: '9pt', lineHeight: '1.5', marginTop: '1px' }}
           >
             •
           </span>
-          <span className="leading-relaxed">{line.replace(/^[-•*]\s*/, '')}</span>
+          <span className="leading-relaxed">
+            {line.replace(/^[-•*]\s*/, '')}
+          </span>
         </div>
       ))}
     </div>
@@ -302,19 +308,20 @@ export const ProfilePdfTemplate = React.forwardRef<
     title: string;
     isHeader?: boolean;
   }) => (
-    <div
-      className="flex flex-col gap-[10px] pb-[8px]"
+    <h2
       data-pdf-block="true"
       {...(isHeader ? { 'data-pdf-header': 'true' } : {})}
+      className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 p-0 pb-[3px] mb-[10px] leading-tight font-serif border-b-[1.5px] border-black block"
+      style={{
+        letterSpacing: '0.06em',
+        breakInside: 'avoid',
+        pageBreakInside: 'avoid',
+        breakAfter: 'avoid',
+        pageBreakAfter: 'avoid',
+      }}
     >
-      <h2
-        className="text-[11pt] font-bold uppercase tracking-wider text-black m-0 p-0 leading-tight font-serif"
-        style={{ letterSpacing: '0.06em' }}
-      >
-        {title}
-      </h2>
-      <div className="w-full h-[1.5px] bg-black" />
-    </div>
+      {title}
+    </h2>
   );
 
   return (
@@ -435,8 +442,8 @@ export const ProfilePdfTemplate = React.forwardRef<
                   typeof exp.location === 'object' && exp.location
                     ? exp.location.formattedAddress
                     : typeof exp.location === 'string'
-                      ? exp.location
-                      : '';
+                    ? exp.location
+                    : '';
                 return (
                   <div
                     key={exp.id}
@@ -482,50 +489,50 @@ export const ProfilePdfTemplate = React.forwardRef<
         {/* ── SKILLS & CERTIFICATIONS ── */}
         {((candidate.skills && candidate.skills.length > 0) ||
           (candidate.certificates && candidate.certificates.length > 0)) && (
-            <div className="flex flex-col gap-3">
-              <SectionHeader title="SKILLS & CERTIFICATIONS" />
-              <div className="flex flex-col gap-1.5 text-[10.5pt] text-slate-900">
-                {candidate.skills && candidate.skills.length > 0 && (
-                  <div data-pdf-block="true">
-                    <span className="font-bold text-black">
-                      Technical Skills:{' '}
-                    </span>
-                    <span>
-                      {candidate.skills
-                        .map((s) => formatSkillName(s.title))
-                        .join(', ')}
-                    </span>
-                  </div>
-                )}
+          <div className="flex flex-col gap-3">
+            <SectionHeader title="SKILLS & CERTIFICATIONS" />
+            <div className="flex flex-col gap-1.5 text-[10.5pt] text-slate-900">
+              {candidate.skills && candidate.skills.length > 0 && (
+                <div data-pdf-block="true">
+                  <span className="font-bold text-black">
+                    Technical Skills:{' '}
+                  </span>
+                  <span>
+                    {candidate.skills
+                      .map((s) => formatSkillName(s.title))
+                      .join(', ')}
+                  </span>
+                </div>
+              )}
 
-                {candidate.certificates && candidate.certificates.length > 0 && (
-                  <div className="flex flex-col gap-0.5" data-pdf-block="true">
-                    <span className="font-bold text-black">Certifications:</span>
-                    <div className="flex flex-col gap-0.5 text-[10pt]">
-                      {candidate.certificates.map((cert) => (
-                        <div key={cert.id} className="flex items-start gap-1.5">
-                          <span
-                            className="flex-shrink-0 text-black"
-                            style={{ fontSize: '10pt', lineHeight: '1.45' }}
-                          >
-                            •
-                          </span>
-                          <span>
-                            <span className="font-semibold">{cert.name}</span> --{' '}
-                            {cert.issuer} ({formatDate(cert.issueDate)}
-                            {cert.expiryDate
-                              ? ` -- ${formatDate(cert.expiryDate)}`
-                              : ''}
-                            )
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+              {candidate.certificates && candidate.certificates.length > 0 && (
+                <div className="flex flex-col gap-0.5" data-pdf-block="true">
+                  <span className="font-bold text-black">Certifications:</span>
+                  <div className="flex flex-col gap-0.5 text-[10pt]">
+                    {candidate.certificates.map((cert) => (
+                      <div key={cert.id} className="flex items-start gap-1.5">
+                        <span
+                          className="flex-shrink-0 text-black"
+                          style={{ fontSize: '10pt', lineHeight: '1.45' }}
+                        >
+                          •
+                        </span>
+                        <span>
+                          <span className="font-semibold">{cert.name}</span> --{' '}
+                          {cert.issuer} ({formatDate(cert.issueDate)}
+                          {cert.expiryDate
+                            ? ` -- ${formatDate(cert.expiryDate)}`
+                            : ''}
+                          )
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
       </div>
     </div>
   );

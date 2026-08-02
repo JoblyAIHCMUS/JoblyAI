@@ -3,46 +3,161 @@ import puppeteer from 'puppeteer';
 
 // Skill display lookup map for canonical capitalization
 const SKILL_DISPLAY_MAP: Record<string, string> = {
-  html: 'HTML', css: 'CSS', xml: 'XML', json: 'JSON', yaml: 'YAML',
-  svg: 'SVG', jsx: 'JSX', tsx: 'TSX', 'sass/less': 'SASS/LESS',
-  javascript: 'JavaScript', typescript: 'TypeScript', python: 'Python',
-  java: 'Java', go: 'Go', rust: 'Rust', kotlin: 'Kotlin', swift: 'Swift',
-  scala: 'Scala', julia: 'Julia', php: 'PHP', 'ruby on rails': 'Ruby on Rails',
-  'c#': 'C#', 'c++': 'C++', r: 'R', matlab: 'MATLAB', solidity: 'Solidity',
-  verilog: 'Verilog', vhdl: 'VHDL', 'objective-c': 'Objective-C', sql: 'SQL',
-  react: 'React', 'react.js': 'React', reactjs: 'React',
-  'next.js': 'Next.js', nextjs: 'Next.js', 'nuxt.js': 'Nuxt.js', nuxtjs: 'Nuxt.js',
-  'node.js': 'Node.js', nodejs: 'Node.js', express: 'Express', 'express.js': 'Express',
-  angular: 'Angular', 'vue.js': 'Vue.js', vuejs: 'Vue.js', svelte: 'Svelte',
-  django: 'Django', flask: 'Flask', 'spring boot': 'Spring Boot', laravel: 'Laravel',
-  'tailwind css': 'Tailwind CSS', bootstrap: 'Bootstrap', 'material ui': 'Material UI',
-  'three.js': 'Three.js', 'd3.js': 'D3.js', 'react native': 'React Native',
-  flutter: 'Flutter', ionic: 'Ionic', electron: 'Electron', tauri: 'Tauri',
-  langchain: 'LangChain', llamaindex: 'LlamaIndex', tensorflow: 'TensorFlow',
-  pytorch: 'PyTorch', keras: 'Keras', 'scikit-learn': 'Scikit-learn', opencv: 'OpenCV',
-  mysql: 'MySQL', postgresql: 'PostgreSQL', mongodb: 'MongoDB', redis: 'Redis',
-  mariadb: 'MariaDB', dynamodb: 'DynamoDB', cassandra: 'Cassandra',
-  elasticsearch: 'Elasticsearch', kafka: 'Kafka', rabbitmq: 'RabbitMQ', graphql: 'GraphQL',
-  aws: 'AWS', gcp: 'GCP', docker: 'Docker', kubernetes: 'Kubernetes',
-  terraform: 'Terraform', ansible: 'Ansible', jenkins: 'Jenkins',
-  'github actions': 'GitHub Actions', 'gitlab ci/cd': 'GitLab CI/CD',
-  git: 'Git', firebase: 'Firebase', 'rest apis': 'REST APIs', grpc: 'gRPC',
-  jwt: 'JWT', 'oauth 2.0': 'OAuth 2.0', 'ssl/tls': 'SSL/TLS', saml: 'SAML',
-  webgl: 'WebGL', webassembly: 'WebAssembly', jest: 'Jest', cypress: 'Cypress',
-  selenium: 'Selenium', pytest: 'PyTest', junit: 'JUnit', mocha: 'Mocha', chai: 'Chai',
-  playwright: 'Playwright', webpack: 'Webpack', vite: 'Vite', babel: 'Babel',
-  eslint: 'ESLint', prettier: 'Prettier', mlops: 'MLOps', mlflow: 'MLflow',
-  rag: 'RAG', vba: 'VBA', bigquery: 'BigQuery', snowflake: 'Snowflake',
-  databricks: 'Databricks', siem: 'SIEM', sast: 'SAST', dast: 'DAST', sca: 'SCA',
-  owasp: 'OWASP', 'soc 2': 'SOC 2', 'pci dss': 'PCI DSS', gdpr: 'GDPR', ccpa: 'CCPA',
-  nist: 'NIST', iam: 'IAM', mfa: 'MFA', sso: 'SSO', pam: 'PAM', dlp: 'DLP',
-  casb: 'CASB', edr: 'EDR', xdr: 'XDR', 'ids/ips': 'IDS/IPS',
-  'vpn configuration': 'VPN Configuration', figma: 'Figma', jira: 'JIRA',
-  sap: 'SAP', hris: 'HRIS', 'erp systems': 'ERP Systems', autocad: 'AutoCAD',
-  solidworks: 'SolidWorks', 'fpga design': 'FPGA Design', scada: 'SCADA',
-  'plc programming': 'PLC Programming', 'manual qa testing': 'Manual QA Testing',
-  qa: 'QA', 'ui/ux design': 'UI/UX Design', 'ui/ux': 'UI/UX', seo: 'SEO',
-  sem: 'SEM', english: 'English', vietnamese: 'Vietnamese', postman: 'Postman',
+  html: 'HTML',
+  css: 'CSS',
+  xml: 'XML',
+  json: 'JSON',
+  yaml: 'YAML',
+  svg: 'SVG',
+  jsx: 'JSX',
+  tsx: 'TSX',
+  'sass/less': 'SASS/LESS',
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  python: 'Python',
+  java: 'Java',
+  go: 'Go',
+  rust: 'Rust',
+  kotlin: 'Kotlin',
+  swift: 'Swift',
+  scala: 'Scala',
+  julia: 'Julia',
+  php: 'PHP',
+  'ruby on rails': 'Ruby on Rails',
+  'c#': 'C#',
+  'c++': 'C++',
+  r: 'R',
+  matlab: 'MATLAB',
+  solidity: 'Solidity',
+  verilog: 'Verilog',
+  vhdl: 'VHDL',
+  'objective-c': 'Objective-C',
+  sql: 'SQL',
+  react: 'React',
+  'react.js': 'React',
+  reactjs: 'React',
+  'next.js': 'Next.js',
+  nextjs: 'Next.js',
+  'nuxt.js': 'Nuxt.js',
+  nuxtjs: 'Nuxt.js',
+  'node.js': 'Node.js',
+  nodejs: 'Node.js',
+  express: 'Express',
+  'express.js': 'Express',
+  angular: 'Angular',
+  'vue.js': 'Vue.js',
+  vuejs: 'Vue.js',
+  svelte: 'Svelte',
+  django: 'Django',
+  flask: 'Flask',
+  'spring boot': 'Spring Boot',
+  laravel: 'Laravel',
+  'tailwind css': 'Tailwind CSS',
+  bootstrap: 'Bootstrap',
+  'material ui': 'Material UI',
+  'three.js': 'Three.js',
+  'd3.js': 'D3.js',
+  'react native': 'React Native',
+  flutter: 'Flutter',
+  ionic: 'Ionic',
+  electron: 'Electron',
+  tauri: 'Tauri',
+  langchain: 'LangChain',
+  llamaindex: 'LlamaIndex',
+  tensorflow: 'TensorFlow',
+  pytorch: 'PyTorch',
+  keras: 'Keras',
+  'scikit-learn': 'Scikit-learn',
+  opencv: 'OpenCV',
+  mysql: 'MySQL',
+  postgresql: 'PostgreSQL',
+  mongodb: 'MongoDB',
+  redis: 'Redis',
+  mariadb: 'MariaDB',
+  dynamodb: 'DynamoDB',
+  cassandra: 'Cassandra',
+  elasticsearch: 'Elasticsearch',
+  kafka: 'Kafka',
+  rabbitmq: 'RabbitMQ',
+  graphql: 'GraphQL',
+  aws: 'AWS',
+  gcp: 'GCP',
+  docker: 'Docker',
+  kubernetes: 'Kubernetes',
+  terraform: 'Terraform',
+  ansible: 'Ansible',
+  jenkins: 'Jenkins',
+  'github actions': 'GitHub Actions',
+  'gitlab ci/cd': 'GitLab CI/CD',
+  git: 'Git',
+  firebase: 'Firebase',
+  'rest apis': 'REST APIs',
+  grpc: 'gRPC',
+  jwt: 'JWT',
+  'oauth 2.0': 'OAuth 2.0',
+  'ssl/tls': 'SSL/TLS',
+  saml: 'SAML',
+  webgl: 'WebGL',
+  webassembly: 'WebAssembly',
+  jest: 'Jest',
+  cypress: 'Cypress',
+  selenium: 'Selenium',
+  pytest: 'PyTest',
+  junit: 'JUnit',
+  mocha: 'Mocha',
+  chai: 'Chai',
+  playwright: 'Playwright',
+  webpack: 'Webpack',
+  vite: 'Vite',
+  babel: 'Babel',
+  eslint: 'ESLint',
+  prettier: 'Prettier',
+  mlops: 'MLOps',
+  mlflow: 'MLflow',
+  rag: 'RAG',
+  vba: 'VBA',
+  bigquery: 'BigQuery',
+  snowflake: 'Snowflake',
+  databricks: 'Databricks',
+  siem: 'SIEM',
+  sast: 'SAST',
+  dast: 'DAST',
+  sca: 'SCA',
+  owasp: 'OWASP',
+  'soc 2': 'SOC 2',
+  'pci dss': 'PCI DSS',
+  gdpr: 'GDPR',
+  ccpa: 'CCPA',
+  nist: 'NIST',
+  iam: 'IAM',
+  mfa: 'MFA',
+  sso: 'SSO',
+  pam: 'PAM',
+  dlp: 'DLP',
+  casb: 'CASB',
+  edr: 'EDR',
+  xdr: 'XDR',
+  'ids/ips': 'IDS/IPS',
+  'vpn configuration': 'VPN Configuration',
+  figma: 'Figma',
+  jira: 'JIRA',
+  sap: 'SAP',
+  hris: 'HRIS',
+  'erp systems': 'ERP Systems',
+  autocad: 'AutoCAD',
+  solidworks: 'SolidWorks',
+  'fpga design': 'FPGA Design',
+  scada: 'SCADA',
+  'plc programming': 'PLC Programming',
+  'manual qa testing': 'Manual QA Testing',
+  qa: 'QA',
+  'ui/ux design': 'UI/UX Design',
+  'ui/ux': 'UI/UX',
+  seo: 'SEO',
+  sem: 'SEM',
+  english: 'English',
+  vietnamese: 'Vietnamese',
+  postman: 'Postman',
   streamlit: 'Streamlit',
 };
 
@@ -60,7 +175,10 @@ function formatDate(dateStr?: any): string {
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return String(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
   } catch {
     return String(dateStr);
   }
@@ -88,8 +206,10 @@ export class PdfExporterService {
             '--font-render-hinting=none',
           ],
         });
-      } catch (launchErr) {
-        this.logger.warn('Standard Puppeteer launch failed, attempting fallback to system Chrome/Edge...');
+      } catch {
+        this.logger.warn(
+          'Standard Puppeteer launch failed, attempting fallback to system Chrome/Edge...'
+        );
         try {
           browser = await puppeteer.launch({
             channel: 'chrome',
@@ -125,7 +245,9 @@ export class PdfExporterService {
       throw err;
     } finally {
       if (browser) {
-        await browser.close().catch(() => {});
+        await browser.close().catch((closeErr: unknown) => {
+          this.logger.warn('Browser close error:', closeErr);
+        });
       }
     }
   }
@@ -171,64 +293,81 @@ export class PdfExporterService {
       }
     }
 
-    const contactHeaderHtml = contactItems.length > 0
-      ? `<div class="contact-bar">${contactItems
-          .map((item, idx) => `${idx > 0 ? '<span class="sep">|</span>' : ''}<span>${item}</span>`)
-          .join('')}</div>`
-      : '';
+    const contactHeaderHtml =
+      contactItems.length > 0
+        ? `<div class="contact-bar">${contactItems
+            .map(
+              (item, idx) =>
+                `${
+                  idx > 0 ? '<span class="sep">|</span>' : ''
+                }<span>${item}</span>`
+            )
+            .join('')}</div>`
+        : '';
 
     // Render Summary
     const summaryHtml = bio.trim()
       ? `<div class="section-block">
-          <div class="section-header">
-            <h2>SUMMARY</h2>
-            <div class="section-line"></div>
-          </div>
+          <h2 class="section-title">SUMMARY</h2>
           <div class="summary-text">
-            ${bio.split('\n').filter(Boolean).map((p: string) => `<p>${p}</p>`).join('')}
+            ${bio
+              .split('\n')
+              .filter(Boolean)
+              .map((p: string) => `<p>${p}</p>`)
+              .join('')}
           </div>
         </div>`
       : '';
 
     // Render Education
-    const educationsHtml = candidate.educations && candidate.educations.length > 0
-      ? `<div class="section-block">
-          <div class="section-header">
-            <h2>EDUCATION</h2>
-            <div class="section-line"></div>
-          </div>
+    const educationsHtml =
+      candidate.educations && candidate.educations.length > 0
+        ? `<div class="section-block">
+          <h2 class="section-title">EDUCATION</h2>
           <div class="item-list">
             ${candidate.educations
-              .map((edu: any) => `
+              .map(
+                (edu: any) => `
                 <div class="item-block">
                   <div class="item-top">
                     <span class="item-bold">${edu.school}</span>
-                    <span class="item-date">${formatDate(edu.startDate)} -- ${edu.endDate ? formatDate(edu.endDate) : 'Present'}</span>
+                    <span class="item-date">${formatDate(edu.startDate)} -- ${
+                  edu.endDate ? formatDate(edu.endDate) : 'Present'
+                }</span>
                   </div>
                   <div class="item-sub">
-                    <span class="item-italic">${[edu.degree, edu.fieldOfStudy].filter(Boolean).join(' in ')}</span>
-                    ${edu.grade ? `<span class="item-grade">GPA: ${edu.grade}</span>` : ''}
+                    <span class="item-italic">${[edu.degree, edu.fieldOfStudy]
+                      .filter(Boolean)
+                      .join(' in ')}</span>
+                    ${
+                      edu.grade
+                        ? `<span class="item-grade">GPA: ${edu.grade}</span>`
+                        : ''
+                    }
                   </div>
                   ${edu.description ? this.renderBullets(edu.description) : ''}
                 </div>
-              `).join('')}
+              `
+              )
+              .join('')}
           </div>
         </div>`
-      : '';
+        : '';
 
     // Render Experience
-    const experiencesHtml = candidate.experiences && candidate.experiences.length > 0
-      ? `<div class="section-block">
-          <div class="section-header">
-            <h2>EXPERIENCE</h2>
-            <div class="section-line"></div>
-          </div>
+    const experiencesHtml =
+      candidate.experiences && candidate.experiences.length > 0
+        ? `<div class="section-block">
+          <h2 class="section-title">EXPERIENCE</h2>
           <div class="item-list">
             ${candidate.experiences
               .map((exp: any) => {
-                const locStr = typeof exp.location === 'object' && exp.location
-                  ? exp.location.formattedAddress
-                  : typeof exp.location === 'string' ? exp.location : '';
+                const locStr =
+                  typeof exp.location === 'object' && exp.location
+                    ? exp.location.formattedAddress
+                    : typeof exp.location === 'string'
+                    ? exp.location
+                    : '';
                 return `
                   <div class="item-block">
                     <div class="item-top">
@@ -237,52 +376,78 @@ export class PdfExporterService {
                     </div>
                     <div class="item-sub">
                       <span class="item-italic">
-                        ${exp.jobTitle}${exp.type ? ` (${exp.type.replace('_', ' ')})` : ''}
+                        ${exp.jobTitle}${
+                  exp.type ? ` (${exp.type.replace('_', ' ')})` : ''
+                }
                       </span>
-                      <span class="item-date">${formatDate(exp.startDate)} -- ${exp.endDate ? formatDate(exp.endDate) : 'Present'}</span>
+                      <span class="item-date">${formatDate(exp.startDate)} -- ${
+                  exp.endDate ? formatDate(exp.endDate) : 'Present'
+                }</span>
                     </div>
-                    ${exp.description ? this.renderBullets(exp.description) : ''}
+                    ${
+                      exp.description ? this.renderBullets(exp.description) : ''
+                    }
                   </div>
                 `;
-              }).join('')}
+              })
+              .join('')}
           </div>
         </div>`
-      : '';
+        : '';
 
     // Render Skills & Certifications
     const hasSkills = candidate.skills && candidate.skills.length > 0;
-    const hasCerts = candidate.certificates && candidate.certificates.length > 0;
-    const skillsCertsHtml = (hasSkills || hasCerts)
-      ? `<div class="section-block">
-          <div class="section-header">
-            <h2>SKILLS & CERTIFICATIONS</h2>
-            <div class="section-line"></div>
-          </div>
+    const hasCerts =
+      candidate.certificates && candidate.certificates.length > 0;
+    const skillsCertsHtml =
+      hasSkills || hasCerts
+        ? `<div class="section-block">
+          <h2 class="section-title">SKILLS & CERTIFICATIONS</h2>
           <div class="skills-certs-content">
-            ${hasSkills ? `
+            ${
+              hasSkills
+                ? `
               <div class="skills-row item-block">
                 <span class="item-bold">Technical Skills: </span>
-                <span>${candidate.skills.map((s: any) => formatSkillName(s)).join(', ')}</span>
+                <span>${candidate.skills
+                  .map((s: any) => formatSkillName(s))
+                  .join(', ')}</span>
               </div>
-            ` : ''}
-            ${hasCerts ? `
+            `
+                : ''
+            }
+            ${
+              hasCerts
+                ? `
               <div class="certs-block item-block">
                 <div class="item-bold" style="margin-bottom: 3px;">Certifications:</div>
                 <div class="bullet-list">
-                  ${candidate.certificates.map((cert: any) => `
+                  ${candidate.certificates
+                    .map(
+                      (cert: any) => `
                     <div class="bullet-item">
                       <span class="bullet-dot">•</span>
                       <span>
-                        <strong>${cert.name}</strong> -- ${cert.issuer} (${formatDate(cert.issueDate)}${cert.expiryDate ? ` -- ${formatDate(cert.expiryDate)}` : ''})
+                        <strong>${cert.name}</strong> -- ${
+                        cert.issuer
+                      } (${formatDate(cert.issueDate)}${
+                        cert.expiryDate
+                          ? ` -- ${formatDate(cert.expiryDate)}`
+                          : ''
+                      })
                       </span>
                     </div>
-                  `).join('')}
+                  `
+                    )
+                    .join('')}
                 </div>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         </div>`
-      : '';
+        : '';
 
     return `<!DOCTYPE html>
 <html>
@@ -356,26 +521,20 @@ export class PdfExporterService {
       display: flex;
       flex-direction: column;
     }
-    .section-header {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 8px;
-      break-after: avoid;
-      page-break-after: avoid;
-    }
-    .section-header h2 {
+    .section-title {
       font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: #000000;
-      line-height: 1;
-    }
-    .section-line {
-      width: 100%;
-      height: 1.5px;
-      background-color: #000000;
+      line-height: 1.2;
+      border-bottom: 1.5px solid #000000;
+      padding-bottom: 3px;
+      margin-bottom: 10px;
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
     }
 
     /* ── ITEMS ── */
@@ -481,12 +640,16 @@ export class PdfExporterService {
     const lines = description.split('\n').filter((l) => l.trim().length > 0);
     if (lines.length === 0) return '';
     return `<div class="bullet-list">
-      ${lines.map((line) => `
+      ${lines
+        .map(
+          (line) => `
         <div class="bullet-item">
           <span class="bullet-dot">•</span>
           <span>${line.replace(/^[-•*]\s*/, '')}</span>
         </div>
-      `).join('')}
+      `
+        )
+        .join('')}
     </div>`;
   }
 }
