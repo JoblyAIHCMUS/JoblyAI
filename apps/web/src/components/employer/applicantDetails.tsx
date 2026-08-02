@@ -10,6 +10,7 @@ import HiringStageChangeConfirm from '@/components/employer/hiringStageChangeCon
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Zap } from 'lucide-react';
 import {
   hiringStageStyles,
   nextStageMap,
@@ -164,6 +165,62 @@ export default function ApplicantDetails({
             </TabsContent>
 
             <TabsContent value="hiring-process" className="mt-4 sm:mt-6">
+              {(() => {
+                const rawScore = applicant.score ?? 0;
+                const displayScore =
+                  rawScore <= 1 && rawScore > 0 ? rawScore * 100 : rawScore;
+                const roundedScore = Math.round(displayScore);
+
+                return (
+                  <div className="mb-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-white p-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white font-extrabold text-lg shadow-md">
+                          {roundedScore}%
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-slate-900">
+                              AI Candidate Match Score
+                            </span>
+                            <Badge
+                              className={
+                                roundedScore >= 70
+                                  ? 'bg-emerald-600 text-white'
+                                  : roundedScore >= 50
+                                  ? 'bg-amber-500 text-white'
+                                  : 'bg-slate-600 text-white'
+                              }
+                            >
+                              {roundedScore >= 70
+                                ? 'High Match'
+                                : roundedScore >= 50
+                                ? 'Moderate Match'
+                                : 'Low Match'}
+                            </Badge>
+                          </div>
+                          <p className="mt-0.5 text-xs text-slate-600">
+                            Based on overall resume and profile alignment with job requirements
+                          </p>
+                        </div>
+                      </div>
+
+                      {roundedScore >= 60 && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-50/90 px-3.5 py-2.5 text-xs text-amber-900 max-w-md">
+                          <p className="font-bold flex items-center gap-1.5 text-amber-950">
+                            <Zap className="h-4 w-4 text-amber-600 shrink-0" aria-hidden="true" />
+                            <span>Employer Consideration Highlight</span>
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-amber-800 leading-snug">
+                            High match score ({roundedScore}%). Even if pre-shortlist answers are not optimal, consider reviewing full candidate profile before making a final decision.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="mb-4 sm:mb-6">
                 <div className="mb-2 sm:mb-3">
                   <span className="block text-left label-label-1-semi-bold text-gray-700 text-xs sm:text-sm">
@@ -208,6 +265,7 @@ export default function ApplicantDetails({
                 <PreShortlistAssessment
                   applicationId={applicant.id}
                   jobId={applicant.jobListingId}
+                  score={applicant.score}
                 />
               </div>
             </TabsContent>

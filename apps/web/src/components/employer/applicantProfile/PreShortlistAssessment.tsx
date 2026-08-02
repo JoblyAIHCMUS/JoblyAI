@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Zap } from 'lucide-react';
 import {
   useEmployerPreShortlist,
   useRetryPreShortlistEvaluation,
@@ -50,11 +50,13 @@ const SUGGESTION_HEADLINE: Record<PreShortlistSuggestion, string> = {
 interface PreShortlistAssessmentProps {
   applicationId: string;
   jobId: string;
+  score?: number;
 }
 
 export default function PreShortlistAssessment({
   applicationId,
   jobId,
+  score,
 }: PreShortlistAssessmentProps) {
   const { data, isLoading, isError, error } = useEmployerPreShortlist(
     Number(applicationId)
@@ -224,6 +226,19 @@ export default function PreShortlistAssessment({
               </AiBadge>
             </div>
             <LineClamp text={data.overall.comment} lines={8} />
+
+            {score != null && (score <= 1 && score > 0 ? score * 100 : score) >= 60 && data.overall.suggestion !== 'STRONG' && (
+              <div className="mt-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-3.5 text-xs text-amber-950 shadow-sm">
+                <p className="font-bold flex items-center gap-1.5 text-amber-950">
+                  <Zap className="h-4 w-4 text-amber-600 shrink-0" aria-hidden="true" />
+                  <span>Employer Consideration Highlight</span>
+                </p>
+                <p className="mt-1.5 text-amber-900 leading-relaxed">
+                  Although the pre-shortlist response was evaluated as <strong>&quot;{SUGGESTION_HEADLINE[data.overall.suggestion]}&quot;</strong>, this candidate has a high AI Match Score (<strong>{Math.round(score <= 1 && score > 0 ? score * 100 : score)}%</strong>). We recommend reviewing their resume and profile before making a rejection decision.
+                </p>
+              </div>
+            )}
+
             <p className="pt-1 text-right text-[11px] text-tertiary tabular-nums">
               Threshold · {data.threshold}
             </p>
