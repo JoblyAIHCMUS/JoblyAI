@@ -11,7 +11,6 @@ import { ApplicationsEmptyState } from './components/ApplicationsEmptyState';
 import { ApplicationsFilterSheet } from './components/ApplicationsFilterSheet';
 import { ApplicationsTabs } from './components/ApplicationsTabs';
 import { ApplicationCard } from './components/ApplicationCard';
-import { FeatureBanner } from './components/FeatureBanner';
 import { SearchFilterBar } from './components/SearchFilterBar';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { Text } from '@/components/ui/text';
@@ -32,12 +31,6 @@ import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile
 import { CandidateHeader } from '@/components/header/CandidateHeader';
 
 type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
-
-const FILTER_TABS: Array<{ key: ApplicationFilterTab; label: string }> = [
-  { key: 'ALL', label: 'All' },
-  { key: 'ACTIVE', label: 'In Review' },
-  { key: 'CLOSED', label: 'Closed' },
-];
 
 const ACTIVE_STATUSES = new Set(['APPLIED', 'INTERVIEW']);
 const CLOSED_STATUSES = new Set(['OFFER', 'REJECTED', 'WITHDRAWN']);
@@ -65,7 +58,6 @@ export default function MyApplicationsPage() {
     getGreetingName(user) ||
     'there';
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [activeFilterTab, setActiveFilterTab] =
     useState<ApplicationFilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -306,11 +298,6 @@ export default function MyApplicationsPage() {
                   {formatDateRangeLabel(appliedDateRange)}.
                 </Text>
               </View>
-
-              <FeatureBanner
-                visible={isBannerVisible}
-                onClose={() => setIsBannerVisible(false)}
-              />
 
               <SearchFilterBar
                 searchQuery={searchQuery}

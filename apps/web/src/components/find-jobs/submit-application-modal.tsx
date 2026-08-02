@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { ResultDialog } from '@/components/ui/ResultDialog';
-import { ApplicationForm } from '@/components/find-jobs/ApplicationForm';
 import {
   ResumeSection,
   type ResumeChoice,
@@ -92,11 +91,9 @@ export const SubmitApplicationModal = ({
   );
 
   const {
-    register,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors, isValid },
+    formState: { isValid },
   } = useForm<
     z.input<typeof SubmitApplicationSchema>,
     unknown,
@@ -104,7 +101,7 @@ export const SubmitApplicationModal = ({
   >({
     resolver: zodResolver(SubmitApplicationSchema),
     mode: 'onChange',
-    defaultValues: { jobTitle: '', coverLetter: '' },
+    defaultValues: { jobTitle: '' },
   });
 
   const { upload: uploadToS3, loading: uploading } = useUploadFile();
@@ -190,8 +187,6 @@ export const SubmitApplicationModal = ({
       },
     });
 
-  const coverLetterValue = watch('coverLetter') || '';
-  const charCount = coverLetterValue.length;
   const isUploading = uploading || creatingResume;
   const isSubmitting = applicationLoading;
   const selectedResume =
@@ -468,12 +463,6 @@ export const SubmitApplicationModal = ({
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          <ApplicationForm
-            register={register}
-            errors={errors}
-            charCount={charCount}
-          />
-
           <ResumeSection
             resumes={resumeOptions}
             selectedResumeId={selectedResumeId}
