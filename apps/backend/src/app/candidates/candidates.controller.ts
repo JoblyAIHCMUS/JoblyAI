@@ -74,12 +74,10 @@ export class CandidatesController {
       res.end(pdfBuffer);
     } catch (err: any) {
       console.error('[CandidatesController] exportPdf error:', err);
-      res
-        .status(500)
-        .json({
-          statusCode: 500,
-          message: err?.message || 'Failed to export PDF',
-        });
+      res.status(500).json({
+        statusCode: 500,
+        message: err?.message || 'Failed to export PDF',
+      });
     }
   }
 
@@ -100,12 +98,10 @@ export class CandidatesController {
       res.end(pdfBuffer);
     } catch (err: any) {
       console.error('[CandidatesController] exportPdfFromPayload error:', err);
-      res
-        .status(500)
-        .json({
-          statusCode: 500,
-          message: err?.message || 'Failed to export PDF',
-        });
+      res.status(500).json({
+        statusCode: 500,
+        message: err?.message || 'Failed to export PDF',
+      });
     }
   }
 
