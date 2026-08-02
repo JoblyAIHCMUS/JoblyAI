@@ -26,6 +26,7 @@ import {
   Plus,
   Edit2,
   Trash2,
+  RotateCcw,
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ interface CvSyncCompareModalProps {
   onClose: () => void;
   currentData: any;
   newData: any;
+  resumeId?: number;
   onSync: (draftData: any) => Promise<void>;
   onExtract?: () => void;
   isLoading?: boolean;
@@ -51,7 +53,85 @@ interface CvSyncCompareModalProps {
 }
 
 // Define types for clarity
-type SyncStatus = 'EXISTING' | 'MATCHED' | 'NEW';
+type SyncStatus = 'EXISTING' | 'MATCHED' | 'NEW' | 'REMOVED';
+
+interface DeleteTarget {
+  type: 'DRAFT' | 'EXISTING';
+  section: string;
+  indexOrKey: number | string;
+  itemTitle?: string;
+}
+
+function ConfirmDeleteItemDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  itemTitle,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  itemTitle?: string;
+}) {
+  return (
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        className="max-w-[420px] z-[200]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle className="text-red-600 flex items-center gap-2">
+            <Trash2 size={18} /> Remove Item from Sync
+          </DialogTitle>
+          <DialogDescription className="text-slate-600 mt-2 leading-relaxed">
+            Are you sure you want to remove{' '}
+            <strong className="text-slate-900 font-semibold">
+              {itemTitle || 'this item'}
+            </strong>{' '}
+            from the resulting profile preview?
+            <br />
+            <span className="text-xs text-slate-500 block mt-2 italic">
+              Note: This will not change your database profile until you click
+              "Approve & Sync Data".
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter className="gap-2 sm:gap-0 mt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onConfirm();
+              onClose();
+            }}
+          >
+            Confirm Remove
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function DatePickerField({
   value,
@@ -357,12 +437,19 @@ export function CvSyncCompareModal({
   onClose,
   currentData,
   newData,
+  resumeId,
   onSync,
   onExtract,
   isLoading = false,
   isSynced = false,
 }: CvSyncCompareModalProps) {
   const [draftData, setDraftData] = React.useState<any>(null);
+  const [removedExistingIds, setRemovedExistingIds] = React.useState<
+    Record<string, (string | number)[]>
+  >({});
+  const [pendingDelete, setPendingDelete] = React.useState<DeleteTarget | null>(
+    null
+  );
   const [editingItem, setEditingItem] = React.useState<{
     section: string;
     index: number;
@@ -419,6 +506,12 @@ export function CvSyncCompareModal({
           New / AI Merged
         </span>
       </div>
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-red-400 rounded-full shadow-[0_0_8px_rgba(248,113,113,0.3)]" />
+        <span className="text-xs font-medium text-red-700">
+          Will be Removed
+        </span>
+      </div>
     </div>
   );
 
@@ -426,11 +519,13 @@ export function CvSyncCompareModal({
     if (isOpen && newData && !hasInitialized.current) {
       // Use newData directly as it already contains isDuplicate flags from Backend Vector Search
       setDraftData(JSON.parse(JSON.stringify(newData)));
+      setRemovedExistingIds({});
       hasInitialized.current = true;
     }
 
     if (!isOpen) {
       hasInitialized.current = false;
+      setRemovedExistingIds({});
     }
   }, [isOpen, newData]);
 
@@ -458,6 +553,31 @@ export function CvSyncCompareModal({
       }
       return next;
     });
+  };
+
+  const handleDeleteExisting = (section: string, itemKey: string | number) => {
+    setRemovedExistingIds((prev: any) => ({
+      ...prev,
+      [section]: [...(prev[section] || []), itemKey],
+    }));
+  };
+
+  const handleRestoreExisting = (section: string, itemKey: string | number) => {
+    setRemovedExistingIds((prev: any) => ({
+      ...prev,
+      [section]: (prev[section] || []).filter((k: any) => k !== itemKey),
+    }));
+  };
+
+  const handleConfirmDelete = () => {
+    if (!pendingDelete) return;
+    const { type, section, indexOrKey } = pendingDelete;
+    if (type === 'DRAFT') {
+      handleDeleteDraft(section, indexOrKey as number);
+    } else {
+      handleDeleteExisting(section, indexOrKey);
+    }
+    setPendingDelete(null);
   };
 
   const handleAddDraft = (section: string, defaultValue: any) => {
@@ -513,6 +633,7 @@ export function CvSyncCompareModal({
   const MergedSection = ({
     icon,
     title,
+    sectionKey,
     current,
     draft,
     renderItem,
@@ -521,21 +642,62 @@ export function CvSyncCompareModal({
     onAdd,
   }: any) => {
     const preservedExisting = current
-      ?.filter((oldItem: any) => {
-        return !draft?.some((newItem: any) => {
+      ?.map((oldItem: any, index: number) => {
+        const itemKey =
+          title === 'Skills'
+            ? oldItem.skillId ??
+              oldItem.id ??
+              oldItem.name ??
+              oldItem.title ??
+              index
+            : oldItem.id ?? index;
+
+        const isRemoved = removedExistingIds[sectionKey]?.includes(itemKey);
+
+        const isMatchedInDraft = draft?.some((newItem: any) => {
           if (!newItem.isDuplicate || !newItem.matchedId) return false;
           return title === 'Skills'
             ? newItem.matchedId === oldItem.skillId
             : newItem.matchedId === oldItem.id;
         });
-      })
-      .map((item: any) => ({ ...item, _syncStatus: 'EXISTING' as SyncStatus }));
 
-    const draftItems = draft?.map((item: any, index: number) => ({
-      ...item,
-      _syncStatus: (item.isDuplicate ? 'MATCHED' : 'NEW') as SyncStatus,
-      _draftIndex: index,
-    }));
+        if (isMatchedInDraft) return null;
+
+        const itemTitle =
+          title === 'Skills'
+            ? oldItem.title || oldItem.name
+            : title === 'Experience'
+            ? `${oldItem.jobTitle} at ${oldItem.companyName}`
+            : title === 'Education'
+            ? `${oldItem.degree} at ${oldItem.school}`
+            : title === 'Certificates'
+            ? oldItem.name
+            : oldItem.value || oldItem.url || title;
+
+        return {
+          ...oldItem,
+          _syncStatus: (isRemoved ? 'REMOVED' : 'EXISTING') as SyncStatus,
+          _itemKey: itemKey,
+          _itemTitle: itemTitle,
+        };
+      })
+      .filter(Boolean);
+
+    const draftItems = draft?.map((item: any, index: number) => {
+      const itemTitle =
+        item.jobTitle ||
+        item.school ||
+        item.name ||
+        item.title ||
+        item.value ||
+        item.url;
+      return {
+        ...item,
+        _syncStatus: (item.isDuplicate ? 'MATCHED' : 'NEW') as SyncStatus,
+        _draftIndex: index,
+        _itemTitle: itemTitle,
+      };
+    });
 
     const allItems = [...(preservedExisting || []), ...(draftItems || [])];
 
@@ -583,8 +745,11 @@ export function CvSyncCompareModal({
               <div className="flex flex-col gap-3">
                 {allItems.map((item: any, i: number) => {
                   const status = item._syncStatus;
-                  const isDraft = status !== 'EXISTING';
+                  const isDraft = status === 'MATCHED' || status === 'NEW';
+                  const isRemoved = status === 'REMOVED';
                   const draftIndex = item._draftIndex;
+                  const itemKey = item._itemKey;
+                  const itemTitle = item._itemTitle;
 
                   return (
                     <div key={i} className="relative group">
@@ -595,17 +760,25 @@ export function CvSyncCompareModal({
                           status === 'MATCHED' &&
                             'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]',
                           status === 'NEW' &&
-                            'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.3)]'
+                            'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.3)]',
+                          status === 'REMOVED' &&
+                            'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.3)]'
                         )}
                       />
 
                       <div className="flex gap-2 items-start">
-                        <div className="flex-1">
+                        <div
+                          className={cn(
+                            'flex-1 transition-all',
+                            isRemoved &&
+                              'opacity-50 line-through grayscale-[0.5]'
+                          )}
+                        >
                           {renderItem(item, i, status)}
                         </div>
 
-                        {isDraft && (
-                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+                          {isDraft && (
                             <Button
                               size="icon"
                               variant="ghost"
@@ -614,16 +787,38 @@ export function CvSyncCompareModal({
                             >
                               <Edit2 size={12} />
                             </Button>
+                          )}
+                          {isRemoved ? (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-emerald-600 hover:bg-emerald-50"
+                              title="Restore Item"
+                              onClick={() =>
+                                handleRestoreExisting(sectionKey, itemKey)
+                              }
+                            >
+                              <RotateCcw size={12} />
+                            </Button>
+                          ) : (
                             <Button
                               size="icon"
                               variant="ghost"
                               className="h-6 w-6 text-red-500 hover:bg-red-50"
-                              onClick={() => onDelete(draftIndex)}
+                              title="Remove Item"
+                              onClick={() => {
+                                setPendingDelete({
+                                  type: isDraft ? 'DRAFT' : 'EXISTING',
+                                  section: sectionKey,
+                                  indexOrKey: isDraft ? draftIndex : itemKey,
+                                  itemTitle,
+                                });
+                              }}
                             >
                               <Trash2 size={12} />
                             </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
 
                       {status === 'EXISTING' && (
@@ -644,6 +839,11 @@ export function CvSyncCompareModal({
                           New
                         </Badge>
                       )}
+                      {status === 'REMOVED' && (
+                        <Badge className="absolute -right-1 -top-2 bg-red-500 text-white text-[8px] h-4 border-none shadow-sm uppercase font-bold">
+                          Will be removed
+                        </Badge>
+                      )}
                     </div>
                   );
                 })}
@@ -662,8 +862,28 @@ export function CvSyncCompareModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[1200px] w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          if (pendingDelete || editingItem) return;
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        className="max-w-[1200px] w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden"
+        onPointerDownOutside={(e) => {
+          if (pendingDelete || editingItem) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if (pendingDelete || editingItem) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="px-8 py-5 border-b bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-2 text-accent-primary">
             <ArrowRight size={24} className="text-blue-600" />
@@ -798,6 +1018,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<Briefcase size={16} />}
                 title="Experience"
+                sectionKey="experience"
                 current={currentData?.experiences}
                 draft={draftData?.experience}
                 onAdd={() =>
@@ -896,6 +1117,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<GraduationCap size={16} />}
                 title="Education"
+                sectionKey="education"
                 current={currentData?.educations}
                 draft={draftData?.education}
                 onAdd={() =>
@@ -978,6 +1200,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<Code2 size={16} />}
                 title="Skills"
+                sectionKey="skills"
                 current={currentData?.skills}
                 draft={draftData?.skills}
                 onAdd={() =>
@@ -1040,6 +1263,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<Award size={16} />}
                 title="Certificates"
+                sectionKey="certificates"
                 current={currentData?.certificates}
                 draft={draftData?.certificates}
                 onAdd={() =>
@@ -1107,6 +1331,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<Phone size={16} />}
                 title="Contact Info"
+                sectionKey="contacts"
                 current={currentData?.contacts}
                 draft={draftData?.contacts}
                 onAdd={() =>
@@ -1153,6 +1378,7 @@ export function CvSyncCompareModal({
               <MergedSection
                 icon={<Share2 size={16} />}
                 title="Social Links"
+                sectionKey="socials"
                 current={currentData?.socials}
                 draft={draftData?.socials}
                 onAdd={() =>
@@ -1233,7 +1459,11 @@ export function CvSyncCompareModal({
               {onExtract && !isSynced && (
                 <Button
                   variant="outline"
-                  onClick={onExtract}
+                  onClick={() => {
+                    setDraftData(null);
+                    setRemovedExistingIds({});
+                    if (onExtract) onExtract();
+                  }}
                   disabled={isLoading}
                   className="border-amber-200 text-amber-700 hover:bg-amber-50"
                 >
@@ -1245,14 +1475,22 @@ export function CvSyncCompareModal({
                 <>
                   <Button
                     variant="outline"
-                    onClick={() => onSync(draftData)}
+                    onClick={async () => {
+                      await onSync({ ...draftData, removedExistingIds });
+                      setDraftData(null);
+                      setRemovedExistingIds({});
+                    }}
                     disabled={isLoading}
                     className="border-blue-200 text-blue-700 hover:bg-blue-50 font-bold"
                   >
                     Update Profile
                   </Button>
                   <Button
-                    onClick={onExtract}
+                    onClick={() => {
+                      setDraftData(null);
+                      setRemovedExistingIds({});
+                      if (onExtract) onExtract();
+                    }}
                     disabled={isLoading}
                     className="bg-amber-600 hover:bg-amber-700 text-white px-8 font-bold shadow-lg shadow-amber-200 transition-all active:scale-95"
                   >
@@ -1262,7 +1500,11 @@ export function CvSyncCompareModal({
                 </>
               ) : (
                 <Button
-                  onClick={() => onSync(draftData)}
+                  onClick={async () => {
+                    await onSync({ ...draftData, removedExistingIds });
+                    setDraftData(null);
+                    setRemovedExistingIds({});
+                  }}
                   disabled={isLoading}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
                 >
@@ -1295,6 +1537,14 @@ export function CvSyncCompareModal({
               updatedData
             )
           }
+        />
+      )}
+      {pendingDelete && (
+        <ConfirmDeleteItemDialog
+          isOpen={!!pendingDelete}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={handleConfirmDelete}
+          itemTitle={pendingDelete.itemTitle}
         />
       )}
     </Dialog>
