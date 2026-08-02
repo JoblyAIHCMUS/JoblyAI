@@ -127,7 +127,9 @@ apiClient.interceptors.response.use(
         } catch {
           /* signOut is best-effort */
         }
-        router.dismissAll();
+        if (router.canGoBack()) {
+          router.dismissAll();
+        }
         router.replace('/');
       } else {
         // 403 — the cookie is still good; we just hit a screen that the
@@ -146,7 +148,9 @@ apiClient.interceptors.response.use(
           // authenticated, just on the wrong screen.
           nextPath = '/';
         }
-        router.dismissAll();
+        if (router.canGoBack()) {
+          router.dismissAll();
+        }
         router.replace(nextPath);
       }
     } finally {

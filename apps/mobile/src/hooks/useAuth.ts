@@ -281,7 +281,9 @@ export function useLogout() {
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.user });
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.employerProfile });
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.candidateProfile });
-    router.dismissAll();
+    if (router.canGoBack()) {
+      router.dismissAll();
+    }
     router.replace('/');
   }, [router]);
 
