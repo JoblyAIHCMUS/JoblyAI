@@ -9,6 +9,13 @@
         "cwd": "{projectRoot}"
       }
     },
+    "run-android": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run android",
+        "cwd": "{projectRoot}"
+      }
+    },
     "ios-device": {
       "executor": "nx:run-commands",
       "options": {
