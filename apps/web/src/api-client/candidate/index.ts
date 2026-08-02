@@ -7,3 +7,4 @@ export * from '@/api-client/candidate/certificate';
 export * from '@/api-client/candidate/avatar';
 export * from '@/api-client/candidate/social';
 export * from '@/api-client/candidate/contact';
+export * from '@/api-client/candidate/exportPdf';

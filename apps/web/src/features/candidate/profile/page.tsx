@@ -36,6 +36,7 @@ import {
   useCreateContact,
   useUpdateContact,
   useDeleteContact,
+  useExportCandidatePdf,
 } from '@/api-hook/candidate';
 import { useDeleteSkill } from '@/api-hook/candidate/useDeleteSkill';
 import { useCreateSkill } from '@/api-hook/candidate/useCreateSkill';
@@ -142,20 +143,32 @@ const CandidateProfilePage = () => {
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const modalPdfRef = useRef<HTMLDivElement>(null);
 
+  const { exportPdf: exportPdfHook } = useExportCandidatePdf();
+
   const handleExportPdf = async () => {
-    if (!pdfContainerRef.current) return;
     setIsExportingPdf(true);
-    const toastId = toast.loading('Exporting CV to PDF...');
+    const toastId = toast.loading('Exporting CV to PDF via Backend...');
     try {
       const candidateName = profile?.name || candidate?.name || 'Candidate';
       const fileName = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
-      await exportElementToPdf(pdfContainerRef.current, {
-        fileName,
-      });
+      if (candidate) {
+        await exportPdfHook(candidate, fileName);
+      } else if (pdfContainerRef.current) {
+        await exportElementToPdf(pdfContainerRef.current, { fileName });
+      }
       toast.success('CV has been exported successfully', { id: toastId });
     } catch (error) {
-      console.error('Failed to export PDF:', error);
-      toast.error('Failed to export PDF. Please try again.', { id: toastId });
+      console.warn('Backend PDF export failed, falling back to native print:', error);
+      try {
+        const candidateName = profile?.name || candidate?.name || 'Candidate';
+        const fileName = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
+        if (pdfContainerRef.current) {
+          await exportElementToPdf(pdfContainerRef.current, { fileName });
+        }
+        toast.success('CV has been exported successfully', { id: toastId });
+      } catch (fallbackErr) {
+        toast.error('Failed to export PDF. Please try again.', { id: toastId });
+      }
     } finally {
       setIsExportingPdf(false);
     }

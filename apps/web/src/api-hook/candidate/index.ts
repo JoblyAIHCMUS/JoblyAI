@@ -20,3 +20,4 @@ export * from '@/api-hook/candidate/useDeleteSocial';
 export * from '@/api-hook/candidate/useCreateContact';
 export * from '@/api-hook/candidate/useUpdateContact';
 export * from '@/api-hook/candidate/useDeleteContact';
+export * from '@/api-hook/candidate/useExportCandidatePdf';

@@ -8,9 +8,11 @@ import {
   Post,
   Query,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { CandidatesService } from './candidates.service';
+import { PdfExporterService } from './pdf-exporter.service';
 import { RoleGuard } from '../auth/role.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -32,7 +34,57 @@ export interface AuthRequest extends Request {
 
 @Controller('candidate')
 export class CandidatesController {
-  constructor(private readonly candidatesService: CandidatesService) {}
+  constructor(
+    private readonly candidatesService: CandidatesService,
+    private readonly pdfExporterService: PdfExporterService,
+  ) {}
+
+  private buildContentDisposition(rawCandidateName?: string): string {
+    const rawName = (rawCandidateName || 'Candidate').trim();
+    const safeName = rawName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .replace(/_+/g, '_') || 'Candidate';
+    const asciiFileName = `CV_${safeName}.pdf`;
+    const utf8FileName = encodeURIComponent(`CV_${rawName}.pdf`);
+    return `attachment; filename="${asciiFileName}"; filename*=UTF-8''${utf8FileName}`;
+  }
+
+  // Export current user's profile to high-quality vector PDF via Puppeteer
+  @Get('/me/export-pdf')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('candidate')
+  async exportPdf(@Request() req: { user: User }, @Res() res: any) {
+    try {
+      const candidateProfile = await this.candidatesService.getProfileDetails(req.user.id);
+      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(candidateProfile);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', this.buildContentDisposition(candidateProfile.name));
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.end(pdfBuffer);
+    } catch (err: any) {
+      console.error('[CandidatesController] exportPdf error:', err);
+      res.status(500).json({ statusCode: 500, message: err?.message || 'Failed to export PDF' });
+    }
+  }
+
+  // Export profile from payload (support for frontend draft / preview)
+  @Post('/export-pdf')
+  async exportPdfFromPayload(@Body() body: any, @Res() res: any) {
+    try {
+      const pdfBuffer = await this.pdfExporterService.generateCandidatePdf(body || {});
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', this.buildContentDisposition(body?.name));
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.end(pdfBuffer);
+    } catch (err: any) {
+      console.error('[CandidatesController] exportPdfFromPayload error:', err);
+      res.status(500).json({ statusCode: 500, message: err?.message || 'Failed to export PDF' });
+    }
+  }
 
   // Get current user details if the user is logged in and a candidate
   @Get('/me')

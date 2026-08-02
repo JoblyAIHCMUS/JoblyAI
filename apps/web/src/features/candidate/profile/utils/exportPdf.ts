@@ -10,6 +10,27 @@ export interface ExportPdfOptions {
   onError?: (error: unknown) => void;
 }
 
+import { exportCandidatePdfApi } from '@/api-client/candidate';
+
+/**
+ * Exports candidate profile to a vector PDF via NestJS Puppeteer backend.
+ * Provides 1-click direct file download with 100% real text (ATS-friendly) & 0 cut errors.
+ */
+export async function exportPdfViaBackend(candidateData: any, fileName?: string) {
+  const candidateName = candidateData?.name || 'Candidate';
+  const name = fileName || `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
+
+  const blob = await exportCandidatePdfApi(candidateData);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
 /**
  * PDF Exporter — Spacer Injection Architecture (v4)
  *
