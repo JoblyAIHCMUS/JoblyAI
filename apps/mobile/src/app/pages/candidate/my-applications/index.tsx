@@ -29,6 +29,7 @@ import {
 import { getGreetingName, useUser } from '../../../../hooks/useUser';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
+import { COLORS } from '@/app/constants/theme';
 
 type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
 
@@ -283,8 +284,8 @@ export default function MyApplicationsPage() {
             <RefreshControl
               refreshing={loading}
               onRefresh={() => setRefreshKey((k) => k + 1)}
-              colors={['#6366f1']}
-              tintColor="#6366f1"
+              colors={[COLORS.primary2]}
+              tintColor={COLORS.primary2}
             />
           }
           ListHeaderComponent={
@@ -329,7 +330,7 @@ export default function MyApplicationsPage() {
           ListEmptyComponent={
             loading ? (
               <View className="items-center py-12">
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ActivityIndicator size="large" color={COLORS.primary2} />
                 <Text className="mt-3 text-sm text-app-text-5">
                   Loading applications...
                 </Text>
@@ -382,7 +383,7 @@ export default function MyApplicationsPage() {
         <CandidateDashboardSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          currentPath="/pages/candidate/dashboard/my-applications"
+          currentPath="/pages/candidate/my-applications"
         />
       </View>
     </>

@@ -14,6 +14,7 @@ import {
   INDUSTRY_LABELS,
   SCALE_LABELS,
 } from '../employer/company-profile/constants';
+import { COLORS } from '@/app/constants/theme';
 
 export interface CompanyOverviewSectionProps {
   company: Company;
@@ -29,16 +30,16 @@ interface InfoRowData {
 }
 
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
-  body: { color: '#25324b', fontSize: 15, lineHeight: 22 },
+  body: { color: COLORS.textStrong, fontSize: 15, lineHeight: 22 },
   h2: {
-    color: '#25324b',
+    color: COLORS.textStrong,
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 8,
     marginTop: 18,
   },
   h3: {
-    color: '#25324b',
+    color: COLORS.textStrong,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 6,
@@ -81,7 +82,7 @@ export function CompanyOverviewSection({
 
   if (company.industry) {
     infoRows.push({
-      icon: <Building2 size={19} color="#4640de" />,
+      icon: <Building2 size={19} color={COLORS.primary} />,
       label: 'Industry',
       value: INDUSTRY_LABELS[company.industry] || company.industry,
     });
@@ -89,14 +90,14 @@ export function CompanyOverviewSection({
 
   if (company.sizeRange) {
     infoRows.push({
-      icon: <Users size={19} color="#4640de" />,
+      icon: <Users size={19} color={COLORS.primary} />,
       label: 'Company size',
       value: SCALE_LABELS[company.sizeRange] || company.sizeRange,
     });
   }
 
   infoRows.push({
-    icon: <BriefcaseBusiness size={19} color="#4640de" />,
+    icon: <BriefcaseBusiness size={19} color={COLORS.primary} />,
     label: 'Open jobs',
     value: `${openJobsCount} active ${openJobsCount === 1 ? 'role' : 'roles'}`,
   });
@@ -111,8 +112,8 @@ export function CompanyOverviewSection({
             resizeMode="contain"
           />
         ) : (
-          <View className="h-24 w-24 items-center justify-center rounded-xl bg-[#eef0ff]">
-            <Text className="text-2xl font-bold text-[#4640de]">
+          <View className="h-24 w-24 items-center justify-center rounded-xl bg-app-bg-selected">
+            <Text className="text-2xl font-bold text-app-primary-1">
               {companyInitials}
             </Text>
           </View>
@@ -122,7 +123,7 @@ export function CompanyOverviewSection({
           {company.name}
         </Text>
 
-        <Text className="mt-3 text-base leading-6 text-[#64748b]">
+        <Text className="mt-3 text-base leading-6 text-app-text-5">
           {stripHtml(company.description) ||
             'Explore this company profile and current openings.'}
         </Text>
@@ -130,12 +131,14 @@ export function CompanyOverviewSection({
         {company.websiteUrl ? (
           <TouchableOpacity
             activeOpacity={0.75}
-            className="mt-5 flex-row items-center gap-2 self-start rounded-lg border border-[#4640de] px-4 py-2.5"
+            className="mt-5 flex-row items-center gap-2 self-start rounded-lg border border-app-primary-1 px-4 py-2.5"
             onPress={onWebsitePress}
           >
-            <Globe2 size={16} color="#4640de" />
-            <Text className="text-sm font-bold text-[#4640de]">Website</Text>
-            <ExternalLink size={14} color="#4640de" />
+            <Globe2 size={16} color={COLORS.primary} />
+            <Text className="text-sm font-bold text-app-primary-1">
+              Website
+            </Text>
+            <ExternalLink size={14} color={COLORS.primary} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -146,7 +149,7 @@ export function CompanyOverviewSection({
             key={label}
             className="flex-row items-center gap-3 rounded-lg border border-app-border-1 bg-app-white-1 px-4 py-3"
           >
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef0ff]">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-app-bg-selected">
               {icon}
             </View>
             <View className="flex-1">

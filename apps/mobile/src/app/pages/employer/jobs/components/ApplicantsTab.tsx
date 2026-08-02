@@ -11,6 +11,7 @@ import {
 import { Search, Star, X } from 'lucide-react-native';
 import Avatar from '../../../../../components/Avatar';
 import { PipelineView } from './PipelineView';
+import { COLORS } from '../../../../constants/theme';
 
 export type ApplicantStatus =
   | 'In-review'
@@ -79,8 +80,8 @@ function ApplicantListItem({ applicant }: { applicant: Applicant }) {
           <View className="flex-row items-center border border-app-border-2 rounded-full px-2 py-0.5 self-start">
             <Star
               size={14}
-              color="#FFB836"
-              fill={applicant.rating > 0 ? '#FFB836' : 'transparent'}
+              color={COLORS.badgeOrange}
+              fill={applicant.rating > 0 ? COLORS.badgeOrange : 'transparent'}
             />
             <Text className="text-sm text-app-text-3 font-medium ml-1">
               {applicant.rating.toFixed(1)}
@@ -116,7 +117,7 @@ function ApplicantsHeader({
     return (
       <View className="flex-row items-center py-3 border-b border-app-border-light">
         <View className="flex-1 flex-row items-center bg-app-background-1 rounded-lg px-3 py-2 mr-3">
-          <Search size={20} color="#64748B" />
+          <Search size={20} color={COLORS.slate500} />
           <TextInput
             className="flex-1 ml-2 text-base text-app-slate-1 p-0"
             placeholder="Search applicants..."
@@ -127,7 +128,7 @@ function ApplicantsHeader({
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => onSearchChange('')}>
-              <X size={18} color="#64748B" />
+              <X size={18} color={COLORS.slate500} />
             </TouchableOpacity>
           )}
         </View>
@@ -152,7 +153,7 @@ function ApplicantsHeader({
       </Text>
       <View className="flex-row gap-4">
         <TouchableOpacity onPress={() => setIsSearching(true)}>
-          <Search size={24} color="#0F172A" />
+          <Search size={24} color={COLORS.brandDark} />
         </TouchableOpacity>
       </View>
     </View>
@@ -211,7 +212,7 @@ export default function ApplicantsTab({
     if (!isFetchingNextPage) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#4640DE" />
+        <ActivityIndicator size="small" color={COLORS.primary} />
       </View>
     );
   };
@@ -257,7 +258,7 @@ export default function ApplicantsTab({
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              colors={['#4640DE']}
+              colors={[COLORS.primary]}
             />
           }
         />

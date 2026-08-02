@@ -18,6 +18,7 @@ import SalarySelector from './SalarySelector';
 import SkillTagsManager from './SkillTagsManager';
 import { EMPLOYMENT_TYPES } from '../constants';
 import type { JobPostingFormData } from '../schema';
+import { COLORS } from '@/app/constants/theme';
 
 interface BasicInformationStepProps {
   control: Control<JobPostingFormData>;
@@ -107,7 +108,7 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
               >
                 {selectedType ? selectedType.label : 'Select employment type'}
               </Text>
-              <ChevronDown size={20} color="#64748B" />
+              <ChevronDown size={20} color={COLORS.slate500} />
             </TouchableOpacity>
             {errors.type && (
               <Text className="text-xs text-red-600">
@@ -141,8 +142,11 @@ export const BasicInformationStep: React.FC<BasicInformationStepProps> = ({
               <Switch
                 value={field.value}
                 onValueChange={field.onChange}
-                trackColor={{ false: '#CBD5E1', true: '#000000' }}
-                thumbColor="#f3f4f8"
+                trackColor={{
+                  false: COLORS.borderMuted,
+                  true: COLORS.brandDark,
+                }}
+                thumbColor={COLORS.bgDisabled}
               />
             </View>
 

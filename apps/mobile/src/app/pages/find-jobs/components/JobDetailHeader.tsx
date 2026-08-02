@@ -45,7 +45,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
   };
 
   return (
-    <View className="bg-[#F8F8FD] px-4 py-6">
+    <View className="px-4 py-6" style={{ backgroundColor: COLORS.surfaceSoft }}>
       {/* Back button */}
       <TouchableOpacity
         onPress={() => router.back()}

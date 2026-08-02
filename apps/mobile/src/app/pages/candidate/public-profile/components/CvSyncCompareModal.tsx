@@ -24,6 +24,7 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -64,9 +65,13 @@ function getSyncStatus(current: any[], newItem: any, key: string): SyncStatus {
 
 function StatusBadge({ status }: { status: SyncStatus }) {
   const config = {
-    EXISTING: { bg: '#f3f4f6', text: '#6b7280', label: 'Existing' },
-    MATCHED: { bg: '#f0fdf4', text: '#16a34a', label: 'Matched' },
-    NEW: { bg: '#eff6ff', text: '#2563eb', label: 'New' },
+    EXISTING: { bg: COLORS.bgDisabled, text: COLORS.gray3, label: 'Existing' },
+    MATCHED: {
+      bg: COLORS.badgeGreen,
+      text: COLORS.successDark,
+      label: 'Matched',
+    },
+    NEW: { bg: COLORS.bgSelected, text: COLORS.infoText, label: 'New' },
   };
   const c = config[status];
   return (
@@ -117,15 +122,15 @@ export function CvSyncCompareModal({
   return (
     <Modal visible={isOpen} transparent animationType="slide">
       <View className="flex-1 bg-white pt-12">
-        <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-[#dbe1ee]">
+        <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-app-border-light">
           <View className="flex flex-row items-center gap-2">
-            <Info size={20} color="#4f46e5" />
-            <Text className="text-lg font-semibold text-[#1f2937]">
+            <Info size={20} color={COLORS.primary2} />
+            <Text className="text-lg font-semibold text-app-dark-text">
               Sync Resume Data
             </Text>
           </View>
           <TouchableOpacity onPress={onClose}>
-            <X size={20} color="#6b7280" />
+            <X size={20} color={COLORS.gray3} />
           </TouchableOpacity>
         </View>
 
@@ -139,14 +144,14 @@ export function CvSyncCompareModal({
 
         {!draft ? (
           <View className="flex-1 items-center justify-center py-10">
-            <ActivityIndicator size="large" color="#4f46e5" />
-            <Text className="mt-3 text-sm text-[#6b7280]">
+            <ActivityIndicator size="large" color={COLORS.primary2} />
+            <Text className="mt-3 text-sm text-app-gray-3">
               Loading extracted data...
             </Text>
             {onExtract && (
               <TouchableOpacity
                 onPress={onExtract}
-                className="mt-4 px-4 py-2 rounded-md bg-[#4f46e5]"
+                className="mt-4 px-4 py-2 rounded-md bg-app-primary-2"
               >
                 <Text className="text-sm text-white font-medium">
                   Extract Data
@@ -168,11 +173,11 @@ export function CvSyncCompareModal({
                   return (
                     <View
                       key={key}
-                      className="rounded-xl border border-[#e5e7eb] overflow-hidden"
+                      className="rounded-xl border border-app-gray-1 overflow-hidden"
                     >
-                      <View className="flex flex-row items-center gap-2 px-4 py-3 bg-[#f8fafc] border-b border-[#e5e7eb]">
-                        <Icon size={16} color="#4f46e5" />
-                        <Text className="text-sm font-semibold text-[#1f2937]">
+                      <View className="flex flex-row items-center gap-2 px-4 py-3 bg-app-bg-input border-b border-app-gray-1">
+                        <Icon size={16} color={COLORS.primary2} />
+                        <Text className="text-sm font-semibold text-app-dark-text">
                           {label}
                         </Text>
                         <StatusBadge
@@ -187,7 +192,7 @@ export function CvSyncCompareModal({
                       <View className="px-4 py-3">
                         {key === 'bio' && (
                           <View className="gap-2">
-                            <Text className="text-xs text-[#6b7280]">
+                            <Text className="text-xs text-app-gray-3">
                               Title
                             </Text>
                             <TextInput
@@ -195,10 +200,10 @@ export function CvSyncCompareModal({
                               onChangeText={(t) =>
                                 setDraft((p: any) => ({ ...p, title: t }))
                               }
-                              className="border border-[#e5e7eb] rounded-md px-3 py-2 text-sm"
+                              className="border border-app-gray-1 rounded-md px-3 py-2 text-sm"
                               placeholder="Professional title"
                             />
-                            <Text className="text-xs text-[#6b7280] mt-2">
+                            <Text className="text-xs text-app-gray-3 mt-2">
                               Bio
                             </Text>
                             <TextInput
@@ -206,7 +211,7 @@ export function CvSyncCompareModal({
                               onChangeText={(t) =>
                                 setDraft((p: any) => ({ ...p, bio: t }))
                               }
-                              className="border border-[#e5e7eb] rounded-md px-3 py-2 text-sm"
+                              className="border border-app-gray-1 rounded-md px-3 py-2 text-sm"
                               multiline
                               numberOfLines={3}
                               placeholder="Professional summary"
@@ -237,7 +242,7 @@ export function CvSyncCompareModal({
                                 </View>
                               ))
                             ) : (
-                              <Text className="text-sm text-[#6b7280]">
+                              <Text className="text-sm text-app-gray-3">
                                 No skills extracted
                               </Text>
                             )}
@@ -253,22 +258,22 @@ export function CvSyncCompareModal({
                               sectionData.map((item: any, i: number) => (
                                 <View
                                   key={i}
-                                  className="p-3 rounded-lg bg-[#f8fafc] border border-[#e5e7eb]"
+                                  className="p-3 rounded-lg bg-app-bg-input border border-app-gray-1"
                                 >
-                                  <Text className="text-sm font-medium text-[#1f2937]">
+                                  <Text className="text-sm font-medium text-app-dark-text">
                                     {item.jobTitle ||
                                       item.school ||
                                       item.name ||
                                       'Untitled'}
                                   </Text>
-                                  <Text className="text-xs text-[#6b7280] mt-1">
+                                  <Text className="text-xs text-app-gray-3 mt-1">
                                     {item.companyName ||
                                       item.degree ||
                                       item.issuer ||
                                       ''}
                                   </Text>
                                   {(item.startDate || item.issueDate) && (
-                                    <Text className="text-xs text-[#9ca3af] mt-0.5">
+                                    <Text className="text-xs text-app-text-placeholder mt-0.5">
                                       {item.startDate || item.issueDate}
                                       {item.endDate
                                         ? ` - ${item.endDate}`
@@ -280,7 +285,7 @@ export function CvSyncCompareModal({
                                 </View>
                               ))
                             ) : (
-                              <Text className="text-sm text-[#6b7280]">
+                              <Text className="text-sm text-app-gray-3">
                                 No items extracted
                               </Text>
                             )}
@@ -294,18 +299,18 @@ export function CvSyncCompareModal({
                               sectionData.map((item: any, i: number) => (
                                 <View
                                   key={i}
-                                  className="p-3 rounded-lg bg-[#f8fafc] border border-[#e5e7eb]"
+                                  className="p-3 rounded-lg bg-app-bg-input border border-app-gray-1"
                                 >
-                                  <Text className="text-sm font-medium text-[#1f2937]">
+                                  <Text className="text-sm font-medium text-app-dark-text">
                                     {item.type || item.platform || 'Contact'}
                                   </Text>
-                                  <Text className="text-xs text-[#6b7280] mt-1">
+                                  <Text className="text-xs text-app-gray-3 mt-1">
                                     {item.value || item.url || ''}
                                   </Text>
                                 </View>
                               ))
                             ) : (
-                              <Text className="text-sm text-[#6b7280]">
+                              <Text className="text-sm text-app-gray-3">
                                 No items extracted
                               </Text>
                             )}
@@ -318,17 +323,17 @@ export function CvSyncCompareModal({
               </View>
             </ScrollView>
 
-            <View className="px-5 py-4 border-t border-[#dbe1ee]">
+            <View className="px-5 py-4 border-t border-app-border-light">
               <TouchableOpacity
                 onPress={handleSync}
                 disabled={isLoading}
-                className="w-full py-3 rounded-md bg-[#4f46e5] items-center"
+                className="w-full py-3 rounded-md bg-app-primary-2 items-center"
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color="white" />
+                  <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
                   <View className="flex flex-row items-center gap-2">
-                    <Check size={16} color="white" />
+                    <Check size={16} color={COLORS.white} />
                     <Text className="text-sm font-semibold text-white">
                       Sync Profile
                     </Text>

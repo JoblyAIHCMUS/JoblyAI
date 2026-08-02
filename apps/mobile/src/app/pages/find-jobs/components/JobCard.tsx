@@ -67,17 +67,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
           size={10}
           color={
             job.matchPercentage >= 80
-              ? '#15803d'
+              ? COLORS.successDark
               : job.matchPercentage >= 50
-              ? '#1d4ed8'
-              : '#475569'
+              ? COLORS.infoText
+              : COLORS.textMuted
           }
           fill={
             job.matchPercentage >= 80
-              ? '#15803d'
+              ? COLORS.successDark
               : job.matchPercentage >= 50
-              ? '#1d4ed8'
-              : '#475569'
+              ? COLORS.infoText
+              : COLORS.textMuted
           }
         />
         <Text

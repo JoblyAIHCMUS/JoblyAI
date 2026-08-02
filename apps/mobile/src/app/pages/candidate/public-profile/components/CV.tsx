@@ -25,6 +25,7 @@ import Toast from 'react-native-toast-message';
 import type { CandidateResume } from '@/types/candidate';
 import type { ProcessingTasks } from '@/contexts/AiProcessingContext';
 import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
+import { COLORS } from '@/app/constants/theme';
 
 interface CVProps {
   resumes: CandidateResume[];
@@ -170,14 +171,14 @@ export function CV({
   );
 
   return (
-    <View className="rounded-xl border border-[#dbe1ee] bg-white p-4 flex flex-col gap-3">
+    <View className="rounded-xl border border-app-border-light bg-white p-4 flex flex-col gap-3">
       <View className="flex flex-row items-center justify-between gap-3">
         <View className="flex flex-col">
-          <Text className="text-lg font-semibold text-[#1f2937]">
+          <Text className="text-lg font-semibold text-app-dark-text">
             CV/Resume
           </Text>
           {isAtMax && (
-            <Text className="mt-1 text-xs text-[#4f46e5]">
+            <Text className="mt-1 text-xs text-app-primary-2">
               Maximum of {maxResumes} CVs reached.
             </Text>
           )}
@@ -186,7 +187,7 @@ export function CV({
           onPress={() => setUploadOpen(true)}
           disabled={isBusy || isAtMax}
           className={`px-4 py-2 rounded-md ${
-            isBusy || isAtMax ? 'bg-gray-300' : 'bg-[#4f46e5]'
+            isBusy || isAtMax ? 'bg-gray-300' : 'bg-app-primary-2'
           }`}
         >
           <Text className="text-white text-sm font-semibold">Upload CV</Text>
@@ -195,7 +196,7 @@ export function CV({
 
       {resumes.length > 0 && (
         <View className="flex flex-col gap-2">
-          <Text className="text-xs text-[#6b7280]">
+          <Text className="text-xs text-app-gray-3">
             Stored CVs ({resumeCount}/{maxResumes})
           </Text>
 
@@ -212,8 +213,8 @@ export function CV({
                 key={resume.id}
                 className={`rounded-lg border p-3 ${
                   isActive
-                    ? 'border-[#4f46e5] bg-[#f3f4ff]'
-                    : 'border-[#dbe1ee] bg-white'
+                    ? 'border-app-primary-2 bg-app-bg-selected'
+                    : 'border-app-border-light bg-white'
                 }`}
               >
                 <View className="flex flex-row items-center justify-between gap-2">
@@ -223,7 +224,7 @@ export function CV({
                   >
                     <View className="flex flex-row items-center gap-2">
                       <Text
-                        className="text-sm font-semibold text-[#1f2937]"
+                        className="text-sm font-semibold text-app-dark-text"
                         numberOfLines={1}
                       >
                         {resume.fileName}
@@ -244,20 +245,20 @@ export function CV({
                       )}
                     </View>
                     {isActive && (
-                      <Text className="text-[10px] text-[#4f46e5] mt-0.5">
+                      <Text className="text-[10px] text-app-primary-2 mt-0.5">
                         Default
                       </Text>
                     )}
                   </TouchableOpacity>
                 </View>
 
-                <View className="flex flex-row flex-wrap items-center gap-1.5 mt-2 pt-2 border-t border-[#f0f0f5]">
+                <View className="flex flex-row flex-wrap items-center gap-1.5 mt-2 pt-2 border-t border-app-border-light">
                   <TouchableOpacity
                     onPress={() => handlePreview(resume)}
                     disabled={isBusy}
-                    className="h-8 w-8 items-center justify-center rounded-md border border-[#dbe1ee]"
+                    className="h-8 w-8 items-center justify-center rounded-md border border-app-border-light"
                   >
-                    <Eye size={14} color="#6b7280" />
+                    <Eye size={14} color={COLORS.gray3} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -266,15 +267,15 @@ export function CV({
                     className={`h-8 w-8 items-center justify-center rounded-md border ${
                       hasParseData
                         ? 'border-amber-400 bg-amber-50'
-                        : 'border-[#dbe1ee] bg-gray-50'
+                        : 'border-app-border-light bg-gray-50'
                     }`}
                   >
                     {isParsing ? (
-                      <ActivityIndicator size="small" color="#4f46e5" />
+                      <ActivityIndicator size="small" color={COLORS.primary2} />
                     ) : (
                       <Code2
                         size={14}
-                        color={hasParseData ? '#d97706' : '#6b7280'}
+                        color={hasParseData ? COLORS.warningText : COLORS.gray3}
                       />
                     )}
                   </TouchableOpacity>
@@ -284,13 +285,13 @@ export function CV({
                     disabled={isBusy || !canSync}
                     className={`h-8 w-8 items-center justify-center rounded-md border ${
                       canSync
-                        ? 'border-[#4f46e5] bg-[#4f46e5]'
-                        : 'border-[#dbe1ee] bg-gray-100'
+                        ? 'border-app-primary-2 bg-app-primary-2'
+                        : 'border-app-border-light bg-gray-100'
                     }`}
                   >
                     <ArrowLeftRight
                       size={14}
-                      color={canSync ? 'white' : '#d1d5db'}
+                      color={canSync ? COLORS.white : COLORS.borderUnchecked}
                     />
                   </TouchableOpacity>
 
@@ -299,14 +300,22 @@ export function CV({
                     disabled={resume.isDefault || isBusy}
                     className={`h-8 w-8 items-center justify-center rounded-md border ${
                       resume.isDefault
-                        ? 'border-[#dbe1ee] bg-gray-100'
-                        : 'border-[#dbe1ee]'
+                        ? 'border-app-border-light bg-gray-100'
+                        : 'border-app-border-light'
                     }`}
                   >
                     <Star
                       size={14}
-                      color={resume.isDefault ? '#d1d5db' : '#4f46e5'}
-                      fill={resume.isDefault ? '#d1d5db' : 'transparent'}
+                      color={
+                        resume.isDefault
+                          ? COLORS.borderUnchecked
+                          : COLORS.primary2
+                      }
+                      fill={
+                        resume.isDefault
+                          ? COLORS.borderUnchecked
+                          : 'transparent'
+                      }
                     />
                   </TouchableOpacity>
 
@@ -316,9 +325,9 @@ export function CV({
                     className="h-8 w-8 items-center justify-center rounded-md border border-red-200"
                   >
                     {deletingResumeId === resume.id ? (
-                      <ActivityIndicator size="small" color="#ef4444" />
+                      <ActivityIndicator size="small" color={COLORS.error} />
                     ) : (
-                      <Trash2 size={14} color="#ef4444" />
+                      <Trash2 size={14} color={COLORS.error} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -330,30 +339,33 @@ export function CV({
 
       {uploadError && (
         <View className="flex flex-row items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200">
-          <AlertCircle size={16} color="#ef4444" />
+          <AlertCircle size={16} color={COLORS.error} />
           <Text className="text-sm text-red-700">{uploadError}</Text>
         </View>
       )}
 
-      <Text className="text-xs text-[#6b7280]">
+      <Text className="text-xs text-app-gray-3">
         Upload your CV or resume in PDF format. This helps recruiters quickly
         review your qualifications.
       </Text>
 
       <Modal visible={uploadOpen} transparent animationType="slide">
-        <View className="flex-1 items-center justify-center bg-black/40 px-6">
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: COLORS.overlay }}
+        >
           <View className="w-full rounded-xl bg-white p-5 gap-4">
             <View className="flex flex-row items-center justify-between">
-              <Text className="text-lg font-semibold text-[#1f2937]">
+              <Text className="text-lg font-semibold text-app-dark-text">
                 Upload CV
               </Text>
               <TouchableOpacity onPress={() => setUploadOpen(false)}>
-                <X size={20} color="#6b7280" />
+                <X size={20} color={COLORS.gray3} />
               </TouchableOpacity>
             </View>
 
             {isAtMax && (
-              <Text className="text-sm text-[#4f46e5]">
+              <Text className="text-sm text-app-primary-2">
                 You already have {maxResumes} CVs. Delete one to upload a new
                 CV.
               </Text>
@@ -365,19 +377,19 @@ export function CV({
               className={`border-2 border-dashed rounded-xl p-8 items-center gap-3 ${
                 isBusy || isAtMax
                   ? 'border-gray-200 bg-gray-50'
-                  : 'border-[#4f46e5] bg-[#f3f4ff]'
+                  : 'border-app-primary-2 bg-app-bg-selected'
               }`}
             >
               {isBusy ? (
-                <ActivityIndicator size="large" color="#4f46e5" />
+                <ActivityIndicator size="large" color={COLORS.primary2} />
               ) : (
-                <Upload size={32} color="#6b7280" />
+                <Upload size={32} color={COLORS.gray3} />
               )}
               <View className="items-center gap-1">
-                <Text className="text-sm text-[#6b7280]">
+                <Text className="text-sm text-app-gray-3">
                   Tap to select a PDF
                 </Text>
-                <Text className="text-xs text-[#9ca3af]">
+                <Text className="text-xs text-app-text-placeholder">
                   PDF only (max 5MB)
                 </Text>
               </View>
@@ -388,9 +400,9 @@ export function CV({
 
       <Modal visible={previewOpen} transparent animationType="slide">
         <View className="flex-1 bg-white pt-12">
-          <View className="flex flex-row items-center justify-between px-4 py-3 border-b border-[#dbe1ee]">
+          <View className="flex flex-row items-center justify-between px-4 py-3 border-b border-app-border-light">
             <Text
-              className="text-base font-semibold text-[#1f2937] flex-1"
+              className="text-base font-semibold text-app-dark-text flex-1"
               numberOfLines={1}
             >
               {previewName}
@@ -399,18 +411,18 @@ export function CV({
               <TouchableOpacity
                 onPress={handleDownload}
                 disabled={!previewUri}
-                className="h-9 w-9 items-center justify-center rounded-lg border border-[#dbe1ee]"
+                className="h-9 w-9 items-center justify-center rounded-lg border border-app-border-light"
               >
-                <Download size={18} color="#4f46e5" />
+                <Download size={18} color={COLORS.primary2} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   setPreviewOpen(false);
                   setPreviewUri(null);
                 }}
-                className="h-9 w-9 items-center justify-center rounded-lg border border-[#dbe1ee]"
+                className="h-9 w-9 items-center justify-center rounded-lg border border-app-border-light"
               >
-                <X size={18} color="#6b7280" />
+                <X size={18} color={COLORS.gray3} />
               </TouchableOpacity>
             </View>
           </View>
@@ -427,7 +439,7 @@ export function CV({
               />
             ) : (
               <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#4f46e5" />
+                <ActivityIndicator size="large" color={COLORS.primary2} />
               </View>
             )}
           </View>
@@ -437,10 +449,10 @@ export function CV({
       <Modal visible={confirmDefaultOpen} transparent animationType="fade">
         <View className="flex-1 items-center justify-center bg-black/40 px-6">
           <View className="w-full rounded-xl bg-white p-5 gap-4">
-            <Text className="text-lg font-semibold text-[#1f2937]">
+            <Text className="text-lg font-semibold text-app-dark-text">
               Set Default CV
             </Text>
-            <Text className="text-sm text-[#6b7280]">
+            <Text className="text-sm text-app-gray-3">
               This CV will be used as your default resume for applications.
             </Text>
             <View className="flex flex-row justify-end gap-2">
@@ -450,14 +462,14 @@ export function CV({
                   setPendingDefaultId(null);
                 }}
                 disabled={isBusy}
-                className="px-4 py-2 rounded-md border border-[#dbe1ee]"
+                className="px-4 py-2 rounded-md border border-app-border-light"
               >
-                <Text className="text-sm text-[#6b7280]">Cancel</Text>
+                <Text className="text-sm text-app-gray-3">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmDefault}
                 disabled={isBusy}
-                className="px-4 py-2 rounded-md bg-[#4f46e5]"
+                className="px-4 py-2 rounded-md bg-app-primary-2"
               >
                 <Text className="text-sm text-white font-medium">
                   Set default

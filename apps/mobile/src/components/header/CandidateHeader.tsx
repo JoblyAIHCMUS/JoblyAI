@@ -6,6 +6,7 @@ import { NotificationBell } from './NotificationBell';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnreadNotificationCount } from '../../hooks/useNotifications';
 import { router } from 'expo-router';
+import { COLORS } from '@/app/constants/theme';
 
 interface CandidateHeaderProps {
   title: string;
@@ -27,20 +28,35 @@ export function CandidateHeader({
     <View
       style={{
         paddingTop: insets.top,
+        borderBottomColor: COLORS.border,
       }}
-      className="border-b border-[#d6ddeb] bg-white px-4 py-3"
+      className="border-b bg-white px-4 py-3"
     >
-      <View className="border-b border-[#d6ddeb] bg-white px-4 py-3">
+      <View
+        className="border-b bg-white px-4 py-3"
+        style={{ borderBottomColor: COLORS.border }}
+      >
         <View className="flex-row items-center justify-between">
           <Pressable onPress={onMenuPress} className="p-2">
-            <Menu size={22} color="#25324b" />
+            <Menu size={22} color={COLORS.textStrong} />
           </Pressable>
 
-          <Text className="text-xl font-bold text-[#25324b]">{title}</Text>
+          <Text
+            className="text-xl font-bold"
+            style={{ color: COLORS.textStrong }}
+          >
+            {title}
+          </Text>
 
           <View className="flex-row items-center gap-2">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-[#eef0ff]">
-              <Text className="text-sm font-bold text-[#4640de]">
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full"
+              style={{ backgroundColor: COLORS.bgSelected }}
+            >
+              <Text
+                className="text-sm font-bold"
+                style={{ color: COLORS.primary }}
+              >
                 {initials}
               </Text>
             </View>

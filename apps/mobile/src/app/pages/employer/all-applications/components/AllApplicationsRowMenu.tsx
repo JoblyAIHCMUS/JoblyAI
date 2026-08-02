@@ -4,6 +4,7 @@ import { ChevronRight, Eye, MessageCircle, XCircle } from 'lucide-react-native';
 
 import { HiringStage } from '../types';
 import { nextStageMap } from '../data';
+import { COLORS } from '@/app/constants/theme';
 
 interface AllApplicationsRowMenuProps {
   visible: boolean;
@@ -54,14 +55,14 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
       label: 'View Details',
       icon: Eye,
       onPress: onView,
-      color: '#0F172A',
+      color: COLORS.brandDark,
     },
     {
       key: 'message',
       label: 'Message Candidate',
       icon: MessageCircle,
       onPress: onMessage,
-      color: '#0F172A',
+      color: COLORS.brandDark,
     },
   ];
 
@@ -71,7 +72,7 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
       label: `Advance to ${nextStage}`,
       icon: ChevronRight,
       onPress: onAdvance,
-      color: '#0F172A',
+      color: COLORS.brandDark,
     });
   }
 
@@ -80,7 +81,7 @@ export const AllApplicationsRowMenu: React.FC<AllApplicationsRowMenuProps> = ({
     label: 'Decline',
     icon: XCircle,
     onPress: onDecline,
-    color: '#EF4444',
+    color: COLORS.error,
     destructive: true,
   });
 

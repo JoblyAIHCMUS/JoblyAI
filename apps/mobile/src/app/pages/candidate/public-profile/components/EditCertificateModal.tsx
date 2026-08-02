@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { createCertificate } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 export default function EditCertificateModal({
   visible,
@@ -63,42 +64,45 @@ export default function EditCertificateModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 items-center justify-end bg-black/40">
+      <View
+        className="flex-1 items-center justify-end"
+        style={{ backgroundColor: COLORS.overlay }}
+      >
         <View className="w-full max-h-[90%] rounded-t-2xl bg-white p-4">
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">Add Certificate</Text>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Certificate Name <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={name}
               onChangeText={setName}
               placeholder="e.g. AWS Certified Solutions Architect"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Issuing Organization <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={issuer}
               onChangeText={setIssuer}
               placeholder="e.g. Amazon Web Services"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Issue Date <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={issueDate}
               onChangeText={setIssueDate}
               placeholder="YYYY-MM-DD"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Expiry Date {hasExpiry && <Text className="text-red-500">*</Text>}
             </Text>
             <TextInput
@@ -106,8 +110,8 @@ export default function EditCertificateModal({
               onChangeText={setExpiryDate}
               placeholder={hasExpiry ? 'YYYY-MM-DD' : 'Does not expire'}
               editable={hasExpiry}
-              className={`mb-2 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm ${
-                !hasExpiry ? 'bg-[#f9fafb] text-[#9ca3af]' : ''
+              className={`mb-2 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm ${
+                !hasExpiry ? 'bg-app-bg-input text-app-text-placeholder' : ''
               }`}
             />
 
@@ -118,25 +122,28 @@ export default function EditCertificateModal({
                   setHasExpiry(value);
                   if (!value) setExpiryDate('');
                 }}
-                trackColor={{ false: '#d1d5db', true: '#818cf8' }}
-                thumbColor={hasExpiry ? '#5758e7' : '#f4f3f4'}
+                trackColor={{
+                  false: COLORS.borderUnchecked,
+                  true: COLORS.indigoTrack,
+                }}
+                thumbColor={hasExpiry ? COLORS.primary2 : COLORS.white}
               />
-              <Text className="text-sm text-[#374151]">
+              <Text className="text-sm text-app-gray-2">
                 This credential has an expiration date
               </Text>
             </View>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Credential ID
             </Text>
             <TextInput
               value={credentialId}
               onChangeText={setCredentialId}
               placeholder="e.g. AWS-SEC-12345"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Credential URL
             </Text>
             <TextInput
@@ -145,25 +152,25 @@ export default function EditCertificateModal({
               placeholder="https://..."
               keyboardType="url"
               autoCapitalize="none"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
             <View className="flex-row gap-2">
               <TouchableOpacity
                 onPress={onClose}
-                className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
+                className="flex-1 items-center justify-center rounded-lg border border-app-border-unchecked bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">
+                <Text className="text-sm font-semibold text-app-gray-2">
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving}
-                className="flex-1 items-center justify-center rounded-lg bg-[#5758e7] py-3"
+                className="flex-1 items-center justify-center rounded-lg bg-app-primary-2 py-3"
               >
                 {saving ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={COLORS.white} />
                 ) : (
                   <Text className="text-sm font-semibold text-white">
                     Save Certificate

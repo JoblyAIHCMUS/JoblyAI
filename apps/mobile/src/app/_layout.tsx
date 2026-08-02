@@ -16,15 +16,23 @@ import { StatusBar } from 'expo-status-bar';
 import { colorScheme } from 'nativewind';
 import { type ReactNode, useEffect } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NAV_THEME } from '../lib/theme';
+import { COLORS } from './constants/theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
 import { useAuth } from '../hooks/useAuth';
 import { NotificationManager } from '../components/NotificationManager';
-import FloatingTabNavigation from './components/FloatingTabNavigation';
+import FloatingTabNavigation, {
+  getFloatingTabContentInset,
+  isFloatingTabRoute,
+} from './components/FloatingTabNavigation';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SidebarVisibilityProvider } from '../contexts/SidebarContext';
+import {
+  SidebarVisibilityProvider,
+  useSidebarVisibility,
+} from '../contexts/SidebarContext';
 import { canAccessRoute } from '@/utils/role-guard';
 import { getDashboardPath } from '@/utils/auth-route';
 import '../global.css';
@@ -39,6 +47,26 @@ const GUEST_ONLY_ROUTES = new Set([
 const PUBLIC_ROUTES = new Set(['/pages/find-jobs', '/pages/browse-companies']);
 
 const PUBLIC_PREFIXES = ['/pages/find-jobs/', '/pages/browse-companies/'];
+
+function FloatingTabStack() {
+  const pathname = usePathname();
+  const { role } = useAuth();
+  const { isOpen: isSidebarOpen } = useSidebarVisibility();
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const floatingTabContentInset =
+    !isSidebarOpen && isFloatingTabRoute(pathname, role)
+      ? getFloatingTabContentInset(bottomInset)
+      : 0;
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { paddingBottom: floatingTabContentInset },
+      }}
+    />
+  );
+}
 
 function SessionResumeGate({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -184,7 +212,7 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
           pointerEvents="auto"
           className="absolute inset-0 z-50 items-center justify-center bg-background"
         >
-          <ActivityIndicator size="large" color="#4f46e5" />
+          <ActivityIndicator size="large" color={COLORS.primary2} />
         </View>
       )}
     </>
@@ -209,7 +237,7 @@ export default function AppLayout() {
           <StatusBar style={currentColorScheme === 'dark' ? 'light' : 'dark'} />
           <SocketProvider>
             <NotificationManager />
-            <Stack screenOptions={{ headerShown: false }} />
+            <FloatingTabStack />
             <PortalHost />
             <Toast position="top" topOffset={60} />
           </SocketProvider>

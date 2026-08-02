@@ -40,19 +40,36 @@ export const LatestJobCard = ({
             {company} • {location}
           </Text>
           <View className="flex-row flex-wrap gap-1 items-center">
-            <Badge label={type} color="#EBF9F1" textColor="#56CDAD" outline />
+            <Badge
+              label={type}
+              color={COLORS.badgeGreen}
+              textColor={COLORS.badgeGreenText}
+              outline
+            />
             <View className="w-px h-6 bg-app-border-3 mx-1" />
             {tags.map((tag, index) => {
               const getTagStyles = (t: string) => {
                 const lowerTag = t.toLowerCase();
                 if (lowerTag === 'marketing')
-                  return { textColor: '#FFB836', color: 'transparent' };
+                  return {
+                    textColor: COLORS.badgeOrange,
+                    color: 'transparent',
+                  };
                 if (lowerTag === 'design')
-                  return { textColor: '#4640DE', color: 'transparent' };
+                  return {
+                    textColor: COLORS.primary,
+                    color: 'transparent',
+                  };
                 if (lowerTag === 'developer')
-                  return { textColor: '#26A4FF', color: 'transparent' };
+                  return {
+                    textColor: COLORS.badgeBlue,
+                    color: 'transparent',
+                  };
                 if (lowerTag === 'management')
-                  return { textColor: '#B197FC', color: 'transparent' };
+                  return {
+                    textColor: COLORS.typeContract,
+                    color: 'transparent',
+                  };
                 return { textColor: COLORS.textLight, color: 'transparent' };
               };
               const { textColor, color } = getTagStyles(tag);

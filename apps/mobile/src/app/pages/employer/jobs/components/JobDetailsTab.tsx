@@ -89,7 +89,7 @@ function SkillPill({ skill }: { skill: JobRequirement }) {
 
 const htmlTagStyles: Record<string, Record<string, unknown>> = {
   body: {
-    color: '#0F172A',
+    color: COLORS.brandDark,
     fontSize: 15,
     lineHeight: 24,
     marginTop: 0,
@@ -100,14 +100,14 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
     fontWeight: '700',
     marginTop: 12,
     marginBottom: 8,
-    color: '#0F172A',
+    color: COLORS.brandDark,
   },
   h3: {
     fontSize: 18,
     fontWeight: '600',
     marginTop: 10,
     marginBottom: 6,
-    color: '#0F172A',
+    color: COLORS.brandDark,
   },
   p: { marginBottom: 8 },
   ul: { paddingLeft: 8 },
@@ -117,13 +117,13 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
   em: { fontStyle: 'italic' },
   blockquote: {
     borderLeftWidth: 4,
-    borderLeftColor: '#CBD5E1',
+    borderLeftColor: COLORS.borderMuted,
     paddingLeft: 12,
     fontStyle: 'italic',
-    color: '#475569',
+    color: COLORS.textMuted,
   },
   code: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
@@ -131,7 +131,7 @@ const htmlTagStyles: Record<string, Record<string, unknown>> = {
     fontSize: 14,
   },
   pre: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.slateGray,
     padding: 12,
     borderRadius: 8,
     overflow: 'hidden',
@@ -207,7 +207,7 @@ export default function JobDetailsTab({
             className="p-2"
             onPress={() => router.push(`/pages/employer/edit-job/${jobId}`)}
           >
-            <SquarePen size={28} color="#4F46E5" strokeWidth={2.2} />
+            <SquarePen size={28} color={COLORS.primary2} strokeWidth={2.2} />
           </TouchableOpacity>
         </View>
 

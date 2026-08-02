@@ -123,7 +123,7 @@ const Sidebar = ({
           width: '100%',
           height: '100%',
           zIndex: 1000,
-          shadowColor: '#000',
+          shadowColor: COLORS.brandDark,
           shadowOffset: { width: 2, height: 0 },
           shadowOpacity: 0.1,
           shadowRadius: 10,

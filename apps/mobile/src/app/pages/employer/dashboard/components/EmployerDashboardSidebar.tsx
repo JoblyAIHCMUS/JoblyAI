@@ -33,6 +33,7 @@ import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfil
 import { useLogout } from '../../../../../hooks/useAuth';
 import { useUnreadDot } from '../../../../../hooks/messaging/useUnreadDot';
 import { useSidebarVisibility } from '@/contexts/SidebarContext';
+import { COLORS } from '@/app/constants/theme';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -174,23 +175,29 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <Animated.View
-      className="absolute inset-0 z-50 bg-[#f8f9fa] shadow-2xl elevation-5"
-      style={animatedStyle}
+      className="absolute inset-0 z-50 shadow-2xl elevation-5"
+      style={[{ backgroundColor: COLORS.surfaceNavigation }, animatedStyle]}
       {...panResponder.panHandlers}
     >
       <SafeAreaView className="flex-1">
         <View className="flex-row items-center justify-between px-6 py-4">
           <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 items-center justify-center rounded-full bg-[#4F46E5]">
+            <View
+              className="w-10 h-10 items-center justify-center rounded-full"
+              style={{ backgroundColor: COLORS.primary2 }}
+            >
               <View className="w-4 h-4 rounded-full bg-white" />
             </View>
-            <Text className="text-2xl font-extrabold text-[#111827]">
+            <Text
+              className="text-2xl font-extrabold"
+              style={{ color: COLORS.darkText }}
+            >
               JoblyAI
             </Text>
           </View>
 
           <TouchableOpacity onPress={onClose} className="p-2">
-            <X size={28} color="#111827" strokeWidth={2.5} />
+            <X size={28} color={COLORS.darkText} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
 
@@ -206,23 +213,30 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                   onClose();
                   router.push(item.path as never);
                 }}
-                className={`relative flex-row items-center rounded-xl px-4 py-4 mb-2 overflow-hidden ${
-                  isActive ? 'bg-[#EEEDFC]' : ''
-                }`}
+                className="relative flex-row items-center rounded-xl px-4 py-4 mb-2 overflow-hidden"
+                style={
+                  isActive
+                    ? { backgroundColor: COLORS.surfaceSelected }
+                    : undefined
+                }
                 activeOpacity={0.8}
               >
                 {isActive && (
-                  <View className="absolute left-0 top-0 bottom-0 w-1.5 rounded-r-md bg-[#4F46E5]" />
+                  <View
+                    className="absolute left-0 top-0 bottom-0 w-1.5 rounded-r-md"
+                    style={{ backgroundColor: COLORS.primary2 }}
+                  />
                 )}
                 <Icon
                   size={24}
-                  color={isActive ? '#4F46E5' : '#94A3B8'}
+                  color={isActive ? COLORS.primary2 : COLORS.slate400}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 <Text
-                  className={`ml-4 text-[17px] font-semibold ${
-                    isActive ? 'text-[#4F46E5]' : 'text-[#64748B]'
-                  }`}
+                  className="ml-4 text-[17px] font-semibold"
+                  style={{
+                    color: isActive ? COLORS.primary2 : COLORS.slate500,
+                  }}
                 >
                   {item.name}
                 </Text>
@@ -237,12 +251,18 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             );
           })}
 
-          <View className="h-px bg-[#CBD5E1] my-4 mx-2" />
+          <View
+            className="h-px my-4 mx-2"
+            style={{ backgroundColor: COLORS.borderMuted }}
+          />
 
           <TouchableOpacity
-            className={`flex-row items-center rounded-xl px-4 py-3 mb-1 ${
-              isRouteActive(settingsPath) ? 'bg-[#EEEDFC]' : ''
-            }`}
+            className="flex-row items-center rounded-xl px-4 py-3 mb-1"
+            style={
+              isRouteActive(settingsPath)
+                ? { backgroundColor: COLORS.surfaceSelected }
+                : undefined
+            }
             activeOpacity={0.8}
             onPress={() => {
               onClose();
@@ -251,14 +271,19 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
           >
             <Settings
               size={24}
-              color={isRouteActive(settingsPath) ? '#4F46E5' : '#64748B'}
+              color={
+                isRouteActive(settingsPath) ? COLORS.primary2 : COLORS.slate500
+              }
             />
             <Text
               className={`ml-4 text-[17px] ${
-                isRouteActive(settingsPath)
-                  ? 'font-semibold text-[#4F46E5]'
-                  : 'font-medium text-[#64748B]'
+                isRouteActive(settingsPath) ? 'font-semibold' : 'font-medium'
               }`}
+              style={{
+                color: isRouteActive(settingsPath)
+                  ? COLORS.primary2
+                  : COLORS.slate500,
+              }}
             >
               Settings
             </Text>
@@ -268,8 +293,11 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             className="flex-row items-center px-4 py-3 mb-1"
             activeOpacity={0.8}
           >
-            <HelpCircle size={24} color="#64748B" />
-            <Text className="ml-4 text-[17px] font-medium text-[#64748B]">
+            <HelpCircle size={24} color={COLORS.slate500} />
+            <Text
+              className="ml-4 text-[17px] font-medium"
+              style={{ color: COLORS.slate500 }}
+            >
               Help Center
             </Text>
           </TouchableOpacity>
@@ -280,8 +308,11 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             onPress={handleLogout}
             disabled={isLoggingOut}
           >
-            <LogOut size={24} color="#EF4444" strokeWidth={2.5} />
-            <Text className="ml-4 text-[17px] font-bold text-[#EF4444]">
+            <LogOut size={24} color={COLORS.error} strokeWidth={2.5} />
+            <Text
+              className="ml-4 text-[17px] font-bold"
+              style={{ color: COLORS.error }}
+            >
               {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Text>
           </TouchableOpacity>
@@ -294,10 +325,16 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
                 size={56}
               />
               <View className="ml-4">
-                <Text className="text-[19px] font-bold text-[#111827]">
+                <Text
+                  className="text-[19px] font-bold"
+                  style={{ color: COLORS.darkText }}
+                >
                   {employerProfile?.fullName || 'Loading...'}
                 </Text>
-                <Text className="text-[15px] text-[#64748B]">
+                <Text
+                  className="text-[15px]"
+                  style={{ color: COLORS.slate500 }}
+                >
                   {employerProfile?.email || ''}
                 </Text>
               </View>
@@ -308,21 +345,25 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
         <View className="px-6 pb-8 pt-4">
           <Link href="/pages/employer/new-job" asChild>
             <TouchableOpacity
-              className={`flex-row items-center justify-center rounded-xl py-4 ${
-                isUnaffiliated ? 'bg-slate-300' : 'bg-[#4F46E5]'
-              }`}
+              className="flex-row items-center justify-center rounded-xl py-4"
+              style={{
+                backgroundColor: isUnaffiliated
+                  ? COLORS.borderMuted
+                  : COLORS.primary2,
+              }}
               activeOpacity={isUnaffiliated ? 1 : 0.9}
               disabled={isUnaffiliated}
             >
               <Plus
                 size={22}
-                color={isUnaffiliated ? '#9CA3AF' : '#ffffff'}
+                color={isUnaffiliated ? COLORS.textPlaceholder : COLORS.white}
                 strokeWidth={2.5}
               />
               <Text
-                className={`ml-2 text-[18px] font-bold ${
-                  isUnaffiliated ? 'text-slate-500' : 'text-white'
-                }`}
+                className="ml-2 text-[18px] font-bold"
+                style={{
+                  color: isUnaffiliated ? COLORS.slate500 : COLORS.white,
+                }}
               >
                 Post a job
               </Text>

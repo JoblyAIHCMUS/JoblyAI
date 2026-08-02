@@ -35,6 +35,7 @@ import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
 import { useLogout } from '@/hooks/useAuth';
 import { useUnreadDot } from '@/hooks/messaging/useUnreadDot';
 import { useSidebarVisibility } from '@/contexts/SidebarContext';
+import { COLORS } from '@/app/constants/theme';
 
 interface CandidateDashboardSidebarProps {
   isOpen: boolean;
@@ -55,6 +56,10 @@ const CandidateDashboardSidebar = ({
   const { logout, loading: isLoggingOut } = useLogout();
   const hasUnreadMessages = useUnreadDot(candidateProfile?.id);
   const { setOpen } = useSidebarVisibility();
+  const activePath = currentPath ?? '';
+
+  const isRouteActive = (path?: string) =>
+    Boolean(path && (activePath === path || activePath.startsWith(`${path}/`)));
 
   const widthRef = useRef(width);
   useEffect(() => {
@@ -194,7 +199,7 @@ const CandidateDashboardSidebar = ({
           bottom: 0,
           width: width,
           zIndex: 9999,
-          backgroundColor: 'white',
+          backgroundColor: COLORS.white,
           elevation: isOpen ? 5 : 0,
         },
         animatedStyle,
@@ -204,33 +209,46 @@ const CandidateDashboardSidebar = ({
     >
       <View className="flex-1 bg-white">
         <View className="absolute inset-0 overflow-hidden pointer-events-none">
-          <View className="absolute -bottom-8 -right-5 h-56 w-56 rounded-full border border-[#cfd2ff] opacity-80 rotate-45" />
-          <View className="absolute bottom-10 -right-8 h-44 w-44 rounded-full border border-[#cfd2ff] opacity-90 rotate-45" />
+          <View
+            className="absolute -bottom-8 -right-5 h-56 w-56 rounded-full border opacity-80 rotate-45"
+            style={{ borderColor: COLORS.sidebarDecoration }}
+          />
+          <View
+            className="absolute bottom-10 -right-8 h-44 w-44 rounded-full border opacity-90 rotate-45"
+            style={{ borderColor: COLORS.sidebarDecoration }}
+          />
         </View>
 
         <SafeAreaView className="flex-1 bg-white">
           <View className="flex-row items-center justify-between px-6 py-4">
             <View className="flex-row items-center gap-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-[#4F46E5]">
+              <View
+                className="h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: COLORS.primary2 }}
+              >
                 <View className="h-5 w-5 rounded-full border-2 border-white" />
               </View>
-              <Text className="text-3xl font-extrabold text-[#111827]">
+              <Text
+                className="text-3xl font-extrabold"
+                style={{ color: COLORS.darkText }}
+              >
                 JoblyAI
               </Text>
             </View>
 
             <TouchableOpacity
               onPress={onClose}
-              className="h-11 w-11 items-center justify-center rounded-full border border-[#e6e8f0] bg-white"
+              className="h-11 w-11 items-center justify-center rounded-full border bg-white"
+              style={{ borderColor: COLORS.borderSubtle }}
             >
-              <X size={24} color="#111827" strokeWidth={2.5} />
+              <X size={24} color={COLORS.darkText} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
           <View className="flex-1 px-4 pt-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const active = item.path === currentPath;
+              const active = isRouteActive(item.path);
 
               return (
                 <TouchableOpacity
@@ -243,23 +261,32 @@ const CandidateDashboardSidebar = ({
                     }
                   }}
                   className={`mb-2 flex-row items-center rounded-2xl px-4 py-4 ${
-                    active ? 'bg-[#EEEDFC] shadow-sm' : ''
+                    active ? 'shadow-sm' : ''
                   }`}
+                  style={
+                    active
+                      ? { backgroundColor: COLORS.surfaceSelected }
+                      : undefined
+                  }
                 >
                   {active && (
-                    <View className="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-[#4F46E5]" />
+                    <View
+                      className="absolute left-2 top-2 bottom-2 w-1 rounded-full"
+                      style={{ backgroundColor: COLORS.primary2 }}
+                    />
                   )}
 
                   <Icon
                     size={22}
-                    color={active ? '#4F46E5' : '#7c8493'}
+                    color={active ? COLORS.primary2 : COLORS.textLight}
                     strokeWidth={active ? 2.4 : 2}
                   />
 
                   <Text
-                    className={`ml-4 text-base font-semibold ${
-                      active ? 'text-[#4F46E5]' : 'text-[#64748B]'
-                    }`}
+                    className="ml-4 text-base font-semibold"
+                    style={{
+                      color: active ? COLORS.primary2 : COLORS.slate500,
+                    }}
                   >
                     {item.name}
                   </Text>
@@ -267,7 +294,7 @@ const CandidateDashboardSidebar = ({
                   {item.path ? (
                     <ChevronRight
                       size={18}
-                      color={active ? '#4F46E5' : '#c1c7d0'}
+                      color={active ? COLORS.primary2 : COLORS.textSubtle}
                       strokeWidth={2}
                       className="ml-auto"
                     />
@@ -285,19 +312,25 @@ const CandidateDashboardSidebar = ({
               );
             })}
 
-            <View className="my-4 h-px bg-[#CBD5E1]" />
+            <View
+              className="my-4 h-px"
+              style={{ backgroundColor: COLORS.borderMuted }}
+            />
 
             {secondaryItems.map((item) => {
               const Icon = item.icon;
-              const active = item.path === currentPath;
+              const active = isRouteActive(item.path);
 
               return (
                 <TouchableOpacity
                   key={item.name}
                   activeOpacity={0.8}
-                  className={`mb-1 flex-row items-center rounded-2xl px-4 py-3 ${
-                    active ? 'bg-[#EEEDFC]' : ''
-                  }`}
+                  className="mb-1 flex-row items-center rounded-2xl px-4 py-3"
+                  style={
+                    active
+                      ? { backgroundColor: COLORS.surfaceSelected }
+                      : undefined
+                  }
                   onPress={() => {
                     if (item.path) {
                       onClose();
@@ -308,13 +341,17 @@ const CandidateDashboardSidebar = ({
                     onClose();
                   }}
                 >
-                  <Icon size={22} color={active ? '#4F46E5' : '#64748B'} />
+                  <Icon
+                    size={22}
+                    color={active ? COLORS.primary2 : COLORS.slate500}
+                  />
                   <Text
                     className={`ml-4 text-base ${
-                      active
-                        ? 'font-semibold text-[#4F46E5]'
-                        : 'font-medium text-[#64748B]'
+                      active ? 'font-semibold' : 'font-medium'
                     }`}
+                    style={{
+                      color: active ? COLORS.primary2 : COLORS.slate500,
+                    }}
                   >
                     {item.name}
                   </Text>
@@ -328,15 +365,21 @@ const CandidateDashboardSidebar = ({
               onPress={handleLogout}
               disabled={isLoggingOut}
             >
-              <LogOut size={22} color="#EF4444" strokeWidth={2.4} />
-              <Text className="ml-4 text-base font-bold text-[#EF4444]">
+              <LogOut size={22} color={COLORS.error} strokeWidth={2.4} />
+              <Text
+                className="ml-4 text-base font-bold"
+                style={{ color: COLORS.error }}
+              >
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Text>
             </TouchableOpacity>
 
             <View className="mt-auto pb-4 pt-8">
               <View className="flex-row items-center px-4 mb-4">
-                <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#d1d5db]">
+                <View
+                  className="h-12 w-12 items-center justify-center overflow-hidden rounded-full"
+                  style={{ backgroundColor: COLORS.borderUnchecked }}
+                >
                   {avatarUrl ? (
                     <Image
                       source={{ uri: avatarUrl }}
@@ -344,17 +387,23 @@ const CandidateDashboardSidebar = ({
                       resizeMode="cover"
                     />
                   ) : (
-                    <Text className="text-base font-bold text-[#111827]">
+                    <Text
+                      className="text-base font-bold"
+                      style={{ color: COLORS.darkText }}
+                    >
                       {avatarInitials}
                     </Text>
                   )}
                 </View>
 
                 <View className="ml-4">
-                  <Text className="text-lg font-bold text-[#111827]">
+                  <Text
+                    className="text-lg font-bold"
+                    style={{ color: COLORS.darkText }}
+                  >
                     {fullName}
                   </Text>
-                  <Text className="text-sm text-[#64748B]">
+                  <Text className="text-sm" style={{ color: COLORS.slate500 }}>
                     {user?.email || ''}
                   </Text>
                 </View>

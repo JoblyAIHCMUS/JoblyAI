@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSearchSkills } from '../../../../../hooks/useSearchSkills';
 import { createCandidateSkill } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 export default function EditSkillModal({
   visible,
@@ -81,20 +82,20 @@ export default function EditSkillModal({
             value={skillName}
             onChangeText={setSkillName}
             placeholder="Enter a new skill"
-            className="rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+            className="rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             autoFocus
           />
 
           {skillName.trim().length > 0 && (
-            <View className="mt-2 max-h-40 rounded-lg border border-[#d1d5db]">
+            <View className="mt-2 max-h-40 rounded-lg border border-app-border-unchecked">
               {loading && (
                 <View className="items-center py-3">
-                  <ActivityIndicator size="small" color="#5758e7" />
+                  <ActivityIndicator size="small" color={COLORS.primary2} />
                 </View>
               )}
               {!loading && results.length === 0 && (
                 <View className="px-3 py-3">
-                  <Text className="text-sm text-[#6b7280]">
+                  <Text className="text-sm text-app-gray-3">
                     No matching skills found. Press Save to add "
                     {skillName.trim()}".
                   </Text>
@@ -108,9 +109,11 @@ export default function EditSkillModal({
                       setSkillName(skill.name);
                       void handleSave(skill.name);
                     }}
-                    className="border-b border-[#f3f4f6] px-3 py-2.5"
+                    className="border-b border-app-bg-disabled px-3 py-2.5"
                   >
-                    <Text className="text-sm text-[#374151]">{skill.name}</Text>
+                    <Text className="text-sm text-app-gray-2">
+                      {skill.name}
+                    </Text>
                   </TouchableOpacity>
                 ))}
             </View>
@@ -119,19 +122,19 @@ export default function EditSkillModal({
           <View className="mt-4 flex-row gap-2">
             <TouchableOpacity
               onPress={onClose}
-              className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
+              className="flex-1 items-center justify-center rounded-lg border border-app-border-unchecked bg-white py-3"
             >
-              <Text className="text-sm font-semibold text-[#374151]">
+              <Text className="text-sm font-semibold text-app-gray-2">
                 Cancel
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => void handleSave()}
               disabled={saving || !skillName.trim()}
-              className="flex-1 items-center justify-center rounded-lg bg-[#5758e7] py-3"
+              className="flex-1 items-center justify-center rounded-lg bg-app-primary-2 py-3"
             >
               {saving ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.white} />
               ) : (
                 <Text className="text-sm font-semibold text-white">Save</Text>
               )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { User, MoveRight } from 'lucide-react-native';
+import { COLORS } from '../../../../constants/theme';
 
 interface PipelineCardMenuProps {
   isVisible: boolean;
@@ -22,13 +23,13 @@ export const PipelineCardMenu: React.FC<PipelineCardMenuProps> = ({
       label: 'View Profile',
       icon: User,
       onPress: onViewProfile,
-      color: '#0F172A',
+      color: COLORS.brandDark,
     },
     {
       label: 'Change Stage',
       icon: MoveRight,
       onPress: onChangeStage,
-      color: '#0F172A',
+      color: COLORS.brandDark,
     },
   ];
 

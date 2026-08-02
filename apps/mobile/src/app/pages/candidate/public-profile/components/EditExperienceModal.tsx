@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { createExperience } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 const EMPLOYMENT_TYPES = [
   { value: 'FULL_TIME', label: 'Full-time' },
@@ -78,44 +79,47 @@ export default function EditExperienceModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 items-center justify-end bg-black/40">
+      <View
+        className="flex-1 items-center justify-end"
+        style={{ backgroundColor: COLORS.overlay }}
+      >
         <View className="w-full max-h-[90%] rounded-t-2xl bg-white p-4">
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">Add Experience</Text>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Job Title <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={jobTitle}
               onChangeText={setJobTitle}
               placeholder="e.g. Senior Software Engineer"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Company <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={companyName}
               onChangeText={setCompanyName}
               placeholder="e.g. Google"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Employment Type <Text className="text-red-500">*</Text>
             </Text>
             <TouchableOpacity
               onPress={() => setShowTypePicker(!showTypePicker)}
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5"
             >
-              <Text className="text-sm text-[#374151]">
+              <Text className="text-sm text-app-gray-2">
                 {selectedTypeLabel}
               </Text>
             </TouchableOpacity>
             {showTypePicker && (
-              <View className="mb-4 rounded-lg border border-[#d1d5db] bg-white">
+              <View className="mb-4 rounded-lg border border-app-border-unchecked bg-white">
                 {EMPLOYMENT_TYPES.map((type) => (
                   <TouchableOpacity
                     key={type.value}
@@ -123,15 +127,15 @@ export default function EditExperienceModal({
                       setEmploymentType(type.value);
                       setShowTypePicker(false);
                     }}
-                    className={`border-b border-[#f3f4f6] px-3 py-2.5 ${
-                      employmentType === type.value ? 'bg-[#f3f5ff]' : ''
+                    className={`border-b border-app-bg-disabled px-3 py-2.5 ${
+                      employmentType === type.value ? 'bg-app-bg-selected' : ''
                     }`}
                   >
                     <Text
                       className={`text-sm ${
                         employmentType === type.value
-                          ? 'font-semibold text-[#5758e7]'
-                          : 'text-[#374151]'
+                          ? 'font-semibold text-app-primary-2'
+                          : 'text-app-gray-2'
                       }`}
                     >
                       {type.label}
@@ -141,17 +145,17 @@ export default function EditExperienceModal({
               </View>
             )}
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Start Date <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={startDate}
               onChangeText={setStartDate}
               placeholder="YYYY-MM-DD"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               End Date {!isCurrent && <Text className="text-red-500">*</Text>}
             </Text>
             <TextInput
@@ -159,8 +163,8 @@ export default function EditExperienceModal({
               onChangeText={setEndDate}
               placeholder={isCurrent ? 'Present' : 'YYYY-MM-DD'}
               editable={!isCurrent}
-              className={`mb-2 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm ${
-                isCurrent ? 'bg-[#f9fafb] text-[#9ca3af]' : ''
+              className={`mb-2 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm ${
+                isCurrent ? 'bg-app-bg-input text-app-text-placeholder' : ''
               }`}
             />
 
@@ -171,25 +175,28 @@ export default function EditExperienceModal({
                   setIsCurrent(value);
                   if (value) setEndDate('');
                 }}
-                trackColor={{ false: '#d1d5db', true: '#818cf8' }}
-                thumbColor={isCurrent ? '#5758e7' : '#f4f3f4'}
+                trackColor={{
+                  false: COLORS.borderUnchecked,
+                  true: COLORS.indigoTrack,
+                }}
+                thumbColor={isCurrent ? COLORS.primary2 : COLORS.white}
               />
-              <Text className="text-sm text-[#374151]">
+              <Text className="text-sm text-app-gray-2">
                 I currently work here
               </Text>
             </View>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Location
             </Text>
             <TextInput
               value={location}
               onChangeText={setLocation}
               placeholder="e.g. Ho Chi Minh City, Vietnam"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Description
             </Text>
             <TextInput
@@ -198,25 +205,25 @@ export default function EditExperienceModal({
               placeholder="Briefly describe your responsibilities and achievements..."
               multiline
               numberOfLines={4}
-              className="mb-4 h-28 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 h-28 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
             <View className="flex-row gap-2">
               <TouchableOpacity
                 onPress={onClose}
-                className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
+                className="flex-1 items-center justify-center rounded-lg border border-app-border-unchecked bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">
+                <Text className="text-sm font-semibold text-app-gray-2">
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving}
-                className="flex-1 items-center justify-center rounded-lg bg-[#5758e7] py-3"
+                className="flex-1 items-center justify-center rounded-lg bg-app-primary-2 py-3"
               >
                 {saving ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={COLORS.white} />
                 ) : (
                   <Text className="text-sm font-semibold text-white">
                     Save Changes

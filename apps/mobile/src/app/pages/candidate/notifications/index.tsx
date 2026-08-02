@@ -11,6 +11,7 @@ import {
 } from '@/hooks/useNotifications';
 import { getNotificationRoute } from '@/utils/notification-navigation';
 import { useUser } from '@/hooks/useUser';
+import { COLORS } from '@/app/constants/theme';
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
@@ -33,10 +34,13 @@ export default function NotificationsScreen() {
       <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4">
         <View className="flex-row items-center">
           <Pressable onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#25324b" />
+            <ArrowLeft size={24} color={COLORS.textStrong} />
           </Pressable>
 
-          <Text className="ml-4 text-xl font-bold text-[#25324b]">
+          <Text
+            className="ml-4 text-xl font-bold"
+            style={{ color: COLORS.textStrong }}
+          >
             Notifications
           </Text>
         </View>
@@ -46,7 +50,9 @@ export default function NotificationsScreen() {
             onPress={() => markAllMutation.mutate()}
             disabled={markAllMutation.isPending}
           >
-            <Text className="font-medium text-[#4640de]">Mark all</Text>
+            <Text className="font-medium" style={{ color: COLORS.primary }}>
+              Mark all
+            </Text>
           </Pressable>
         )}
       </View>
@@ -92,7 +98,10 @@ export default function NotificationsScreen() {
                 }`}
               >
                 <View className="flex-row items-center">
-                  <Text className="font-semibold text-[#25324b]">
+                  <Text
+                    className="font-semibold"
+                    style={{ color: COLORS.textStrong }}
+                  >
                     {item.title}
                   </Text>
 

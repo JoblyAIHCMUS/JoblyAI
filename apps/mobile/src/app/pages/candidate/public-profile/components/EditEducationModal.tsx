@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { createEducation } from '../../../../../api/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 const DEGREE_OPTIONS = [
   { value: 'HIGH_SCHOOL', label: 'High School' },
@@ -108,29 +109,29 @@ export default function EditEducationModal({
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">Add Education</Text>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               School <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={school}
               onChangeText={setSchool}
               placeholder="School"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Degree <Text className="text-red-500">*</Text>
             </Text>
             <TouchableOpacity
               onPress={() => setShowDegreePicker(!showDegreePicker)}
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5"
             >
-              <Text className="text-sm text-[#374151]">
+              <Text className="text-sm text-app-gray-2">
                 {selectedDegreeLabel}
               </Text>
             </TouchableOpacity>
             {showDegreePicker && (
-              <View className="mb-4 rounded-lg border border-[#d1d5db] bg-white">
+              <View className="mb-4 rounded-lg border border-app-border-unchecked bg-white">
                 {DEGREE_OPTIONS.map((d) => (
                   <TouchableOpacity
                     key={d.value}
@@ -138,15 +139,15 @@ export default function EditEducationModal({
                       setDegree(d.value);
                       setShowDegreePicker(false);
                     }}
-                    className={`border-b border-[#f3f4f6] px-3 py-2.5 ${
-                      degree === d.value ? 'bg-[#f3f5ff]' : ''
+                    className={`border-b border-app-bg-disabled px-3 py-2.5 ${
+                      degree === d.value ? 'bg-app-bg-selected' : ''
                     }`}
                   >
                     <Text
                       className={`text-sm ${
                         degree === d.value
-                          ? 'font-semibold text-[#5758e7]'
-                          : 'text-[#374151]'
+                          ? 'font-semibold text-app-primary-2'
+                          : 'text-app-gray-2'
                       }`}
                     >
                       {d.label}
@@ -156,27 +157,27 @@ export default function EditEducationModal({
               </View>
             )}
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Field of Study
             </Text>
             <TextInput
               value={fieldOfStudy}
               onChangeText={setFieldOfStudy}
               placeholder="Field of Study"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Start Date <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
               value={startDate}
               onChangeText={setStartDate}
               placeholder="YYYY-MM-DD"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               End Date {!isCurrent && <Text className="text-red-500">*</Text>}
             </Text>
             <TextInput
@@ -184,8 +185,8 @@ export default function EditEducationModal({
               onChangeText={setEndDate}
               placeholder={isCurrent ? 'Present' : 'YYYY-MM-DD'}
               editable={!isCurrent}
-              className={`mb-2 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm ${
-                isCurrent ? 'bg-[#f9fafb] text-[#9ca3af]' : ''
+              className={`mb-2 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm ${
+                isCurrent ? 'bg-app-bg-input text-app-text-placeholder' : ''
               }`}
             />
 
@@ -196,15 +197,18 @@ export default function EditEducationModal({
                   setIsCurrent(value);
                   if (value) setEndDate('');
                 }}
-                trackColor={{ false: '#d1d5db', true: '#818cf8' }}
-                thumbColor={isCurrent ? '#5758e7' : '#f4f3f4'}
+                trackColor={{
+                  false: COLORS.borderUnchecked,
+                  true: COLORS.indigoTrack,
+                }}
+                thumbColor={isCurrent ? COLORS.primary2 : COLORS.white}
               />
-              <Text className="text-sm text-[#374151]">
+              <Text className="text-sm text-app-gray-2">
                 Currently studying here
               </Text>
             </View>
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Grade (GPA)
             </Text>
             <TextInput
@@ -217,10 +221,10 @@ export default function EditEducationModal({
               }}
               placeholder="GPA (0.00 - 4.00)"
               keyboardType="decimal-pad"
-              className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
-            <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+            <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
               Description
             </Text>
             <TextInput
@@ -229,25 +233,25 @@ export default function EditEducationModal({
               placeholder="Description"
               multiline
               numberOfLines={4}
-              className="mb-4 h-28 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+              className="mb-4 h-28 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
             />
 
             <View className="flex-row gap-2">
               <TouchableOpacity
                 onPress={onClose}
-                className="flex-1 items-center justify-center rounded-lg border border-[#d1d5db] bg-white py-3"
+                className="flex-1 items-center justify-center rounded-lg border border-app-border-unchecked bg-white py-3"
               >
-                <Text className="text-sm font-semibold text-[#374151]">
+                <Text className="text-sm font-semibold text-app-gray-2">
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving}
-                className="flex-1 items-center justify-center rounded-lg bg-[#5758e7] py-3"
+                className="flex-1 items-center justify-center rounded-lg bg-app-primary-2 py-3"
               >
                 {saving ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={COLORS.white} />
                 ) : (
                   <Text className="text-sm font-semibold text-white">Save</Text>
                 )}

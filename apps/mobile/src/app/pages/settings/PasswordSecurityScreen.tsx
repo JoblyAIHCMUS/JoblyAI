@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { useChangePassword } from '../../../hooks/useAuth';
+import { COLORS } from '../../constants/theme';
 
 type SettingsRole = 'candidate' | 'employer';
 type IconComponent = ComponentType<{
@@ -78,7 +79,7 @@ function SecurityCard({
   return (
     <View className="flex-row rounded-lg border border-app-border-3 bg-white px-4 py-4">
       <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-background-1">
-        <Icon size={20} color="#4640DE" strokeWidth={2.2} />
+        <Icon size={20} color={COLORS.primary} strokeWidth={2.2} />
       </View>
       <View className="ml-3 flex-1">
         <Text className="text-[15px] font-bold text-app-text-4">{title}</Text>
@@ -115,7 +116,7 @@ function PasswordInput({
           autoCorrect={false}
           textContentType="password"
           placeholder="Enter password"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.textPlaceholder}
           className="h-full flex-1 text-[15px] text-app-text-4"
         />
         <TouchableOpacity
@@ -124,9 +125,9 @@ function PasswordInput({
           onPress={onToggleVisibility}
         >
           {visible ? (
-            <EyeOff size={19} color="#64748B" />
+            <EyeOff size={19} color={COLORS.slate500} />
           ) : (
-            <Eye size={19} color="#64748B" />
+            <Eye size={19} color={COLORS.slate500} />
           )}
         </TouchableOpacity>
       </View>
@@ -239,7 +240,7 @@ export default function PasswordSecurityScreen({
             className="h-11 w-11 items-center justify-center rounded-full border border-app-border-3 bg-white"
             onPress={() => router.back()}
           >
-            <ArrowLeft size={22} color="#25324B" strokeWidth={2.5} />
+            <ArrowLeft size={22} color={COLORS.textStrong} strokeWidth={2.5} />
           </TouchableOpacity>
           <Text className="text-lg font-bold text-app-text-4">
             Password and security
@@ -279,7 +280,7 @@ export default function PasswordSecurityScreen({
         <View className="mb-5 gap-4 rounded-lg border border-app-border-3 bg-white p-4">
           <View className="flex-row items-center">
             <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-background-1">
-              <LockKeyhole size={20} color="#4640DE" strokeWidth={2.2} />
+              <LockKeyhole size={20} color={COLORS.primary} strokeWidth={2.2} />
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-[17px] font-bold text-app-text-4">
@@ -321,7 +322,7 @@ export default function PasswordSecurityScreen({
                     rule.passed ? 'bg-app-green-1' : 'bg-app-slate-3'
                   }`}
                 >
-                  <Check size={13} color="#FFFFFF" strokeWidth={3} />
+                  <Check size={13} color={COLORS.white} strokeWidth={3} />
                 </View>
                 <Text
                   className={`ml-2 text-[12px] font-semibold ${
@@ -338,7 +339,7 @@ export default function PasswordSecurityScreen({
                   passwordsMatch ? 'bg-app-green-1' : 'bg-app-slate-3'
                 }`}
               >
-                <Check size={13} color="#FFFFFF" strokeWidth={3} />
+                <Check size={13} color={COLORS.white} strokeWidth={3} />
               </View>
               <Text
                 className={`ml-2 text-[12px] font-semibold ${
@@ -353,7 +354,7 @@ export default function PasswordSecurityScreen({
 
         <View className="mb-5 flex-row items-center rounded-lg border border-app-border-3 bg-white px-4 py-4">
           <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-slate-gray">
-            <KeyRound size={20} color="#64748B" strokeWidth={2.2} />
+            <KeyRound size={20} color={COLORS.slate500} strokeWidth={2.2} />
           </View>
           <View className="ml-3 flex-1 pr-3">
             <Text className="text-[15px] font-bold text-app-text-4">
@@ -366,9 +367,9 @@ export default function PasswordSecurityScreen({
           <Switch
             value={signOutOtherDevices}
             onValueChange={setSignOutOtherDevices}
-            trackColor={{ false: '#CBD5E1', true: '#C7D2FE' }}
-            thumbColor={signOutOtherDevices ? '#4640DE' : '#FFFFFF'}
-            ios_backgroundColor="#CBD5E1"
+            trackColor={{ false: COLORS.borderMuted, true: COLORS.indigoTrack }}
+            thumbColor={signOutOtherDevices ? COLORS.primary : COLORS.white}
+            ios_backgroundColor={COLORS.borderMuted}
           />
         </View>
 
@@ -381,7 +382,7 @@ export default function PasswordSecurityScreen({
           }`}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={COLORS.white} />
           ) : (
             <Text
               className={`text-[16px] font-bold ${

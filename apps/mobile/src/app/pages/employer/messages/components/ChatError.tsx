@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 interface ChatErrorProps {
   message: string;
@@ -11,7 +12,7 @@ interface ChatErrorProps {
 const ChatError: React.FC<ChatErrorProps> = ({ message, onRetry, onBack }) => {
   return (
     <View className="flex-1 items-center justify-center py-16 px-6">
-      <AlertCircle size={40} color="#EF4444" />
+      <AlertCircle size={40} color={COLORS.error} />
       <Text className="text-base font-semibold text-app-slate-1 mt-4 text-center">
         Unable to load conversation
       </Text>

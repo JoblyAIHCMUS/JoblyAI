@@ -8,6 +8,7 @@ import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineCardMenu } from './PipelineCardMenu';
 import { ChangeStageModal } from './ChangeStageModal';
 import { ConfirmStageChangeModal } from '../../../../../components/ConfirmStageChangeModal';
+import { COLORS } from '../../../../constants/theme';
 
 interface PipelineCardProps {
   applicant: Applicant;
@@ -102,7 +103,7 @@ export function PipelineCard({
                 onPress={handleMenuPress}
                 className="ml-2"
               >
-                <MoreHorizontal size={20} color="#64748B" />
+                <MoreHorizontal size={20} color={COLORS.slate500} />
               </TouchableOpacity>
             )}
         </View>
@@ -123,8 +124,10 @@ export function PipelineCard({
             <View className="flex-row items-center">
               <Star
                 size={14}
-                color={applicant.rating > 0 ? '#FFB836' : '#111827'}
-                fill={applicant.rating > 0 ? '#FFB836' : 'transparent'}
+                color={
+                  applicant.rating > 0 ? COLORS.badgeOrange : COLORS.darkText
+                }
+                fill={applicant.rating > 0 ? COLORS.badgeOrange : 'transparent'}
               />
               <Text className="ml-1 text-sm font-semibold text-app-slate-1">
                 {applicant.rating.toFixed(1)}

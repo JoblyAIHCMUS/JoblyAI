@@ -100,8 +100,8 @@ export function CompanyJobsSection({
           </Text>
         </View>
       ) : error ? (
-        <View className="rounded-lg bg-[#fff1f0] px-4 py-8">
-          <Text className="text-center text-sm text-[#dc2626]">
+        <View className="rounded-lg bg-app-tag-red-bg px-4 py-8">
+          <Text className="text-center text-sm text-app-tag-red-text">
             Unable to load jobs for this company.
           </Text>
         </View>
@@ -141,8 +141,11 @@ export function CompanyJobsSection({
                       {job.category.name}
                     </Text>
                   </View>
-                  <View className="rounded-full bg-[#ebf9f1] px-3 py-1">
-                    <Text className="text-xs font-bold text-[#00a36c]">
+                  <View className="rounded-full bg-app-emerald-1 px-3 py-1">
+                    <Text
+                      className="text-xs font-bold"
+                      style={{ color: COLORS.successText }}
+                    >
                       Open
                     </Text>
                   </View>
@@ -150,26 +153,26 @@ export function CompanyJobsSection({
 
                 <View className="mt-4 gap-2">
                   <View className="flex-row items-center gap-2">
-                    <MapPin size={16} color="#7c8493" />
+                    <MapPin size={16} color={COLORS.textLight} />
                     <Text className="flex-1 text-sm text-app-text-2">
                       {location}
                     </Text>
                   </View>
                   <View className="flex-row items-center gap-2">
-                    <BriefcaseBusiness size={16} color="#7c8493" />
+                    <BriefcaseBusiness size={16} color={COLORS.textLight} />
                     <Text className="text-sm text-app-text-2">
                       {EMPLOYMENT_TYPE_LABELS[job.type] ?? job.type}
                     </Text>
                   </View>
                   <View className="flex-row items-center gap-2">
-                    <DollarSign size={16} color="#7c8493" />
+                    <DollarSign size={16} color={COLORS.textLight} />
                     <Text className="flex-1 text-sm text-app-text-2">
                       {formatSalary(job)}
                     </Text>
                   </View>
                   {job.remote ? (
                     <View className="flex-row items-center gap-2">
-                      <Laptop size={16} color="#7c8493" />
+                      <Laptop size={16} color={COLORS.textLight} />
                       <Text className="text-sm text-app-text-2">
                         Remote friendly
                       </Text>
@@ -179,7 +182,7 @@ export function CompanyJobsSection({
 
                 {preview ? (
                   <Text
-                    className="mt-4 text-sm leading-5 text-[#64748b]"
+                    className="mt-4 text-sm leading-5 text-app-text-5"
                     numberOfLines={3}
                   >
                     {preview}
@@ -188,7 +191,7 @@ export function CompanyJobsSection({
 
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  className="mt-4 h-11 items-center justify-center rounded-lg bg-[#4640de]"
+                  className="mt-4 h-11 items-center justify-center rounded-lg bg-app-primary-1"
                   onPress={onApplyPress}
                 >
                   <Text className="text-sm font-bold text-white">Apply</Text>

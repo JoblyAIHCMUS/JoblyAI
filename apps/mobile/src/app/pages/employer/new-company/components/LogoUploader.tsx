@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, X } from 'lucide-react-native';
+import { COLORS } from '@/app/constants/theme';
 
 interface LogoUploaderProps {
   onValueChange?: (logoUrl: string | null, file?: any) => void;
@@ -78,7 +79,7 @@ export const LogoUploader = React.forwardRef<
               resizeMode="cover"
             />
           ) : (
-            <ImageIcon size={32} color="#A5B4FC" strokeWidth={1.5} />
+            <ImageIcon size={32} color={COLORS.indigoTrack} strokeWidth={1.5} />
           )}
         </View>
         {showRemove && (
@@ -86,7 +87,7 @@ export const LogoUploader = React.forwardRef<
             onPress={handleRemove}
             className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center"
           >
-            <X size={14} color="#000" />
+            <X size={14} color={COLORS.brandDark} />
           </TouchableOpacity>
         )}
       </View>
@@ -99,10 +100,10 @@ export const LogoUploader = React.forwardRef<
           className="border-2 border-dashed border-indigo-200 rounded-lg p-4 bg-indigo-50 flex items-center justify-center min-h-[100px]"
         >
           {loading ? (
-            <ActivityIndicator color="#4F46E5" />
+            <ActivityIndicator color={COLORS.primary2} />
           ) : (
             <View className="gap-2 items-center">
-              <ImageIcon size={24} color="#4F46E5" strokeWidth={1.5} />
+              <ImageIcon size={24} color={COLORS.primary2} strokeWidth={1.5} />
               <Text className="text-sm font-medium text-indigo-600">
                 Tap to upload
               </Text>

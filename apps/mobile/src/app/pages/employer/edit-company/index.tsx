@@ -40,6 +40,7 @@ import { useRemoveCompanyEmployee } from '../../../../hooks/useRemoveCompanyEmpl
 import type { CompanyRole } from '../../../../api/company';
 import { createUploadUrl, uploadFileToGcs } from '../../../../api/gcs';
 import { updateCompanyLogo, deleteCompanyLogo } from '../../../../api/company';
+import { COLORS } from '../../../constants/theme';
 
 export default function EmployerEditCompanyPage() {
   const router = useRouter();
@@ -399,17 +400,17 @@ export default function EmployerEditCompanyPage() {
     currentStepIndicatorSize: 40,
     separatorStrokeWidth: 3,
     currentStepStrokeWidth: 5,
-    stepStrokeCurrentColor: '#4F46E5',
-    stepIndicatorCurrentColor: '#4F46E5',
-    stepIndicatorLabelCurrentColor: '#e2e8f0',
-    stepIndicatorFinishedColor: '#4F46E5',
-    stepIndicatorUnFinishedColor: '#e2e8f0',
-    separatorFinishedColor: '#4F46E5',
-    separatorUnFinishedColor: '#e2e8f0',
+    stepStrokeCurrentColor: COLORS.primary2,
+    stepIndicatorCurrentColor: COLORS.primary2,
+    stepIndicatorLabelCurrentColor: COLORS.slate200,
+    stepIndicatorFinishedColor: COLORS.primary2,
+    stepIndicatorUnFinishedColor: COLORS.slate200,
+    separatorFinishedColor: COLORS.primary2,
+    separatorUnFinishedColor: COLORS.slate200,
     labelFontFamily: 'System',
     labelFontSize: 12,
-    labelColor: '#64748B',
-    currentStepLabelColor: '#4F46E5',
+    labelColor: COLORS.slate500,
+    currentStepLabelColor: COLORS.primary2,
     stepIndicatorLabelFontSize: 12,
   };
 
@@ -419,7 +420,7 @@ export default function EmployerEditCompanyPage() {
         className="flex-1 bg-white flex items-center justify-center"
         edges={['left', 'right']}
       >
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color={COLORS.primary2} />
       </SafeAreaView>
     );
   }
@@ -574,7 +575,7 @@ export default function EmployerEditCompanyPage() {
             }`}
           >
             {loading ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
               <Text className="text-white font-semibold">
                 {currentStep === NEW_COMPANY_STEPS.length - 1

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { COLORS } from '@/app/constants/theme';
 
 export interface ResumeChoice {
   id: number;
@@ -158,7 +159,7 @@ export function ResumeSection({
                     disabled={deletingResume || uploading}
                     className="h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50"
                   >
-                    <Trash2 size={16} color="#DC2626" />
+                    <Trash2 size={16} color={COLORS.tagRedText} />
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>

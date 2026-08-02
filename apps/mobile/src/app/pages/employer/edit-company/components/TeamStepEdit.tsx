@@ -7,6 +7,7 @@ import TeamMemberCard from '../../new-company/components/TeamMemberCard';
 import TeamMemberSearch from '../../new-company/components/TeamMemberSearch';
 import type { TeamMemberData, TeamMember } from '../data';
 import type { CompanyRole } from '../../../../../api/company';
+import { COLORS } from '@/app/constants/theme';
 
 interface TeamStepEditProps {
   members: TeamMemberData[];
@@ -59,7 +60,7 @@ export const TeamStepEdit: React.FC<TeamStepEditProps> = ({
         onPress={() => setSearchOpen(true)}
         className="flex-row items-center justify-center gap-2 px-4 py-3 bg-indigo-600 rounded-lg active:bg-indigo-700"
       >
-        <Plus size={20} color="#ffffff" strokeWidth={2} />
+        <Plus size={20} color={COLORS.white} strokeWidth={2} />
         <Text className="text-white font-semibold">Add Members</Text>
       </TouchableOpacity>
 

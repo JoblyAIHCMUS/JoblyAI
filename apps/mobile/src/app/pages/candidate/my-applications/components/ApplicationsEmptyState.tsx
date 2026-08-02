@@ -2,6 +2,7 @@ import { Briefcase } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { COLORS } from '@/app/constants/theme';
 
 import type { ApplicationTab } from '../../dashboard/types';
 
@@ -24,7 +25,7 @@ export function ApplicationsEmptyState({
     <View className="mt-3 rounded-2xl border border-app-border-light bg-app-neutral-1 px-6 py-12">
       <View className="items-center gap-4">
         <View className="h-14 w-14 items-center justify-center rounded-full bg-app-indigo-soft">
-          <Briefcase size={24} color="#4F46E5" strokeWidth={2.1} />
+          <Briefcase size={24} color={COLORS.primary2} strokeWidth={2.1} />
         </View>
 
         <View className="items-center gap-2">

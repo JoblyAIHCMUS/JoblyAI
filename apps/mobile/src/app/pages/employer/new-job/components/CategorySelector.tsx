@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react-native';
 import { Label } from '../../../../../components/ui/label';
 import ModalPicker from '../../new-company/components/ModalPicker';
 import { useCategories } from '../../../../../hooks/useCategories';
+import { COLORS } from '@/app/constants/theme';
 
 interface CategorySelectorProps {
   value: string;
@@ -47,7 +48,9 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
         } ${loading ? 'opacity-50' : ''}`}
       >
         <View className="flex-row items-center flex-1 gap-2">
-          {loading && <ActivityIndicator size="small" color="#64748B" />}
+          {loading && (
+            <ActivityIndicator size="small" color={COLORS.slate500} />
+          )}
           <Text
             className={`text-base ${
               value ? 'text-slate-900 font-medium' : 'text-slate-500'
@@ -56,7 +59,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
             {selectedCategory ? selectedCategory.name : 'Select a category'}
           </Text>
         </View>
-        <ChevronDown size={20} color="#64748B" />
+        <ChevronDown size={20} color={COLORS.slate500} />
       </TouchableOpacity>
       {error && <Text className="text-xs text-red-600">{error}</Text>}
       {categoriesError && (

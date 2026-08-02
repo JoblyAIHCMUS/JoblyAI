@@ -28,7 +28,7 @@ export const FeaturedJobCard = ({
       case 'Design':
         return { color: COLORS.tagGreenBg, textColor: COLORS.tagGreenText };
       default:
-        return { color: '#F8F8FD', textColor: COLORS.badgeBlue };
+        return { color: COLORS.surfaceSoft, textColor: COLORS.badgeBlue };
     }
   };
 

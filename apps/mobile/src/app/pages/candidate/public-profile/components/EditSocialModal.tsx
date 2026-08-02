@@ -14,6 +14,7 @@ import { useCreateSocial } from '../../../../../hooks/useCreateSocial';
 import { useUpdateSocial } from '../../../../../hooks/useUpdateSocial';
 import { useDeleteSocial } from '../../../../../hooks/useDeleteSocial';
 import type { CandidateSocial } from '../../../../../types/candidate';
+import { COLORS } from '@/app/constants/theme';
 
 const PLATFORMS = [
   { value: 'LINKEDIN', label: 'LinkedIn' },
@@ -145,14 +146,14 @@ export default function EditSocialModal({
               <View className="mb-4 flex-row items-center justify-between">
                 <Text className="text-lg font-semibold">Social Links</Text>
                 <TouchableOpacity onPress={openAddForm}>
-                  <Text className="text-sm font-semibold text-[#4f46e5]">
+                  <Text className="text-sm font-semibold text-app-primary-2">
                     + Add New
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {socials.length === 0 ? (
-                <Text className="py-8 text-center text-sm text-[#6b7280]">
+                <Text className="py-8 text-center text-sm text-app-gray-3">
                   No social links yet.
                 </Text>
               ) : (
@@ -161,24 +162,24 @@ export default function EditSocialModal({
                     <View key={s.id}>
                       <View className="flex-row items-center justify-between py-3">
                         <View className="flex-1">
-                          <Text className="text-xs font-bold uppercase text-[#6b7280]">
+                          <Text className="text-xs font-bold uppercase text-app-gray-3">
                             {s.platform}
                           </Text>
-                          <Text className="mt-1 text-sm text-[#4e5cf0]">
+                          <Text className="mt-1 text-sm text-app-primary-2">
                             {s.url.replace(/^https?:\/\//, '')}
                           </Text>
                         </View>
                         <View className="flex-row items-center gap-3">
                           <TouchableOpacity onPress={() => openEditForm(s)}>
-                            <Pencil size={18} color="#4f46e5" />
+                            <Pencil size={18} color={COLORS.primary2} />
                           </TouchableOpacity>
                           <TouchableOpacity onPress={() => handleDelete(s)}>
-                            <Trash2 size={18} color="#DC2626" />
+                            <Trash2 size={18} color={COLORS.tagRedText} />
                           </TouchableOpacity>
                         </View>
                       </View>
                       {index < socials.length - 1 && (
-                        <View className="h-px bg-[#dfe3f1]" />
+                        <View className="h-px bg-app-border-1" />
                       )}
                     </View>
                   ))}
@@ -187,9 +188,9 @@ export default function EditSocialModal({
 
               <TouchableOpacity
                 onPress={onClose}
-                className="mt-4 items-center rounded-lg border border-[#d1d5db] py-2.5"
+                className="mt-4 items-center rounded-lg border border-app-border-unchecked py-2.5"
               >
-                <Text className="text-sm font-medium text-[#374151]">
+                <Text className="text-sm font-medium text-app-gray-2">
                   Close
                 </Text>
               </TouchableOpacity>
@@ -202,19 +203,19 @@ export default function EditSocialModal({
                 </Text>
                 {initialMode === 'manage' && (
                   <TouchableOpacity onPress={() => setView('list')}>
-                    <Text className="text-sm font-semibold text-[#4f46e5]">
+                    <Text className="text-sm font-semibold text-app-primary-2">
                       ← Back
                     </Text>
                   </TouchableOpacity>
                 )}
               </View>
 
-              <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+              <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
                 Platform <Text className="text-red-500">*</Text>
               </Text>
               <TouchableOpacity
                 onPress={() => setShowPlatformPicker(!showPlatformPicker)}
-                className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5"
+                className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5"
               >
                 <Text className="text-sm">
                   {selectedPlatform?.label || 'Select platform'}
@@ -222,7 +223,7 @@ export default function EditSocialModal({
               </TouchableOpacity>
 
               {showPlatformPicker && (
-                <View className="mb-4 rounded-lg border border-[#d1d5db]">
+                <View className="mb-4 rounded-lg border border-app-border-unchecked">
                   {PLATFORMS.map((p) => (
                     <TouchableOpacity
                       key={p.value}
@@ -230,15 +231,15 @@ export default function EditSocialModal({
                         setPlatform(p.value);
                         setShowPlatformPicker(false);
                       }}
-                      className={`border-b border-[#d1d5db] px-3 py-2.5 ${
-                        platform === p.value ? 'bg-[#f3f4ff]' : ''
+                      className={`border-b border-app-border-unchecked px-3 py-2.5 ${
+                        platform === p.value ? 'bg-app-bg-selected' : ''
                       }`}
                     >
                       <Text
                         className={`text-sm ${
                           platform === p.value
-                            ? 'font-semibold text-[#4f46e5]'
-                            : 'text-[#374151]'
+                            ? 'font-semibold text-app-primary-2'
+                            : 'text-app-gray-2'
                         }`}
                       >
                         {p.label}
@@ -248,26 +249,26 @@ export default function EditSocialModal({
                 </View>
               )}
 
-              <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+              <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
                 URL <Text className="text-red-500">*</Text>
               </Text>
               <TextInput
                 value={url}
                 onChangeText={setUrl}
                 placeholder="https://..."
-                className="mb-4 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+                className="mb-4 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
                 keyboardType="url"
                 autoCapitalize="none"
               />
 
-              <Text className="mb-1.5 text-sm font-semibold text-[#374151]">
+              <Text className="mb-1.5 text-sm font-semibold text-app-gray-2">
                 Username
               </Text>
               <TextInput
                 value={username}
                 onChangeText={setUsername}
                 placeholder="@username"
-                className="mb-6 rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm"
+                className="mb-6 rounded-lg border border-app-border-unchecked px-3 py-2.5 text-sm"
                 autoCapitalize="none"
               />
 
@@ -287,16 +288,16 @@ export default function EditSocialModal({
                   <TouchableOpacity
                     onPress={onClose}
                     disabled={isPending}
-                    className="rounded-lg border border-[#d1d5db] px-4 py-2.5"
+                    className="rounded-lg border border-app-border-unchecked px-4 py-2.5"
                   >
-                    <Text className="text-sm font-medium text-[#374151]">
+                    <Text className="text-sm font-medium text-app-gray-2">
                       Cancel
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={isPending}
-                    className="flex-1 flex-row items-center justify-center rounded-lg bg-[#4f46e5] px-4 py-2.5"
+                    className="flex-1 flex-row items-center justify-center rounded-lg bg-app-primary-2 px-4 py-2.5"
                   >
                     {isPending ? (
                       <ActivityIndicator size="small" color="white" />
