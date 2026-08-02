@@ -76,17 +76,7 @@ export function getInitials(name: string): string {
     .join('');
 }
 
-import type {
-  JobDescriptionContent,
-  CategoryPillColor,
-} from '@/types/jobDetail';
-
-export const EMPTY_DESCRIPTION_CONTENT: JobDescriptionContent = {
-  overview: '',
-  responsibilities: [],
-  whoYouAre: [],
-  niceToHaves: [],
-};
+import type { CategoryPillColor } from '@/types/jobDetail';
 
 export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
   marketing: 'orange',
@@ -102,7 +92,7 @@ export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
 /**
  * Extracts a plain-text preview from a job description for card display.
  *
- * - If description is structured JSON, extracts the `overview` field.
+ * - Accepts HTML or plain-text descriptions.
  * - Finds the first <p> tag content when available.
  * - Falls back to stripping all HTML tags.
  * - Collapses whitespace and truncates to a consistent length.
@@ -110,21 +100,8 @@ export const CATEGORY_COLOR_MAP: Record<string, CategoryPillColor> = {
 export function getCardPreviewText(description: string): string {
   if (!description || typeof description !== 'string') return '';
 
-  let html: string;
-
-  try {
-    const parsed = JSON.parse(description) as Partial<JobDescriptionContent>;
-    if (parsed.overview) {
-      html = parsed.overview;
-    } else {
-      html = description;
-    }
-  } catch {
-    html = description;
-  }
-
-  const firstParagraph = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
-  const raw = firstParagraph ? firstParagraph[1] : html;
+  const firstParagraph = description.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  const raw = firstParagraph ? firstParagraph[1] : description;
 
   const plain = raw
     .replace(/<[^>]*>/g, ' ')
@@ -136,61 +113,27 @@ export function getCardPreviewText(description: string): string {
 }
 
 /**
- * Parses a job description JSON string into structured content.
+ * Normalizes a job description for rendering.
  *
- * Supports two formats:
- * 1. Structured JSON: { overview, responsibilities: [], whoYouAre: [], niceToHaves: [] }
- * 2. Plain text: falls back to using entire string as overview
- *
- * Safely handles malformed JSON and missing fields.
- * Backend is still in development - may only send plain text description.
+ * - Removes empty <p> blocks and standalone <br> nodes that rich editors
+ *   leave behind when the author presses Enter multiple times.
+ * - Removes only block-boundary breaks, preserving intentional inline breaks.
+ * - Preserves all formatting tags, entities, and inline content.
  */
-export function parseDescription(description: string): JobDescriptionContent {
-  if (!description || typeof description !== 'string') {
-    return EMPTY_DESCRIPTION_CONTENT;
-  }
+export function normalizeDescriptionHtml(description: string): string {
+  if (!description || typeof description !== 'string') return '';
 
-  try {
-    const parsed = JSON.parse(description) as Partial<JobDescriptionContent>;
-
-    // Has structured content (backend fully developed)
-    if (
-      parsed.overview ||
-      parsed.responsibilities ||
-      parsed.whoYouAre ||
-      parsed.niceToHaves
-    ) {
-      return {
-        overview: parsed.overview ?? EMPTY_DESCRIPTION_CONTENT.overview,
-        responsibilities: Array.isArray(parsed.responsibilities)
-          ? parsed.responsibilities
-          : EMPTY_DESCRIPTION_CONTENT.responsibilities,
-        whoYouAre: Array.isArray(parsed.whoYouAre)
-          ? parsed.whoYouAre
-          : EMPTY_DESCRIPTION_CONTENT.whoYouAre,
-        niceToHaves: Array.isArray(parsed.niceToHaves)
-          ? parsed.niceToHaves
-          : EMPTY_DESCRIPTION_CONTENT.niceToHaves,
-      };
-    }
-
-    // Fallback: treat the entire string as overview if JSON parsing succeeded but no structured fields
-    return {
-      overview: description || EMPTY_DESCRIPTION_CONTENT.overview,
-      responsibilities: EMPTY_DESCRIPTION_CONTENT.responsibilities,
-      whoYouAre: EMPTY_DESCRIPTION_CONTENT.whoYouAre,
-      niceToHaves: EMPTY_DESCRIPTION_CONTENT.niceToHaves,
-    };
-  } catch {
-    // JSON parse failed - treat entire string as plain text overview
-    // This handles backend-in-development case where description is just a string
-    return {
-      overview: description || EMPTY_DESCRIPTION_CONTENT.overview,
-      responsibilities: EMPTY_DESCRIPTION_CONTENT.responsibilities,
-      whoYouAre: EMPTY_DESCRIPTION_CONTENT.whoYouAre,
-      niceToHaves: EMPTY_DESCRIPTION_CONTENT.niceToHaves,
-    };
-  }
+  return description
+    .replace(/<p[^>]*>(?:\s|&nbsp;|&#10;|&#xA;|<br\s*\/?>)*<\/p>/gi, '')
+    .replace(
+      /(<\/(?:p|div|ul|ol|h[1-6]|blockquote|pre|section)>)(?:(?:\s|&nbsp;|&#10;|&#xA;)*<br\s*\/?>)+(?:\s|&nbsp;|&#10;|&#xA;)*(?=<(?:p|div|ul|ol|h[1-6]|blockquote|pre|section)\b)/gi,
+      '$1'
+    )
+    .replace(/^(?:(?:\s|&nbsp;|&#10;|&#xA;)*<br\s*\/?>)+/i, '')
+    .replace(/(?:<br\s*\/?>\s*)+$/i, '')
+    .replace(/(?:&(?:#10|#xA);)+(?=\s*<)/gi, '')
+    .replace(/(?:&(?:#10|#xA);)+\s*$/gi, '')
+    .trim();
 }
 
 /**

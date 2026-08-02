@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
-import { Search, X } from 'lucide-react-native';
+import { Search, X, MapPin } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
 
 interface SearchBarProps {
@@ -16,43 +16,72 @@ const SearchBar: React.FC<SearchBarProps> = ({
   location,
   onSearchTermChange,
   onLocationChange,
-  onSearch,
 }) => {
+  const locationInputRef = useRef<TextInput>(null);
+  const [isLocationFocused, setIsLocationFocused] = useState(false);
+  const showLocationInput = isLocationFocused || location.length > 0;
+
+  const handleLocationIconPress = () => {
+    setIsLocationFocused(true);
+    setTimeout(() => locationInputRef.current?.focus(), 50);
+  };
+
+  const handleLocationClear = () => {
+    onLocationChange('');
+    setIsLocationFocused(false);
+  };
+
   return (
-    <View className="bg-white px-4 py-4">
-      <View className="mb-3 flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-4 py-1">
-        <Search size={20} color={COLORS.textPlaceholder} strokeWidth={2} />
+    <View className="h-12 flex-1 flex-row items-center gap-2">
+      <View className="h-12 flex-1 flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-3">
+        <Search size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
         <TextInput
-          className="flex-1 ml-3 text-base text-app-dark-text"
-          placeholder="Job title or keyword"
+          className="ml-2 flex-1 text-sm text-app-dark-text"
+          placeholder="Search jobs..."
           placeholderTextColor={COLORS.textPlaceholder}
           value={searchTerm}
           onChangeText={onSearchTermChange}
-          editable={true}
+          returnKeyType="search"
         />
-        {searchTerm && (
-          <TouchableOpacity onPress={() => onSearchTermChange('')}>
-            <X size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
+        {searchTerm.length > 0 && (
+          <TouchableOpacity
+            onPress={() => onSearchTermChange('')}
+            className="p-1"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <X size={16} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>
         )}
       </View>
 
-      <View className="flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-4 py-1">
-        <Search size={20} color={COLORS.textPlaceholder} strokeWidth={2} />
-        <TextInput
-          className="flex-1 ml-3 text-base text-app-dark-text"
-          placeholder="City or location"
-          placeholderTextColor={COLORS.textPlaceholder}
-          value={location}
-          onChangeText={onLocationChange}
-          editable={true}
-        />
-        {location && (
-          <TouchableOpacity onPress={() => onLocationChange('')}>
-            <X size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
+      {showLocationInput ? (
+        <View className="h-12 w-32 flex-row items-center rounded-xl border border-app-gray-1 bg-app-bg-input px-3">
+          <TextInput
+            ref={locationInputRef}
+            className="flex-1 text-sm text-app-dark-text"
+            placeholder="Location"
+            placeholderTextColor={COLORS.textPlaceholder}
+            value={location}
+            onChangeText={onLocationChange}
+            onBlur={() => setIsLocationFocused(false)}
+            returnKeyType="search"
+          />
+          <TouchableOpacity
+            onPress={handleLocationClear}
+            className="p-1"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <X size={16} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      ) : (
+        <TouchableOpacity
+          onPress={handleLocationIconPress}
+          className="h-12 w-12 items-center justify-center rounded-xl border border-app-gray-1 bg-app-bg-input"
+        >
+          <MapPin size={18} color={COLORS.textPlaceholder} strokeWidth={2} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

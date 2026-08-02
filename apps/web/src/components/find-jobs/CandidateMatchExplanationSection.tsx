@@ -95,7 +95,7 @@ export function CandidateMatchExplanationSection({
       ) : explanation ? (
         <div className="space-y-5">
           {/* Score + Experience row */}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="mb-2 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -112,6 +112,27 @@ export function CandidateMatchExplanationSection({
                   {(explanation.overallScore ?? 0).toFixed(2)}%
                 </span>
                 <span className="text-xs text-slate-500">semantic match</span>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Exact Match Score
+                </h3>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={`text-3xl font-bold ${getScoreColor(
+                    (explanation.exactMatchScore ?? 0) / 100
+                  )}`}
+                >
+                  {(explanation.exactMatchScore ?? 0).toFixed(2)}%
+                </span>
+                <span className="text-xs text-slate-500">
+                  exact skill match
+                </span>
               </div>
             </div>
 
@@ -135,61 +156,104 @@ export function CandidateMatchExplanationSection({
 
           <Separator />
 
-          {/* Requirement Breakdown */}
+          {/* Requirement Breakdown — Side by Side */}
           <div>
             <div className="mb-3 flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-indigo-600" />
               <h3 className="text-sm font-semibold text-slate-900">
                 Requirements
               </h3>
-              <Badge variant="outline" className="ml-auto text-xs">
-                Embedding
-              </Badge>
             </div>
             {explanation.requirementMatches.length === 0 ? (
               <p className="text-sm text-slate-600">
                 This job doesn&apos;t list any specific skill requirements.
               </p>
             ) : (
-              <div className="space-y-2">
-                {explanation.requirementMatches.map((req, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg border border-slate-200 bg-white p-3"
-                  >
-                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-900">
-                          {req.skillName}
-                        </span>
-                        {getImportanceBadge(req.importance)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {req.hardConstraintMet && (
-                          <Badge className="bg-green-500 text-white hover:bg-green-600">
-                            <CheckCircle2 className="mr-1 h-3 w-3" />
-                            Strong match
-                          </Badge>
-                        )}
-                        <span
-                          className={`text-sm font-bold ${getScoreColor(
-                            req.embeddingSimilarity
-                          )}`}
-                        >
-                          {(req.embeddingSimilarity * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                    </div>
-                    {req.minYearsRequired ? (
-                      <div className="text-xs text-slate-500">
-                        Min experience: {req.minYearsRequired} years
-                      </div>
-                    ) : null}
-                    <div className="mt-1 text-sm text-slate-600">
-                      {req.justification}
-                    </div>
+              <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr]">
+                {/* Embedding column */}
+                <div>
+                  <div className="mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      Embedding
+                    </Badge>
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    {explanation.requirementMatches.map((req, index) => (
+                      <div
+                        key={`emb-${index}`}
+                        className="rounded-lg border border-slate-200 bg-white p-3"
+                      >
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-900">
+                              {req.skillName}
+                            </span>
+                            {getImportanceBadge(req.importance)}
+                          </div>
+                          <span
+                            className={`text-sm font-bold ${getScoreColor(
+                              req.embeddingSimilarity
+                            )}`}
+                          >
+                            {(req.embeddingSimilarity * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        {req.minYearsRequired ? (
+                          <div className="text-xs text-slate-500">
+                            Min experience: {req.minYearsRequired} years
+                          </div>
+                        ) : null}
+                        <div className="mt-1 text-sm text-slate-600">
+                          {req.justification}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator orientation="vertical" className="hidden sm:block" />
+
+                {/* Exact Match column */}
+                <div>
+                  <div className="mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      Exact Match
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {explanation.requirementMatches.map((req, index) => (
+                      <div
+                        key={`exact-${index}`}
+                        className="rounded-lg border border-slate-200 bg-white p-3"
+                      >
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-900">
+                              {req.skillName}
+                            </span>
+                            {getImportanceBadge(req.importance)}
+                          </div>
+                          {req.hardConstraintMet ? (
+                            <Badge className="bg-green-500 text-white hover:bg-green-600">
+                              <CheckCircle2 className="mr-1 h-3 w-3" />
+                              Met
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">Not met</Badge>
+                          )}
+                        </div>
+                        {req.minYearsRequired ? (
+                          <div className="text-xs text-slate-500">
+                            Min experience: {req.minYearsRequired} years
+                          </div>
+                        ) : null}
+                        <div className="mt-1 text-sm text-slate-600">
+                          {req.justification}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

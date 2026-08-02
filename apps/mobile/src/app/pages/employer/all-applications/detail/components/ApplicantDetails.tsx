@@ -13,17 +13,11 @@ import { HiringStageChangeConfirmModal } from '../../components/HiringStageChang
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 import { ApplicantProfilePanel } from './ApplicantProfilePanel';
 import { ApplicantResumePanel } from './ApplicantResumePanel';
-import { CoverLetterPanel } from './CoverLetterPanel';
 import { HiringProcessPanel } from './HiringProcessPanel';
 
-type TabValue = 'profile' | 'resume' | 'cover-letter' | 'hiring-process';
+type TabValue = 'profile' | 'resume' | 'hiring-process';
 
-const TAB_VALUES: TabValue[] = [
-  'profile',
-  'resume',
-  'cover-letter',
-  'hiring-process',
-];
+const TAB_VALUES: TabValue[] = ['profile', 'resume', 'hiring-process'];
 
 type ConfirmAction = 'advance' | 'reject';
 
@@ -38,7 +32,6 @@ const REJECT_FEEDBACK =
 const TAB_LABELS: Record<TabValue, string> = {
   profile: 'Profile',
   resume: 'Resume',
-  'cover-letter': 'Cover Letter',
   'hiring-process': 'Hiring Process',
 };
 
@@ -131,9 +124,6 @@ export function ApplicantDetails({ applicant }: ApplicantDetailsProps) {
         </TabsContent>
         <TabsContent value="resume">
           <ApplicantResumePanel fileKey={applicant.resume} />
-        </TabsContent>
-        <TabsContent value="cover-letter">
-          <CoverLetterPanel />
         </TabsContent>
         <TabsContent value="hiring-process">
           <HiringProcessPanel

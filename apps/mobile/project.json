@@ -1,0 +1,41 @@
+{
+  "name": "@jobly/mobile",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "start-dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx expo start --dev-client",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "ios-device": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx expo run:ios --device --scheme JoblyAIMobile",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "prod-run-android": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:android",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "prod-run-ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:ios --scheme JoblyAIMobile",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "prod-run-ios-device": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "EXPO_PUBLIC_API_URL=https://jobly.ai.vn/api npx expo run:ios --device --scheme JoblyAIMobile",
+        "cwd": "{projectRoot}"
+      }
+    }
+  }
+}

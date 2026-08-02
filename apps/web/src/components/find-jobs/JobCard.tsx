@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Star } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { ApplicationRecord } from '@/api-client/application';
 import { JobPosting } from '@/api-client/jobs/types';
 import { ViewMode } from '@/types/job';
@@ -182,18 +181,9 @@ export default function JobCard({
                 job.matchPercentage !== null && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          'px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1',
-                          job.matchPercentage >= 80
-                            ? 'bg-green-50 text-green-700 border-green-200'
-                            : job.matchPercentage >= 50
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-slate-50 text-slate-600 border-slate-200'
-                        )}
-                      >
+                      <div className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
                         <Star size={10} className="fill-current" />
-                        {Math.round(job.matchPercentage)}% Match
+                        {Math.round(job.matchPercentage)}% semantic
                       </div>
                     </TooltipTrigger>
                     <TooltipContent
@@ -222,6 +212,12 @@ export default function JobCard({
                       </p>
                     </TooltipContent>
                   </Tooltip>
+                )}
+              {job.exactMatchPercentage !== undefined &&
+                job.exactMatchPercentage !== null && (
+                  <div className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-blue-50 text-blue-700 border-blue-200">
+                    {Math.round(job.exactMatchPercentage)}% exact
+                  </div>
                 )}
             </div>
             <p className="body-body-1-regular mt-1 text-slate-600">

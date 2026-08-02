@@ -7,7 +7,6 @@ import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { ApplicationHistoryRow } from '@/components/candidate/applicationHistoryRow';
 import { ApplicationsHeader } from '@/components/candidate/applicationsHeader';
 import { ApplicationStatusTabs } from '@/features/candidate/applications/components/ApplicationStatusTabs';
-import { ApplicationsFeatureNotice } from '@/features/candidate/applications/components/ApplicationsFeatureNotice';
 import { ApplicationsFilterDialog } from '@/features/candidate/applications/components/ApplicationsFilterDialog';
 import { ApplicationsSearchToolbar } from '@/features/candidate/applications/components/ApplicationsSearchToolbar';
 import { useApplicationsPageState } from '@/features/candidate/applications/hooks/useApplicationsPageState';
@@ -155,8 +154,6 @@ export default function CandidateApplicationsPage() {
           setSelectedEndDate={setSelectedEndDate}
           activityRangeText={activityRangeText}
         />
-
-        <ApplicationsFeatureNotice />
 
         <ApplicationStatusTabs
           tabs={tabs}

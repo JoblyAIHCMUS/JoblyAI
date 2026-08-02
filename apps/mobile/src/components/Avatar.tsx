@@ -42,7 +42,7 @@ const Avatar: React.FC<AvatarProps> = ({
         style={[sizeStyle, style]}
       >
         <Text className="text-base font-semibold text-app-slate-3">
-          {name.charAt(0).toUpperCase()}
+          {(name ?? '?').charAt(0).toUpperCase()}
         </Text>
       </View>
     );

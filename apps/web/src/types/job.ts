@@ -34,7 +34,9 @@ export type SortOption =
   | 'NEWEST'
   | 'OLDEST'
   | 'SALARY_ASC'
-  | 'SALARY_DESC';
+  | 'SALARY_DESC'
+  | 'EMBEDDING_SCORE'
+  | 'EXACT_MATCH_SCORE';
 
 export interface JobCategory {
   id: number;
@@ -92,6 +94,7 @@ export interface JobPosting {
   createdAt: Date;
   updatedAt: Date;
   matchPercentage?: number;
+  exactMatchPercentage?: number;
   preShortlistThreshold: number;
   preShortlistEnabled: boolean;
   preShortlistQuestions: PreShortlistQuestion[];

@@ -8,9 +8,10 @@ import SalaryFilter from '@/components/find-jobs/SalaryFilter';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FilterGroupData, JobPosting, ViewMode, SortOption } from '@/types/job';
 import {
-  SORT_OPTIONS,
+  getSortOptions,
   SupportedCurrency,
 } from '@/features/find-jobs/constants';
+import { useSearchParams } from 'next/navigation';
 import { usePagination } from '@/hooks/usePagination';
 import { useState, Ref, useRef, useEffect } from 'react';
 
@@ -45,6 +46,10 @@ function getSORT_LABEL(option: SortOption): string {
   switch (option) {
     case 'MOST_RELEVANT':
       return 'Most relevant';
+    case 'EMBEDDING_SCORE':
+      return 'Most relevance embedding score';
+    case 'EXACT_MATCH_SCORE':
+      return 'Most relevance exact match';
     case 'NEWEST':
       return 'Newest';
     case 'OLDEST':
@@ -87,6 +92,9 @@ export default function JobListSection({
   );
 
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const searchParams = useSearchParams();
+  const hasResume = !!searchParams.get('resumeId');
+  const sortOptions = getSortOptions(hasResume);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -197,7 +205,7 @@ export default function JobListSection({
                         : 'pointer-events-none -translate-y-1 scale-95 opacity-0'
                     }`}
                   >
-                    {SORT_OPTIONS.map((option) => {
+                    {sortOptions.map((option) => {
                       const isActive = selectedSort === option;
                       return (
                         <button

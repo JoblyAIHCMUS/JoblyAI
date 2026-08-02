@@ -12,5 +12,6 @@ export function useMatchExplanation(
     queryFn: () => getMatchExplanation(applicationId as string | number),
     enabled: applicationId != null,
     staleTime: 60 * 1000,
+    retry: false,
   });
 }

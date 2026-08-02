@@ -13,6 +13,7 @@ interface AllApplicationsListItemProps {
     application: AllApplication,
     triggerPosition: { x: number; y: number; width: number; height: number }
   ) => void;
+  onPress?: () => void;
   onPressIn?: () => void;
 }
 
@@ -59,7 +60,7 @@ function StatusPill({
 
 export const AllApplicationsListItem: React.FC<
   AllApplicationsListItemProps
-> = ({ application, onMenuPress, onPressIn }) => {
+> = ({ application, onMenuPress, onPress, onPressIn }) => {
   const moreButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
 
   const isTerminal =
@@ -89,6 +90,7 @@ export const AllApplicationsListItem: React.FC<
   return (
     <TouchableOpacity
       activeOpacity={0.7}
+      onPress={onPress}
       onPressIn={onPressIn}
       className="flex-row items-center justify-between py-4 border-b border-app-border-light"
     >
