@@ -284,8 +284,6 @@ export default function ApplyJobModal({
               </Text>
             </View>
 
-
-
             {/* Resume Section */}
             <View className="py-4">
               <ResumeSection

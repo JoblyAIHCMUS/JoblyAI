@@ -29,7 +29,8 @@ export function HiringProcessPanel({
     hiringStage !== 'Offer';
 
   const rawScore = score ?? 0;
-  const displayScore = rawScore <= 1 && rawScore > 0 ? rawScore * 100 : rawScore;
+  const displayScore =
+    rawScore <= 1 && rawScore > 0 ? rawScore * 100 : rawScore;
   const roundedScore = Math.round(displayScore);
 
   return (
@@ -62,7 +63,9 @@ export function HiringProcessPanel({
               </Text>
             </View>
             <Text className="text-xs text-amber-800 leading-4">
-              High match score ({roundedScore}%). Consider reviewing full candidate profile before making a decision even if pre-shortlist answers are not optimal.
+              High match score ({roundedScore}%). Consider reviewing full
+              candidate profile before making a decision even if pre-shortlist
+              answers are not optimal.
             </Text>
           </View>
         )}

@@ -200,7 +200,8 @@ export default function ApplicantDetails({
                             </Badge>
                           </div>
                           <p className="mt-0.5 text-xs text-slate-600">
-                            Based on overall resume and profile alignment with job requirements
+                            Based on overall resume and profile alignment with
+                            job requirements
                           </p>
                         </div>
                       </div>
@@ -208,11 +209,17 @@ export default function ApplicantDetails({
                       {roundedScore >= 60 && (
                         <div className="rounded-xl border border-amber-300 bg-amber-50/90 px-3.5 py-2.5 text-xs text-amber-900 max-w-md">
                           <p className="font-bold flex items-center gap-1.5 text-amber-950">
-                            <Zap className="h-4 w-4 text-amber-600 shrink-0" aria-hidden="true" />
+                            <Zap
+                              className="h-4 w-4 text-amber-600 shrink-0"
+                              aria-hidden="true"
+                            />
                             <span>Employer Consideration Highlight</span>
                           </p>
                           <p className="mt-0.5 text-[11px] text-amber-800 leading-snug">
-                            High match score ({roundedScore}%). Even if pre-shortlist answers are not optimal, consider reviewing full candidate profile before making a final decision.
+                            High match score ({roundedScore}%). Even if
+                            pre-shortlist answers are not optimal, consider
+                            reviewing full candidate profile before making a
+                            final decision.
                           </p>
                         </div>
                       )}
