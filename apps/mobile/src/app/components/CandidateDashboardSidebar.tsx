@@ -226,7 +226,11 @@ const CandidateDashboardSidebar = ({
                 className="h-10 w-10 items-center justify-center rounded-full"
                 style={{ backgroundColor: COLORS.primary2 }}
               >
-                <View className="h-5 w-5 rounded-full border-2 border-white" />
+                <Image
+                  source={require('../../../assets/images/AppIcons/appstore.png')}
+                  className="h-full w-full rounded-full"
+                  resizeMode="cover"
+                />
               </View>
               <Text
                 className="text-3xl font-extrabold"

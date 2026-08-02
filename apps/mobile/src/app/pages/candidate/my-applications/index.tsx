@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  View,
-} from 'react-native';
-import { Stack } from 'expo-router';
+import { FlatList, RefreshControl, View } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 
 import { ApplicationsEmptyState } from './components/ApplicationsEmptyState';
 import { ApplicationsFilterSheet } from './components/ApplicationsFilterSheet';
@@ -30,6 +25,8 @@ import { getGreetingName, useUser } from '../../../../hooks/useUser';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
 import { COLORS } from '@/app/constants/theme';
+import { ApplicationsSkeleton } from '@/components/ui/feedback';
+import * as Haptics from 'expo-haptics';
 
 type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
 
@@ -51,6 +48,7 @@ function mapApplicationRecord(
 }
 
 export default function MyApplicationsPage() {
+  const router = useRouter();
   const { data: user } = useUser();
   const { data: profile } = useGetCandidateProfile();
   const firstName =
@@ -283,7 +281,10 @@ export default function MyApplicationsPage() {
           refreshControl={
             <RefreshControl
               refreshing={loading}
-              onRefresh={() => setRefreshKey((k) => k + 1)}
+              onRefresh={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setRefreshKey((k) => k + 1);
+              }}
               colors={[COLORS.primary2]}
               tintColor={COLORS.primary2}
             />
@@ -329,12 +330,7 @@ export default function MyApplicationsPage() {
           }
           ListEmptyComponent={
             loading ? (
-              <View className="items-center py-12">
-                <ActivityIndicator size="large" color={COLORS.primary2} />
-                <Text className="mt-3 text-sm text-app-text-5">
-                  Loading applications...
-                </Text>
-              </View>
+              <ApplicationsSkeleton />
             ) : error ? (
               <View className="items-center py-12">
                 <Text className="text-sm text-app-red-2">
@@ -351,6 +347,7 @@ export default function MyApplicationsPage() {
                     : 'ALL'
                 }
                 searchQuery={searchQuery}
+                onBrowseJobs={() => router.push('/pages/find-jobs')}
               />
             )
           }

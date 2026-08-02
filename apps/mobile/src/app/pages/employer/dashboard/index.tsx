@@ -3,6 +3,7 @@ import { ScrollView, View, RefreshControl, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import { DashboardHeader } from './components/DashboardHeader';
 import { SummaryCards } from './components/SummaryCards';
 import { JobStatisticsChart } from './components/JobStatisticsChart';
@@ -90,9 +91,15 @@ export default function EmployerDashboard() {
   }, [isEmployer, sessionPending, loadData]);
 
   const onRefresh = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
+    try {
+      await loadData();
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setRefreshing(false);
+    }
   }, [loadData]);
 
   const candidateCount = applicationsResult?.total || 0;

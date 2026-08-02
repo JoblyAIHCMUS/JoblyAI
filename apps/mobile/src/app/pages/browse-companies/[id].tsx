@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Menu } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 import { useCompanyJobs, useGetCompany } from '@/hooks';
 import { COLORS } from '@/app/constants/theme';
@@ -52,10 +53,13 @@ export default function CandidateCompanyProfilePage() {
   );
 
   const onRefresh = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setRefreshing(true);
 
     try {
       await Promise.all([refetchCompany(), refetchJobs()]);
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setRefreshing(false);
     }

@@ -13,6 +13,7 @@ import JobCompanySection from './components/JobCompanySection';
 import SimilarJobs from './components/SimilarJobs';
 import ApplyJobModal from './components/ApplyJobModal';
 import { useUser } from '@/hooks/useUser';
+import * as Haptics from 'expo-haptics';
 
 export default function JobDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -65,6 +66,7 @@ export default function JobDetailPage() {
   const handleApplySuccess = () => {
     setHasApplied(true);
     setApplyModalOpen(false);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   if (loadingJob) {

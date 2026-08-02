@@ -6,11 +6,10 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import { Stack, useFocusEffect } from 'expo-router';
-import { Menu } from 'lucide-react-native';
+import { Menu, SearchX } from 'lucide-react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -29,6 +28,11 @@ import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
 import AppSidebar from '@/app/components/AppSidebar';
 import { capFor } from './constants';
 import type { SupportedCurrency } from './constants';
+import {
+  EmptyState,
+  JobCardSkeleton,
+  Skeleton,
+} from '@/components/ui/feedback';
 
 const PAGE_SIZE = 10;
 
@@ -334,11 +338,10 @@ function FindJobsPage() {
 
           {/* Jobs List */}
           {loadingJobs && jobs.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color={COLORS.primary2} />
-              <Text className="mt-4 text-sm text-app-gray-3">
-                Loading jobs...
-              </Text>
+            <View className="flex-1 px-4 pt-4">
+              {[0, 1, 2].map((item) => (
+                <JobCardSkeleton key={item} />
+              ))}
             </View>
           ) : jobs.length === 0 ? (
             <ScrollView
@@ -349,15 +352,15 @@ function FindJobsPage() {
                 alignItems: 'center',
               }}
             >
-              <Text className="text-center text-lg text-app-dark-text">
-                No jobs found
-              </Text>
-              <TouchableOpacity
-                onPress={handleReset}
-                className="mt-4 rounded-lg bg-app-primary-2 px-6 py-3"
-              >
-                <Text className="font-semibold text-white">Reset Filters</Text>
-              </TouchableOpacity>
+              <View className="w-full px-4">
+                <EmptyState
+                  icon={SearchX}
+                  title="No jobs found"
+                  message="Try broadening your search or clearing a filter to see more opportunities."
+                  actionLabel="Reset Filters"
+                  onAction={handleReset}
+                />
+              </View>
             </ScrollView>
           ) : (
             <FlatList
@@ -375,8 +378,9 @@ function FindJobsPage() {
               showsVerticalScrollIndicator={true}
               ListFooterComponent={
                 loadingJobs ? (
-                  <View className="py-4">
-                    <ActivityIndicator size="small" color={COLORS.primary2} />
+                  <View className="gap-3 px-4 py-4">
+                    <Skeleton className="h-3 w-1/3" />
+                    <Skeleton className="h-3 w-1/2" />
                   </View>
                 ) : null
               }

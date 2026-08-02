@@ -2,7 +2,6 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { BadgeCheck, Mail, Pencil, Phone } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -59,6 +59,7 @@ import {
   deleteAvatar as deleteCandidateAvatar,
 } from '../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
+import { ProfileSkeleton } from '@/components/ui/feedback';
 
 function HeaderIcon({
   children,
@@ -669,12 +670,7 @@ function ProfileContent() {
       <StatusBar style="dark" />
 
       {isPending && !profile ? (
-        <View className="flex-1 items-center justify-center gap-3">
-          <ActivityIndicator size="large" color={COLORS.primary2} />
-          <Text className="text-sm font-medium text-app-text-3">
-            Loading your profile...
-          </Text>
-        </View>
+        <ProfileSkeleton />
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -682,7 +678,16 @@ function ProfileContent() {
           refreshControl={
             <RefreshControl
               refreshing={isFetching}
-              onRefresh={() => void refetch()}
+              onRefresh={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                try {
+                  await refetch();
+                } catch {
+                  await Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Error
+                  );
+                }
+              }}
             />
           }
         >
