@@ -14,7 +14,7 @@ const googleGenAIMocks = vi.hoisted(() => {
       generateContent: generateContentMock,
     };
 
-    constructor(_options?: unknown) {
+    constructor() {
       // Empty constructor for mocking GoogleGenAI
     }
   }
@@ -98,8 +98,8 @@ describe('GeminiSearchProvider', () => {
           origin: 'web_search',
           sources: [
             {
-              title: 'NestJS Docs',
-              url: 'https://docs.nestjs.com',
+              title: 'LeetCode Discuss',
+              url: 'https://leetcode.com/discuss/interview-question/12345',
             },
           ],
         },
@@ -123,8 +123,8 @@ describe('GeminiSearchProvider', () => {
             groundingChunks: [
               {
                 web: {
-                  title: 'NestJS Docs',
-                  uri: 'https://docs.nestjs.com',
+                  title: 'LeetCode Discuss',
+                  uri: 'https://leetcode.com/discuss/interview-question/12345',
                 },
               },
             ],
@@ -151,10 +151,59 @@ describe('GeminiSearchProvider', () => {
         origin: 'web_search',
         sources: [
           {
-            title: 'NestJS Docs',
-            url: 'https://docs.nestjs.com',
+            title: 'LeetCode Discuss',
+            url: 'https://leetcode.com/discuss/interview-question/12345',
           },
         ],
+      },
+    ]);
+  });
+
+  it('filters out blacklisted domain sources and keeps whitelisted domain sources', async () => {
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'GEMINI_API_KEY') return 'gemini-test-key';
+      if (key === 'INTERVIEW_WHITELIST_DOMAINS')
+        return 'glassdoor.com,leetcode.com';
+      if (key === 'INTERVIEW_BLACKLIST_DOMAINS') return 'chegg.com,quora.com';
+      return undefined;
+    });
+
+    googleGenAIMocks.generateContentMock.mockResolvedValueOnce({
+      text: JSON.stringify([
+        {
+          question: 'Explain event loop in Node.js',
+          category: 'Technical',
+          difficulty: 'Medium',
+          relevance: 'Node.js topic',
+          confidence: 0.95,
+          sampleAnswer: 'Event loop answer',
+          interviewerIntent: 'Intent',
+          tips: 'Tips',
+          origin: 'web_search',
+          sources: [
+            {
+              title: 'LeetCode Solution',
+              url: 'https://leetcode.com/problems/event-loop',
+            },
+            {
+              title: 'Chegg Homework',
+              url: 'https://www.chegg.com/homework-help/event-loop',
+            },
+            {
+              title: 'Random Blog',
+              url: 'https://randomblog.com/post',
+            },
+          ],
+        },
+      ]),
+    });
+
+    const results = await provider.searchAndExtract(mockContext, ['query']);
+
+    expect(results[0].sources).toEqual([
+      {
+        title: 'LeetCode Solution',
+        url: 'https://leetcode.com/problems/event-loop',
       },
     ]);
   });
