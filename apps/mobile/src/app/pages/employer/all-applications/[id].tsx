@@ -72,7 +72,7 @@ export default function AllApplicationsDetailPage() {
               onPress={() => {
                 void refetch();
               }}
-               className="self-start mt-3 min-h-11 items-center justify-center rounded-md border border-app-red-1 px-3 py-1.5"
+              className="self-start mt-3 min-h-11 items-center justify-center rounded-md border border-app-red-1 px-3 py-1.5"
               activeOpacity={0.7}
             >
               <Text className="text-sm font-semibold text-app-red-1">

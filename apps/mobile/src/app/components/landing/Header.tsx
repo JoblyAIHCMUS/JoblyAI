@@ -35,7 +35,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
         {/* Logo and Brand */}
         <View className="flex-row items-center gap-2.5">
           <View className="h-[34px] w-[34px] overflow-hidden rounded-[18%]">
-            <Image source={Logo} className="h-[34px] w-[34px]" resizeMode="contain" />
+            <Image
+              source={Logo}
+              className="h-[34px] w-[34px]"
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-2xl font-black text-app-brand-text">
             JoblyAI
