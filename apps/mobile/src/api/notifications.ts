@@ -22,6 +22,14 @@ export async function registerDevice(
   return response.data;
 }
 
+export async function unregisterDevice(pushToken: string) {
+  const response = await apiClient.delete<{ deleted: boolean }>(
+    '/devices/current',
+    { data: { pushToken } }
+  );
+  return response.data;
+}
+
 export async function getNotificationSettings(
   signal?: AbortSignal
 ): Promise<NotificationSettings> {

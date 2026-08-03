@@ -146,6 +146,14 @@ export class NotificationsService {
     });
   }
 
+  async unregisterDevice(userId: string, pushToken: string) {
+    const result = await this.prisma.userDevice.deleteMany({
+      where: { userId, pushToken },
+    });
+
+    return { deleted: result.count > 0 };
+  }
+
   async sendPushToUser(userId: string, payload: PushPayload) {
     try {
       const devices = await this.prisma.userDevice.findMany({

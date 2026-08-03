@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL } from '../lib/api-base';
-import { getSessionCookie } from '../lib/auth';
+import { getSessionCookieHeader } from '../lib/session-cookie';
 import type {
   MarkReadAck,
   NewMessageEvent,
@@ -24,8 +24,8 @@ export function getOrCreateSocket(): Socket {
     // RN can't do HTTP long-polling.
     transports: ['websocket'],
     // Function form re-reads the cookie per connect; static form freezes the empty module-init value.
-    auth: (cb) => {
-      const cookie = getSessionCookie();
+    auth: async (cb) => {
+      const cookie = await getSessionCookieHeader();
       console.log('[ws] auth', { hasCookie: !!cookie });
       cb({ cookie });
     },
@@ -71,11 +71,19 @@ export function getOrCreateSocket(): Socket {
   return _socket;
 }
 
-// For testing/cleanup only — production code should never call this.
-export function _resetSocketForTests(): void {
+export function disconnectSocket(): void {
   _socket?.disconnect();
   _socket = null;
   currentChatId = null;
+}
+
+export function getExistingSocket(): Socket | null {
+  return _socket;
+}
+
+// For testing/cleanup only — production code should never call this.
+export function _resetSocketForTests(): void {
+  disconnectSocket();
 }
 
 // Typed emit helpers — keep the rest of the codebase from importing
@@ -85,29 +93,36 @@ export function emitSendMessage(
   text: string,
   ack: (response: SendMessageAck) => void
 ): void {
-  getOrCreateSocket().emit('send_message', { recipientId, text }, ack);
+  const socket = getExistingSocket();
+  if (!socket) {
+    ack({ status: 'error', error: 'socket_disconnected' });
+    return;
+  }
+  socket.emit('send_message', { recipientId, text }, ack);
 }
 
 export function emitMarkRead(
   friendId: string,
   ack: (response: MarkReadAck) => void
 ): void {
-  const socket = getOrCreateSocket();
+  const socket = getExistingSocket();
+  if (!socket) {
+    ack({ status: 'error', error: 'socket_disconnected' });
+    return;
+  }
   console.log('[ws] emit mark_read', { friendId, connected: socket.connected });
   socket.emit('mark_read', { friendId }, ack);
 }
 
 export function emitChatOpened(chatId: string) {
   currentChatId = chatId;
-  getOrCreateSocket().emit('chat_opened', {
-    chatId,
-  });
+  getExistingSocket()?.emit('chat_opened', { chatId });
 }
 
 export function emitChatClosed() {
   currentChatId = null;
 
-  getOrCreateSocket().emit('chat_closed');
+  getExistingSocket()?.emit('chat_closed');
 }
 
 export type { NewMessageEvent, MessageReadEvent };

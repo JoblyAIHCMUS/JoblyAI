@@ -3,6 +3,7 @@ import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
+  clearLocalNotifications,
   registerForPushNotifications,
   syncRefreshedPushToken,
 } from '../services/notification.service';
@@ -10,11 +11,16 @@ import { getNotificationRoute } from '@/utils/notification-navigation';
 
 export function NotificationManager() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isPending } = useAuth();
   const handledResponseId = useRef<string | null>(null);
 
   useEffect(() => {
+    if (isPending) {
+      return;
+    }
+
     if (!user?.id) {
+      void clearLocalNotifications();
       return;
     }
 
@@ -29,7 +35,7 @@ export function NotificationManager() {
     });
 
     return () => tokenSubscription.remove();
-  }, [user?.id]);
+  }, [isPending, user?.id]);
 
   useEffect(() => {
     if (!user?.id) {

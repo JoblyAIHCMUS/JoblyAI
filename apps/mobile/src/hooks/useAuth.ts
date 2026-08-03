@@ -24,6 +24,11 @@ import {
   type ResetPasswordPayload,
   type AuthResponse,
 } from '../api/auth';
+import {
+  clearLocalNotifications,
+  unregisterCurrentDevice,
+} from '../services/notification.service';
+import { disconnectSocket } from './useMessagesSocket';
 
 function readErrorMessageFromData(data: unknown): string | null {
   if (!data) {
@@ -291,6 +296,15 @@ export function useLogout() {
     setLoading(true);
     setError(null);
     try {
+      try {
+        await unregisterCurrentDevice();
+      } catch (error) {
+        console.warn('[notifications] Could not unregister device token', error);
+      }
+
+      await clearLocalNotifications();
+      disconnectSocket();
+
       const { error: signOutError } = await authClient.signOut();
       if (signOutError) {
         throw signOutError;

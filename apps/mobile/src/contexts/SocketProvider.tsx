@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { AppState } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
@@ -6,7 +12,9 @@ import {
   getOrCreateSocket,
   emitSendMessage,
   emitMarkRead,
+  disconnectSocket,
 } from '../hooks/useMessagesSocket';
+import { useAuth } from '../hooks/useAuth';
 import {
   applyNewMessageToSummary,
   applyNewMessageToHistory,
@@ -24,7 +32,7 @@ type NewMessageListener = (m: NewMessageEvent) => void;
 type MessageReadListener = (d: MessageReadEvent) => void;
 
 export interface SocketContextValue {
-  socket: Socket;
+  socket: Socket | null;
   sendMessage: (
     recipientId: string,
     text: string,
@@ -38,13 +46,32 @@ export interface SocketContextValue {
 const SocketContext = createContext<SocketContextValue | null>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const socket = getOrCreateSocket();
+  const { session, isPending } = useAuth();
+  const [socket, setSocket] = useState<Socket | null>(null);
   const queryClient = useQueryClient();
   const newMessageListeners = useRef(new Set<NewMessageListener>());
   const messageReadListeners = useRef(new Set<MessageReadListener>());
 
+  useEffect(() => {
+    if (isPending) {
+      return;
+    }
+
+    if (!session?.user?.id) {
+      disconnectSocket();
+      setSocket(null);
+      return;
+    }
+
+    setSocket(getOrCreateSocket());
+  }, [isPending, session?.user?.id]);
+
   // ---- Wire raw socket events ONCE ------------------------------------
   useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
     const onNewMessage = (msg: NewMessageEvent) => {
       newMessageListeners.current.forEach((cb) => {
         try {
