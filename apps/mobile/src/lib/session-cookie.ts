@@ -3,9 +3,7 @@ import { authClient } from './auth-client';
 
 const SECURE_STORE_COOKIE_KEY = 'jobly_cookie';
 
-function parseStoredCookieValue(
-  raw: string | null
-): string {
+function parseStoredCookieValue(raw: string | null): string {
   if (!raw) {
     return '';
   }

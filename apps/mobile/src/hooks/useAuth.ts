@@ -299,7 +299,10 @@ export function useLogout() {
       try {
         await unregisterCurrentDevice();
       } catch (error) {
-        console.warn('[notifications] Could not unregister device token', error);
+        console.warn(
+          '[notifications] Could not unregister device token',
+          error
+        );
       }
 
       await clearLocalNotifications();

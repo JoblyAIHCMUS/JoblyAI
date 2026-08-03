@@ -1,8 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  emitMarkRead,
-  getExistingSocket,
-} from '../../hooks/useMessagesSocket';
+import { emitMarkRead, getExistingSocket } from '../../hooks/useMessagesSocket';
 import { applyMarkReadToSummary } from '../../contexts/cacheUpdaters';
 import type { ChatSummary, MarkReadAck } from '../../types/message';
 
