@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
@@ -141,7 +142,16 @@ export default function EmployerJobListingScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching && !isFetchingNextPage}
-            onRefresh={refetch}
+            onRefresh={async () => {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              try {
+                await refetch();
+              } catch {
+                await Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Error
+                );
+              }
+            }}
             colors={[COLORS.primary]}
           />
         }

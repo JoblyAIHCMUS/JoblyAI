@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import Avatar from '../../../../../components/Avatar';
 import { PipelineView } from './PipelineView';
 import { COLORS } from '../../../../constants/theme';
@@ -257,7 +258,16 @@ export default function ApplicantsTab({
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
-              onRefresh={refetch}
+              onRefresh={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                try {
+                  await refetch();
+                } catch {
+                  await Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Error
+                  );
+                }
+              }}
               colors={[COLORS.primary]}
             />
           }

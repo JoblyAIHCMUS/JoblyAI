@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import {
-  ActivityIndicator,
   Image,
   RefreshControl,
   ScrollView,
@@ -20,6 +19,8 @@ import { useCompanies } from '@/hooks';
 import type { Company } from '@/types/company';
 import { COLORS } from '@/app/constants/theme';
 import AppSidebar from '@/app/components/AppSidebar';
+import { CompanyCardSkeleton, EmptyState } from '@/components/ui/feedback';
+import * as Haptics from 'expo-haptics';
 
 const POPULAR_SEARCHES = ['Design', 'Engineering', 'Marketing', 'Finance'];
 const PAGE_SIZE = 6;
@@ -183,10 +184,13 @@ export default function BrowseCompaniesPage() {
   };
 
   const handleRefresh = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setRefreshing(true);
 
     try {
       await refetch();
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setRefreshing(false);
     }
@@ -358,11 +362,10 @@ export default function BrowseCompaniesPage() {
             </View>
 
             {loading && companies.length === 0 ? (
-              <View className="items-center py-12">
-                <ActivityIndicator size="large" color={COLORS.primary2} />
-                <Text className="mt-4 text-sm text-app-text-5">
-                  Loading companies...
-                </Text>
+              <View className="mt-6 gap-6">
+                {[0, 1, 2].map((item) => (
+                  <CompanyCardSkeleton key={item} />
+                ))}
               </View>
             ) : error ? (
               <View className="mt-6 rounded-lg bg-app-tag-red-bg px-4 py-8">
@@ -371,12 +374,24 @@ export default function BrowseCompaniesPage() {
                 </Text>
               </View>
             ) : companies.length === 0 ? (
-              <View className="mt-6 rounded-lg bg-app-bg-input px-4 py-8">
-                <Text className="text-center text-base text-app-text-5">
-                  {hasActiveSearch
-                    ? 'No companies match your search.'
-                    : 'No companies match your filters.'}
-                </Text>
+              <View className="mt-6">
+                <EmptyState
+                  icon={Building2}
+                  title="No companies found"
+                  message={
+                    hasActiveSearch
+                      ? 'Try a different keyword or location.'
+                      : 'Clear your filters to browse all available companies.'
+                  }
+                  actionLabel="Clear Filters"
+                  onAction={() => {
+                    setLocalSearchTerm('');
+                    setLocalLocation('');
+                    setAppliedSearchTerm('');
+                    setAppliedLocation('');
+                    setSelectedCompanySize('All');
+                  }}
+                />
               </View>
             ) : (
               <View className="mt-6 gap-6">

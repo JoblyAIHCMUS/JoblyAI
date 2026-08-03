@@ -1,19 +1,19 @@
 import { Briefcase } from 'lucide-react-native';
 import { View } from 'react-native';
-
-import { Text } from '@/components/ui/text';
-import { COLORS } from '@/app/constants/theme';
+import { EmptyState } from '@/components/ui/feedback';
 
 import type { ApplicationTab } from '../../dashboard/types';
 
 interface ApplicationsEmptyStateProps {
   activeTab: ApplicationTab;
   searchQuery: string;
+  onBrowseJobs?: () => void;
 }
 
 export function ApplicationsEmptyState({
   activeTab,
   searchQuery,
+  onBrowseJobs,
 }: ApplicationsEmptyStateProps) {
   const message = searchQuery.trim()
     ? `No applications match “${searchQuery.trim()}”.`
@@ -22,21 +22,14 @@ export function ApplicationsEmptyState({
     : `No ${activeTab.toLowerCase().replace('_', ' ')} applications found.`;
 
   return (
-    <View className="mt-3 rounded-2xl border border-app-border-light bg-app-neutral-1 px-6 py-12">
-      <View className="items-center gap-4">
-        <View className="h-14 w-14 items-center justify-center rounded-full bg-app-indigo-soft">
-          <Briefcase size={24} color={COLORS.primary2} strokeWidth={2.1} />
-        </View>
-
-        <View className="items-center gap-2">
-          <Text className="text-base font-semibold text-app-text-4">
-            No applications yet
-          </Text>
-          <Text className="text-center text-sm leading-5 text-app-text-5">
-            {message}
-          </Text>
-        </View>
-      </View>
+    <View className="mt-3">
+      <EmptyState
+        icon={Briefcase}
+        title="No applications yet"
+        message={message}
+        actionLabel={!searchQuery.trim() ? 'Browse Jobs' : undefined}
+        onAction={!searchQuery.trim() ? onBrowseJobs : undefined}
+      />
     </View>
   );
 }

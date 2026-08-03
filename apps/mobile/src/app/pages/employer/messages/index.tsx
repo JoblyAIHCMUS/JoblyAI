@@ -12,6 +12,9 @@ import { mapChatSummaryToConversation, filterBySearch } from './utils';
 import { Conversation } from './types';
 import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
+import { EmptyState } from '@/components/ui/feedback';
+import { MessageCircle } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 export default function MessagesScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,16 +48,21 @@ export default function MessagesScreen() {
     });
   }, []);
 
-  const onRefresh = useCallback(() => {
-    refetch();
+  const onRefresh = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await refetch();
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   }, [refetch]);
 
   const renderEmpty = () => (
-    <View className="items-center py-10">
-      <Text className="text-base font-normal text-app-slate-3">
-        No messages found
-      </Text>
-    </View>
+    <EmptyState
+      icon={MessageCircle}
+      title="No messages yet"
+      message="Conversations with candidates will appear here."
+    />
   );
 
   if (isLoading) {

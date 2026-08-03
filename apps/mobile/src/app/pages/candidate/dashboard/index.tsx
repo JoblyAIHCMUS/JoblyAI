@@ -23,6 +23,7 @@ import {
 import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
 import { getFullName, useUser } from '@/hooks/useUser';
 import { useGetCandidateProfile } from '@/hooks/useGetCandidateProfile';
+import * as Haptics from 'expo-haptics';
 import type { CandidateApplicationRecord } from '@/types/application';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
@@ -621,10 +622,13 @@ export default function CandidateDashboard() {
   );
 
   const onRefresh = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setRefreshing(true);
 
     try {
       await fetchApplications({ pageSize: 100 });
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setRefreshing(false);
     }
