@@ -20,6 +20,31 @@ import { COLORS } from '../../../constants/theme';
 
 type UserType = 'job-seeker' | 'employer';
 
+type FieldName =
+  | 'firstName'
+  | 'lastName'
+  | 'email'
+  | 'password'
+  | 'confirmPassword';
+
+type FieldErrors = Partial<Record<FieldName, string>>;
+type TouchedFields = Record<FieldName, boolean>;
+
+const PASSWORD_RULES = [
+  { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
+  { label: 'One uppercase letter', test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'One lowercase letter', test: (p: string) => /[a-z]/.test(p) },
+  { label: 'One number', test: (p: string) => /\d/.test(p) },
+  {
+    label: 'One special character',
+    test: (p: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p),
+  },
+];
+
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const RegisterPage = () => {
   const { signup, loading, error } = useSignup();
   const [firstName, setFirstName] = useState('');
@@ -30,6 +55,84 @@ const RegisterPage = () => {
   const [userType, setUserType] = useState<UserType>('job-seeker');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<TouchedFields>({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  const validateField = (
+    field: FieldName,
+    value: string
+  ): string | undefined => {
+    switch (field) {
+      case 'firstName':
+        return value.trim() ? undefined : 'Please enter your first name';
+      case 'lastName':
+        return value.trim() ? undefined : 'Please enter your last name';
+      case 'email':
+        if (!value.trim()) return 'Please enter your email address';
+        return EMAIL_REGEX.test(value.trim())
+          ? undefined
+          : 'Please enter a valid email address';
+      case 'password':
+        if (!value) return 'Please enter a password';
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        if (!PASSWORD_REGEX.test(value))
+          return 'Password must include upper, lower, number, and special character';
+        return undefined;
+      case 'confirmPassword':
+        return value === password ? undefined : 'Passwords do not match';
+    }
+  };
+
+  const handleBlur = (field: FieldName, value: string) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors((prev) => ({ ...prev, [field]: validateField(field, value) }));
+  };
+
+  // ponytail: AuthTextInputProps has no onBlur; spread a helper-built prop
+  // instead of touching the shared TextInput interface (task scope = this file).
+  const blurProps = (field: FieldName, value: string) => ({
+    onBlur: handleBlur(field, value),
+  });
+
+  const handleChange =
+    (field: FieldName, setter: (text: string) => void) => (text: string) => {
+      setter(text);
+      if (touched[field]) {
+        setErrors((prev) => ({ ...prev, [field]: validateField(field, text) }));
+      }
+    };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    setErrors((prev) => ({
+      ...prev,
+      password: touched.password
+        ? validateField('password', text)
+        : prev.password,
+      confirmPassword: touched.confirmPassword
+        ? confirmPassword === text
+          ? undefined
+          : 'Passwords do not match'
+        : prev.confirmPassword,
+    }));
+  };
+
+  const handleConfirmPasswordChange = (text: string) => {
+    setConfirmPassword(text);
+    if (touched.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          text === password ? undefined : 'Passwords do not match',
+      }));
+    }
+  };
 
   const handleGoogleSignup = async () => {
     try {
@@ -65,69 +168,23 @@ const RegisterPage = () => {
   };
 
   const handleSignup = async () => {
-    if (!firstName.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter your first name',
-      });
-      return;
-    }
+    const nextErrors: FieldErrors = {
+      firstName: validateField('firstName', firstName),
+      lastName: validateField('lastName', lastName),
+      email: validateField('email', email),
+      password: validateField('password', password),
+      confirmPassword: validateField('confirmPassword', confirmPassword),
+    };
+    setErrors(nextErrors);
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
 
-    if (!lastName.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter your last name',
-      });
-      return;
-    }
-
-    if (!email.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter your email address',
-      });
-      return;
-    }
-
-    if (!password.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter a password',
-      });
-      return;
-    }
-
-    if (password.length < 8) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Password must be at least 8 characters',
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Passwords do not match',
-      });
-      return;
-    }
-
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
-    if (!passwordRegex.test(password)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2:
-          'Password must include upper, lower, number, and special character',
-      });
+    if (Object.values(nextErrors).some(Boolean)) {
       return;
     }
 
@@ -211,8 +268,10 @@ const RegisterPage = () => {
                 label="First Name"
                 placeholder="John"
                 value={firstName}
-                onChangeText={setFirstName}
+                onChangeText={handleChange('firstName', setFirstName)}
+                {...blurProps('firstName', firstName)}
                 editable={!loading}
+                error={errors.firstName}
               />
             </View>
             <View className="flex-1">
@@ -220,8 +279,10 @@ const RegisterPage = () => {
                 label="Last Name"
                 placeholder="Doe"
                 value={lastName}
-                onChangeText={setLastName}
+                onChangeText={handleChange('lastName', setLastName)}
+                {...blurProps('lastName', lastName)}
                 editable={!loading}
+                error={errors.lastName}
               />
             </View>
           </View>
@@ -231,9 +292,11 @@ const RegisterPage = () => {
             label="Email Address"
             placeholder="name@example.com"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={handleChange('email', setEmail)}
+            {...blurProps('email', email)}
             keyboardType="email-address"
             editable={!loading}
+            error={errors.email}
           />
 
           <View className="h-2" />
@@ -243,9 +306,11 @@ const RegisterPage = () => {
             label="Password"
             placeholder="At least 8 characters"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={handlePasswordChange}
+            {...blurProps('password', password)}
             secureTextEntry={!showPassword}
             editable={!loading}
+            error={errors.password}
             rightElement={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
@@ -259,14 +324,41 @@ const RegisterPage = () => {
 
           <View className="h-2" />
 
+          {/* Password Checklist */}
+          <View className="mb-2 gap-1">
+            {PASSWORD_RULES.map((rule) => {
+              const satisfied = rule.test(password);
+              return (
+                <View key={rule.label} className="flex-row items-center gap-2">
+                  <Text
+                    className={`text-xs font-bold ${
+                      satisfied ? 'text-green-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {satisfied ? '✓' : '○'}
+                  </Text>
+                  <Text
+                    className={`text-xs ${
+                      satisfied ? 'text-green-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {rule.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+
           {/* Confirm Password */}
           <TextInput
             label="Confirm Password"
             placeholder="Re-enter password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={handleConfirmPasswordChange}
+            {...blurProps('confirmPassword', confirmPassword)}
             secureTextEntry={!showConfirmPassword}
             editable={!loading}
+            error={errors.confirmPassword}
             rightElement={
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
