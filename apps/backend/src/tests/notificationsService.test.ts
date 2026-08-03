@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationsService } from '../app/notifications/notifications.service';
 import { NotificationsGateway } from '../app/notifications/notifications.gateway';
+import { FcmService } from '../app/notifications/fcm.service';
 import { PrismaClient } from '@prisma/client';
 import { CreateNotificationDTO } from '../app/notifications/dto/create-notification.dto';
 import { NotificationType } from '../app/notifications/notification-type.enum';
@@ -26,10 +27,19 @@ describe('NotificationsService', () => {
       findMany: vi.fn(),
       upsert: vi.fn(),
     },
+    userDevice: {
+      findMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   };
 
   const mockGateway = {
     sendNotification: vi.fn(),
+  };
+
+  const mockFcmService = {
+    sendPushToDevices: vi.fn(),
+    sendPushNotification: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -38,6 +48,7 @@ describe('NotificationsService', () => {
         NotificationsService,
         { provide: 'PRISMA_CLIENT', useValue: mockPrisma },
         { provide: NotificationsGateway, useValue: mockGateway },
+        { provide: FcmService, useValue: mockFcmService },
       ],
     }).compile();
 
@@ -48,8 +59,16 @@ describe('NotificationsService', () => {
     // Ensure they are correctly assigned (handle any race conditions or injection issues)
     (service as any).prisma = prisma;
     (service as any).notificationsGateway = gateway;
+    (service as any).fcmService = mockFcmService;
 
     vi.clearAllMocks();
+    mockPrisma.userDevice.findMany.mockResolvedValue([]);
+    mockPrisma.userDevice.deleteMany.mockResolvedValue({ count: 0 });
+    mockFcmService.sendPushToDevices.mockResolvedValue({
+      successCount: 0,
+      failureCount: 0,
+      invalidTokens: [],
+    });
     mockPrisma.$transaction.mockImplementation((operations) =>
       Promise.all(operations)
     );
@@ -57,6 +76,63 @@ describe('NotificationsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('unregisterDevice', () => {
+    it('deletes only the matching token owned by the authenticated user', async () => {
+      mockPrisma.userDevice.deleteMany.mockResolvedValue({ count: 1 });
+
+      await expect(
+        service.unregisterDevice('user-1', 'token-a')
+      ).resolves.toEqual({ deleted: true });
+
+      expect(prisma.userDevice.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', pushToken: 'token-a' },
+      });
+    });
+
+    it('is idempotent when the token is already absent', async () => {
+      mockPrisma.userDevice.deleteMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        service.unregisterDevice('user-1', 'missing-token')
+      ).resolves.toEqual({ deleted: false });
+    });
+
+    it('does not target another user when the token belongs elsewhere', async () => {
+      mockPrisma.userDevice.deleteMany.mockResolvedValue({ count: 0 });
+
+      await service.unregisterDevice('user-1', 'token-owned-by-user-2');
+
+      expect(prisma.userDevice.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', pushToken: 'token-owned-by-user-2' },
+      });
+    });
+  });
+
+  describe('sendPushToUser', () => {
+    it('sends only the currently registered devices for a user', async () => {
+      const payload = { title: 'Title', body: 'Body' };
+      mockPrisma.userDevice.findMany.mockResolvedValue([
+        { pushToken: 'token-a' },
+      ]);
+      mockFcmService.sendPushToDevices.mockResolvedValue({
+        successCount: 1,
+        failureCount: 0,
+        invalidTokens: [],
+      });
+
+      await service.sendPushToUser('user-1', payload);
+
+      expect(prisma.userDevice.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+        select: { pushToken: true },
+      });
+      expect(mockFcmService.sendPushToDevices).toHaveBeenCalledWith(
+        ['token-a'],
+        payload
+      );
+    });
   });
 
   describe('createNotification', () => {

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { emitMarkRead, getOrCreateSocket } from '../../hooks/useMessagesSocket';
+import { emitMarkRead, getExistingSocket } from '../../hooks/useMessagesSocket';
 import { applyMarkReadToSummary } from '../../contexts/cacheUpdaters';
 import type { ChatSummary, MarkReadAck } from '../../types/message';
 
@@ -18,7 +18,7 @@ export function useMarkAsRead(opts: UseMarkAsReadOptions) {
         const timer = setTimeout(() => {
           console.log('[mark-read] timeout', {
             chatId: opts.chatId,
-            connected: getOrCreateSocket().connected,
+            connected: getExistingSocket()?.connected ?? false,
           });
           reject(new Error('mark_read_timeout'));
         }, 10_000);

@@ -54,7 +54,7 @@ export function ConversationSidebar({
       </div>
 
       {/* Conversations List wrapped in ScrollArea */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-w-0 [&>div[data-radix-scroll-area-viewport]>div]:w-full [&>div[data-radix-scroll-area-viewport]>div]:table-fixed">
         <div>
           {isLoading && (
             <div className="px-2 sm:px-3 md:px-4 py-4 text-center text-xs sm:text-sm text-slate-500">
@@ -76,7 +76,7 @@ export function ConversationSidebar({
                   : ''
               }`}
             >
-              <div className="flex items-start gap-2 sm:gap-3">
+              <div className="flex min-w-0 items-start gap-2 sm:gap-3">
                 <div className="relative flex-shrink-0 mt-1">
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10">
                     <AvatarImage
@@ -101,7 +101,7 @@ export function ConversationSidebar({
                       {conversation.timestamp}
                     </span>
                   </div>
-                  <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-slate-600 truncate">
+                  <p className="mt-0.5 sm:mt-1 max-w-full text-xs sm:text-sm text-slate-600 truncate">
                     {conversation.lastMessage || 'No messages yet'}
                   </p>
                 </div>

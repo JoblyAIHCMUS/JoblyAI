@@ -24,6 +24,11 @@ import {
   type ResetPasswordPayload,
   type AuthResponse,
 } from '../api/auth';
+import {
+  clearLocalNotifications,
+  unregisterCurrentDevice,
+} from '../services/notification.service';
+import { disconnectSocket } from './useMessagesSocket';
 
 function readErrorMessageFromData(data: unknown): string | null {
   if (!data) {
@@ -281,7 +286,9 @@ export function useLogout() {
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.user });
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.employerProfile });
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.candidateProfile });
-    router.dismissAll();
+    if (router.canGoBack()) {
+      router.dismissAll();
+    }
     router.replace('/');
   }, [router]);
 
@@ -289,6 +296,18 @@ export function useLogout() {
     setLoading(true);
     setError(null);
     try {
+      try {
+        await unregisterCurrentDevice();
+      } catch (error) {
+        console.warn(
+          '[notifications] Could not unregister device token',
+          error
+        );
+      }
+
+      await clearLocalNotifications();
+      disconnectSocket();
+
       const { error: signOutError } = await authClient.signOut();
       if (signOutError) {
         throw signOutError;

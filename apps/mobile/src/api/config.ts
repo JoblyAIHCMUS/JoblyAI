@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import { authClient } from '../lib/auth-client';
 import { API_BASE_URL } from '../lib/api-base';
 import { getSession, invalidateSession, clearLocalSession } from '../lib/auth';
+import { getSessionCookieHeader } from '../lib/session-cookie';
 import { getDashboardPath } from '@/utils/auth-route';
 import type { UserRole } from '@/app/constants/role';
 
@@ -15,46 +14,8 @@ export const apiClient = axios.create({
   withCredentials: false,
 });
 
-// Mirror of better-auth/expo's `getCookie` helper. We re-implement it here so
-// the request interceptor can `await` it (the upstream `authClient.getCookie()`
-// is sync and depends on a sync SecureStore JSI shim that can return a
-// Promise in some Android prod builds, which silently yields an empty cookie
-// and triggers a 401 on the first post-login bootstrap call).
-const SECURE_STORE_COOKIE_KEY = 'jobly_cookie';
-
-function parseStoredCookieValue(raw: string | null): string {
-  if (!raw) return '';
-  let parsed: Record<string, { value: string; expires?: string }> = {};
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return '';
-  }
-  const now = Date.now();
-  return Object.entries(parsed)
-    .filter(([, v]) => {
-      if (!v?.value) return false;
-      if (!v.expires) return true;
-      return new Date(v.expires).getTime() > now;
-    })
-    .map(([k, v]) => `${k}=${v.value}`)
-    .join('; ');
-}
-
-async function readSessionCookieHeader(): Promise<string> {
-  try {
-    const raw = await SecureStore.getItemAsync(SECURE_STORE_COOKIE_KEY);
-    return parseStoredCookieValue(raw);
-  } catch {
-    // Fall back to the upstream sync getter if the async read throws for
-    // any reason (e.g. SecureStore unavailable on a weird platform).
-    const client = authClient as unknown as { getCookie?: () => string };
-    return client.getCookie?.() ?? '';
-  }
-}
-
 apiClient.interceptors.request.use(async (config) => {
-  const cookies = await readSessionCookieHeader();
+  const cookies = await getSessionCookieHeader();
 
   if (cookies) {
     config.headers = config.headers ?? {};
@@ -98,7 +59,9 @@ apiClient.interceptors.response.use(
     // the next real API call (candidate profile, applications, etc.)
     // will still catch it.
     const skipUrl =
-      requestUrl.includes('/auth/') || requestUrl.includes('/devices/register');
+      requestUrl.includes('/auth/') ||
+      requestUrl.includes('/devices/register') ||
+      requestUrl.includes('/devices/current');
 
     if (!axios.isAxiosError(error) || handlingAuthError || skipUrl) {
       if (
@@ -127,7 +90,9 @@ apiClient.interceptors.response.use(
         } catch {
           /* signOut is best-effort */
         }
-        router.dismissAll();
+        if (router.canGoBack()) {
+          router.dismissAll();
+        }
         router.replace('/');
       } else {
         // 403 — the cookie is still good; we just hit a screen that the
@@ -146,7 +111,9 @@ apiClient.interceptors.response.use(
           // authenticated, just on the wrong screen.
           nextPath = '/';
         }
-        router.dismissAll();
+        if (router.canGoBack()) {
+          router.dismissAll();
+        }
         router.replace(nextPath);
       }
     } finally {
