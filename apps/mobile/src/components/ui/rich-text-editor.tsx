@@ -99,7 +99,7 @@ export const RichTextEditor = React.forwardRef<
 
   const toolbarButtonClass = (isActive?: boolean, isBlocking?: boolean) =>
     [
-      'p-2 rounded border',
+      'min-h-11 min-w-11 items-center justify-center p-2 rounded border',
       isActive ? 'bg-blue-100 border-blue-400' : 'bg-white border-slate-200',
       isBlocking ? 'opacity-40' : 'active:bg-slate-100',
     ].join(' ');

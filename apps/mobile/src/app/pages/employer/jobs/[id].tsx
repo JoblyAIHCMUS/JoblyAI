@@ -169,8 +169,7 @@ export default function JobDetailsScreen() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <TouchableOpacity
           activeOpacity={0.8}
-          className="p-1"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="min-h-11 min-w-11 items-center justify-center"
           onPress={() => router.back()}
         >
           <ArrowLeft size={32} color={COLORS.brandDark} />
@@ -178,8 +177,7 @@ export default function JobDetailsScreen() {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          className="p-1"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="min-h-11 min-w-11 items-center justify-center"
         >
           <MoreHorizontal size={32} color={COLORS.brandDark} />
         </TouchableOpacity>

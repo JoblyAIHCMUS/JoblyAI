@@ -157,7 +157,7 @@ export function ResumeSection({
                   <TouchableOpacity
                     onPress={() => onDelete(resume.id)}
                     disabled={deletingResume || uploading}
-                    className="h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50"
+                    className="min-h-11 min-w-11 items-center justify-center rounded-full border border-red-200 bg-red-50"
                   >
                     <Trash2 size={16} color={COLORS.tagRedText} />
                   </TouchableOpacity>

@@ -54,8 +54,7 @@ export default function AllApplicationsDetailPage() {
         <View className="flex-row items-center px-4 py-3">
           <TouchableOpacity
             activeOpacity={0.8}
-            className="p-1"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="min-h-11 min-w-11 items-center justify-center"
             onPress={() => router.back()}
           >
             <ArrowLeft size={32} color={COLORS.brandDark} />
@@ -73,7 +72,7 @@ export default function AllApplicationsDetailPage() {
               onPress={() => {
                 void refetch();
               }}
-              className="self-start mt-3 px-3 py-1.5 rounded-md border border-app-red-1"
+               className="self-start mt-3 min-h-11 items-center justify-center rounded-md border border-app-red-1 px-3 py-1.5"
               activeOpacity={0.7}
             >
               <Text className="text-sm font-semibold text-app-red-1">
@@ -98,8 +97,7 @@ export default function AllApplicationsDetailPage() {
       <View className="flex-row items-center px-4 py-3">
         <TouchableOpacity
           activeOpacity={0.8}
-          className="p-1"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="min-h-11 min-w-11 items-center justify-center"
           onPress={() => router.back()}
         >
           <ArrowLeft size={32} color={COLORS.brandDark} />

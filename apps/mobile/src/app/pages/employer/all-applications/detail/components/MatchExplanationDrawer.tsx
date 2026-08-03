@@ -83,7 +83,10 @@ export function MatchExplanationDrawer({
                 Match Analysis
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} hitSlop={8}>
+            <TouchableOpacity
+              onPress={onClose}
+              className="min-h-11 min-w-11 items-center justify-center"
+            >
               <X size={20} color={COLORS.gray3} />
             </TouchableOpacity>
           </View>

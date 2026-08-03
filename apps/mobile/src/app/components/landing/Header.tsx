@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import Logo from '../../../../assets/images/jobly-logo.svg';
+import Logo from '../../../../assets/images/AppIcons/appstore.png';
 import { COLORS } from '../../constants/theme';
 
 interface HeaderProps {
@@ -34,8 +34,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress }) => {
 
         {/* Logo and Brand */}
         <View className="flex-row items-center gap-2.5">
-          <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
-            <Logo width={34} height={34} />
+          <View className="h-[34px] w-[34px] overflow-hidden rounded-[18%]">
+            <Image source={Logo} className="h-[34px] w-[34px]" resizeMode="contain" />
           </View>
           <Text className="text-2xl font-black text-app-brand-text">
             JoblyAI

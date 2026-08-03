@@ -134,8 +134,7 @@ export default function CompanyProfilePage() {
         <View className="flex-row items-center px-4 py-3 justify-between">
           <TouchableOpacity
             activeOpacity={0.8}
-            className="p-1"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="min-h-11 min-w-11 items-center justify-center"
             onPress={() => router.back()}
           >
             <ArrowLeft size={24} color={COLORS.brandDark} />
@@ -143,7 +142,7 @@ export default function CompanyProfilePage() {
           {isCompanyAdmin && (
             <TouchableOpacity
               activeOpacity={0.8}
-              className="p-1"
+              className="min-h-11 min-w-11 items-center justify-center"
               onPress={() => {
                 router.push(`/pages/employer/edit-company`);
               }}

@@ -153,8 +153,7 @@ export function LocationAutocomplete({
         {inputValue.length > 0 && !disabled && (
           <Pressable
             onPress={handleClear}
-            className="absolute right-3 rounded-full p-0.5"
-            hitSlop={8}
+            className="absolute right-1 min-h-11 min-w-11 items-center justify-center rounded-full"
           >
             <X size={16} color={COLORS.slate400} />
           </Pressable>
@@ -178,7 +177,7 @@ export function LocationAutocomplete({
               <Pressable
                 key={suggestion.providerId}
                 onPress={() => void handleSelect(suggestion)}
-                className="flex-row items-center gap-3 border-b border-slate-100 px-3 py-2.5 active:bg-slate-100"
+                className="min-h-11 flex-row items-center gap-3 border-b border-slate-100 px-3 py-2.5 active:bg-slate-100"
               >
                 <MapPin size={16} color={COLORS.slate400} />
                 <Text

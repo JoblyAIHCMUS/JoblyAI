@@ -108,7 +108,7 @@ export function ApplicationsFilterSheet({
                       <Button
                         key={preset.key}
                         variant="outline"
-                        className={`h-9 flex-1 rounded-full border-app-border-light px-3 ${
+                        className={`min-h-11 flex-1 rounded-full border-app-border-light px-3 ${
                           isActive ? 'bg-app-indigo-soft' : 'bg-white'
                         }`}
                         onPress={() => {
@@ -181,7 +181,7 @@ export function ApplicationsFilterSheet({
                       <Button
                         key={opt}
                         variant="outline"
-                        className={`h-8 rounded-full border-app-border-light px-3 ${
+                        className={`min-h-11 rounded-full border-app-border-light px-3 ${
                           company === opt ? 'bg-app-indigo-soft' : 'bg-white'
                         }`}
                         onPress={() =>
@@ -217,7 +217,7 @@ export function ApplicationsFilterSheet({
                       <Button
                         key={opt}
                         variant="outline"
-                        className={`h-8 rounded-full border-app-border-light px-3 ${
+                        className={`min-h-11 rounded-full border-app-border-light px-3 ${
                           location === opt ? 'bg-app-indigo-soft' : 'bg-white'
                         }`}
                         onPress={() =>
