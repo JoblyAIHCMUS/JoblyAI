@@ -151,7 +151,7 @@ export default function JobCard({
       >
         <Link
           href={jobHref}
-          className="flex min-w-0 items-start gap-4 hover:opacity-80 transition-opacity"
+          className="flex w-full min-w-0 items-start gap-4 hover:opacity-80 transition-opacity lg:flex-1"
         >
           <div
             className={
@@ -172,53 +172,58 @@ export default function JobCard({
             )}
           </div>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="heading-h6-semi-bold text-slate-900">
+          <div className="min-w-0 flex-1">
+            <div className="flex w-full min-w-0 items-start gap-2">
+              <h3 className="min-w-0 flex-1 break-words heading-h6-semi-bold text-slate-900">
                 {job.title}
               </h3>
-              {job.matchPercentage !== undefined &&
-                job.matchPercentage !== null && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
-                        <Star size={10} className="fill-current" />
-                        {Math.round(job.matchPercentage)}% semantic
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="max-w-sm p-4 shadow-lg"
-                    >
-                      <p className="font-semibold text-sm mb-2">
-                        How this score is calculated
-                      </p>
-                      <p className="text-xs leading-relaxed mb-2">
-                        This match score is an AI-generated estimate based on
-                        how closely your resume aligns with the job posting. It
-                        gives you a quick sense of fit, but it is only an
-                        approximation.
-                      </p>
-                      <p className="text-xs leading-relaxed mb-2">
-                        The score looks at the overlap between the skills,
-                        experience, and keywords in your resume and those
-                        mentioned in the job. A higher score means a stronger
-                        match on paper, but it cannot capture everything.
-                      </p>
-                      <p className="text-xs leading-relaxed font-medium">
-                        Always read the full job description and required
-                        qualifications before deciding whether to apply. The
-                        description has details that the score may not reflect.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              {job.exactMatchPercentage !== undefined &&
-                job.exactMatchPercentage !== null && (
-                  <div className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-blue-50 text-blue-700 border-blue-200">
-                    {Math.round(job.exactMatchPercentage)}% exact
-                  </div>
-                )}
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                {job.matchPercentage !== undefined &&
+                  job.matchPercentage !== null && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="shrink-0 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                          <span className="flex items-center gap-1">
+                            <Star size={10} className="fill-current" />
+                            {Math.round(job.matchPercentage)}% semantic
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="max-w-sm p-4 shadow-lg"
+                      >
+                        <p className="font-semibold text-sm mb-2">
+                          How this score is calculated
+                        </p>
+                        <p className="text-xs leading-relaxed mb-2">
+                          This match score is an AI-generated estimate based on
+                          how closely your resume aligns with the job posting.
+                          It gives you a quick sense of fit, but it is only an
+                          approximation.
+                        </p>
+                        <p className="text-xs leading-relaxed mb-2">
+                          The score looks at the overlap between the skills,
+                          experience, and keywords in your resume and those
+                          mentioned in the job. A higher score means a stronger
+                          match on paper, but it cannot capture everything.
+                        </p>
+                        <p className="text-xs leading-relaxed font-medium">
+                          Always read the full job description and required
+                          qualifications before deciding whether to apply. The
+                          description has details that the score may not
+                          reflect.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                {job.exactMatchPercentage !== undefined &&
+                  job.exactMatchPercentage !== null && (
+                    <div className="shrink-0 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                      {Math.round(job.exactMatchPercentage)}% exact
+                    </div>
+                  )}
+              </div>
             </div>
             <p className="body-body-1-regular mt-1 text-slate-600">
               {job.location
