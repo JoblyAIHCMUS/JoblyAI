@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Image,
   PanResponder,
   useWindowDimensions,
 } from 'react-native';
@@ -15,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import Logo from '../../../../assets/images/jobly-logo.svg';
+import Logo from '../../../../assets/images/AppIcons/appstore.png';
 import { COLORS } from '../../constants/theme';
 import { AppButton } from '../shared/AppButton';
 import { useRouter } from 'expo-router';
@@ -150,8 +151,12 @@ const Sidebar = ({
             </Svg>
           </TouchableOpacity>
           <View className="flex-row items-center gap-2.5">
-            <View className="w-[34px] h-[34px] rounded-full overflow-hidden">
-              <Logo width={34} height={34} />
+            <View className="h-[34px] w-[34px] overflow-hidden rounded-[18%]">
+              <Image
+                source={Logo}
+                className="h-[34px] w-[34px]"
+                resizeMode="contain"
+              />
             </View>
             <Text className="text-2xl font-black text-app-brand-text">
               JoblyAI

@@ -196,7 +196,10 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
             </Text>
           </View>
 
-          <TouchableOpacity onPress={onClose} className="p-2">
+          <TouchableOpacity
+            onPress={onClose}
+            className="min-h-11 min-w-11 items-center justify-center"
+          >
             <X size={28} color={COLORS.darkText} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>

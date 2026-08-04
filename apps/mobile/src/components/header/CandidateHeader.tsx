@@ -37,7 +37,10 @@ export function CandidateHeader({
         style={{ borderBottomColor: COLORS.border }}
       >
         <View className="flex-row items-center justify-between">
-          <Pressable onPress={onMenuPress} className="p-2">
+          <Pressable
+            onPress={onMenuPress}
+            className="min-h-11 min-w-11 items-center justify-center"
+          >
             <Menu size={22} color={COLORS.textStrong} />
           </Pressable>
 

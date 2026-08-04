@@ -187,8 +187,8 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           </Text>
           <TouchableOpacity
             ref={moreButtonRef}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleMenuPress}
+            className="min-h-11 min-w-11 items-center justify-center"
           >
             <MoreHorizontal size={24} color={COLORS.brandDark} />
           </TouchableOpacity>

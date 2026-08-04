@@ -85,7 +85,10 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleShare} className="ml-2 p-2">
+          <TouchableOpacity
+            onPress={handleShare}
+            className="ml-2 min-h-11 min-w-11 items-center justify-center"
+          >
             <Share size={20} color={COLORS.darkText} />
           </TouchableOpacity>
         </View>

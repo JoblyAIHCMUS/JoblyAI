@@ -99,9 +99,8 @@ export function PipelineCard({
             applicant.status !== 'Withdrawn' && (
               <TouchableOpacity
                 ref={moreButtonRef}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 onPress={handleMenuPress}
-                className="ml-2"
+                className="ml-2 min-h-11 min-w-11 items-center justify-center"
               >
                 <MoreHorizontal size={20} color={COLORS.slate500} />
               </TouchableOpacity>

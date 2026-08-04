@@ -71,7 +71,7 @@ function HeaderIcon({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      className="h-8 w-8 items-center justify-center rounded-full border bg-white"
+      className="min-h-11 min-w-11 items-center justify-center rounded-full border bg-white"
       style={{ borderColor: COLORS.borderLight }}
       onPress={onPress}
     >

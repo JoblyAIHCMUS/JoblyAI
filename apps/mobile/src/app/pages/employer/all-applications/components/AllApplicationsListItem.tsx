@@ -122,9 +122,8 @@ export const AllApplicationsListItem: React.FC<
         {!isTerminal && (
           <TouchableOpacity
             ref={moreButtonRef}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleMenuPress}
-            className="ml-1"
+            className="ml-1 min-h-11 min-w-11 items-center justify-center"
           >
             <MoreHorizontal size={20} color={COLORS.slate500} />
           </TouchableOpacity>

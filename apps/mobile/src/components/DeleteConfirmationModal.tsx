@@ -74,7 +74,7 @@ export const DeleteConfirmationModal: React.FC<
             <TouchableOpacity
               disabled={isDeleting}
               onPress={onCancel}
-              className="flex-1 py-2 rounded-lg border bg-white"
+              className="min-h-11 flex-1 items-center justify-center rounded-lg border bg-white px-2 py-2"
               style={{ borderColor: COLORS.borderUnchecked }}
               activeOpacity={0.7}
             >
@@ -90,7 +90,7 @@ export const DeleteConfirmationModal: React.FC<
             <TouchableOpacity
               disabled={isDeleting}
               onPress={onConfirm}
-              className="flex-1 py-2 rounded-lg"
+              className="min-h-11 flex-1 items-center justify-center rounded-lg px-2 py-2"
               style={{ backgroundColor: COLORS.tagRedText }}
               activeOpacity={0.7}
             >

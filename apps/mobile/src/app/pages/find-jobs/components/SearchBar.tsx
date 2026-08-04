@@ -46,8 +46,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {searchTerm.length > 0 && (
           <TouchableOpacity
             onPress={() => onSearchTermChange('')}
-            className="p-1"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="min-h-11 min-w-11 items-center justify-center"
           >
             <X size={16} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>
@@ -68,8 +67,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           />
           <TouchableOpacity
             onPress={handleLocationClear}
-            className="p-1"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="min-h-11 min-w-11 items-center justify-center"
           >
             <X size={16} color={COLORS.textPlaceholder} strokeWidth={2} />
           </TouchableOpacity>

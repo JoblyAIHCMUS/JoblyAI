@@ -8,7 +8,7 @@ import {
 } from '../shared/svgs/Icons';
 
 const SocialIcon = ({ children }: { children: React.ReactNode }) => (
-  <TouchableOpacity className="bg-white/10 w-9 h-9 rounded-full items-center justify-center mx-1">
+  <TouchableOpacity className="bg-white/10 min-h-11 min-w-11 rounded-full items-center justify-center mx-1">
     {children}
   </TouchableOpacity>
 );

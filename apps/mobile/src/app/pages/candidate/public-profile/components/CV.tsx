@@ -256,7 +256,7 @@ export function CV({
                   <TouchableOpacity
                     onPress={() => handlePreview(resume)}
                     disabled={isBusy}
-                    className="h-8 w-8 items-center justify-center rounded-md border border-app-border-light"
+                    className="min-h-11 min-w-11 items-center justify-center rounded-md border border-app-border-light"
                   >
                     <Eye size={14} color={COLORS.gray3} />
                   </TouchableOpacity>
@@ -264,7 +264,7 @@ export function CV({
                   <TouchableOpacity
                     onPress={() => onTriggerParse?.(resume.id)}
                     disabled={isBusy || isParsing}
-                    className={`h-8 w-8 items-center justify-center rounded-md border ${
+                    className={`min-h-11 min-w-11 items-center justify-center rounded-md border ${
                       hasParseData
                         ? 'border-amber-400 bg-amber-50'
                         : 'border-app-border-light bg-gray-50'
@@ -283,7 +283,7 @@ export function CV({
                   <TouchableOpacity
                     onPress={() => handleSyncPress(resume)}
                     disabled={isBusy || !canSync}
-                    className={`h-8 w-8 items-center justify-center rounded-md border ${
+                    className={`min-h-11 min-w-11 items-center justify-center rounded-md border ${
                       canSync
                         ? 'border-app-primary-2 bg-app-primary-2'
                         : 'border-app-border-light bg-gray-100'
@@ -298,7 +298,7 @@ export function CV({
                   <TouchableOpacity
                     onPress={() => handleOpenDefaultConfirm(resume.id)}
                     disabled={resume.isDefault || isBusy}
-                    className={`h-8 w-8 items-center justify-center rounded-md border ${
+                    className={`min-h-11 min-w-11 items-center justify-center rounded-md border ${
                       resume.isDefault
                         ? 'border-app-border-light bg-gray-100'
                         : 'border-app-border-light'
@@ -322,7 +322,7 @@ export function CV({
                   <TouchableOpacity
                     onPress={() => onDeleteResume?.(resume.id)}
                     disabled={deletingResumeId === resume.id || isUpdating}
-                    className="h-8 w-8 items-center justify-center rounded-md border border-red-200"
+                    className="min-h-11 min-w-11 items-center justify-center rounded-md border border-red-200"
                   >
                     {deletingResumeId === resume.id ? (
                       <ActivityIndicator size="small" color={COLORS.error} />
@@ -411,7 +411,7 @@ export function CV({
               <TouchableOpacity
                 onPress={handleDownload}
                 disabled={!previewUri}
-                className="h-9 w-9 items-center justify-center rounded-lg border border-app-border-light"
+                className="min-h-11 min-w-11 items-center justify-center rounded-lg border border-app-border-light"
               >
                 <Download size={18} color={COLORS.primary2} />
               </TouchableOpacity>
@@ -420,7 +420,7 @@ export function CV({
                   setPreviewOpen(false);
                   setPreviewUri(null);
                 }}
-                className="h-9 w-9 items-center justify-center rounded-lg border border-app-border-light"
+                className="min-h-11 min-w-11 items-center justify-center rounded-lg border border-app-border-light"
               >
                 <X size={18} color={COLORS.gray3} />
               </TouchableOpacity>

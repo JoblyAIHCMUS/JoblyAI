@@ -389,8 +389,7 @@ export default function EmployerEditJobPage() {
             <View className="flex-row items-center gap-3 mb-2">
               <TouchableOpacity
                 onPress={() => router.back()}
-                className="p-1"
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="min-h-11 min-w-11 items-center justify-center"
               >
                 <ArrowLeft size={28} color={COLORS.brandDark} strokeWidth={2} />
               </TouchableOpacity>

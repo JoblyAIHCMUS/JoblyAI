@@ -17,7 +17,7 @@ export function NotificationBell({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel="Notifications"
-      className="relative h-10 w-10 items-center justify-center"
+      className="relative min-h-11 min-w-11 items-center justify-center"
     >
       <Bell size={22} color={COLORS.textStrong} />
 
