@@ -12,6 +12,7 @@ import {
 } from '../../dashboard/utils';
 import type { DatePreset, DateRangeInput } from '../../dashboard/types';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const QUICK_PRESETS: Array<{ key: DatePreset; label: string }> = [
   { key: 'TODAY', label: 'Today' },
@@ -73,10 +74,13 @@ export function ApplicationsFilterSheet({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end bg-black/20 px-3 pb-6">
+      <View className="flex-1 justify-end bg-black/20 px-3">
         <Pressable className="absolute inset-0" onPress={onClose} />
 
-        <View className="max-h-[85%] rounded-3xl border border-app-border-light bg-white px-4 py-4 shadow-2xl shadow-black/10">
+        <SafeAreaView
+          edges={['bottom']}
+          className="max-h-[85%] rounded-3xl border border-app-border-light bg-white px-4 py-4 pb-4 shadow-2xl shadow-black/10"
+        >
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="mb-4 flex-row items-start justify-between gap-3">
               <View className="flex-1 gap-1">
@@ -262,7 +266,7 @@ export function ApplicationsFilterSheet({
               </Button>
             </View>
           </ScrollView>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );

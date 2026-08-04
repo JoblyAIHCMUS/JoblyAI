@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { X } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
 import type { DatePreset } from '../types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface DateFilterModalProps {
   isOpen: boolean;
@@ -106,7 +107,10 @@ export default function DateFilterModal({
           onPress={onClose}
           className="flex-1"
         />
-        <View className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white pb-8">
+        <SafeAreaView
+          edges={['bottom']}
+          className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white pb-4"
+        >
           <View
             className="flex-row items-center justify-between border-b px-4 py-4"
             style={{ borderBottomColor: COLORS.border }}
@@ -161,7 +165,7 @@ export default function DateFilterModal({
               );
             })}
           </View>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );

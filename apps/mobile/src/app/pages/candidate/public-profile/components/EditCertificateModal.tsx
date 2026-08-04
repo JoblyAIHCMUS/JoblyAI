@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { createCertificate } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditCertificateModal({
   visible,
@@ -68,7 +69,10 @@ export default function EditCertificateModal({
         className="flex-1 items-center justify-end"
         style={{ backgroundColor: COLORS.overlay }}
       >
-        <View className="w-full max-h-[90%] rounded-t-2xl bg-white p-4">
+        <SafeAreaView
+          edges={['bottom']}
+          className="w-full max-h-[90%] rounded-t-2xl bg-white p-4"
+        >
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">Add Certificate</Text>
 
@@ -179,7 +183,7 @@ export default function EditCertificateModal({
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );

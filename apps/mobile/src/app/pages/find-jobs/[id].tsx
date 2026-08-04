@@ -75,7 +75,7 @@ export default function JobDetailPage() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView
           className="flex-1 bg-white"
-          edges={['top', 'left', 'right']}
+          edges={['top', 'left', 'right', 'bottom']}
         >
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={COLORS.primary2} />
@@ -94,7 +94,7 @@ export default function JobDetailPage() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView
           className="flex-1 bg-white"
-          edges={['top', 'left', 'right']}
+          edges={['top', 'left', 'right', 'bottom']}
         >
           <View className="flex-1 items-center justify-center px-4">
             <Text className="text-center text-lg text-app-dark-text">
@@ -112,7 +112,7 @@ export default function JobDetailPage() {
 
       <SafeAreaView
         className="flex-1 bg-white"
-        edges={['top', 'left', 'right']}
+        edges={['top', 'left', 'right', 'bottom']}
       >
         <ScrollView className="flex-1">
           {/* Header */}

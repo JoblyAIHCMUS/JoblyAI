@@ -89,7 +89,7 @@ export default function CandidateCompanyProfilePage() {
   return (
     <SafeAreaView
       className="flex-1 bg-app-background-2"
-      edges={['top', 'left', 'right']}
+      edges={['top', 'left', 'right', 'bottom']}
     >
       <Stack.Screen options={{ headerShown: false }} />
       <AppSidebar

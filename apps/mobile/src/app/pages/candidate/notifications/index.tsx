@@ -1,7 +1,7 @@
 import { FlatList, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
 import {
@@ -14,8 +14,6 @@ import { useUser } from '@/hooks/useUser';
 import { COLORS } from '@/app/constants/theme';
 
 export default function NotificationsScreen() {
-  const insets = useSafeAreaInsets();
-
   const { data: notifications = [], isLoading } = useNotifications();
 
   const markAsReadMutation = useMarkNotificationAsRead();
@@ -25,12 +23,7 @@ export default function NotificationsScreen() {
   const { data: user } = useUser();
 
   return (
-    <View
-      className="flex-1 bg-white"
-      style={{
-        paddingTop: insets.top,
-      }}
-    >
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4">
         <View className="flex-row items-center">
           <Pressable onPress={() => router.back()}>
@@ -67,6 +60,7 @@ export default function NotificationsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{
             flexGrow: notifications.length === 0 ? 1 : 0,
+            paddingBottom: 16,
           }}
           ListEmptyComponent={() => (
             <View className="flex-1 items-center justify-center px-6">
@@ -122,6 +116,6 @@ export default function NotificationsScreen() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }

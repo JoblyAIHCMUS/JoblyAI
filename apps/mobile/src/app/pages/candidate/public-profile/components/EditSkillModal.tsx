@@ -12,6 +12,7 @@ import {
 import { useSearchSkills } from '../../../../../hooks/useSearchSkills';
 import { createCandidateSkill } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditSkillModal({
   visible,
@@ -75,7 +76,10 @@ export default function EditSkillModal({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View className="flex-1 items-center justify-end bg-black/40">
-        <View className="w-full max-h-[50%] rounded-t-2xl bg-white p-4">
+        <SafeAreaView
+          edges={['bottom']}
+          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4"
+        >
           <Text className="mb-4 text-lg font-semibold">Add Skill</Text>
 
           <TextInput
@@ -140,7 +144,7 @@ export default function EditSkillModal({
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );
