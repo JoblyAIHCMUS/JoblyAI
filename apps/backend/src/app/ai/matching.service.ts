@@ -248,6 +248,7 @@ export class MatchingService {
             applications: true,
           },
         },
+        preShortlistQuestions: { orderBy: { order: 'asc' } },
       },
     });
 
@@ -511,7 +512,8 @@ export class MatchingService {
 
   // Consistent with JobsService mapping
   private mapToJobResponse(job: any) {
-    const { requirements, postedById, _count, ...rest } = job;
+    const { requirements, postedById, _count, preShortlistQuestions, ...rest } =
+      job;
 
     return {
       ...rest,
@@ -525,6 +527,13 @@ export class MatchingService {
             minYearsExperience: jr.minYearsExperience,
           }))
         : [],
+      preShortlistQuestions: (preShortlistQuestions ?? []).map(
+        (question: any) => ({
+          id: question.id,
+          order: question.order,
+          question: question.question,
+        })
+      ),
       salaryMin: rest.salaryMin ? Number(rest.salaryMin) : null,
       salaryMax: rest.salaryMax ? Number(rest.salaryMax) : null,
     };
