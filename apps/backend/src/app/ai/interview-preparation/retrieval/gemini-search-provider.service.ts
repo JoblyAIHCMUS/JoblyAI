@@ -8,8 +8,32 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { InterviewQuestion } from '../dto/interview-question.model.js';
-import { SearchProvider } from './search-provider.interface.js';
+import {
+  SearchProvider,
+  SearchProviderOptions,
+} from './search-provider.interface.js';
 import { InterviewContext } from '../application/interview-context.model.js';
+import {
+  DEFAULT_SOURCES_FILTER_CONFIG,
+  SourcesFilterConfig,
+} from '../config/sources-filter.config.js';
+
+interface RawSourceItem {
+  title?: string | null;
+  url?: string | null;
+}
+
+interface RawQuestionItem {
+  question?: string | null;
+  category?: string | null;
+  difficulty?: string | null;
+  relevance?: string | null;
+  confidence?: number | null;
+  sampleAnswer?: string | null;
+  interviewerIntent?: string | null;
+  tips?: string | null;
+  sources?: RawSourceItem[];
+}
 
 @Injectable()
 export class GeminiSearchProvider implements SearchProvider {
@@ -32,7 +56,8 @@ export class GeminiSearchProvider implements SearchProvider {
 
   async searchAndExtract(
     context: InterviewContext,
-    queries: string[]
+    queries: string[],
+    options?: SearchProviderOptions
   ): Promise<InterviewQuestion[]> {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY')?.trim();
     if (!apiKey) {
@@ -40,7 +65,7 @@ export class GeminiSearchProvider implements SearchProvider {
     }
 
     const model = this.getModel();
-    const prompt = this.buildPrompt(context, queries);
+    const prompt = this.buildPrompt(context, queries, options);
 
     try {
       this.logger.log(
@@ -145,13 +170,14 @@ export class GeminiSearchProvider implements SearchProvider {
         throw new Error('Empty response from Gemini API');
       }
 
-      const parsed = JSON.parse(text) as any[];
+      const parsed = JSON.parse(text) as unknown[];
 
       return this.validateAndCleanQuestions(parsed);
-    } catch (error: any) {
-      this.logger.error(`Gemini Search and Extract failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Gemini Search and Extract failed: ${message}`);
       throw new ServiceUnavailableException(
-        `Gemini Search and Extract failed: ${error.message}`
+        `Gemini Search and Extract failed: ${message}`
       );
     }
   }
@@ -163,7 +189,59 @@ export class GeminiSearchProvider implements SearchProvider {
     );
   }
 
-  private buildPrompt(context: InterviewContext, queries: string[]): string {
+  public getSourceRulesConfig(): SourcesFilterConfig {
+    const envWhitelistStr = this.configService.get<string>(
+      'INTERVIEW_WHITELIST_DOMAINS'
+    );
+    const envBlacklistStr = this.configService.get<string>(
+      'INTERVIEW_BLACKLIST_DOMAINS'
+    );
+
+    const whitelist = envWhitelistStr
+      ? envWhitelistStr
+          .split(',')
+          .map((d) => d.trim().toLowerCase())
+          .filter(Boolean)
+      : DEFAULT_SOURCES_FILTER_CONFIG.whitelist;
+
+    const blacklist = envBlacklistStr
+      ? envBlacklistStr
+          .split(',')
+          .map((d) => d.trim().toLowerCase())
+          .filter(Boolean)
+      : DEFAULT_SOURCES_FILTER_CONFIG.blacklist;
+
+    return { whitelist, blacklist };
+  }
+
+  private buildPrompt(
+    context: InterviewContext,
+    queries: string[],
+    options?: SearchProviderOptions
+  ): string {
+    const { whitelist, blacklist } = this.getSourceRulesConfig();
+
+    const whitelistPrompt =
+      whitelist.length > 0
+        ? `STRICT WHITELIST SOURCES (You MUST search and only retrieve interview questions from web sources matching these allowed domains):\n${whitelist
+            .map((domain) => `- ${domain}`)
+            .join('\n')}`
+        : '';
+
+    const blacklistPrompt =
+      blacklist.length > 0
+        ? `STRICT BLACKLIST SOURCES (Do NOT search, use, or reference content from these blocked domains under any circumstances):\n${blacklist
+            .map((domain) => `- ${domain}`)
+            .join('\n')}`
+        : '';
+
+    const excludePrompt =
+      options?.excludeQuestions && options.excludeQuestions.length > 0
+        ? `EXCLUDE PREVIOUS QUESTIONS (Do NOT return any of these previously generated questions or close paraphrases):\n${options.excludeQuestions
+            .map((q) => `- ${q}`)
+            .join('\n')}`
+        : '';
+
     return `
 You are an expert recruitment system and Senior Hiring Manager.
 Your goal is to find real, actual interview questions for the following role:
@@ -177,9 +255,14 @@ To achieve this:
 Here are some recommended search queries to guide your search:
 ${queries.map((q) => `- ${q}`).join('\n')}
 
-2. Search multiple reliable sources (e.g. Glassdoor, LeetCode, GitHub, company blogs, interview prep websites).
+2. Source Domain Constraints & Exclusions:
+${whitelistPrompt}
+${blacklistPrompt}
+${excludePrompt}
+
 3. Read the search results carefully. Make sure to note the exact titles and URLs of the webpages as returned by the Google Search tool.
-4. Extract exactly 5 real, actual interview questions. Do not generate fictional or hypothetical questions.
+4. Extract 6 to 8 real, actual interview questions. Do not generate fictional or hypothetical questions.
+
 5. Classify the difficulty level of each question strictly based on Bloom's Taxonomy:
    - "Easy": Remember & Understand (e.g. basic conceptual recall, introductory behavioral questions).
    - "Medium": Apply & Analyze (e.g. situational problem solving, technical tasks, analysis of simple scenarios).
@@ -205,17 +288,19 @@ Language constraint: Strictly English.
   }
 
   private validateAndCleanQuestions(
-    questions: any[]
+    questions: unknown[]
   ): Promise<InterviewQuestion[]> {
     if (!Array.isArray(questions)) {
       return Promise.resolve([]);
     }
 
+    const { whitelist, blacklist } = this.getSourceRulesConfig();
     const seenQuestions = new Set<string>();
     const cleaned: InterviewQuestion[] = [];
 
-    for (const q of questions) {
-      if (!q || typeof q !== 'object') continue;
+    for (const item of questions) {
+      if (!item || typeof item !== 'object') continue;
+      const q = item as RawQuestionItem;
       const questionText = this.cleanText(q.question);
       if (!questionText) continue;
 
@@ -223,32 +308,56 @@ Language constraint: Strictly English.
       if (seenQuestions.has(normQuestion)) continue;
       seenQuestions.add(normQuestion);
 
-      const difficulty = ['Easy', 'Medium', 'Hard'].includes(q.difficulty)
-        ? (q.difficulty as 'Easy' | 'Medium' | 'Hard')
-        : 'Medium';
+      const difficulty =
+        typeof q.difficulty === 'string' &&
+        ['Easy', 'Medium', 'Hard'].includes(q.difficulty)
+          ? (q.difficulty as 'Easy' | 'Medium' | 'Hard')
+          : 'Medium';
 
       const confidence = typeof q.confidence === 'number' ? q.confidence : 0;
 
       const rawSources = Array.isArray(q.sources)
         ? q.sources
-            .map((s: any) => ({
+            .map((s: RawSourceItem) => ({
               title: this.cleanText(s?.title) ?? 'Google Search',
               url: this.cleanText(s?.url) ?? 'https://google.com',
             }))
-            .filter((s: any) => {
+            .filter((s: { title: string; url: string }) => {
               if (!s.url) return false;
               try {
                 const parsed = new URL(s.url);
-                return (
-                  parsed.protocol === 'http:' || parsed.protocol === 'https:'
-                );
+                if (
+                  parsed.protocol !== 'http:' &&
+                  parsed.protocol !== 'https:'
+                ) {
+                  return false;
+                }
+
+                const hostname = parsed.hostname.toLowerCase();
+
+                // Check blacklist: reject if hostname matches any blacklisted domain
+                if (
+                  blacklist.length > 0 &&
+                  this.isDomainMatch(hostname, blacklist)
+                ) {
+                  return false;
+                }
+
+                // Check whitelist: if whitelist is specified, host must match a whitelisted domain
+                if (
+                  whitelist.length > 0 &&
+                  !this.isDomainMatch(hostname, whitelist)
+                ) {
+                  return false;
+                }
+
+                return true;
               } catch {
                 return false;
               }
             })
         : [];
 
-      // Note: As per request, we have removed the slow sequential URL 404 checking completely (bỏ hẳn).
       let sources = rawSources;
       if (sources.length === 0) {
         sources = [
@@ -274,6 +383,14 @@ Language constraint: Strictly English.
     }
 
     return Promise.resolve(cleaned);
+  }
+
+  private isDomainMatch(hostname: string, domainList: string[]): boolean {
+    return domainList.some((domain) => {
+      const normDomain = domain.trim().toLowerCase();
+      if (!normDomain) return false;
+      return hostname === normDomain || hostname.endsWith('.' + normDomain);
+    });
   }
 
   private cleanText(value?: string | null): string | undefined {

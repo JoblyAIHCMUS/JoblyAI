@@ -55,6 +55,30 @@ export class InterviewPrepService {
 
     if (!application) throw new Error('Application not found');
 
+    const existingPrep = await this.prisma.interviewPreparation.findUnique({
+      where: { candidateId_jobId: { candidateId, jobId } },
+    });
+
+    const excludeQuestions: string[] = [];
+    if (existingPrep?.questions && typeof existingPrep.questions === 'object') {
+      const qObj = existingPrep.questions as Record<string, unknown>;
+      for (const difficultyKey of ['Easy', 'Medium', 'Hard']) {
+        const arr = qObj[difficultyKey];
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            if (
+              item &&
+              typeof item === 'object' &&
+              'question' in item &&
+              typeof (item as { question: unknown }).question === 'string'
+            ) {
+              excludeQuestions.push((item as { question: string }).question);
+            }
+          }
+        }
+      }
+    }
+
     const prep = await this.prisma.interviewPreparation.update({
       where: { candidateId_jobId: { candidateId, jobId } },
       data: { status: 'PENDING', questions: Prisma.DbNull },
@@ -64,6 +88,8 @@ export class InterviewPrepService {
       candidateId,
       jobId,
       resumeId: application.resumeId,
+      isRegenerate: true,
+      excludeQuestions,
     });
     return prep;
   }
