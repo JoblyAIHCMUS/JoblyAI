@@ -72,9 +72,7 @@ export class InterviewPrepService {
               'question' in item &&
               typeof (item as { question: unknown }).question === 'string'
             ) {
-              excludeQuestions.push(
-                (item as { question: string }).question
-              );
+              excludeQuestions.push((item as { question: string }).question);
             }
           }
         }
@@ -96,4 +94,3 @@ export class InterviewPrepService {
     return prep;
   }
 }
-

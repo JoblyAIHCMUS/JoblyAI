@@ -45,4 +45,3 @@ export const DEFAULT_SOURCES_FILTER_CONFIG: SourcesFilterConfig = {
     'brainly.com',
   ],
 };
-

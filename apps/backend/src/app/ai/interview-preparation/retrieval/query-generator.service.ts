@@ -30,11 +30,18 @@ export class QueryGeneratorService {
 
         if (companyName) {
           siteQueries.push(
-            `site:${normDomain} ${this.combineParts(companyName, roleName, 'interview questions')}`
+            `site:${normDomain} ${this.combineParts(
+              companyName,
+              roleName,
+              'interview questions'
+            )}`
           );
         } else {
           siteQueries.push(
-            `site:${normDomain} ${this.combineParts(roleName, 'interview questions')}`
+            `site:${normDomain} ${this.combineParts(
+              roleName,
+              'interview questions'
+            )}`
           );
         }
       }
@@ -85,5 +92,3 @@ export class QueryGeneratorService {
     return arr;
   }
 }
-
-

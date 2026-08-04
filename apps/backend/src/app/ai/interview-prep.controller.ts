@@ -32,4 +32,3 @@ export class InterviewPrepController {
     return this.prepService.regeneratePrep(req.user.id, parseInt(jobId));
   }
 }
-

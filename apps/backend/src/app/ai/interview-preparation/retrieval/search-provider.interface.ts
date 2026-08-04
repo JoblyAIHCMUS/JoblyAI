@@ -12,4 +12,3 @@ export interface SearchProvider {
     options?: SearchProviderOptions
   ): Promise<InterviewQuestion[]>;
 }
-
