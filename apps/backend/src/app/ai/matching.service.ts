@@ -512,13 +512,8 @@ export class MatchingService {
 
   // Consistent with JobsService mapping
   private mapToJobResponse(job: any) {
-    const {
-      requirements,
-      postedById,
-      _count,
-      preShortlistQuestions,
-      ...rest
-    } = job;
+    const { requirements, postedById, _count, preShortlistQuestions, ...rest } =
+      job;
 
     return {
       ...rest,
@@ -529,8 +524,8 @@ export class MatchingService {
             skillId: jr.skillId,
             skillName: jr.skill.name,
             importance: jr.importance,
-        minYearsExperience: jr.minYearsExperience,
-      }))
+            minYearsExperience: jr.minYearsExperience,
+          }))
         : [],
       preShortlistQuestions: (preShortlistQuestions ?? []).map(
         (question: any) => ({

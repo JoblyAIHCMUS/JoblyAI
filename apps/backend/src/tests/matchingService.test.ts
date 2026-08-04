@@ -32,7 +32,7 @@ describe('MatchingService.findJobsForResume', () => {
   let service: MatchingService;
 
   beforeEach(() => {
-    vi.clearAllMocks(); 
+    vi.clearAllMocks();
     service = new MatchingService(
       mockPrisma as any,
       mockMatchExplanationService as any
