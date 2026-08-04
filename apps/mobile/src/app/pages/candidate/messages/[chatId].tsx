@@ -13,6 +13,7 @@ import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSummaryLoaded';
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
+import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
 import { useGetCandidateProfile } from '../../../../hooks/useGetCandidateProfile';
 import { withDateSeparators } from '../../employer/messages/utils';
 import { emitChatOpened, emitChatClosed } from '@/hooks/useMessagesSocket';
@@ -22,6 +23,7 @@ export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { data: profile } = useGetCandidateProfile();
   const userId = profile?.id ?? '';
+  const keyboardHeight = useKeyboardHeight();
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
@@ -140,6 +142,9 @@ export default function ChatScreen() {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
+        style={
+          keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined
+        }
       >
         <FlatList
           ref={listRef}

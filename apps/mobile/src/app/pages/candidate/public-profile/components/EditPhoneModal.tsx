@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useUpdateProfile } from '../../../../../hooks/useUpdateProfile';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface EditPhoneModalProps {
   visible: boolean;
@@ -49,7 +50,10 @@ export default function EditPhoneModal({
         className="flex-1 items-center justify-end"
         style={{ backgroundColor: COLORS.overlay }}
       >
-        <View className="w-full max-h-[50%] rounded-t-2xl bg-white p-4">
+        <SafeAreaView
+          edges={['bottom']}
+          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4"
+        >
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">
               Edit Phone Number
@@ -89,7 +93,7 @@ export default function EditPhoneModal({
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );

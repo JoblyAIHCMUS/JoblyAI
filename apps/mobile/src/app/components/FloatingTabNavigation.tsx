@@ -120,6 +120,7 @@ const DETAIL_THREAD_PATTERNS = [
   /^\/pages\/candidate\/notifications/,
   /^\/pages\/candidate\/settings/,
   /^\/pages\/candidate\/pre-shortlist/,
+  /^\/pages\/candidate\/pdf-viewer$/,
   // Employer sub-screens (not main tabs)
   /^\/pages\/employer\/all-applications\/[^/]+$/, // application detail only
   /^\/pages\/employer\/new-job/,
@@ -140,9 +141,13 @@ const CONTENT_GAP = 8;
 
 // Keep scroll content clear of expo-glass-tabs' fixed pill and blur footprint.
 export function getFloatingTabContentInset(bottomInset: number): number {
-  const bottomOffset = Math.max(bottomInset - 16, MIN_BOTTOM_OFFSET);
+  const bottomOffset = getFloatingTabBottomOffset(bottomInset);
   const blurBleed = Platform.OS === 'android' ? 0 : BLUR_BLEED;
   return bottomOffset + EXPANDED_TAB_BAR_HEIGHT + blurBleed + CONTENT_GAP;
+}
+
+export function getFloatingTabBottomOffset(bottomInset: number): number {
+  return Math.max(bottomInset, MIN_BOTTOM_OFFSET);
 }
 
 export function isFloatingTabRoute(
@@ -171,7 +176,7 @@ function AndroidFloatingTabBar({
   onSelect: (index: number) => void;
 }) {
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const bottomOffset = Math.max(bottomInset - 16, MIN_BOTTOM_OFFSET);
+  const bottomOffset = getFloatingTabBottomOffset(bottomInset);
 
   return (
     <View pointerEvents="box-none" style={styles.androidContainer}>

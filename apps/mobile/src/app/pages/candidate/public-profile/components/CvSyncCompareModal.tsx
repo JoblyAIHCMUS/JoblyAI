@@ -25,6 +25,7 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -121,7 +122,7 @@ export function CvSyncCompareModal({
 
   return (
     <Modal visible={isOpen} transparent animationType="slide">
-      <View className="flex-1 bg-white pt-12">
+      <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-white">
         <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-app-border-light">
           <View className="flex flex-row items-center gap-2">
             <Info size={20} color={COLORS.primary2} />
@@ -343,7 +344,7 @@ export function CvSyncCompareModal({
             </View>
           </>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

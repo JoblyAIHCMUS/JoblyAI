@@ -26,6 +26,7 @@ import type { CandidateResume } from '@/types/candidate';
 import type { ProcessingTasks } from '@/contexts/AiProcessingContext';
 import { useCreateDownloadUrl } from '@/hooks/useCreateDownloadUrl';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface CVProps {
   resumes: CandidateResume[];
@@ -399,7 +400,7 @@ export function CV({
       </Modal>
 
       <Modal visible={previewOpen} transparent animationType="slide">
-        <View className="flex-1 bg-white pt-12">
+        <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-white">
           <View className="flex flex-row items-center justify-between px-4 py-3 border-b border-app-border-light">
             <Text
               className="text-base font-semibold text-app-dark-text flex-1"
@@ -443,7 +444,7 @@ export function CV({
               </View>
             )}
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
 
       <Modal visible={confirmDefaultOpen} transparent animationType="fade">

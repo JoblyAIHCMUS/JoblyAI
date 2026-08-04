@@ -39,7 +39,7 @@ export default function PdfViewerPage() {
   }, [fileKey]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Stack.Screen
         options={{
           title: fileName || 'PDF Viewer',

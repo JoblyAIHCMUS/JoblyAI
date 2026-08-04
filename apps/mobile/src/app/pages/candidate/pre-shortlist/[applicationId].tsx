@@ -52,7 +52,7 @@ export default function PreShortlistPage() {
     return (
       <SafeAreaView
         className="flex-1 bg-white"
-        edges={['top', 'left', 'right']}
+        edges={['top', 'left', 'right', 'bottom']}
       >
         <Stack.Screen options={{ headerShown: false }} />
         <CandidateHeader
@@ -79,7 +79,7 @@ export default function PreShortlistPage() {
     return (
       <SafeAreaView
         className="flex-1 bg-white"
-        edges={['top', 'left', 'right']}
+        edges={['top', 'left', 'right', 'bottom']}
       >
         <Stack.Screen options={{ headerShown: false }} />
         <CandidateHeader
@@ -131,7 +131,10 @@ export default function PreShortlistPage() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={['top', 'left', 'right', 'bottom']}
+    >
       <Stack.Screen options={{ headerShown: false }} />
       <CandidateHeader
         title="Pre-Shortlist"
@@ -140,7 +143,7 @@ export default function PreShortlistPage() {
       />
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
         showsVerticalScrollIndicator={false}
       >
         <PreShortlistForm

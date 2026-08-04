@@ -230,7 +230,10 @@ export default function PasswordSecurityScreen({
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-app-background-2" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-app-background-2"
+      edges={['top', 'bottom']}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="border-b border-app-border-2 bg-white px-4 py-3">
@@ -251,7 +254,7 @@ export default function PasswordSecurityScreen({
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ padding: 16 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >

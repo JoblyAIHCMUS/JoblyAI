@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { TextInput } from '../../../components/shared/TextInput';
@@ -222,257 +228,270 @@ const RegisterPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView
-        className="flex-grow"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header */}
-        <View className="px-6 py-8">
-          <Text variant="h1" className="text-left mb-2">
-            Create Account
-          </Text>
-          <Text variant="muted" className="text-base">
-            Join JoblyAI to get more opportunities and find your next career
-            move.
-          </Text>
-        </View>
-
-        {/* Google Signup */}
-        <View className="px-6 text-indigo-700">
-          <GoogleAuthButton
-            label="Sign Up with Google"
-            onPress={handleGoogleSignup}
-          />
-        </View>
-
-        <View className="px-6">
-          <AuthDivider text="Or sign up with email" />
-        </View>
-
-        {/* Error Message */}
-        {error && (
-          <View className="bg-destructive/10 rounded-lg p-4 mb-6 border-l-4 border-destructive mx-6">
-            <Text className="text-destructive text-sm font-medium">
-              {error.message}
+        <ScrollView
+          className="flex-grow"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          {/* Header */}
+          <View className="px-6 py-8">
+            <Text variant="h1" className="text-left mb-2">
+              Create Account
+            </Text>
+            <Text variant="muted" className="text-base">
+              Join JoblyAI to get more opportunities and find your next career
+              move.
             </Text>
           </View>
-        )}
 
-        {/* Form */}
-        <View className="px-6">
-          {/* Name Fields */}
-          <View className="flex-row gap-4 mb-2">
-            <View className="flex-1">
-              <TextInput
-                label="First Name"
-                placeholder="John"
-                value={firstName}
-                onChangeText={handleChange('firstName', setFirstName)}
-                {...blurProps('firstName', firstName)}
-                editable={!loading}
-                error={errors.firstName}
-              />
-            </View>
-            <View className="flex-1">
-              <TextInput
-                label="Last Name"
-                placeholder="Doe"
-                value={lastName}
-                onChangeText={handleChange('lastName', setLastName)}
-                {...blurProps('lastName', lastName)}
-                editable={!loading}
-                error={errors.lastName}
-              />
-            </View>
+          {/* Google Signup */}
+          <View className="px-6 text-indigo-700">
+            <GoogleAuthButton
+              label="Sign Up with Google"
+              onPress={handleGoogleSignup}
+            />
           </View>
 
-          {/* Email */}
-          <TextInput
-            label="Email Address"
-            placeholder="name@example.com"
-            value={email}
-            onChangeText={handleChange('email', setEmail)}
-            {...blurProps('email', email)}
-            keyboardType="email-address"
-            editable={!loading}
-            error={errors.email}
-          />
-
-          <View className="h-2" />
-
-          {/* Password */}
-          <TextInput
-            label="Password"
-            placeholder="At least 8 characters"
-            value={password}
-            onChangeText={handlePasswordChange}
-            {...blurProps('password', password)}
-            secureTextEntry={!showPassword}
-            editable={!loading}
-            error={errors.password}
-            rightElement={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                {showPassword ? (
-                  <EyeOff size={20} color={COLORS.slate500} />
-                ) : (
-                  <Eye size={20} color={COLORS.slate500} />
-                )}
-              </TouchableOpacity>
-            }
-          />
-
-          <View className="h-2" />
-
-          {/* Password Checklist */}
-          <View className="mb-2 gap-1">
-            {PASSWORD_RULES.map((rule) => {
-              const satisfied = rule.test(password);
-              return (
-                <View key={rule.label} className="flex-row items-center gap-2">
-                  <Text
-                    className={`text-xs font-bold ${
-                      satisfied ? 'text-green-600' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {satisfied ? '✓' : '○'}
-                  </Text>
-                  <Text
-                    className={`text-xs ${
-                      satisfied ? 'text-green-600' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {rule.label}
-                  </Text>
-                </View>
-              );
-            })}
+          <View className="px-6">
+            <AuthDivider text="Or sign up with email" />
           </View>
 
-          {/* Confirm Password */}
-          <TextInput
-            label="Confirm Password"
-            placeholder="Re-enter password"
-            value={confirmPassword}
-            onChangeText={handleConfirmPasswordChange}
-            {...blurProps('confirmPassword', confirmPassword)}
-            secureTextEntry={!showConfirmPassword}
-            editable={!loading}
-            error={errors.confirmPassword}
-            rightElement={
+          {/* Error Message */}
+          {error && (
+            <View className="bg-destructive/10 rounded-lg p-4 mb-6 border-l-4 border-destructive mx-6">
+              <Text className="text-destructive text-sm font-medium">
+                {error.message}
+              </Text>
+            </View>
+          )}
+
+          {/* Form */}
+          <View className="px-6">
+            {/* Name Fields */}
+            <View className="flex-row gap-4 mb-2">
+              <View className="flex-1">
+                <TextInput
+                  label="First Name"
+                  placeholder="John"
+                  value={firstName}
+                  onChangeText={handleChange('firstName', setFirstName)}
+                  {...blurProps('firstName', firstName)}
+                  editable={!loading}
+                  error={errors.firstName}
+                />
+              </View>
+              <View className="flex-1">
+                <TextInput
+                  label="Last Name"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChangeText={handleChange('lastName', setLastName)}
+                  {...blurProps('lastName', lastName)}
+                  editable={!loading}
+                  error={errors.lastName}
+                />
+              </View>
+            </View>
+
+            {/* Email */}
+            <TextInput
+              label="Email Address"
+              placeholder="name@example.com"
+              value={email}
+              onChangeText={handleChange('email', setEmail)}
+              {...blurProps('email', email)}
+              keyboardType="email-address"
+              editable={!loading}
+              error={errors.email}
+            />
+
+            <View className="h-2" />
+
+            {/* Password */}
+            <TextInput
+              label="Password"
+              placeholder="At least 8 characters"
+              value={password}
+              onChangeText={handlePasswordChange}
+              {...blurProps('password', password)}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+              error={errors.password}
+              rightElement={
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color={COLORS.slate500} />
+                  ) : (
+                    <Eye size={20} color={COLORS.slate500} />
+                  )}
+                </TouchableOpacity>
+              }
+            />
+
+            <View className="h-2" />
+
+            {/* Password Checklist */}
+            <View className="mb-2 gap-1">
+              {PASSWORD_RULES.map((rule) => {
+                const satisfied = rule.test(password);
+                return (
+                  <View
+                    key={rule.label}
+                    className="flex-row items-center gap-2"
+                  >
+                    <Text
+                      className={`text-xs font-bold ${
+                        satisfied ? 'text-green-600' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {satisfied ? '✓' : '○'}
+                    </Text>
+                    <Text
+                      className={`text-xs ${
+                        satisfied ? 'text-green-600' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {rule.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Confirm Password */}
+            <TextInput
+              label="Confirm Password"
+              placeholder="Re-enter password"
+              value={confirmPassword}
+              onChangeText={handleConfirmPasswordChange}
+              {...blurProps('confirmPassword', confirmPassword)}
+              secureTextEntry={!showConfirmPassword}
+              editable={!loading}
+              error={errors.confirmPassword}
+              rightElement={
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} color={COLORS.slate500} />
+                  ) : (
+                    <Eye size={20} color={COLORS.slate500} />
+                  )}
+                </TouchableOpacity>
+              }
+            />
+
+            {/* User Type Selection */}
+            <View className="my-8 gap-4">
+              <Text className="text-md font-semibold text-foreground">
+                I am a:
+              </Text>
               <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color={COLORS.slate500} />
-                ) : (
-                  <Eye size={20} color={COLORS.slate500} />
-                )}
-              </TouchableOpacity>
-            }
-          />
-
-          {/* User Type Selection */}
-          <View className="my-8 gap-4">
-            <Text className="text-md font-semibold text-foreground">
-              I am a:
-            </Text>
-            <TouchableOpacity
-              className={`flex-row items-center p-4 border rounded-lg ${
-                userType === 'job-seeker'
-                  ? 'border-indigo-700'
-                  : 'border-input bg-background'
-              }`}
-              onPress={() => setUserType('job-seeker')}
-              activeOpacity={0.7}
-            >
-              <View
-                className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+                className={`flex-row items-center p-4 border rounded-lg ${
                   userType === 'job-seeker'
                     ? 'border-indigo-700'
-                    : 'border-input'
+                    : 'border-input bg-background'
                 }`}
+                onPress={() => setUserType('job-seeker')}
+                activeOpacity={0.7}
               >
-                {userType === 'job-seeker' && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-indigo-700" />
-                )}
-              </View>
-              <View>
-                <Text className="text-lg font-bold text-foreground">
-                  Job Seeker
-                </Text>
-                <Text variant="muted" className="text-xs">
-                  Looking for my next career move or expand my network
-                </Text>
-              </View>
-            </TouchableOpacity>
+                <View
+                  className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+                    userType === 'job-seeker'
+                      ? 'border-indigo-700'
+                      : 'border-input'
+                  }`}
+                >
+                  {userType === 'job-seeker' && (
+                    <View className="w-2.5 h-2.5 rounded-full bg-indigo-700" />
+                  )}
+                </View>
+                <View>
+                  <Text className="text-lg font-bold text-foreground">
+                    Job Seeker
+                  </Text>
+                  <Text variant="muted" className="text-xs">
+                    Looking for my next career move or expand my network
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              className={`flex-row items-center p-4 border rounded-lg ${
-                userType === 'employer'
-                  ? 'border-indigo-700'
-                  : 'border-input bg-background'
-              }`}
-              onPress={() => setUserType('employer')}
-              activeOpacity={0.7}
-            >
-              <View
-                className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+              <TouchableOpacity
+                className={`flex-row items-center p-4 border rounded-lg ${
                   userType === 'employer'
-                    ? 'border-indigo-700  '
-                    : 'border-input'
+                    ? 'border-indigo-700'
+                    : 'border-input bg-background'
                 }`}
+                onPress={() => setUserType('employer')}
+                activeOpacity={0.7}
               >
-                {userType === 'employer' && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-indigo-700 " />
-                )}
-              </View>
-              <View>
-                <Text className="text-lg font-bold text-foreground">
-                  Employer
-                </Text>
-                <Text variant="muted" className="text-xs">
-                  Hiring talents, sourcing candidates, or posting jobs
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+                <View
+                  className={`w-5 h-5 rounded-full border-2 mr-4 items-center justify-center ${
+                    userType === 'employer'
+                      ? 'border-indigo-700  '
+                      : 'border-input'
+                  }`}
+                >
+                  {userType === 'employer' && (
+                    <View className="w-2.5 h-2.5 rounded-full bg-indigo-700 " />
+                  )}
+                </View>
+                <View>
+                  <Text className="text-lg font-bold text-foreground">
+                    Employer
+                  </Text>
+                  <Text variant="muted" className="text-xs">
+                    Hiring talents, sourcing candidates, or posting jobs
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
 
-          {/* Continue Button */}
-          <Button
-            className="bg-indigo-700 text-white font-extrabold"
-            size="lg"
-            onPress={handleSignup}
-            disabled={loading}
-          >
-            <Text>{loading ? 'Creating account...' : 'Create Account'}</Text>
-          </Button>
-
-          {/* Login Link */}
-          <View className="flex-row justify-center mt-6">
-            <Text className="text-lg text-muted-foreground">
-              Already have an account?{' '}
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push('/pages/(auth)/login')}
-              activeOpacity={0.7}
+            {/* Continue Button */}
+            <Button
+              className="bg-indigo-700 text-white font-extrabold"
+              size="lg"
+              onPress={handleSignup}
+              disabled={loading}
             >
-              <Text className="text-lg font-bold text-indigo-700">Login</Text>
-            </TouchableOpacity>
-          </View>
+              <Text>{loading ? 'Creating account...' : 'Create Account'}</Text>
+            </Button>
 
-          {/* Terms */}
-          <Text
-            variant="muted"
-            className="text-xs mt-6 text-center leading-relaxed"
-          >
-            By creating an account, you agree to our{' '}
-            <Text className="font-bold text-indigo-700">Terms of Service</Text>{' '}
-            and{' '}
-            <Text className="font-bold text-indigo-700">Privacy Policy</Text>.
-          </Text>
-        </View>
-      </ScrollView>
+            {/* Login Link */}
+            <View className="flex-row justify-center mt-6">
+              <Text className="text-lg text-muted-foreground">
+                Already have an account?{' '}
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/pages/(auth)/login')}
+                activeOpacity={0.7}
+              >
+                <Text className="text-lg font-bold text-indigo-700">Login</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Terms */}
+            <Text
+              variant="muted"
+              className="text-xs mt-6 text-center leading-relaxed"
+            >
+              By creating an account, you agree to our{' '}
+              <Text className="font-bold text-indigo-700">
+                Terms of Service
+              </Text>{' '}
+              and{' '}
+              <Text className="font-bold text-indigo-700">Privacy Policy</Text>.
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

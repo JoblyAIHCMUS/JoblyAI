@@ -13,6 +13,7 @@ import { X, Search } from 'lucide-react-native';
 import { useSearchEmployers } from '../../../../../hooks/useSearchEmployers';
 import type { TeamMember } from '../data';
 import { COLORS } from '@/app/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface TeamMemberSearchProps {
   open: boolean;
@@ -67,7 +68,10 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
       onRequestClose={() => handleOpenChange(false)}
     >
       <View className="flex-1 bg-black/50 flex items-center justify-end">
-        <View className="w-full bg-white rounded-t-2xl max-h-96">
+        <SafeAreaView
+          edges={['bottom']}
+          className="w-full rounded-t-2xl bg-white max-h-96 pb-3"
+        >
           {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-4 border-b border-slate-200">
             <Text className="text-lg font-bold text-slate-900">
@@ -147,7 +151,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             }
             scrollEnabled={true}
           />
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );
