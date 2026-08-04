@@ -43,7 +43,8 @@ export function usePostSubmitEligibility({
       }
 
       const jobHasPreShortlist =
-        job.preShortlistEnabled && job.preShortlistQuestions.length > 0;
+        job.preShortlistEnabled &&
+        (job.preShortlistQuestions?.length ?? 0) > 0;
 
       if (record.status === 'APPLIED' && jobHasPreShortlist) {
         pollingIdRef.current = record.id;
