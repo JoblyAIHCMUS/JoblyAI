@@ -141,7 +141,9 @@ export default function ChatScreen() {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
-        style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
+        style={
+          keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined
+        }
       >
         <FlatList
           ref={listRef}
