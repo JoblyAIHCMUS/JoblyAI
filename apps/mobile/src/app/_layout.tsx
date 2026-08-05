@@ -5,7 +5,7 @@ import {
   useRootNavigationState,
   useRouter,
 } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast } from 'react-native-toast-message';
 import {
   DarkTheme,
   DefaultTheme,
@@ -13,7 +13,6 @@ import {
   type Theme,
 } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { colorScheme } from 'nativewind';
 import { type ReactNode, useEffect } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -239,7 +238,19 @@ export default function AppLayout() {
             <NotificationManager />
             <FloatingTabStack />
             <PortalHost />
-            <Toast position="top" topOffset={60} />
+            <Toast
+              position="top"
+              topOffset={60}
+              visibilityTime={4500}
+              config={{
+                warning: (props) => (
+                  <BaseToast
+                    {...props}
+                    style={{ borderLeftColor: COLORS.warningText }}
+                  />
+                ),
+              }}
+            />
           </SocketProvider>
         </SessionResumeGate>
       </ThemeProvider>

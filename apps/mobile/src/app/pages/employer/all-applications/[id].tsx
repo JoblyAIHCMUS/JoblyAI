@@ -9,7 +9,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
 
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import { COLORS } from '../../../constants/theme';
@@ -111,27 +110,6 @@ export default function AllApplicationsDetailPage() {
         <ApplicantOverview applicant={applicant} />
         <ApplicantDetails applicant={applicant} />
       </ScrollView>
-
-      {isError && (
-        <Toast
-          visibilityTime={2500}
-          position="bottom"
-          config={{
-            error: ({ text1, text2 }) => (
-              <View className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 m-4">
-                {text1 ? (
-                  <Text className="text-sm font-semibold text-red-800">
-                    {text1}
-                  </Text>
-                ) : null}
-                {text2 ? (
-                  <Text className="text-xs text-red-700 mt-0.5">{text2}</Text>
-                ) : null}
-              </View>
-            ),
-          }}
-        />
-      )}
     </SafeAreaView>
   );
 }
