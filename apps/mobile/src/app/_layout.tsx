@@ -23,6 +23,7 @@ import { queryClient } from '../lib/query-client';
 import { SocketProvider } from '../contexts/SocketProvider';
 import { useAuth } from '../hooks/useAuth';
 import { NotificationManager } from '../components/NotificationManager';
+import { KeyboardDismissView } from '../components/KeyboardDismissView';
 import FloatingTabNavigation, {
   getFloatingTabContentInset,
   isFloatingTabRoute,
@@ -202,8 +203,10 @@ function SessionResumeGate({ children }: { children: ReactNode }) {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SidebarVisibilityProvider>
-          {children}
-          <FloatingTabNavigation />
+          <KeyboardDismissView className="flex-1">
+            {children}
+            <FloatingTabNavigation />
+          </KeyboardDismissView>
         </SidebarVisibilityProvider>
       </GestureHandlerRootView>
       {isPending && (

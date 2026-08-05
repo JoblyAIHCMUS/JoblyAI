@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { CategoryCard } from '../shared/CategoryCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
-import { usePopularCategories } from '../../../hooks/usePopularCategories';
+import type { PopularJobCategory } from '../../../types/job';
 
 // Helper to map category names to local icons
 const getCategoryIcon = (name: string): string => {
@@ -30,8 +30,21 @@ const getCategoryIcon = (name: string): string => {
   return 'Briefcase'; // Fallback
 };
 
-export const CategoriesSection = () => {
-  const { categories, loading, error } = usePopularCategories(8);
+interface CategoriesSectionProps {
+  categories: PopularJobCategory[];
+  loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+}
+
+export const CategoriesSection = ({
+  categories,
+  loading,
+  error,
+  onRetry,
+}: CategoriesSectionProps) => {
+  const showLoading = loading && categories.length === 0;
+  const showError = Boolean(error && categories.length === 0);
 
   return (
     <View className="bg-app-background-1 py-8 px-6">
@@ -41,12 +54,32 @@ export const CategoriesSection = () => {
         </Text>
       </View>
 
-      {loading ? (
+      {showLoading ? (
         <ActivityIndicator size="large" className="text-app-primary-1 mt-8" />
-      ) : error ? (
-        <Text className="text-app-red-1 mt-4">Failed to load categories.</Text>
+      ) : showError ? (
+        <View className="items-center justify-center py-6">
+          <Text className="mb-4 text-center text-app-red-1">
+            Failed to load categories.
+          </Text>
+          <TouchableOpacity
+            onPress={onRetry}
+            className="rounded-lg bg-app-primary-1 px-6 py-2"
+          >
+            <Text className="font-semibold text-white">Retry</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <View className="mt-4">
+          {error && (
+            <View className="mb-4 flex-row items-center justify-between rounded-lg bg-app-tag-red-bg px-3 py-2">
+              <Text className="mr-3 flex-1 text-sm text-app-red-1">
+                Failed to refresh categories.
+              </Text>
+              <TouchableOpacity onPress={onRetry}>
+                <Text className="font-semibold text-app-red-1">Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           {categories.map((category) => (
             <CategoryCard
               key={category.id.toString()}

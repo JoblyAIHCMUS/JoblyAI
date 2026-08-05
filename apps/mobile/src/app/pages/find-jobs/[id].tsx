@@ -1,11 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '@/app/constants/theme';
 import { useJobDetail } from '@/hooks/useJobDetail';
+import { useSimilarJobs } from '@/hooks/useSimilarJobs';
 import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
 import JobDetailHeader from './components/JobDetailHeader';
 import JobDetailContent from './components/JobDetailContent';
@@ -23,41 +30,85 @@ export default function JobDetailPage() {
     data: job,
     loading: loadingJob,
     error: errorJob,
+    refresh: refreshJob,
   } = useJobDetail(jobId);
   const { data: user } = useUser();
+
+  const {
+    data: similarJobs,
+    loading: loadingSimilarJobs,
+    error: errorSimilarJobs,
+    refresh: refreshSimilarJobs,
+  } = useSimilarJobs({
+    jobId: job?.id,
+    companyId: job?.company?.id,
+    location: job?.location || undefined,
+    limit: 6,
+  });
 
   const [hasApplied, setHasApplied] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
 
   const { fetchApplications } = useListCandidateApplications();
 
-  useEffect(() => {
-    if (!user) return;
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshingRef = useRef(false);
 
-    const checkApplication = async () => {
-      try {
-        const result = await fetchApplications({ page: 1, pageSize: 100 });
-        if (result?.applications) {
-          const applied = result.applications.some(
-            (app) =>
-              app.jobId === jobId &&
-              [
-                'APPLIED',
-                'PRE_SHORTLIST_PENDING',
-                'PRE_SHORTLIST_SUBMITTED',
-                'INTERVIEW',
-                'OFFER',
-              ].includes(app.status)
-          );
-          setHasApplied(applied);
-        }
-      } catch {
-        // Silently fail - user may not be authenticated
+  const refreshAppliedStatus = useCallback(async (): Promise<boolean> => {
+    if (!user) return true;
+
+    try {
+      const result = await fetchApplications({ page: 1, pageSize: 100 });
+      if (result?.applications) {
+        const applied = result.applications.some(
+          (app) =>
+            app.jobId === jobId &&
+            [
+              'APPLIED',
+              'PRE_SHORTLIST_PENDING',
+              'PRE_SHORTLIST_SUBMITTED',
+              'INTERVIEW',
+              'OFFER',
+            ].includes(app.status)
+        );
+        setHasApplied(applied);
       }
-    };
+    } catch {
+      // Application status is optional for unauthenticated users.
+    }
 
-    checkApplication();
-  }, [user, jobId, fetchApplications]);
+    return true;
+  }, [fetchApplications, jobId, user]);
+
+  useEffect(() => {
+    void refreshAppliedStatus();
+  }, [refreshAppliedStatus]);
+
+  const handleRefresh = useCallback(async () => {
+    if (refreshingRef.current) return;
+
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const results = await Promise.allSettled([
+        refreshJob(),
+        refreshSimilarJobs(),
+        refreshAppliedStatus(),
+      ]);
+      const failed = results.some(
+        (result) =>
+          result.status === 'rejected' ||
+          (result.status === 'fulfilled' && result.value === false)
+      );
+
+      if (failed) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+    } finally {
+      refreshingRef.current = false;
+      setRefreshing(false);
+    }
+  }, [refreshAppliedStatus, refreshJob, refreshSimilarJobs]);
 
   const handleApply = () => {
     setApplyModalOpen(true);
@@ -69,7 +120,7 @@ export default function JobDetailPage() {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  if (loadingJob) {
+  if (loadingJob && !job) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
@@ -88,7 +139,7 @@ export default function JobDetailPage() {
     );
   }
 
-  if (errorJob || !job) {
+  if (!job) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
@@ -114,7 +165,17 @@ export default function JobDetailPage() {
         className="flex-1 bg-white"
         edges={['top', 'left', 'right', 'bottom']}
       >
-        <ScrollView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[COLORS.primary2]}
+              tintColor={COLORS.primary2}
+            />
+          }
+        >
           {/* Header */}
           <JobDetailHeader
             job={job}
@@ -130,9 +191,10 @@ export default function JobDetailPage() {
 
           {/* Similar Jobs */}
           <SimilarJobs
-            jobId={job.id}
-            companyId={job.company.id}
-            location={job.location || undefined}
+            jobs={similarJobs}
+            loading={loadingSimilarJobs}
+            error={errorSimilarJobs}
+            onRetry={() => void refreshSimilarJobs()}
           />
         </ScrollView>
       </SafeAreaView>

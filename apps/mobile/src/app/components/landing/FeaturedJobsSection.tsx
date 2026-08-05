@@ -8,10 +8,22 @@ import {
 } from 'react-native';
 import { FeaturedJobCard } from '../shared/FeaturedJobCard';
 import { ArrowRightIconPrimary } from '../shared/svgs/Icons';
-import { useListJobs } from '../../../hooks/useListJobs';
+import type { PaginatedJobsResponse } from '../../../types/job';
 
-export const FeaturedJobsSection = () => {
-  const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 4 });
+interface FeaturedJobsSectionProps {
+  data: PaginatedJobsResponse | null;
+  loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+}
+
+export const FeaturedJobsSection = ({
+  data,
+  loading,
+  error,
+  onRetry,
+}: FeaturedJobsSectionProps) => {
+  const jobs = data?.jobs ?? [];
 
   const scrollContent = {
     paddingLeft: 24,
@@ -26,17 +38,17 @@ export const FeaturedJobsSection = () => {
         </Text>
       </View>
 
-      {loading ? (
+      {loading && jobs.length === 0 ? (
         <View className="h-[200px] justify-center items-center">
           <ActivityIndicator size="large" className="text-app-primary-1" />
         </View>
-      ) : error ? (
+      ) : error && jobs.length === 0 ? (
         <View className="h-[200px] justify-center items-center">
           <Text className="text-app-red-3 mb-4">
             Failed to load featured jobs
           </Text>
           <TouchableOpacity
-            onPress={() => fetchJobs()}
+            onPress={onRetry}
             className="bg-app-primary-1 py-2 px-6 rounded-lg"
           >
             <Text className="text-white font-semibold">Retry</Text>
@@ -49,7 +61,7 @@ export const FeaturedJobsSection = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={scrollContent}
           >
-            {data?.jobs.map((job) => (
+            {jobs.map((job) => (
               <FeaturedJobCard
                 key={job.id}
                 title={job.title}

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -154,6 +155,8 @@ interface JobDetailsTabProps {
   isLoading: boolean;
   isError: boolean;
   jobId: string | undefined;
+  refreshing: boolean;
+  onRefresh: (tabRefresh?: () => Promise<boolean>) => Promise<boolean>;
 }
 
 export default function JobDetailsTab({
@@ -161,20 +164,24 @@ export default function JobDetailsTab({
   isLoading,
   isError,
   jobId,
+  refreshing,
+  onRefresh,
 }: JobDetailsTabProps) {
   const router = useRouter();
   const { width: contentWidth } = useWindowDimensions();
   const htmlContentWidth = contentWidth - 64;
 
-  if (isLoading) {
+  if (isLoading && !job) {
     return <LoadingSkeleton />;
   }
 
-  if (isError || !job) {
+  if (!job) {
     return (
       <View className="flex-1 items-center justify-center px-6">
         <Text className="text-base text-app-red-1">
-          Failed to load job details. Please try again.
+          {isError
+            ? 'Failed to load job details. Please try again.'
+            : 'Job details are unavailable.'}
         </Text>
       </View>
     );
@@ -184,6 +191,16 @@ export default function JobDetailsTab({
     <ScrollView
       className="flex-1"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            void onRefresh();
+          }}
+          colors={[COLORS.primary2]}
+          tintColor={COLORS.primary2}
+        />
+      }
       contentContainerStyle={{
         paddingHorizontal: 16,
         paddingTop: 16,

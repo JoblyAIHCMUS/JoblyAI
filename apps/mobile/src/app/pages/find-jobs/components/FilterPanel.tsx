@@ -6,6 +6,7 @@ import { COLORS } from '@/app/constants/theme';
 import type { JobCategory, EmploymentType } from '@/types/job';
 import SalaryFilter from './SalaryFilter';
 import type { SupportedCurrency } from '@/app/pages/find-jobs/constants';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1" pointerEvents="box-none">
+      <KeyboardDismissView className="flex-1" pointerEvents="box-none">
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}
@@ -123,7 +124,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   className="mb-3 flex-row items-center gap-3 py-2"
                 >
                   <View
-                    className={`h-5 w-5 items-center justify-center rounded border-2 ${
+                    className={`h-6 w-6 items-center justify-center rounded border-2 ${
                       selectedTypes.includes(type.value)
                         ? 'border-app-primary-2 bg-app-primary-2'
                         : 'border-app-border-unchecked bg-white'
@@ -153,7 +154,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     className="mb-3 flex-row items-center gap-3 py-2"
                   >
                     <View
-                      className={`h-5 w-5 items-center justify-center rounded border-2 ${
+                      className={`h-6 w-6 items-center justify-center rounded border-2 ${
                         selectedCategories.includes(String(category.id))
                           ? 'border-app-primary-2 bg-app-primary-2'
                           : 'border-app-border-unchecked bg-white'
@@ -190,7 +191,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 };

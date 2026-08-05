@@ -13,6 +13,7 @@ import {
 import type { DatePreset, DateRangeInput } from '../../dashboard/types';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 const QUICK_PRESETS: Array<{ key: DatePreset; label: string }> = [
   { key: 'TODAY', label: 'Today' },
@@ -74,7 +75,7 @@ export function ApplicationsFilterSheet({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end bg-black/20 px-3">
+      <KeyboardDismissView className="flex-1 justify-end bg-black/20 px-3">
         <Pressable className="absolute inset-0" onPress={onClose} />
 
         <SafeAreaView
@@ -267,7 +268,7 @@ export function ApplicationsFilterSheet({
             </View>
           </ScrollView>
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }

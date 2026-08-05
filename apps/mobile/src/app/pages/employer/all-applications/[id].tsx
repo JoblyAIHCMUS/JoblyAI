@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -15,6 +16,7 @@ import { COLORS } from '../../../constants/theme';
 import { useEmployerApplication } from '../../../../hooks/useEmployerApplication';
 import { ApplicantOverview } from './detail/components/ApplicantOverview';
 import { ApplicantDetails } from './detail/components/ApplicantDetails';
+import * as Haptics from 'expo-haptics';
 
 export default function AllApplicationsDetailPage() {
   const router = useRouter();
@@ -27,6 +29,26 @@ export default function AllApplicationsDetailPage() {
     error,
     refetch,
   } = useEmployerApplication(id);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshingRef = useRef(false);
+
+  const handleRefresh = async () => {
+    if (refreshingRef.current) return;
+
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const result = await refetch();
+      if (result.isError) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      refreshingRef.current = false;
+      setRefreshing(false);
+    }
+  };
 
   if (isLoading && !applicant) {
     return (
@@ -69,7 +91,7 @@ export default function AllApplicationsDetailPage() {
             </Text>
             <TouchableOpacity
               onPress={() => {
-                void refetch();
+                void handleRefresh();
               }}
               className="self-start mt-3 min-h-11 items-center justify-center rounded-md border border-app-red-1 px-3 py-1.5"
               activeOpacity={0.7}
@@ -106,6 +128,14 @@ export default function AllApplicationsDetailPage() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[COLORS.primary2]}
+            tintColor={COLORS.primary2}
+          />
+        }
       >
         <ApplicantOverview applicant={applicant} />
         <ApplicantDetails applicant={applicant} />

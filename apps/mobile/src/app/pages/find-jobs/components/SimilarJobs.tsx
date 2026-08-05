@@ -3,13 +3,13 @@ import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Briefcase } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
-import { useSimilarJobs } from '@/hooks/useSimilarJobs';
 import type { JobPosting } from '@/types/job';
 
 interface SimilarJobsProps {
-  jobId: number;
-  companyId?: number;
-  location?: string;
+  jobs: JobPosting[];
+  loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
 }
 
 const SimilarJobCard: React.FC<{ job: JobPosting; onPress: () => void }> = ({
@@ -76,19 +76,14 @@ const SimilarJobCard: React.FC<{ job: JobPosting; onPress: () => void }> = ({
 };
 
 const SimilarJobs: React.FC<SimilarJobsProps> = ({
-  jobId,
-  companyId,
-  location,
+  jobs,
+  loading,
+  error,
+  onRetry,
 }) => {
   const router = useRouter();
-  const { data: similarJobs, loading } = useSimilarJobs({
-    jobId,
-    companyId,
-    location,
-    limit: 6,
-  });
 
-  if (loading) {
+  if (loading && jobs.length === 0) {
     return (
       <View className="px-4 py-6">
         <Text className="mb-3 text-lg font-bold text-app-dark-text">
@@ -106,7 +101,26 @@ const SimilarJobs: React.FC<SimilarJobsProps> = ({
     );
   }
 
-  if (!similarJobs || similarJobs.length === 0) {
+  if (error && jobs.length === 0) {
+    return (
+      <View className="px-4 py-6">
+        <Text className="mb-3 text-lg font-bold text-app-dark-text">
+          Similar Jobs
+        </Text>
+        <Text className="mb-3 text-sm text-app-gray-3">
+          Failed to load similar jobs.
+        </Text>
+        <TouchableOpacity
+          onPress={onRetry}
+          className="self-start rounded-lg bg-app-primary-1 px-4 py-2"
+        >
+          <Text className="font-semibold text-white">Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (jobs.length === 0) {
     return null;
   }
 
@@ -120,7 +134,7 @@ const SimilarJobs: React.FC<SimilarJobsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 16 }}
       >
-        {similarJobs.map((job: JobPosting) => (
+        {jobs.map((job) => (
           <SimilarJobCard
             key={job.id}
             job={job}

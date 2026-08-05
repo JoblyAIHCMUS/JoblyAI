@@ -16,6 +16,7 @@ import { useDeleteSocial } from '../../../../../hooks/useDeleteSocial';
 import type { CandidateSocial } from '../../../../../types/candidate';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 const PLATFORMS = [
   { value: 'LINKEDIN', label: 'LinkedIn' },
@@ -140,7 +141,7 @@ export default function EditSocialModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 items-center justify-end bg-black/40">
+      <KeyboardDismissView className="flex-1 items-center justify-end bg-black/40">
         <SafeAreaView
           edges={['bottom']}
           className="w-full max-h-[90%] rounded-t-2xl bg-white p-4"
@@ -316,7 +317,7 @@ export default function EditSocialModal({
             </ScrollView>
           )}
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }
