@@ -11,12 +11,10 @@ import {
 } from 'react-native';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Menu, SearchX } from 'lucide-react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useListJobs, useCategories, useSkillsFilter } from '@/hooks';
+import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { useListCandidateApplications } from '@/hooks/useListCandidateApplications';
 import { COLORS } from '@/app/constants/theme';
@@ -27,6 +25,7 @@ import FilterButton from './components/FilterButton';
 import FilterPanel from './components/FilterPanel';
 import type { ListJobsQuery, SortOption, EmploymentType } from '@/types/job';
 import AppSidebar from '@/app/components/AppSidebar';
+import { useSidebarVisibility } from '@/contexts/SidebarContext';
 import { capFor } from './constants';
 import type { SupportedCurrency } from './constants';
 import {
@@ -46,9 +45,11 @@ const ACTIVE_APPLICATION_STATUSES = [
 ] as const;
 
 function FindJobsPage() {
-  const insets = useSafeAreaInsets();
+  const { role } = useAuth();
+  const { isOpen: isSidebarOpen } = useSidebarVisibility();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const floatingTabsVisible = role === 'candidate' && !isSidebarOpen;
 
   // State for search and filter
   const [urlPage, setUrlPage] = useState(1);
@@ -301,7 +302,12 @@ function FindJobsPage() {
         currentPath="/pages/find-jobs"
       />
 
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView
+        edges={
+          floatingTabsVisible ? ['top', 'left', 'right'] : undefined
+        }
+        className="flex-1 bg-white"
+      >
         <View className="flex-1">
           {/* Top Bar */}
           <View className="flex-row items-center justify-between border-b border-app-gray-1 bg-white px-4 py-4">
@@ -402,7 +408,6 @@ function FindJobsPage() {
           {totalPages > 1 && jobs.length > 0 && (
             <View
               className="border-t border-app-gray-1 bg-white px-4 py-3"
-              style={{ paddingBottom: 12 + insets.bottom }}
             >
               <View className="flex-row items-center justify-between">
                 <TouchableOpacity
