@@ -124,7 +124,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   className="mb-3 flex-row items-center gap-3 py-2"
                 >
                   <View
-                    className={`h-5 w-5 items-center justify-center rounded border-2 ${
+                    className={`h-6 w-6 items-center justify-center rounded border-2 ${
                       selectedTypes.includes(type.value)
                         ? 'border-app-primary-2 bg-app-primary-2'
                         : 'border-app-border-unchecked bg-white'
@@ -154,7 +154,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     className="mb-3 flex-row items-center gap-3 py-2"
                   >
                     <View
-                      className={`h-5 w-5 items-center justify-center rounded border-2 ${
+                      className={`h-6 w-6 items-center justify-center rounded border-2 ${
                         selectedCategories.includes(String(category.id))
                           ? 'border-app-primary-2 bg-app-primary-2'
                           : 'border-app-border-unchecked bg-white'
