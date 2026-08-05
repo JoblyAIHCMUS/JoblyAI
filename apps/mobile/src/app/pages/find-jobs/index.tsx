@@ -5,6 +5,7 @@ import {
   View,
   Text,
   FlatList,
+  RefreshControl,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
@@ -61,6 +62,7 @@ function FindJobsPage() {
   const [urlCategories, setUrlCategories] = useState<(number | string)[]>([]);
   const [urlTypes, setUrlTypes] = useState<EmploymentType[]>([]);
   const [urlSkills, setUrlSkills] = useState<string[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Local input states for debouncing
   const [localSearchTerm, setLocalSearchTerm] = useState(urlQ);
@@ -195,6 +197,7 @@ function FindJobsPage() {
     urlCategories,
     urlTypes,
     urlSkills,
+    refreshKey,
     fetchJobs,
   ]);
 
@@ -374,6 +377,14 @@ function FindJobsPage() {
               contentContainerStyle={{
                 paddingBottom: 16,
               }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={loadingJobs}
+                  onRefresh={() => setRefreshKey((key) => key + 1)}
+                  colors={[COLORS.primary2]}
+                  tintColor={COLORS.primary2}
+                />
+              }
               scrollIndicatorInsets={{ right: 1 }}
               showsVerticalScrollIndicator={true}
               ListFooterComponent={
