@@ -1,19 +1,29 @@
 import React, { useMemo } from 'react';
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { Applicant, ApplicantStatus } from './ApplicantsTab';
 import { PipelineColumn } from './PipelineColumn';
+import { COLORS } from '../../../../constants/theme';
 
 interface PipelineViewProps {
   applicants: Applicant[];
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
   isUpdating?: boolean;
+  refreshing: boolean;
+  onRefresh: (tabRefresh?: () => Promise<boolean>) => Promise<boolean>;
 }
 
 export function PipelineView({
   applicants,
   onUpdateStage,
   isUpdating,
+  refreshing,
+  onRefresh,
 }: PipelineViewProps) {
   const { width } = useWindowDimensions();
 
@@ -64,26 +74,42 @@ export function PipelineView({
 
   return (
     <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 16 }}
       className="flex-1"
-      snapToInterval={snapInterval}
-      decelerationRate="fast"
+      contentContainerStyle={{ flexGrow: 1 }}
+      alwaysBounceVertical
+      nestedScrollEnabled
+      overScrollMode="always"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            void onRefresh();
+          }}
+          colors={[COLORS.primary]}
+        />
+      }
     >
-      <View className="flex-row items-start">
-        {groupedApplicants.map((col) => (
-          <PipelineColumn
-            key={col.id}
-            title={col.id}
-            applicants={col.items}
-            borderColor={col.border}
-            dotColor={col.dot}
-            onUpdateStage={onUpdateStage}
-            isUpdating={isUpdating}
-          />
-        ))}
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 16 }}
+        snapToInterval={snapInterval}
+        decelerationRate="fast"
+      >
+        <View className="flex-row items-start">
+          {groupedApplicants.map((col) => (
+            <PipelineColumn
+              key={col.id}
+              title={col.id}
+              applicants={col.items}
+              borderColor={col.border}
+              dotColor={col.dot}
+              onUpdateStage={onUpdateStage}
+              isUpdating={isUpdating}
+            />
+          ))}
+        </View>
+      </ScrollView>
     </ScrollView>
   );
 }

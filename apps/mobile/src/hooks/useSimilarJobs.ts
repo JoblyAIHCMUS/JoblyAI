@@ -34,6 +34,34 @@ export function useSimilarJobs(params: SimilarJobsQuery) {
     return () => controller.abort();
   }, []);
 
+  const refresh = useCallback(async (): Promise<boolean> => {
+    const query = paramsRef.current;
+    if (!query.jobId) return true;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getSimilarJobs(query);
+      setData(response.jobs || []);
+      return true;
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.name === 'CanceledError' ||
+          (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
+          err.name === 'AbortError')
+      ) {
+        return true;
+      }
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch similar jobs')
+      );
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     paramsRef.current = params;
     if (!params.jobId) {
@@ -56,5 +84,5 @@ export function useSimilarJobs(params: SimilarJobsQuery) {
     };
   }, [params.jobId, params.companyId, params.location, fetchSimilarJobs]);
 
-  return { data, loading, error };
+  return { data, loading, error, refresh };
 }

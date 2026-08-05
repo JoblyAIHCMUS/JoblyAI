@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
+  RefreshControl,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -24,6 +25,7 @@ import { useGetCompany } from '../../../../hooks/useGetCompany';
 
 // Colors
 import { COLORS } from '../../../constants/theme';
+import * as Haptics from 'expo-haptics';
 
 export default function CompanyProfilePage() {
   const router = useRouter();
@@ -34,6 +36,7 @@ export default function CompanyProfilePage() {
     data: employer,
     isLoading: employerLoading,
     error: employerError,
+    refetch: refetchEmployer,
   } = useGetEmployerProfile();
 
   // Fetch company data
@@ -41,14 +44,49 @@ export default function CompanyProfilePage() {
     data: company,
     isLoading: companyLoading,
     error: companyError,
+    refetch: refetchCompany,
   } = useGetCompany(employer?.company?.id);
 
-  const isLoading =
-    employerLoading || (employer?.company?.id && companyLoading);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshingRef = useRef(false);
+
+  const handleRefresh = async () => {
+    if (refreshingRef.current) return;
+
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const results = await Promise.allSettled([
+        refetchEmployer(),
+        employer?.company?.id
+          ? refetchCompany()
+          : Promise.resolve({ isError: false }),
+      ]);
+      const failed = results.some(
+        (result) =>
+          result.status === 'rejected' ||
+          (result.status === 'fulfilled' && result.value.isError)
+      );
+
+      if (failed) {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Error
+        );
+      }
+    } finally {
+      refreshingRef.current = false;
+      setRefreshing(false);
+    }
+  };
 
   const isCompanyAdmin = employer?.isCompanyAdmin ?? false;
+  const showInitialLoading =
+    (!employer && employerLoading) ||
+    Boolean(employer?.company?.id && !company && companyLoading);
+  const showEmployerError = Boolean(employerError && !employer);
+  const showCompanyError = Boolean(companyError && !company);
 
-  if (isLoading) {
+  if (showInitialLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -67,7 +105,7 @@ export default function CompanyProfilePage() {
     );
   }
 
-  if (employerError) {
+  if (showEmployerError) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -85,7 +123,7 @@ export default function CompanyProfilePage() {
     );
   }
 
-  if (employer?.company?.id && companyError) {
+  if (showCompanyError) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -129,6 +167,14 @@ export default function CompanyProfilePage() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1 bg-white"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[COLORS.primary2]}
+            tintColor={COLORS.primary2}
+          />
+        }
       >
         {/* Back Button and Edit Button */}
         <View className="flex-row items-center px-4 py-3 justify-between">

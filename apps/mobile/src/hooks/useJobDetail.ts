@@ -30,6 +30,32 @@ export function useJobDetail(jobId: number | null) {
     return () => controller.abort();
   }, []);
 
+  const refresh = useCallback(async (): Promise<boolean> => {
+    const id = jobIdRef.current;
+    if (!id) return true;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getJobById(id);
+      setData(response);
+      return true;
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.name === 'CanceledError' ||
+          (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
+          err.name === 'AbortError')
+      ) {
+        return true;
+      }
+      setError(err instanceof Error ? err : new Error('Failed to fetch job'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!jobId) {
       setLoading(false);
@@ -56,6 +82,7 @@ export function useJobDetail(jobId: number | null) {
     data,
     loading,
     error,
+    refresh,
     refetch: () => jobIdRef.current && fetchJob(jobIdRef.current),
   };
 }

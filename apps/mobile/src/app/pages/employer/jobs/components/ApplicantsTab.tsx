@@ -9,7 +9,6 @@ import {
   TextInput,
 } from 'react-native';
 import { Search, Star, X } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
 import Avatar from '../../../../../components/Avatar';
 import { PipelineView } from './PipelineView';
 import { COLORS } from '../../../../constants/theme';
@@ -37,8 +36,9 @@ interface ApplicantsTabProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  refetch: () => void;
-  isRefetching: boolean;
+  refetch: () => Promise<{ isError: boolean }>;
+  refreshing: boolean;
+  onRefresh: (tabRefresh?: () => Promise<boolean>) => Promise<boolean>;
   searchQuery: string;
   onSearchChange: (text: string) => void;
   onUpdateStage?: (applicantId: string, newStage: ApplicantStatus) => void;
@@ -202,13 +202,24 @@ export default function ApplicantsTab({
   isFetchingNextPage,
   fetchNextPage,
   refetch,
-  isRefetching,
+  refreshing,
+  onRefresh,
   searchQuery,
   onSearchChange,
   onUpdateStage,
   isUpdating,
 }: ApplicantsTabProps) {
   const [activeView, setActiveView] = useState<'Pipeline' | 'Table'>('Table');
+  const refreshApplicants = () =>
+    onRefresh(async () => {
+      try {
+        const result = await refetch();
+        return !result.isError;
+      } catch {
+        return false;
+      }
+    });
+
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
     return (
@@ -257,16 +268,9 @@ export default function ApplicantsTab({
           onEndReachedThreshold={0.5}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                try {
-                  await refetch();
-                } catch {
-                  await Haptics.notificationAsync(
-                    Haptics.NotificationFeedbackType.Error
-                  );
-                }
+              refreshing={refreshing}
+              onRefresh={() => {
+                void refreshApplicants();
               }}
               colors={[COLORS.primary]}
             />
@@ -287,6 +291,8 @@ export default function ApplicantsTab({
             applicants={applicants}
             onUpdateStage={onUpdateStage}
             isUpdating={isUpdating}
+            refreshing={refreshing}
+            onRefresh={refreshApplicants}
           />
         </View>
       )}

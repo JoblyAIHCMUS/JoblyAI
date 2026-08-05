@@ -6,6 +6,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Modal,
+  RefreshControl,
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
@@ -19,6 +20,8 @@ type TimeMode = 'week' | 'month' | 'year';
 interface JobAnalyticsTabProps {
   jobId: number;
   totalApplications: number;
+  refreshing: boolean;
+  onRefresh: (tabRefresh?: () => Promise<boolean>) => Promise<boolean>;
 }
 
 function getRange(mode: TimeMode): {
@@ -97,6 +100,8 @@ function buildChartData(
 export default function JobAnalyticsTab({
   jobId,
   totalApplications,
+  refreshing,
+  onRefresh,
 }: JobAnalyticsTabProps) {
   const [timeMode, setTimeMode] = useState<TimeMode>('week');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -171,6 +176,23 @@ export default function JobAnalyticsTab({
     <ScrollView
       className="flex-1"
       contentContainerClassName="px-4 py-8 gap-y-6"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            void onRefresh(async () => {
+              try {
+                const result = await refetch();
+                return !result.isError;
+              } catch {
+                return false;
+              }
+            });
+          }}
+          colors={[COLORS.primary2]}
+          tintColor={COLORS.primary2}
+        />
+      }
     >
       <Text className="text-2xl font-bold text-gray-900">Job Analytics</Text>
 
@@ -250,7 +272,7 @@ export default function JobAnalyticsTab({
         <View className="relative min-h-[220px] justify-center">
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.primary2} />
-          ) : isError ? (
+          ) : isError && !data ? (
             <View className="items-center justify-center h-[220px] gap-y-2">
               <Text className="text-app-text-5">Couldn't load view stats.</Text>
               <TouchableOpacity

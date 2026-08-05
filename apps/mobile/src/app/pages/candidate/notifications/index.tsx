@@ -1,7 +1,9 @@
-import { FlatList, Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 
 import { Text } from '@/components/ui/text';
 import {
@@ -14,13 +16,35 @@ import { useUser } from '@/hooks/useUser';
 import { COLORS } from '@/app/constants/theme';
 
 export default function NotificationsScreen() {
-  const { data: notifications = [], isLoading } = useNotifications();
+  const { data: notifications = [], isLoading, refetch } = useNotifications();
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshingRef = useRef(false);
 
   const markAsReadMutation = useMarkNotificationAsRead();
 
   const markAllMutation = useMarkAllNotificationsAsRead();
 
   const { data: user } = useUser();
+
+  const handleRefresh = async () => {
+    if (refreshingRef.current) return;
+
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const result = await refetch();
+      if (result.isError) {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Error
+        );
+      }
+    } catch {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      refreshingRef.current = false;
+      setRefreshing(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
@@ -58,6 +82,14 @@ export default function NotificationsScreen() {
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[COLORS.primary]}
+              tintColor={COLORS.primary}
+            />
+          }
           contentContainerStyle={{
             flexGrow: notifications.length === 0 ? 1 : 0,
             paddingBottom: 16,

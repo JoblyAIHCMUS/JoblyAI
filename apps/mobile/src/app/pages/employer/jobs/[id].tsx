@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,11 +21,13 @@ import JobDetailsTab from './components/JobDetailsTab';
 import ApplicantsTab from './components/ApplicantsTab';
 import JobAnalyticsTab from './components/JobAnalyticsTab';
 import { ApplicationStatus } from '../../../../types/application';
+import * as Haptics from 'expo-haptics';
 
 // ── Types ───────────────────────────────────────────────────────────────
 type TabName = 'Applicants' | 'Job Details' | 'Analytics';
 
 const tabs: TabName[] = ['Applicants', 'Job Details', 'Analytics'];
+type TabRefresh = () => Promise<boolean>;
 
 // ── Main Screen ─────────────────────────────────────────────────────────
 export default function JobDetailsScreen() {
@@ -47,7 +49,14 @@ export default function JobDetailsScreen() {
   }, [searchQuery]);
 
   const numericId = id ? Number(id) : null;
-  const { data: job, isLoading, isError } = useEmployerJobDetail(numericId);
+  const {
+    data: job,
+    isLoading,
+    isError,
+    refetch: refetchJob,
+  } = useEmployerJobDetail(numericId);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshingRef = useRef(false);
 
   const {
     data: applicationsData,
@@ -56,8 +65,36 @@ export default function JobDetailsScreen() {
     hasNextPage: hasNextApplicationsPage,
     isFetchingNextPage: isFetchingNextApplicationsPage,
     refetch: refetchApplications,
-    isRefetching: isRefetchingApplications,
   } = useEmployerJobApplications(numericId || undefined, debouncedSearch, 10);
+
+  const refreshPage = async (tabRefresh?: TabRefresh): Promise<boolean> => {
+    if (refreshingRef.current) return false;
+
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const results = await Promise.allSettled([
+        refetchJob().then((result) => !result.isError),
+        tabRefresh ? tabRefresh() : Promise.resolve(true),
+      ]);
+      const failed = results.some(
+        (result) =>
+          result.status === 'rejected' ||
+          (result.status === 'fulfilled' && result.value === false)
+      );
+
+      if (failed) {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Error
+        );
+      }
+
+      return !failed;
+    } finally {
+      refreshingRef.current = false;
+      setRefreshing(false);
+    }
+  };
 
   // Map backend ApplicationStatus to frontend ApplicantStatus
   const mapApplicationStatus = (
@@ -250,9 +287,8 @@ export default function JobDetailsScreen() {
             isFetchingNextPage={isFetchingNextApplicationsPage}
             fetchNextPage={fetchNextApplicationsPage}
             refetch={refetchApplications}
-            isRefetching={
-              isRefetchingApplications && !isFetchingNextApplicationsPage
-            }
+            refreshing={refreshing}
+            onRefresh={refreshPage}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onUpdateStage={handleUpdateStage}
@@ -264,11 +300,15 @@ export default function JobDetailsScreen() {
             isLoading={isLoading}
             isError={isError}
             jobId={id}
+            refreshing={refreshing}
+            onRefresh={refreshPage}
           />
         ) : numericId !== null ? (
           <JobAnalyticsTab
             jobId={numericId}
             totalApplications={totalApplications}
+            refreshing={refreshing}
+            onRefresh={refreshPage}
           />
         ) : null}
       </View>

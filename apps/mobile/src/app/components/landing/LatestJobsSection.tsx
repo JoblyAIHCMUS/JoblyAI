@@ -1,10 +1,22 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { LatestJobCard } from '../shared/LatestJobCard';
-import { useListJobs } from '../../../hooks/useListJobs';
+import type { PaginatedJobsResponse } from '../../../types/job';
 
-export const LatestJobsSection = () => {
-  const { data, loading, error, fetchJobs } = useListJobs({ pageSize: 6 });
+interface LatestJobsSectionProps {
+  data: PaginatedJobsResponse | null;
+  loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+}
+
+export const LatestJobsSection = ({
+  data,
+  loading,
+  error,
+  onRetry,
+}: LatestJobsSectionProps) => {
+  const jobs = data?.jobs ?? [];
 
   // Helper to format employment type (e.g., FULL_TIME -> Full-Time)
   const formatType = (type: string) => {
@@ -23,13 +35,13 @@ export const LatestJobsSection = () => {
         </Text>
       </View>
 
-      {loading ? (
+      {loading && jobs.length === 0 ? (
         <ActivityIndicator size="large" className="text-app-primary-1 my-8" />
-      ) : error ? (
+      ) : error && jobs.length === 0 ? (
         <View className="p-8 items-center justify-center">
           <Text className="text-app-red-3 mb-4">Failed to load jobs</Text>
           <TouchableOpacity
-            onPress={() => fetchJobs()}
+            onPress={onRetry}
             className="bg-app-primary-1 py-2 px-6 rounded-lg"
           >
             <Text className="text-white font-semibold">Retry</Text>
@@ -37,7 +49,7 @@ export const LatestJobsSection = () => {
         </View>
       ) : (
         <View className="mt-4">
-          {data?.jobs.map((job) => (
+          {jobs.map((job) => (
             <LatestJobCard
               key={job.id}
               title={job.title}

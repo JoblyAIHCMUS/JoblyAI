@@ -35,11 +35,38 @@ export function usePopularCategories(limit: number) {
     [limit]
   );
 
+  const refresh = useCallback(async (): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPopularCategories(limit);
+      setCategories(data);
+      return true;
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.name === 'CanceledError' ||
+          (err as unknown as Record<string, unknown>).code === 'ERR_CANCELED' ||
+          err.name === 'AbortError')
+      ) {
+        return true;
+      }
+      setError(
+        err instanceof Error
+          ? err
+          : new Error('Failed to fetch popular categories')
+      );
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
   useEffect(() => {
     const controller = new AbortController();
     fetchCategories(controller.signal);
     return () => controller.abort();
   }, [fetchCategories]);
 
-  return { categories, loading, error, refetch: () => fetchCategories() };
+  return { categories, loading, error, refresh, refetch: () => fetchCategories() };
 }
