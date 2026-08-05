@@ -37,9 +37,7 @@ export function useLandingData() {
       );
 
       if (failed) {
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Error
-        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } finally {
       refreshingRef.current = false;

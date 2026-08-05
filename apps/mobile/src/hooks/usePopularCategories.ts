@@ -68,5 +68,11 @@ export function usePopularCategories(limit: number) {
     return () => controller.abort();
   }, [fetchCategories]);
 
-  return { categories, loading, error, refresh, refetch: () => fetchCategories() };
+  return {
+    categories,
+    loading,
+    error,
+    refresh,
+    refetch: () => fetchCategories(),
+  };
 }

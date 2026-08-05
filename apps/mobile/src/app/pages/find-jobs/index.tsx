@@ -303,9 +303,7 @@ function FindJobsPage() {
       />
 
       <SafeAreaView
-        edges={
-          floatingTabsVisible ? ['top', 'left', 'right'] : undefined
-        }
+        edges={floatingTabsVisible ? ['top', 'left', 'right'] : undefined}
         className="flex-1 bg-white"
       >
         <View className="flex-1">
@@ -406,9 +404,7 @@ function FindJobsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && jobs.length > 0 && (
-            <View
-              className="border-t border-app-gray-1 bg-white px-4 py-3"
-            >
+            <View className="border-t border-app-gray-1 bg-white px-4 py-3">
               <View className="flex-row items-center justify-between">
                 <TouchableOpacity
                   onPress={() => handlePageChange(Math.max(1, urlPage - 1))}

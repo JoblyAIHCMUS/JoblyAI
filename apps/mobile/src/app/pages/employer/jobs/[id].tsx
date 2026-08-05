@@ -84,9 +84,7 @@ export default function JobDetailsScreen() {
       );
 
       if (failed) {
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Error
-        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
       return !failed;

@@ -40,9 +40,7 @@ export default function AllApplicationsDetailPage() {
     try {
       const result = await refetch();
       if (result.isError) {
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Error
-        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

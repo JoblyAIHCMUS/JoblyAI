@@ -52,9 +52,7 @@ export function useTopCompanies(limit: number) {
         return true;
       }
       setError(
-        err instanceof Error
-          ? err
-          : new Error('Failed to fetch top companies')
+        err instanceof Error ? err : new Error('Failed to fetch top companies')
       );
       return false;
     } finally {
@@ -68,5 +66,11 @@ export function useTopCompanies(limit: number) {
     return () => controller.abort();
   }, [fetchCompanies]);
 
-  return { companies, loading, error, refresh, refetch: () => fetchCompanies() };
+  return {
+    companies,
+    loading,
+    error,
+    refresh,
+    refetch: () => fetchCompanies(),
+  };
 }
