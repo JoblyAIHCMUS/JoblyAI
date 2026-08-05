@@ -14,6 +14,7 @@ import { useSearchEmployers } from '../../../../../hooks/useSearchEmployers';
 import type { TeamMember } from '../data';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 interface TeamMemberSearchProps {
   open: boolean;
@@ -67,7 +68,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
       animationType="fade"
       onRequestClose={() => handleOpenChange(false)}
     >
-      <View className="flex-1 bg-black/50 flex items-center justify-end">
+      <KeyboardDismissView className="flex-1 bg-black/50 flex items-center justify-end">
         <SafeAreaView
           edges={['bottom']}
           className="w-full rounded-t-2xl bg-white max-h-96 pb-3"
@@ -152,7 +153,7 @@ export const TeamMemberSearch: React.FC<TeamMemberSearchProps> = ({
             scrollEnabled={true}
           />
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 };

@@ -13,6 +13,7 @@ import {
 import { createCertificate } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 export default function EditCertificateModal({
   visible,
@@ -65,7 +66,7 @@ export default function EditCertificateModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View
+      <KeyboardDismissView
         className="flex-1 items-center justify-end"
         style={{ backgroundColor: COLORS.overlay }}
       >
@@ -184,7 +185,7 @@ export default function EditCertificateModal({
             </View>
           </ScrollView>
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }

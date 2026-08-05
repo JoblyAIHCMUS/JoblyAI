@@ -24,6 +24,7 @@ import type { JobPosting } from '@/types/job';
 import type { CandidateResume } from '@/types/candidate';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 const MAX_RESUMES = 5;
 
@@ -237,7 +238,7 @@ export default function ApplyJobModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 items-center justify-end bg-black/40">
+      <KeyboardDismissView className="flex-1 items-center justify-end bg-black/40">
         <SafeAreaView
           edges={['bottom']}
           className="w-full max-h-[90%] rounded-t-2xl bg-white px-4 pb-4"
@@ -339,7 +340,7 @@ export default function ApplyJobModal({
             </Text>
           </ScrollView>
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }

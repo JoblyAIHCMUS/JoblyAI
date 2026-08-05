@@ -11,6 +11,7 @@ import {
 import { useUpdateProfile } from '../../../../../hooks/useUpdateProfile';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 interface EditPhoneModalProps {
   visible: boolean;
@@ -46,7 +47,7 @@ export default function EditPhoneModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View
+      <KeyboardDismissView
         className="flex-1 items-center justify-end"
         style={{ backgroundColor: COLORS.overlay }}
       >
@@ -94,7 +95,7 @@ export default function EditPhoneModal({
             </View>
           </ScrollView>
         </SafeAreaView>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }

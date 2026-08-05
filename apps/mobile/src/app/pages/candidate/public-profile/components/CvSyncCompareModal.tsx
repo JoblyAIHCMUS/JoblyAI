@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -11,7 +11,6 @@ import {
 import {
   X,
   Check,
-  ArrowRight,
   Briefcase,
   GraduationCap,
   Code2,
@@ -20,12 +19,10 @@ import {
   Phone,
   User,
   Info,
-  Plus,
-  Edit2,
-  Trash2,
 } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -122,7 +119,8 @@ export function CvSyncCompareModal({
 
   return (
     <Modal visible={isOpen} transparent animationType="slide">
-      <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-white">
+      <KeyboardDismissView className="flex-1">
+        <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-white">
         <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-app-border-light">
           <View className="flex flex-row items-center gap-2">
             <Info size={20} color={COLORS.primary2} />
@@ -344,7 +342,8 @@ export function CvSyncCompareModal({
             </View>
           </>
         )}
-      </SafeAreaView>
+        </SafeAreaView>
+      </KeyboardDismissView>
     </Modal>
   );
 }

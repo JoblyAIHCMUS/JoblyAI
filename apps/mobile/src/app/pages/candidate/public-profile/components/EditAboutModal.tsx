@@ -13,6 +13,7 @@ import {
   updateCandidateAbout,
 } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 export default function EditAboutModal({
   visible,
@@ -55,7 +56,7 @@ export default function EditAboutModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View
+      <KeyboardDismissView
         className="flex-1 items-center justify-center px-6"
         style={{ backgroundColor: COLORS.overlay }}
       >
@@ -95,7 +96,7 @@ export default function EditAboutModal({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardDismissView>
     </Modal>
   );
 }
