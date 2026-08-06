@@ -33,7 +33,7 @@ import {
   JobCardSkeleton,
   Skeleton,
 } from '@/components/ui/feedback';
-import { KeyboardAwareView } from '@/components/KeyboardAwareView';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 
 const PAGE_SIZE = 10;
 
@@ -307,7 +307,7 @@ function FindJobsPage() {
         edges={floatingTabsVisible ? ['top', 'left', 'right'] : undefined}
         className="flex-1 bg-white"
       >
-        <KeyboardAwareView className="flex-1">
+        <KeyboardDismissView className="flex-1">
           {/* Top Bar */}
           <View className="flex-row items-center justify-between border-b border-app-gray-1 bg-white px-4 py-4">
             <TouchableOpacity
@@ -474,7 +474,7 @@ function FindJobsPage() {
               </View>
             </View>
           )}
-        </KeyboardAwareView>
+        </KeyboardDismissView>
       </SafeAreaView>
 
       {/* Filter Panel Modal */}

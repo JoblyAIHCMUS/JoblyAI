@@ -438,7 +438,6 @@ export default function EmployerEditJobPage() {
           </View>
           </View>
         </ScrollView>
-      </KeyboardAwareView>
 
       {/* Navigation Buttons */}
       <View
@@ -487,6 +486,7 @@ export default function EmployerEditJobPage() {
           )}
         </View>
       </View>
+      </KeyboardAwareView>
 
       {/* Sidebar */}
       <EmployerDashboardSidebar

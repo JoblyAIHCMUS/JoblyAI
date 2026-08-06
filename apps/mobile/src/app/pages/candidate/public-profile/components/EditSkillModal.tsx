@@ -78,7 +78,7 @@ export default function EditSkillModal({
       <KeyboardAwareView className="flex-1 items-center justify-end bg-black/40">
         <SafeAreaView
           edges={['bottom']}
-          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4"
+          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4 pb-8"
         >
           <Text className="mb-4 text-lg font-semibold">Add Skill</Text>
 

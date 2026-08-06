@@ -53,7 +53,7 @@ export default function EditPhoneModal({
       >
         <SafeAreaView
           edges={['bottom']}
-          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4"
+          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4 pb-8"
         >
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-4 text-lg font-semibold">

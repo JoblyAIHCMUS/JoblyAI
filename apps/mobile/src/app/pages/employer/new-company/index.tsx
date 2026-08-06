@@ -29,7 +29,7 @@ import {
   type TeamMemberData,
   type TeamMember,
 } from './data';
-import { KeyboardAwareView } from '@/components/KeyboardAwareView';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 import {
   companyRegistrationSchema,
   type CompanyRegistrationFormData,
@@ -234,7 +234,7 @@ export default function EmployerNewCompanyPage() {
 
       {/* Main Content */}
       <View className="flex-1">
-        <KeyboardAwareView className="flex-1">
+        <KeyboardDismissView className="flex-1">
           <ScrollView
             showsVerticalScrollIndicator={false}
             className="flex-1"
@@ -298,7 +298,7 @@ export default function EmployerNewCompanyPage() {
             )}
           </View>
           </ScrollView>
-        </KeyboardAwareView>
+        </KeyboardDismissView>
 
         {/* Navigation Buttons */}
         <View

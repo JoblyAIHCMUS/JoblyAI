@@ -475,6 +475,7 @@ export default function EmployerEditCompanyPage() {
         <KeyboardAwareView className="flex-1">
           <ScrollView
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="never"
             className="flex-1"
             contentContainerClassName="gap-6 px-4 py-4"
           >
@@ -545,49 +546,49 @@ export default function EmployerEditCompanyPage() {
             )}
           </View>
           </ScrollView>
-        </KeyboardAwareView>
 
-        {/* Navigation Buttons */}
-        <View
-          className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
-          style={{ paddingBottom: insets.bottom }}
-        >
-          {currentStep > 0 && (
-            <TouchableOpacity
-              onPress={handlePrev}
-              disabled={loading}
-              className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
-            >
-              <Text className="text-slate-900 font-semibold">Back</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? () => handleSubmit(onSubmit)()
-                : handleNext
-            }
-            disabled={loading}
-            className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
-              loading ? 'opacity-50' : ''
-            } ${
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? 'bg-green-600'
-                : 'bg-indigo-600'
-            }`}
+          {/* Navigation Buttons */}
+          <View
+            className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
+            style={{ paddingBottom: insets.bottom }}
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text className="text-white font-semibold">
-                {currentStep === NEW_COMPANY_STEPS.length - 1
-                  ? 'Save Changes'
-                  : 'Next'}
-              </Text>
+            {currentStep > 0 && (
+              <TouchableOpacity
+                onPress={handlePrev}
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
+              >
+                <Text className="text-slate-900 font-semibold">Back</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <TouchableOpacity
+              onPress={
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? () => handleSubmit(onSubmit)()
+                  : handleNext
+              }
+              disabled={loading}
+              className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
+                loading ? 'opacity-50' : ''
+              } ${
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? 'bg-green-600'
+                  : 'bg-indigo-600'
+              }`}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text className="text-white font-semibold">
+                  {currentStep === NEW_COMPANY_STEPS.length - 1
+                    ? 'Save Changes'
+                    : 'Next'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareView>
       </View>
     </SafeAreaView>
   );

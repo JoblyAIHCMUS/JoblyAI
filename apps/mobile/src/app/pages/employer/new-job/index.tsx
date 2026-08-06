@@ -367,7 +367,6 @@ export default function EmployerNewJobPage() {
           </View>
           </View>
         </ScrollView>
-      </KeyboardAwareView>
 
       {/* Navigation Buttons */}
       <View
@@ -416,6 +415,7 @@ export default function EmployerNewJobPage() {
           )}
         </View>
       </View>
+      </KeyboardAwareView>
 
       {/* Sidebar */}
       <EmployerDashboardSidebar
