@@ -1,11 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { TextInput } from '../../../components/shared/TextInput';

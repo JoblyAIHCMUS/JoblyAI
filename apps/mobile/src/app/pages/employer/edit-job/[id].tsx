@@ -386,106 +386,110 @@ export default function EmployerEditJobPage() {
           scrollEnabled={currentStep === 0} // Only allow scroll on first step
         >
           <View className="px-4 py-6">
-          {/* Header */}
-          <View className="mb-6">
-            <View className="flex-row items-center gap-3 mb-2">
-              <TouchableOpacity
-                onPress={() => router.back()}
-                className="min-h-11 min-w-11 items-center justify-center"
-              >
-                <ArrowLeft size={28} color={COLORS.brandDark} strokeWidth={2} />
-              </TouchableOpacity>
-              <Text className="text-3xl font-bold text-slate-900">
-                Edit Job
+            {/* Header */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-3 mb-2">
+                <TouchableOpacity
+                  onPress={() => router.back()}
+                  className="min-h-11 min-w-11 items-center justify-center"
+                >
+                  <ArrowLeft
+                    size={28}
+                    color={COLORS.brandDark}
+                    strokeWidth={2}
+                  />
+                </TouchableOpacity>
+                <Text className="text-3xl font-bold text-slate-900">
+                  Edit Job
+                </Text>
+              </View>
+              <Text className="text-base text-slate-600 mt-2">
+                Update the job posting details below.
               </Text>
             </View>
-            <Text className="text-base text-slate-600 mt-2">
-              Update the job posting details below.
-            </Text>
-          </View>
 
-          {/* Step Indicator */}
-          <View className="mb-8 px-2">
-            <StepIndicator
-              stepCount={EDIT_JOB_STEPS.length}
-              direction="horizontal"
-              currentPosition={currentStep}
-              labels={EDIT_JOB_STEPS.map((step) => step.label)}
-              customStyles={stepIndicatorStyles}
-            />
-          </View>
-
-          {/* Step Content */}
-          <View className="flex-1 min-h-96">
-            {currentStep === 0 && (
-              <BasicInformationStep
-                // @ts-expect-error yup/react-hook-form type mismatch
-                control={control}
-                errors={errors}
-                watch={watch}
-                formData={formData}
-                onValidate={validateSalaryRange}
+            {/* Step Indicator */}
+            <View className="mb-8 px-2">
+              <StepIndicator
+                stepCount={EDIT_JOB_STEPS.length}
+                direction="horizontal"
+                currentPosition={currentStep}
+                labels={EDIT_JOB_STEPS.map((step) => step.label)}
+                customStyles={stepIndicatorStyles}
               />
-            )}
+            </View>
 
-            {currentStep === 1 && (
-              <JobDescriptionStep
-                // @ts-expect-error yup/react-hook-form type mismatch
-                control={control}
-                errors={errors}
-              />
-            )}
-          </View>
+            {/* Step Content */}
+            <View className="flex-1 min-h-96">
+              {currentStep === 0 && (
+                <BasicInformationStep
+                  // @ts-expect-error yup/react-hook-form type mismatch
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  formData={formData}
+                  onValidate={validateSalaryRange}
+                />
+              )}
+
+              {currentStep === 1 && (
+                <JobDescriptionStep
+                  // @ts-expect-error yup/react-hook-form type mismatch
+                  control={control}
+                  errors={errors}
+                />
+              )}
+            </View>
           </View>
         </ScrollView>
 
-      {/* Navigation Buttons */}
-      <View
-        className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
-        style={{ paddingBottom: 20 + insets.bottom }}
-      >
-        <View className="flex-row gap-3">
-          <TouchableOpacity
-            onPress={handlePrevious}
-            disabled={currentStep === 0}
-            className="flex-1 px-4 py-3 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
-          >
-            <Text className="text-center text-slate-900 font-semibold">
-              Previous
-            </Text>
-          </TouchableOpacity>
+        {/* Navigation Buttons */}
+        <View
+          className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
+          style={{ paddingBottom: 20 + insets.bottom }}
+        >
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={handlePrevious}
+              disabled={currentStep === 0}
+              className="flex-1 px-4 py-3 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
+            >
+              <Text className="text-center text-slate-900 font-semibold">
+                Previous
+              </Text>
+            </TouchableOpacity>
 
-          {currentStep < EDIT_JOB_STEPS.length - 1 ? (
-            <TouchableOpacity
-              onPress={handleNext}
-              disabled={
-                loading || updatingJob || skillsLoading || categoriesLoading
-              }
-              className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50"
-            >
-              <Text className="text-center text-white font-semibold">
-                {loading ? 'Loading...' : 'Next'}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              // @ts-expect-error yup/react-hook-form type mismatch
-              onPress={handleSubmit(handleSubmit_)}
-              disabled={
-                loading || updatingJob || skillsLoading || categoriesLoading
-              }
-              className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50 flex-row items-center justify-center gap-2"
-            >
-              {(loading || updatingJob) && (
-                <ActivityIndicator color="white" size="small" />
-              )}
-              <Text className="text-center text-white font-semibold">
-                {loading || updatingJob ? 'Updating...' : 'Save Changes'}
-              </Text>
-            </TouchableOpacity>
-          )}
+            {currentStep < EDIT_JOB_STEPS.length - 1 ? (
+              <TouchableOpacity
+                onPress={handleNext}
+                disabled={
+                  loading || updatingJob || skillsLoading || categoriesLoading
+                }
+                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50"
+              >
+                <Text className="text-center text-white font-semibold">
+                  {loading ? 'Loading...' : 'Next'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                // @ts-expect-error yup/react-hook-form type mismatch
+                onPress={handleSubmit(handleSubmit_)}
+                disabled={
+                  loading || updatingJob || skillsLoading || categoriesLoading
+                }
+                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50 flex-row items-center justify-center gap-2"
+              >
+                {(loading || updatingJob) && (
+                  <ActivityIndicator color="white" size="small" />
+                )}
+                <Text className="text-center text-white font-semibold">
+                  {loading || updatingJob ? 'Updating...' : 'Save Changes'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
       </KeyboardAwareView>
 
       {/* Sidebar */}

@@ -121,17 +121,17 @@ export default function MessagesScreen() {
             <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
           }
           ListHeaderComponent={
-          <>
-            <Text className="text-2xl font-semibold text-app-text-4 mb-4 mt-2">
-              Messages
-            </Text>
-            <View className="mb-4">
-              <MessagesSearchBar
-                searchQuery={searchQuery}
-                onSearchQueryChange={setSearchQuery}
-              />
-            </View>
-          </>
+            <>
+              <Text className="text-2xl font-semibold text-app-text-4 mb-4 mt-2">
+                Messages
+              </Text>
+              <View className="mb-4">
+                <MessagesSearchBar
+                  searchQuery={searchQuery}
+                  onSearchQueryChange={setSearchQuery}
+                />
+              </View>
+            </>
           }
           ListEmptyComponent={renderEmpty}
         />

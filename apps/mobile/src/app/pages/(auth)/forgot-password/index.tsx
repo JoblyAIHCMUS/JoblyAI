@@ -123,194 +123,202 @@ const ForgotPasswordPage = () => {
     <SafeAreaView className="flex-1 bg-background">
       <KeyboardAwareView className="flex-1">
         <ScrollView className="flex-grow" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="flex-row justify-between items-start mb-6 px-6 py-8">
-          <View className="flex-1">
-            <Text variant="h1" className="text-left mb-2">
-              Reset Password
-            </Text>
-            <Text variant="muted" className="text-sm">
-              Enter your email to receive a verification code
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push('/pages/(auth)/login')}>
-            <Text className="text-sm font-semibold text-indigo-700">Login</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Error Message */}
-        {error && (
-          <View className="bg-destructive/10 rounded-lg p-4 mb-4 border-l-4 border-destructive mx-6">
-            <Text className="text-destructive text-sm">{error.message}</Text>
-          </View>
-        )}
-
-        {/* Form */}
-        <View className="flex-1 px-6 py-4">
-          {/* Email Input */}
-          <TextInput
-            label="Email Address"
-            placeholder="Enter email address"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            editable={!loading && !otpSent}
-          />
-
-          {/* OTP Input */}
-          {otpSent && (
-            <View className="gap-4">
-              <TextInput
-                label="Verification Code"
-                placeholder="Enter 6-digit code"
-                value={otp}
-                onChangeText={(text) => setOtp(text.slice(0, 6))}
-                keyboardType="number-pad"
-                maxLength={6}
-                editable={!loading}
-              />
-
-              {/* New Password */}
-              <TextInput
-                label="New Password"
-                placeholder="Enter your new password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!showNewPassword}
-                editable={!loading}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff size={20} color={COLORS.slate500} />
-                    ) : (
-                      <Eye size={20} color={COLORS.slate500} />
-                    )}
-                  </TouchableOpacity>
-                }
-              />
-
-              {/* Confirm Password */}
-              <TextInput
-                label="Confirm Password"
-                placeholder="Confirm your new password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                editable={!loading}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={20} color={COLORS.slate500} />
-                    ) : (
-                      <Eye size={20} color={COLORS.slate500} />
-                    )}
-                  </TouchableOpacity>
-                }
-              />
-
-              {/* Password Match Indicator */}
-              {newPassword && confirmPassword && (
-                <View
-                  className={`rounded p-3 ${
-                    newPassword === confirmPassword
-                      ? 'bg-green-100'
-                      : 'bg-red-100'
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium ${
-                      newPassword === confirmPassword
-                        ? 'text-green-700'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {newPassword === confirmPassword ? (
-                      <View className="flex-row items-center">
-                        <Check
-                          size={12}
-                          color={COLORS.successDark}
-                          strokeWidth={3}
-                          className="mr-1"
-                        />
-                        <Text className="text-green-700">Passwords match</Text>
-                      </View>
-                    ) : (
-                      '✗ Passwords do not match'
-                    )}
-                  </Text>
-                </View>
-              )}
-
-              {/* Reset Button */}
-              <Button
-                size="lg"
-                className={'bg-indigo-700'}
-                onPress={handleResetPassword}
-                disabled={loading}
-              >
-                <Text>
-                  {loading ? 'Resetting password...' : 'Reset Password'}
-                </Text>
-              </Button>
-
-              {/* Resend OTP */}
-              <View className="flex-row justify-center mt-4">
-                <Text variant="muted" className="text-sm">
-                  Didn't receive a code?{' '}
-                </Text>
-                <TouchableOpacity
-                  onPress={handleSendOTP}
-                  disabled={resendTimer > 0 || loading}
-                >
-                  <Text
-                    className={`text-sm font-semibold text-indigo-700 ${
-                      (resendTimer > 0 || loading) && 'opacity-50'
-                    }`}
-                  >
-                    {resendTimer > 0
-                      ? `Resend in ${resendTimer}s`
-                      : 'Resend Code'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Send OTP Button */}
-          {!otpSent && (
-            <Button
-              className={'bg-indigo-700'}
-              size="lg"
-              onPress={handleSendOTP}
-              disabled={loading}
-            >
-              <Text>
-                {loading ? 'Sending code...' : 'Send Verification Code'}
+          {/* Header */}
+          <View className="flex-row justify-between items-start mb-6 px-6 py-8">
+            <View className="flex-1">
+              <Text variant="h1" className="text-left mb-2">
+                Reset Password
               </Text>
-            </Button>
-          )}
-
-          {/* Back to Login */}
-          <View className="mt-8 items-center">
+              <Text variant="muted" className="text-sm">
+                Enter your email to receive a verification code
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={() => router.push('/pages/(auth)/login')}
-              className="flex-row items-center"
             >
-              <ArrowLeft
-                size={16}
-                color={COLORS.indigoStrong}
-                className="mr-2"
-              />
               <Text className="text-sm font-semibold text-indigo-700">
-                Back to Login
+                Login
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+
+          {/* Error Message */}
+          {error && (
+            <View className="bg-destructive/10 rounded-lg p-4 mb-4 border-l-4 border-destructive mx-6">
+              <Text className="text-destructive text-sm">{error.message}</Text>
+            </View>
+          )}
+
+          {/* Form */}
+          <View className="flex-1 px-6 py-4">
+            {/* Email Input */}
+            <TextInput
+              label="Email Address"
+              placeholder="Enter email address"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              editable={!loading && !otpSent}
+            />
+
+            {/* OTP Input */}
+            {otpSent && (
+              <View className="gap-4">
+                <TextInput
+                  label="Verification Code"
+                  placeholder="Enter 6-digit code"
+                  value={otp}
+                  onChangeText={(text) => setOtp(text.slice(0, 6))}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  editable={!loading}
+                />
+
+                {/* New Password */}
+                <TextInput
+                  label="New Password"
+                  placeholder="Enter your new password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                  editable={!loading}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={20} color={COLORS.slate500} />
+                      ) : (
+                        <Eye size={20} color={COLORS.slate500} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+
+                {/* Confirm Password */}
+                <TextInput
+                  label="Confirm Password"
+                  placeholder="Confirm your new password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  editable={!loading}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={20} color={COLORS.slate500} />
+                      ) : (
+                        <Eye size={20} color={COLORS.slate500} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+
+                {/* Password Match Indicator */}
+                {newPassword && confirmPassword && (
+                  <View
+                    className={`rounded p-3 ${
+                      newPassword === confirmPassword
+                        ? 'bg-green-100'
+                        : 'bg-red-100'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-medium ${
+                        newPassword === confirmPassword
+                          ? 'text-green-700'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {newPassword === confirmPassword ? (
+                        <View className="flex-row items-center">
+                          <Check
+                            size={12}
+                            color={COLORS.successDark}
+                            strokeWidth={3}
+                            className="mr-1"
+                          />
+                          <Text className="text-green-700">
+                            Passwords match
+                          </Text>
+                        </View>
+                      ) : (
+                        '✗ Passwords do not match'
+                      )}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Reset Button */}
+                <Button
+                  size="lg"
+                  className={'bg-indigo-700'}
+                  onPress={handleResetPassword}
+                  disabled={loading}
+                >
+                  <Text>
+                    {loading ? 'Resetting password...' : 'Reset Password'}
+                  </Text>
+                </Button>
+
+                {/* Resend OTP */}
+                <View className="flex-row justify-center mt-4">
+                  <Text variant="muted" className="text-sm">
+                    Didn't receive a code?{' '}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleSendOTP}
+                    disabled={resendTimer > 0 || loading}
+                  >
+                    <Text
+                      className={`text-sm font-semibold text-indigo-700 ${
+                        (resendTimer > 0 || loading) && 'opacity-50'
+                      }`}
+                    >
+                      {resendTimer > 0
+                        ? `Resend in ${resendTimer}s`
+                        : 'Resend Code'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Send OTP Button */}
+            {!otpSent && (
+              <Button
+                className={'bg-indigo-700'}
+                size="lg"
+                onPress={handleSendOTP}
+                disabled={loading}
+              >
+                <Text>
+                  {loading ? 'Sending code...' : 'Send Verification Code'}
+                </Text>
+              </Button>
+            )}
+
+            {/* Back to Login */}
+            <View className="mt-8 items-center">
+              <TouchableOpacity
+                onPress={() => router.push('/pages/(auth)/login')}
+                className="flex-row items-center"
+              >
+                <ArrowLeft
+                  size={16}
+                  color={COLORS.indigoStrong}
+                  className="mr-2"
+                />
+                <Text className="text-sm font-semibold text-indigo-700">
+                  Back to Login
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAwareView>
     </SafeAreaView>

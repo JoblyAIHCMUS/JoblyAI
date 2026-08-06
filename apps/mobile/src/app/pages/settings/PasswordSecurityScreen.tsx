@@ -260,144 +260,151 @@ export default function PasswordSecurityScreen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-        <View className="mb-5">
-          <Text className="text-[28px] font-bold leading-9 text-app-text-4">
-            Secure your account
-          </Text>
-          <Text className="mt-2 text-[15px] leading-6 text-app-text-5">
-            {ROLE_COPY[role].subtitle}
-          </Text>
-        </View>
-
-        <View className="mb-5 gap-3">
-          <SecurityCard
-            icon={ShieldCheck}
-            title="Protected sign-in"
-            description="Use a unique password and update it if you suspect unusual activity."
-          />
-          <SecurityCard
-            icon={Smartphone}
-            title="Active mobile session"
-            description="Changing your password keeps this device signed in after the update."
-          />
-        </View>
-
-        <View className="mb-5 gap-4 rounded-lg border border-app-border-3 bg-white p-4">
-          <View className="flex-row items-center">
-            <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-background-1">
-              <LockKeyhole size={20} color={COLORS.primary} strokeWidth={2.2} />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-[17px] font-bold text-app-text-4">
-                Change password
-              </Text>
-              <Text className="mt-1 text-[12px] leading-4 text-app-text-5">
-                Your new password must meet every requirement below.
-              </Text>
-            </View>
+          <View className="mb-5">
+            <Text className="text-[28px] font-bold leading-9 text-app-text-4">
+              Secure your account
+            </Text>
+            <Text className="mt-2 text-[15px] leading-6 text-app-text-5">
+              {ROLE_COPY[role].subtitle}
+            </Text>
           </View>
 
-          <PasswordInput
-            label="Current password"
-            value={currentPassword}
-            visible={visibleFields.currentPassword}
-            onChangeText={setCurrentPassword}
-            onToggleVisibility={() => toggleField('currentPassword')}
-          />
-          <PasswordInput
-            label="New password"
-            value={newPassword}
-            visible={visibleFields.newPassword}
-            onChangeText={setNewPassword}
-            onToggleVisibility={() => toggleField('newPassword')}
-          />
-          <PasswordInput
-            label="Confirm new password"
-            value={confirmPassword}
-            visible={visibleFields.confirmPassword}
-            onChangeText={setConfirmPassword}
-            onToggleVisibility={() => toggleField('confirmPassword')}
-          />
+          <View className="mb-5 gap-3">
+            <SecurityCard
+              icon={ShieldCheck}
+              title="Protected sign-in"
+              description="Use a unique password and update it if you suspect unusual activity."
+            />
+            <SecurityCard
+              icon={Smartphone}
+              title="Active mobile session"
+              description="Changing your password keeps this device signed in after the update."
+            />
+          </View>
 
-          <View className="gap-2 rounded-lg bg-app-slate-gray p-3">
-            {rules.map((rule) => (
-              <View key={rule.label} className="flex-row items-center">
+          <View className="mb-5 gap-4 rounded-lg border border-app-border-3 bg-white p-4">
+            <View className="flex-row items-center">
+              <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-background-1">
+                <LockKeyhole
+                  size={20}
+                  color={COLORS.primary}
+                  strokeWidth={2.2}
+                />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-[17px] font-bold text-app-text-4">
+                  Change password
+                </Text>
+                <Text className="mt-1 text-[12px] leading-4 text-app-text-5">
+                  Your new password must meet every requirement below.
+                </Text>
+              </View>
+            </View>
+
+            <PasswordInput
+              label="Current password"
+              value={currentPassword}
+              visible={visibleFields.currentPassword}
+              onChangeText={setCurrentPassword}
+              onToggleVisibility={() => toggleField('currentPassword')}
+            />
+            <PasswordInput
+              label="New password"
+              value={newPassword}
+              visible={visibleFields.newPassword}
+              onChangeText={setNewPassword}
+              onToggleVisibility={() => toggleField('newPassword')}
+            />
+            <PasswordInput
+              label="Confirm new password"
+              value={confirmPassword}
+              visible={visibleFields.confirmPassword}
+              onChangeText={setConfirmPassword}
+              onToggleVisibility={() => toggleField('confirmPassword')}
+            />
+
+            <View className="gap-2 rounded-lg bg-app-slate-gray p-3">
+              {rules.map((rule) => (
+                <View key={rule.label} className="flex-row items-center">
+                  <View
+                    className={`h-5 w-5 items-center justify-center rounded-full ${
+                      rule.passed ? 'bg-app-green-1' : 'bg-app-slate-3'
+                    }`}
+                  >
+                    <Check size={13} color={COLORS.white} strokeWidth={3} />
+                  </View>
+                  <Text
+                    className={`ml-2 text-[12px] font-semibold ${
+                      rule.passed ? 'text-app-text-4' : 'text-app-text-5'
+                    }`}
+                  >
+                    {rule.label}
+                  </Text>
+                </View>
+              ))}
+              <View className="flex-row items-center">
                 <View
                   className={`h-5 w-5 items-center justify-center rounded-full ${
-                    rule.passed ? 'bg-app-green-1' : 'bg-app-slate-3'
+                    passwordsMatch ? 'bg-app-green-1' : 'bg-app-slate-3'
                   }`}
                 >
                   <Check size={13} color={COLORS.white} strokeWidth={3} />
                 </View>
                 <Text
                   className={`ml-2 text-[12px] font-semibold ${
-                    rule.passed ? 'text-app-text-4' : 'text-app-text-5'
+                    passwordsMatch ? 'text-app-text-4' : 'text-app-text-5'
                   }`}
                 >
-                  {rule.label}
+                  Passwords match
                 </Text>
               </View>
-            ))}
-            <View className="flex-row items-center">
-              <View
-                className={`h-5 w-5 items-center justify-center rounded-full ${
-                  passwordsMatch ? 'bg-app-green-1' : 'bg-app-slate-3'
-                }`}
-              >
-                <Check size={13} color={COLORS.white} strokeWidth={3} />
-              </View>
-              <Text
-                className={`ml-2 text-[12px] font-semibold ${
-                  passwordsMatch ? 'text-app-text-4' : 'text-app-text-5'
-                }`}
-              >
-                Passwords match
-              </Text>
             </View>
           </View>
-        </View>
 
-        <View className="mb-5 flex-row items-center rounded-lg border border-app-border-3 bg-white px-4 py-4">
-          <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-slate-gray">
-            <KeyRound size={20} color={COLORS.slate500} strokeWidth={2.2} />
+          <View className="mb-5 flex-row items-center rounded-lg border border-app-border-3 bg-white px-4 py-4">
+            <View className="h-11 w-11 items-center justify-center rounded-lg bg-app-slate-gray">
+              <KeyRound size={20} color={COLORS.slate500} strokeWidth={2.2} />
+            </View>
+            <View className="ml-3 flex-1 pr-3">
+              <Text className="text-[15px] font-bold text-app-text-4">
+                Sign out other devices
+              </Text>
+              <Text className="mt-1 text-[12px] leading-4 text-app-text-5">
+                Revoke other active sessions after your password is changed.
+              </Text>
+            </View>
+            <Switch
+              value={signOutOtherDevices}
+              onValueChange={setSignOutOtherDevices}
+              trackColor={{
+                false: COLORS.borderMuted,
+                true: COLORS.indigoTrack,
+              }}
+              thumbColor={signOutOtherDevices ? COLORS.primary : COLORS.white}
+              ios_backgroundColor={COLORS.borderMuted}
+            />
           </View>
-          <View className="ml-3 flex-1 pr-3">
-            <Text className="text-[15px] font-bold text-app-text-4">
-              Sign out other devices
-            </Text>
-            <Text className="mt-1 text-[12px] leading-4 text-app-text-5">
-              Revoke other active sessions after your password is changed.
-            </Text>
-          </View>
-          <Switch
-            value={signOutOtherDevices}
-            onValueChange={setSignOutOtherDevices}
-            trackColor={{ false: COLORS.borderMuted, true: COLORS.indigoTrack }}
-            thumbColor={signOutOtherDevices ? COLORS.primary : COLORS.white}
-            ios_backgroundColor={COLORS.borderMuted}
-          />
-        </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          disabled={!canSubmit}
-          onPress={handleSubmit}
-          className={`flex-row items-center justify-center rounded-lg px-4 py-4 ${
-            canSubmit ? 'bg-app-primary-1' : 'bg-app-bg-disabled'
-          }`}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <Text
-              className={`text-[16px] font-bold ${
-                canSubmit ? 'text-white' : 'text-app-text-placeholder'
-              }`}
-            >
-              Update password
-            </Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            disabled={!canSubmit}
+            onPress={handleSubmit}
+            className={`flex-row items-center justify-center rounded-lg px-4 py-4 ${
+              canSubmit ? 'bg-app-primary-1' : 'bg-app-bg-disabled'
+            }`}
+          >
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text
+                className={`text-[16px] font-bold ${
+                  canSubmit ? 'text-white' : 'text-app-text-placeholder'
+                }`}
+              >
+                Update password
+              </Text>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAwareView>
     </SafeAreaView>

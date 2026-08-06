@@ -479,72 +479,72 @@ export default function EmployerEditCompanyPage() {
             className="flex-1"
             contentContainerClassName="gap-6 px-4 py-4"
           >
-          {/* Page Title */}
-          <View className="gap-2 mb-2">
-            <Text className="text-2xl font-bold text-slate-900">
-              Edit Company Profile
-            </Text>
-            <Text className="text-sm text-slate-600">
-              Update your company information.
-            </Text>
-          </View>
+            {/* Page Title */}
+            <View className="gap-2 mb-2">
+              <Text className="text-2xl font-bold text-slate-900">
+                Edit Company Profile
+              </Text>
+              <Text className="text-sm text-slate-600">
+                Update your company information.
+              </Text>
+            </View>
 
-          {/* Step Indicator */}
-          <View className="bg-white rounded-lg p-4 border border-slate-200">
-            <StepIndicator
-              customStyles={stepIndicatorStyles}
-              currentPosition={currentStep}
-              labels={NEW_COMPANY_STEPS.map((s) => s.label)}
-              stepCount={NEW_COMPANY_STEPS.length}
-              onPress={(position) => {
-                if (position < currentStep) {
-                  setCurrentStep(position);
-                }
-              }}
-            />
-          </View>
-
-          {/* Steps Content */}
-          <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
-            {currentStep === 0 && (
-              <BasicInfoStep
-                control={control}
-                errors={errors}
-                isValidating={isValidating}
-                logoUrl={logoUrl || null}
-                onLogoChange={(url) => setValue('logoUrl', url)}
+            {/* Step Indicator */}
+            <View className="bg-white rounded-lg p-4 border border-slate-200">
+              <StepIndicator
+                customStyles={stepIndicatorStyles}
+                currentPosition={currentStep}
+                labels={NEW_COMPANY_STEPS.map((s) => s.label)}
+                stepCount={NEW_COMPANY_STEPS.length}
+                onPress={(position) => {
+                  if (position < currentStep) {
+                    setCurrentStep(position);
+                  }
+                }}
               />
-            )}
+            </View>
 
-            {currentStep === 1 && (
-              <AboutCompanyStep
-                control={control}
-                errors={errors}
-                description={companyDescription || ''}
-              />
-            )}
+            {/* Steps Content */}
+            <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
+              {currentStep === 0 && (
+                <BasicInfoStep
+                  control={control}
+                  errors={errors}
+                  isValidating={isValidating}
+                  logoUrl={logoUrl || null}
+                  onLogoChange={(url) => setValue('logoUrl', url)}
+                />
+              )}
 
-            {currentStep === 2 && (
-              <TeamStep
-                members={teamMembers}
-                canManage={!!currentUser?.isCompanyAdmin}
-                ownerEmail={
-                  teamMembers.find(
-                    (m) => m.membershipId === currentUser?.company?.adminId
-                  )?.email ?? null
-                }
-                currentUserEmail={currentUser?.email ?? ''}
-                busy={busy}
-                removingMember={removingMember}
-                onRoleChange={handleRoleChange}
-                onRemove={handleRemovePress}
-                onConfirmRemove={handleConfirmRemove}
-                onCancelRemove={handleCancelRemove}
-                onAddMember={handleAddMember}
-                errors={errors}
-              />
-            )}
-          </View>
+              {currentStep === 1 && (
+                <AboutCompanyStep
+                  control={control}
+                  errors={errors}
+                  description={companyDescription || ''}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <TeamStep
+                  members={teamMembers}
+                  canManage={!!currentUser?.isCompanyAdmin}
+                  ownerEmail={
+                    teamMembers.find(
+                      (m) => m.membershipId === currentUser?.company?.adminId
+                    )?.email ?? null
+                  }
+                  currentUserEmail={currentUser?.email ?? ''}
+                  busy={busy}
+                  removingMember={removingMember}
+                  onRoleChange={handleRoleChange}
+                  onRemove={handleRemovePress}
+                  onConfirmRemove={handleConfirmRemove}
+                  onCancelRemove={handleCancelRemove}
+                  onAddMember={handleAddMember}
+                  errors={errors}
+                />
+              )}
+            </View>
           </ScrollView>
 
           {/* Navigation Buttons */}

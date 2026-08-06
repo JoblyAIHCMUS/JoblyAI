@@ -319,7 +319,6 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
               {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Text>
           </TouchableOpacity>
-
         </View>
 
         <View className="px-6 pb-8 pt-4">
@@ -336,10 +335,7 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
               >
                 {employerProfile?.fullName || 'Loading...'}
               </Text>
-              <Text
-                className="text-[15px]"
-                style={{ color: COLORS.slate500 }}
-              >
+              <Text className="text-[15px]" style={{ color: COLORS.slate500 }}>
                 {employerProfile?.email || ''}
               </Text>
             </View>

@@ -292,66 +292,66 @@ export default function MyApplicationsPage() {
               />
             }
             ListHeaderComponent={
-            <View className="gap-4 py-4">
-              <View className="gap-2">
-                <Text className="text-[28px] font-bold leading-8 text-app-text-4">
-                  {greeting}, {firstName}
-                </Text>
-                <Text className="text-[15px] leading-6 text-app-text-5">
-                  Here&apos;s the status of your applications from{' '}
-                  {formatDateRangeLabel(appliedDateRange)}.
-                </Text>
-              </View>
-
-              <SearchFilterBar
-                searchQuery={searchQuery}
-                activeFilterCount={activeFilterCount}
-                onSearchChange={setSearchQuery}
-                onSearchSubmit={() => undefined}
-                onFilterPress={openFilterSheet}
-              />
-
-              <ApplicationsTabs
-                activeTab={activeFilterTab}
-                counts={tabCounts}
-                onTabChange={setActiveFilterTab}
-              />
-
-              <View className="flex-row items-center justify-between pt-1">
-                <Text className="text-[22px] font-bold leading-7 text-app-text-4">
-                  Applications History
-                </Text>
-
-                <View className="rounded-full border border-app-border-light bg-app-slate-gray px-3 py-1.5">
-                  <Text className="text-[11px] font-semibold text-app-text-5">
-                    {filteredApplications.length} results
+              <View className="gap-4 py-4">
+                <View className="gap-2">
+                  <Text className="text-[28px] font-bold leading-8 text-app-text-4">
+                    {greeting}, {firstName}
+                  </Text>
+                  <Text className="text-[15px] leading-6 text-app-text-5">
+                    Here&apos;s the status of your applications from{' '}
+                    {formatDateRangeLabel(appliedDateRange)}.
                   </Text>
                 </View>
+
+                <SearchFilterBar
+                  searchQuery={searchQuery}
+                  activeFilterCount={activeFilterCount}
+                  onSearchChange={setSearchQuery}
+                  onSearchSubmit={() => undefined}
+                  onFilterPress={openFilterSheet}
+                />
+
+                <ApplicationsTabs
+                  activeTab={activeFilterTab}
+                  counts={tabCounts}
+                  onTabChange={setActiveFilterTab}
+                />
+
+                <View className="flex-row items-center justify-between pt-1">
+                  <Text className="text-[22px] font-bold leading-7 text-app-text-4">
+                    Applications History
+                  </Text>
+
+                  <View className="rounded-full border border-app-border-light bg-app-slate-gray px-3 py-1.5">
+                    <Text className="text-[11px] font-semibold text-app-text-5">
+                      {filteredApplications.length} results
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
             }
             ListEmptyComponent={
-            loading ? (
-              <ApplicationsSkeleton />
-            ) : error ? (
-              <View className="items-center py-12">
-                <Text className="text-sm text-app-red-2">
-                  Failed to load applications. Please try again.
-                </Text>
-              </View>
-            ) : (
-              <ApplicationsEmptyState
-                activeTab={
-                  activeFilterTab === 'ACTIVE'
-                    ? 'APPLIED'
-                    : activeFilterTab === 'CLOSED'
-                    ? 'REJECTED'
-                    : 'ALL'
-                }
-                searchQuery={searchQuery}
-                onBrowseJobs={() => router.push('/pages/find-jobs')}
-              />
-            )
+              loading ? (
+                <ApplicationsSkeleton />
+              ) : error ? (
+                <View className="items-center py-12">
+                  <Text className="text-sm text-app-red-2">
+                    Failed to load applications. Please try again.
+                  </Text>
+                </View>
+              ) : (
+                <ApplicationsEmptyState
+                  activeTab={
+                    activeFilterTab === 'ACTIVE'
+                      ? 'APPLIED'
+                      : activeFilterTab === 'CLOSED'
+                      ? 'REJECTED'
+                      : 'ALL'
+                  }
+                  searchQuery={searchQuery}
+                  onBrowseJobs={() => router.push('/pages/find-jobs')}
+                />
+              )
             }
           />
         </KeyboardAwareView>
