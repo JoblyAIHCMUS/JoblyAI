@@ -25,6 +25,7 @@ import Toast from 'react-native-toast-message';
 
 import { useChangePassword } from '../../../hooks/useAuth';
 import { COLORS } from '../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 type SettingsRole = 'candidate' | 'employer';
 type IconComponent = ComponentType<{
@@ -252,12 +253,13 @@ export default function PasswordSecurityScreen({
         </View>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAwareView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         <View className="mb-5">
           <Text className="text-[28px] font-bold leading-9 text-app-text-4">
             Secure your account
@@ -396,7 +398,8 @@ export default function PasswordSecurityScreen({
             </Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 }

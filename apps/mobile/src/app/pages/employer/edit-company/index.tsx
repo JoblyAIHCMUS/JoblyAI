@@ -30,6 +30,7 @@ import {
   type TeamMember,
 } from './data';
 import { companyUpdateSchema, type CompanyUpdateFormData } from './schema';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useGetCompany } from '../../../../hooks/useGetCompany';
 import { useGetCompanyEmployees } from '../../../../hooks/useGetCompanyEmployees';
@@ -471,11 +472,12 @@ export default function EmployerEditCompanyPage() {
 
       {/* Main Content */}
       <View className="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-          contentContainerClassName="gap-6 px-4 py-4"
-        >
+        <KeyboardAwareView className="flex-1">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            className="flex-1"
+            contentContainerClassName="gap-6 px-4 py-4"
+          >
           {/* Page Title */}
           <View className="gap-2 mb-2">
             <Text className="text-2xl font-bold text-slate-900">
@@ -542,7 +544,8 @@ export default function EmployerEditCompanyPage() {
               />
             )}
           </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAwareView>
 
         {/* Navigation Buttons */}
         <View

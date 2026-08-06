@@ -22,7 +22,7 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 interface CvSyncCompareModalProps {
   isOpen: boolean;
@@ -119,7 +119,7 @@ export function CvSyncCompareModal({
 
   return (
     <Modal visible={isOpen} transparent animationType="slide">
-      <KeyboardDismissView className="flex-1">
+      <KeyboardAwareView className="flex-1">
         <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-white">
           <View className="flex flex-row items-center justify-between px-5 py-4 border-b border-app-border-light">
             <View className="flex flex-row items-center gap-2">
@@ -343,7 +343,7 @@ export function CvSyncCompareModal({
             </>
           )}
         </SafeAreaView>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

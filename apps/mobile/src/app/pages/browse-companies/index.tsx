@@ -18,6 +18,7 @@ import { Building2, MapPin, Menu, Search } from 'lucide-react-native';
 import { useCompanies } from '@/hooks';
 import type { Company } from '@/types/company';
 import { COLORS } from '@/app/constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import AppSidebar from '@/app/components/AppSidebar';
 import { CompanyCardSkeleton, EmptyState } from '@/components/ui/feedback';
 import * as Haptics from 'expo-haptics';
@@ -238,13 +239,14 @@ export default function BrowseCompaniesPage() {
           </View>
         </View>
 
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
+        <KeyboardAwareView className="flex-1">
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+          >
           <View
             className="px-4 pb-10 pt-8"
             style={{ backgroundColor: COLORS.surfaceSoft }}
@@ -412,7 +414,8 @@ export default function BrowseCompaniesPage() {
               </View>
             )}
           </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAwareView>
 
         {totalPages > 1 && companies.length > 0 ? (
           <View

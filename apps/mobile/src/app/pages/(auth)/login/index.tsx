@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   View,
   ScrollView,
   TouchableOpacity,
@@ -22,6 +20,7 @@ import { getSession } from '../../../../lib/auth';
 import { router } from 'expo-router';
 import { authClient } from '../../../../lib/auth-client';
 import { COLORS } from '../../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 import { Eye, EyeOff, Check } from 'lucide-react-native';
 
@@ -115,10 +114,7 @@ const LoginPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAwareView className="flex-1">
         <ScrollView
           className="flex-grow"
           showsVerticalScrollIndicator={false}
@@ -247,7 +243,7 @@ const LoginPage = () => {
             </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 };

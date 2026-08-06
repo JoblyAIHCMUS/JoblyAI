@@ -13,7 +13,7 @@ import {
 import { createEducation } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 const DEGREE_OPTIONS = [
   { value: 'HIGH_SCHOOL', label: 'High School' },
@@ -106,7 +106,7 @@ export default function EditEducationModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardDismissView className="flex-1 items-center justify-end bg-black/40">
+      <KeyboardAwareView className="flex-1 items-center justify-end bg-black/40">
         <SafeAreaView
           edges={['bottom']}
           className="w-full max-h-[90%] rounded-t-2xl bg-white p-4"
@@ -264,7 +264,7 @@ export default function EditEducationModal({
             </View>
           </ScrollView>
         </SafeAreaView>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

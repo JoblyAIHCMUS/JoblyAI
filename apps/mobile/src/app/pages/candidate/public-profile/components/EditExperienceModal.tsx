@@ -13,7 +13,7 @@ import {
 import { createExperience } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 const EMPLOYMENT_TYPES = [
   { value: 'FULL_TIME', label: 'Full-time' },
@@ -81,7 +81,7 @@ export default function EditExperienceModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardDismissView
+      <KeyboardAwareView
         className="flex-1 items-center justify-end"
         style={{ backgroundColor: COLORS.overlay }}
       >
@@ -238,7 +238,7 @@ export default function EditExperienceModal({
             </View>
           </ScrollView>
         </SafeAreaView>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

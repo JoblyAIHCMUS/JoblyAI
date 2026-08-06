@@ -33,6 +33,7 @@ import type {
   RequirementImportance,
 } from '../../../../types/job';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import { COLORS } from '../../../constants/theme';
 
 const isHtmlContentEmpty = (html: string): boolean => {
@@ -378,12 +379,13 @@ export default function EmployerEditJobPage() {
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader onMenuPress={() => setSidebarOpen(true)} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="flex-1"
-        scrollEnabled={currentStep === 0} // Only allow scroll on first step
-      >
-        <View className="px-4 py-6">
+      <KeyboardAwareView className="flex-1">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          scrollEnabled={currentStep === 0} // Only allow scroll on first step
+        >
+          <View className="px-4 py-6">
           {/* Header */}
           <View className="mb-6">
             <View className="flex-row items-center gap-3 mb-2">
@@ -434,8 +436,9 @@ export default function EmployerEditJobPage() {
               />
             )}
           </View>
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+      </KeyboardAwareView>
 
       {/* Navigation Buttons */}
       <View

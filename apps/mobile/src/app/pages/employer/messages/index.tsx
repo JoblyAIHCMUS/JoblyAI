@@ -15,6 +15,7 @@ import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { EmptyState } from '@/components/ui/feedback';
 import { MessageCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 export default function MessagesScreen() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -103,22 +104,23 @@ export default function MessagesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader onMenuPress={() => setIsSidebarOpen(true)} />
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.chatId}
-        renderItem={({ item }) => (
-          <MessageListItem
-            conversation={item}
-            onPress={handleConversationPress}
-            isUnread={item.unread}
-          />
-        )}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
-        }
-        ListHeaderComponent={
+      <KeyboardAwareView className="flex-1">
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.chatId}
+          renderItem={({ item }) => (
+            <MessageListItem
+              conversation={item}
+              onPress={handleConversationPress}
+              isUnread={item.unread}
+            />
+          )}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          }
+          ListHeaderComponent={
           <>
             <Text className="text-2xl font-semibold text-app-text-4 mb-4 mt-2">
               Messages
@@ -130,9 +132,10 @@ export default function MessagesScreen() {
               />
             </View>
           </>
-        }
-        ListEmptyComponent={renderEmpty}
-      />
+          }
+          ListEmptyComponent={renderEmpty}
+        />
+      </KeyboardAwareView>
 
       <EmployerDashboardSidebar
         isOpen={isSidebarOpen}

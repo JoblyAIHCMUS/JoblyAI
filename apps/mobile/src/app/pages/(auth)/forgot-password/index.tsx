@@ -12,6 +12,7 @@ import { authClient } from '../../../../lib/auth-client';
 import { Eye, EyeOff, Check, ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { COLORS } from '../../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 const ForgotPasswordPage = () => {
   const {
@@ -120,7 +121,8 @@ const ForgotPasswordPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-grow" showsVerticalScrollIndicator={false}>
+      <KeyboardAwareView className="flex-1">
+        <ScrollView className="flex-grow" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="flex-row justify-between items-start mb-6 px-6 py-8">
           <View className="flex-1">
@@ -309,7 +311,8 @@ const ForgotPasswordPage = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 };

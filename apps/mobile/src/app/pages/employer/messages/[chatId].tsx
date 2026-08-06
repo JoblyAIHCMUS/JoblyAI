@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import ChatHeader from './components/ChatHeader';
@@ -13,7 +13,7 @@ import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSummaryLoaded';
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
-import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { withDateSeparators } from './utils';
 import { emitChatOpened, emitChatClosed } from '@/hooks/useMessagesSocket';
@@ -23,7 +23,6 @@ export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { data: profile } = useGetEmployerProfile();
   const userId = profile?.id ?? '';
-  const keyboardHeight = useKeyboardHeight();
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') {
@@ -137,14 +136,7 @@ export default function ChatScreen() {
         role={summary?.participantRole ?? null}
         onBack={() => router.back()}
       />
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-        style={
-          keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined
-        }
-      >
+      <KeyboardAwareView className="flex-1" keyboardVerticalOffset={0}>
         <FlatList
           ref={listRef}
           data={messages}
@@ -160,7 +152,7 @@ export default function ChatScreen() {
           onSend={(text) => send.mutate(text)}
           disabled={send.isPending}
         />
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 }
