@@ -14,6 +14,7 @@ import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSum
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
 import { KeyboardAwareView } from '@/components/KeyboardAwareView';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { withDateSeparators } from './utils';
 import { emitChatOpened, emitChatClosed } from '@/hooks/useMessagesSocket';
@@ -23,6 +24,7 @@ export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { data: profile } = useGetEmployerProfile();
   const userId = profile?.id ?? '';
+  const keyboardHeight = useKeyboardHeight();
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') {
@@ -72,10 +74,14 @@ export default function ChatScreen() {
   //      useEffect at apps/web/src/features/employer/messages/ChatWindow.tsx:39-44)
   const listRef = useRef<FlatList>(null);
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length === 0) return;
+
+    const frame = requestAnimationFrame(() => {
       listRef.current?.scrollToEnd({ animated: true });
-    }
-  }, [messages.length]);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [messages.length, keyboardHeight]);
 
   // 4. Send
   const send = useSendMessage({
