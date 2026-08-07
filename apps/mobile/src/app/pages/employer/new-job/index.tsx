@@ -33,6 +33,7 @@ import type {
 } from '../../../../types/job';
 import { jobPostingSchema, type JobPostingFormData } from './schema';
 import { COLORS } from '../../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 const isHtmlContentEmpty = (html: string): boolean => {
   const text = html.replace(/<[^>]*>/g, '').trim();
@@ -315,104 +316,106 @@ export default function EmployerNewJobPage() {
       <Stack.Screen options={{ headerShown: false }} />
       <EmployerDashboardHeader onMenuPress={() => setSidebarOpen(true)} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="flex-1"
-        scrollEnabled={currentStep === 0} // Only allow scroll on first step
-      >
-        <View className="px-4 py-6">
-          {/* Header */}
-          <View className="mb-6">
-            <Text className="text-3xl font-bold text-slate-900">
-              Post a New Job
-            </Text>
-            <Text className="text-base text-slate-600 mt-2">
-              Fill in the details to create a new job posting.
-            </Text>
-          </View>
-
-          {/* Step Indicator */}
-          <View className="mb-8 px-2">
-            <StepIndicator
-              stepCount={NEW_JOB_STEPS.length}
-              direction="horizontal"
-              currentPosition={currentStep}
-              labels={NEW_JOB_STEPS.map((step) => step.label)}
-              customStyles={stepIndicatorStyles}
-            />
-          </View>
-
-          {/* Step Content */}
-          <View className="flex-1 min-h-96">
-            {currentStep === 0 && (
-              <BasicInformationStep
-                // @ts-expect-error yup/react-hook-form type mismatch
-                control={control}
-                errors={errors}
-                watch={watch}
-                formData={formData}
-                onValidate={validateSalaryRange}
-              />
-            )}
-
-            {currentStep === 1 && (
-              <JobDescriptionStep
-                // @ts-expect-error yup/react-hook-form type mismatch
-                control={control}
-                errors={errors}
-              />
-            )}
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Navigation Buttons */}
-      <View
-        className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
-        style={{ paddingBottom: 20 + insets.bottom }}
-      >
-        <View className="flex-row gap-3">
-          <TouchableOpacity
-            onPress={handlePrevious}
-            disabled={currentStep === 0}
-            className="flex-1 px-4 py-3 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
-          >
-            <Text className="text-center text-slate-900 font-semibold">
-              Previous
-            </Text>
-          </TouchableOpacity>
-
-          {currentStep < NEW_JOB_STEPS.length - 1 ? (
-            <TouchableOpacity
-              onPress={handleNext}
-              disabled={
-                loading || creatingJob || skillsLoading || categoriesLoading
-              }
-              className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50"
-            >
-              <Text className="text-center text-white font-semibold">
-                {loading ? 'Loading...' : 'Next'}
+      <KeyboardAwareView className="flex-1">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          scrollEnabled={currentStep === 0} // Only allow scroll on first step
+        >
+          <View className="px-4 py-6">
+            {/* Header */}
+            <View className="mb-6">
+              <Text className="text-3xl font-bold text-slate-900">
+                Post a New Job
               </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              // @ts-expect-error yup/react-hook-form type mismatch
-              onPress={handleSubmit(handleSubmit_)}
-              disabled={
-                loading || creatingJob || skillsLoading || categoriesLoading
-              }
-              className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50 flex-row items-center justify-center gap-2"
-            >
-              {(loading || creatingJob) && (
-                <ActivityIndicator color="white" size="small" />
+              <Text className="text-base text-slate-600 mt-2">
+                Fill in the details to create a new job posting.
+              </Text>
+            </View>
+
+            {/* Step Indicator */}
+            <View className="mb-8 px-2">
+              <StepIndicator
+                stepCount={NEW_JOB_STEPS.length}
+                direction="horizontal"
+                currentPosition={currentStep}
+                labels={NEW_JOB_STEPS.map((step) => step.label)}
+                customStyles={stepIndicatorStyles}
+              />
+            </View>
+
+            {/* Step Content */}
+            <View className="flex-1 min-h-96">
+              {currentStep === 0 && (
+                <BasicInformationStep
+                  // @ts-expect-error yup/react-hook-form type mismatch
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  formData={formData}
+                  onValidate={validateSalaryRange}
+                />
               )}
-              <Text className="text-center text-white font-semibold">
-                {loading || creatingJob ? 'Posting...' : 'Post Job'}
+
+              {currentStep === 1 && (
+                <JobDescriptionStep
+                  // @ts-expect-error yup/react-hook-form type mismatch
+                  control={control}
+                  errors={errors}
+                />
+              )}
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Navigation Buttons */}
+        <View
+          className="border-t border-slate-200 bg-white px-4 pt-4 gap-3"
+          style={{ paddingBottom: 20 + insets.bottom }}
+        >
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={handlePrevious}
+              disabled={currentStep === 0}
+              className="flex-1 px-4 py-3 rounded-lg border border-slate-200 bg-white disabled:opacity-50"
+            >
+              <Text className="text-center text-slate-900 font-semibold">
+                Previous
               </Text>
             </TouchableOpacity>
-          )}
+
+            {currentStep < NEW_JOB_STEPS.length - 1 ? (
+              <TouchableOpacity
+                onPress={handleNext}
+                disabled={
+                  loading || creatingJob || skillsLoading || categoriesLoading
+                }
+                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50"
+              >
+                <Text className="text-center text-white font-semibold">
+                  {loading ? 'Loading...' : 'Next'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                // @ts-expect-error yup/react-hook-form type mismatch
+                onPress={handleSubmit(handleSubmit_)}
+                disabled={
+                  loading || creatingJob || skillsLoading || categoriesLoading
+                }
+                className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 disabled:opacity-50 flex-row items-center justify-center gap-2"
+              >
+                {(loading || creatingJob) && (
+                  <ActivityIndicator color="white" size="small" />
+                )}
+                <Text className="text-center text-white font-semibold">
+                  {loading || creatingJob ? 'Posting...' : 'Post Job'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
+      </KeyboardAwareView>
 
       {/* Sidebar */}
       <EmployerDashboardSidebar

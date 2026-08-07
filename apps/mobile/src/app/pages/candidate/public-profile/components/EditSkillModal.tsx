@@ -12,7 +12,7 @@ import { useSearchSkills } from '../../../../../hooks/useSearchSkills';
 import { createCandidateSkill } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 export default function EditSkillModal({
   visible,
@@ -75,10 +75,10 @@ export default function EditSkillModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardDismissView className="flex-1 items-center justify-end bg-black/40">
+      <KeyboardAwareView className="flex-1 items-center justify-end bg-black/40">
         <SafeAreaView
           edges={['bottom']}
-          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4"
+          className="w-full max-h-[50%] rounded-t-2xl bg-white p-4 pb-8"
         >
           <Text className="mb-4 text-lg font-semibold">Add Skill</Text>
 
@@ -145,7 +145,7 @@ export default function EditSkillModal({
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

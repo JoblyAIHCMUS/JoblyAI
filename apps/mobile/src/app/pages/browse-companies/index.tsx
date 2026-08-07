@@ -18,6 +18,7 @@ import { Building2, MapPin, Menu, Search } from 'lucide-react-native';
 import { useCompanies } from '@/hooks';
 import type { Company } from '@/types/company';
 import { COLORS } from '@/app/constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import AppSidebar from '@/app/components/AppSidebar';
 import { CompanyCardSkeleton, EmptyState } from '@/components/ui/feedback';
 import * as Haptics from 'expo-haptics';
@@ -238,181 +239,186 @@ export default function BrowseCompaniesPage() {
           </View>
         </View>
 
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
-          <View
-            className="px-4 pb-10 pt-8"
-            style={{ backgroundColor: COLORS.surfaceSoft }}
+        <KeyboardAwareView className="flex-1">
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
           >
-            <View className="rounded-[5px] bg-app-white-1 p-4 shadow-sm">
-              <View className="flex-row items-center gap-4 px-1">
-                <Search size={22} color={COLORS.brandDark} />
-                <View className="flex-1 pt-2">
-                  <TextInput
-                    value={localSearchTerm}
-                    onChangeText={setLocalSearchTerm}
-                    placeholder="Company name or keyword"
-                    placeholderTextColor={COLORS.slate400}
-                    className="p-0 text-base text-app-slate-1"
-                    returnKeyType="search"
-                  />
-                  <View className="mt-2 h-px bg-app-border-2" />
+            <View
+              className="px-4 pb-10 pt-8"
+              style={{ backgroundColor: COLORS.surfaceSoft }}
+            >
+              <View className="rounded-[5px] bg-app-white-1 p-4 shadow-sm">
+                <View className="flex-row items-center gap-4 px-1">
+                  <Search size={22} color={COLORS.brandDark} />
+                  <View className="flex-1 pt-2">
+                    <TextInput
+                      value={localSearchTerm}
+                      onChangeText={setLocalSearchTerm}
+                      placeholder="Company name or keyword"
+                      placeholderTextColor={COLORS.slate400}
+                      className="p-0 text-base text-app-slate-1"
+                      returnKeyType="search"
+                    />
+                    <View className="mt-2 h-px bg-app-border-2" />
+                  </View>
                 </View>
-              </View>
 
-              <View className="mt-4 flex-row items-center gap-4 px-1">
-                <MapPin size={22} color={COLORS.brandDark} />
-                <View className="flex-1 pt-2">
-                  <TextInput
-                    value={localLocation}
-                    onChangeText={setLocalLocation}
-                    placeholder="Location"
-                    placeholderTextColor={COLORS.slate400}
-                    className="p-0 text-base text-app-slate-1"
-                    returnKeyType="search"
-                  />
-                  <View className="mt-2 h-px bg-app-border-2" />
+                <View className="mt-4 flex-row items-center gap-4 px-1">
+                  <MapPin size={22} color={COLORS.brandDark} />
+                  <View className="flex-1 pt-2">
+                    <TextInput
+                      value={localLocation}
+                      onChangeText={setLocalLocation}
+                      placeholder="Location"
+                      placeholderTextColor={COLORS.slate400}
+                      className="p-0 text-base text-app-slate-1"
+                      returnKeyType="search"
+                    />
+                    <View className="mt-2 h-px bg-app-border-2" />
+                  </View>
                 </View>
-              </View>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                className="mt-5 h-12 items-center justify-center rounded-[5px] bg-app-primary-2"
-                onPress={handleSearch}
-              >
-                <Text className="text-base font-semibold text-white">
-                  Search
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="mt-4 flex-row flex-wrap justify-center gap-1">
-              <Text className="text-base leading-6 text-app-text-5">
-                Popular :
-              </Text>
-              {POPULAR_SEARCHES.map((value) => (
                 <TouchableOpacity
-                  key={value}
-                  activeOpacity={0.7}
-                  onPress={() => handlePopularSearch(value)}
+                  activeOpacity={0.85}
+                  className="mt-5 h-12 items-center justify-center rounded-[5px] bg-app-primary-2"
+                  onPress={handleSearch}
                 >
-                  <Text className="text-base leading-6 text-app-text-5">
-                    {value}
-                    {value === POPULAR_SEARCHES[POPULAR_SEARCHES.length - 1]
-                      ? ''
-                      : ','}
+                  <Text className="text-base font-semibold text-white">
+                    Search
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+              </View>
 
-          <View className="bg-app-white-1 px-4 py-10">
-            <Text className="text-3xl font-semibold leading-9 text-app-slate-1">
-              {companiesSectionTitle}
-            </Text>
-            <Text className="mt-2 text-base leading-6 text-app-text-5">
-              {companiesSectionDescription}
-            </Text>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-4 mt-6"
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-            >
-              {COMPANY_SIZE_FILTERS.map((companySize) => {
-                const active = selectedCompanySize === companySize;
-
-                return (
+              <View className="mt-4 flex-row flex-wrap justify-center gap-1">
+                <Text className="text-base leading-6 text-app-text-5">
+                  Popular :
+                </Text>
+                {POPULAR_SEARCHES.map((value) => (
                   <TouchableOpacity
-                    key={companySize}
-                    activeOpacity={0.8}
-                    onPress={() => setSelectedCompanySize(companySize)}
-                    className={`rounded-full border px-4 py-2 ${
-                      active
-                        ? 'border-app-primary-2 bg-app-bg-selected'
-                        : 'border-app-border-1 bg-app-white-1'
-                    }`}
+                    key={value}
+                    activeOpacity={0.7}
+                    onPress={() => handlePopularSearch(value)}
                   >
-                    <Text
-                      className={`text-sm font-semibold ${
-                        active ? 'text-app-primary-2' : 'text-app-text-5'
-                      }`}
-                    >
-                      {companySize}
+                    <Text className="text-base leading-6 text-app-text-5">
+                      {value}
+                      {value === POPULAR_SEARCHES[POPULAR_SEARCHES.length - 1]
+                        ? ''
+                        : ','}
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            <View className="mt-6 flex-row items-center gap-3">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-app-bg-selected">
-                <Building2 size={20} color={COLORS.primary2} />
+                ))}
               </View>
-              <Text className="text-2xl font-semibold text-app-slate-1">
-                {total} Results
-              </Text>
             </View>
 
-            {loading && companies.length === 0 ? (
-              <View className="mt-6 gap-6">
-                {[0, 1, 2].map((item) => (
-                  <CompanyCardSkeleton key={item} />
-                ))}
-              </View>
-            ) : error ? (
-              <View className="mt-6 rounded-lg bg-app-tag-red-bg px-4 py-8">
-                <Text className="text-center text-sm text-app-tag-red-text">
-                  Unable to load companies. Pull to refresh.
+            <View className="bg-app-white-1 px-4 py-10">
+              <Text className="text-3xl font-semibold leading-9 text-app-slate-1">
+                {companiesSectionTitle}
+              </Text>
+              <Text className="mt-2 text-base leading-6 text-app-text-5">
+                {companiesSectionDescription}
+              </Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="-mx-4 mt-6"
+                contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+              >
+                {COMPANY_SIZE_FILTERS.map((companySize) => {
+                  const active = selectedCompanySize === companySize;
+
+                  return (
+                    <TouchableOpacity
+                      key={companySize}
+                      activeOpacity={0.8}
+                      onPress={() => setSelectedCompanySize(companySize)}
+                      className={`rounded-full border px-4 py-2 ${
+                        active
+                          ? 'border-app-primary-2 bg-app-bg-selected'
+                          : 'border-app-border-1 bg-app-white-1'
+                      }`}
+                    >
+                      <Text
+                        className={`text-sm font-semibold ${
+                          active ? 'text-app-primary-2' : 'text-app-text-5'
+                        }`}
+                      >
+                        {companySize}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              <View className="mt-6 flex-row items-center gap-3">
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-app-bg-selected">
+                  <Building2 size={20} color={COLORS.primary2} />
+                </View>
+                <Text className="text-2xl font-semibold text-app-slate-1">
+                  {total} Results
                 </Text>
               </View>
-            ) : companies.length === 0 ? (
-              <View className="mt-6">
-                <EmptyState
-                  icon={Building2}
-                  title="No companies found"
-                  message={
-                    hasActiveSearch
-                      ? 'Try a different keyword or location.'
-                      : 'Clear your filters to browse all available companies.'
-                  }
-                  actionLabel="Clear Filters"
-                  onAction={() => {
-                    setLocalSearchTerm('');
-                    setLocalLocation('');
-                    setAppliedSearchTerm('');
-                    setAppliedLocation('');
-                    setSelectedCompanySize('All');
-                  }}
-                />
-              </View>
-            ) : (
-              <View className="mt-6 gap-6">
-                {companies.map((company) => (
-                  <CompanyCard
-                    key={company.id}
-                    company={company}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/pages/browse-companies/[id]',
-                        params: {
-                          id: company.id.toString(),
-                        },
-                      })
+
+              {loading && companies.length === 0 ? (
+                <View className="mt-6 gap-6">
+                  {[0, 1, 2].map((item) => (
+                    <CompanyCardSkeleton key={item} />
+                  ))}
+                </View>
+              ) : error ? (
+                <View className="mt-6 rounded-lg bg-app-tag-red-bg px-4 py-8">
+                  <Text className="text-center text-sm text-app-tag-red-text">
+                    Unable to load companies. Pull to refresh.
+                  </Text>
+                </View>
+              ) : companies.length === 0 ? (
+                <View className="mt-6">
+                  <EmptyState
+                    icon={Building2}
+                    title="No companies found"
+                    message={
+                      hasActiveSearch
+                        ? 'Try a different keyword or location.'
+                        : 'Clear your filters to browse all available companies.'
                     }
+                    actionLabel="Clear Filters"
+                    onAction={() => {
+                      setLocalSearchTerm('');
+                      setLocalLocation('');
+                      setAppliedSearchTerm('');
+                      setAppliedLocation('');
+                      setSelectedCompanySize('All');
+                    }}
                   />
-                ))}
-              </View>
-            )}
-          </View>
-        </ScrollView>
+                </View>
+              ) : (
+                <View className="mt-6 gap-6">
+                  {companies.map((company) => (
+                    <CompanyCard
+                      key={company.id}
+                      company={company}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/pages/browse-companies/[id]',
+                          params: {
+                            id: company.id.toString(),
+                          },
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </KeyboardAwareView>
 
         {totalPages > 1 && companies.length > 0 ? (
           <View

@@ -30,6 +30,7 @@ import {
   type TeamMember,
 } from './data';
 import { companyUpdateSchema, type CompanyUpdateFormData } from './schema';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useGetCompany } from '../../../../hooks/useGetCompany';
 import { useGetCompanyEmployees } from '../../../../hooks/useGetCompanyEmployees';
@@ -471,120 +472,123 @@ export default function EmployerEditCompanyPage() {
 
       {/* Main Content */}
       <View className="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-          contentContainerClassName="gap-6 px-4 py-4"
-        >
-          {/* Page Title */}
-          <View className="gap-2 mb-2">
-            <Text className="text-2xl font-bold text-slate-900">
-              Edit Company Profile
-            </Text>
-            <Text className="text-sm text-slate-600">
-              Update your company information.
-            </Text>
-          </View>
-
-          {/* Step Indicator */}
-          <View className="bg-white rounded-lg p-4 border border-slate-200">
-            <StepIndicator
-              customStyles={stepIndicatorStyles}
-              currentPosition={currentStep}
-              labels={NEW_COMPANY_STEPS.map((s) => s.label)}
-              stepCount={NEW_COMPANY_STEPS.length}
-              onPress={(position) => {
-                if (position < currentStep) {
-                  setCurrentStep(position);
-                }
-              }}
-            />
-          </View>
-
-          {/* Steps Content */}
-          <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
-            {currentStep === 0 && (
-              <BasicInfoStep
-                control={control}
-                errors={errors}
-                isValidating={isValidating}
-                logoUrl={logoUrl || null}
-                onLogoChange={(url) => setValue('logoUrl', url)}
-              />
-            )}
-
-            {currentStep === 1 && (
-              <AboutCompanyStep
-                control={control}
-                errors={errors}
-                description={companyDescription || ''}
-              />
-            )}
-
-            {currentStep === 2 && (
-              <TeamStep
-                members={teamMembers}
-                canManage={!!currentUser?.isCompanyAdmin}
-                ownerEmail={
-                  teamMembers.find(
-                    (m) => m.membershipId === currentUser?.company?.adminId
-                  )?.email ?? null
-                }
-                currentUserEmail={currentUser?.email ?? ''}
-                busy={busy}
-                removingMember={removingMember}
-                onRoleChange={handleRoleChange}
-                onRemove={handleRemovePress}
-                onConfirmRemove={handleConfirmRemove}
-                onCancelRemove={handleCancelRemove}
-                onAddMember={handleAddMember}
-                errors={errors}
-              />
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Navigation Buttons */}
-        <View
-          className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
-          style={{ paddingBottom: insets.bottom }}
-        >
-          {currentStep > 0 && (
-            <TouchableOpacity
-              onPress={handlePrev}
-              disabled={loading}
-              className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
-            >
-              <Text className="text-slate-900 font-semibold">Back</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? () => handleSubmit(onSubmit)()
-                : handleNext
-            }
-            disabled={loading}
-            className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
-              loading ? 'opacity-50' : ''
-            } ${
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? 'bg-green-600'
-                : 'bg-indigo-600'
-            }`}
+        <KeyboardAwareView className="flex-1">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="never"
+            className="flex-1"
+            contentContainerClassName="gap-6 px-4 py-4"
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text className="text-white font-semibold">
-                {currentStep === NEW_COMPANY_STEPS.length - 1
-                  ? 'Save Changes'
-                  : 'Next'}
+            {/* Page Title */}
+            <View className="gap-2 mb-2">
+              <Text className="text-2xl font-bold text-slate-900">
+                Edit Company Profile
               </Text>
+              <Text className="text-sm text-slate-600">
+                Update your company information.
+              </Text>
+            </View>
+
+            {/* Step Indicator */}
+            <View className="bg-white rounded-lg p-4 border border-slate-200">
+              <StepIndicator
+                customStyles={stepIndicatorStyles}
+                currentPosition={currentStep}
+                labels={NEW_COMPANY_STEPS.map((s) => s.label)}
+                stepCount={NEW_COMPANY_STEPS.length}
+                onPress={(position) => {
+                  if (position < currentStep) {
+                    setCurrentStep(position);
+                  }
+                }}
+              />
+            </View>
+
+            {/* Steps Content */}
+            <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
+              {currentStep === 0 && (
+                <BasicInfoStep
+                  control={control}
+                  errors={errors}
+                  isValidating={isValidating}
+                  logoUrl={logoUrl || null}
+                  onLogoChange={(url) => setValue('logoUrl', url)}
+                />
+              )}
+
+              {currentStep === 1 && (
+                <AboutCompanyStep
+                  control={control}
+                  errors={errors}
+                  description={companyDescription || ''}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <TeamStep
+                  members={teamMembers}
+                  canManage={!!currentUser?.isCompanyAdmin}
+                  ownerEmail={
+                    teamMembers.find(
+                      (m) => m.membershipId === currentUser?.company?.adminId
+                    )?.email ?? null
+                  }
+                  currentUserEmail={currentUser?.email ?? ''}
+                  busy={busy}
+                  removingMember={removingMember}
+                  onRoleChange={handleRoleChange}
+                  onRemove={handleRemovePress}
+                  onConfirmRemove={handleConfirmRemove}
+                  onCancelRemove={handleCancelRemove}
+                  onAddMember={handleAddMember}
+                  errors={errors}
+                />
+              )}
+            </View>
+          </ScrollView>
+
+          {/* Navigation Buttons */}
+          <View
+            className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
+            style={{ paddingBottom: insets.bottom }}
+          >
+            {currentStep > 0 && (
+              <TouchableOpacity
+                onPress={handlePrev}
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
+              >
+                <Text className="text-slate-900 font-semibold">Back</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <TouchableOpacity
+              onPress={
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? () => handleSubmit(onSubmit)()
+                  : handleNext
+              }
+              disabled={loading}
+              className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
+                loading ? 'opacity-50' : ''
+              } ${
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? 'bg-green-600'
+                  : 'bg-indigo-600'
+              }`}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text className="text-white font-semibold">
+                  {currentStep === NEW_COMPANY_STEPS.length - 1
+                    ? 'Save Changes'
+                    : 'Next'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareView>
       </View>
     </SafeAreaView>
   );

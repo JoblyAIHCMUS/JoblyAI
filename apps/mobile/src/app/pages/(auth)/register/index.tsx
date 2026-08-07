@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { TextInput } from '../../../components/shared/TextInput';
@@ -23,6 +17,7 @@ import { router } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { authClient } from '../../../../lib/auth-client';
 import { COLORS } from '../../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 type UserType = 'job-seeker' | 'employer';
 
@@ -228,10 +223,7 @@ const RegisterPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAwareView className="flex-1">
         <ScrollView
           className="flex-grow"
           showsVerticalScrollIndicator={false}
@@ -491,7 +483,7 @@ const RegisterPage = () => {
             </Text>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 };

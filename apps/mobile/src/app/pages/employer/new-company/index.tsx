@@ -29,6 +29,7 @@ import {
   type TeamMemberData,
   type TeamMember,
 } from './data';
+import { KeyboardDismissView } from '@/components/KeyboardDismissView';
 import {
   companyRegistrationSchema,
   type CompanyRegistrationFormData,
@@ -233,69 +234,71 @@ export default function EmployerNewCompanyPage() {
 
       {/* Main Content */}
       <View className="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-          contentContainerClassName="gap-6 px-4 py-4"
-        >
-          {/* Page Title */}
-          <View className="gap-2 mb-2">
-            <Text className="text-2xl font-bold text-slate-900">
-              Register your Company to Jobly
-            </Text>
-            <Text className="text-sm text-slate-600">
-              Company details can be updated at any time after registration.
-            </Text>
-          </View>
+        <KeyboardDismissView className="flex-1">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            className="flex-1"
+            contentContainerClassName="gap-6 px-4 py-4"
+          >
+            {/* Page Title */}
+            <View className="gap-2 mb-2">
+              <Text className="text-2xl font-bold text-slate-900">
+                Register your Company to Jobly
+              </Text>
+              <Text className="text-sm text-slate-600">
+                Company details can be updated at any time after registration.
+              </Text>
+            </View>
 
-          {/* Step Indicator */}
-          <View className="bg-white rounded-lg p-4 border border-slate-200">
-            <StepIndicator
-              customStyles={stepIndicatorStyles}
-              currentPosition={currentStep}
-              labels={NEW_COMPANY_STEPS.map((s) => s.label)}
-              stepCount={NEW_COMPANY_STEPS.length}
-              onPress={(position) => {
-                if (position < currentStep) {
-                  setCurrentStep(position);
-                }
-              }}
-            />
-          </View>
-
-          {/* Steps Content */}
-          <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
-            {currentStep === 0 && (
-              <BasicInfoStep
-                control={control}
-                errors={errors}
-                isValidating={isValidating}
-                logoUrl={logoUrl || null}
-                onLogoChange={(url) => setValue('logoUrl', url)}
+            {/* Step Indicator */}
+            <View className="bg-white rounded-lg p-4 border border-slate-200">
+              <StepIndicator
+                customStyles={stepIndicatorStyles}
+                currentPosition={currentStep}
+                labels={NEW_COMPANY_STEPS.map((s) => s.label)}
+                stepCount={NEW_COMPANY_STEPS.length}
+                onPress={(position) => {
+                  if (position < currentStep) {
+                    setCurrentStep(position);
+                  }
+                }}
               />
-            )}
+            </View>
 
-            {currentStep === 1 && (
-              <AboutCompanyStep
-                control={control}
-                errors={errors}
-                description={companyDescription || ''}
-              />
-            )}
+            {/* Steps Content */}
+            <View className="bg-white rounded-lg border border-slate-200 overflow-hidden min-h-96">
+              {currentStep === 0 && (
+                <BasicInfoStep
+                  control={control}
+                  errors={errors}
+                  isValidating={isValidating}
+                  logoUrl={logoUrl || null}
+                  onLogoChange={(url) => setValue('logoUrl', url)}
+                />
+              )}
 
-            {currentStep === 2 && (
-              <TeamStep
-                members={teamMembers}
-                canManage
-                currentUserEmail={currentUser?.email ?? ''}
-                onRoleChange={handleRoleChange}
-                onAddMember={handleAddMember}
-                onRemoveMember={handleRemoveMember}
-                errors={errors}
-              />
-            )}
-          </View>
-        </ScrollView>
+              {currentStep === 1 && (
+                <AboutCompanyStep
+                  control={control}
+                  errors={errors}
+                  description={companyDescription || ''}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <TeamStep
+                  members={teamMembers}
+                  canManage
+                  currentUserEmail={currentUser?.email ?? ''}
+                  onRoleChange={handleRoleChange}
+                  onAddMember={handleAddMember}
+                  onRemoveMember={handleRemoveMember}
+                  errors={errors}
+                />
+              )}
+            </View>
+          </ScrollView>
+        </KeyboardDismissView>
 
         {/* Navigation Buttons */}
         <View

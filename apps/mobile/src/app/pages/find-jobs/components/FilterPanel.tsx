@@ -6,7 +6,7 @@ import { COLORS } from '@/app/constants/theme';
 import type { JobCategory, EmploymentType } from '@/types/job';
 import SalaryFilter from './SalaryFilter';
 import type { SupportedCurrency } from '@/app/pages/find-jobs/constants';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <KeyboardDismissView className="flex-1" pointerEvents="box-none">
+      <KeyboardAwareView className="flex-1" pointerEvents="box-none">
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}
@@ -191,7 +191,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 };

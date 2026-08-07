@@ -17,6 +17,7 @@ import { useCandidatePreShortlist } from '../../../../hooks/useCandidatePreShort
 import { PreShortlistForm } from './components/PreShortlistForm';
 import CandidateDashboardSidebar from '@/app/components/CandidateDashboardSidebar';
 import { CandidateHeader } from '@/components/header/CandidateHeader';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 const REDIRECT_STATUSES = ['APPLIED', 'WITHDRAWN'] as const;
 const READ_ONLY_STATUSES = [
@@ -141,17 +142,19 @@ export default function PreShortlistPage() {
         initials="PS"
         onMenuPress={() => setIsSidebarOpen(true)}
       />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <PreShortlistForm
-          applicationId={id}
-          data={data}
-          readOnly={isReadOnly}
-        />
-      </ScrollView>
+      <KeyboardAwareView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <PreShortlistForm
+            applicationId={id}
+            data={data}
+            readOnly={isReadOnly}
+          />
+        </ScrollView>
+      </KeyboardAwareView>
       <CandidateDashboardSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

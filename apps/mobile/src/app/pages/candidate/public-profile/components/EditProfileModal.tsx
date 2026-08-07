@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { updateCandidateProfile } from '../../../../../api/candidate';
 import { COLORS } from '@/app/constants/theme';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 export default function EditProfileModal({
   visible,
@@ -59,7 +59,7 @@ export default function EditProfileModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardDismissView className="flex-1 items-center justify-center bg-black/40 px-6">
+      <KeyboardAwareView className="flex-1 items-center justify-center bg-black/40 px-6">
         <View className="w-full rounded-lg bg-white p-4">
           <Text className="mb-2 text-lg font-semibold">Edit Profile</Text>
 
@@ -126,7 +126,7 @@ export default function EditProfileModal({
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardDismissView>
+      </KeyboardAwareView>
     </Modal>
   );
 }

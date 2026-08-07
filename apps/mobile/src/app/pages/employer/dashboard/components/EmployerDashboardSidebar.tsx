@@ -319,33 +319,28 @@ const EmployerDashboardSidebar = ({ isOpen, onClose }: SidebarProps) => {
               {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Text>
           </TouchableOpacity>
-
-          <View className="mt-auto pb-4">
-            <View className="flex-row items-center px-4 mb-4">
-              <Avatar
-                url={employerProfile?.avatarUrl ?? null}
-                name={employerProfile?.fullName || 'User'}
-                size={56}
-              />
-              <View className="ml-4">
-                <Text
-                  className="text-[19px] font-bold"
-                  style={{ color: COLORS.darkText }}
-                >
-                  {employerProfile?.fullName || 'Loading...'}
-                </Text>
-                <Text
-                  className="text-[15px]"
-                  style={{ color: COLORS.slate500 }}
-                >
-                  {employerProfile?.email || ''}
-                </Text>
-              </View>
-            </View>
-          </View>
         </View>
 
         <View className="px-6 pb-8 pt-4">
+          <View className="flex-row items-center px-4 mb-4">
+            <Avatar
+              url={employerProfile?.avatarUrl ?? null}
+              name={employerProfile?.fullName || 'User'}
+              size={56}
+            />
+            <View className="ml-4">
+              <Text
+                className="text-[19px] font-bold"
+                style={{ color: COLORS.darkText }}
+              >
+                {employerProfile?.fullName || 'Loading...'}
+              </Text>
+              <Text className="text-[15px]" style={{ color: COLORS.slate500 }}>
+                {employerProfile?.email || ''}
+              </Text>
+            </View>
+          </View>
+
           <Link href="/pages/employer/new-job" asChild>
             <TouchableOpacity
               className="flex-row items-center justify-center rounded-xl py-4"

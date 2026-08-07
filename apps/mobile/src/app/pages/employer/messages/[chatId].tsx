@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import ChatHeader from './components/ChatHeader';
@@ -13,7 +13,8 @@ import { useChatSummary } from '../../../../hooks/messaging/useChatSummary';
 import { useEnsureSummaryLoaded } from '../../../../hooks/messaging/useEnsureSummaryLoaded';
 import { useMarkAsReadOnFocus } from '../../../../hooks/messaging/useMarkAsReadOnFocus';
 import { useSendMessage } from '../../../../hooks/messaging/useSendMessage';
-import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { withDateSeparators } from './utils';
 import { emitChatOpened, emitChatClosed } from '@/hooks/useMessagesSocket';
@@ -73,10 +74,14 @@ export default function ChatScreen() {
   //      useEffect at apps/web/src/features/employer/messages/ChatWindow.tsx:39-44)
   const listRef = useRef<FlatList>(null);
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length === 0) return;
+
+    const frame = requestAnimationFrame(() => {
       listRef.current?.scrollToEnd({ animated: true });
-    }
-  }, [messages.length]);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [messages.length, keyboardHeight]);
 
   // 4. Send
   const send = useSendMessage({
@@ -137,14 +142,7 @@ export default function ChatScreen() {
         role={summary?.participantRole ?? null}
         onBack={() => router.back()}
       />
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-        style={
-          keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined
-        }
-      >
+      <KeyboardAwareView className="flex-1" keyboardVerticalOffset={0}>
         <FlatList
           ref={listRef}
           data={messages}
@@ -160,7 +158,7 @@ export default function ChatScreen() {
           onSend={(text) => send.mutate(text)}
           disabled={send.isPending}
         />
-      </KeyboardAvoidingView>
+      </KeyboardAwareView>
     </SafeAreaView>
   );
 }

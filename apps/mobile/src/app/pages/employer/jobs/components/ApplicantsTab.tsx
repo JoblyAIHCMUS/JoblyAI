@@ -12,6 +12,7 @@ import { Search, Star, X } from 'lucide-react-native';
 import Avatar from '../../../../../components/Avatar';
 import { PipelineView } from './PipelineView';
 import { COLORS } from '../../../../constants/theme';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 export type ApplicantStatus =
   | 'In-review'
@@ -239,7 +240,7 @@ export default function ApplicantsTab({
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <KeyboardAwareView className="flex-1 bg-white">
       {activeView === 'Table' ? (
         <FlatList
           data={applicants}
@@ -296,6 +297,6 @@ export default function ApplicantsTab({
           />
         </View>
       )}
-    </View>
+    </KeyboardAwareView>
   );
 }

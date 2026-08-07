@@ -27,6 +27,7 @@ import { CandidateHeader } from '@/components/header/CandidateHeader';
 import { COLORS } from '@/app/constants/theme';
 import { ApplicationsSkeleton } from '@/components/ui/feedback';
 import * as Haptics from 'expo-haptics';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 
 type ApplicationFilterTab = 'ALL' | 'ACTIVE' | 'CLOSED';
 
@@ -265,93 +266,95 @@ export default function MyApplicationsPage() {
           initials={(profile?.firstName || 'U').slice(0, 2).toUpperCase()}
           onMenuPress={() => setIsSidebarOpen(true)}
         />
-        <FlatList
-          data={filteredApplications}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ApplicationCard
-              application={item}
-              onWithdrawn={() => setRefreshKey((k) => k + 1)}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
-          ItemSeparatorComponent={() => <View className="h-3" />}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setRefreshKey((k) => k + 1);
-              }}
-              colors={[COLORS.primary2]}
-              tintColor={COLORS.primary2}
-            />
-          }
-          ListHeaderComponent={
-            <View className="gap-4 py-4">
-              <View className="gap-2">
-                <Text className="text-[28px] font-bold leading-8 text-app-text-4">
-                  {greeting}, {firstName}
-                </Text>
-                <Text className="text-[15px] leading-6 text-app-text-5">
-                  Here&apos;s the status of your applications from{' '}
-                  {formatDateRangeLabel(appliedDateRange)}.
-                </Text>
-              </View>
-
-              <SearchFilterBar
-                searchQuery={searchQuery}
-                activeFilterCount={activeFilterCount}
-                onSearchChange={setSearchQuery}
-                onSearchSubmit={() => undefined}
-                onFilterPress={openFilterSheet}
+        <KeyboardAwareView className="flex-1">
+          <FlatList
+            data={filteredApplications}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <ApplicationCard
+                application={item}
+                onWithdrawn={() => setRefreshKey((k) => k + 1)}
               />
-
-              <ApplicationsTabs
-                activeTab={activeFilterTab}
-                counts={tabCounts}
-                onTabChange={setActiveFilterTab}
+            )}
+            showsVerticalScrollIndicator={false}
+            className="flex-1"
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+            ItemSeparatorComponent={() => <View className="h-3" />}
+            refreshControl={
+              <RefreshControl
+                refreshing={loading}
+                onRefresh={async () => {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setRefreshKey((k) => k + 1);
+                }}
+                colors={[COLORS.primary2]}
+                tintColor={COLORS.primary2}
               />
-
-              <View className="flex-row items-center justify-between pt-1">
-                <Text className="text-[22px] font-bold leading-7 text-app-text-4">
-                  Applications History
-                </Text>
-
-                <View className="rounded-full border border-app-border-light bg-app-slate-gray px-3 py-1.5">
-                  <Text className="text-[11px] font-semibold text-app-text-5">
-                    {filteredApplications.length} results
+            }
+            ListHeaderComponent={
+              <View className="gap-4 py-4">
+                <View className="gap-2">
+                  <Text className="text-[28px] font-bold leading-8 text-app-text-4">
+                    {greeting}, {firstName}
+                  </Text>
+                  <Text className="text-[15px] leading-6 text-app-text-5">
+                    Here&apos;s the status of your applications from{' '}
+                    {formatDateRangeLabel(appliedDateRange)}.
                   </Text>
                 </View>
+
+                <SearchFilterBar
+                  searchQuery={searchQuery}
+                  activeFilterCount={activeFilterCount}
+                  onSearchChange={setSearchQuery}
+                  onSearchSubmit={() => undefined}
+                  onFilterPress={openFilterSheet}
+                />
+
+                <ApplicationsTabs
+                  activeTab={activeFilterTab}
+                  counts={tabCounts}
+                  onTabChange={setActiveFilterTab}
+                />
+
+                <View className="flex-row items-center justify-between pt-1">
+                  <Text className="text-[22px] font-bold leading-7 text-app-text-4">
+                    Applications History
+                  </Text>
+
+                  <View className="rounded-full border border-app-border-light bg-app-slate-gray px-3 py-1.5">
+                    <Text className="text-[11px] font-semibold text-app-text-5">
+                      {filteredApplications.length} results
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          }
-          ListEmptyComponent={
-            loading ? (
-              <ApplicationsSkeleton />
-            ) : error ? (
-              <View className="items-center py-12">
-                <Text className="text-sm text-app-red-2">
-                  Failed to load applications. Please try again.
-                </Text>
-              </View>
-            ) : (
-              <ApplicationsEmptyState
-                activeTab={
-                  activeFilterTab === 'ACTIVE'
-                    ? 'APPLIED'
-                    : activeFilterTab === 'CLOSED'
-                    ? 'REJECTED'
-                    : 'ALL'
-                }
-                searchQuery={searchQuery}
-                onBrowseJobs={() => router.push('/pages/find-jobs')}
-              />
-            )
-          }
-        />
+            }
+            ListEmptyComponent={
+              loading ? (
+                <ApplicationsSkeleton />
+              ) : error ? (
+                <View className="items-center py-12">
+                  <Text className="text-sm text-app-red-2">
+                    Failed to load applications. Please try again.
+                  </Text>
+                </View>
+              ) : (
+                <ApplicationsEmptyState
+                  activeTab={
+                    activeFilterTab === 'ACTIVE'
+                      ? 'APPLIED'
+                      : activeFilterTab === 'CLOSED'
+                      ? 'REJECTED'
+                      : 'ALL'
+                  }
+                  searchQuery={searchQuery}
+                  onBrowseJobs={() => router.push('/pages/find-jobs')}
+                />
+              )
+            }
+          />
+        </KeyboardAwareView>
 
         <ApplicationsFilterSheet
           visible={filterVisible}
