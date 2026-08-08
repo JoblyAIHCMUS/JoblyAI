@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '../../../../constants/theme';
 import { useGetEmployerProfile } from '../../../../../hooks/useGetEmployerProfile';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { NotificationBell } from '../../../../../components/header/NotificationBell';
+import { useUnreadNotificationCount } from '../../../../../hooks/useNotifications';
 
 interface EmployerDashboardHeaderProps {
   onMenuPress?: () => void;
@@ -16,6 +17,7 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
 }) => {
   const { data: profile, isPending, error } = useGetEmployerProfile();
   const company = profile?.company;
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
     <SafeAreaView
@@ -89,7 +91,10 @@ const EmployerDashboardHeader: React.FC<EmployerDashboardHeaderProps> = ({
         </View>
 
         {/* Notification Bell Right */}
-        <NotificationBell count={9} />
+        <NotificationBell
+          count={unreadCount}
+          onPress={() => router.push('/pages/employer/notifications')}
+        />
       </View>
     </SafeAreaView>
   );

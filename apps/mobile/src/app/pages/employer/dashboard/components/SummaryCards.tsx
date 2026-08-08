@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 interface SummaryCardsProps {
   candidateCount?: number;
@@ -15,7 +16,10 @@ export const SummaryCards = ({
 }: SummaryCardsProps) => {
   return (
     <View className="px-4 gap-y-3">
-      <TouchableOpacity className="rounded-2xl p-6 flex-row items-center justify-between bg-app-primary-2">
+      <TouchableOpacity
+        className="rounded-2xl p-6 flex-row items-center justify-between bg-app-primary-2"
+        onPress={() => router.push('/pages/employer/all-applications')}
+      >
         <View className="flex-row items-center gap-x-4 flex-1">
           {loading ? (
             <ActivityIndicator color="white" size="large" />
@@ -31,7 +35,10 @@ export const SummaryCards = ({
         <MaterialIcons name="chevron-right" size={28} color="white" />
       </TouchableOpacity>
 
-      <TouchableOpacity className="rounded-2xl p-6 flex-row items-center justify-between bg-app-secondary-2">
+      <TouchableOpacity
+        className="rounded-2xl p-6 flex-row items-center justify-between bg-app-secondary-2"
+        onPress={() => router.push('/pages/employer/messages')}
+      >
         <View className="flex-row items-center gap-x-4 flex-1">
           {loading ? (
             <ActivityIndicator color="white" size="large" />
