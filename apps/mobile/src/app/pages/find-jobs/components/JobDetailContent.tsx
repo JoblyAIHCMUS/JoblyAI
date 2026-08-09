@@ -109,7 +109,7 @@ const JobDetailContent: React.FC<JobDetailContentProps> = ({ job }) => {
         </View>
 
         <View className="mb-3 flex-row items-center justify-between border-b border-app-gray-1 pb-3">
-          <Text className="text-sm text-app-gray-3">Apply Before</Text>
+          <Text className="text-sm text-app-gray-3">Last Updated</Text>
           <Text className="text-sm font-medium text-app-dark-text">
             {formatDate(job.updatedAt)}
           </Text>
