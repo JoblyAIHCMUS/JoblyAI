@@ -4,6 +4,7 @@ import { MapPin, DollarSign, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { COLORS } from '@/app/constants/theme';
 import type { JobPosting } from '@/types/job';
+import { formatCompactSalary } from '../utils';
 
 interface JobCardProps {
   job: JobPosting;
@@ -33,16 +34,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress, hasApplied }) => {
       FREELANCE: COLORS.typeFreelance,
     }[job.type] || COLORS.gray3;
 
-  const salaryRange =
-    job.salaryMin || job.salaryMax
-      ? `${job.salaryMin ? `$${(job.salaryMin / 1000).toFixed(0)}k` : ''} ${
-          job.salaryMin && job.salaryMax ? '—' : ''
-        } ${
-          job.salaryMax
-            ? `$${(job.salaryMax / 1000).toFixed(0)}k`
-            : 'Competitive'
-        }`
-      : 'Not specified';
+  const salaryRange = formatCompactSalary(
+    job.salaryMin,
+    job.salaryMax,
+    job.currency
+  );
 
   const handlePress = () => {
     if (onPress) {

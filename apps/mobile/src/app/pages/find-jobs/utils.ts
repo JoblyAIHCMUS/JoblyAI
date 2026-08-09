@@ -1,3 +1,58 @@
+const COMPACT_UNITS = [
+  { divisor: 1_000_000_000, suffix: 'B' },
+  { divisor: 1_000_000, suffix: 'M' },
+  { divisor: 1_000, suffix: 'K' },
+] as const;
+
+function formatCompactCurrencyAmount(
+  value: number,
+  currencyCode: string
+): string {
+  let unitIndex = COMPACT_UNITS.findIndex(
+    ({ divisor }) => Math.abs(value) >= divisor
+  );
+  if (unitIndex === -1) unitIndex = COMPACT_UNITS.length;
+
+  let divisor = unitIndex < COMPACT_UNITS.length
+    ? COMPACT_UNITS[unitIndex].divisor
+    : 1;
+  let suffix = unitIndex < COMPACT_UNITS.length
+    ? COMPACT_UNITS[unitIndex].suffix
+    : '';
+  let scaled = value / divisor;
+  let rounded = Math.round(scaled * 10) / 10;
+
+  while (
+    unitIndex > 0 &&
+    unitIndex < COMPACT_UNITS.length &&
+    Math.abs(rounded) >= 1000
+  ) {
+    unitIndex -= 1;
+    divisor = COMPACT_UNITS[unitIndex].divisor;
+    suffix = COMPACT_UNITS[unitIndex].suffix;
+    scaled = value / divisor;
+    rounded = Math.round(scaled * 10) / 10;
+  }
+
+  const fractionDigits = Number.isInteger(rounded) ? 0 : 1;
+
+  try {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: fractionDigits,
+    });
+    return `${formatter.format(rounded)}${suffix}`;
+  } catch {
+    const formatter = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: fractionDigits,
+    });
+    return `${formatter.format(rounded)} ${currencyCode}${suffix}`;
+  }
+}
+
 export function formatSalary(
   min: number | null,
   max: number | null,
@@ -8,7 +63,7 @@ export function formatSalary(
   const rangeMin = Math.min(salaryMin, salaryMax);
   const rangeMax = Math.max(salaryMin, salaryMax);
 
-  const currencyCode = currency ?? 'USD';
+  const currencyCode = currency?.trim().toUpperCase() || 'USD';
 
   try {
     const currencyFormatter = new Intl.NumberFormat(undefined, {
@@ -29,6 +84,26 @@ export function formatSalary(
       rangeMax
     )} ${currencyCode}`;
   }
+}
+
+export function formatCompactSalary(
+  min: number | null,
+  max: number | null,
+  currency: string | null
+): string {
+  const currencyCode = currency?.trim().toUpperCase() || 'USD';
+  const hasMin = Number.isFinite(min);
+  const hasMax = Number.isFinite(max);
+
+  if (!hasMin && !hasMax) return 'Not specified';
+  if (hasMin && !hasMax) {
+    return `${formatCompactCurrencyAmount(min as number, currencyCode)} Competitive`;
+  }
+  if (!hasMin && hasMax) {
+    return formatCompactCurrencyAmount(max as number, currencyCode);
+  }
+
+  return `${formatCompactCurrencyAmount(min as number, currencyCode)} — ${formatCompactCurrencyAmount(max as number, currencyCode)}`;
 }
 
 export function formatJobType(employmentType: string): string {
