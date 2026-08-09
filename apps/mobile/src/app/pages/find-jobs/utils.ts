@@ -13,12 +13,10 @@ function formatCompactCurrencyAmount(
   );
   if (unitIndex === -1) unitIndex = COMPACT_UNITS.length;
 
-  let divisor = unitIndex < COMPACT_UNITS.length
-    ? COMPACT_UNITS[unitIndex].divisor
-    : 1;
-  let suffix = unitIndex < COMPACT_UNITS.length
-    ? COMPACT_UNITS[unitIndex].suffix
-    : '';
+  let divisor =
+    unitIndex < COMPACT_UNITS.length ? COMPACT_UNITS[unitIndex].divisor : 1;
+  let suffix =
+    unitIndex < COMPACT_UNITS.length ? COMPACT_UNITS[unitIndex].suffix : '';
   let scaled = value / divisor;
   let rounded = Math.round(scaled * 10) / 10;
 
@@ -97,13 +95,19 @@ export function formatCompactSalary(
 
   if (!hasMin && !hasMax) return 'Not specified';
   if (hasMin && !hasMax) {
-    return `${formatCompactCurrencyAmount(min as number, currencyCode)} Competitive`;
+    return `${formatCompactCurrencyAmount(
+      min as number,
+      currencyCode
+    )} Competitive`;
   }
   if (!hasMin && hasMax) {
     return formatCompactCurrencyAmount(max as number, currencyCode);
   }
 
-  return `${formatCompactCurrencyAmount(min as number, currencyCode)} — ${formatCompactCurrencyAmount(max as number, currencyCode)}`;
+  return `${formatCompactCurrencyAmount(
+    min as number,
+    currencyCode
+  )} — ${formatCompactCurrencyAmount(max as number, currencyCode)}`;
 }
 
 export function formatJobType(employmentType: string): string {
