@@ -30,6 +30,12 @@
     }
   },
   "submit": {
+    "alpha": {
+      "android": {
+        "serviceAccountKeyPath": "@GOOGLE_SERVICE_ACCOUNT_JSON",
+        "track": "alpha"
+      }
+    },
     "production": {
       "android": {
         "serviceAccountKeyPath": "@GOOGLE_SERVICE_ACCOUNT_JSON",

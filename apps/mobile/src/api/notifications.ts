@@ -11,6 +11,17 @@ export type NotificationSettingsKey = keyof NotificationSettings;
 
 export type DevicePlatform = 'android' | 'ios';
 
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  isRead: boolean;
+  link: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
 export async function registerDevice(
   platform: DevicePlatform,
   pushToken: string
@@ -50,23 +61,30 @@ export async function updateNotificationSettings(
   return response.data;
 }
 
-export const getNotifications = async (signal?: AbortSignal) => {
-  const res = await apiClient.get('/notifications', {
+export const getNotifications = async (
+  signal?: AbortSignal
+): Promise<Notification[]> => {
+  const res = await apiClient.get<Notification[]>('/notifications', {
     signal,
   });
 
   return res.data;
 };
 
-export const getUnreadNotificationCount = async (signal?: AbortSignal) => {
-  const res = await apiClient.get('/notifications/unread-count', {
-    signal,
-  });
+export const getUnreadNotificationCount = async (
+  signal?: AbortSignal
+): Promise<number> => {
+  const res = await apiClient.get<{ count: number }>(
+    '/notifications/unread-count',
+    {
+      signal,
+    }
+  );
 
   return res.data.count;
 };
 
-export const markNotificationAsRead = async (notificationId: string) => {
+export const markNotificationAsRead = async (notificationId: number) => {
   const response = await apiClient.patch(
     `/notifications/${notificationId}/read`
   );

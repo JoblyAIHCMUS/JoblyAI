@@ -53,8 +53,10 @@ export function NotificationManager() {
 
       const route = getNotificationRoute(
         typeof data.type === 'string' ? data.type : '',
-        typeof data.resourceId === 'string' ? data.resourceId : undefined,
-        user?.role
+        data.metadata,
+        user?.role,
+        data.link,
+        data.resourceId
       );
 
       if (route) {

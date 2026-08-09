@@ -122,6 +122,7 @@ const DETAIL_THREAD_PATTERNS = [
   /^\/pages\/candidate\/pre-shortlist/,
   /^\/pages\/candidate\/pdf-viewer$/,
   // Employer sub-screens (not main tabs)
+  /^\/pages\/employer\/notifications/,
   /^\/pages\/employer\/all-applications\/[^/]+$/, // application detail only
   /^\/pages\/employer\/new-job/,
   /^\/pages\/employer\/new-company/,

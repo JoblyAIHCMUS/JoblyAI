@@ -5,7 +5,7 @@ import { COLORS } from '@/app/constants/theme';
 
 interface NotificationBellProps {
   count?: number;
-  onPress?: () => void;
+  onPress: () => void;
 }
 
 export function NotificationBell({

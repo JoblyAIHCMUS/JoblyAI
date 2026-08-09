@@ -79,7 +79,7 @@ export default function NotificationsScreen() {
       ) : (
         <FlatList
           data={notifications}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -107,8 +107,9 @@ export default function NotificationsScreen() {
                 }
                 const route = getNotificationRoute(
                   item.type,
-                  item.resourceId,
-                  user?.role
+                  item.metadata,
+                  user?.role,
+                  item.link
                 );
 
                 if (route) {
@@ -136,7 +137,7 @@ export default function NotificationsScreen() {
                   )}
                 </View>
 
-                <Text className="mt-1 text-gray-600">{item.message}</Text>
+                <Text className="mt-1 text-gray-600">{item.content}</Text>
 
                 <Text className="mt-2 text-xs text-gray-400">
                   {new Date(item.createdAt).toLocaleString()}
