@@ -5,6 +5,7 @@ import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { getCardPreviewText } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
+import { formatJobLocation } from '@/lib/formatJobLocation';
 
 export default function FeaturedJobsSection() {
   const { fetchJobs, data, loading } = useListJobs();
@@ -77,7 +78,15 @@ export default function FeaturedJobsSection() {
                       {job.title}
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
-                      {job.company.name} • {job.location}
+                      {(() => {
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
+                        return locationLabel
+                          ? `${job.company.name} • ${locationLabel}`
+                          : job.company.name;
+                      })()}
                     </p>
                     <p className="text-sm text-slate-500 mb-4 line-clamp-2">
                       {getCardPreviewText(job.description)}
@@ -128,7 +137,15 @@ export default function FeaturedJobsSection() {
                       {job.title}
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
-                      {job.company.name} • {job.location}
+                      {(() => {
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
+                        return locationLabel
+                          ? `${job.company.name} • ${locationLabel}`
+                          : job.company.name;
+                      })()}
                     </p>
                     <p className="text-sm text-slate-500 mb-4 line-clamp-2">
                       {getCardPreviewText(job.description)}

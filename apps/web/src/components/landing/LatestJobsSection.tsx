@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useListJobs } from '@/api-hook/jobs/useListJobs';
 import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
+import { formatJobLocation } from '@/lib/formatJobLocation';
 
 export default function LatestJobsSection() {
   const { fetchJobs, data, loading } = useListJobs();
@@ -72,7 +73,15 @@ export default function LatestJobsSection() {
                       {job.title}
                     </h3>
                     <p className="text-xs md:text-sm text-slate-600 mb-3">
-                      {job.company.name} • {job.location}
+                      {(() => {
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
+                        return locationLabel
+                          ? `${job.company.name} • ${locationLabel}`
+                          : job.company.name;
+                      })()}
                     </p>
                     <div className="flex gap-2 flex-wrap">
                       <span className="px-2 md:px-3 py-1 bg-teal-100 text-teal-600 text-xs font-semibold rounded-full">

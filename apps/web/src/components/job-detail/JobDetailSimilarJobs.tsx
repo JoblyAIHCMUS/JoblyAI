@@ -7,6 +7,7 @@ import { ArrowRight } from 'lucide-react';
 import { useSimilarJobs } from '@/api-hook/jobs';
 import type { JobPosting } from '@/types/job';
 import { cn } from '@/lib/utils';
+import { formatJobLocation } from '@/lib/formatJobLocation';
 import { useRole } from '@/contexts/role-context';
 
 function SimilarJobCard({ job }: { job: JobPosting }) {
@@ -19,6 +20,7 @@ function SimilarJobCard({ job }: { job: JobPosting }) {
   const [logoError, setLogoError] = useState(false);
   const companyInitial = job.company.name.charAt(0);
   const showLogoFallback = !job.company.logoUrl || logoError;
+  const locationLabel = formatJobLocation(job.location, job.remote);
 
   return (
     <Link href={jobHref} className="block">
@@ -43,7 +45,7 @@ function SimilarJobCard({ job }: { job: JobPosting }) {
             {job.title}
           </h3>
           <p className="text-sm text-slate-500 mt-0.5">
-            {job.company.name} &bull; {job.location || 'Remote'}
+            {`${job.company.name}${locationLabel ? ` • ${locationLabel}` : ''}`}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
