@@ -79,7 +79,10 @@ export default function FeaturedJobsSection() {
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
                       {(() => {
-                        const locationLabel = formatJobLocation(job.location, job.remote);
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
                         return locationLabel
                           ? `${job.company.name} • ${locationLabel}`
                           : job.company.name;
@@ -135,7 +138,10 @@ export default function FeaturedJobsSection() {
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
                       {(() => {
-                        const locationLabel = formatJobLocation(job.location, job.remote);
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
                         return locationLabel
                           ? `${job.company.name} • ${locationLabel}`
                           : job.company.name;

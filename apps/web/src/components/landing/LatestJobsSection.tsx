@@ -74,7 +74,10 @@ export default function LatestJobsSection() {
                     </h3>
                     <p className="text-xs md:text-sm text-slate-600 mb-3">
                       {(() => {
-                        const locationLabel = formatJobLocation(job.location, job.remote);
+                        const locationLabel = formatJobLocation(
+                          job.location,
+                          job.remote
+                        );
                         return locationLabel
                           ? `${job.company.name} • ${locationLabel}`
                           : job.company.name;
