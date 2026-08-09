@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Star } from 'lucide-react';
 import type { ApplicationRecord } from '@/api-client/application';
 import { JobPosting } from '@/api-client/jobs/types';
+import { formatJobLocation } from '@/lib/formatJobLocation';
 import { ViewMode } from '@/types/job';
 import { SubmitApplicationModal } from '@/components/find-jobs/submit-application-modal';
 import { PreShortlistEligibilityModal } from '@/components/find-jobs/PreShortlistEligibilityModal';
@@ -109,6 +110,7 @@ export default function JobCard({
   const canApplyRole = userRole === 'candidate';
 
   const isDisabled = !!user && (!canApplyRole || hasApplied);
+  const locationLabel = formatJobLocation(job.location, job.remote);
 
   const handleApply = () => {
     if (canApplyRole) {
@@ -226,8 +228,8 @@ export default function JobCard({
               </div>
             </div>
             <p className="body-body-1-regular mt-1 text-slate-600">
-              {job.location
-                ? `${job.company.name} - ${job.location}`
+              {locationLabel
+                ? `${job.company.name} - ${locationLabel}`
                 : job.company.name}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
