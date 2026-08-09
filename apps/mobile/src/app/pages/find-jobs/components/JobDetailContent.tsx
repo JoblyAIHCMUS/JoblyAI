@@ -88,38 +88,16 @@ const JobDetailContent: React.FC<JobDetailContentProps> = ({ job }) => {
 
   return (
     <View className="px-4 py-6">
-      {/* Description */}
-      <View className="mb-6">
-        <Text className="mb-3 text-lg font-bold text-app-dark-text">
-          Description
-        </Text>
-        {job.description ? (
-          <RenderHtml
-            contentWidth={contentWidth}
-            source={{ html: normalizeDescriptionHtml(job.description) }}
-            tagsStyles={htmlTagStyles}
-            ignoredDomTags={ignoredDomTags}
-          />
-        ) : null}
-      </View>
-
-      {/* Right column: About this role */}
+      {/* About this role */}
       <View className="mb-6 rounded-xl border border-app-gray-1 bg-white p-4">
         <Text className="mb-4 text-lg font-bold text-app-dark-text">
           About This Role
         </Text>
 
         <View className="mb-3 flex-row items-center justify-between border-b border-app-gray-1 pb-3">
-          <Text className="text-sm text-app-gray-3">Apply Before</Text>
-          <Text className="text-sm font-medium text-app-dark-text">
-            {formatDate(job.updatedAt)}
-          </Text>
-        </View>
-
-        <View className="mb-3 flex-row items-center justify-between border-b border-app-gray-1 pb-3">
-          <Text className="text-sm text-app-gray-3">Job Posted On</Text>
-          <Text className="text-sm font-medium text-app-dark-text">
-            {formatDate(job.createdAt)}
+          <Text className="text-sm text-app-gray-3">Salary</Text>
+          <Text className="text-base font-bold text-app-primary-2">
+            {formattedSalary}
           </Text>
         </View>
 
@@ -130,10 +108,17 @@ const JobDetailContent: React.FC<JobDetailContentProps> = ({ job }) => {
           </Text>
         </View>
 
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm text-app-gray-3">Salary</Text>
+        <View className="mb-3 flex-row items-center justify-between border-b border-app-gray-1 pb-3">
+          <Text className="text-sm text-app-gray-3">Last Updated</Text>
           <Text className="text-sm font-medium text-app-dark-text">
-            {formattedSalary}
+            {formatDate(job.updatedAt)}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm text-app-gray-3">Job Posted On</Text>
+          <Text className="text-sm font-medium text-app-dark-text">
+            {formatDate(job.createdAt)}
           </Text>
         </View>
       </View>
@@ -148,6 +133,21 @@ const JobDetailContent: React.FC<JobDetailContentProps> = ({ job }) => {
             {job.category.name}
           </Text>
         </View>
+      </View>
+
+      {/* Description */}
+      <View className="mb-6">
+        <Text className="mb-3 text-lg font-bold text-app-dark-text">
+          Description
+        </Text>
+        {job.description ? (
+          <RenderHtml
+            contentWidth={contentWidth}
+            source={{ html: normalizeDescriptionHtml(job.description) }}
+            tagsStyles={htmlTagStyles}
+            ignoredDomTags={ignoredDomTags}
+          />
+        ) : null}
       </View>
 
       {/* Required Skills */}
