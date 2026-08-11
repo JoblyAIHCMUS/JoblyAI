@@ -156,6 +156,11 @@ export class EmployerService {
         role: 'employer',
         banned: { not: true },
         OR: orConditions,
+        AND: [
+          {
+            OR: [{ employer: null }, { employer: { is: { companyId: null } } }],
+          },
+        ],
       },
       select: {
         id: true,

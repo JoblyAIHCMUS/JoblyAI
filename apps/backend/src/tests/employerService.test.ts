@@ -118,6 +118,14 @@ describe('EmployerService', () => {
                 },
               },
             ]),
+            AND: [
+              {
+                OR: [
+                  { employer: null },
+                  { employer: { is: { companyId: null } } },
+                ],
+              },
+            ],
           }),
           skip: 10,
           take: 5,
