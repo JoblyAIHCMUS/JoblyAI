@@ -72,11 +72,15 @@ export async function uploadFileToGcs(
   file: Blob,
   fileType: string
 ): Promise<void> {
-  await fetch(uploadUrl, {
+  const response = await fetch(uploadUrl, {
     method: 'PUT',
     headers: { 'Content-Type': fileType },
     body: file,
   });
+
+  if (!response.ok) {
+    throw new Error(`GCS upload failed with status ${response.status}`);
+  }
 }
 
 /**

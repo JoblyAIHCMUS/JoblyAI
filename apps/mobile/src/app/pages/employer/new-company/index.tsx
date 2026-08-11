@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import StepIndicator from 'react-native-step-indicator';
+import * as FileSystem from 'expo-file-system/legacy';
 import EmployerDashboardHeader from '../dashboard/components/EmployerDashboardHeader';
 import EmployerDashboardSidebar from '../dashboard/components/EmployerDashboardSidebar';
 import BasicInfoStep from './components/BasicInfoStep';
@@ -29,7 +30,7 @@ import {
   type TeamMemberData,
   type TeamMember,
 } from './data';
-import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { KeyboardAwareView } from '@/components/KeyboardAwareView';
 import {
   companyRegistrationSchema,
   type CompanyRegistrationFormData,
@@ -39,6 +40,90 @@ import { useGetEmployerProfile } from '../../../../hooks/useGetEmployerProfile';
 import { useCreateCompany } from '../../../../hooks/useCreateCompany';
 import { useAddCompanyEmployee } from '../../../../hooks/useAddCompanyEmployee';
 import type { CompanyRole } from '../../../../api/company';
+import { createUploadUrl, uploadFileToGcs } from '../../../../api/gcs';
+
+const LOCAL_LOGO_URI_PREFIXES = ['file://', 'content://', 'ph://'] as const;
+const SUPPORTED_LOGO_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/svg+xml',
+]);
+
+const isLocalLogoUri = (value: string): boolean =>
+  LOCAL_LOGO_URI_PREFIXES.some((prefix) => value.startsWith(prefix));
+
+const isHostedLogoUrl = (value: string): boolean => /^https?:\/\//i.test(value);
+
+const readLocalLogo = async (uri: string) => {
+  let readableUri = uri;
+  let temporaryUri: string | undefined;
+
+  try {
+    if (uri.startsWith('ph://')) {
+      const cacheDirectory = FileSystem.cacheDirectory;
+      if (!cacheDirectory) {
+        throw new Error('Unable to access the image cache directory');
+      }
+
+      temporaryUri = `${cacheDirectory}company-logo-${Date.now()}.upload`;
+      await FileSystem.copyAsync({ from: uri, to: temporaryUri });
+      readableUri = temporaryUri;
+    }
+
+    const response = await fetch(readableUri);
+    if (!response.ok) {
+      throw new Error(`Unable to read selected logo (${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const fileType = (blob.type || 'image/jpeg').toLowerCase();
+
+    if (!SUPPORTED_LOGO_TYPES.has(fileType)) {
+      throw new Error(
+        'Unsupported logo format. Choose a JPG, PNG, or SVG image.'
+      );
+    }
+
+    return { blob, fileType };
+  } finally {
+    if (temporaryUri) {
+      await FileSystem.deleteAsync(temporaryUri, { idempotent: true }).catch(
+        () => undefined
+      );
+    }
+  }
+};
+
+const uploadLogoIfNeeded = async (logoUrl: string | null) => {
+  if (!logoUrl) {
+    return undefined;
+  }
+
+  if (!isLocalLogoUri(logoUrl)) {
+    if (isHostedLogoUrl(logoUrl)) {
+      return logoUrl;
+    }
+
+    throw new Error('Invalid logo URL');
+  }
+
+  const { blob, fileType } = await readLocalLogo(logoUrl);
+  const extension =
+    fileType === 'image/png'
+      ? 'png'
+      : fileType === 'image/svg+xml'
+      ? 'svg'
+      : 'jpg';
+  const uploadUrlResponse = await createUploadUrl({
+    fileName: `company-logo-${Date.now()}.${extension}`,
+    fileType,
+    folder: 'logos',
+  });
+
+  await uploadFileToGcs(uploadUrlResponse.uploadUrl, blob, fileType);
+
+  return uploadUrlResponse.fileUrl;
+};
 
 export default function EmployerNewCompanyPage() {
   const router = useRouter();
@@ -92,7 +177,9 @@ export default function EmployerNewCompanyPage() {
 
   const { submitAddEmployee, loading: addingMembers } = useAddCompanyEmployee();
 
-  const loading = creatingCompany || addingMembers;
+  const [finalizing, setFinalizing] = useState(false);
+  const submitInFlightRef = useRef(false);
+  const loading = creatingCompany || addingMembers || finalizing;
   const initializedRef = useRef(false);
 
   // Initialize with current user as owner
@@ -107,6 +194,10 @@ export default function EmployerNewCompanyPage() {
   }, [currentUser]);
 
   const handleNext = async () => {
+    if (submitInFlightRef.current) {
+      return;
+    }
+
     // Validate current step
     const isValid = await trigger();
     if (isValid) {
@@ -117,6 +208,10 @@ export default function EmployerNewCompanyPage() {
   };
 
   const handlePrev = () => {
+    if (submitInFlightRef.current) {
+      return;
+    }
+
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
@@ -140,15 +235,41 @@ export default function EmployerNewCompanyPage() {
   };
 
   const onSubmit = async (data: CompanyRegistrationFormData) => {
+    if (submitInFlightRef.current) {
+      return;
+    }
+
+    submitInFlightRef.current = true;
+    setFinalizing(true);
+
     try {
-      // Prepare payload for backend
+      let logoUrl: string | undefined;
+
+      try {
+        logoUrl = await uploadLogoIfNeeded(data.logoUrl);
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Logo upload failed',
+          text2:
+            error instanceof Error
+              ? error.message
+              : 'Choose another image and try again.',
+        });
+        return;
+      }
+
+      if (logoUrl && logoUrl !== data.logoUrl) {
+        setValue('logoUrl', logoUrl, { shouldValidate: false });
+      }
+
       const payload = {
         name: data.companyName,
         websiteUrl: data.website || undefined,
         sizeRange: data.scale || undefined,
         industry: data.industry || undefined,
         description: data.companyDescription || undefined,
-        logoUrl: data.logoUrl || undefined,
+        logoUrl,
       };
 
       // Create company
@@ -199,6 +320,9 @@ export default function EmployerNewCompanyPage() {
     } catch (error) {
       // Error is handled in the onError callback of useCreateCompany
       console.error('Company registration failed:', error);
+    } finally {
+      setFinalizing(false);
+      submitInFlightRef.current = false;
     }
   };
 
@@ -234,9 +358,10 @@ export default function EmployerNewCompanyPage() {
 
       {/* Main Content */}
       <View className="flex-1">
-        <KeyboardDismissView className="flex-1">
+        <KeyboardAwareView className="flex-1">
           <ScrollView
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="never"
             className="flex-1"
             contentContainerClassName="gap-6 px-4 py-4"
           >
@@ -258,7 +383,11 @@ export default function EmployerNewCompanyPage() {
                 labels={NEW_COMPANY_STEPS.map((s) => s.label)}
                 stepCount={NEW_COMPANY_STEPS.length}
                 onPress={(position) => {
-                  if (position < currentStep) {
+                  if (
+                    !loading &&
+                    !submitInFlightRef.current &&
+                    position < currentStep
+                  ) {
                     setCurrentStep(position);
                   }
                 }}
@@ -298,49 +427,49 @@ export default function EmployerNewCompanyPage() {
               )}
             </View>
           </ScrollView>
-        </KeyboardDismissView>
 
-        {/* Navigation Buttons */}
-        <View
-          className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
-          style={{ paddingBottom: insets.bottom }}
-        >
-          {currentStep > 0 && (
-            <TouchableOpacity
-              onPress={handlePrev}
-              disabled={loading}
-              className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
-            >
-              <Text className="text-slate-900 font-semibold">Back</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? () => handleSubmit(onSubmit)()
-                : handleNext
-            }
-            disabled={loading}
-            className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
-              loading ? 'opacity-50' : ''
-            } ${
-              currentStep === NEW_COMPANY_STEPS.length - 1
-                ? 'bg-green-600'
-                : 'bg-indigo-600'
-            }`}
+          {/* Navigation Buttons */}
+          <View
+            className="border-t border-slate-200 bg-white px-4 pt-4 flex-row gap-3"
+            style={{ paddingBottom: insets.bottom }}
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text className="text-white font-semibold">
-                {currentStep === NEW_COMPANY_STEPS.length - 1
-                  ? 'Complete'
-                  : 'Next'}
-              </Text>
+            {currentStep > 0 && (
+              <TouchableOpacity
+                onPress={handlePrev}
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-lg border border-slate-300 flex items-center justify-center active:bg-slate-50 disabled:opacity-50"
+              >
+                <Text className="text-slate-900 font-semibold">Back</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <TouchableOpacity
+              onPress={
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? () => handleSubmit(onSubmit)()
+                  : handleNext
+              }
+              disabled={loading}
+              className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center active:opacity-90 ${
+                loading ? 'opacity-50' : ''
+              } ${
+                currentStep === NEW_COMPANY_STEPS.length - 1
+                  ? 'bg-green-600'
+                  : 'bg-indigo-600'
+              }`}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text className="text-white font-semibold">
+                  {currentStep === NEW_COMPANY_STEPS.length - 1
+                    ? 'Complete'
+                    : 'Next'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareView>
       </View>
     </SafeAreaView>
   );

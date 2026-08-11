@@ -41,6 +41,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           Company Logo
         </Label>
         <LogoUploader
+          currentLogoUrl={logoUrl || null}
           onValueChange={(url) => onLogoChange(url)}
           ref={logoRef}
         />
