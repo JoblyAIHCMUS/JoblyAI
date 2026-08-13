@@ -137,6 +137,7 @@ export class CompanyService {
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
+      { timeout: 60000 },
     ]);
 
     const mappedCompanies = companies.map((company) =>
@@ -383,51 +384,59 @@ export class CompanyService {
 
     try {
       // Create company and employer in a transaction
-      const company = await this.prisma.$transaction(async (tx) => {
-        // Create the company
-        const slug = await this.generateUniqueSlug(dto.name);
-        const { location, locations, locationId, locationIds, ...companyData } =
-          dto;
+      const company = await this.prisma.$transaction(
+        async (tx) => {
+          // Create the company
+          const slug = await this.generateUniqueSlug(dto.name);
+          const {
+            location,
+            locations,
+            locationId,
+            locationIds,
+            ...companyData
+          } = dto;
 
-        const newCompany = await tx.company.create({
-          data: {
-            ...companyData,
-            slug,
-            images: dto.images || [],
-            locationId: resolvedLocationId || undefined,
-            locations:
-              resolvedLocationIds.length > 0
-                ? {
-                    connect: resolvedLocationIds.map((id) => ({ id })),
-                  }
-                : undefined,
-          },
-        });
+          const newCompany = await tx.company.create({
+            data: {
+              ...companyData,
+              slug,
+              images: dto.images || [],
+              locationId: resolvedLocationId || undefined,
+              locations:
+                resolvedLocationIds.length > 0
+                  ? {
+                      connect: resolvedLocationIds.map((id) => ({ id })),
+                    }
+                  : undefined,
+            },
+          });
 
-        // Create employer record for creator
-        const employerRecord = await tx.employer.create({
-          data: {
-            companyId: newCompany.id,
-            employerId: creatorUserId,
-            role: 'admin',
-          },
-        });
+          // Create employer record for creator
+          const employerRecord = await tx.employer.create({
+            data: {
+              companyId: newCompany.id,
+              employerId: creatorUserId,
+              role: 'admin',
+            },
+          });
 
-        // Update company to set creator as admin
-        return tx.company.update({
-          where: { id: newCompany.id },
-          data: { adminId: employerRecord.id },
-          include: {
-            location: true,
-            locations: true,
-            _count: {
-              select: {
-                jobPostings: true,
+          // Update company to set creator as admin
+          return tx.company.update({
+            where: { id: newCompany.id },
+            data: { adminId: employerRecord.id },
+            include: {
+              location: true,
+              locations: true,
+              _count: {
+                select: {
+                  jobPostings: true,
+                },
               },
             },
-          },
-        });
-      });
+          });
+        },
+        { timeout: 60000 }
+      );
 
       return this.mapToCompanyResponse(company);
     } catch (error) {

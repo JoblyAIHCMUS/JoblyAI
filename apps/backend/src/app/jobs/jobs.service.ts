@@ -204,6 +204,7 @@ export class JobsService {
         take: pageSize,
         orderBy,
       }),
+      { timeout: 60000 },
     ]);
 
     const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
@@ -463,6 +464,7 @@ export class JobsService {
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
+      { timeout: 60000 },
     ]);
 
     const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));
@@ -513,6 +515,7 @@ export class JobsService {
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
+      { timeout: 60000 },
     ]);
 
     const mappedJobs = jobs.map((job) => this.mapToJobResponse(job));

@@ -263,26 +263,29 @@ export class PreShortlistService {
       seen.add(a.questionId);
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.preShortlistAnswer.deleteMany({ where: { applicationId } });
-      await tx.preShortlistAnswer.createMany({
-        data: dto.answers.map((a) => ({
-          applicationId,
-          questionId: a.questionId,
-          answer: a.answer,
-        })),
-      });
-      await tx.application.update({
-        where: { id: applicationId },
-        data: {
-          status: ApplicationStatus.PRE_SHORTLIST_SUBMITTED,
-          aiFeedback: this.mergeAiFeedback(application.aiFeedback, {
-            preShortlistStatus: 'PENDING',
-            preShortlistError: null,
-          }),
-        },
-      });
-    });
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.preShortlistAnswer.deleteMany({ where: { applicationId } });
+        await tx.preShortlistAnswer.createMany({
+          data: dto.answers.map((a) => ({
+            applicationId,
+            questionId: a.questionId,
+            answer: a.answer,
+          })),
+        });
+        await tx.application.update({
+          where: { id: applicationId },
+          data: {
+            status: ApplicationStatus.PRE_SHORTLIST_SUBMITTED,
+            aiFeedback: this.mergeAiFeedback(application.aiFeedback, {
+              preShortlistStatus: 'PENDING',
+              preShortlistError: null,
+            }),
+          },
+        });
+      },
+      { timeout: 60000 }
+    );
 
     await this.evalQueue.add(
       'evaluate-answers',
@@ -538,37 +541,40 @@ export class PreShortlistService {
     const expectedIds = new Set(expected.map((q) => q.id));
     this.assertEvaluationShape(output, expectedIds);
 
-    await this.prisma.$transaction(async (tx) => {
-      for (const ev of output.evaluations) {
-        await tx.preShortlistAnswer.update({
-          where: {
-            applicationId_questionId: {
-              applicationId,
-              questionId: ev.questionId,
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const ev of output.evaluations) {
+          await tx.preShortlistAnswer.update({
+            where: {
+              applicationId_questionId: {
+                applicationId,
+                questionId: ev.questionId,
+              },
             },
-          },
-          data: {
-            llmComment: ev.comment,
-          },
+            data: {
+              llmComment: ev.comment,
+            },
+          });
+        }
+        const application = await tx.application.findUnique({
+          where: { id: applicationId },
+          select: { aiFeedback: true },
         });
-      }
-      const application = await tx.application.findUnique({
-        where: { id: applicationId },
-        select: { aiFeedback: true },
-      });
-      const next = this.mergeAiFeedback(application?.aiFeedback, {
-        preShortlistOverall: {
-          comment: output.overall.comment,
-          suggestion: output.overall.suggestion,
-        },
-        preShortlistStatus: 'COMPLETED',
-        preShortlistError: null,
-      });
-      await tx.application.update({
-        where: { id: applicationId },
-        data: { aiFeedback: next },
-      });
-    });
+        const next = this.mergeAiFeedback(application?.aiFeedback, {
+          preShortlistOverall: {
+            comment: output.overall.comment,
+            suggestion: output.overall.suggestion,
+          },
+          preShortlistStatus: 'COMPLETED',
+          preShortlistError: null,
+        });
+        await tx.application.update({
+          where: { id: applicationId },
+          data: { aiFeedback: next },
+        });
+      },
+      { timeout: 60000 }
+    );
 
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },

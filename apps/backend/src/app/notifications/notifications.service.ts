@@ -94,7 +94,8 @@ export class NotificationsService {
     }
 
     const notifications = await this.prisma.$transaction(
-      data.map((notification) => this.createNotificationRecord(notification))
+      data.map((notification) => this.createNotificationRecord(notification)),
+      { timeout: 60000 }
     );
     const settingsByUserId = await this.getNotificationSettingsByUserId(data);
 

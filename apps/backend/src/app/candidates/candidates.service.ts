@@ -379,20 +379,23 @@ export class CandidatesService {
     };
 
     return this.prismaClient
-      .$transaction(async (tx) => {
-        const updated = await tx.education.update({
-          where: { id },
-          data,
-        });
+      .$transaction(
+        async (tx) => {
+          const updated = await tx.education.update({
+            where: { id },
+            data,
+          });
 
-        // Clear stale vector embedding
-        await tx.$executeRawUnsafe(
-          `UPDATE "Education" SET embedding = NULL WHERE id = $1`,
-          id
-        );
+          // Clear stale vector embedding
+          await tx.$executeRawUnsafe(
+            `UPDATE "Education" SET embedding = NULL WHERE id = $1`,
+            id
+          );
 
-        return updated;
-      })
+          return updated;
+        },
+        { timeout: 60000 }
+      )
       .then((updated) => {
         this.eventEmitter.emit('profile.item.updated', {
           model: 'Education',
@@ -524,23 +527,26 @@ export class CandidatesService {
     };
 
     return this.prismaClient
-      .$transaction(async (tx) => {
-        const updated = await tx.experience.update({
-          where: { id },
-          data,
-          include: {
-            location: true,
-          },
-        });
+      .$transaction(
+        async (tx) => {
+          const updated = await tx.experience.update({
+            where: { id },
+            data,
+            include: {
+              location: true,
+            },
+          });
 
-        // Clear stale vector embedding
-        await tx.$executeRawUnsafe(
-          `UPDATE "Experience" SET embedding = NULL WHERE id = $1`,
-          id
-        );
+          // Clear stale vector embedding
+          await tx.$executeRawUnsafe(
+            `UPDATE "Experience" SET embedding = NULL WHERE id = $1`,
+            id
+          );
 
-        return updated;
-      })
+          return updated;
+        },
+        { timeout: 60000 }
+      )
       .then((updated) => {
         this.eventEmitter.emit('profile.item.updated', {
           model: 'Experience',
@@ -617,6 +623,7 @@ export class CandidatesService {
         },
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          timeout: 60000,
         }
       );
 
@@ -686,6 +693,7 @@ export class CandidatesService {
           },
           data: { isDefault: false },
         }),
+        { timeout: 60000 },
       ]);
 
       return updated;
@@ -734,28 +742,31 @@ export class CandidatesService {
     const wasDefault = resume.isDefault;
 
     // Delete from database and reassign default if needed (atomic)
-    await this.prismaClient.$transaction(async (tx) => {
-      await tx.resume.delete({
-        where: {
-          id: resumeId,
-          candidateId: userId,
-        },
-      });
-
-      if (wasDefault) {
-        const nextDefault = await tx.resume.findFirst({
-          where: { candidateId: userId },
-          orderBy: { createdAt: 'desc' },
-          select: { id: true },
+    await this.prismaClient.$transaction(
+      async (tx) => {
+        await tx.resume.delete({
+          where: {
+            id: resumeId,
+            candidateId: userId,
+          },
         });
-        if (nextDefault) {
-          await tx.resume.update({
-            where: { id: nextDefault.id },
-            data: { isDefault: true },
+
+        if (wasDefault) {
+          const nextDefault = await tx.resume.findFirst({
+            where: { candidateId: userId },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true },
           });
+          if (nextDefault) {
+            await tx.resume.update({
+              where: { id: nextDefault.id },
+              data: { isDefault: true },
+            });
+          }
         }
-      }
-    });
+      },
+      { timeout: 60000 }
+    );
 
     // Emit event for cleanup (e.g. AI-sync data removal)
     // CRITICAL: Use emitAsync and await to ensure profile data is updated BEFORE returning success to frontend
@@ -802,20 +813,23 @@ export class CandidatesService {
     };
 
     return this.prismaClient
-      .$transaction(async (tx) => {
-        const updated = await tx.certificate.update({
-          where: { id },
-          data,
-        });
+      .$transaction(
+        async (tx) => {
+          const updated = await tx.certificate.update({
+            where: { id },
+            data,
+          });
 
-        // Clear stale vector embedding
-        await tx.$executeRawUnsafe(
-          `UPDATE "Certificate" SET embedding = NULL WHERE id = $1`,
-          id
-        );
+          // Clear stale vector embedding
+          await tx.$executeRawUnsafe(
+            `UPDATE "Certificate" SET embedding = NULL WHERE id = $1`,
+            id
+          );
 
-        return updated;
-      })
+          return updated;
+        },
+        { timeout: 60000 }
+      )
       .then((updated) => {
         this.eventEmitter.emit('profile.item.updated', {
           model: 'Certificate',
@@ -932,24 +946,27 @@ export class CandidatesService {
     }
 
     return this.prismaClient
-      .$transaction(async (tx) => {
-        const updated = await tx.candidateDescription.update({
-          where: { id },
-          data: {
-            ...data,
-            rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
-            rawTitles: {},
-          },
-        });
+      .$transaction(
+        async (tx) => {
+          const updated = await tx.candidateDescription.update({
+            where: { id },
+            data: {
+              ...data,
+              rawDescriptions: {}, // Manual update clears AI cache to prevent future AI overwrites
+              rawTitles: {},
+            },
+          });
 
-        // Clear stale vector embedding
-        await tx.$executeRawUnsafe(
-          `UPDATE "CandidateDescription" SET embedding = NULL WHERE id = $1`,
-          id
-        );
+          // Clear stale vector embedding
+          await tx.$executeRawUnsafe(
+            `UPDATE "CandidateDescription" SET embedding = NULL WHERE id = $1`,
+            id
+          );
 
-        return updated;
-      })
+          return updated;
+        },
+        { timeout: 60000 }
+      )
       .then((updated) => {
         this.eventEmitter.emit('profile.item.updated', {
           model: 'CandidateDescription',
@@ -1057,40 +1074,43 @@ export class CandidatesService {
 
     try {
       return this.prismaClient
-        .$transaction(async (tx) => {
-          const updatedSkill = await tx.candidateSkill.update({
-            where: { id },
-            data: {
-              sourceCvIds: [], // Manual edit clears AI source tracking
-              ...(resolvedSkillId === undefined
-                ? {}
-                : {
-                    skill: {
-                      connect: { id: resolvedSkillId },
-                    },
-                  }),
-              ...(level === undefined ? {} : { level }),
-              ...(years === undefined ? {} : { years }),
-            },
-            include: {
-              skill: true,
-            },
-          });
+        .$transaction(
+          async (tx) => {
+            const updatedSkill = await tx.candidateSkill.update({
+              where: { id },
+              data: {
+                sourceCvIds: [], // Manual edit clears AI source tracking
+                ...(resolvedSkillId === undefined
+                  ? {}
+                  : {
+                      skill: {
+                        connect: { id: resolvedSkillId },
+                      },
+                    }),
+                ...(level === undefined ? {} : { level }),
+                ...(years === undefined ? {} : { years }),
+              },
+              include: {
+                skill: true,
+              },
+            });
 
-          // Clear stale vector embedding
-          await tx.$executeRawUnsafe(
-            `UPDATE "CandidateSkill" SET embedding = NULL WHERE id = $1`,
-            id
-          );
+            // Clear stale vector embedding
+            await tx.$executeRawUnsafe(
+              `UPDATE "CandidateSkill" SET embedding = NULL WHERE id = $1`,
+              id
+            );
 
-          return {
-            id: updatedSkill.id,
-            skillId: updatedSkill.skillId,
-            title: updatedSkill.skill.name,
-            level: updatedSkill.level ?? undefined,
-            years: updatedSkill.years ?? undefined,
-          };
-        })
+            return {
+              id: updatedSkill.id,
+              skillId: updatedSkill.skillId,
+              title: updatedSkill.skill.name,
+              level: updatedSkill.level ?? undefined,
+              years: updatedSkill.years ?? undefined,
+            };
+          },
+          { timeout: 60000 }
+        )
         .then((result) => {
           this.eventEmitter.emit('profile.item.updated', {
             model: 'CandidateSkill',

@@ -76,23 +76,29 @@ export async function removePreShortlistQuestionsHandler(
       };
     }
 
-    const result = await state.prisma.$transaction(async (tx) => {
-      await tx.preShortlistQuestion.deleteMany({
-        where: { id: { in: input.questionIds } },
-      });
-      const remaining = await tx.preShortlistQuestion.findMany({
-        where: { jobId: input.jobId },
-        orderBy: { order: 'asc' },
-        select: { id: true },
-      });
-      for (let i = 0; i < remaining.length; i++) {
-        await tx.preShortlistQuestion.update({
-          where: { id: remaining[i].id },
-          data: { order: i },
+    const result = await state.prisma.$transaction(
+      async (tx) => {
+        await tx.preShortlistQuestion.deleteMany({
+          where: { id: { in: input.questionIds } },
         });
-      }
-      return { removed: input.questionIds.length, remaining: remaining.length };
-    });
+        const remaining = await tx.preShortlistQuestion.findMany({
+          where: { jobId: input.jobId },
+          orderBy: { order: 'asc' },
+          select: { id: true },
+        });
+        for (let i = 0; i < remaining.length; i++) {
+          await tx.preShortlistQuestion.update({
+            where: { id: remaining[i].id },
+            data: { order: i },
+          });
+        }
+        return {
+          removed: input.questionIds.length,
+          remaining: remaining.length,
+        };
+      },
+      { timeout: 60000 }
+    );
 
     return {
       content: [
