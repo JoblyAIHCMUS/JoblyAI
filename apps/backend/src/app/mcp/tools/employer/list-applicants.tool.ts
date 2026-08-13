@@ -72,6 +72,7 @@ export async function listApplicantsHandler(
           candidate: { select: { id: true, name: true, email: true } },
         },
       }),
+      { timeout: 60000 },
     ]);
 
     const result = {

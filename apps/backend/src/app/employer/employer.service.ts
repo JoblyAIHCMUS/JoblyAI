@@ -254,83 +254,86 @@ export class EmployerService {
     userId: string,
     updateDto: UpdateEmployerDto
   ): Promise<QueryResponseEmployerDto> {
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const userData: Record<string, string | null> = {};
-      if (updateDto.firstName !== undefined) {
-        userData.firstName = updateDto.firstName;
-      }
-      if (updateDto.lastName !== undefined) {
-        userData.lastName = updateDto.lastName;
-      }
-
-      if (Object.keys(userData).length > 0) {
-        // Read current firstName/lastName to handle partial patches. Also
-        // fetch name so we can preserve it if both new fields are empty
-        // (avoids clobbering an OAuth user's existing display name with null).
-        const currentUser = await tx.user.findUnique({
-          where: { id: userId },
-          select: { firstName: true, lastName: true, name: true },
-        });
-        if (currentUser) {
-          const nextFirst =
-            userData.firstName !== undefined
-              ? userData.firstName
-              : currentUser.firstName;
-          const nextLast =
-            userData.lastName !== undefined
-              ? userData.lastName
-              : currentUser.lastName;
-          const computed = [nextFirst, nextLast]
-            .filter(Boolean)
-            .join(' ')
-            .trim();
-          userData.name = computed || currentUser.name || null;
+    await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const userData: Record<string, string | null> = {};
+        if (updateDto.firstName !== undefined) {
+          userData.firstName = updateDto.firstName;
+        }
+        if (updateDto.lastName !== undefined) {
+          userData.lastName = updateDto.lastName;
         }
 
-        await tx.user.update({
-          where: { id: userId },
-          data: userData,
-        });
-      }
+        if (Object.keys(userData).length > 0) {
+          // Read current firstName/lastName to handle partial patches. Also
+          // fetch name so we can preserve it if both new fields are empty
+          // (avoids clobbering an OAuth user's existing display name with null).
+          const currentUser = await tx.user.findUnique({
+            where: { id: userId },
+            select: { firstName: true, lastName: true, name: true },
+          });
+          if (currentUser) {
+            const nextFirst =
+              userData.firstName !== undefined
+                ? userData.firstName
+                : currentUser.firstName;
+            const nextLast =
+              userData.lastName !== undefined
+                ? userData.lastName
+                : currentUser.lastName;
+            const computed = [nextFirst, nextLast]
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+            userData.name = computed || currentUser.name || null;
+          }
 
-      const existingEmployer = await tx.employer.findUnique({
-        where: { employerId: userId },
-        select: { id: true },
-      });
-
-      if (!existingEmployer) {
-        if (updateDto.companyId === undefined) {
-          throw new BadRequestException(
-            'companyId is required to initialize employer profile'
-          );
+          await tx.user.update({
+            where: { id: userId },
+            data: userData,
+          });
         }
 
-        await tx.employer.create({
-          data: {
-            employerId: userId,
-            companyId: updateDto.companyId,
-            role: updateDto.role ?? 'owner',
-          },
-        });
-
-        return;
-      }
-
-      const employerData: Record<string, number | string> = {};
-      if (updateDto.role !== undefined) {
-        employerData.role = updateDto.role;
-      }
-      if (updateDto.companyId !== undefined) {
-        employerData.companyId = updateDto.companyId;
-      }
-
-      if (Object.keys(employerData).length > 0) {
-        await tx.employer.update({
+        const existingEmployer = await tx.employer.findUnique({
           where: { employerId: userId },
-          data: employerData,
+          select: { id: true },
         });
-      }
-    });
+
+        if (!existingEmployer) {
+          if (updateDto.companyId === undefined) {
+            throw new BadRequestException(
+              'companyId is required to initialize employer profile'
+            );
+          }
+
+          await tx.employer.create({
+            data: {
+              employerId: userId,
+              companyId: updateDto.companyId,
+              role: updateDto.role ?? 'owner',
+            },
+          });
+
+          return;
+        }
+
+        const employerData: Record<string, number | string> = {};
+        if (updateDto.role !== undefined) {
+          employerData.role = updateDto.role;
+        }
+        if (updateDto.companyId !== undefined) {
+          employerData.companyId = updateDto.companyId;
+        }
+
+        if (Object.keys(employerData).length > 0) {
+          await tx.employer.update({
+            where: { employerId: userId },
+            data: employerData,
+          });
+        }
+      },
+      { timeout: 60000 }
+    );
 
     return this.getProfileDetails(userId);
   }

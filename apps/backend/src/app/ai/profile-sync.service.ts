@@ -186,211 +186,237 @@ export class ProfileSyncService {
       .join('\n');
     const resumeEmbedding = await this.aiProvider.generateEmbedding(resumeText);
 
-    return this.prisma.$transaction(async (tx) => {
-      // 0. Delete any existing profile items that the user explicitly removed in the sync compare draft
-      const removedMap = (data as any)?.removedExistingIds as
-        | Record<string, (string | number)[]>
-        | undefined;
+    return this.prisma.$transaction(
+      async (tx) => {
+        // 0. Delete any existing profile items that the user explicitly removed in the sync compare draft
+        const removedMap = (data as any)?.removedExistingIds as
+          | Record<string, (string | number)[]>
+          | undefined;
 
-      if (removedMap) {
-        const {
-          experience: delExp,
-          education: delEdu,
-          skills: delSkills,
-          certificates: delCert,
-          contacts: delContact,
-          socials: delSocial,
-        } = removedMap;
+        if (removedMap) {
+          const {
+            experience: delExp,
+            education: delEdu,
+            skills: delSkills,
+            certificates: delCert,
+            contacts: delContact,
+            socials: delSocial,
+          } = removedMap;
 
-        if (delExp && delExp.length > 0) {
-          const validIds = delExp.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.experience.deleteMany({
-              where: { id: { in: validIds }, candidateId },
-            });
+          if (delExp && delExp.length > 0) {
+            const validIds = delExp.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.experience.deleteMany({
+                where: { id: { in: validIds }, candidateId },
+              });
+            }
+          }
+          if (delEdu && delEdu.length > 0) {
+            const validIds = delEdu.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.education.deleteMany({
+                where: { id: { in: validIds }, candidateId },
+              });
+            }
+          }
+          if (delSkills && delSkills.length > 0) {
+            const validIds = delSkills.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.candidateSkill.deleteMany({
+                where: { skillId: { in: validIds }, candidateId },
+              });
+            }
+          }
+          if (delCert && delCert.length > 0) {
+            const validIds = delCert.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.certificate.deleteMany({
+                where: { id: { in: validIds }, candidateId },
+              });
+            }
+          }
+          if (delContact && delContact.length > 0) {
+            const validIds = delContact.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.candidateContact.deleteMany({
+                where: { id: { in: validIds }, candidateId },
+              });
+            }
+          }
+          if (delSocial && delSocial.length > 0) {
+            const validIds = delSocial.filter(
+              (id) => typeof id === 'number'
+            ) as number[];
+            if (validIds.length > 0) {
+              await tx.candidateSocial.deleteMany({
+                where: { id: { in: validIds }, candidateId },
+              });
+            }
           }
         }
-        if (delEdu && delEdu.length > 0) {
-          const validIds = delEdu.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.education.deleteMany({
-              where: { id: { in: validIds }, candidateId },
-            });
-          }
-        }
-        if (delSkills && delSkills.length > 0) {
-          const validIds = delSkills.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.candidateSkill.deleteMany({
-              where: { skillId: { in: validIds }, candidateId },
-            });
-          }
-        }
-        if (delCert && delCert.length > 0) {
-          const validIds = delCert.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.certificate.deleteMany({
-              where: { id: { in: validIds }, candidateId },
-            });
-          }
-        }
-        if (delContact && delContact.length > 0) {
-          const validIds = delContact.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.candidateContact.deleteMany({
-              where: { id: { in: validIds }, candidateId },
-            });
-          }
-        }
-        if (delSocial && delSocial.length > 0) {
-          const validIds = delSocial.filter(
-            (id) => typeof id === 'number'
-          ) as number[];
-          if (validIds.length > 0) {
-            await tx.candidateSocial.deleteMany({
-              where: { id: { in: validIds }, candidateId },
-            });
-          }
-        }
-      }
 
-      // 1.1 Update description record (Regular fields)
-      await tx.candidateDescription.upsert({
-        where: { candidateId },
-        create: {
-          candidateId,
-          title: finalTitle,
-          bio: finalBio,
-          rawDescriptions,
-          rawTitles,
-        },
-        update: {
-          title: finalTitle,
-          bio: finalBio,
-          rawDescriptions,
-          rawTitles,
-        },
-      });
-
-      // Update Bio embedding via Raw SQL for maximum stability
-      if (bioEmbedding && bioEmbedding.length > 0) {
-        const vStr = `[${bioEmbedding.join(',')}]`;
-        await tx.$executeRawUnsafe(
-          `UPDATE "CandidateDescription" SET embedding = $1::vector WHERE "candidateId" = $2`,
-          vStr,
-          candidateId
-        );
-      }
-
-      // 2. Skills
-      for (const s of skills) {
-        const skill = await tx.skill.upsert({
-          where: { name: this.normalize(s.name) },
-          create: { name: this.normalize(s.name) },
-          update: {},
-        });
-        const existing = await tx.candidateSkill.findUnique({
-          where: { candidateId_skillId: { candidateId, skillId: skill.id } },
-        });
-        const sourceCvIds = existing
-          ? [...new Set([...existing.sourceCvIds, resumeId])]
-          : [resumeId];
-        const { years, level } = await this.recalculateSkillAggregate(
-          tx,
-          sourceCvIds,
-          s.name
-        );
-
-        await tx.candidateSkill.upsert({
-          where: { candidateId_skillId: { candidateId, skillId: skill.id } },
+        // 1.1 Update description record (Regular fields)
+        await tx.candidateDescription.upsert({
+          where: { candidateId },
           create: {
             candidateId,
-            skillId: skill.id,
-            level: level as any,
-            years,
-            sourceCvIds,
+            title: finalTitle,
+            bio: finalBio,
+            rawDescriptions,
+            rawTitles,
           },
-          update: { level: level as any, years, sourceCvIds },
+          update: {
+            title: finalTitle,
+            bio: finalBio,
+            rawDescriptions,
+            rawTitles,
+          },
         });
-      }
 
-      // 3. Experience (Semantic Matching)
-      for (const e of experience) {
-        const content = `${e.companyName} | ${e.jobTitle} | ${e.description}`;
-        const embedding = await this.aiProvider.generateEmbedding(content);
+        // Update Bio embedding via Raw SQL for maximum stability
+        if (bioEmbedding && bioEmbedding.length > 0) {
+          const vStr = `[${bioEmbedding.join(',')}]`;
+          await tx.$executeRawUnsafe(
+            `UPDATE "CandidateDescription" SET embedding = $1::vector WHERE "candidateId" = $2`,
+            vStr,
+            candidateId
+          );
+        }
 
-        let existingId: number | null = null;
-        if (embedding && embedding.length > 0) {
-          try {
-            const vectorStr = `[${embedding.join(',')}]`;
-            const similar: any[] = await tx.$queryRawUnsafe(
-              `
+        // 2. Skills
+        for (const s of skills) {
+          const skill = await tx.skill.upsert({
+            where: { name: this.normalize(s.name) },
+            create: { name: this.normalize(s.name) },
+            update: {},
+          });
+          const existing = await tx.candidateSkill.findUnique({
+            where: { candidateId_skillId: { candidateId, skillId: skill.id } },
+          });
+          const sourceCvIds = existing
+            ? [...new Set([...existing.sourceCvIds, resumeId])]
+            : [resumeId];
+          const { years, level } = await this.recalculateSkillAggregate(
+            tx,
+            sourceCvIds,
+            s.name
+          );
+
+          await tx.candidateSkill.upsert({
+            where: { candidateId_skillId: { candidateId, skillId: skill.id } },
+            create: {
+              candidateId,
+              skillId: skill.id,
+              level: level as any,
+              years,
+              sourceCvIds,
+            },
+            update: { level: level as any, years, sourceCvIds },
+          });
+        }
+
+        // 3. Experience (Semantic Matching)
+        for (const e of experience) {
+          const content = `${e.companyName} | ${e.jobTitle} | ${e.description}`;
+          const embedding = await this.aiProvider.generateEmbedding(content);
+
+          let existingId: number | null = null;
+          if (embedding && embedding.length > 0) {
+            try {
+              const vectorStr = `[${embedding.join(',')}]`;
+              const similar: any[] = await tx.$queryRawUnsafe(
+                `
               SELECT id, (embedding <=> $1::vector) as distance
               FROM "Experience"
               WHERE "candidateId" = $2
               ORDER BY distance ASC
               LIMIT 1
             `,
-              vectorStr,
-              candidateId
-            );
+                vectorStr,
+                candidateId
+              );
 
-            if (similar.length > 0 && similar[0].distance < 0.15) {
-              existingId = similar[0].id;
+              if (similar.length > 0 && similar[0].distance < 0.15) {
+                existingId = similar[0].id;
+              }
+            } catch (dbError: any) {
+              this.logger.error(
+                `Error searching Experience vectors: ${dbError.message}`
+              );
             }
-          } catch (dbError: any) {
-            this.logger.error(
-              `Error searching Experience vectors: ${dbError.message}`
-            );
           }
-        }
 
-        let resolvedLocationId: string | null = null;
-        if (e.location && e.location.trim() !== '') {
-          try {
-            const locRecord = await this.locationService.getOrCreateLocation({
-              provider: 'manual',
-              providerId: e.location.trim(),
-              formattedAddress: e.location.trim(),
-              lat: 0.0,
-              lng: 0.0,
-            });
-            resolvedLocationId = locRecord.id;
-          } catch (locErr: any) {
-            this.logger.error(
-              `Failed to create manual location from resume experience: ${
-                locErr.message as string
-              }`
-            );
+          let resolvedLocationId: string | null = null;
+          if (e.location && e.location.trim() !== '') {
+            try {
+              const locRecord = await this.locationService.getOrCreateLocation({
+                provider: 'manual',
+                providerId: e.location.trim(),
+                formattedAddress: e.location.trim(),
+                lat: 0.0,
+                lng: 0.0,
+              });
+              resolvedLocationId = locRecord.id;
+            } catch (locErr: any) {
+              this.logger.error(
+                `Failed to create manual location from resume experience: ${
+                  locErr.message as string
+                }`
+              );
+            }
           }
-        }
 
-        if (existingId) {
-          const existing = await tx.experience.findUnique({
-            where: { id: existingId },
-          });
-          if (existing) {
-            await tx.experience.update({
+          if (existingId) {
+            const existing = await tx.experience.findUnique({
               where: { id: existingId },
+            });
+            if (existing) {
+              await tx.experience.update({
+                where: { id: existingId },
+                data: {
+                  jobTitle: e.jobTitle,
+                  companyName: e.companyName,
+                  description: e.description,
+                  startDate: new Date(e.startDate),
+                  endDate: e.endDate ? new Date(e.endDate) : null,
+                  type: e.type as any,
+                  locationId: resolvedLocationId,
+                  sourceCvIds: [
+                    ...new Set([...existing.sourceCvIds, resumeId]),
+                  ],
+                },
+              });
+
+              if (embedding && embedding.length > 0) {
+                await tx.$executeRawUnsafe(
+                  `UPDATE "Experience" SET embedding = $1::vector WHERE id = $2`,
+                  `[${embedding.join(',')}]`,
+                  existingId
+                );
+              }
+            }
+          } else {
+            const created = await tx.experience.create({
               data: {
-                jobTitle: e.jobTitle,
+                candidateId,
                 companyName: e.companyName,
-                description: e.description,
+                jobTitle: e.jobTitle,
+                locationId: resolvedLocationId || undefined,
                 startDate: new Date(e.startDate),
                 endDate: e.endDate ? new Date(e.endDate) : null,
-                type: e.type as any,
-                locationId: resolvedLocationId,
-                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])],
+                description: e.description || '',
+                type: (e.type || 'OTHER') as any,
+                sourceCvIds: [resumeId],
               },
             });
 
@@ -398,82 +424,84 @@ export class ProfileSyncService {
               await tx.$executeRawUnsafe(
                 `UPDATE "Experience" SET embedding = $1::vector WHERE id = $2`,
                 `[${embedding.join(',')}]`,
-                existingId
+                created.id
               );
             }
           }
-        } else {
-          const created = await tx.experience.create({
-            data: {
-              candidateId,
-              companyName: e.companyName,
-              jobTitle: e.jobTitle,
-              locationId: resolvedLocationId || undefined,
-              startDate: new Date(e.startDate),
-              endDate: e.endDate ? new Date(e.endDate) : null,
-              description: e.description || '',
-              type: (e.type || 'OTHER') as any,
-              sourceCvIds: [resumeId],
-            },
-          });
-
-          if (embedding && embedding.length > 0) {
-            await tx.$executeRawUnsafe(
-              `UPDATE "Experience" SET embedding = $1::vector WHERE id = $2`,
-              `[${embedding.join(',')}]`,
-              created.id
-            );
-          }
         }
-      }
 
-      // 4. Education (Semantic Matching)
-      for (const edu of education) {
-        const content = `${edu.school} | ${edu.degree} | ${edu.fieldOfStudy}`;
-        const embedding = await this.aiProvider.generateEmbedding(content);
+        // 4. Education (Semantic Matching)
+        for (const edu of education) {
+          const content = `${edu.school} | ${edu.degree} | ${edu.fieldOfStudy}`;
+          const embedding = await this.aiProvider.generateEmbedding(content);
 
-        let existingId: number | null = null;
-        if (embedding && embedding.length > 0) {
-          try {
-            const vectorStr = `[${embedding.join(',')}]`;
-            const similar: any[] = await tx.$queryRawUnsafe(
-              `
+          let existingId: number | null = null;
+          if (embedding && embedding.length > 0) {
+            try {
+              const vectorStr = `[${embedding.join(',')}]`;
+              const similar: any[] = await tx.$queryRawUnsafe(
+                `
               SELECT id, (embedding <=> $1::vector) as distance
               FROM "Education"
               WHERE "candidateId" = $2
               ORDER BY distance ASC
               LIMIT 1
             `,
-              vectorStr,
-              candidateId
-            );
+                vectorStr,
+                candidateId
+              );
 
-            if (similar.length > 0 && similar[0].distance < 0.1) {
-              existingId = similar[0].id;
+              if (similar.length > 0 && similar[0].distance < 0.1) {
+                existingId = similar[0].id;
+              }
+            } catch (dbError: any) {
+              this.logger.error(
+                `Error searching Education vectors: ${dbError.message}`
+              );
             }
-          } catch (dbError: any) {
-            this.logger.error(
-              `Error searching Education vectors: ${dbError.message}`
-            );
           }
-        }
 
-        if (existingId) {
-          const existing = await tx.education.findUnique({
-            where: { id: existingId },
-          });
-          if (existing) {
-            await tx.education.update({
+          if (existingId) {
+            const existing = await tx.education.findUnique({
               where: { id: existingId },
+            });
+            if (existing) {
+              await tx.education.update({
+                where: { id: existingId },
+                data: {
+                  school: edu.school,
+                  degree: edu.degree as any,
+                  fieldOfStudy: edu.fieldOfStudy,
+                  startDate: new Date(edu.startDate),
+                  endDate: edu.endDate ? new Date(edu.endDate) : null,
+                  grade: edu.grade,
+                  description: edu.description,
+                  sourceCvIds: [
+                    ...new Set([...existing.sourceCvIds, resumeId]),
+                  ],
+                },
+              });
+
+              if (embedding && embedding.length > 0) {
+                await tx.$executeRawUnsafe(
+                  `UPDATE "Education" SET embedding = $1::vector WHERE id = $2`,
+                  `[${embedding.join(',')}]`,
+                  existingId
+                );
+              }
+            }
+          } else {
+            const created = await tx.education.create({
               data: {
+                candidateId,
                 school: edu.school,
                 degree: edu.degree as any,
-                fieldOfStudy: edu.fieldOfStudy,
+                fieldOfStudy: edu.fieldOfStudy || '',
                 startDate: new Date(edu.startDate),
                 endDate: edu.endDate ? new Date(edu.endDate) : null,
-                grade: edu.grade,
-                description: edu.description,
-                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])],
+                grade: edu.grade || '',
+                description: edu.description || '',
+                sourceCvIds: [resumeId],
               },
             });
 
@@ -481,79 +509,81 @@ export class ProfileSyncService {
               await tx.$executeRawUnsafe(
                 `UPDATE "Education" SET embedding = $1::vector WHERE id = $2`,
                 `[${embedding.join(',')}]`,
-                existingId
+                created.id
               );
             }
           }
-        } else {
-          const created = await tx.education.create({
-            data: {
-              candidateId,
-              school: edu.school,
-              degree: edu.degree as any,
-              fieldOfStudy: edu.fieldOfStudy || '',
-              startDate: new Date(edu.startDate),
-              endDate: edu.endDate ? new Date(edu.endDate) : null,
-              grade: edu.grade || '',
-              description: edu.description || '',
-              sourceCvIds: [resumeId],
-            },
-          });
-
-          if (embedding && embedding.length > 0) {
-            await tx.$executeRawUnsafe(
-              `UPDATE "Education" SET embedding = $1::vector WHERE id = $2`,
-              `[${embedding.join(',')}]`,
-              created.id
-            );
-          }
         }
-      }
 
-      // 5. Certificates (Semantic Matching)
-      for (const cert of certificates) {
-        const content = `${cert.name} | ${cert.issuer}`;
-        const embedding = await this.aiProvider.generateEmbedding(content);
+        // 5. Certificates (Semantic Matching)
+        for (const cert of certificates) {
+          const content = `${cert.name} | ${cert.issuer}`;
+          const embedding = await this.aiProvider.generateEmbedding(content);
 
-        let existingId: number | null = null;
-        if (embedding && embedding.length > 0) {
-          try {
-            const vectorStr = `[${embedding.join(',')}]`;
-            const similar: any[] = await tx.$queryRawUnsafe(
-              `
+          let existingId: number | null = null;
+          if (embedding && embedding.length > 0) {
+            try {
+              const vectorStr = `[${embedding.join(',')}]`;
+              const similar: any[] = await tx.$queryRawUnsafe(
+                `
               SELECT id, (embedding <=> $1::vector) as distance
               FROM "Certificate"
               WHERE "candidateId" = $2
               ORDER BY distance ASC
               LIMIT 1
             `,
-              vectorStr,
-              candidateId
-            );
+                vectorStr,
+                candidateId
+              );
 
-            if (similar.length > 0 && similar[0].distance < 0.1) {
-              existingId = similar[0].id;
+              if (similar.length > 0 && similar[0].distance < 0.1) {
+                existingId = similar[0].id;
+              }
+            } catch (dbError: any) {
+              this.logger.error(
+                `Error searching Certificate vectors: ${dbError.message}`
+              );
             }
-          } catch (dbError: any) {
-            this.logger.error(
-              `Error searching Certificate vectors: ${dbError.message}`
-            );
           }
-        }
 
-        if (existingId) {
-          const existing = await tx.certificate.findUnique({
-            where: { id: existingId },
-          });
-          if (existing) {
-            await tx.certificate.update({
+          if (existingId) {
+            const existing = await tx.certificate.findUnique({
               where: { id: existingId },
+            });
+            if (existing) {
+              await tx.certificate.update({
+                where: { id: existingId },
+                data: {
+                  name: cert.name,
+                  issuer: cert.issuer,
+                  issueDate: new Date(cert.issueDate),
+                  expiryDate: cert.expiryDate
+                    ? new Date(cert.expiryDate)
+                    : null,
+                  sourceCvIds: [
+                    ...new Set([...existing.sourceCvIds, resumeId]),
+                  ],
+                },
+              });
+
+              if (embedding && embedding.length > 0) {
+                await tx.$executeRawUnsafe(
+                  `UPDATE "Certificate" SET embedding = $1::vector WHERE id = $2`,
+                  `[${embedding.join(',')}]`,
+                  existingId
+                );
+              }
+            }
+          } else {
+            // Destructure to remove metadata fields not present in DB
+            const { isDuplicate, matchedId, ...certData } = cert;
+            const created = await tx.certificate.create({
               data: {
-                name: cert.name,
-                issuer: cert.issuer,
+                ...certData,
+                candidateId,
+                sourceCvIds: [resumeId],
                 issueDate: new Date(cert.issueDate),
                 expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
-                sourceCvIds: [...new Set([...existing.sourceCvIds, resumeId])],
               },
             });
 
@@ -561,72 +591,53 @@ export class ProfileSyncService {
               await tx.$executeRawUnsafe(
                 `UPDATE "Certificate" SET embedding = $1::vector WHERE id = $2`,
                 `[${embedding.join(',')}]`,
-                existingId
+                created.id
               );
             }
           }
-        } else {
-          // Destructure to remove metadata fields not present in DB
-          const { isDuplicate, matchedId, ...certData } = cert;
-          const created = await tx.certificate.create({
-            data: {
-              ...certData,
-              candidateId,
-              sourceCvIds: [resumeId],
-              issueDate: new Date(cert.issueDate),
-              expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
-            },
-          });
-
-          if (embedding && embedding.length > 0) {
-            await tx.$executeRawUnsafe(
-              `UPDATE "Certificate" SET embedding = $1::vector WHERE id = $2`,
-              `[${embedding.join(',')}]`,
-              created.id
-            );
-          }
         }
-      }
 
-      // 6. Contacts & Socials (Deterministic matching)
-      await this.syncCollection(
-        tx,
-        'candidateContact',
-        data.contacts,
-        candidateId,
-        resumeId,
-        (item) => ({
-          value: { equals: item.value.trim(), mode: 'insensitive' },
-          type: item.type,
-        })
-      );
-      await this.syncCollection(
-        tx,
-        'candidateSocial',
-        data.socials,
-        candidateId,
-        resumeId,
-        (item) => ({
-          url: { equals: item.url.trim(), mode: 'insensitive' },
-          platform: item.platform,
-        })
-      );
-
-      await tx.resume.update({
-        where: { id: resumeId },
-        data: { isSyncedToProfile: true, parsedText: JSON.stringify(data) },
-      });
-
-      if (resumeEmbedding && resumeEmbedding.length > 0) {
-        await tx.$executeRawUnsafe(
-          `UPDATE resume SET embedding = $1::vector WHERE id = $2`,
-          `[${resumeEmbedding.join(',')}]`,
-          resumeId
+        // 6. Contacts & Socials (Deterministic matching)
+        await this.syncCollection(
+          tx,
+          'candidateContact',
+          data.contacts,
+          candidateId,
+          resumeId,
+          (item) => ({
+            value: { equals: item.value.trim(), mode: 'insensitive' },
+            type: item.type,
+          })
         );
-      }
+        await this.syncCollection(
+          tx,
+          'candidateSocial',
+          data.socials,
+          candidateId,
+          resumeId,
+          (item) => ({
+            url: { equals: item.url.trim(), mode: 'insensitive' },
+            platform: item.platform,
+          })
+        );
 
-      return { success: true };
-    });
+        await tx.resume.update({
+          where: { id: resumeId },
+          data: { isSyncedToProfile: true, parsedText: JSON.stringify(data) },
+        });
+
+        if (resumeEmbedding && resumeEmbedding.length > 0) {
+          await tx.$executeRawUnsafe(
+            `UPDATE resume SET embedding = $1::vector WHERE id = $2`,
+            `[${resumeEmbedding.join(',')}]`,
+            resumeId
+          );
+        }
+
+        return { success: true };
+      },
+      { timeout: 60000 }
+    );
   }
 
   private async syncCollection(
@@ -1001,109 +1012,112 @@ export class ProfileSyncService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const models = [
-        'candidateSkill',
-        'experience',
-        'education',
-        'candidateContact',
-        'candidateSocial',
-        'certificate',
-      ];
-      for (const model of models) {
-        const records = await (tx as any)[model].findMany({
-          where: { candidateId, sourceCvIds: { has: resumeId } },
-        });
-        for (const record of records) {
-          const remainingIds = record.sourceCvIds.filter(
-            (id: number) => id !== resumeId
-          );
+    return this.prisma.$transaction(
+      async (tx) => {
+        const models = [
+          'candidateSkill',
+          'experience',
+          'education',
+          'candidateContact',
+          'candidateSocial',
+          'certificate',
+        ];
+        for (const model of models) {
+          const records = await (tx as any)[model].findMany({
+            where: { candidateId, sourceCvIds: { has: resumeId } },
+          });
+          for (const record of records) {
+            const remainingIds = record.sourceCvIds.filter(
+              (id: number) => id !== resumeId
+            );
 
-          if (shouldKeepData) {
-            await (tx as any)[model].update({
-              where: { id: record.id },
-              data: { sourceCvIds: remainingIds },
-            });
-          } else {
-            if (remainingIds.length === 0) {
-              await (tx as any)[model].delete({ where: { id: record.id } });
-            } else {
-              let updateData: any = { sourceCvIds: remainingIds };
-              if (model === 'candidateSkill') {
-                const skill = await tx.skill.findUnique({
-                  where: { id: record.skillId },
-                });
-                const { years, level } = await this.recalculateSkillAggregate(
-                  tx,
-                  remainingIds,
-                  skill?.name || ''
-                );
-                updateData = { ...updateData, years, level };
-              } else if (
-                model === 'experience' ||
-                model === 'education' ||
-                model === 'certificate'
-              ) {
-                const bestData = await this.getBestRecordFromSources(
-                  tx,
-                  model,
-                  remainingIds,
-                  record
-                );
-                updateData = { ...updateData, ...bestData };
-              }
+            if (shouldKeepData) {
               await (tx as any)[model].update({
                 where: { id: record.id },
-                data: updateData,
+                data: { sourceCvIds: remainingIds },
               });
+            } else {
+              if (remainingIds.length === 0) {
+                await (tx as any)[model].delete({ where: { id: record.id } });
+              } else {
+                let updateData: any = { sourceCvIds: remainingIds };
+                if (model === 'candidateSkill') {
+                  const skill = await tx.skill.findUnique({
+                    where: { id: record.skillId },
+                  });
+                  const { years, level } = await this.recalculateSkillAggregate(
+                    tx,
+                    remainingIds,
+                    skill?.name || ''
+                  );
+                  updateData = { ...updateData, years, level };
+                } else if (
+                  model === 'experience' ||
+                  model === 'education' ||
+                  model === 'certificate'
+                ) {
+                  const bestData = await this.getBestRecordFromSources(
+                    tx,
+                    model,
+                    remainingIds,
+                    record
+                  );
+                  updateData = { ...updateData, ...bestData };
+                }
+                await (tx as any)[model].update({
+                  where: { id: record.id },
+                  data: updateData,
+                });
+              }
             }
           }
         }
-      }
 
-      // Bio & Title Cleanup (only if PURGING)
-      if (!shouldKeepData) {
-        if (shouldClearEntirely) {
-          this.logger.log(
-            `[handleResumeDeletion] Performing TOTAL RESET via Raw SQL for candidate ${candidateId}`
-          );
-          // Definitive clear including vector embedding
-          await tx.$executeRawUnsafe(
-            `UPDATE "CandidateDescription" 
+        // Bio & Title Cleanup (only if PURGING)
+        if (!shouldKeepData) {
+          if (shouldClearEntirely) {
+            this.logger.log(
+              `[handleResumeDeletion] Performing TOTAL RESET via Raw SQL for candidate ${candidateId}`
+            );
+            // Definitive clear including vector embedding
+            await tx.$executeRawUnsafe(
+              `UPDATE "CandidateDescription" 
              SET bio = '', title = '', embedding = NULL, "rawDescriptions" = '{}'::jsonb, "rawTitles" = '{}'::jsonb 
              WHERE "candidateId" = $1`,
-            candidateId
-          );
-        } else if (Object.keys(updatedRawDescriptions).length > 0) {
-          this.logger.log(
-            `[handleResumeDeletion] Updating CandidateDescription with ${
-              Object.keys(updatedRawDescriptions).length
-            } sources.`
-          );
-          await tx.candidateDescription.upsert({
-            where: { candidateId },
-            create: {
-              candidateId,
-              rawDescriptions: updatedRawDescriptions,
-              rawTitles: updatedRawTitles,
-              bio: finalBio,
-              title: finalTitle,
-            },
-            update: {
-              rawDescriptions: updatedRawDescriptions,
-              rawTitles: updatedRawTitles,
-              bio: finalBio,
-              title: finalTitle,
-            },
-          });
+              candidateId
+            );
+          } else if (Object.keys(updatedRawDescriptions).length > 0) {
+            this.logger.log(
+              `[handleResumeDeletion] Updating CandidateDescription with ${
+                Object.keys(updatedRawDescriptions).length
+              } sources.`
+            );
+            await tx.candidateDescription.upsert({
+              where: { candidateId },
+              create: {
+                candidateId,
+                rawDescriptions: updatedRawDescriptions,
+                rawTitles: updatedRawTitles,
+                bio: finalBio,
+                title: finalTitle,
+              },
+              update: {
+                rawDescriptions: updatedRawDescriptions,
+                rawTitles: updatedRawTitles,
+                bio: finalBio,
+                title: finalTitle,
+              },
+            });
+          }
         }
-      }
 
-      this.logger.log(
-        `[handleResumeDeletion] Finished successfully for resume ${resumeId}`
-      );
-      return { success: true };
-    });
+        this.logger.log(
+          `[handleResumeDeletion] Finished successfully for resume ${resumeId}`
+        );
+        return { success: true };
+      },
+      { timeout: 60000 }
+    );
   }
 
   private async getBestRecordFromSources(

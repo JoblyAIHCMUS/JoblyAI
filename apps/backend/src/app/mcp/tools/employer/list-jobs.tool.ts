@@ -32,6 +32,7 @@ export async function listJobsHandler(state: McpState, rawInput: unknown) {
         take: pageSize,
         orderBy: { createdAt: 'desc' },
       }),
+      { timeout: 60000 },
     ]);
 
     const result = {
